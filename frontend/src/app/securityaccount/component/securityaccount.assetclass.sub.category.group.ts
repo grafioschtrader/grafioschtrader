@@ -1,0 +1,32 @@
+import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dynamic';
+import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TranslateService} from '@ngx-translate/core';
+import {Security} from '../../entities/security';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {Assetclass} from '../../entities/assetclass';
+
+/**
+ * Group by sub category of asset class
+ */
+export class SecurityaccountAssetclassSubCategoryGroup extends SecurityaccountGroupBaseDynamic<string> {
+
+  private readonly language: string;
+
+  constructor(globalparameterService: GlobalparameterService,
+              translateService: TranslateService,
+              datatableConfigBase: TableConfigBase) {
+
+    super(translateService, datatableConfigBase, 'subcategorynls', 'security.assetClass.subCategoryNLS.map.'
+      + globalparameterService.getUserLang(), 'GROUP_BY_SUB_CATEGORY');
+    this.language = globalparameterService.getUserLang();
+  }
+
+  public getGroupValue(security: Security) {
+    return security.assetClass.subCategoryNLS.map[this.language];
+  }
+
+  protected getGroupFieldAsString(value: string): string {
+    return value;
+  }
+
+}

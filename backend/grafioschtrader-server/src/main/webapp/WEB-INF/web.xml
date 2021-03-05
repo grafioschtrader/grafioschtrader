@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Good old fashion web.xml is used to configure the webapp. When the web 
+	server (e.g. Tomcat or Jetty) starts up, it will read this file to determine 
+	which URLs to map to where, etc. In our case most of this work is going to 
+	be taken care of by SpringMVC so we simply have to tell the web server to 
+	delegate everything through to it. -->
+
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	version="2.5">
+
+	<!-- first we define our servlet - this will automatically load 'rest-app-servlet.xml' 
+		and wire everything up -->
+	<servlet>
+		<servlet-name>rest-app</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<!-- then we expose our servlet - we could use a more specific URL pattern, 
+		but for ease we just map everything -->
+	<servlet-mapping>
+		<servlet-name>rest-app</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+</web-app>

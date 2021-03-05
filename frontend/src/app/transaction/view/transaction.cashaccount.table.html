@@ -1,0 +1,92 @@
+<div #cmDiv class="data-container" (click)="onComponentClick($event)"
+     [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+  <div class="datatable  nestedtable">
+    <p-table #table [columns]="fields" [value]="cashaccountTransactionPositions" selectionMode="single"
+             [(selection)]="pageFirstRowSelectedRow.selectedRow" [first]="pageFirstRowSelectedRow.topPageRow"
+             (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+             (onPage)="onPage($event)" dataKey="idTransaction" [paginator]="true" [rows]="50" [rowsPerPageOptions]="[20,30,50,100]"
+             (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+      <ng-template pTemplate="header" let-fields>
+        <tr>
+          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
+            {{field.headerTranslated}}
+            <p-sortIcon [field]="field.field"></p-sortIcon>
+          </th>
+        </tr>
+        <tr *ngIf="hasFilter">
+          <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
+            <ng-container *ngSwitchCase="FilterType.likeDataType">
+              <ng-container [ngSwitch]="field.dataType">
+                <p-calendar #cal *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
+                              ? field.dataType : ''" appendTo="body"
+                            [dateFormat]="baseLocale.dateFormat"
+                            (onInput)="dateInputFilter($event, field, table, cal)"
+                            (onSelect)="filterDate($event, field, table)">
+                </p-calendar>
+                <input *ngSwitchCase="DataType.Numeric" (input)="filterDecimal($event, field, table)"
+                       step="0.01" lang="de-DE" type="number">
+              </ng-container>
+            </ng-container>
+            <ng-container *ngSwitchCase="FilterType.withOptions">
+              <p-dropdown [options]="field.filterValues" [style]="{'width':'100%'}"
+                          (onChange)="table.filter($event.value, field.field, 'equals')"></p-dropdown>
+            </ng-container>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-el let-columns="fields">
+        <tr [pContextMenuRow]="el" [pSelectableRow]="el">
+          <ng-container *ngFor="let field of fields">
+
+            <td *ngIf="field.visible" [style.width.px]="field.width"
+                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
+              <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'greenRed'">
+                  <span [style.color]='isValueByPathMinus(el, field)? "red": "inherit"' [pTooltip]="getValueByPath(el, field)"
+                        tooltipPosition="top">
+                    {{getValueByPath(el, field)}}
+                  </span>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
+                </ng-container>
+              </ng-container>
+            </td>
+          </ng-container>
+        </tr>
+      </ng-template>
+
+    </p-table>
+    <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length > 0" #cm [target]="cmDiv"
+                   [model]="contextMenuItems" appendTo="body">
+    </p-contextMenu>
+  </div>
+</div>
+
+<transaction-security-edit *ngIf="visibleSecurityTransactionDialog"
+                           [transactionCallParam]="transactionCallParam"
+                           [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
+                           (closeDialog)="handleCloseTransactionDialog($event)">
+</transaction-security-edit>
+
+
+<transaction-cashaccount-editsingle *ngIf="visibleCashaccountTransactionSingleDialog"
+                                    [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog"
+                                    [transactionCallParam]="transactionCallParam"
+                                    (closeDialog)="handleCloseTransactionDialog($event)">
+</transaction-cashaccount-editsingle>
+
+<transaction-cashaccount-editdouble *ngIf="visibleCashaccountTransactionDoubleDialog"
+                                    [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog"
+                                    [transactionCallParam]="transactionCallParam"
+                                    (closeDialog)="handleCloseTransactionDialog($event)">
+</transaction-cashaccount-editdouble>
+
+<transaction-cashaccount-connect-debit-credit *ngIf="visibleConnectDebitCreditDialog"
+                                              [visibleDialog]="visibleConnectDebitCreditDialog"
+                                              [transactionCallParam]="transactionCallParam"
+                                              (closeDialog)="handleCloseTransactionDialog($event)">
+</transaction-cashaccount-connect-debit-credit>
+

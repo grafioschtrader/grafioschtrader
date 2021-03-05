@@ -1,0 +1,19 @@
+Auftragsnummer AUF012239999
+Auftragsdatum 15.01.2021
+Thun, 15.01.2021 Transaktion ohne Beratung
+Börsenabrechnung - Kauf
+Wir haben für Sie am 15.01.2021 gekauft.
+Börsenplatz: BME Bolsas y Mercados Espanoles - Renta Variable
+Anteile -Dist-
+Multi Units France Sicav
+- Lyxor IBEX 35 (DR) UCITS ETF
+Valor: 2356177
+ISIN: FR0010251744
+250 zu EUR 82.00  15:10:05
+Total Kurswert EUR -20'500.00
+Eidg. Umsatzabgabe EUR -30.75
+Courtage EUR -37.18
+Netto EUR -20'567.93
+Unsere Belastung erfolgt auf das Konto 16 1.999.999.99
+Die Titel legen wir in das Depot 80 1.999.999.99
+Valuta: 19.01.2021

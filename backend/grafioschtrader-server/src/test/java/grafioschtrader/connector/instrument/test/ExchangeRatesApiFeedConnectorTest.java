@@ -1,0 +1,52 @@
+package grafioschtrader.connector.instrument.test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import grafioschtrader.connector.instrument.exchangeratesapi.ExchangeRatesApiFeedConnector;
+import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Historyquote;
+import grafioschtrader.test.start.GTforTest;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = GTforTest.class)
+class ExchangeRatesApiFeedConnectorTest {
+
+  @Autowired
+  ExchangeRatesApiFeedConnector exchangeRatesApiFeedConnector;
+
+  @Test
+  void getEodCurrencyHistoryTest() {
+    final LocalDate from = LocalDate.parse("2000-01-01");
+    final LocalDate to = LocalDate.parse("2021-02-12");
+    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+
+    final List<Currencypair> currencies = new ArrayList<>();
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "SEK"));
+
+    currencies.parallelStream().forEach(currencyPair -> {
+      List<Historyquote> historyquote = new ArrayList<>();
+      try {
+        historyquote = exchangeRatesApiFeedConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      System.out.println(historyquote.size());
+      assertThat(historyquote.size()).isGreaterThan(5400);
+    });
+  }
+}

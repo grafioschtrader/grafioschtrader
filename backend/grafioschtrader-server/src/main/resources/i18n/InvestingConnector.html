@@ -1,0 +1,30 @@
+[historical] First find the appropriate instrument (currency, ETF, CFD,
+etc.) at
+<a target="_blank" href="https://www.investing.com/">Investing</a>
+.
+<br>
+Then click "Historical Data", e.g.
+<a target="_blank"
+	href="//www.investing.com/indices/us-spx-500-historical-data">S&P
+	500 (SPX)</a>
+<br>
+To determine the two values
+<b>curr_id</b>
+,
+<b>smlID</b>
+the network of developer tools must be activated in the web browser.
+<br>
+Entering a date range will trigger an XHR request
+ttps://www.investing.com/instruments/HistoricalDataAjax.
+</br>
+Under "Form Data"
+<b>curr_id</b>
+and
+<b>smlID</b>
+can be read, for example curr_id: 166 and smlID: 2030167 for the S&P
+500.
+</br>
+. After flying the URL of the instrument, curr_id and smlID can be
+entered separated by commas, e.g. "indices/us-spx-500,166,2030167 for
+the S&P 500".
+</br>

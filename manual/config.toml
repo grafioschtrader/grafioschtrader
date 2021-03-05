@@ -1,0 +1,42 @@
+baseURL = "//grafioschtrader.info/manual"
+languageCode = "de-de"
+title = "Grafioschtrader"
+theme = "hugo-theme-learn"
+
+defaultContentLanguage = "de"
+defaultContentLanguageInSubdir= true
+
+
+[params]
+showVisitedLinks = false
+themeVariant = "grafioschtrader"
+disableLanguageSwitchingButton = false
+disableLandingPageButton = true
+
+[outputs]
+home = [ "HTML", "RSS", "JSON"]
+
+[Languages]
+    [Languages.de]
+        title = "Bedienungsanleitung Grafioschtrader"
+        weight = 1
+        languageName = "Deutsch"
+
+    [Languages.en]
+        title = "User manual Grafioschtrader"
+        weight = 2
+        languageName = "English"
+
+[markup]
+  [markup.highlight]
+    anchorLineNos = false
+    codeFences = true
+    guessSyntax = false
+    hl_Lines = ""
+    lineAnchors = ""
+    lineNoStart = 1
+    lineNos = false
+    lineNumbersInTable = true
+    noClasses = true
+    style = "monokailight"
+    tabWidth = 4

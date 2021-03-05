@@ -1,0 +1,33 @@
+<div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
+     #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
+  <p-panel>
+    <p-header *ngIf="titleKey">
+      <h4>{{titleKey | translate}}</h4>
+    </p-header>
+    <label class="small-padding control-label" for="idYearSelect">{{'YEAR' | translate}}</label>
+    <p-dropdown id="idYearSelect" [options]="possibleYears" [(ngModel)]="selectedYear"
+                [disabled]="addRemoveDaysMap.size > 0"
+                (onChange)="yearChanged($event)">
+    </p-dropdown>
+    <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [value]="yearCalendarData"
+                             (onDaySelect)="onDaySelect($event)"></ng-fullyearcalendar-lib>
+    <p-footer>
+      <div class="ui-dialog-buttonpane ui-widget-content flexRight">
+        <button pButton class="btn" (click)="addMinusYear(-1)" label="{{yearCalendarData.year-1}}"
+                icon="pi pi-angle-left" *ngIf="containsYear(yearCalendarData.year - 1)"
+                [disabled]="addRemoveDaysMap.size > 0">
+        </button>
+        <button pButton class="btn" (click)="addMinusYear(1)" label="{{yearCalendarData.year+1}}" iconPos="right"
+                icon="pi pi-angle-right" *ngIf="containsYear(yearCalendarData.year + 1)"
+                [disabled]="addRemoveDaysMap.size > 0">
+        </button>
+        <button *ngIf="hasRightsToModify()" pButton class="btn" (click)="submit()" label="{{'SAVE' | translate }}"
+                iconPos="right" [disabled]="addRemoveDaysMap.size === 0">
+        </button>
+      </div>
+    </p-footer>
+  </p-panel>
+  <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length > 0" #contextMenu [model]="contextMenuItems"
+                 [target]="cmDiv" appendTo="body">
+  </p-contextMenu>
+</div>

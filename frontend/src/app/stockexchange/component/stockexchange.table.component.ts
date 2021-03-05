@@ -1,0 +1,154 @@
+import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {TranslateService} from '@ngx-translate/core';
+import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {DataType} from '../../dynamic-form/models/data.type';
+import {StockexchangeService} from '../service/stockexchange.service';
+import {Stockexchange} from '../../entities/stockexchange';
+import {combineLatest} from 'rxjs';
+import {MessageToastService} from '../../shared/message/message.toast.service';
+import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {HelpIds} from '../../shared/help/help.ids';
+import {plainToClass} from 'class-transformer';
+import {StockexchangeCallParam} from './stockexchange.call.param';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ConfirmationService} from 'primeng/api';
+import {DialogService} from 'primeng/dynamicdialog';
+import {ColumnConfig} from '../../shared/datashowbase/column.config';
+
+@Component({
+  template: `
+    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
+         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+      <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
+               (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+               [dataKey]="entityKeyName" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+        <ng-template pTemplate="caption">
+          <h4>{{entityNameUpper | translate}}</h4>
+        </ng-template>
+        <ng-template pTemplate="header" let-fields>
+          <tr>
+            <th style="width:24px"></th>
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field">
+              {{field.headerTranslated}}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+          <tr [pSelectableRow]="el">
+            <td>
+              <a *ngIf="!el.noMarketValue" href="#" [pRowToggler]="el">
+                <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+              </a>
+            </td>
+            <td *ngFor="let field of fields">
+              <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'check'">
+                  <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  {{getValueByPath(el, field)}}
+                </ng-container>
+              </ng-container>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="rowexpansion" let-stockexchange let-columns="fields">
+          <tr>
+            <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
+              <trading-calendar-stockexchange [stockexchange]="stockexchange"
+                                              [sourceCopyStockexchanges]="getCopySourceStockexchanges(stockexchange.idStockexchange)">
+              </trading-calendar-stockexchange>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+      <p-contextMenu *ngIf="contextMenuItems && isActivated()" [target]="cmDiv" [model]="contextMenuItems"
+                     appendTo="body"></p-contextMenu>
+    </div>
+
+    <stockexchange-edit *ngIf="visibleDialog" [visibleDialog]="visibleDialog"
+                        [callParam]="callParam"
+                        (closeDialog)="handleCloseDialog($event)">
+    </stockexchange-edit>
+  `,
+  providers: [DialogService]
+})
+export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexchange> implements OnDestroy {
+
+  callParam: StockexchangeCallParam = new StockexchangeCallParam();
+
+  private countriesAsHtmlOptions: ValueKeyHtmlSelectOptions[];
+  private countriesAsKeyValue: { [key: string]: string } = {};
+
+  constructor(private stockexchangeService: StockexchangeService,
+              confirmationService: ConfirmationService,
+              messageToastService: MessageToastService,
+              activePanelService: ActivePanelService,
+              dialogService: DialogService,
+              changeDetectionStrategy: ChangeDetectorRef,
+              translateService: TranslateService,
+              globalparameterService: GlobalparameterService,
+              usersettingsService: UserSettingsService) {
+    super('Stockexchange', stockexchangeService, confirmationService, messageToastService, activePanelService,
+      dialogService, changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+
+    this.addColumnFeqH(DataType.String, 'name', true, false, {width: 200});
+    this.addColumnFeqH(DataType.String, 'countryCode', true, false,
+      {fieldValueFN: this.getDisplayNameForCounty.bind(this)});
+    this.addColumnFeqH(DataType.String, 'symbol', true, false);
+    this.addColumnFeqH(DataType.Boolean, 'secondaryMarket', true, false,
+      {templateName: 'check'});
+    this.addColumnFeqH(DataType.Boolean, 'noMarketValue', true, false,
+      {templateName: 'check'});
+    this.addColumn(DataType.TimeString, 'timeClose', 'STOCKEXCHANGE_CLOSE', true, false);
+    this.addColumnFeqH(DataType.String, 'timeZone', true, false);
+    this.multiSortMeta.push({field: 'name', order: 1});
+    this.prepareTableAndTranslate();
+  }
+
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_BASEDATA_STOCKEXCHANGE;
+  }
+
+  getDisplayNameForCounty(dataobject: any, field: ColumnConfig, valueField: any): string {
+    return this.countriesAsKeyValue[dataobject['countryCode']];
+  }
+
+  onComponentClick(event): void {
+    if (!event[this.consumedGT]) {
+      this.resetMenu(this.selectedEntity);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.activePanelService.destroyPanel(this);
+  }
+
+  protected readData(): void {
+    combineLatest([this.stockexchangeService.getAllStockexchanges(),
+      this.stockexchangeService.stockexchangesHasSecurity(), this.globalparameterService.getCountries()]).subscribe(data => {
+      this.entityList = plainToClass(Stockexchange, data[0]);
+      data[1].forEach(keyvalue => this.hasSecurityObject[keyvalue.id] = keyvalue.s);
+      this.callParam.countriesAsHtmlOptions = data[2];
+      data[2].forEach(o => {
+        this.countriesAsKeyValue.key = <string>o.key;
+        this.countriesAsKeyValue[o.key] = o.value;
+      });
+      this.refreshSelectedEntity();
+    });
+  }
+
+  protected prepareCallParm(entity: Stockexchange) {
+    this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
+    this.callParam.stockexchange = entity;
+  }
+
+  getCopySourceStockexchanges(targetIdStockexchange: number): ValueKeyHtmlSelectOptions[] {
+    const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
+    return this.entityList.filter(stockexhange => !stockexhange.noMarketValue
+      && targetIdStockexchange !== stockexhange.idStockexchange)
+      .map(stockexchange => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
+  }
+}

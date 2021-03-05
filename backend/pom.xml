@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+<!--
+    The main parent project definition for the entire application (server and client). This defines the modules that
+    make up the project so that they can be built as one (and opened as a single project in an IDE). This top level
+    POM does not provide any build steps itself but is just an aggregator of the modules.
+-->
+		
+    <groupId>grafioschtrader</groupId>
+    <artifactId>grafioschtrader</artifactId>
+	<packaging>pom</packaging>
+	
+	<version>0.10.0</version>
+	
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.4.3</version>
+		<relativePath/>
+	</parent>
+	
+	
+
+    <!-- organisation is needed by the JavaFX plugin but we define it here for general use -->
+    <organization>
+        <name>grafioschtrader</name>
+    </organization>
+
+    <!-- define the common properties used throughout the modules - allows us to keep things consistent -->
+    
+
+	<properties>
+
+    </properties>
+
+    <!-- define the sub-modules - Maven will work out the build order based on their inter-dependencies -->
+	<modules>
+		<module>grafioschtrader-common</module>
+		<module>grafioschtrader-server</module>
+	</modules>
+	
+</project>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is the main configuration file for the server side Spring setup, 
+	which mostly is about configuring SpringMVC. We use annotation based configuration 
+	however so this file is really quite simple. If you want to add database 
+	or security support via Spring (which I'd highly recommend) then you can 
+	do so in this file. In the client we are able to avoid the XML configuration 
+	file using the @Configuration annotation on a factory class. Currently on 
+	the server this won't cut it, so we need to have this minimal XML file. The 
+	next version of Spring looks to include a way to avoid this. -->
+
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+            http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<!-- Configures the @Controller programming model -->
+	<mvc:annotation-driven />
+
+	<!-- Scans the classpath of this application for @Components to deploy as 
+		beans -->
+	<context:component-scan
+		base-package="grafioschtrader.server.controller" />
+
+</beans>

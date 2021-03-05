@@ -1,0 +1,20 @@
+<div class="fcontainer">
+  <fieldset *ngFor="let fieldSetName of Object.keys(fieldSetGroups)" class="out-border fbox">
+    <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
+    <div *ngFor="let field of fieldSetGroups[fieldSetName]" class="row">
+      <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5 showlabel" align="right">
+        {{field.headerTranslated}}:
+      </div>
+      <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 nopadding wrap">
+        <ng-container [ngSwitch]="field.templateName">
+          <ng-container *ngSwitchCase="'check'">
+            <span><i [ngClass]="{'fa fa-check': getValueByPath(combineTemplateAndImpTransPos, field)}" aria-hidden="true"></i></span>
+          </ng-container>
+          <ng-container *ngSwitchDefault>
+            {{getValueByPath(combineTemplateAndImpTransPos, field)}}
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </fieldset>
+</div>
