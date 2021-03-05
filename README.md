@@ -3,7 +3,15 @@
 
 ## What's all about
 * Take a look at the [manual](//www.grafioschtrader.info/manual/de/intro/) in German which is in progress.
-* Take a look at [GT](//www.grafioschtrader.info/grafioschtrader) with E-Mail "gt1@grafioschtrader.info" and Passwort "gt1" or create your own account.
+* Take a look at [GT](//www.grafioschtrader.info/grafioschtrader) with Demo account or create your own account.
+
+| E-Mail  | Passwort |
+| ------------- | ------------- |
+| gt1@grafioschtrader.info  | gt1  |
+| gt2@grafioschtrader.info  | gt2  |
+| gt3@grafioschtrader.info  | gt3  |
+| gt4@grafioschtrader.info  | gt4  |
+
 
 ## Development Environment
 ### Prerequisite
