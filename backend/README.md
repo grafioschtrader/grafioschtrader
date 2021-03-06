@@ -45,6 +45,13 @@ Since we use **Jasypt**, the enviroment variable **JASYPT_ENCRYPTOR_PASSWORD** m
 # In directory backend
 java -jar ./grafioschtrader-server/target/grafioschtrader-server-0.10.0.jar
 ```
+### Optimize mariadb
+MariaDB deserves a lot of memory resources to operate GT well. Please adjust the following system variables of InnoDB to your system needs.
+```
+innodb_buffer_pool_size=1GB
+tmp_table_size=128MB
+```
+
 ### When Flyway first time initialization fails
 If the settings for the database were incorrect and the database needs to be reinitialized. You can execute the following statement:
 ```
