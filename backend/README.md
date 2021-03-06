@@ -58,3 +58,5 @@ If the settings for the database were incorrect and the database needs to be rei
 mysql -u root -p -D grafioschtrader -e "DROP DATABASE grafioschtrader"
 ```
 Afterwards recreate the database again.
+## Build deployment artifacts
+The deployment artifact is ready when you follow the steps for building the executable backend. 
