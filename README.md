@@ -43,4 +43,4 @@ It depends on the target system how the deployment is happened.
 4. [Optional build and run the manual](manual/README.md)
 5. [Optional build the transform application](transform/README.md)
 
-For further information on deployment, consult the [wiki](github.com/hugograf/grafioschtrader/wiki).
+For further information on deployment, consult the [wiki](//github.com/hugograf/grafioschtrader/wiki).
