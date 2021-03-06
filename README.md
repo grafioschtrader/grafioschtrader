@@ -42,3 +42,5 @@ It depends on the target system how the deployment is happened.
 3. [Build and run the frontend](frontend/README.md)
 4. [Optional build and run the manual](manual/README.md)
 5. [Optional build the transform application](transform/README.md)
+
+For further information on deployment, consult the [wiki](github.com/hugograf/grafioschtrader/wiki).
