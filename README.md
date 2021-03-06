@@ -35,7 +35,7 @@ For the database only a empty database with user access is required. Everthing e
 ```
 mysql -u root -p -e "create database grafioschtrader; GRANT ALL PRIVILEGES ON grafioschtrader.* TO grafioschtrader@localhost IDENTIFIED BY 'YOUR_PASSWORD'"
 ```
-## Build development artifacts
+## Build deployment artifacts
 It depends on the target system how the deployment is happened.
 1. Install the required Software
 2. [Build and run the backend](backend/README.md)
