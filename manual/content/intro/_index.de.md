@@ -19,7 +19,7 @@ Mit der Zeit verliert man die Übersicht wo wie viel in was investiert ist. Zude
 + **Mehrere Portfolios mit Währungskonten**: Nachbildung mehreren Portfolios mit einem oder mehreren Depots und einem oder mehreren Bankkonten.  
 + **Mehrere Währungen**: Handel von Wertpapieren in unterschiedlichen Währungen. 
 + **Handel ab Jahrtausendwende**: Grundsätzliche Unterstützung von historischen Kursdaten ab dem Jahr 2000. Hierbei ist zu beachten, dass die Beschaffung von Kursdaten von nicht gehandelten Wertpapieren möglicherweise ein Problem darstellt.
-** Unterschiedliche Finanzinstrumente**: Aktien, Anleihen, ETF, Wertpapiere ohne Kursdaten, Short ETF, CFD, Forex
++ **Unterschiedliche Finanzinstrumente**: Aktien, Anleihen, ETF, Wertpapiere ohne Kursdaten, Short ETF, CFD, Forex
 + **Import von Transaktionen**: Ein Import von einzelnen oder mehreren **PDFs** mit Wertpapier-Transaktionen Über **CSV**-Datei können auch Kontotransaktionen geladen werden.
 + **Auswertungen über Anlageklassen**: Auwertungen nach den gängigen Anlageklassen wie Aktien, Anleihen, Immobilien, Commodities, usw.
 
