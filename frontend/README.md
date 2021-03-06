@@ -5,7 +5,7 @@
 npm install
 npm start
 ```
-## Build the deployment artifacts
+## Build deployment artifacts
 For deployment the [Angular CLI](//cli.angular.io/) is required
 ```
 # Directory frontend
