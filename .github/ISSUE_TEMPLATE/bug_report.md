@@ -9,29 +9,28 @@ assignees: ''
 
 Which part and what Version?
 Version: 
-[ x]  GT 
+[x]  GT 
 [ ] PDF Transformer 
 [ ] manual 
 
 
-What are the steps to reproduce this issue?
--------------------------------------------
-1. …
-2. …
-3. …
-
-What happens?
--------------
-…
-
-What were you expecting to happen?
-----------------------------------
-…
-
-Any logs, error output, etc?
-----------------------------
+**What are the steps to reproduce this issue**
+1. ...
+2. ...
+3. ...
 
 
-Any other comments?
--------------------
-…
+**What happens?**
+...
+
+
+**What were you expecting to happen?**
+...
+
+
+**Any logs, error output, etc?**
+...
+
+
+**Any other comments?**
+...
