@@ -18,7 +18,7 @@
 * [Java JDK 11](https://jdk.java.net/java-se-ri/11): The Java development Kit for the backend
 * [Apache Maven](https://maven.apache.org/): The build system for the backend
 * [Node.js with npm](https://nodejs.org/en/): The build system for frontend
-* [MariaDB](https://mariadb.org/): All data are saved in an instance of MariaDB Server
+* [MariaDB](https://mariadb.org/) 10.3.1+: All data are saved in an instance of MariaDB Server. Befor Installation check the Version of MariaDB *mysql -u root -p*.
 * [HUGO](https://gohugo.io/): It a static site generator. It is used for help pages. The Web user interface has links to this weg pages.
 ### Email account
 GT requires access to an Email account for user registration. The settings for Google's Gmail would be similar to the following. Note that for Gmail maybe the security settings must changed. Gmail must be enabled for less secure apps.
