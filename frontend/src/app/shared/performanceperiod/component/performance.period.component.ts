@@ -190,7 +190,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   helpLink() {
     // Used in a dialog
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE);
   }
 
 

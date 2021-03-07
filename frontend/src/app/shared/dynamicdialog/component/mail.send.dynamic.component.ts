@@ -112,7 +112,7 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
   }
 
 }

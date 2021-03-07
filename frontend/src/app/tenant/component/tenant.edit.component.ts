@@ -78,7 +78,7 @@ export abstract class TenantEditComponent {
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_CLIENT);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_CLIENT);
   }
 
   protected abstract afterSaved(tenant: Tenant): void;

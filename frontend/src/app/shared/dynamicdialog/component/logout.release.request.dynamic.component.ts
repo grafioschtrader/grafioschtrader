@@ -56,6 +56,6 @@ export class LogoutReleaseRequestDynamicComponent extends FormBase implements On
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
   }
 }

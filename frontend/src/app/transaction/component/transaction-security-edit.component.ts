@@ -602,7 +602,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(),
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(),
       this.isMarginInstrument ? HelpIds.HELP_TRANSACTION_MARGIN_BASED : HelpIds.HELP_TRANSACTION_CASH_BASED);
   }
 

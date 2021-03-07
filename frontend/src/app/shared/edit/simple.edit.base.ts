@@ -35,7 +35,7 @@ export abstract class SimpleEditBase extends FormBase {
 
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), this.helpId);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), this.helpId);
   }
 
   onHide(event): void {

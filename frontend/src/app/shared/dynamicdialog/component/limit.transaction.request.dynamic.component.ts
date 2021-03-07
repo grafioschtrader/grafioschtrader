@@ -76,7 +76,7 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
   }
 
 }
