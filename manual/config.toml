@@ -1,4 +1,4 @@
-baseURL = "//grafioschtrader.info/manual"
+baseURL = "//hugograf.github.io/grafioschtrader/"
 languageCode = "de-de"
 title = "Grafioschtrader"
 theme = "hugo-theme-learn"
