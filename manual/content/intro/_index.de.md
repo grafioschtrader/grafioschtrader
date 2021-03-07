@@ -1,6 +1,6 @@
 ---
 title: "Einführung"
-date: 2018-01-14T22:54:47+01:00
+date: 2021-01-14T22:54:47+01:00
 draft: false
 weight : 1
 chapter: true
@@ -24,4 +24,4 @@ Mit der Zeit verliert man die Übersicht wo wie viel in was investiert ist. Zude
 + **Auswertungen über Anlageklassen**: Auwertungen nach den gängigen Anlageklassen wie Aktien, Anleihen, Immobilien, Commodities, usw.
 
 ### Für wen eignet sich GT
-GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher gibt es Kontos wie bei Ihrem Onlinebörsenbroker. Jede Buchung ist mit einem Cashkonto verbunden, somit werden die Buchungen gemäss Ihrer Handelsplattform nachgebildet. 
+GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher gibt es Kontos wie bei Ihrem Onlinebörsenbroker. Jede Buchung ist mit einem Cashkonto verbunden, somit werden die Buchungen gemäss Ihrer Handelsplattform nachgebildet.
