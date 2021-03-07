@@ -1,6 +1,6 @@
 :root{
 
-    --MAIN-TEXT-color:#323232; /* Color of text by default */
+    --MAIN-TEXT-color:#130202; /* Color of text by default */
     --MAIN-TITLES-TEXT-color: #5e5e5e; /* Color of titles h2-h3-h4-h5 */
     --MAIN-LINK-color:#1C90F3; /* Color of links */
     --MAIN-LINK-HOVER-color:#167ad0; /* Color of hovered links */
@@ -41,6 +41,12 @@ h2, h3, h4, h5 {
     margin-top: 0.8rem;   
     margin-bottom: 0.4rem;
 }
+
+h3 {
+    font-size: 1.8rem;
+    font-weight: 400 !important;
+}
+
 
 #chapter {
     justify-content: left;
@@ -128,3 +134,6 @@ body {
     hyphens: auto;
 }
 
+b, strong, label, th {
+    font-weight: 400;
+}
