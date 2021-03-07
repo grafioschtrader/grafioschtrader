@@ -1,7 +1,7 @@
 ---
 title: "Import Transaktion Vorlage"
 date: 2018-01-13T22:54:47+01:00
-draft: true
+draft: false
 weight : 35
 chapter: true
 ---
