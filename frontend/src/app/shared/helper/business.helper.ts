@@ -49,8 +49,6 @@ export class BusinessHelper {
   }
 
 
-
-
   /**
    * Determine the currency pair depending on the portfolio and source and target currency.
    *
@@ -161,9 +159,9 @@ export class BusinessHelper {
     return menuItems;
   }
 
-  public static toExternalHelpWebpage(location: Location, language: string, helpIds: HelpIds) {
-    this.toExternalWebpage(this.getServerUrl(location, AppSettings.HELP_PORT_LOCALHOST, AppSettings.HELP_BASE_PREFIX_PART)
-      + '/' + language + '/' + helpIds, 'help');
+
+  public static toExternalHelpWebpage(language: string, helpIds: HelpIds) {
+    this.toExternalWebpage(AppSettings.HELP_DOMAIN + '/' + language + '/' + helpIds, 'help');
   }
 
   public static hasSecurityDenomination(assetclass: Assetclass): boolean {

@@ -110,7 +110,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_CURRENCYPAIR);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_CURRENCYPAIR);
   }
 
   protected loadHelperData(): void {

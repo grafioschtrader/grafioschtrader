@@ -66,6 +66,6 @@ export class TradingCalendarOtherExchangeDynamicComponent extends FormBase imple
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_BASEDATA_STOCKEXCHANGE);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_BASEDATA_STOCKEXCHANGE);
   }
 }

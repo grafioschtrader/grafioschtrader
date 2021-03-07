@@ -1,6 +1,5 @@
 export enum HelpIds {
 
-
   // Intro
   HELP_INTRO = 'intro',
   HELP_INTRO_NAVIGATION = 'intro/userinterface',

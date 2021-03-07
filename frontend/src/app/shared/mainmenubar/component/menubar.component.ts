@@ -18,6 +18,7 @@ import {Subscription} from 'rxjs';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {BusinessHelper} from '../../helper/business.helper';
 import {ConfirmationService, MenuItem} from 'primeng/api';
+import {AppSettings} from '../../app.settings';
 
 
 @Component({
@@ -106,10 +107,10 @@ export class MenubarComponent implements OnInit, OnDestroy {
     if (this.activePanelService.activatedPanel) {
       const helpIds: HelpIds = this.activePanelService.activatedPanel.getHelpContextId();
       if (helpIds) {
-        BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), helpIds);
+        BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), helpIds);
       } else {
         // Show first steps
-        BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_INTRO);
+        BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_INTRO);
       }
     }
   }

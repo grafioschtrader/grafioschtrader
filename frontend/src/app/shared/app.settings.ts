@@ -91,8 +91,7 @@ export class AppSettings {
 
 
   // HELP Support
-  public static readonly HELP_BASE_PREFIX_PART = 'manual';
-  public static readonly HELP_PORT_LOCALHOST = 1313;
+  public static readonly HELP_DOMAIN = '//hugograf.github.io/grafioschtrader';
 
 
   // Native formats

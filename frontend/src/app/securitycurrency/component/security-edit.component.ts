@@ -271,7 +271,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_SECURITY);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_SECURITY);
   }
 
   protected loadHelperData(): void {

@@ -102,7 +102,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(location, this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST);
   }
 
   protected initialize(): void {
