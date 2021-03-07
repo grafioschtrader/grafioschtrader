@@ -1,5 +1,4 @@
 name: manual GT
-name: ABC
 on:
   push:
     branches:
