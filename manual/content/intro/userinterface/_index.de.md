@@ -14,10 +14,10 @@ Nebst der **Menüleiste** gliedert sich die Benutzeroberfläche in drei Teile, d
 ### Dialoge
 Die Erfassung von Daten durch den Benutzer findet ausschliesslich über **Modal-Dialoge** statt. Ein Model-Dialog öffnet sich im Vordergrund und reduziert die Benutzerinteraktion auf diesen Dialog. Die Sichtbarkeit eines Model-Dialog wird durch eine **Lightbox** erkennbar, dabei verdunkelt sich die Webseite im Hintergrund. Der Modal-Dialog ermöglicht eine Erfassung von **Entitäten** wie Transaktionen ohne gegen das Konzept einer **Einzelseiten-Webanwendung** zu verstossen.
 
-Die Bearbeitung einer **Entitäten** in einem Dialog ist sehr interaktiv gestaltet. Die Eingabe des Benutzers verändert die Sichtbarkeit der **Eingabeelemente**, d.h. Eingabefelder werden sichtbar oder unsichtbar andere wiederum verändern ihre Interaktionsfähigkeit. 
+Die Bearbeitung einer **Entitäten** in einem Dialog ist sehr interaktiv gestaltet. Die Eingabe des Benutzers verändert die Sichtbarkeit der **Eingabeelemente**, d.h. Eingabefelder werden sichtbar oder unsichtbar andere wiederum verändern ihre Interaktionsfähigkeit.
 
 #### Menüleiste
-Die Menüpunkte **Einstellung** und **Abmelden** und **Hilfe** sind statisch. 
+Die Menüpunkte **Einstellung** und **Abmelden** und **Hilfe** sind statisch.
 
 #### Navigationsbereich 
 Im Navigationsbereich wird der Inhalt des Hauptbereiches gesteuert. Die Navigation ist hierarchisch gegliedert und hat eine Durchmischung von **statischen Elementen** wie beispielsweise "Watchlist" und **dynamischen Elmenten** die aus Ihren Daten abgeleitet werden.  
