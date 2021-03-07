@@ -16,15 +16,18 @@ jobs:
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
+        working-directory: ./manual
         with:
           hugo-version: 'latest'
           # extended: true
 
       - name: Build
+        working-directory: ./manual
         run: hugo --minify
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
+        working-directory: ./manual
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          publish_dir: ./manual/public
