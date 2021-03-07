@@ -26,6 +26,6 @@ Im Navigationsbereich wird der Inhalt des Hauptbereiches gesteuert. Die Navigati
 Der Hauptbereich reflektiert den Inhalt des gewählten Elementes im Navigationsbereich. In diesem Bereich werden die Daten in Tabellen oder anderen Strukturen angezeigt.  
 
 #### Zusatzbereich mit Grafiken und Daten
-Der Zusatzbereich ist unterhalb des Hauptbereiches angeordnet. Er wird weitgehend durch die Interaktionen im Hauptbereich gesteuert, beispielsweise durch die Anzeige einer Grafik zu den Daten im Hauptbereich. 
+Der Zusatzbereich ist unterhalb des Hauptbereiches angeordnet. Er wird weitgehend durch die Interaktionen im Hauptbereich gesteuert, beispielsweise durch die Anzeige einer Grafik zu den Daten im Hauptbereich.
 
 ![User Interface](ui_parts.jpg)
