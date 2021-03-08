@@ -2,7 +2,7 @@
 ![Architektur](manual/content/Komponenten.svg)
 
 ## What's all about
-* Take a look at the [manual](//www.grafioschtrader.info/manual/de/intro/) in German which is in progress.
+* Take a look at the [manual](//hugograf.github.io/grafioschtrader/de/intro/) in German which is in progress.
 * Take a look at [GT](//www.grafioschtrader.info/grafioschtrader) with a demo account or create your own account.
 
 | E-Mail  | Passwort |
