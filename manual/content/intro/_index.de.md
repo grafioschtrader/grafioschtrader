@@ -25,3 +25,13 @@ Mit der Zeit verliert man die Übersicht wo wie viel in was investiert ist. Zude
 
 ### Für wen eignet sich GT
 GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher gibt es Kontos wie bei Ihrem Onlinebörsenbroker. Jede Buchung ist mit einem Cashkonto verbunden, somit werden die Buchungen gemäss Ihrer Handelsplattform nachgebildet.
++ Der Investor der seine Finanzdaten nicht einer intransparent Platform anvertrauen will. Sie können die GT selber hosten, dazu genügt ein Raspberry Pi 4 mit 4GB Arbeitsspeicher.
++ Ein Shareholder der eine Historie über alle seine Trades haben will. Sie können alle geschlossenen Positionen jederzeit einsehen.
++ Privatanleger der wissen will, wie sich seine Währungsgewinnen entwickeln. Es wird laufend der Währungsgewinn auf den Fremdwährungskonten ausgewiesen.
++ Investoren-Club der eine eigene GT-Instanz hosten will und sich ein Mitglied gerne um technischen Aspekte kümmert.
++ Anleger mit mehreren Portfolios bei unterschiedlichen Handelsplattformen. GT liefert Informationen pro Portfolio und kann diese aggregiert darstellen.
+
+
+### Für wen ist GT nicht gedacht
++ Dem Daytrader fehlen die Echtzeitkurse.
++ Investoren die ihren Handel losgelöst von Geldkontos verwalten möchten.
