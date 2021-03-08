@@ -3,7 +3,7 @@
 
 ## What's all about
 * Take a look at the [manual](//www.grafioschtrader.info/manual/de/intro/) in German which is in progress.
-* Take a look at [GT](//www.grafioschtrader.info/grafioschtrader) with a demo account or create your own account.
+* Take a look at [GT](//hugograf.github.io/grafioschtrader/de/intro/) with a demo account or create your own account.
 
 | E-Mail  | Passwort |
 | ------------- | ------------- |
