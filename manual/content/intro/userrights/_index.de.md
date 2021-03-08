@@ -18,7 +18,7 @@ Bei den öffentlichen Daten bestimmen die Zugriffsrechte des Benutzers die Verä
 Mit der vollständigen Registrierung eines Benutzers, wird dieser automatisch zum Benutzer mit Limits zugeordnet.
 
 ### Limit Benutzer
-Benutzer mit Limit kann nur eine bestimmte Anzahl von Entitäten eines Informationsobjekt seiner öffentlichen Daten pro Tag erstellen bzw. ändern. Damit wird verhindert, dass ein Benutzer einen grösseren willentlichen Schaden an den öffentlichen Daten herbei führen kann.
+Benutzer mit Limit kann nur eine bestimmte Anzahl von **Entitäten** einer **Informationsklasse** seiner öffentlichen Daten pro Tag erstellen bzw. ändern. Damit wird verhindert, dass ein Benutzer einen grösseren willentlichen Schaden an den öffentlichen Daten herbei führen kann.
 
 ### Benutzer ohne Limits
 Dieser Benutzer unterliegt keiner Einschränkung bezüglich dem Erstellen oder verändern seiner öffentlichen Daten.
