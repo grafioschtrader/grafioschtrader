@@ -1,6 +1,6 @@
 ---
 title: "Glossar"
-date: 2018-01-13T22:54:47+01:00
+date: 2020-01-13T22:54:47+01:00
 draft: false
 weight : 99
 chapter: true
