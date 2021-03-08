@@ -12,6 +12,10 @@ Die Anlageklasse Anleihe ist ein festverzinsliches Wertpapier. Es gibt zwei Form
 Eine Gruppe von Finanzanlagen die nach gemeinsamen Merkmalen zusammengefasst werden. Die Anlageklasse Anleihen sorgt für feste Einnahmen während Anlageklasse Aktien möglicherweise eine Dividende zahlt und die Rendite durch den Kurserfolg bestimmt wird.
 #### Depot
 Ein Depot ist die Summe  der Anlageinstrumente wie Anleihen, Aktien etc.
+#### Entität
+In GT ist Entität der allgemeine Begriff für Einheit einer Informationsklasse. Die Informationsklasse besteht aus mehreren Entitäten.
+#### Informationsklasse
+Eine Informationsklasse besteht aus mehreren Entitäten. Beispielsweise wird für Portfolio oder Konto der allgemeine Begriff Informationsklasse angewendet. Wobei ein einzelnes Konto eine Entität dieser Informationsklasse ist.
 #### Instrumente und Anlageinstrumente
 In GT umfasst dieser Begriff alle Wertpapiere und Währungspaare die einer Watchlist hinzugefügt werden können.
 #### Portfolio 
