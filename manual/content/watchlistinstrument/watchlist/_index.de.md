@@ -6,6 +6,10 @@ weight : 15
 chapter: true
 ---
 ## Watchlist
+Im Hauptbreich sind 3 Registerkarten für die unterschiedlichen Wachlisten ersichtlich, diese unterscheiden sich primär durch ihren Inhalt:
++ **Performance**:
++ **Preis Datenfeed**:
++ **Dividenden/Split Feed**:
 
 ### Watchlist erstellen
 Die Watchlist wird mittels dem **Kontextmenü** auf dem statische Element **Watchlist** im **Navigationsbereich** erstellt. Es gibt einen Beschränkung bezüglich der Anzahl Watchlisten.
