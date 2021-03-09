@@ -137,3 +137,8 @@ body {
 b, strong, label, th {
     font-weight: 400;
 }
+
+.svg-icon-size {
+    margin: 0 0;
+    display: inline;
+}
