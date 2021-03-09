@@ -12,7 +12,7 @@
 | gt3@grafioschtrader.info  | gt3  |
 | gt4@grafioschtrader.info  | gt4  |
 
-For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/).
+For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
 ## Contributing ##
 If you want to contribute to a project and make it better, your help is very welcome. Take a look at [projects](//github.com/hugograf/grafioschtrader/projects/1). 
 
