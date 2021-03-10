@@ -19,9 +19,11 @@ import javax.persistence.Table;
 import grafioschtrader.algo.rule.BuySell;
 
 @Entity
-@Table(name = "algo_rule")
+@Table(name = AlgoRule.TABNAME)
 @DiscriminatorValue("R")
 public class AlgoRule extends AlgoRuleStrategy {
+  public static final String TABNAME = "algo_rule";
+  public static final String ALGO_RULE_PARAM2 = "algo_rule_param2";
 
   private static final long serialVersionUID = 1L;
 
@@ -46,7 +48,7 @@ public class AlgoRule extends AlgoRuleStrategy {
 
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")
-  @CollectionTable(name = "algo_rule_param2", joinColumns = @JoinColumn(name = "id_algo_rule_strategy"))
+  @CollectionTable(name = ALGO_RULE_PARAM2, joinColumns = @JoinColumn(name = "id_algo_rule_strategy"))
   private Map<String, AlgoRuleParam2> AlgoRuleParam2Map = new HashMap<>();
 
   public BuySell getBuySell() {

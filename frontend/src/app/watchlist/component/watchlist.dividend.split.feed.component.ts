@@ -70,12 +70,8 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
       activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
       translateService, globalparameterService, usersettingsService
     );
-    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {width: 200});
-    this.addColumn(DataType.String, 'securitycurrency', 'P', true, false,
-      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol', true, true);
-    this.addColumnFeqH(DataType.String, 'securitycurrency.currency', true, true);
-    this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
+    this.addBaseColumns();
+      this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
       true, {translateValues: true});
     this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorDividend', true,
       true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
@@ -86,7 +82,6 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retrySplitLoad', true, true);
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
-
   }
 
 

@@ -14,6 +14,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafioschtrader.GlobalConstants;
 
+/**
+ * Contains the receiving Messages.
+ *  
+ * @author Hugo Graf
+ *
+ */
 @Entity
 @Table(name = MailInbox.TABNAME)
 @DiscriminatorValue("I")

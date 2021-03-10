@@ -13,10 +13,12 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 @Entity
-@Table(name = "algo_assetclass")
+@Table(name = AlgoAssetclass.TABNAME)
 @DiscriminatorValue("A")
 public class AlgoAssetclass extends AlgoAssetclassSecurity {
 
+  public static final String TABNAME = "algo_assetclass"; 
+  
   private static final long serialVersionUID = 1L;
 
   @Column(name = "id_algo_assetclass_security_p")

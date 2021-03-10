@@ -24,11 +24,14 @@ import javax.persistence.MapKeyColumn;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "algo_rule_strategy")
+@Table(name = AlgoRuleStrategy.TABNAME)
 @Inheritance(strategy = JOINED)
 @DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
 public abstract class AlgoRuleStrategy extends TenantBaseID implements Serializable {
 
+  public static final String TABNAME = "algo_rule_strategy";
+  public static final String ALGO_RULE_STRATEGY_PARAM = "algo_rule_strategy_param";
+  
   private static final long serialVersionUID = 1L;
 
   @Id
@@ -46,7 +49,7 @@ public abstract class AlgoRuleStrategy extends TenantBaseID implements Serializa
 
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")
-  @CollectionTable(name = "algo_rule_strategy_param", joinColumns = @JoinColumn(name = "id_algo_rule_strategy"))
+  @CollectionTable(name = ALGO_RULE_STRATEGY_PARAM, joinColumns = @JoinColumn(name = "id_algo_rule_strategy"))
   private Map<String, AlgoRuleStrategyParam> algoRuleStrategyParamMap = new HashMap<>();
 
   public Integer getIdAlgoRuleStrategy() {

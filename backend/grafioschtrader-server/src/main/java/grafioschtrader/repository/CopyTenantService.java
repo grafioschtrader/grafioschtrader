@@ -18,6 +18,7 @@ import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Watchlist;
 
@@ -41,8 +42,9 @@ public class CopyTenantService {
         portfolioMap);
     Map<Integer, Cashaccount> cashaccoutMap = copyCashaccount(sourceIdTenant, targetIdTenant, portfolioMap,
         securityaccountMap);
-    copyWatchlist(sourceIdTenant, targetIdTenant);
+    Map<Integer, Watchlist>  watchlistMap = copyWatchlist(sourceIdTenant, targetIdTenant);
     copyTransaction(sourceIdTenant, targetIdTenant, securityaccountMap, cashaccoutMap);
+    updateTenantReference(sourceIdTenant, targetIdTenant, watchlistMap);
   }
 
   private void deleteData(Integer targetIdTenant) {
@@ -168,7 +170,17 @@ public class CopyTenantService {
       transaction.setConnectedIdTransaction(transactionMap.get(entry.getKey()).getIdTransaction());
       em.persist(transaction);
     }
-
+  }
+  
+  private void updateTenantReference(Integer sourceIdTenant, Integer targetIdTenant, Map<Integer, Watchlist>  watchlistMap) {
+    Tenant sourceTenant = em.find(Tenant.class, sourceIdTenant);
+    Tenant targetTenant = em.find(Tenant.class, targetIdTenant);
+    Watchlist watchlist = watchlistMap.get(sourceTenant.getIdWatchlistPerformance());
+    if(watchlist != null) {
+       targetTenant.setIdWatchlistPerformance(watchlist.getIdWatchlist());
+       em.persist(targetTenant);
+       em.flush();
+    }
   }
 
 }

@@ -8,10 +8,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "algo_security")
+@Table(name = AlgoSecurity.TABNAME)
 @DiscriminatorValue("S")
 public class AlgoSecurity extends AlgoAssetclassSecurity {
 
+  public static final String TABNAME = "algo_security";
+  
   private static final long serialVersionUID = 1L;
 
   @Column(name = "id_algo_assetclass_security_p")

@@ -89,13 +89,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.timeFrames.push(new TimeFrame('YEAR_2', moment(date).diff(moment(date).subtract(2, 'years'), 'days')));
     this.timeFrames.push(new TimeFrame('YEAR_3', moment(date).diff(moment(date).subtract(3, 'years'), 'days')));
     this.choosenTimeFrame = this.timeFrames[0];
-
-    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {width: 200});
-    this.addColumn(DataType.String, 'securitycurrency', 'P', true, false,
-      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumn(DataType.String, 'securitycurrency.isin', 'ISIN', true, true, {width: 90});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol', true, true);
-    this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', 'ASSETCLASS', true, true,
+  this.addBaseColumns();
+       this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', 'ASSETCLASS', true, true,
       {translateValues: true, width: 60});
     this.addColumn(DataType.String, 'securitycurrency.assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', false, true,
       {translateValues: true, width: 60});
@@ -107,7 +102,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       templateName: 'check'
     });
 
-    this.addColumn(DataType.String, 'securitycurrency.currency', 'CURRENCY', true, true);
+
     this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {width: 80});
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {maxFractionDigits: 5});
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {
