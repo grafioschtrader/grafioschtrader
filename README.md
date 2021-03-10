@@ -1,9 +1,16 @@
 # Grafioschtrader (GT)
++ **Multi-tenancy**: GT can be run for a group of investors or in single mode.
++ **Web application**: GT is a web application and provides the clearest results using a desktop web browser.
 ![Architektur](manual/content/Komponenten.svg)
-
-## What's all about
-* Take a look at the [manual](//hugograf.github.io/grafioschtrader/de/intro/) in German which is in progress.
-* Take a look at [GT](//www.grafioschtrader.info/grafioschtrader) with a demo account or create your own account.
++ **Multiple portfolios with currency accounts**: Replicates multiple portfolios with one or more securities accounts and one or more bank cash accounts.
++ **Multiple currencies**: Trading securities in different currencies
++ **Trading from the turn of the millennium**: Basic support for historical price data from the year 2000 onwards, noting that obtaining price data from non-traded securities may be a problem.
++ **Different financial instruments**: Stocks, Bonds, ETF, securities without price data, short ETF, CFD, Forex.
++ **Import of transactions**: An import of single or multiple PDFs with securities transactions Via CSV file, account transactions can also be loaded.
++ **Evaluations by asset classes**: Evaluations by common asset classes such as stocks, bonds, real estate, commodities, etc.
+## Take al look
+* The [manual](//hugograf.github.io/grafioschtrader/de/intro/) in German which is in progress.
+* [GT in action](//www.grafioschtrader.info/grafioschtrader) with a following demo account or create your own account.
 
 | E-Mail  | Passwort |
 | ------------- | ------------- |
@@ -11,6 +18,8 @@
 | gt2@grafioschtrader.info  | gt2  |
 | gt3@grafioschtrader.info  | gt3  |
 | gt4@grafioschtrader.info  | gt4  |
+
+![Architektur](manual/content/watchlist_chart.jpg)
 
 For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
 ## Contributing ##
