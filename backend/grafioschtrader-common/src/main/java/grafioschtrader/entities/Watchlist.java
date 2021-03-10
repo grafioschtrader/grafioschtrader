@@ -38,6 +38,7 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 public class Watchlist extends TenantBaseID implements Serializable {
 
   public static final String TABNAME = "watchlist";
+  public static final String TABNAME_SEC_CUR = "watchlist_sec_cur";
 
   private static final long serialVersionUID = 1L;
   @Id
@@ -53,7 +54,7 @@ public class Watchlist extends TenantBaseID implements Serializable {
   private String name;
 
   @JsonIgnore
-  @JoinTable(name = "watchlist_sec_cur", joinColumns = {
+  @JoinTable(name = TABNAME_SEC_CUR, joinColumns = {
       @JoinColumn(name = "id_watchlist", referencedColumnName = "id_watchlist") }, inverseJoinColumns = {
           @JoinColumn(name = "id_securitycurrency", referencedColumnName = "id_securitycurrency") })
   @ManyToMany(fetch = FetchType.LAZY)

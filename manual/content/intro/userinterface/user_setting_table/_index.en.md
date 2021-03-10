@@ -5,5 +5,5 @@ draft: false
 weight : 5
 chapter: true
 ---
-## User settings and Table
+## User settings and table
 english

@@ -75,11 +75,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
       globalparameterService, usersettingsService);
     const date = new Date();
 
-    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {width: 200});
-    this.addColumn(DataType.String, 'securitycurrency', 'P', true, false,
-      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol',  true, true);
-    this.addColumnFeqH(DataType.String, 'securitycurrency.currency',  true, true);
+    this.addBaseColumns();
     this.addColumn(DataType.String, 'securitycurrency.idConnectorIntra', 'INTRA_DATA_PROVIDER', true, true,
       {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
 

@@ -122,7 +122,7 @@ public class RestTestHelper {
     }
   }
 
-  static class UserRegister {
+  public static class UserRegister {
     public String email;
     public String password;
     public String nickname;

@@ -48,6 +48,7 @@ import grafioschtrader.types.Language;
 @Table(name = User.TABNAME, uniqueConstraints = @UniqueConstraint(columnNames = { "email" }))
 public class User extends Auditable implements Serializable, UserDetails, AdminEntity {
   public static final String TABNAME = "user";
+  public static final String TABNAME_USER_ROLE = "user_role";
 
   public final static String LIMIT_REQUEST_EXCEED_COUNT = "limitRequestExceedCount";
   public final static String SECURITY_BREACH_COUNT = "securityBreachCount";
@@ -76,7 +77,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
 
   @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @ManyToMany(fetch = FetchType.EAGER)
-  @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_role", referencedColumnName = "id_role"))
+  @JoinTable(name = TABNAME_USER_ROLE, joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_role", referencedColumnName = "id_role"))
   private Collection<Role> roles;
   
   @JoinColumn(name = "id_user")

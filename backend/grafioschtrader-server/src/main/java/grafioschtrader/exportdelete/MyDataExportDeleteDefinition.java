@@ -4,9 +4,19 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.persistence.DiscriminatorValue;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafioschtrader.entities.AlgoAssetclass;
+import grafioschtrader.entities.AlgoAssetclassSecurity;
+import grafioschtrader.entities.AlgoRule;
+import grafioschtrader.entities.AlgoRuleStrategy;
+import grafioschtrader.entities.AlgoSecurity;
+import grafioschtrader.entities.AlgoStrategy;
+import grafioschtrader.entities.AlgoTop;
+import grafioschtrader.entities.AlgoTopAssetSecurity;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
@@ -63,6 +73,22 @@ public class MyDataExportDeleteDefinition {
   private static final String SELECT_STR = "SELECT";
   private static final String DELETE_STR = "DELETE";
 
+  private static String ALGO_RULE_PARAM_2_DEL = "ap FROM algo_rule_param2 ap JOIN algo_rule_strategy ars ON ap.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?";
+  
+  private static String ALGO_RULE_DEL = "ar FROM algo_rule ar JOIN algo_rule_strategy ars ON ar.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?";
+  
+  private static String ALGO_RULE_STRATEGY_PARAM_DEL = "ap FROM algo_rule_strategy_param ap JOIN algo_rule_strategy ars ON ap.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?";
+  
+  private static String ALGO_STRATEGY_DEL = "a FROM algo_strategy a JOIN algo_rule_strategy ars ON a.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?"; 
+  
+  private static String ALGO_ASSETCLASS_SECURITY_DEL = "a FROM algo_assetclass_security a JOIN algo_top_asset_security tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?"; 
+  
+  private static String ALGO_TOP_DEL = "a FROM algo_top a JOIN algo_top_asset_security tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?";
+  
+  private static String ALGO_SECURITY_DEL = "s FROM algo_security s JOIN algo_top_asset_security tas ON s.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?";
+  
+  private static String ALGO_ASSETCLASS_DEL = "a FROM algo_assetclass a JOIN algo_top_asset_security tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?";
+  
   private static String CASHACCOUNT_SELDEL = "c.* FROM cashaccount c, securitycashaccount sc WHERE sc.id_tenant = ? AND sc.id_securitycash_account = c.id_securitycash_account";
 
   private static String DIVIDEND_SELECT = "DISTINCT d.* FROM dividend d JOIN watchlist_sec_cur ws ON ws.id_securitycurrency = d.id_securitycurrency JOIN watchlist w ON w.id_watchlist = ws.id_watchlist WHERE w.id_tenant = ? UNION SELECT d.* FROM dividend d JOIN security s ON d.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ? UNION SELECT DISTINCT d.* FROM transaction t JOIN dividend d ON t.id_securitycurrency = d.id_securitycurrency WHERE t.id_tenant = ?";
@@ -120,7 +146,7 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition("flyway_schema_history", TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(Globalparameters.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(MultilanguageString.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
-      new ExportDefinition("multilinguestrings", TENANT_USER.NONE, null, EXPORT_USE),
+      new ExportDefinition(MultilanguageString.MULTILINGUESTRINGS, TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(ImportTransactionPlatform.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID),
       new ExportDefinition(ImportTransactionTemplate.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID),
       new ExportDefinition(TradingPlatformPlan.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID),
@@ -131,7 +157,7 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(Tenant.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
       new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
       new ExportDefinition(Role.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
-      new ExportDefinition("user_role", TENANT_USER.ID_USER, null, DELETE_USE),
+      new ExportDefinition(User.TABNAME_USER_ROLE, TENANT_USER.ID_USER, null, DELETE_USE),
       new ExportDefinition(Portfolio.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
       new ExportDefinition(Securitycashaccount.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
       new ExportDefinition(Cashaccount.TABNAME, TENANT_USER.NONE, CASHACCOUNT_SELDEL, EXPORT_USE | DELETE_USE),
@@ -152,7 +178,7 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(Currencypair.TABNAME, TENANT_USER.NONE, CURRENCYPAIR_SELECT, EXPORT_USE),
       new ExportDefinition(Historyquote.TABNAME, TENANT_USER.NONE, HISTORYQUOTE_SELECT, EXPORT_USE),
       new ExportDefinition(Watchlist.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
-      new ExportDefinition("watchlist_sec_cur", TENANT_USER.NONE, WATCHLIST_SEC_CUR_SELDEL, EXPORT_USE | DELETE_USE),
+      new ExportDefinition(Watchlist.TABNAME_SEC_CUR, TENANT_USER.NONE, WATCHLIST_SEC_CUR_SELDEL, EXPORT_USE | DELETE_USE),
       new ExportDefinition(Transaction.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
       new ExportDefinition(ImportTransactionHead.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
       new ExportDefinition(ImportTransactionPos.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
@@ -169,10 +195,20 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(TradingDaysPlus.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(TradingDaysMinus.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       // Delete all Mails of the user, nothing is exported
-      new ExportDefinition(MailInOut.TABNAME, TENANT_USER.NONE, MAIL_IN_OUT_DELETE, DELETE_USE)
+      new ExportDefinition(MailInOut.TABNAME, TENANT_USER.NONE, MAIL_IN_OUT_DELETE, DELETE_USE),
 
   
-      // TODO Missing Algo...
+      // TODO Missing Algo export ...
+      new ExportDefinition(AlgoTopAssetSecurity.TABNAME, TENANT_USER.ID_TENANT, null, DELETE_USE),
+      new ExportDefinition(AlgoTop.TABNAME, TENANT_USER.ID_TENANT, ALGO_TOP_DEL, DELETE_USE),
+      new ExportDefinition(AlgoAssetclassSecurity.TABNAME, TENANT_USER.ID_TENANT, ALGO_ASSETCLASS_SECURITY_DEL, DELETE_USE),
+      new ExportDefinition(AlgoAssetclass.TABNAME, TENANT_USER.ID_TENANT, ALGO_ASSETCLASS_DEL, DELETE_USE),
+      new ExportDefinition(AlgoSecurity.TABNAME, TENANT_USER.ID_TENANT, ALGO_SECURITY_DEL, DELETE_USE),
+      new ExportDefinition(AlgoRuleStrategy.TABNAME, TENANT_USER.ID_TENANT, null, DELETE_USE),
+      new ExportDefinition(AlgoStrategy.TABNAME, TENANT_USER.ID_TENANT, ALGO_STRATEGY_DEL, DELETE_USE), 
+      new ExportDefinition(AlgoRule.TABNAME, TENANT_USER.ID_TENANT, ALGO_RULE_DEL, DELETE_USE),
+      new ExportDefinition(AlgoRuleStrategy.ALGO_RULE_STRATEGY_PARAM, TENANT_USER.ID_TENANT, ALGO_RULE_STRATEGY_PARAM_DEL, DELETE_USE),
+      new ExportDefinition(AlgoRule.ALGO_RULE_PARAM2, TENANT_USER.ID_TENANT, ALGO_RULE_PARAM_2_DEL, DELETE_USE)
 
   };
 

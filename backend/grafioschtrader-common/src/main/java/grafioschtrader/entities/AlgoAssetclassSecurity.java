@@ -15,9 +15,11 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
  *
  */
 @Entity
-@Table(name = "algo_assetclass_security")
+@Table(name = AlgoAssetclassSecurity.TABNAME)
 public abstract class AlgoAssetclassSecurity extends AlgoTopAssetSecurity implements Serializable {
 
+  public static final String TABNAME = "algo_assetclass_security";
+  
   private static final long serialVersionUID = 1L;
 
   /**

@@ -16,10 +16,12 @@ import grafioschtrader.algo.strategy.model.AlgoStrategyImplementations;
  *
  */
 @Entity
-@Table(name = "algo_strategy")
+@Table(name = AlgoStrategy.TABNAME)
 @DiscriminatorValue("S")
 public class AlgoStrategy extends AlgoRuleStrategy {
 
+  public static final String TABNAME = "algo_strategy";
+  
   private static final long serialVersionUID = 1L;
 
   @Basic(optional = false)

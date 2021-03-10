@@ -283,6 +283,7 @@
   "LOADING": "Daten laden...",
   "LOCALE": "Sprache und Land",
   "LOWEST_TRANSACTION_COST":"Günstigste Transaktionskosten",
+  "I_TOOLTIP": "Instrumentenart",
   "ID_USER_FROM": "Von",
   "ID_USER_TO": "An",
   "IMPORT": "Import",

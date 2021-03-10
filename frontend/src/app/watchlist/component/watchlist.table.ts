@@ -37,6 +37,7 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
 import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamic.dialog.helper';
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
+import {DataType} from '../../dynamic-form/models/data.type';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
@@ -116,6 +117,15 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
     this.translateFormulaToUserLanguage();
     this.changeDetectionStrategy.markForCheck();
+  }
+
+  protected addBaseColumns(): void {
+    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {width: 200});
+    this.addColumn(DataType.String, 'securitycurrency', 'I', true, false,
+      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
+    this.addColumnFeqH(DataType.String, 'securitycurrency.isin',  true, true, {width: 90});
+    this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol', true, true);
+    this.addColumnFeqH(DataType.String, 'securitycurrency.currency', true, true);
   }
 
   private translateFormulaToUserLanguage(): void {

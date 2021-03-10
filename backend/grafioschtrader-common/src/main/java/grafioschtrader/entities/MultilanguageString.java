@@ -23,12 +23,13 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 public class MultilanguageString extends AbstractMultilanguageString {
 
   public static final String TABNAME = "multilinguestring";
+  public static final String MULTILINGUESTRINGS = "multilinguestrings";
 
   private static final long serialVersionUID = 1L;
 
   @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @ElementCollection(fetch = FetchType.EAGER)
-  @CollectionTable(name = "multilinguestrings", joinColumns = @JoinColumn(name = "id_string"))
+  @CollectionTable(name = MULTILINGUESTRINGS, joinColumns = @JoinColumn(name = "id_string"))
   @MapKeyColumn(name = "language", nullable = false, length = 2)
   @Column(name = "text", nullable = false, length = 64)
   private Map<String, String> map = new HashMap<String, String>();

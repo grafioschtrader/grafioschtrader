@@ -271,6 +271,7 @@
   "HISTORICAL_LINK": "Historical data hyperlink",
   "HYPOTHETICAL_BUY": "Buy hypothetical",
   "HYPOTHETICAL_SELL": "Sell hypothetical",
+  "I_TOOLTIP": "Instrument type",
   "ID_CONNECTOR_DIVIDEND": "Dividend data source",
   "ID_CONNECTOR_SPLIT": "Split data source",
   "ID_USER_FROM": "From",

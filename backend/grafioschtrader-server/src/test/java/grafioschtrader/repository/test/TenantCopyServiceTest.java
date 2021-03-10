@@ -19,7 +19,7 @@ public class TenantCopyServiceTest {
   
   
   @Test
-  @Disabled
+  //@Disabled
   void copyTest() {
     tenantCopyService.copyTenant(22, 25);
   }

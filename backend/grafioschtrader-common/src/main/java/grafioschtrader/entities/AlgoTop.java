@@ -20,9 +20,11 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
  *
  */
 @Entity
-@Table(name = "algo_top")
+@Table(name = AlgoTop.TABNAME)
 @DiscriminatorValue("T")
 public class AlgoTop extends AlgoTopAssetSecurity {
+  
+  public static final String TABNAME = "algo_top";
 
   private static final long serialVersionUID = 1L;
 

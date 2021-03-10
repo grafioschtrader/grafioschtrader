@@ -12,15 +12,20 @@ Die Anlageklasse Anleihe ist ein festverzinsliches Wertpapier. Es gibt zwei Form
 Eine Gruppe von Finanzanlagen die nach gemeinsamen Merkmalen zusammengefasst werden. Die Anlageklasse Anleihen sorgt für feste Einnahmen während Anlageklasse Aktien möglicherweise eine Dividende zahlt und die Rendite durch den Kurserfolg bestimmt wird.
 #### Depot
 Ein Depot ist die Summe  der Anlageinstrumente wie Anleihen, Aktien etc.
+#### Drag and Drop
+"Drag and Drop" ist englisch und bedeutet "Ziehen und Fallenlassen". Damit ist gemeint, dass Dinge sehr einfach auf dem Bildschirm bewegt und verschoben werden können.
 #### Entität
 In GT ist Entität der allgemeine Begriff für Einheit einer Informationsklasse. Die Informationsklasse besteht aus mehreren Entitäten.
 #### Informationsklasse
 Eine Informationsklasse besteht aus mehreren Entitäten. Beispielsweise wird für Portfolio oder Konto der allgemeine Begriff Informationsklasse angewendet. Wobei ein einzelnes Konto eine Entität dieser Informationsklasse ist.
 #### Instrumente und Anlageinstrumente
 In GT umfasst dieser Begriff alle Wertpapiere und Währungspaare die einer Watchlist hinzugefügt werden können.
+#### Offene Position
+Eine offene Position ist ein Trade, der immer noch einen Gewinn erwirtschaften oder einen Verlust verursachen kann. Wenn eine Position geschlossen wird, werden alle Gewinne und Verluste realisiert und der Trade ist nicht länger aktiv. Offene Positionen können entweder long oder short sein, das heisst, dass Sie damit sowohl von steigenden als auch von fallenden Kursen profitieren können.
 #### Portfolio 
 Ein Portfolio ist eine Sammlung von Finanzanlagen in einem oder mehreren Depots. Zusätzlich kommt ein oder mehrere  Bankkonten mit unterschiedlichen Währungen dazu. In GT entspricht ein Portfolio der Nachbildung eines einzelnen Portfolios einer Handelsplattform.
 #### Tageskurse
+
 #### Währungspaar
 Der Begriff «Währungspaar» oder «Devisenpaar» bezeichnet im Forex-Handel den Preis in einer Währung im Vergleich zu einer anderen Währung.
 
