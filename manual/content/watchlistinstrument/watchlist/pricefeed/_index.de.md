@@ -6,4 +6,6 @@ weight : 20
 chapter: true
 ---
 ## Preis Datenfeed
-detuch
+Diese Watchlist dient primär der Überwachung der historischen und intraday Preisdaten.
+
+### Wiederholungszähler
