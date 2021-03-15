@@ -122,10 +122,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   }
 
   private void updateSecuritycurrency(Elements rows, Security security) throws IOException, ParseException {
-    // final SimpleDateFormat dateTimeFormat = new
-    // SimpleDateFormat(dateTimeFormatStr);
-    // String dateTimeValue = "";
-
+    
     for (int i = 0; i < rows.size(); i++) {
       final Element row = rows.get(i);
       final Elements cols = row.select("td,th");
