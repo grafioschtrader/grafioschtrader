@@ -451,7 +451,7 @@ table th .p-inputtext {
 }
 
 .fcontainer .fbox {
-  min-width: 350px;
+  min-width: 400px;
   max-width: 100%;
   flex-basis: 350px;
   flex-grow: 1;

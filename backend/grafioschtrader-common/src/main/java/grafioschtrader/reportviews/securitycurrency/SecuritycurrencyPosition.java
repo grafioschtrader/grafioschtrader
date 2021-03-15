@@ -30,6 +30,9 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
   @Schema(description = "Historical data html access produced from data connector of security")
   public String historicalUrl;
 
+  @Schema(description = "Divdend data html access produced from data connector of security")
+  public String dividendUrl;
+  
   public boolean isUsedElsewhere = true;
 
   public boolean watchlistSecurityHasEverTransactionTenant;

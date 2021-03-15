@@ -18,7 +18,7 @@ import grafioschtrader.repository.SecuritycurrencyService;
 /**
  *  Current and historical price data of instruments can arise differently. 
  *  They can be loaded from an external data source or derived from existing instruments. 
- *  Therefore this interface exists. *
+ *  Therefore this interface exists. 
  *
  * @param <S>
  */

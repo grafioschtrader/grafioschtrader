@@ -11,7 +11,11 @@ import {SecurityCurrencypairDerivedLinks} from '../../securitycurrency/model/sec
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {BusinessHelper} from '../../shared/helper/business.helper';
+import {AppSettings} from '../../shared/app.settings';
 
+/**
+ * Shows detailed information of a currency or instrument
+ */
 @Component({
   selector: 'securitycurrency-extended-info',
   template: `
@@ -46,6 +50,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
   @Input() securitycurrency: Security | Currencypair;
   @Input() intradayUrl: String;
   @Input() historicalUrl: String;
+  @Input() dividendUrl: String;
 
   readonly SECURITYCURRENCY = 'securitycurrency.';
   readonly PERFORMANCE = 'PERFORMANCE';
@@ -70,7 +75,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
     this.addPerformanceFields();
     this.translateHeadersAndColumns();
 
-    this.content = new Content(this.securitycurrency, this.intradayUrl, this.historicalUrl);
+    this.content = new Content(this.securitycurrency, this.intradayUrl, this.historicalUrl, this.dividendUrl);
     this.createTranslatedValueStore([this.content]);
   }
 
@@ -186,16 +191,23 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
   }
 
   private addHistoricalIntraday(): void {
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'urlHistoryExtend', 'URL_HISTORY_EXTEND',
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlHistoryExtend',
       {fieldsetName: 'HISTORY_SETTINGS'});
-    this.addFieldProperty(DataType.String, 'historicalUrl', 'HISTORICAL_LINK', {fieldsetName: 'HISTORY_SETTINGS'});
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'urlIntraExtend', 'URL_INTRA_EXTEND', {fieldsetName: 'INTRA_SETTINGS'});
-    this.addFieldProperty(DataType.String, 'intradayUrl', 'INTRADAY_LINK', {fieldsetName: 'INTRA_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, 'historicalUrl',  {fieldsetName: 'HISTORY_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlIntraExtend',  {fieldsetName: 'INTRA_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, 'intradayUrl',  {fieldsetName: 'INTRA_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'idConnectorDividend',  {fieldsetName: AppSettings
+        .DIVIDEND_SETTINGS});
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlDividendExtend',  {fieldsetName: AppSettings
+        .DIVIDEND_SETTINGS});
+    this.addFieldPropertyFeqH(DataType.String, 'dividendUrl',  {fieldsetName: AppSettings
+        .DIVIDEND_SETTINGS});
   }
 
 }
 
 class Content {
-  constructor(public securitycurrency: Securitycurrency, public intradayUrl: String, public historicalUrl: String) {
+  constructor(public securitycurrency: Securitycurrency, public intradayUrl: String, public historicalUrl: String,
+              public dividendUrl) {
   }
 }

@@ -405,6 +405,7 @@ public class WatchlistReport {
             .setSecuritycurrencyHistoricalDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
         this.securityJpaRepository
             .setSecuritycurrencyIntradayDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
+        this.securityJpaRepository.setDividendDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
       } else {
         this.currencypairJpaRepository.setSecuritycurrencyHistoricalDownloadLink(
             (SecuritycurrencyPosition<Currencypair>) securitycurrencyPosition);

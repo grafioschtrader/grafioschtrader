@@ -20,6 +20,7 @@ import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/d
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ValidatorFn} from '@angular/forms';
 import {ErrorMessageRules} from '../../dynamic-form/error/error.message.rules';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Some definition of fields are shared between the different edit components of instruments. Those aee
@@ -38,9 +39,6 @@ export class SecurityEditSupport {
 
   public connectorDividendConfig: FieldConfig[];
   public connectorSplitConfig: FieldConfig[];
-
-  private readonly DIVIDEND_SETTINGS = 'DIVIDEND_SETTINGS';
-  private readonly SPLIT_SETTINGS = 'SPLIT_SETTING';
 
   private assetClassSubscribe: Subscription;
   private activeFromDateSubscribe: Subscription;
@@ -130,24 +128,24 @@ export class SecurityEditSupport {
   public getDividendFieldDefinition(): FieldConfig[] {
     const fc: FieldConfig[] = [];
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF(this.ID_CONNECTOR_DIVIDEND, false,
-      {fieldsetName: this.DIVIDEND_SETTINGS}));
+      {fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
     fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlDividendExtend', 254, false,
-      {fieldsetName: this.DIVIDEND_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
+      {fieldsetName: AppSettings.DIVIDEND_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('dividendCurrency', false,
-      {inputWidth: 10, fieldsetName: this.DIVIDEND_SETTINGS}));
+      {inputWidth: 10, fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryDividendLoad',
-      true, 0, 3, {defaultValue: 0, fieldsetName: this.DIVIDEND_SETTINGS}));
+      true, 0, 3, {defaultValue: 0, fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
     return fc;
   }
 
   public getSplitDefinition(): FieldConfig[] {
     const fc: FieldConfig[] = [];
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('idConnectorSplit', false,
-      {fieldsetName: this.SPLIT_SETTINGS}));
+      {fieldsetName: AppSettings.SPLIT_SETTINGS}));
     fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlSplitExtend', 254, false,
-      {fieldsetName: this.SPLIT_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
+      {fieldsetName: AppSettings.SPLIT_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retrySplitLoad',
-      true, 0, 3, {defaultValue: 0, fieldsetName: this.SPLIT_SETTINGS}));
+      true, 0, 3, {defaultValue: 0, fieldsetName: AppSettings.SPLIT_SETTINGS}));
     return fc;
   }
 

@@ -38,6 +38,7 @@ import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exi
 import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamic.dialog.helper';
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
 import {DataType} from '../../dynamic-form/models/data.type';
+import {AppSettings} from '../../shared/app.settings';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
@@ -121,7 +122,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   protected addBaseColumns(): void {
     this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {width: 200});
-    this.addColumn(DataType.String, 'securitycurrency', 'I', true, false,
+    this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumnFeqH(DataType.String, 'securitycurrency.isin',  true, true, {width: 90});
     this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol', true, true);
@@ -345,14 +346,14 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       menuItems.push(...BusinessHelper.getUrlLinkMenus(securitycurrencyPosition.securitycurrency));
       menuItems.push(
         {
-          label: 'INTRADAY_LINK',
+          label: 'INTRADAY_URL',
           command: (e) => BusinessHelper.toExternalWebpage(securitycurrencyPosition.intradayUrl, 'intra'),
           disabled: !securitycurrencyPosition.intradayUrl
         }
       );
       menuItems.push(
         {
-          label: 'HISTORICAL_LINK',
+          label: 'HISTORICAL_URL',
           command: (e) => BusinessHelper.toExternalWebpage(securitycurrencyPosition.historicalUrl, 'historical'),
           disabled: !securitycurrencyPosition.historicalUrl
         }

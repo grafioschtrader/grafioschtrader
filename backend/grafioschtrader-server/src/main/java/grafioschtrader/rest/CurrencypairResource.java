@@ -83,6 +83,8 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairWithHistoryquote, HttpStatus.OK);
   }
 
+  @Operation(summary = "Returns all connectors of data provider with it supported capabilities",
+      description = "", tags = {RequestMappings.CURRENCYPAIR })
   @GetMapping(value = "/feedConnectors", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IFeedConnector>> getFeedConnectors() {
     return new ResponseEntity<>(currencypairJpaRepository.getFeedConnectors(true), HttpStatus.OK);

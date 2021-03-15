@@ -54,6 +54,7 @@ import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.search.SecuritySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
@@ -192,6 +193,15 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
           .equals(targetSecurity.getSecurityDerivedLinks()[i]);
     }
     return !isEqual;
+  }
+
+  public void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition) {
+    if (securitycurrencyPosition.securitycurrency.getIdConnectorDividend() != null) {
+      IFeedConnector iFeedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
+          securitycurrencyPosition.securitycurrency.getIdConnectorDividend(), IFeedConnector.FeedSupport.DIVIDEND);
+      securitycurrencyPosition.dividendUrl = iFeedConnector
+          .getDividendHistoricalDownloadLink(securitycurrencyPosition.securitycurrency);
+    }
   }
 
   @Override

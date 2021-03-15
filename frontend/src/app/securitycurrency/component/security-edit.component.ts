@@ -83,16 +83,13 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   @ViewChild('periodPriceForm') dynamicPeriodPriceForm: DynamicFormComponent;
   @ViewChild(SecurityHistoryquotePeriodEditTableComponent) shpetc: SecurityHistoryquotePeriodEditTableComponent;
 
-
   readonly maxSplits = 20;
   readonly maxHistoryquotePeriods = 20;
-
 
   // Input from parent view
   @Input() visibleEditSecurityDialog: boolean;
 
   securityEditSupport: SecurityEditSupport;
-
 
   configSplit: FieldConfig[] = [];
   periodPrices: FieldConfig[] = [];
@@ -138,7 +135,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         1, 99_999_999),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'toFactor', true,
         1, 99_999_999),
-
       DynamicFieldHelper.createSubmitButton('APPLY')
     ];
 

@@ -77,7 +77,8 @@
           <securitycurrency-extended-info *ngIf="watchlistType === WatchListType.PRICE_FEED"
                                           [securitycurrency]="spl.securitycurrency"
                                           [intradayUrl]="spl.intradayUrl"
-                                          [historicalUrl]="spl.historicalUrl">
+                                          [historicalUrl]="spl.historicalUrl"
+                                          [dividendUrl]="spl.dividendUrl">
           </securitycurrency-extended-info>
 
           <div *ngIf="watchlistType === WatchListType.DIVIDEND_SPLIT_FEDED">

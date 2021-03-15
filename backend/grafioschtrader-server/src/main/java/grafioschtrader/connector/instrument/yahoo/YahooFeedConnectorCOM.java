@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -70,7 +71,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String DATE_FORMAT_SECURITY = "yy-MM-dd"; //$NON-NLS-1$
   private static final String DATE_FORMAT_SECURITY_OLD = "dd-MMM-yy"; //$NON-NLS-1$
   private static final String DATE_FORMAT_SPLIT = "yyyy-MM-dd";
-
+  private static final String DIVDEND_EVENT = "dividend";
+  private static final String SPLIT_EVENT = "split";
+  
  
   private static final String DOMAIN_NAME_WITH_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
 
@@ -298,13 +301,14 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public String getDividendHistoricalDownloadLink(Security security) {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return getSplitHistoricalDownloadLink(security.getUrlSplitExtend(),
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), DIVDEND_EVENT, null);
   }
 
   @Override
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
     double divider = this.getGBXLondonDivider(security);
-    return getDividendSplitHistory(security, fromDate, "dividend", (in, idSecurity, dividends, currency) -> {
+    return getDividendSplitHistory(security, fromDate, DIVDEND_EVENT, (in, idSecurity, dividends, currency) -> {
       String inputLine = in.readLine();
       while ((inputLine = in.readLine()) != null) {
         if (!Character.isDigit(inputLine.charAt(0))) {
@@ -324,7 +328,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public String getSplitHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security.getUrlSplitExtend(),
-        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), "split", null);
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), SPLIT_EVENT, null);
   }
 
   private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, String event, String crumb) {
@@ -336,7 +340,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public List<Securitysplit> getSplitHistory(final Security security, LocalDate fromDate) throws Exception {
-    return getDividendSplitHistory(security, fromDate, "split", (in, idSecurity, securitysplits, currency) -> {
+    return getDividendSplitHistory(security, fromDate, SPLIT_EVENT, (in, idSecurity, securitysplits, currency) -> {
       final SimpleDateFormat dateFormatSplit = new SimpleDateFormat(DATE_FORMAT_SPLIT, Locale.US);
       FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
       String inputLine = in.readLine();
@@ -362,7 +366,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
 
-    String symbol = URLEncoder.encode(security.getUrlSplitExtend(), "UTF-8");
+    String symbol = URLEncoder.encode(security.getUrlSplitExtend(), StandardCharsets.UTF_8);
 
     String crumb = getCrumb(symbol, client, context);
     if (crumb != null && !crumb.isEmpty()) {
