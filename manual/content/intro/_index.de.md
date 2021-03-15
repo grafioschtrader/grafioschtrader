@@ -30,6 +30,8 @@ GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher g
 + Privatanleger der wissen will, wie sich seine Währungsgewinnen entwickeln. Es wird laufend der Währungsgewinn auf den Fremdwährungskonten ausgewiesen.
 + Investoren-Club der eine eigene GT-Instanz hosten will und sich ein Mitglied gerne um technischen Aspekte kümmert.
 + Anleger mit mehreren Portfolios bei unterschiedlichen Handelsplattformen. GT liefert Informationen pro Portfolio und kann diese aggregiert darstellen.
-p### Für wen ist GT nicht gedacht
+
+### Für wen ist GT nicht gedacht
 + Dem Daytrader fehlen die Echtzeitkurse.
 + Investoren die ihren Handel losgelöst von Geldkontos verwalten möchten.
++ Anleger der nur ein Portfolio bei einem Online-Broker hat und Ihnen seine Auswertungen genügen.

@@ -126,6 +126,9 @@ export class AppSettings {
   public static readonly SUCCESS_FAILED_IMP_TRANS = 'successFailedDirectImpTran';
   public static readonly VALUE_SECURITY_ACCOUNT_HEADER = 'ACCOUNT_RELEVANT';
 
+  public static readonly DIVIDEND_SETTINGS = 'DIVIDEND_SETTINGS';
+  public static  readonly SPLIT_SETTINGS = 'SPLIT_SETTING';
+
   // User Rights
   public static readonly ROLE_ADMIN = 'ROLE_ADMIN';
   public static readonly ROLE_ALL_EDIT = 'ROLE_ALLEDIT';
@@ -134,5 +137,5 @@ export class AppSettings {
 
   public static readonly DIALOG_MENU_SUFFIX = '...';
 
-
+  public static readonly INSTRUMENT_HEADER = 'I';
 }

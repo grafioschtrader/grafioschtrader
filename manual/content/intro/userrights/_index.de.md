@@ -6,12 +6,12 @@ weight : 20
 chapter: true
 ---
 ## Daten
-In GT gibt es geteilte und private Daten. Bei den geteilte Daten wird anhand der Benutzerrechte die Sicht- und  Veränderbarkeit geregelt. Daten wie das Portfolio und Transaktionen sind persönliche Daten und für andere Benutzer nicht zugänglich. Anlageklassen und beispielsweise Börse sind geteilte Daten und für alle Benutzer sichtbar aber die Autorisierung des Benutzers bestimmt deren Veränderbarkeit.
+In GT gibt es private und geteilte Daten. Bei den geteilte Daten wird anhand der Benutzerrechte die Sicht- und  Veränderbarkeit geregelt. Daten wie das Portfolio und Transaktionen sind private Daten und für andere Benutzer nicht zugänglich. Informationsklasse  "Anlageklassen" und beispielsweise "Börse" sind geteilte Daten und für alle Benutzer sichtbar aber die Autorisierung des Benutzers bestimmt deren Veränderbarkeit.
+
+### Private Daten
+Konto, Transaktion usw. sind private Daten und können von anderen nicht gesehen oder verändert werden.
 
 ### Geteilte Daten
-...
-
-### Öffentliche Daten
 Bei den öffentlichen Daten bestimmen die Zugriffsrechte des Benutzers die Veränderbarkeit dieser Daten.
 
 ## Benutzerrechte

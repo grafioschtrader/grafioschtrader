@@ -18,7 +18,10 @@ Möglicherweise wird es in zukünftigen GT-Versionen eine Möglichkeit eines Ben
 {{% /notice %}}
 
 ### Abweichung zur Realität
-Für die Berechnung der Performance werden hypothetische Transaktionen durchgeführt. Beispielsweise müssen Wertpapiere verkauft und die Fremdwährungen gegen die Hauptwährung gekauft werden. Dazu werden hypothetische Verkäufe und Währungstransaktionen durchgeführt. Bei den Fremdwährungskursen wird der 
+Für die Berechnung der Performance werden hypothetische Transaktionen durchgeführt. Beispielsweise müssten Wertpapiere verkauft und die Fremdwährungen gegen die Hauptwährung gekauft werden. Dazu werden hypothetische Verkäufe und Währungstransaktionen durchgeführt. Bei den Fremdwährungskursen wird der Mittelkurse genommen. Die Aufwendungen für Transaktionskosten und Steuern werden nicht berücksichtigt.
+{{% notice info %}}
+In einer zukünftigen GT-Version werden die bisher vernachlässigten Veräusserungskosten berücksichtigt werden. Dabei werden aus der Historie von getätigten Transaktionen die Veräusserungskosten abgeleitet.
+{{% /notice %}}
 
 ### Problematik Fremdwährung
 Sobald eine Applikation Konten und Handel mit Fremdwährungen unterstützt, wird es Diskussionen über unterschiedliche Ansätze der Performance Berechnung geben. GT selbst is wissentlich nicht durchgehend konsistent was diese Berechnung betrifft. Beispielsweise werden im Report der **Portfolios** die Erträge und Aufwände für **Kontozins** bzw. **Konto- und Depotkosten** anders berechnet als im Report des Periodenertrags. Im ersteren werden die Erträge zum Transaktionsdatum in die Hauptwährung umgerechnet, beim Periodenertrag wird das Datum auf welche sich die Berechnung bezieht genommen.  

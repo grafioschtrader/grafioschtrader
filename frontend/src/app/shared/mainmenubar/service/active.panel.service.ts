@@ -106,7 +106,6 @@ export class ActivePanelService {
   private setMenuItems(menuType: TopMenuTypes, menuItems?: MenuItem[]) {
     this.topMenuItems[menuType].disabled = !menuItems;
     this.topMenuItems[menuType].items = (menuItems) ? menuItems : null;
-    console.log('set top menu');
     this.topMenuItems = [...this.topMenuItems];
   }
 

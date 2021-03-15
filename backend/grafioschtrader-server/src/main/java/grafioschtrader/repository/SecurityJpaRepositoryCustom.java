@@ -11,6 +11,7 @@ import grafioschtrader.entities.User;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.search.SecuritycurrencySearch;
 
@@ -71,6 +72,9 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy);
 
   boolean checkUserCanChangeDerivedFields(User user, Security security, Security existingSecurity);
+  
+  
+  void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
   
   /**
    * Some cases the historical prices must be reloaded completely. For example
