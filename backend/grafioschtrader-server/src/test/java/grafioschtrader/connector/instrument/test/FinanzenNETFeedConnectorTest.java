@@ -79,12 +79,17 @@ class FinanzenNETFeedConnectorTest {
     final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("04.01.2000", germanFormatter);
+   // final LocalDate from = LocalDate.parse("04.01.2000", germanFormatter);
+    final LocalDate from = LocalDate.parse("24.10.2020", germanFormatter);
     final LocalDate to = LocalDate.parse("04.01.2021", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
+    securities.add(createSecurityHistorical("index/ftse_mib/historisch", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "MIL"));
+
+/*    
     securities.add(createSecurityHistorical("historische-kurse/citrix_systems", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NASDAQ"));
   
@@ -139,7 +144,7 @@ class FinanzenNETFeedConnectorTest {
 
     securities.add(createSecurityHistorical("etf/historisch/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "LSE"));
-
+*/
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
