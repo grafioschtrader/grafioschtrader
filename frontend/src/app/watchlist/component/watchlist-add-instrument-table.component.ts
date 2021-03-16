@@ -14,6 +14,7 @@ import {Watchlist} from '../../entities/watchlist';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecuritycurrencySearchTableBase} from '../../securitycurrency/component/securitycurrency.search.table.base';
+import {FilterService} from 'primeng/api';
 
 @Component({
   selector: 'watchlist-add-instrument-table',
@@ -82,10 +83,11 @@ export class WatchlistAddInstrumentTableComponent extends SecuritycurrencySearch
   constructor(private dataChangedService: DataChangedService,
               private watchlistService: WatchlistService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.multiSortMeta.push({field: 'name', order: 1});
   }
 
@@ -103,7 +105,7 @@ export class WatchlistAddInstrumentTableComponent extends SecuritycurrencySearch
         this.createTranslatedValueStoreAndFilterField(securitycurrencyLists.securityList);
         this.securitycurrencyList = securitycurrencyLists.securityList;
         this.transformCurrencypairToCurrencypairWatchlist(securitycurrencyLists.currencypairList);
-        this.changeDetectionStrategy.markForCheck();
+     //   this.changeDetectionStrategy.markForCheck();
       });
   }
 

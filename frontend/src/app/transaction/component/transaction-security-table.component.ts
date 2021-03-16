@@ -16,7 +16,7 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 
@@ -49,11 +49,12 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
   }
 
   ngOnInit(): void {
@@ -75,7 +76,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
         this.setFieldHeaderTranslation(cc);
       });
 
-      this.changeDetectionStrategy.markForCheck();
+    //  this.changeDetectionStrategy.markForCheck();
     });
   }
 

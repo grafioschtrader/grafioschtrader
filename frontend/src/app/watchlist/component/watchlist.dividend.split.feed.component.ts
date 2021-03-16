@@ -8,7 +8,7 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -62,13 +62,14 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
               messageToastService: MessageToastService,
               productIconService: ProductIconService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.DIVIDEND_SPLIT_FEDED, AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
       dialogService, timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router,
       activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
-      translateService, globalparameterService, usersettingsService
+      filterService, translateService, globalparameterService, usersettingsService
     );
     this.addBaseColumns();
       this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,

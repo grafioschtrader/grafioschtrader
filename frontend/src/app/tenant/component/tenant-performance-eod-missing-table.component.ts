@@ -8,7 +8,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {IFeedConnector} from '../../securitycurrency/component/ifeed.connector';
-import {MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
 @Component({
@@ -56,10 +56,11 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
 
   constructor(private securityService: SecurityService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.String, 'isin');
     this.addColumnFeqH(DataType.String, 'currency');

@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {LoginService} from './shared/login/service/log-in.service';
+import {PrimeNGConfig} from 'primeng/api';
 
 
 @Component({
@@ -14,13 +15,12 @@ import {LoginService} from './shared/login/service/log-in.service';
 })
 export class AppComponent {
 
-  constructor(translateService: TranslateService) {
+  constructor(translateService: TranslateService,  primeNGConfig: PrimeNGConfig) {
     translateService.addLangs(['en', 'de']);
     translateService.setDefaultLang('de');
 
     const browserLang: string = translateService.getBrowserLang();
-    // translateService.use(browserLang.match(/en|de/) ? browserLang : 'en');
-    LoginService.setGlobalLang(translateService);
+    LoginService.setGlobalLang(translateService, primeNGConfig);
   }
 
 }

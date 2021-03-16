@@ -22,12 +22,13 @@ import {combineLatest, Observable} from 'rxjs';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
+import {filter} from 'rxjs/operators';
 
 /**
  * View to check the reliability of the price data feeds.
@@ -66,12 +67,13 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
               messageToastService: MessageToastService,
               productIconService: ProductIconService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.PRICE_FEED, AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
       dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
-      messageToastService, productIconService, changeDetectionStrategy, translateService,
+      messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
       globalparameterService, usersettingsService);
     const date = new Date();
 

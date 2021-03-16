@@ -12,8 +12,8 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {Subscription} from 'rxjs';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {ImportTransactionHeadService} from '../service/import.transaction.head.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
+import {FilterService} from 'primeng/api';
 
 
 /**
@@ -36,12 +36,13 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
               router: Router,
               chartDataService: ChartDataService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, changeDetectionStrategy, translateService, globalparameterService,
-      usersettingsService);
+      activatedRoute, router, chartDataService, changeDetectionStrategy, filterService,
+      translateService, globalparameterService, usersettingsService);
 
 
     this.createColumns();

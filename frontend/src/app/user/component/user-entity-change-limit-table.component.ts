@@ -4,7 +4,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {UserEntityChangeLimit} from '../../entities/user.entity.change.limit';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
@@ -117,10 +117,11 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
               private messageToastService: MessageToastService,
               private confirmationService: ConfirmationService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
     this.addColumn(DataType.String, this.UPPER_CASE_ENTITY_NAME, 'ENTITY_NAME', true, false, {translateValues: true});
     this.addColumn(DataType.None, 'userChangePropose', 'L', true, true,

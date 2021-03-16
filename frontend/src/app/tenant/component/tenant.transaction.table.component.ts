@@ -11,7 +11,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {combineLatest, Observable} from 'rxjs';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {TransactionTable} from '../../transaction/component/transaction.table';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 
 /**
  * Shows all transactions of a tenant
@@ -28,11 +28,12 @@ export class TenantTransactionTableComponent extends TransactionTable implements
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+    super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
+      messageToastService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
   }
 
 

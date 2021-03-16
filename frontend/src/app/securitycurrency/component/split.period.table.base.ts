@@ -11,6 +11,7 @@ import {Security} from '../../entities/security';
 import {plainToClass} from 'class-transformer';
 import {DeleteCreateMultiple} from '../service/delete.create.multiple';
 import {ClassConstructor} from 'class-transformer/types/interfaces';
+import {FilterService} from 'primeng/api';
 
 
 @Directive()
@@ -29,10 +30,11 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
                         private messageToastService: MessageToastService,
                         private deleteCreateMultipleService: DeleteCreateMultiple<T>,
                         changeDetectionStrategy: ChangeDetectorRef,
+                        filterService: FilterService,
                         usersettingsService: UserSettingsService,
                         translateService: TranslateService,
                         globalparameterService: GlobalparameterService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.multiSortMeta.push({field: dataSortKey, order: 1});
   }
 

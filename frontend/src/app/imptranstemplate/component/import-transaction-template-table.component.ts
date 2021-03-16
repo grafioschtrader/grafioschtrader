@@ -13,9 +13,8 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {plainToClass} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {combineLatest} from 'rxjs';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 
 /**
@@ -73,18 +72,20 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
               activePanelService: ActivePanelService,
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('ImportTransactionTemplate', importTransactionTemplateService, confirmationService,
-      messageToastService, activePanelService, dialogService, changeDetectionStrategy, translateService, globalparameterService,
+      messageToastService, activePanelService, dialogService, changeDetectionStrategy, filterService,
+      translateService, globalparameterService,
       usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
 
-    this.addColumnFeqH(DataType.String, 'templatePurpose',  true, false);
+    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false);
     this.addColumn(DataType.String, 'templateFormatType', 'TEMPLATE_FORMAT', true, false,
       {translateValues: true});
-    this.addColumnFeqH(DataType.DateString, 'validSince',  true, false);
-    this.addColumnFeqH(DataType.String, 'templateLanguage',  true, false,
+    this.addColumnFeqH(DataType.DateString, 'validSince', true, false);
+    this.addColumnFeqH(DataType.String, 'templateLanguage', true, false,
       {fieldValueFN: this.getDisplayNameForLanguage.bind(this)});
     this.multiSortMeta.push({field: 'templatePurpose', order: 1});
     this.prepareTableAndTranslate();
@@ -106,15 +107,15 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
       combineLatest([this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(
         this.seclectImportTransactionPlatform.idTransactionImportPlatform, false),
         this.importTransactionTemplateService.getPossibleLanguagesForTemplate()]).subscribe(data => {
-          this.createTranslatedValueStoreAndFilterField(data[0]);
-          this.entityList = plainToClass(ImportTransactionTemplate, data[0]);
+        this.createTranslatedValueStoreAndFilterField(data[0]);
+        this.entityList = plainToClass(ImportTransactionTemplate, data[0]);
         data[1].forEach(o => {
           this.languageAsKeyValue.key = <string>o.key;
           this.languageAsKeyValue[o.key] = o.value;
         });
         this.refreshSelectedEntity();
-          this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, this.selectedEntity);
-        });
+        this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, this.selectedEntity);
+      });
     } else {
       this.entityList = [];
       this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, this.selectedEntity);

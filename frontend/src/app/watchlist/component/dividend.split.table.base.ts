@@ -7,6 +7,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {DividendSplit} from '../../entities/dividend.split';
 import {DividendSplitSvgCreator} from '../../shared/dividendsplit/dividend.split.svg.creator';
+import {FilterService} from 'primeng/api';
 
 
 export abstract class DividendSplitTableBase<S extends DividendSplit> extends TableConfigBase {
@@ -14,13 +15,14 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
   data: S[];
 
   constructor(changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               private iconReg: SvgIconRegistryService,
               public keyfield: string, sortField: string,
               public groupTitle: string) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.multiSortMeta.push({field: sortField, order: -1});
     DividendSplitSvgCreator.registerIcons(this.iconReg);
   }

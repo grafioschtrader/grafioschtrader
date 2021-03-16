@@ -16,7 +16,7 @@ import {TransactionCallParam} from '../../transaction/component/transaction.call
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {Table} from 'primeng/table';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 
 /**
  * Shows Transaction of a security account, that means there are only transaction with security involved.
@@ -83,11 +83,12 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
   }
 
   ngOnInit(): void {

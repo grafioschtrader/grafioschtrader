@@ -21,7 +21,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {TenantPortfolioSummary} from '../model/tenant.portfolio.summary';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {MenuItem, SelectItem} from 'primeng/api';
+import {FilterService, MenuItem, SelectItem} from 'primeng/api';
 
 
 /**
@@ -57,10 +57,11 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
               private router: Router,
               private chartDataService: ChartDataService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('groupName', 'TOTAL'), new ColumnGroupConfig(null, 'GRAND_TOTAL')]});

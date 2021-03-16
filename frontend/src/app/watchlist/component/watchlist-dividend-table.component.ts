@@ -7,6 +7,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {DividendService} from '../service/dividend.service';
 import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Dividend} from '../../entities/dividend.split';
+import {FilterService} from 'primeng/api';
 
 
 @Component({
@@ -20,11 +21,12 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
 
   constructor(private dividendService: DividendService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               iconReg: SvgIconRegistryService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService, iconReg, 'idDividend',
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService, iconReg, 'idDividend',
       WatchlistDividendTableComponent.EX_DATE, 'DIVIDEND');
     this.addColumnFeqH(DataType.DateNumeric, WatchlistDividendTableComponent.EX_DATE, true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,

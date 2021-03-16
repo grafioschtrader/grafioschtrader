@@ -8,6 +8,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Securitysplit} from '../../entities/dividend.split';
+import {FilterService} from 'primeng/api';
 
 
 @Component({
@@ -20,11 +21,12 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
 
   constructor(private securitysplitService: SecuritysplitService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               iconReg: SvgIconRegistryService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService, iconReg,
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService, iconReg,
       'idSecuritysplit', WatchlistSecuritysplitTableComponent.SPLIT_DATE, 'SPLIT');
 
     this.addColumnFeqH(DataType.DateNumeric, 'splitDate', true, false);

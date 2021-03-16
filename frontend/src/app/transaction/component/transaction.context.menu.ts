@@ -18,7 +18,7 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 
 
@@ -57,10 +57,11 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
               protected confirmationService: ConfirmationService,
               protected messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(null);
   }
 

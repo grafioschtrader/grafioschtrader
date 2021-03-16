@@ -20,6 +20,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {AppSettings} from '../../shared/app.settings';
 import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
+import {FilterService} from 'primeng/api';
 
 
 /**
@@ -45,11 +46,12 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
               router: Router,
               chartDataService: ChartDataService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, changeDetectionStrategy, translateService, globalparameterService,
+      activatedRoute, router, chartDataService, changeDetectionStrategy, filterService, translateService, globalparameterService,
       usersettingsService);
   }
 

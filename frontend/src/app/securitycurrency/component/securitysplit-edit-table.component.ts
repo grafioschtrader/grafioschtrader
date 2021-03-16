@@ -5,12 +5,12 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {SecuritysplitService} from '../service/securitysplit.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {Security} from '../../entities/security';
 import {SplitPeriodTableBase} from './split.period.table.base';
 import {CreateType, Securitysplit} from '../../entities/dividend.split';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {DividendSplitSvgCreator} from '../../shared/dividendsplit/dividend.split.svg.creator';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {FilterService} from 'primeng/api';
 
 /**
  * Shows the table of splits
@@ -25,17 +25,17 @@ export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securi
               securitysplitService: SecuritysplitService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService) {
     super('splitDate', 'SECURITY_SPLITS_FROM_MAX', Securitysplit, messageToastService, securitysplitService,
-      changeDetectionStrategy, usersettingsService,
-      translateService, globalparameterService);
+      changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.addColumnFeqH(DataType.DateString, 'splitDate', true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.NumericInteger, 'fromFactor',  true, false);
-    this.addColumnFeqH(DataType.NumericInteger, 'toFactor',  true, false);
+    this.addColumnFeqH(DataType.NumericInteger, 'fromFactor', true, false);
+    this.addColumnFeqH(DataType.NumericInteger, 'toFactor', true, false);
     this.prepareTableAndTranslate();
     DividendSplitSvgCreator.registerIcons(iconReg);
   }

@@ -11,7 +11,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {AppSettings} from '../../shared/app.settings';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 
 
 @Directive()
@@ -28,11 +28,12 @@ export abstract class MailInOutTable<T extends MailInOut> extends TableCrudSuppo
                         activePanelService: ActivePanelService,
                         dialogService: DialogService,
                         changeDetectionStrategy: ChangeDetectorRef,
+                        filterService: FilterService,
                         translateService: TranslateService,
                         globalparameterService: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
     super(entityName, deleteService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, translateService, globalparameterService, usersettingsService,
+      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService,
       [CrudMenuOptions.Allow_Delete]);
     this.multiSortMeta.push({field: sortField, order: 1});
   }

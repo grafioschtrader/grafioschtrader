@@ -14,6 +14,7 @@ import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {AppSettings} from '../../shared/app.settings';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
+import {FilterService} from 'primeng/api';
 
 /**
  * It is the summary for all security accounts with its securities of a for a certain tenant.
@@ -34,11 +35,12 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
               router: Router,
               chartDataService: ChartDataService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, changeDetectionStrategy, translateService, globalparameterService,
+      activatedRoute, router, chartDataService, changeDetectionStrategy, filterService, translateService, globalparameterService,
       usersettingsService);
   }
 

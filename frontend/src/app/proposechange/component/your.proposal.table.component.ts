@@ -11,7 +11,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {ProposeChangeEntityService} from '../service/propose.change.entity.service';
 import {plainToClass} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 
 
 /**
@@ -57,11 +57,12 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
               activePanelService: ActivePanelService,
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('ProposeChangeEntity', proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, translateService, globalparameterService, usersettingsService,
+      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService,
       [CrudMenuOptions.Allow_Delete]);
 
     this.addColumn(DataType.String, 'entity', 'ENTITY_NAME', true, false,

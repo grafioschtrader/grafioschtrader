@@ -8,6 +8,7 @@ import {HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp} from '../m
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {Security} from '../../entities/security';
+import {FilterService} from 'primeng/api';
 
 @Component({
   selector: 'security-historyquote-quality-table',
@@ -51,10 +52,11 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
   constructor(private timeSeriesQuotesService: TimeSeriesQuotesService,
               private securityService: SecurityService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.DateString, 'activeFromDate');
