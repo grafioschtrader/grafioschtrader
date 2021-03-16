@@ -1,7 +1,7 @@
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../app.settings';
 import {ChangeDetectorRef} from '@angular/core';
-import {MenuItem, SortEvent, SortMeta} from 'primeng/api';
+import {FilterService, MenuItem, SelectItem, SortEvent, SortMeta} from 'primeng/api';
 import {UserSettingsService} from '../service/user.settings.service';
 import {Helper} from '../../helper/helper';
 import {GlobalparameterService} from '../service/globalparameter.service';
@@ -17,20 +17,28 @@ import {TableTreetableTotalBase} from './table.treetable.total.base';
 export abstract class TableConfigBase extends TableTreetableTotalBase {
   FilterType: typeof FilterType = FilterType;
 
+  formLocale:  string;
   // Used when an component click event is consumed by the child and the parent should ignored it.
   readonly consumedGT = 'consumedGT';
 
   public hasFilter = false;
+
+
+  customMatchModeOptions: SelectItem[] = [];
+  customSearchNames: string[];
+
   rowsPerPage: number;
   firstRowIndexOnPage = 0;
   multiSortMeta: SortMeta[] = [];
   private visibleRestore: boolean[] = [];
 
   protected constructor(protected changeDetectionStrategy: ChangeDetectorRef,
+                        protected filterService: FilterService,
                         protected usersettingsService: UserSettingsService,
                         translateService: TranslateService,
                         globalparameterService: GlobalparameterService) {
     super(translateService, globalparameterService);
+    this.formLocale = globalparameterService.getLocale();
   }
 
   get numberOfVisibleColumns(): number {
@@ -43,6 +51,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
 
   prepareTableAndTranslate(): void {
     this.hasFilter = this.fields.filter(field => field.filterType).length > 0;
+    if (this.hasFilter) {
+      this.registerFilter();
+    }
     this.translateHeadersAndColumns();
   }
 
@@ -59,6 +70,40 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   ////////////////////////////////////////////////////////////////////
   // Filter Table
   ////////////////////////////////////////////////////////////////////
+
+  private registerFilter(): void {
+
+    const filters: FilterFN[] = [{name: 'gtNoFilter', fn: null},
+      {name: 'gtIS', fn: this.isEqual.bind(this)},
+      {name: 'gtSameOrBefore', fn: this.sameOrBefore.bind(this)},
+      {name: 'gtSameAfter', fn: this.sameOrAfter.bind(this)},
+    ];
+
+    this.customSearchNames = filters.map(v => v.name);
+    this.translateService.get('GT_FILTER').subscribe(tr => filters.forEach(f =>
+      this.customMatchModeOptions.push({value: f.name, label: tr[f.name]})));
+
+    filters.forEach(f => {
+      this.filterService.register(f.name, (value, filter): boolean => {
+        if (filter === undefined || filter === null || f.fn === null) {
+          return true;
+        }
+        return f.fn(value, filter);
+      });
+    });
+  }
+
+  private sameOrBefore(value, filter): boolean {
+    return moment(value).isSameOrBefore(filter, 'day');
+  }
+
+  private sameOrAfter(value, filter): boolean {
+    return moment(value).isSameOrAfter(filter, 'day');
+  }
+
+  private isEqual(value, filter): boolean {
+    return moment(value).isSame(filter, 'day');
+  }
 
   readTableDefinition(key: string): void {
     const readedFields: any[] = this.usersettingsService.readArray(key);
@@ -108,7 +153,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     if (calendar.value || !calendar.filled) {
       this.filterDate(calendar.value, columnConfig, table);
     }
-
   }
 
   public filterDate(event, columnConfig: ColumnConfig, table: Table): void {
@@ -241,7 +285,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
         columnsMenuItems.push({
           label: field.headerKey,
           icon: (field.visible) ? AppSettings.ICONNAME_SQUARE_CHECK : AppSettings.ICONNAME_SQUARE_EMTPY,
-          command: (event) => this.handleHiddeShowColumn(event, field)
+          command: (event) => this.handleHideShowColumn(event, field)
         });
       }
     });
@@ -249,14 +293,14 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     return columnsMenuItems;
   }
 
-  hiddeShowColumnByFileHeader(fileHeader: string, visible: boolean) {
+  hideShowColumnByFileHeader(fileHeader: string, visible: boolean) {
     this.fields.filter(field => field.headerKey === fileHeader).forEach(field => field.visible = visible);
   }
 
-  handleHiddeShowColumn(event, field: ColumnConfig) {
+  handleHideShowColumn(event, field: ColumnConfig) {
     field.visible = !field.visible;
     event.item.icon = (field.visible) ? AppSettings.ICONNAME_SQUARE_CHECK : AppSettings.ICONNAME_SQUARE_EMTPY;
-    this.changeDetectionStrategy.markForCheck();
+    //  this.changeDetectionStrategy.markForCheck();
   }
 
   getMenuShowOptions(): MenuItem[] {
@@ -264,6 +308,11 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     return items.length > 0 ? [{label: 'ON_OFF_COLUMNS', items: items}] : null;
   }
 
+}
+
+interface FilterFN {
+  name: string;
+  fn: (value, filter) => boolean;
 }
 
 class SortFields {

@@ -39,14 +39,6 @@ export abstract class Helper {
       clear: 'effacer'
     }
   };
-/*
-  public static cleanNumberMask(value: string | number, decimalSymbol: string, thousandsSymbol: string): number {
-    if (typeof value === 'string') {
-      return +value.split(thousandsSymbol).join('').split(decimalSymbol).join('.').replace(/[^\d.-]/g, '');
-    }
-    return value;
-  }
-*/
 
   public static setValueByPath(data: any, path: string, value: any) {
     let schema = data;

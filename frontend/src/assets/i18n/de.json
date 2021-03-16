@@ -552,5 +552,40 @@
   "YOUNGEST_EOD_TOOLTIP": "Jüngstes Datum historische Kursdaten",
   "YOUR_CHANGE_REQUEST": "Ihr Datenänderungswunsch",
   "YOUR_CHANGE_REQUESTS": "Ihre Datenänderungswünsche",
-  "YTD": "Seit Jahres- beginn"
+  "YTD": "Seit Jahres- beginn",
+  "primeng": {
+    "startsWith": "Startet mit",
+    "contains": "Enthält",
+    "notContains": "Enthält nicht",
+    "endsWith": "Endet mit",
+    "equals": "Gleich",
+    "notEquals": "Ungleich",
+    "noFilter": "Kein Filter",
+    "lt": "Kleiner als",
+    "lte": "Kleiner oder gleich",
+    "gt": "Grösser als",
+    "gte": "Grösser oder gleich",
+    "is": "Ist",
+    "isNot": "Ist nicht",
+    "before": "Vor",
+    "after": "Nach",
+    "clear": "Löschen",
+    "apply": "Anwenden",
+    "matchAll": "UND Bedingung",
+    "matchAny": "ODER Bedingung",
+    "addRule": "Regel hinzufügen",
+    "removeRule": "Regel löschen",
+    "accept": "Ja",
+    "reject": "Nein",
+    "choose": "Wähle",
+    "upload": "Upload",
+    "cancel": "Abbrechen",
+    "weekHeader": "Wk"
+  },
+  "GT_FILTER": {
+    "gtNoFilter": "Kein Filter",
+    "gtIS": "Gleich",
+    "gtSameOrBefore": "Früher gleich als",
+    "gtSameAfter": "Später gleich als"
+  }
 }

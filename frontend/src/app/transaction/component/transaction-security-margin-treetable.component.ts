@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem, TreeNode} from 'primeng/api';
 import {TransactionContextMenu} from './transaction.context.menu';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
@@ -103,11 +103,12 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
   }
 
 

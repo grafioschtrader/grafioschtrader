@@ -552,5 +552,42 @@
   "YOUNGEST_EOD_TOOLTIP": "Youngest Date of EOD",
   "YOUR_CHANGE_REQUEST": "Your data change request",
   "YOUR_CHANGE_REQUESTS": "Your data change requests",
-  "YTD": "YTD"
+  "YTD": "YTD",
+  "primeng": {
+    "startsWith": "Starts with",
+    "contains": "Contains",
+    "notContains": "Not contains",
+    "endsWith": "Ends with",
+    "equals": "Equals",
+    "notEquals": "Not equals",
+    "noFilter": "No Filter",
+    "lt": "Less than",
+    "lte": "Less than or equal to",
+    "gt": "Greater than",
+    "gte": "Great then or equals",
+    "is": "Is",
+    "isNot": "Is not",
+    "before": "Before",
+    "after": "After",
+    "clear": "Clear",
+    "apply": "Apply",
+    "matchAll": "Match All",
+    "matchAny": "Match Any",
+    "addRule": "Add Rule",
+    "removeRule": "Remove Rule",
+    "accept": "Yes",
+    "reject": "No",
+    "choose": "Choose",
+    "upload": "Upload",
+    "cancel": "Cancel",
+    "weekHeader": "Wk"
+  },
+
+  "GT_FILTER": {
+     "gtNoFilter": "No Filter",
+     "gtIS": "Equals",
+     "gtSameBefore": "Same or Before",
+     "gtSameAfter": "Same or After"
+ }
+
 }

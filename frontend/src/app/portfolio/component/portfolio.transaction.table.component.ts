@@ -12,7 +12,7 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ActivatedRoute, Params} from '@angular/router';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 
 /**
  * Shows all transactions of a Portfolio
@@ -32,11 +32,12 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+    super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
+      messageToastService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
   }
 
 

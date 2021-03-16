@@ -33,7 +33,7 @@ import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {HistoryquotesWithMissings} from '../model/historyquotes.with.missings';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {FileUploadParam} from '../../shared/generaldialog/model/file.upload.param';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {SvgIconRegistryService} from 'angular-svg-icon';
@@ -71,19 +71,30 @@ import {DialogService} from 'primeng/dynamicdialog';
                               <p-sortIcon [field]="field.field"></p-sortIcon>
                           </th>
                       </tr>
-                      <tr *ngIf="hasFilter">
-                          <th *ngFor="let field of fields" [ngSwitch]="field.dataType">
-                              <ng-container *ngIf="field.filterType">
-                                  <p-calendar #cal *ngSwitchCase="DataType.DateString" appendTo="body"
-                                              [dateFormat]="baseLocale.dateFormat"
-                                              (onInput)="dateInputFilter($event, field, table, cal)"
-                                              (onSelect)="filterDate($event, field, table)">
-                                  </p-calendar>
-                                  <input *ngSwitchCase="DataType.Numeric" (input)="filterDecimal($event, field, table)"
-                                         step="0.01" lang="de-DE" type="number">
-                              </ng-container>
-                          </th>
-                      </tr>
+                    <tr *ngIf="hasFilter">
+                      <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
+                        <ng-container *ngSwitchCase="FilterType.likeDataType">
+                          <ng-container [ngSwitch]="field.dataType">
+
+                            <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
+                              ? field.dataType : ''"[field]="field.field" display="menu" [showOperator]="true"
+                                            [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
+                              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-calendar #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat" (onSelect)="filter($event)"
+                                            (onInput)="filter(cal.value)" >
+                                </p-calendar>
+                              </ng-template>
+                            </p-columnFilter>
+                            <p-columnFilter *ngSwitchCase="DataType.Numeric" type="numeric" [field]="field.field" [locale]="formLocale"
+                                            minFractionDigits="2" display="menu"></p-columnFilter>
+                          </ng-container>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="FilterType.withOptions">
+                          <p-dropdown [options]="field.filterValues" [style]="{'width':'100%'}"
+                                      (onChange)="table.filter($event.value, field.field, 'equals')"></p-dropdown>
+                        </ng-container>
+                      </th>
+                    </tr>
                   </ng-template>
 
                   <ng-template pTemplate="body" let-el let-columns="fields">
@@ -194,10 +205,11 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
               activePanelService: ActivePanelService,
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               globalparameterService: GlobalparameterService,
               translateService: TranslateService) {
     super('Historyquote', historyquoteService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
 
     HistoryquoteTableComponent.registerIcons(this.iconReg);
     this.addColumnFeqH(DataType.DateString, 'date', true, false,

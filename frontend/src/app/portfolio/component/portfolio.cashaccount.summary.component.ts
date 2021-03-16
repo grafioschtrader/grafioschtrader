@@ -30,7 +30,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 
 import {SecurityaccountImportTransactionTableComponent} from '../../securityaccount/component/securityaccount-import-transaction-table.component';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 
 
 /**
@@ -75,10 +75,11 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
               private activatedRoute: ActivatedRoute,
               private dataChangedService: DataChangedService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
       {width: 100, columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]});

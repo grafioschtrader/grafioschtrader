@@ -438,7 +438,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       dataModel ? dataModel : taFormDefinition.defaultDataModel,
       DynamicFieldHelper.createConfigFieldsFromDescriptor(taFormDefinition.taFormList, '', true, 'APPLY'));
     this.visibleTaDialog = true;
-    this.changeDetectionStrategy.markForCheck();
+   // this.changeDetectionStrategy.markForCheck();
   }
 
   handleCloseTaDialog(processedActionData: ProcessedActionData): void {
@@ -526,7 +526,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       });
       taTraceIndicatorData.traceIndex = this.chartElement.nativeElement.data.length - 1;
     });
-    this.changeDetectionStrategy.markForCheck();
+   // this.changeDetectionStrategy.markForCheck();
   }
 
   private redoTaAfterDateChange(): void {
@@ -545,7 +545,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
 
   callMeDeactivate(): void {
-    this.changeDetectionStrategy.markForCheck();
+   // this.changeDetectionStrategy.markForCheck();
   }
 
   public getHelpContextId(): HelpIds {
@@ -640,7 +640,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     config.displaylogo = false;
     this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
     this.plotlyService.getPlotly().newPlot(element, traces, layout, config);
-    this.changeDetectionStrategy.markForCheck();
+  // this.changeDetectionStrategy.markForCheck();
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
 

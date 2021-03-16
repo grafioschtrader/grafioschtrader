@@ -88,7 +88,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   }
 
   callMeDeactivate(): void {
-    this.changeDetectionStrategy.markForCheck();
+ //   this.changeDetectionStrategy.markForCheck();
   }
 
   onComponentClick(event): void {

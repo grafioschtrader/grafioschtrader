@@ -5,6 +5,7 @@ import {FailedParsedTemplateState} from './failed.parsed.template.state';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {FilterService} from 'primeng/api';
 
 @Component({
   selector: 'template-form-check-dialog-result-failed',
@@ -38,10 +39,11 @@ export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBas
   @Input() failedParsedTemplateStateList: FailedParsedTemplateState[];
 
   constructor(changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
   }
 
   ngOnInit(): void {

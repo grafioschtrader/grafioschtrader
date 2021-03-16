@@ -8,7 +8,7 @@ import {Subscription} from 'rxjs';
 import {ColumnConfig, ColumnGroupConfig} from '../../shared/datashowbase/column.config';
 import {SecurityPositionSummary} from '../../entities/view/security.position.summary';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from 'primeng/api';
 import {Portfolio} from '../../entities/portfolio';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 import {SecurityaccountService} from '../service/securityaccount.service';
@@ -73,10 +73,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
                         protected router: Router,
                         private chartDataService: ChartDataService,
                         changeDetectionStrategy: ChangeDetectorRef,
+                        filterService: FilterService,
                         translateService: TranslateService,
                         globalparameterService: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
     this.untilDate = AppHelper.getUntilDateBySessionStorage();
 

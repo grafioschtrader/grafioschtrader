@@ -19,7 +19,7 @@ import {LimitEntityTransactionError} from '../login/service/limit.entity.transac
 import {DynamicDialogHelper} from '../dynamicdialog/component/dynamic.dialog.helper';
 import * as filesaver from '../../shared/filesaver/filesaver';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 
 export enum CrudMenuOptions {
   Allow_Create,
@@ -59,11 +59,12 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
               protected activePanelService: ActivePanelService,
               protected dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService,
               private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.entityNameUpper = this.entityName.toUpperCase();
     this.entityKeyName = this.globalparameterService.getKeyNameByEntityName(entityName);
   }

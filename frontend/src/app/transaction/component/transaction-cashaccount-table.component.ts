@@ -22,7 +22,7 @@ import {
   ParentChildRegisterService
 } from '../../shared/service/parent.child.register.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 
 /**
  * It shows the transactions for a cash account.
@@ -49,11 +49,12 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
   }
 
 

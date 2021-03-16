@@ -16,7 +16,7 @@ import {Security} from '../../entities/security';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {TransactionCallParam} from './transaction.call.parm';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 import {HelpIds} from '../../shared/help/help.ids';
 
 @Directive()
@@ -31,11 +31,12 @@ export abstract class TransactionTable extends TransactionContextMenu {
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
 
     this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false,
       {width: 60, filterType: FilterType.likeDataType});

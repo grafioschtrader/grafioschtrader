@@ -23,7 +23,7 @@ import {SecurityAccountGroup} from '../model/security.account.group';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {SelectItem} from 'primeng/api';
+import {FilterService, SelectItem} from 'primeng/api';
 
 
 /**
@@ -61,13 +61,14 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
                         router: Router,
                         chartDataService: ChartDataService,
                         changeDetectionStrategy: ChangeDetectorRef,
+                        filterService: FilterService,
                         translateService: TranslateService,
                         globalparameterService: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
 
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService,
-      productIconService, activatedRoute, router, chartDataService, changeDetectionStrategy, translateService, globalparameterService,
-      usersettingsService);
+      productIconService, activatedRoute, router, chartDataService, changeDetectionStrategy, filterService,
+      translateService, globalparameterService, usersettingsService);
 
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY],
       new SecurityaccountCurrencyGroup(this.translateService, this));

@@ -7,6 +7,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {SplitPeriodTableBase} from './split.period.table.base';
 import {HistoryquotePeriod} from '../../entities/historyquote.period';
 import {HistoryquotePeriodService} from '../service/historyquote.period.service';
+import {FilterService} from 'primeng/api';
 
 
 @Component({
@@ -19,11 +20,12 @@ export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTab
   constructor(historyquotePeriodService: HistoryquotePeriodService,
               messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService) {
     super('fromDate', 'SECURITY_PERIODS_FROM_MAX', HistoryquotePeriod, messageToastService, historyquotePeriodService,
-      changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+      changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.addColumn(DataType.DateString, this.dataSortKey, 'DATE_FROM', true, false);
     this.addColumn(DataType.Numeric, 'price', 'CLOSE', true, false);
     this.prepareTableAndTranslate();

@@ -12,7 +12,7 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {ColumnConfig, ColumnGroupConfig} from '../../shared/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
-import {MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from 'primeng/api';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {AppSettings} from '../../shared/app.settings';
 import {ProcessedAction} from '../../shared/types/processed.action';
@@ -41,10 +41,11 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
               private activatedRoute: ActivatedRoute,
               private activePanelService: ActivePanelService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
   }
 
 

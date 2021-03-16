@@ -11,6 +11,7 @@ import {combineLatest, Observable} from 'rxjs';
 import {Currencypair} from '../../entities/currencypair';
 import {SecuritycurrencySearchTableBase} from './securitycurrency.search.table.base';
 import {SupplementCriteria} from '../model/supplement.criteria';
+import {FilterService} from 'primeng/api';
 
 /**
  * After a search over securities or currency the search result ist shown in a table to select a certain security.
@@ -64,10 +65,11 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
   constructor(private securityService: SecurityService,
               private currencypairService: CurrencypairService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
   }
 

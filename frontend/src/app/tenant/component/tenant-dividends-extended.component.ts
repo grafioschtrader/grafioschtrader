@@ -10,6 +10,7 @@ import {Security} from '../../entities/security';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {TransactionSecurityOptionalParam} from '../../transaction/model/transaction.security.optional.param';
+import {FilterService} from 'primeng/api';
 
 /**
  * Shows the dividends an other information of securities for one year in a table. One row per security.
@@ -77,10 +78,11 @@ export class TenantDividendsExtendedComponent extends TableConfigBase implements
   tsop = [TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN];
 
   constructor(changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.idTenant = this.globalparameterService.getIdTenant();
   }
 

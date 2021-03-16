@@ -14,7 +14,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {HelpIds} from '../../shared/help/help.ids';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
@@ -67,12 +67,13 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
               messageToastService: MessageToastService,
               productIconService: ProductIconService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
       dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
-      messageToastService, productIconService, changeDetectionStrategy, translateService, globalparameterService,
+      messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, globalparameterService,
       usersettingsService);
     const date = new Date();
     // Update StompJs configuration.
@@ -235,7 +236,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.choosenTimeFrame = timeFrame;
     childMenuItems.forEach(menuItem => menuItem.icon = AppSettings.ICONNAME_CIRCLE_EMTPY);
     event.item.icon = AppSettings.ICONNAME_CIRCLE_CHECK;
-    this.hiddeShowColumnByFileHeader('TIME_FRAME_ANUAL', timeFrame.days > 600);
+    this.hideShowColumnByFileHeader('TIME_FRAME_ANUAL', timeFrame.days > 600);
     this.updateAllPrice();
 
   }

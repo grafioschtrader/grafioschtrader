@@ -3,7 +3,7 @@ import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
 import {UserAdminService} from '../service/user.admin.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -115,11 +115,12 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
               activePanelService: ActivePanelService,
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('User', userAdminService, confirmationService, messageToastService, activePanelService, dialogService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService,
+      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService,
       [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);
 

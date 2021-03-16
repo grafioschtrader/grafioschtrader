@@ -19,13 +19,14 @@ import {toClipboard} from 'copee';
 import {ImportSettings} from './import.settings';
 import {Transaction} from '../../entities/transaction';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {Security} from '../../entities/security';
 import {
   AfterSetSecurity,
   CallBackSetSecurityWithAfter
 } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
+import {filter} from 'rxjs/operators';
 
 
 /**
@@ -144,10 +145,11 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
               private confirmationService: ConfirmationService,
               private messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.supplementCriteria = new SupplementCriteria(true, false);
 
     this.addColumn(DataType.NumericInteger, ImportSettings.IMPORT_TRANSACTION_POS + 'idFilePart', 'IMPORT_ID_FILE_PART', true, false);

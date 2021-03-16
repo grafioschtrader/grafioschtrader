@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -15,6 +15,7 @@ import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamic.
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
 import {MailInOutTable} from './mail.in.out.table';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {filter} from 'rxjs/operators';
 
 @Component({
   templateUrl: '../view/mail.in.out.table.html',
@@ -32,11 +33,12 @@ export class MailInboxTableComponent extends MailInOutTable<MailInbox> implement
               activePanelService: ActivePanelService,
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(router, 'receivedTime', 'MailInbox', mailInboxService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
 
     this.addColumnFeqH(DataType.String, 'idUserFrom', true, false, {width: 50});
     this.addColumnFeqH(DataType.String, 'roleNameTo', true, false,

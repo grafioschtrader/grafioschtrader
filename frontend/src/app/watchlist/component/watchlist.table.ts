@@ -5,7 +5,7 @@ import {WatchlistService} from '../service/watchlist.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
@@ -96,10 +96,11 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
               protected messageToastService: MessageToastService,
               protected productIconService: ProductIconService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
   }
 
@@ -117,7 +118,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     });
 
     this.translateFormulaToUserLanguage();
-    this.changeDetectionStrategy.markForCheck();
+    // this.changeDetectionStrategy.markForCheck();
   }
 
   protected addBaseColumns(): void {
@@ -159,7 +160,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   addExistingSecurity(event) {
     this.visibleAddInstrumentDialog = true;
-    this.changeDetectionStrategy.markForCheck();
+    // this.changeDetectionStrategy.markForCheck();
   }
 
   removeExistingSecurity(securityCurrency: Security | Currencypair) {
@@ -220,7 +221,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.transactionCallParam.defaultTransactionTime = activeToDate.getTime() < new Date().getTime() ? activeToDate : new Date();
 
     this.visibleSecurityTransactionDialog = true;
-    this.changeDetectionStrategy.markForCheck();
+   // this.changeDetectionStrategy.markForCheck();
   }
 
   /**
@@ -257,7 +258,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   callMeDeactivate(): void {
-    this.changeDetectionStrategy.markForCheck();
+   // this.changeDetectionStrategy.markForCheck();
   }
 
   hideContextMenu(): void {

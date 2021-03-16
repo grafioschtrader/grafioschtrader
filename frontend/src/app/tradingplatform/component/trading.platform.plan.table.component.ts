@@ -11,7 +11,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 
 @Component({
   template: `
@@ -60,11 +60,12 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
               activePanelService: ActivePanelService,
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('TradingPlatformPlan', tradingPlatformPlanService, confirmationService, messageToastService,
-      activePanelService, dialogService, changeDetectionStrategy, translateService, globalparameterService,
+      activePanelService, dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService,
       usersettingsService);
 
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.en', 'PLATFORM_PLAN_NAME', true, false,

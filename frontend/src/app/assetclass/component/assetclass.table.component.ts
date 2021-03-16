@@ -12,7 +12,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AssetclassCallParam} from './assetclass.call.param';
 import {plainToClass} from 'class-transformer';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
 
 /**
@@ -72,11 +72,12 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
               activePanelService: ActivePanelService,
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('Assetclass', assetclassService, confirmationService, messageToastService, activePanelService, dialogService,
-      changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
 
     this.addColumn(DataType.String, this.CATEGORY_TYPE, 'ASSETCLASS', true, false,
       {translateValues: true});

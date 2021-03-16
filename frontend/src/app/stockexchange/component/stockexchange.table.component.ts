@@ -13,7 +13,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {plainToClass} from 'class-transformer';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService, FilterService} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 
@@ -88,11 +88,12 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
               activePanelService: ActivePanelService,
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('Stockexchange', stockexchangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, translateService, globalparameterService, usersettingsService);
+      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 200});
     this.addColumnFeqH(DataType.String, 'countryCode', true, false,

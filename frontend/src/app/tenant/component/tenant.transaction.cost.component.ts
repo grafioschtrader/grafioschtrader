@@ -20,7 +20,7 @@ import {ChartTrace, PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionCostPosition} from '../../entities/view/transactioncost/transaction.cost.position';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from 'primeng/api';
 
 
 /**
@@ -124,10 +124,11 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
               private router: Router,
               private chartDataService: ChartDataService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
   }
 
   ngOnInit(): void {

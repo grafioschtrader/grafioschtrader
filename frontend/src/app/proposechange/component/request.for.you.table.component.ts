@@ -33,7 +33,7 @@ import {CurrencypairService} from '../../securitycurrency/service/currencypair.s
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {StockexchangePrepareEdit} from './stockexchange.prepare.edit';
-import {MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from 'primeng/api';
 import {SecurityPrepareEdit} from './security.prepare.edit';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
@@ -158,10 +158,11 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
               private activePanelService: ActivePanelService,
               private messageToastService: MessageToastService,
               changeDetectionStrategy: ChangeDetectorRef,
+              filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
     this.entityMappingArr[this.ASSETCLASS] = new EntityMapping(new AssetclassPrepareEdit(assetclassService));
     this.entityMappingArr[this.STOCKEXCHANGE] = new EntityMapping(new StockexchangePrepareEdit(stockexchangeService));
