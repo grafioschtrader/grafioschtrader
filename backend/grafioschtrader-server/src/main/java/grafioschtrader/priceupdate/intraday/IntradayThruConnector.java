@@ -72,14 +72,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
           : feedConnector.getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency);
     }
   }
-  /*
-   * private IFeedConnector getConnectorIntradayForSecuritycurrency(final
-   * Securitycurrency<?> securitycurrency) { for (final IFeedConnector
-   * feedConnector : feedConnectorbeans) { if
-   * (feedConnector.getID().equals(securitycurrency.getIdConnectorIntra()) &&
-   * feedConnector.getSecuritycurrencyFeedSupport(IFeedConnector.FeedSupport.
-   * INTRA) != null) { return feedConnector; } } return null; }
-   */
+  
 
   private boolean allowDelayedIntradayUpdate(final S securitycurrency, final IFeedConnector feedConnector,
       final int scIntradayUpdateTimeout) {

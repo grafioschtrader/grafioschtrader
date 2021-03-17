@@ -81,6 +81,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public double accountValueSecurity;
   public double accountValueSecurityMC;
 
+  
+  
   /////////////////////////////////////////////////////////////
   // The following members are only for internal use
   ////////////////////////////////////////////////////////////
@@ -92,6 +94,13 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
   @JsonIgnore
   public double balanceSecurityCurrency;
+  
+  /**
+   * For a Watchlist the open positions must be recalculated.
+   */
+  @JsonIgnore
+  public boolean reCalculateOpenPosition;
+  
 
   /////////////////////////////////////////////////////////////
   // The following members are only for a single transaction
@@ -139,6 +148,13 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     this.securitycurrency = security;
   }
 
+  
+  public void resetForOpenMargin() {
+    gainLossSecurity = 0.0;
+    adjustedCostBase = 0.0;
+    units = 0.0;
+  }
+  
   public SecurityPositionSummary(String mainCurrency, Security security, Integer usedIdSecurityaccount) {
     this(mainCurrency, security);
     this.usedIdSecurityaccount = usedIdSecurityaccount;
@@ -303,8 +319,6 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     private double calcGainLossOnPositionClose(double price, double transactionCost) {
       return this.calcGainLossOnClosePosition(price, transactionCost, Math.abs(this.openUnits), splitFactorFromBaseTransaction);
     }
-
-        
     
 
     /**

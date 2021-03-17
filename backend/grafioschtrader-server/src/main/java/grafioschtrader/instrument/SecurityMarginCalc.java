@@ -45,7 +45,13 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
       SecurityTransactionSummary securityTransactionSummary, NegativeIdNumberCreater negativeIdNumberCreater) {
 
     // Go thru every open transaction
+    if (securityPositionSummary.reCalculateOpenPosition) {
+      securityPositionSummary.removeClosedMarginPosition();
+    }
+    securityPositionSummary.resetForOpenMargin();
+
     for (TransactionsMarginOpenUnits tmou : securityPositionSummary.getTransactionsMarginOpenUnits()) {
+
       // Only open positions, a security may have more than 1 open position.
       boolean openWasLongBuy = tmou.openTransaction.getTransactionType() == TransactionType.ACCUMULATE;
 
@@ -61,12 +67,16 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
 
       securityPositionSummary.valueSecurity += tmou.openUnits * transaction.getValuePerPoint() * lastPrice;
 
+      if (securityPositionSummary.reCalculateOpenPosition) {
+        calcTransactionPosition(tmou.openTransaction, securityPositionSummary, false, securitysplitMap, false,
+            dateCurrencyMap);
+      }
+
       calcTransactionPosition(transaction, securityPositionSummary, false, securitysplitMap, false, dateCurrencyMap);
       if (securityTransactionSummary != null) {
         securityTransactionSummary.createAndAddPositionGainLoss(transaction);
       }
     }
-    securityPositionSummary.removeClosedMarginPosition();
   }
 
   @Override
@@ -124,20 +134,21 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
           transactionsMarginOpenUnits.expenseIncome, transaction.getCashaccountAmount());
     } else {
       // Close position fully or partly, hypothetical position are possible.
-      double sellBuyFactor = transaction.getTransactionType() == TransactionType.ACCUMULATE? 1 : -1; 
-      
+
       double gainMarginTransacton = securityPositionSummary.transactionGainLoss = transactionsMarginOpenUnits
           .calcGainLossOnClosePosition(transaction.getQuotation(), ctp.transactionTaxCost, transaction.getUnits(),
               ctp.splitFactorFromBaseTransaction);
 
       if (transaction.getIdTransaction() < 0) {
+        // Close Position -> set a cash account amount
         transaction.setCashaccountAmount(gainMarginTransacton);
       } else {
         securityPositionSummary.units += ctp.unitsSplited;
       }
+
       securityPositionSummary.gainLossSecurity += gainMarginTransacton;
-      calcTransactionGainLossMC(ctp, securityPositionSummary, transaction,
-          transactionsMarginOpenUnits.expenseIncome, 0);
+      calcTransactionGainLossMC(ctp, securityPositionSummary, transaction, transactionsMarginOpenUnits.expenseIncome,
+          0);
 
       transactionsMarginOpenUnits.expenseIncome -= Math
           .abs(ctp.unitsSplited * securityPositionSummary.adjustedCostBase / securityPositionSummary.units);
@@ -158,9 +169,9 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
       Transaction transaction, double expenseIncomePosition, double expenseIncomeSecurity) {
 
     securityPositionSummary.adjustedCostBase += expenseIncomeSecurity;
-    securityPositionSummary.transactionGainLossPercentage = transaction.getCashaccountAmount() / expenseIncomePosition * 100;
-    
-    
+    securityPositionSummary.transactionGainLossPercentage = transaction.getCashaccountAmount() / expenseIncomePosition
+        * 100;
+
     if (ctp.exchangeRate != null) {
       securityPositionSummary.transactionGainLossMC = securityPositionSummary.transactionGainLoss * ctp.exchangeRate;
     } else {

@@ -10,9 +10,13 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.TradingDaysWithDateBoundaries;
 import grafioschtrader.entities.TradingDaysPlus;
+import grafioschtrader.entities.User;
 
 public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepositoryCustom {
 
@@ -26,20 +30,22 @@ public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepos
   public boolean hasTradingDayBetweenUntilYesterday(LocalDate tradingDay) {
     LocalDate yesterday = LocalDate.now().minusDays(1);
     Long numberOfTradingDays = null;
-    if(untilYesterday == null || !yesterday.equals(untilYesterday)) {
+    if (untilYesterday == null || !yesterday.equals(untilYesterday)) {
       // Map is out dated
       untilYesterday = yesterday;
       numberOfTradingDaysYesterdayNowMap.clear();
-    } 
+    }
     numberOfTradingDays = numberOfTradingDaysYesterdayNowMap.get(tradingDay);
-    if(numberOfTradingDays == null) {
+    if (numberOfTradingDays == null) {
       numberOfTradingDays = tradingDaysPlusJpaRepository.countByTradingDateBetween(tradingDay, yesterday);
       numberOfTradingDaysYesterdayNowMap.put(tradingDay, numberOfTradingDays);
     }
-/*   
-    numberOfTradingDays = numberOfTradingDaysYesterdayNowMap.computeIfAbsent(tradingDay, 
-        td -> numberOfTradingDaysYesterdayNowMap.put(td, tradingDaysPlusJpaRepository.countByTradingDateBetween(td, yesterday)));
-*/   
+    /*
+     * numberOfTradingDays =
+     * numberOfTradingDaysYesterdayNowMap.computeIfAbsent(tradingDay, td ->
+     * numberOfTradingDaysYesterdayNowMap.put(td,
+     * tradingDaysPlusJpaRepository.countByTradingDateBetween(td, yesterday)));
+     */
     return numberOfTradingDays != 0;
   }
 
@@ -55,20 +61,26 @@ public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepos
 
   @Override
   public TradingDaysWithDateBoundaries save(SaveTradingDays saveTradingDays) {
-    List<TradingDaysPlus> createTradingDaysPlusList = new ArrayList<>();
-    List<TradingDaysPlus> deleteTradingDaysPlusList = new ArrayList<>();
-    for (AddRemoveDay addRemoveDay : saveTradingDays.addRemoveDays) {
-      if (addRemoveDay.add) {
-        createTradingDaysPlusList.add(new TradingDaysPlus(addRemoveDay.date));
-      } else {
-        deleteTradingDaysPlusList.add(new TradingDaysPlus(addRemoveDay.date));
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (UserAccessHelper.isAdmin(user)) {
+      List<TradingDaysPlus> createTradingDaysPlusList = new ArrayList<>();
+      List<TradingDaysPlus> deleteTradingDaysPlusList = new ArrayList<>();
+      for (AddRemoveDay addRemoveDay : saveTradingDays.addRemoveDays) {
+        if (addRemoveDay.add) {
+          createTradingDaysPlusList.add(new TradingDaysPlus(addRemoveDay.date));
+        } else {
+          deleteTradingDaysPlusList.add(new TradingDaysPlus(addRemoveDay.date));
+        }
       }
+      untilYesterday = null;
+      numberOfTradingDaysYesterdayNowMap.clear();
+      tradingDaysPlusJpaRepository.saveAll(createTradingDaysPlusList);
+      tradingDaysPlusJpaRepository.deleteInBatch(deleteTradingDaysPlusList);
+      return getTradingDaysByYear(saveTradingDays.year);
+    } else {
+      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
-    untilYesterday = null;
-    numberOfTradingDaysYesterdayNowMap.clear();
-    tradingDaysPlusJpaRepository.saveAll(createTradingDaysPlusList);
-    tradingDaysPlusJpaRepository.deleteInBatch(deleteTradingDaysPlusList);
-    return getTradingDaysByYear(saveTradingDays.year);
+
   }
 
 }
