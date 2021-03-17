@@ -40,4 +40,4 @@ Im Rahmen der abkürzenden Schreibweise wird immer an erster Stelle die **Basisw
 
 Beispiel: Wenn Sie Euro mit US-Dollar kaufen möchten, müssen Sie das Währungspaar EUR/USD (EURUSD) kaufen. Der Euro ist bei diesem Währungspaar die Basiswährung, der USD-Dollar die Kurswährung. Forextrader sprechen auch vom Euro «gegen» den US-Dollar.
 #### Wertpapier
-In GT gehören alle dem nicht Währungspaare zugeordneten Instrumente zur Gruppe der Wertpapiere, Auch solche die nicht Handelbar sind, beispielsweise Indizes. Andererseits sind alle Wertpapiere einer Anlageklasse und einer Börse zugeordnet.
+In GT gehören alle dem nicht Währungspaare zugeordneten Instrumente zur Gruppe der Wertpapiere, Auch solche die nicht Handelbar sind, beispielsweise Indizes. Andererseits sind alle Wertpapiere einer Anlageklasse und einem **Handelsplatz** zugeordnet.
