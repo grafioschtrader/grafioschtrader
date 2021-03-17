@@ -167,7 +167,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.watchlistService.removeSecuritycurrenciesFromWatchlist(this.idWatchlist, securityCurrency).subscribe(watchlist => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST');
       this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
-      this.getWatchlistWithoutUpdate();
+     // this.getWatchlistWithoutUpdate();
     });
   }
 

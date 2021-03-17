@@ -6,6 +6,7 @@ weight : 32
 chapter: true
 ---
 ## Historische Daten
+**Historische Kursdaten** und **Splits** sind für GT die Grundlage für die Berechnung der Performance der Portfolios über einen Zeitraum.
 
 ### Kursdaten
 

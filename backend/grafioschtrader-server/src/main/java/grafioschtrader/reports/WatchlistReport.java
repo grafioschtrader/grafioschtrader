@@ -383,6 +383,7 @@ public class WatchlistReport {
                 final Double lastPrice) {
               final SecuritycurrencyPosition<Security> securitycurrencyPosition = securitycurrencyPositionMap
                   .get(securityPositionSummary);
+              securityPositionSummary.reCalculateOpenPosition = true;
               securityCalcService.createHypotheticalSellTransaction(securityPositionSummary, lastPrice,
                   securitysplitMap, dateCurrencyMap, null);
               securitycurrencyPosition.valueSecurity = securityPositionSummary.valueSecurity;

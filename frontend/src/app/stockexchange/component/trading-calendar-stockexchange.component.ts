@@ -175,7 +175,6 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
           this.readData(false);
         }
       });
-
     });
   }
 
