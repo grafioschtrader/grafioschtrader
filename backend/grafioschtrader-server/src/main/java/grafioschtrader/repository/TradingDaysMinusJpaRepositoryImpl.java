@@ -96,7 +96,7 @@ public class TradingDaysMinusJpaRepositoryImpl implements TradingDaysMinusJpaRep
   private void checkExitsAndRightsForTargetIdStockexhchange(Integer idStockexchange, User user) {
     Optional<Stockexchange> stockexchangeOpt = stockexchangeJpaRepository.findById(idStockexchange);
     if (stockexchangeOpt.isPresent()) {
-      if (!UserAccessHelper.isAdminOrOwnerOfEntity(user, stockexchangeOpt.get())) {
+      if (!UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, stockexchangeOpt.get())) {
         throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
       }
     } else {

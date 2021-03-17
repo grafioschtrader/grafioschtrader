@@ -6,6 +6,6 @@ weight : 10
 chapter: true
 ---
 ## Konto
-+ An jeder Transaktion in sicherlich ein Konto beteiligt. 
-+ Ein Portfolio muss minimal ein Konto enthalten, kann aber mehrere enthalten.
-+ Sobald ein bestimmtes Konto in einer Transaktion benutzt wurde, kann dies nicht mehr gelöscht und auch dessen Währung  nicht geändert werden.
+Wenn Sie sich für GT entschieden haben, nehmen Sie bewusst in Kauf, dass eine Wertpapiertransaktion eine Gegenbuchung auf Konto erfordert. GT erlaubt Kontos in Ihrer Haupt- oder Fremdwährung.
++ Eine **Transaktion** auf einem **Portfolio** ist erst möglich, falls es minimal ein **Konto** enthält - kann aber  mehrere enthalten.
++ Sobald ein bestimmtes Konto in einer **Transaktion** benutzt wurde, kann dies nicht mehr gelöscht und auch dessen **Währung** nicht geändert werden.

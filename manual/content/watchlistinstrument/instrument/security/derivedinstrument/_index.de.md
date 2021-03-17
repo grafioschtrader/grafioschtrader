@@ -8,7 +8,7 @@ chapter: true
 ## Abgeleitetes Instrument
 Durch ein abgeleitetes Instrument wird ermöglicht, die Kursdaten von einem oder mehreren Wertpapieren durch eine Formel von minimal einem anderen Instrument berechnen zu lassen. Somit hat ein abgeleitetes Instrument immer eine Abhängigkeit zu mindesten einem anderen Instrument.
 
-Ein abgeleitetes Instrument kann einer Börse und Anlageklasse zugeordnet werden und ist somit in GT handelbar.
+Ein abgeleitetes Instrument kann einem **Handelsplatz** und **Anlageklasse** zugeordnet werden und ist somit in GT handelbar.
 
 ### Formel
 Eine Formel besteht aus Zahlen, Variablen, mathematischen und boolesche Operatoren und möglichen Funktionen. GT verwendet das Framework [EvalEx - Java Expression Evaluator](//github.com/uklimaschewski/EvalEx), daher siehe die Webseite für die möglichen Funktionen.

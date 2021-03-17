@@ -6,6 +6,6 @@ weight : 10
 chapter: true
 ---
 ## Handelskalender global
-Mit dem globale Handelskalender und dem Handelskalender pro Börsenplatz dient der Vollständigkeitsprüfung der historischen Preisdaten.
+Mit dem globale **Handelskalender** und dem Handelskalender pro Börsenplatz dient der Vollständigkeitsprüfung der historischen Preisdaten.
 
-Dieser definiert die Obermenge der Handelstage aller Börsen. An Samstagen und Sonntagen findet Grundsätzlich kein Handel statt. Zudem gibt es mit dem 1. Januar und 25. Dezember noch zwei Tage, an denen alle relevanten Börsen geschlossen sind.
+Dieser definiert die **Obermenge** der **Handelstage** aller **Handelsplätze**. An Samstagen und Sonntagen findet Grundsätzlich kein Handel statt. Zudem gibt es mit dem 1. Januar und 25. Dezember noch zwei Tage, an denen alle relevanten Handelsplätze geschlossen sind.
