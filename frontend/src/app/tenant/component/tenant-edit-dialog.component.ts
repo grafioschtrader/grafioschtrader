@@ -10,12 +10,13 @@ import {Tenant} from '../../entities/tenant';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 
 /**
- * Dialog for change the existing tenant properties. It can also show only the currency.
+ * Dialog for change the existing tenant properties. It can also show only the currency, this is used
+ * for changing the currencies on the client and its portfolios.
  */
 @Component({
   selector: 'tenant-edit-dialog',
   template: `
-    <p-dialog header="{{'CLIENT' | translate}}" [(visible)]="visibleTenantDialog"
+    <p-dialog header="{{(onlyCurrency? 'CLIENT_CHANGE_CURRENCY': 'CLIENT') | translate}}" [(visible)]="visibleTenantDialog"
               [responsive]="true" [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -28,7 +29,6 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 })
 export class TenantEditDialogComponent extends TenantEditComponent implements OnInit {
   @Input() onlyCurrency: boolean;
-
 
   constructor(globalparameterService: GlobalparameterService,
               messageToastService: MessageToastService,
