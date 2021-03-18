@@ -18,7 +18,9 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 
-
+/**
+ * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
+ */
 @Directive()
 export abstract class TenantEditComponent {
 

@@ -6,11 +6,18 @@ weight : 5
 chapter: true
 ---
 ## Portfolio
-Meistens ist das Portfolio die Abbildung einer einzelnen Handelsplattform. Es können mehrere Bankkonten und Depots in einem Portfolilo erstellt werden. 
-+ Einem Portfolio wird eine Währung zugewiesen, diese kann sich von der Währung des Klienten unterscheiden. Diese kann jederzeit geändert werden.
-+ Ein Portfolio kann nicht gelöscht werden, solange es noch ein Depot oder ein Konto hat.
+Meistens ist das Portfolio die Abbildung einer einzelnen Handelsplattform. Es können mehrere **Bankkonten** und **Depots** in einem **Portfolio** erstellt werden. 
++ Einem Portfolio wird eine Währung zugewiesen, diese kann sich von der Währung des Klienten unterscheiden. 
 
-### Eigenschaften
+### Bearbeiten Portfolio
+Ein Portfolio kann über den **Navigationsbereich** erstellt und bearbeitet werden.
++ **Erstellen** eines **Portfolio** über **Kontextmenü** auf **Element** Portfolios.
++ **Bearbeiten** eines **Portfolios** über **Kontextmenü** auf entsprechenden **Element** des Portfolios
++ **Löschen**: Ein Portfolio kann nicht gelöscht werden, solange es noch ein Depot oder ein Konto hat.
 
-### Auswertungen
-
+#### Eigenschaften
+Die **Eigenschaften** des Portfolios können jederzeit vollständig geändert werden.
+##### Name
+Name des Portfolios, dieser Name muss für einen Klient einzigartig sein.
+##### Währung
+Die Auswertungen auf diesem **Portfolio** bezieht sicht auf diese **Währung**.

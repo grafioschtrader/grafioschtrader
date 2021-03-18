@@ -39,7 +39,7 @@ h2, h3, h4, h5 {
     color: var(--MAIN-TITLES-TEXT-color) !important;
     text-align: left !important;
     margin-top: 0.8rem;   
-    margin-bottom: 0.4rem;
+    margin-bottom: 0;
 }
 
 h3 {
@@ -47,6 +47,9 @@ h3 {
     font-weight: 400 !important;
 }
 
+h5 {
+    font-size: 1.2rem;
+}
 
 #chapter {
     justify-content: left;
@@ -141,4 +144,14 @@ b, strong, label, th {
 .svg-icon-size {
     margin: 0 0;
     display: inline;
+}
+
+ul, ol {
+     margin-top: 0; 
+     margin-bottom: 0; 
+}
+
+p {
+    margin-top: 0.2rem;
+    margin-bottom: 0.1rem;
 }
