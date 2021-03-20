@@ -52,7 +52,6 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   confirmEmail = false;
   applicationInfo: ApplicationInfo;
 
-
   constructor(private globalparameterService: GlobalparameterService,
               private messageToastService: MessageToastService,
               private actuatorService: ActuatorService,
@@ -73,9 +72,8 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   private loginFormDefinition(): void {
     this.formConfig = {
       labelcolumns: 3, helpLinkFN: this.helpLink.bind(this), nonModal: true,
-      language: this.translateService.getDefaultLang()
+      language: this.translateService.currentLang
     };
-    console.log('language:', this.translateService.getDefaultLang());
 
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('nickname', 30, true,
@@ -144,6 +142,6 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.translateService.getDefaultLang(), HelpIds.HELP_INTRO_REGISTER);
+    BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO_REGISTER);
   }
 }
