@@ -10,7 +10,8 @@ import {BaseInputComponent} from '../base.input.component';
               class="form-control input-sm"
               [class.required-input]="isRequired"
               [id]="config.field"
-              [formControlName]="config.field">
+              [formControlName]="config.field"
+              pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}">
         <option *ngFor="let s of config.valueKeyHtmlOptions" [value]="s.key" [disabled]="s.disabled">
           {{ s.value }}
         </option>

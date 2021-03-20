@@ -12,6 +12,8 @@ import {FormBase} from '../../edit/form.base';
 import {DynamicDialogHelper} from '../../dynamicdialog/component/dynamic.dialog.helper';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
+import {BusinessHelper} from '../../helper/business.helper';
+import {HelpIds} from '../../help/help.ids';
 
 
 @Component({
@@ -61,7 +63,10 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 
   private loginFormDefinition(): void {
-    this.formConfig = {labelcolumns: 2, nonModal: true};
+    this.formConfig = {labelcolumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      language: this.translateService.currentLang};
+    console.log('currentlang:', this.translateService.currentLang);
+
     this.applicationInfo.users;
 
     this.config = [];
@@ -100,9 +105,12 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       });
   }
 
-
   ngOnDestroy(): void {
     this.queryParams.unsubscribe();
+  }
+
+  helpLink() {
+    BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO);
   }
 
 }
