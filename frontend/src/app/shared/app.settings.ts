@@ -97,6 +97,8 @@ export class AppSettings {
   // Native formats
   public static readonly FORMAT_DATE_SHORT_NATIVE = 'YYYY-MM-DD';
 
+  public static readonly DEFAULT_LANGUAGE = 'en';
+
   // Name for Icons
   public static readonly ICONNAME_SQUARE_EMTPY = 'fa fa-square-o';
   public static readonly ICONNAME_SQUARE_CHECK = 'fa fa-check-square-o';

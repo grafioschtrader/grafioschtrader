@@ -11,7 +11,12 @@ import {PasswordBaseComponent} from './password.base.component';
 import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
+import {BusinessHelper} from '../../helper/business.helper';
+import {HelpIds} from '../../help/help.ids';
 
+/**
+ * Shows the register form.
+ */
 @Component({
   template: `
     <div class="container">
@@ -23,7 +28,8 @@ import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
         <application-info [applicationInfo]="applicationInfo"></application-info>
         <ng-container *ngIf="applicationInfo">
           <h2>{{'REGISTRATION' | translate}}</h2>
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
+          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                        #form="dynamicForm"
                         (submit)="submit($event)">
           </dynamic-form>
 
@@ -62,15 +68,19 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
       this.applicationInfo = applicationInfo;
       this.loginFormDefinition();
     });
-
   }
 
   private loginFormDefinition(): void {
-    this.formConfig = {labelcolumns: 3, nonModal: true};
+    this.formConfig = {
+      labelcolumns: 3, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      language: this.translateService.getDefaultLang()
+    };
+    console.log('language:', this.translateService.getDefaultLang());
+
     this.config = [
-      DynamicFieldHelper.createFieldInputString('nickname', 'NICKNAME', 30, true,
+      DynamicFieldHelper.createFieldInputStringHeqF('nickname', 30, true,
         {minLength: 2}),
-      DynamicFieldHelper.createFieldInputStringVS('email', 'EMAIL', 30, true, [VALIDATION_SPECIAL.EMail]),
+      DynamicFieldHelper.createFieldInputStringVSHeqF('email', 30, true, [VALIDATION_SPECIAL.EMail]),
       {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
       DynamicFieldHelper.createFieldSelectString('localeStr', 'LOCALE', true,
         {inputWidth: 10}),
@@ -115,7 +125,6 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   }
 
   ngAfterViewInit(): void {
-
   }
 
   ngOnDestroy(): void {
@@ -128,9 +137,13 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     });
     this.globalparameterService.getSupportedLocales().subscribe(data => {
         this.configObject.localeStr.valueKeyHtmlOptions = data;
-      super.afterViewInit();
+        super.afterViewInit();
         this.configObject.nickname.elementRef.nativeElement.focus();
       }
     );
+  }
+
+  helpLink() {
+    BusinessHelper.toExternalHelpWebpage(this.translateService.getDefaultLang(), HelpIds.HELP_INTRO_REGISTER);
   }
 }

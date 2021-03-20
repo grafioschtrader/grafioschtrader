@@ -90,8 +90,16 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
           case 2:
             // Header line
             template = checkAndGetTemplate(templateScannedMap, line, templateId);
+            /*
             valueFormatConverter = new ValueFormatConverter(template.getLocale(), template.getDateFormat(),
                 template.getThousandSeparatorsPattern(), template.getTimeFormat());
+                */
+            valueFormatConverter = new ValueFormatConverter(template.getDateFormat(),
+                template.getTimeFormat(), template.getThousandSeparators(), 
+                template.getThousandSeparatorsPattern(), template.getDecimalSeparator());
+
+            
+            
             break;
           default:
             parseSingleDataLine(templateScannedMap, template, line, lineCounter, valueFormatConverter,

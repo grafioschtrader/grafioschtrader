@@ -19,26 +19,36 @@ import org.apache.commons.beanutils.PropertyUtils;
 import grafioschtrader.GlobalConstants;
 
 public class ValueFormatConverter {
-  private final NumberFormat numberFormat;
+  private NumberFormat numberFormat;
   private SimpleDateFormat simpleDateFormat;
   private DateTimeFormatter localTimeFormater;
   private DateTimeFormatter localDateFormatter;
-  private final String thousandSeparatorsPattern;
+  private String thousandSeparatorsPattern;
 
   public ValueFormatConverter() {
     this.numberFormat = NumberFormat.getInstance(Locale.getDefault());
     simpleDateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
     this.thousandSeparatorsPattern = Pattern.quote("" + "" + new DecimalFormatSymbols().getDecimalSeparator());
   }
+  /*
+   * public ValueFormatConverter(Locale locale, String dateFormat, String
+   * thousandSeparatorsPattern, String localTimeFormat) { this.numberFormat =
+   * NumberFormat.getInstance(locale); if(localTimeFormat == null) {
+   * simpleDateFormat = new SimpleDateFormat(dateFormat); } else {
+   * localTimeFormater = DateTimeFormatter.ofPattern(localTimeFormat);
+   * localDateFormatter = DateTimeFormatter.ofPattern(dateFormat); }
+   * this.thousandSeparatorsPattern = thousandSeparatorsPattern; }
+   */
 
-  public ValueFormatConverter(Locale locale, String dateFormat, String thousandSeparatorsPattern, String localTimeFormat) {
-    this.numberFormat = NumberFormat.getInstance(locale);
-    if(localTimeFormat == null) {
+  public ValueFormatConverter(String dateFormat, String localTimeFormat, char thousandSeparators,
+      String thousandSeparatorsPattern, char decimalSeparator) {
+    if (localTimeFormat == null) {
       simpleDateFormat = new SimpleDateFormat(dateFormat);
     } else {
-      localTimeFormater = DateTimeFormatter.ofPattern(localTimeFormat); 
-      localDateFormatter = DateTimeFormatter.ofPattern(dateFormat); 
+      localTimeFormater = DateTimeFormatter.ofPattern(localTimeFormat);
+      localDateFormatter = DateTimeFormatter.ofPattern(dateFormat);
     }
+    this.setSeparators(decimalSeparator, thousandSeparators);
     this.thousandSeparatorsPattern = thousandSeparatorsPattern;
   }
 
@@ -49,13 +59,17 @@ public class ValueFormatConverter {
   }
 
   public ValueFormatConverter(char decimalSeparator, char thousandSeparators) {
+    setSeparators(decimalSeparator, thousandSeparators);
+    this.thousandSeparatorsPattern = Pattern.quote("" + thousandSeparators);
+  }
+
+  private void setSeparators(char decimalSeparator, char thousandSeparators) {
     DecimalFormat format = (DecimalFormat) NumberFormat.getInstance();
     DecimalFormatSymbols custom = new DecimalFormatSymbols();
     custom.setDecimalSeparator(decimalSeparator);
     custom.setGroupingSeparator(thousandSeparators);
     format.setDecimalFormatSymbols(custom);
     this.numberFormat = format;
-    this.thousandSeparatorsPattern = Pattern.quote("" + thousandSeparators);
   }
 
   public void convertAndSetValue(Object bean, String fieldName, String value, Class<?> dataType) throws Exception {
@@ -95,7 +109,7 @@ public class ValueFormatConverter {
       }
     } else if (LocalDate.class == dataType) {
       convertValue = LocalDate.parse(value, localDateFormatter);
-    } else if(LocalTime.class == dataType) {
+    } else if (LocalTime.class == dataType) {
       convertValue = LocalTime.parse(value, localTimeFormater);
     }
 

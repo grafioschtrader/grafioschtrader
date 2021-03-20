@@ -32,7 +32,6 @@ export abstract class TenantEditComponent {
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
-
   configObject: { [name: string]: FieldConfig };
   config: FieldConfig[] = [];
   formConfig: FormConfig;

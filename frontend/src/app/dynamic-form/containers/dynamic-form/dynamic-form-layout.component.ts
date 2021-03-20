@@ -41,8 +41,7 @@ import {FormConfig} from '../../models/form.config';
         <div *ngIf="config.labelShowText" class="bg-info" [innerHTML]="config.labelShowText"></div>
       </div>
     </div>
-  `,
-
+  `
 })
 
 export class DynamicFormLayoutComponent {
