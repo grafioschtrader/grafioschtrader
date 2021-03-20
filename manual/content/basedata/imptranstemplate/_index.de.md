@@ -6,19 +6,19 @@ weight : 35
 chapter: true
 ---
 ## Import Transaktion Vorlage
-Die meisten Handelsplattformen bieten eine Exportfunktion von Transaktionen. Das Resultat dieses Exports kann möglicherweise in GT importiert werden. Da jede Handelsplattform ihre eigenes Design der Dokumente implementiert, muss in GT jeweils entsprechend dieser Dokumente eine Importvorlage erstellt werden. GT kann die zwei Dokumentarten PDF und CSV verarbeiten.
+Die meisten Handelsplattformen bieten eine Exportfunktion von Transaktionen. Das Resultat dieses Exports kann möglicherweise in GT importiert werden. Da jede Handelsplattform ihre eigenes Design der **Dokumente** implementiert, muss in GT jeweils entsprechend dieser Dokumente eine Importvorlage erstellt werden. GT kann die zwei Dokumentarten **PDF** und **CSV** verarbeiten.
 
 ### Import Implementierung
-In seltenen Fällen genügt die in GT allgemein implementierte Importfunktion mit den entsprechenden Importvorlagen nicht um die  Dokumente einer Handelsplattform zu verarbeiten. In solchen Fällen muss in GT ein Importfunktion implementiert werden.
+In den meisten Fällen genügt die in GT allgemein implementierte Importfunktion mit den entsprechenden Importvorlagen um die Dokumente einer Handelsplattform zu verarbeiten. In all anderen Fällen muss in GT ein Importfunktion implementiert werden.
 
 ### Vorlagengruppe
-Für eine Handelsplattform kann es eine oder  mehrere Vorlagen geben, daher werden die in einer Vorlagengrupe gehalten. 
-- **Dokmentenart**: Diese Angabe definiert ob es sich um eine Vorlage für CSV oder PDF handelt.
+Für eine Handelsplattform kann es eine oder  mehrere Vorlagen geben, daher werden die in einer **Vorlagengruppe** gehalten. 
+- **Dokmentenart**: Diese Angabe definiert, ob es sich um eine Vorlage für CSV oder PDF handelt.
 - **Gültig ab**: Dies ist ein Hinweis für den Benutzer, damit er die Vorlage der sich ändernden Dokumentendesign der gleichen Art der Transaktion zu ordnen kann.
 - **Sprache und Land:** Es bestimmt das grundsätzliche Zahlenformat der Dokumente.
 
 ## Importvorlage
-Die Importvorlage für PDF und csv haben gewisse Gemeinsamkeiten. Es wird eine Angabe benötigt bei welcher die relevanten Werte aus dem Dokument ermittelt werden können. Dies wird durch die Zuordnung der **Felder** erreicht. Zusätzlich wird eine Konfiguration benötigt, damit die gelesenen Werte der Felder korrekt interpretiert werden.
+Die Importvorlage für PDF und **CSV** haben einige Gemeinsamkeiten. Es wird eine Angabe benötigt bei welcher die relevanten Werte aus dem Dokument ermittelt werden können. Dies wird durch die Zuordnung der **Felder** erreicht. Zusätzlich wird eine Konfiguration benötigt, damit die gelesenen Werte der Felder korrekt interpretiert werden.
 
 ### Zuordnung Felder
 Die für die Transaktion bestimmten Werte werden aus den Feldern gelesen. Die Folgenden Felder sind obligatorisch:
@@ -37,11 +37,19 @@ Die für die Transaktion bestimmten Werte werden aus den Feldern gelesen. Die Fo
 - **transType**: Mit dieser Angabe wird über eine zusätzliche Konfiguration die Art der Transaktion bestimmt.
 - **units**: Die Anzahl der Einheiten an der Transaktion.
 ### Konfiugration
-- **transType**: 
-- **dateFormat**:
-- **timeFormat**:
-- **overRuleSeparators**: All<’'|.> oder de-CH<'|.>de-DE<,|.>
-- **otherFlagOption**: BOND_QUATION_CORRECTION, 
+Am Ende der Importvorlage folgt die Sektion **[END]**. In dieser folgt die Konfiguration für die Verarbeitung der ""Vorlage** bzw. des zu importierenten **Dokumentes**.
++ **transType**: Diese ist eine Zuweisung des Textes zur einer **Transaktionsart**. Folgende Transaktionen werden in CSV und PDF Vorlagen unterstützt:
+    - **ACCUMULATE**: Ist ein Kauf eines Wertpapieres.
+    - **REDUCE**: Ist ein Verkauf eines Wertpapieres.
+    - **DIVIDEND**: Ist üfr den Zins oder Dividende eines Wertpapieres.
+Folgende können zusätzlich in einer Importvorlage für **CSV** angewendet werden:    
+    - **INTEREST**: Ist der Zins für ein Konto.
+    - **DEPOSIT**: Ist eine Auszahlung von einem Konto.
+    - **WITHDRAWAL**: Ist eine Einzahlung von einem Konto.
++ **dateFormat**:
++ **timeFormat**:
++ **overRuleSeparators**: All<’'|.> oder de-CH<'|.>de-DE<,|.>
++ **otherFlagOption**: BOND_QUATION_CORRECTION, 
 
 ### Importvorlage für csv
 Eine Importvorlage für csv ist für eine Menge von Transaktionen gedacht. Pro Zeile wird es maximal eine Transaktion in GT erzeugen. Gewisse Transaktionen gehen über mehrere Zeilen, beispielsweise ein Teilverkauf von einem Wertpapier.

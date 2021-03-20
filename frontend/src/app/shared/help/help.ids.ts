@@ -2,6 +2,7 @@ export enum HelpIds {
 
   // Intro
   HELP_INTRO = 'intro',
+  HELP_INTRO_REGISTER = 'intro/register',
   HELP_INTRO_NAVIGATION = 'intro/userinterface',
   HELP_INTRO_PROPOSE_CHANGE_ENTITY = 'proposechangeentity',
 

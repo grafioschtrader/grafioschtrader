@@ -32,7 +32,7 @@ export class LoginService extends BaseAuthService<User> {
     if (translateService.getLangs().find(lang => lang === sessionStorage.getItem(GlobalSessionNames.LANGUAGE))) {
       translateService.use(sessionStorage.getItem(GlobalSessionNames.LANGUAGE)).subscribe(params => console.log('loaded'));
     } else {
-      translateService.use('de');
+      translateService.use(translateService.getBrowserLang());
     }
     translateService.get('primeng').subscribe(res => primeNGConfig.setTranslation(res));
   }

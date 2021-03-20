@@ -96,10 +96,8 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   fieldsetConfigs: FieldsetConfig[];
   showWithFieldset: boolean;
 
-
   constructor(private fb: FormBuilder) {
   }
-
 
   get formGroups(): FormGroupDefinition[] {
     return this.config.filter((fieldFormGroup: any) => !!fieldFormGroup.formGroupName) as FormGroupDefinition[];
@@ -144,7 +142,6 @@ export class DynamicFormComponent implements OnChanges, OnInit {
     return this.form.value;
   }
 
-
   ngOnInit() {
     if (this.form && this.config.length > 0) {
       this.form = this.createGroupAndControl();
@@ -159,27 +156,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
     this.fieldsetConfigs = this.createFieldsetConfigs();
     this.showWithFieldset = this.hasFieldset();
-
-    /*
-     if (this.form && this.config.length > 0) {
-       const controls = Object.keys(this.form.controls);
-       const configControls = this.controls.map((item) => item.field);
-
-
-       controls
-         .filter((control) => !configControls.includes(control))
-         .forEach((control) => this.form.removeControl(control));
-
-       configControls
-         .filter((control) => !controls.includes(control))
-         .forEach((field) => {
-           const config = <FieldConfig> this.config.find((control) => (<FieldConfig> control).field === field);
-           this.form.addControl(field, this.createControl(config));
-         });
-     }
-     */
   }
-
 
   /**
    * Buttons are not created here!
@@ -189,7 +166,6 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
     this.formGroups.forEach(formGroupDefinition => {
       formGroupDefinition.formControl = this.fb.group({});
-
 
       childGroups[formGroupDefinition.formGroupName] = formGroupDefinition.formControl;
       formGroupDefinition.fieldConfig.forEach(control =>

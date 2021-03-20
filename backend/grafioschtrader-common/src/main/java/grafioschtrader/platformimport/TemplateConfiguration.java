@@ -256,6 +256,10 @@ public abstract class TemplateConfiguration {
     return decimalSeparator;
   }
 
+  public char getThousandSeparators() {
+    return decimalFormatSymbols.getGroupingSeparator();
+  }
+  
   public String getThousandSeparatorsPattern() {
     return thousandSeparatorsPattern;
   }
