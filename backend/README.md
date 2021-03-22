@@ -23,7 +23,7 @@ GT has some properties in the configuration file **backend/grafioschtrader-serve
 - app.jwt.secret
 - gt.connector.*
 
-Some propertis are encrypted with **Jasypt**. Those properties values starts with "ENC(" replace it with your secrect value like "spring.datasource.password = DEC(YOUR_PASSWORD)" and when your propties are all set, execute the following:
+Some propertis are encrypted with **Jasypt**. Those properties values starts with "ENC(" replace it with your secrect value like "spring.datasource.password = DEC(YOUR_DB_PASSWORD)" and when your propties are all set, execute the following:
 
 ```
 # In directory backend/grafioschtrader-server
