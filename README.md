@@ -30,7 +30,7 @@ If you want to contribute to a project and make it better, your help is very wel
 * [Java JDK 11](https://jdk.java.net/java-se-ri/11): The Java development Kit for the backend
 * [Apache Maven](https://maven.apache.org/): The build system for the backend
 * [Node.js with npm](https://nodejs.org/en/): The build system for frontend
-* [MariaDB](https://mariadb.org/) 10.3.1+: All data are saved in an instance of MariaDB Server. Befor Installation check the Version of MariaDB with "**mysql -u root -p**".
+* [MariaDB](https://mariadb.org/) 10.3.1+: All data are saved in an instance of MariaDB Server. Before installation check the version of MariaDB with "**mysql -u root -p**".
 * [HUGO](https://gohugo.io/): It a static site generator. It is used for help pages. The Web user interface has links to this weg pages.
 ### Email account
 GT requires access to an Email account for user registration. The settings for Google's Gmail would be similar to the following. Note that for Gmail maybe the security settings must changed. Gmail must be enabled for less secure apps.
@@ -38,14 +38,14 @@ GT requires access to an Email account for user registration. The settings for G
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
 spring.mail.username=grafiosch@gmail.com
-spring.mail.password=DEC(YOUR_PASSWORD)
+spring.mail.password=DEC(YOUR_MAIL_PASSWORD)
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 ```
 ### Database preparation
-For the database only a empty database with user access is required. Everthing else is done with the first start of GT. In the following statement change at least **YOUR_PASSWORD" with your own password.
+For the database only a empty database with user access is required. Everthing else is done with the first start of GT. In the following statement change at least **YOUR_DB_PASSWORD" with your own password.
 ```
-mysql -u root -p -e "create database grafioschtrader; GRANT ALL PRIVILEGES ON grafioschtrader.* TO grafioschtrader@localhost IDENTIFIED BY 'YOUR_PASSWORD'"
+mysql -u root -p -e "create database grafioschtrader; GRANT ALL PRIVILEGES ON grafioschtrader.* TO grafioschtrader@localhost IDENTIFIED BY 'YOUR_DB_PASSWORD'"
 ```
 ## Build deployment artifacts
 It depends on the target system how the deployment is happened.
