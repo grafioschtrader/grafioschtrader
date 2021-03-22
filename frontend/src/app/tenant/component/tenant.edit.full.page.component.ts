@@ -16,7 +16,7 @@ import {HelpIds} from '../../shared/help/help.ids';
   template: `
     <div class="container">
       <div class="jumbotron center-block">
-        <h1>{{'CLIENT' | translate}}</h1>
+        <h2>{{'CLIENT' | translate}}</h2>
         <h4>{{'CLIENT_REGISTER' | translate}}</h4>
         <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                       #form="dynamicForm"
