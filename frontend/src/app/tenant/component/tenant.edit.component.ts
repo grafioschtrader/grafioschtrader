@@ -52,9 +52,9 @@ export abstract class TenantEditComponent {
   }
 
   private getFields(onlyCurrency: boolean): FieldConfig[] {
-    const fieldConfig = [DynamicFieldHelper.createFieldInputString('tenantName', 'CLIENT_NAME', 25, true),
-      DynamicFieldHelper.createFieldSelectString('currency', 'CURRENCY', true),
-      DynamicFieldHelper.createFieldCheckbox('excludeDivTax', 'EXCLUDE_DIV_TAX'),
+    const fieldConfig = [DynamicFieldHelper.createFieldInputStringHeqF('tenantName', 25, true),
+      DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
+      DynamicFieldHelper.createFieldCheckboxHeqF('excludeDivTax'),
       DynamicFieldHelper.createSubmitButton()];
     return (onlyCurrency) ? [fieldConfig[1], fieldConfig[3]] : fieldConfig;
   }

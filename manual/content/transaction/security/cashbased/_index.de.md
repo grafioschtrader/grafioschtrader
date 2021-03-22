@@ -7,3 +7,6 @@ chapter: true
 ---
 ## Cash basierte Transaktion
 deutsch
+
+## Wertschriftentransfer
+Der Transfer von einem gehaltenen Wertpapier einer Handelsplattform zu einer anderen Handelsplattform. ...

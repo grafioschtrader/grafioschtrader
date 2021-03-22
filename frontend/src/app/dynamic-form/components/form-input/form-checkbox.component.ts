@@ -5,7 +5,8 @@ import {BaseInputComponent} from '../base.input.component';
   selector: 'form-checkbox',
   template: `
     <ng-container [formGroup]="group">
-      <input class="form-control" type="checkbox" #input [id]="config.field" [formControlName]="config.field">
+      <input class="form-control" type="checkbox" #input [id]="config.field" [formControlName]="config.field"
+             pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}">
     </ng-container>
   `
 })
