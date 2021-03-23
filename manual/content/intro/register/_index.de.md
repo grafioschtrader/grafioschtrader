@@ -1,6 +1,6 @@
 ---
 title: "Registrieren"
-date: 2021-03-14T22:54:47+01:00
+date: 2021-03-23T11:00:00+01:00
 draft: false
 weight : 30
 chapter: true
@@ -30,3 +30,5 @@ sequenceDiagram
     K-->>Backend: Eingabe prüfen
     Backend-->>A: Weiterleitung Anmelden-Form
 {{< /mermaid >}}
+Mit den Video ist es vielleicht einfacher...
+{{< youtube C9MKBfUXLPA >}}
