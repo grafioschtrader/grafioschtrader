@@ -428,6 +428,7 @@
   "SECURITY": "Security",
   "SECURITIES_AND_MARGIN_GAIN" : "Securities incl. margin position gain",
   "SECURITYACCOUNT": "Security account",
+  "SECURITYACCOUNT_NAME": "Name security account",
   "SECURITYACCOUNTS": "Security accounts",
   "SECURITY_ASSETCLASS_WITH_CASH": "Assetclass with cash",
   "SECURITY_BREACH_COUNT": "Violation of external data/data limit",

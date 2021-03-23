@@ -36,3 +36,7 @@ GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher g
 + Dem Daytrader fehlen die Echtzeitkurse.
 + Investoren die ihren Handel losgelöst von Geldkontos verwalten möchten.
 + Anleger der nur ein Portfolio bei einem Online-Broker hat und die dortigen Auswertungen genügen.
+
+{{% notice info %}}
+Die Informationen dieser Hilfe beziehen sich alle auf die GT Version 0.10.0
+{{% /notice %}}

@@ -16,4 +16,5 @@ erDiagram
     Portfolio ||--|{ Depot : hat
     Klient ||--|{ Watchlist : hat
     Watchlist ||--|{ Instruments : hat
+    Konto ||--|{ Transaktion : hat
 {{< /mermaid >}}

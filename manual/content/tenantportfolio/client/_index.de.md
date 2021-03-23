@@ -24,4 +24,4 @@ Dies ist die **Währung** des **Klienten**, d.h. die Auswertungen über alle **P
 In der Schweiz wird bei bestimmten Aktien und Anleihen mit der Dividenden- bzw. Zinszahlung automatisch ein Steuerbetrag von 35% in Abzug gebracht. Dieser Betrag wird aufgrund der Steuerangaben zurück erstattet und die Erträge werden ordentlich als Einkommen versteuert. Falls Sie die Option Zins/Dividendensteuer übergehen wählen, wird  bei der Gewinnberechnung die Steuer beim Transaktionstyp »Zins/Dividende« übergangen. Somit erhalten Sie eine bessere Vergleichbarkeit der Gewinne von unterschiedlichen Wertpapieren.
 
 ### Funktion
-Auf dem **Element Portfolios** gibt es die Funktion "**Währung Klient und Portfolios**" die setzt Währung des Klienten und all seiner Portfolios.
+Auf dem **Element Portfolios** gibt es die Funktion "**Währung Klient und Portfolios**" die setzt **Währung** des **Klienten** und all seiner **Portfolios**.

@@ -429,6 +429,7 @@
   "SECURITIES_AND_MARGIN_GAIN" : "Wertpapiere + inkl. Gewinn Margin Pos.",
   "SECURITY": "Wertpapier",
   "SECURITYACCOUNT": "Depot",
+  "SECURITYACCOUNT_NAME": "Name Depot",
   "SECURITYACCOUNTS": "Depots",
   "SECURITY_ASSETCLASS_WITH_CASH": "Anlageklassen mit Cash",
   "SECURITY_BREACH_COUNT": "Verstoss Fremddaten/Datenlimit",

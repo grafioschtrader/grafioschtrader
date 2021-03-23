@@ -43,7 +43,7 @@ spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 ```
 ### Database preparation
-For the database only a empty database with user access is required. Everthing else is done with the first start of GT. In the following statement change at least **YOUR_DB_PASSWORD" with your own password.
+For the database only a empty database with user access is required. Everthing else is done with the first start of GT. In the following statement change at least **"YOUR_DB_PASSWORD"** with your own password.
 ```
 mysql -u root -p -e "create database grafioschtrader; GRANT ALL PRIVILEGES ON grafioschtrader.* TO grafioschtrader@localhost IDENTIFIED BY 'YOUR_DB_PASSWORD'"
 ```

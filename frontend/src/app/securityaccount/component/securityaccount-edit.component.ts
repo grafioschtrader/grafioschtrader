@@ -58,7 +58,7 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldInputString('name', 'SECURITYACCOUNT', 25, true),
+      DynamicFieldHelper.createFieldInputString('name', 'SECURITYACCOUNT_NAME', 25, true),
       DynamicFieldHelper.createFieldSelectString('tradingPlatformPlan', 'TRADINGPLATFORMPLAN', true,
         {dataproperty: 'tradingPlatformPlan.idTradingPlatformPlan'}),
       ...this.getUntilFieldDefinition(),
