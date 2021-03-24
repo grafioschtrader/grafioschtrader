@@ -51,7 +51,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
       DynamicFieldHelper.createFieldInputString('name', 'CASHACCOUNT_NAME', 25, true),
       DynamicFieldHelper.createFieldSelectString('currency', 'CURRENCY', true,
         {inputWidth: 5, disabled: this.callParam.optParam && this.callParam.optParam.hasTransaction}),
-      DynamicFieldHelper.createFieldSelectNumber('connectIdSecurityaccount', 'SECURITYACCOUNT', false),
+      DynamicFieldHelper.createFieldSelectNumber('connectIdSecurityaccount', 'SECURITYACCOUNT_ASSIGNMENT', false),
       DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', 1000, false),
       DynamicFieldHelper.createSubmitButton()
     ];
