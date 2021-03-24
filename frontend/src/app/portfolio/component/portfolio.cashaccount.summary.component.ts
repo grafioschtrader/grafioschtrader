@@ -297,7 +297,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   }
 
   public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_PROTFOLIO;
+    return HelpIds.HELP_PROTFOLIOS_PORTFOLIOS;
   }
 
   onContextMenuClick(event) {
