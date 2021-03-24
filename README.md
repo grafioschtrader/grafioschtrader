@@ -29,8 +29,8 @@ If you want to contribute to a project and make it better, your help is very wel
 ### Prerequisite
 * [Java JDK 11](https://jdk.java.net/java-se-ri/11): The Java development Kit for the backend
 * [Apache Maven](https://maven.apache.org/): The build system for the backend
-* [Node.js with npm](https://nodejs.org/en/): The build system for frontend
-* [MariaDB](https://mariadb.org/) 10.3.1+: All data are saved in an instance of MariaDB Server. Before installation check the version of MariaDB with "**mysql -u root -p**".
+* [Node.js with npm](https://nodejs.org/en/) **Latest LTS version**: The build system for frontend
+* [MariaDB](https://mariadb.org/) **10.3.1+**: All data are saved in an instance of MariaDB Server. Before installation check the version of MariaDB with "**mysql -u root -p**".
 * [HUGO](https://gohugo.io/): It a static site generator. It is used for help pages. The Web user interface has links to this weg pages.
 ### Email account
 GT requires access to an Email account for user registration. The settings for Google's Gmail would be similar to the following. Note that for Gmail maybe the security settings must changed. Gmail must be enabled for less secure apps.

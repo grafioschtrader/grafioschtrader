@@ -8,7 +8,6 @@ chapter: true
 ## Klient und Portfolios
 GT definiert einen **Klient** aus dem Zusammenzug aller **Portfolios** und **Watchlists**. Zusätzlich enthält er die Informationen bezüglich der Auswertung über alle Portfolios. Ein Klient kann ein oder mehrere Portfolios enthalten, die Anzahl möglicher Portfolios ist beschränkt. Im folgenden Diagramm ist die Beziehungen dargestellt. Daraus entnehmen wir, d.h beispielweise eine Konto einem Portfolio zugeordnet ist.
 
-
 {{< mermaid >}}
 erDiagram
     Klient ||--|{ Portfolio : hat
@@ -18,3 +17,6 @@ erDiagram
     Watchlist ||--|{ Instruments : hat
     Konto ||--|{ Transaktion : hat
 {{< /mermaid >}}
+
+Das folgende Video erklärt Ihnen die Erstellung von Portfolios, Depots und Kontos:
+{{< youtube 6L6xMCSGm_8 >}}

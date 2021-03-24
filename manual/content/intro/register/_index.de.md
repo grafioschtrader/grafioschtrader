@@ -30,5 +30,5 @@ sequenceDiagram
     K-->>Backend: Eingabe prüfen
     Backend-->>A: Weiterleitung Anmelden-Form
 {{< /mermaid >}}
-Mit den Video ist es vielleicht einfacher...
+Im Video ist es vielleicht einfacher...
 {{< youtube C9MKBfUXLPA >}}
