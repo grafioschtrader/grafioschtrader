@@ -1,9 +1,9 @@
 <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
      #cmDiv [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-  <p-table [columns]="fields" [value]="securityPositionList" selectionMode="single"
+  <p-table [columns]="fields" [value]="securityPositionList" [selectionMode]="selectMultiMode"
            styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
            [loading]="loading" loadingIcon="fa fa-circle-o-notch fa-5x"
-           [(selection)]="selectedSecuritycurrencyPosition" dataKey="securitycurrency.idSecuritycurrency"
+           [(selection)]="singleMultiSelection" dataKey="securitycurrency.idSecuritycurrency"
            [responsive]="true" (onColResize)="onColResize($event)" [resizableColumns]="true"
            (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta">
     <ng-template pTemplate="caption">
@@ -14,6 +14,9 @@
     <ng-template pTemplate="header" let-fields>
       <tr>
         <th style="width:24px"></th>
+        <th style="width: 2.25em" *ngIf="selectMultiMode === 'multiple'">
+          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+        </th>
         <ng-container *ngFor="let field of fields">
           <th *ngIf="field.visible" [pSortableColumn]="field.field"
               [pTooltip]="field.headerTooltipTranslated"
@@ -28,12 +31,14 @@
 
     <ng-template pTemplate="body" let-spl let-expanded="expanded" let-columns="fields">
       <tr [pSelectableRow]="spl">
-
         <td style="width:24px">
           <a *ngIf="spl.watchlistSecurityHasEverTransactionTenant || watchlistType != WatchListType.PERFORMANCE" href="#"
              [pRowToggler]="spl">
             <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
           </a>
+        </td>
+        <td *ngIf="selectMultiMode === 'multiple'">
+          <p-tableCheckbox [value]="spl"></p-tableCheckbox>
         </td>
 
         <ng-container *ngFor="let field of fields">

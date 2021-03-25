@@ -1,5 +1,7 @@
 package grafioschtrader.repository;
 
+import java.util.List;
+
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
@@ -11,6 +13,8 @@ public interface WatchlistJapRepositoryCustom extends BaseRepositoryCustom<Watch
 
   Watchlist addSecuritycurrenciesToWatchlist(Integer idWatchlist, SecuritycurrencyLists securitycurrencyLists);
 
+  int removeMultipleFromWatchlist(Integer idWatchlist, final List<Integer> idsSecuritycurrency);
+  
   Watchlist removeSecurityFromWatchlistAndDelete(Integer idWatchlist, Integer idSecuritycurrency);
 
   Watchlist removeCurrencypairFromWatchlistAndDelete(Integer idWatchlist, Integer idSecuritycurrency);

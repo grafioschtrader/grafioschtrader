@@ -46,7 +46,6 @@ import {filter} from 'rxjs/operators';
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th style="width:24px"></th>
-
             <th style="width: 2.25em">
               <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>

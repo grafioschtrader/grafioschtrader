@@ -109,14 +109,21 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   }
 
   moveSecuritycurrency(idWatchlistSource: number, idWatchlistTarget: number, idSecuritycurrency: number): Observable<boolean> {
+
     return this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlistSource}/moveto/`
       + `${idWatchlistTarget}/securitycurrency/${idSecuritycurrency}`, null,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
+  removeMultipleFromWatchlist(idWatchlist: number, idsSecuritycurrencies: number[]) {
+    let httpParams = new HttpParams();
+    httpParams = httpParams.append('idsSecuritycurrencies', idsSecuritycurrencies.join(','));
+    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/removemultiple`,
+      {headers: this.prepareHeaders(), params: httpParams})
+      .pipe(catchError(this.handleError.bind(this)));
+  }
 
   removeSecuritycurrenciesFromWatchlist(idWatchlist: number, securitycurrency: Security | Currencypair) {
-    // const body = JSON.stringify(securitycurrency);
     const target: string = securitycurrency instanceof CurrencypairWatchlist ? 'removeCurrencypair' : 'removeSecurity';
 
     return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/${target}/`
