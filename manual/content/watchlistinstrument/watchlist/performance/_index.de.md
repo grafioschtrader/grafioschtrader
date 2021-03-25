@@ -9,4 +9,4 @@ chapter: true
 ...
 
 ### Performance Watchlist {{< svg "chart-line.svg" svg-icon-size >}}
-Im Navigationsbereich ist einer bestimmten Watchlist das **Performance** Watchlist gekennzeichnet. Diese Watchlist sollte alle Ihre offenen Positionen enthalten. Zudem erfolgt automatisch eine Aktualisierung der abhängigen **Währungspaare**.
+Im **Navigationsbereich** ist einer bestimmten Watchlist das **Performance** Watchlist gekennzeichnet. Diese Watchlist sollte alle Ihre offenen Positionen enthalten. Zudem erfolgt automatisch eine Aktualisierung der abhängigen **Währungspaare**.

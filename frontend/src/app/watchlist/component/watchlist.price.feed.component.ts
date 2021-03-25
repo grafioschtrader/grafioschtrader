@@ -74,7 +74,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     super(WatchListType.PRICE_FEED, AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
       dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
-      globalparameterService, usersettingsService);
+      globalparameterService, usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();
 
     this.addBaseColumns();

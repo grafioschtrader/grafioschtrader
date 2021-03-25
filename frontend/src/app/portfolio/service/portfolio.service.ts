@@ -78,5 +78,4 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-
 }
