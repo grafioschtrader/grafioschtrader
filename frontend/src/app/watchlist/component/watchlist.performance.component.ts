@@ -74,7 +74,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
       dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, globalparameterService,
-      usersettingsService);
+      usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();
     // Update StompJs configuration.
     this.stompConfig = {...this.stompConfig, ...this.updatedStompConfig};

@@ -42,7 +42,9 @@ import {AppSettings} from '../../shared/app.settings';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
-  // @ViewChild('contextMenu', { static: false }) protected contextMenu: ContextMenu;
+  public static readonly SINGLE = 'single';
+  public static readonly MULTIPLE = 'multiple';
+
   @ViewChild('contextMenu') protected contextMenu: any;
 
   WatchListType: typeof WatchListType = WatchListType;
@@ -71,10 +73,12 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   timeFrames: TimeFrame[] = [];
   choosenTimeFrame: TimeFrame;
 
-
   tenantLimits: TenantLimit[];
 
   // For the component Edit-Menu, it shows the same menu items as the context menu
+
+
+  singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[];
   selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>;
   // It is only used, because of changeDetection. Otherwise a direct control over contextMenu ist not required
 
@@ -99,9 +103,14 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
               filterService: FilterService,
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              public selectMultiMode: string) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    if (selectMultiMode === WatchlistTable.MULTIPLE) {
+      this.singleMultiSelection = [];
+    }
     this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
+
   }
 
   createSecurityPositionList(data: SecuritycurrencyGroup) {
@@ -125,7 +134,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {width: 200});
     this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.isin',  true, true, {width: 90});
+    this.addColumnFeqH(DataType.String, 'securitycurrency.isin', true, true, {width: 90});
     this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol', true, true);
     this.addColumnFeqH(DataType.String, 'securitycurrency.currency', true, true);
   }
@@ -163,13 +172,26 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     // this.changeDetectionStrategy.markForCheck();
   }
 
-  removeExistingSecurity(securityCurrency: Security | Currencypair) {
+  removeSecurity(securityCurrency: Security | Currencypair) {
     this.watchlistService.removeSecuritycurrenciesFromWatchlist(this.idWatchlist, securityCurrency).subscribe(watchlist => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST');
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST',
+        {count: 1});
       this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
-     // this.getWatchlistWithoutUpdate();
     });
   }
+
+  removeSecuritiesAndCurrencypairs(selectedSecurityCurrencies: SecuritycurrencyPosition<Security | Currencypair>[]): void {
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
+      'REMOVE_INSTRUMENT_FROM_WATCHLIST_CONFIRM', () => {
+        this.watchlistService.removeMultipleFromWatchlist(this.idWatchlist,
+          selectedSecurityCurrencies.map(sc => sc.securitycurrency.idSecuritycurrency)).subscribe(count => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST',
+            {count: count});
+          this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
+        });
+      });
+  }
+
 
   removeAndDeleteSecuritycurrency(securityCurrency: Securitycurrency, domainKey: string) {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
@@ -221,7 +243,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.transactionCallParam.defaultTransactionTime = activeToDate.getTime() < new Date().getTime() ? activeToDate : new Date();
 
     this.visibleSecurityTransactionDialog = true;
-   // this.changeDetectionStrategy.markForCheck();
+    // this.changeDetectionStrategy.markForCheck();
   }
 
   /**
@@ -258,7 +280,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   callMeDeactivate(): void {
-   // this.changeDetectionStrategy.markForCheck();
+    // this.changeDetectionStrategy.markForCheck();
   }
 
   hideContextMenu(): void {
@@ -278,7 +300,16 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   onComponentClick(event): void {
     if (!event[this.consumedGT]) {
       this.contextMenu && this.contextMenu.hide();
-      this.resetMenu(this.selectedSecuritycurrencyPosition);
+      this.resetMenu(this.getSSP(this.singleMultiSelection));
+    }
+  }
+
+  private getSSP(singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair>
+    | SecuritycurrencyPosition<Security | Currencypair>[]): SecuritycurrencyPosition<Security | Currencypair> {
+    if (Array.isArray(singleMultiSelection)) {
+      return singleMultiSelection.length === 1 ? singleMultiSelection[0] : null;
+    } else {
+      return singleMultiSelection as SecuritycurrencyPosition<Security | Currencypair>;
     }
   }
 
@@ -370,7 +401,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   private mailToCreator(securitycurrency: Securitycurrency): void {
-
     const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
       : (<Security>securitycurrency).name;
     DynamicDialogHelper.getOpenedMailSendComponent(this.translateService, this.dialogService,
@@ -403,11 +433,21 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         disabled: this.reachedWatchlistLimits()
       }
     );
+
+    if (Array.isArray(this.singleMultiSelection) && this.singleMultiSelection.length > 1) {
+      menuItems.push(
+        {
+          label: 'REMOVE_SELECTED_INSTRUMENTS',
+          command: (e) => this.removeSecuritiesAndCurrencypairs(this.singleMultiSelection as SecuritycurrencyPosition<Security | Currencypair>[])
+        }
+      );
+    }
+
     if (securitycurrencyPosition) {
       menuItems.push(
         {
-          label: 'REMOVE_EXISTING_INSTRUMENT',
-          command: (e) => this.removeExistingSecurity(securitycurrencyPosition.securitycurrency)
+          label: 'REMOVE_INSTRUMENT',
+          command: (e) => this.removeSecurity(securitycurrencyPosition.securitycurrency)
         }
       );
       menuItems.push(
