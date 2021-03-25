@@ -21,6 +21,11 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
 
   Watchlist findByIdWatchlistAndIdTenant(Integer idWatchlist, Integer idTenant);
 
+  @Transactional
+  @Modifying
+  @Query(nativeQuery = true)
+  int deleteByIdTenantAndWatchlistAndIds(Integer idTenant, Integer idWatchlist, List<Integer> ids);
+  
   @Query(value = "SELECT count(s) FROM Watchlist w JOIN w.securitycurrencyList s WHERE w.idTenant = ?1 AND w.idWatchlist= ?2")
   Long countPostionsInWatchlist(Integer idTenant, Integer idWatchlist);
 

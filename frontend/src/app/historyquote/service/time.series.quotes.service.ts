@@ -5,7 +5,9 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {Router} from '@angular/router';
 import {TimeSeriesParam} from '../component/time.series.chart.component';
 
-
+/**
+ * Menu and function to show a history quotes as chart or table. It is shown in additional area.
+ */
 @Injectable()
 export class TimeSeriesQuotesService {
 
@@ -53,13 +55,12 @@ export class TimeSeriesQuotesService {
         }
       );
     }
-
     return menuItems;
   }
 
   protected isTimeSeriesShown(): boolean {
-    const routeUrlCompoents: string[] = /.*mainbottom:(\w*)/.exec(this.router.url);
-    return routeUrlCompoents && routeUrlCompoents[1] === AppSettings.TIME_SERIE_QUOTES;
+    const routeUrlComponents: string[] = /.*mainbottom:(\w*)/.exec(this.router.url);
+    return routeUrlComponents && routeUrlComponents[1] === AppSettings.TIME_SERIE_QUOTES;
   }
 
   private showEodChartTable(routeKey: string, initializeTimeSeriesParam: boolean): void {
@@ -75,7 +76,6 @@ export class TimeSeriesQuotesService {
         }]
       }
     }]);
-
   }
 
 }

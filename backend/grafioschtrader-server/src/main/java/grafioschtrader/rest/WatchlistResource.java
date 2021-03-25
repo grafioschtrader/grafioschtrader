@@ -31,7 +31,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-
 @RestController
 @RequestMapping(RequestMappings.WATCHLIST_MAP)
 @Tag(name = RequestMappings.WATCHLIST, description = "Controller for watchlist")
@@ -47,7 +46,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
     super(Watchlist.class);
   }
 
-  @Operation(summary = "Returns all watchlists without securities", description = "Empty watchlist check", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Returns all watchlists without securities", description = "Empty watchlist check", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Watchlist>> getWatchlistsByTenant() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -59,16 +59,16 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
     return watchlistJpaRepository;
   }
 
-  @Operation(summary = "Returns if watchlists has security or not", description = "Empty watchlist check", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Returns if watchlists has security or not", description = "Empty watchlist check", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "/hassecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Object[]>> watchlistsOfTenantHasSecurity() {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
     return new ResponseEntity<>(watchlistJpaRepository.watchlistsOfTenantHasSecurity(idTenant), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns Id's of watchlist which contains the specified security", 
-      description = "May be used for moving a security to another wachlist, a security can only once exist in a watchlist", 
-      tags = {RequestMappings.WATCHLIST })
+  @Operation(summary = "Returns Id's of watchlist which contains the specified security", description = "May be used for moving a security to another wachlist, a security can only once exist in a watchlist", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "/existssecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Integer>> getAllWatchlistsWithSecurityByIdSecuritycurrency(
       @PathVariable final Integer idSecuritycurrency) {
@@ -78,12 +78,12 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Searches securities or currency pairs which are not in the specified watchlist by a s search criteria", 
-      description = "", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Searches securities or currency pairs which are not in the specified watchlist by a s search criteria", description = "", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "/{idWatchlist}/search", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyLists> searchByCriteria(
-      @Parameter(description="Id of watchlist", required=true) @PathVariable final Integer idWatchlist,
-      @Parameter(description="Search criteria", required=true) final SecuritycurrencySearch securitycurrencySearch) {
+      @Parameter(description = "Id of watchlist", required = true) @PathVariable final Integer idWatchlist,
+      @Parameter(description = "Search criteria", required = true) final SecuritycurrencySearch securitycurrencySearch) {
     return new ResponseEntity<>(watchlistJpaRepository.searchByCriteria(idWatchlist, securitycurrencySearch),
         HttpStatus.OK);
   }
@@ -102,9 +102,9 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         watchlistJpaRepository.tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(idWatchlist), HttpStatus.OK);
   }
 
-  @Operation(summary = "Return the two limits for securities in watchlist/s", 
-      description = "One limits the number of securities and currency pairs in a wachtlist " 
-  + "and the other how many securities or currency pairs can watched all together", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Return the two limits for securities in watchlist/s", description = "One limits the number of securities and currency pairs in a wachtlist "
+      + "and the other how many securities or currency pairs can watched all together", tags = {
+          RequestMappings.WATCHLIST })
   @GetMapping(value = "{idWatchlist}/limitsecuritiescurrencies", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TenantLimit[]> getSecuritiesCurrenciesWatchlistLimits(@PathVariable final Integer idWatchlist) {
     return new ResponseEntity<>(watchlistJpaRepository.getSecuritiesCurrenciesWachlistLimits(idWatchlist),
@@ -128,8 +128,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.moveSecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency));
   }
 
-  @Operation(summary = "Remove a currency pair from specified security and deletet it", 
-      description = "It can only deleted if the security is not referenced", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Remove a currency pair from specified security and deletet it", description = "It can only deleted if the security is not referenced", tags = {
+      RequestMappings.WATCHLIST })
   @DeleteMapping(value = "{idWatchlist}/removeDeleteSecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Watchlist> removeSecurityFromWatchlistAndDelete(@PathVariable final Integer idWatchlist,
       @PathVariable final Integer idSecuritycurrency) {
@@ -137,8 +137,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.removeSecurityFromWatchlistAndDelete(idWatchlist, idSecuritycurrency));
   }
 
-  @Operation(summary = "Remove a currency pair from specified watchlist and deletet it", 
-      description = "It can only deleted if the currency pair is not referenced", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Remove a currency pair from specified watchlist and deletet it", description = "It can only deleted if the currency pair is not referenced", tags = {
+      RequestMappings.WATCHLIST })
   @DeleteMapping(value = "{idWatchlist}/removeDeleteCurrencypair/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Watchlist> removeCurrencypairFromWatchlistAndDelete(@PathVariable final Integer idWatchlist,
       @PathVariable final Integer idSecuritycurrency) {
@@ -146,7 +146,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.removeCurrencypairFromWatchlistAndDelete(idWatchlist, idSecuritycurrency));
   }
 
-  @Operation(summary = "Remove a security from specified watchlist", description = "", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Remove a security from specified watchlist", description = "", tags = {
+      RequestMappings.WATCHLIST })
   @DeleteMapping(value = "{idWatchlist}/removeSecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Watchlist> removeSecurityFromWatchlist(@PathVariable final Integer idWatchlist,
       @PathVariable final Integer idSecuritycurrency) {
@@ -154,7 +155,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.removeSecurityFromWatchlist(idWatchlist, idSecuritycurrency));
   }
 
-  @Operation(summary = "Remove a currency pair from specified watchlist", description = "", tags = {RequestMappings.WATCHLIST })
+  @Operation(summary = "Remove a currency pair from specified watchlist", description = "", tags = {
+      RequestMappings.WATCHLIST })
   @DeleteMapping(value = "{idWatchlist}/removeCurrencypair/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Watchlist> removeCurrencypairFromWatchlist(@PathVariable final Integer idWatchlist,
       @PathVariable final Integer idSecuritycurrency) {
@@ -162,13 +164,22 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.removeCurrencypairFromWatchlist(idWatchlist, idSecuritycurrency));
   }
 
+  @Operation(summary = "Remove many currency pairs and or securities from watchlist", description = "", tags = {
+      RequestMappings.WATCHLIST })
+  @DeleteMapping(value = "{idWatchlist}/removemultiple", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Integer> removeMultipleFromWatchlist(@PathVariable final Integer idWatchlist,
+      @RequestParam() final List<Integer> idsSecuritycurrencies) {
+    return new ResponseEntity<>(watchlistJpaRepository.removeMultipleFromWatchlist(idWatchlist, idsSecuritycurrencies),
+        HttpStatus.OK);
+  }
+
   /////////////////////////////////////////////////////////////
   // Get Watchlist - Report
   /////////////////////////////////////////////////////////////
 
-    
-  @Operation(summary = "Returns the content of a watchlist with the setting of youngest date of history quote. " 
-  + "This should help to detect non working historical data feeds.", description = "", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Returns the content of a watchlist with the setting of youngest date of history quote. "
+      + "This should help to detect non working historical data feeds.", description = "", tags = {
+          RequestMappings.WATCHLIST })
   @GetMapping(value = "/{idWatchlist}/maxhistoryquote", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyGroup> getWatchlistWithoutUpdateAndMaxHistoryquote(
       @PathVariable final Integer idWatchlist) throws InterruptedException, ExecutionException {
@@ -176,15 +187,15 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns the content of watchlist without updated prices", 
-      description = "First call this to get the content of a watchlist fast", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Returns the content of watchlist without updated prices", description = "First call this to get the content of a watchlist fast", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "/{idWatchlist}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyGroup> getWatchlistwithoutUpdate(@PathVariable final Integer idWatchlist) {
     return new ResponseEntity<>(watchlistReport.getWatchlistWithoutUpdate(idWatchlist), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns the content of watchlist with updated prices", 
-      description = "This operation can take many seconds", tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Returns the content of watchlist with updated prices", description = "This operation can take many seconds", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "/{idWatchlist}/quote", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyGroup> updateLastPriceByIdWatchlist(@PathVariable final Integer idWatchlist,
       @RequestParam() final Integer daysTimeFrame) {

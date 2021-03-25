@@ -1,6 +1,6 @@
 ---
 title: "Benutzeroberfläche"
-date: 2021-01-14T22:54:47+01:00
+date: 2021-03-23T22:54:47+01:00
 draft: false
 weight : 5
 chapter: true
@@ -20,13 +20,13 @@ Auf gewissen Entität kann eine Vielzahl von Befehlen angewendet werden. Die Ums
 {{% /notice %}}
 
 #### Navigationsbereich 
-Im Navigationsbereich wird der Inhalt des Hauptbereiches gesteuert. Die Navigation ist hierarchisch gegliedert und hat eine Durchmischung von **statischen Elementen** wie beispielsweise "Watchlist" und **dynamischen Elmenten** die aus Ihren Daten abgeleitet werden.  
+Der **Navigationsbereich enthält den **Navigationsbaum**, über diesen wird der Inhalt des **Hauptbereiches** gesteuert. Die **Navigation** ist hierarchisch gegliedert und hat eine Durchmischung von **statischen Elementen** wie beispielsweise "Watchlist" und **dynamischen Elmenten** die aus Ihren Daten abgeleitet werden.  
 
 #### Hauptbereich mit Daten
-Der Hauptbereich reflektiert den Inhalt des gewählten Elementes im **Navigationsbereich**. In diesem Bereich werden die Daten in Tabellen oder anderen Strukturen angezeigt. Oftmals ist der Hauptbereich in **Registerkaten** unterteilt. Durch Anklicken des entsprechenden **Reiters** wird eine andere Registerkarte in den Vordergrund geholt.
+Der **Hauptbereich** reflektiert den Inhalt des gewählten Elementes im **Navigationsbbaum**. In diesem Bereich werden die Daten in Tabellen oder anderen Strukturen angezeigt. Oftmals ist der Hauptbereich in **Registerkaten** unterteilt. Durch Anklicken des entsprechenden **Reiters** wird eine andere Registerkarte in den Vordergrund geholt.
 
 #### Zusatzbereich mit Grafiken und Daten
-Der Zusatzbereich ist unterhalb des Hauptbereiches angeordnet. Dessen Inhalt wird weitgehend durch die Interaktionen im Hauptbereich gesteuert, beispielsweise durch die Anzeige einer Grafik zu den Daten im Hauptbereich.
+Der **Zusatzbereich** ist unterhalb des Hauptbereiches angeordnet. Dessen Inhalt wird weitgehend durch die Interaktionen im **Hauptbereich** gesteuert, beispielsweise durch die Anzeige einer Grafik zu den Daten im Hauptbereich.
 
 ![User Interface](ui_parts.jpg)
 
