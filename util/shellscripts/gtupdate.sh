@@ -12,6 +12,7 @@ cd ~
 ~/gtupfrontend.sh
 ~/gtupbackend.sh &> $builddir/frontbuild.log
 } &
+wait
 cat $builddir/frontbuild.log
 
 
