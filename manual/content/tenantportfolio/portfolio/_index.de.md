@@ -7,7 +7,7 @@ chapter: true
 ---
 ## Portfolio
 Meistens ist das Portfolio die Abbildung einer einzelnen Handelsplattform. Es können mehrere **Bankkonten** und **Depots** in einem **Portfolio** erstellt werden. 
-+ Einem Portfolio wird eine Währung zugewiesen, diese kann sich von der Währung des Klienten unterscheiden. 
++ Einem **Portfolio** wird eine **Währung** zugewiesen, diese kann sich von der **Währung** des **Klienten** unterscheiden. 
 + Ein Portfolio kann nicht gelöscht werden, solange es noch ein Depot oder ein Konto hat.
 
 ### Erstellen und bearbeiten Portfolio
