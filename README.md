@@ -12,7 +12,7 @@
 * The [manual](//hugograf.github.io/grafioschtrader/de/intro/) in German which is in progress.
 * [GT in action](//www.grafioschtrader.info/grafioschtrader) with a following demo account or create your own account.
 
-| E-Mail  | Passwort |
+| E-Mail  | Password |
 | ------------- | ------------- |
 | gt1@grafioschtrader.info  | gt1  |
 | gt2@grafioschtrader.info  | gt2  |
