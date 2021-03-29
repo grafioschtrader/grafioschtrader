@@ -14,6 +14,7 @@ public class SecuritycurrencySearch implements Serializable {
   public String isin;
   public AssetclassType assetclassType;
   public String name;
+  Integer idStockexchange;
   String tickerSymbol;
   String currency;
 
@@ -48,6 +49,14 @@ public class SecuritycurrencySearch implements Serializable {
 
   public void setName(String name) {
     this.name = name;
+  }
+  
+  public Integer getIdStockexchange() {
+    return idStockexchange;
+  }
+
+  public void setIdStockexchange(Integer idStockexchange) {
+    this.idStockexchange = idStockexchange;
   }
 
   public String getTickerSymbol() {

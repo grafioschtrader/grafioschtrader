@@ -14,19 +14,33 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {SecurityService} from '../../securitycurrency/service/security.service';
+import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
+import {AssetclassType} from '../../shared/types/assetclass.type';
+import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
+import {combineLatest} from 'rxjs';
+import {Observable} from 'rxjs/internal/Observable';
+import {Security} from '../../entities/security';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import * as moment from 'moment';
+import {AppSettings} from '../../shared/app.settings';
 
-
+/**
+ * Edit stockexchnage
+ */
 @Component({
   selector: 'stockexchange-edit',
   template: `
-      <p-dialog header="{{'STOCKEXCHANGE' | translate}}" [(visible)]="visibleDialog"
-                [responsive]="true" [style]="{width: '500px'}"
-                (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+    <p-dialog header="{{'STOCKEXCHANGE' | translate}}" [(visible)]="visibleDialog"
+              [responsive]="true" [style]="{width: '500px'}"
+              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                        (submit)="submit($event)">
-          </dynamic-form>
-      </p-dialog>`
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
+                    (submit)="submit($event)">
+      </dynamic-form>
+    </p-dialog>`
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
 
@@ -36,7 +50,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   constructor(translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               messageToastService: MessageToastService,
-              stockexchangeService: StockexchangeService) {
+              stockexchangeService: StockexchangeService,
+              private securityService: SecurityService) {
     super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, 'STOCKEXCHANGE', translateService, globalparameterService,
       messageToastService, stockexchangeService);
   }
@@ -52,8 +67,11 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       DynamicFieldHelper.createFieldInputStringHeqF('symbol', 8, true, {minLength: 3}),
       DynamicFieldHelper.createFieldCheckboxHeqF('secondaryMarket', {defaultValue: true}),
       DynamicFieldHelper.createFieldCheckboxHeqF('noMarketValue'),
-      DynamicFieldHelper.createFieldDAInputString(DataType.TimeString, 'timeClose', 'STOCKEXCHANGE_CLOSE', 8, true),
+      DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeOpen', 8, true),
+      DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeClose', 8, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true),
+      DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', true),
+
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -61,15 +79,33 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
 
   protected initialize(): void {
-    this.globalparameterService.getTimezones().subscribe(data => {
-      this.configObject.timeZone.valueKeyHtmlOptions = data;
+    const obserables: Observable<any>[] = [this.globalparameterService.getTimezones()];
+    if (this.callParam.stockexchange) {
+      obserables.push(this.getSecurityObservable());
+    }
+
+    combineLatest([this.globalparameterService.getTimezones(), this.getSecurityObservable()]).subscribe(data => {
+      this.configObject.timeZone.valueKeyHtmlOptions = data[0];
       this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
       this.form.setDefaultValuesAndEnableSubmit();
       AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
         this.callParam.stockexchange, this.form, this.configObject, this.proposeChangeEntityWithEntity);
       FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.noMarketValue]);
+      if (data.length > 1) {
+        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions(
+          'idSecuritycurrency', 'name', data[1], true);
+      }
       this.configObject.name.elementRef.nativeElement.focus();
     });
+  }
+
+  private getSecurityObservable(): Observable<Security[]> {
+    const securitycurrencySearch = new SecuritycurrencySearch();
+    securitycurrencySearch.assetclassType = AssetclassType[AssetclassType.EQUITIES];
+    securitycurrencySearch.specialInvestmentInstruments = SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES];
+    securitycurrencySearch.activeDate = moment().format(AppSettings.FORMAT_DATE_SHORT_US);
+    securitycurrencySearch.idStockexchange = this.callParam.stockexchange.idStockexchange;
+    return this.securityService.searchByCriteria(securitycurrencySearch);
   }
 
 

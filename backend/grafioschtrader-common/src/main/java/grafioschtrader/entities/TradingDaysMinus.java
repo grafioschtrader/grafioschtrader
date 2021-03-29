@@ -11,11 +11,14 @@ import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.ParameterMode;
 import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.types.CreateType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = TradingDaysMinus.TABNAME)
@@ -24,6 +27,8 @@ import grafioschtrader.GlobalConstants;
     @StoredProcedureParameter(mode = ParameterMode.IN, name = "targetIdStockexchange", type = Integer.class),
     @StoredProcedureParameter(mode = ParameterMode.IN, name = "dateFrom", type = LocalDate.class),
     @StoredProcedureParameter(mode = ParameterMode.IN, name = "dateTo", type = LocalDate.class) })
+@NamedStoredProcedureQuery(name = "TradingDaysMinusKey.updCalendarStockexchangeByIndex", procedureName = "updCalendarStockexchangeByIndex")
+
 public class TradingDaysMinus {
 
   public static final String TABNAME = "trading_days_minus";
@@ -32,13 +37,33 @@ public class TradingDaysMinus {
   @EmbeddedId
   private TradingDaysMinusKey tradingDaysMinusKey;
 
+  @Schema(description = "Who has crated this EOD record")
+  @Column(name = "create_type")
+  @NotNull
+  private byte createType;
+  
+    
   public TradingDaysMinus() {
   }
 
-  public TradingDaysMinus(Integer idStockexchange, LocalDate tradingDate) {
+  public TradingDaysMinus(Integer idStockexchange, LocalDate tradingDate, CreateType createType) {
     this.tradingDaysMinusKey = new TradingDaysMinusKey(idStockexchange, tradingDate);
+    this.createType = createType.getValue();
   }
 
+  public TradingDaysMinus(Integer idStockexchange, LocalDate tradingDateMinus) {
+    this(idStockexchange, tradingDateMinus, CreateType.ADD_MODIFIED_USER);
+  }
+  
+  public CreateType getCreateType() {
+    return CreateType.getCreateType(createType);
+  }
+
+  public void setCreateType(CreateType createType) {
+    this.createType = createType.getValue();
+  }
+  
+  
   public Integer getIdStockexchange() {
     return tradingDaysMinusKey.idStockexchange;
   }
@@ -47,6 +72,7 @@ public class TradingDaysMinus {
   public LocalDate getTradingDateMinus() {
     return tradingDaysMinusKey.tradingDateMinus;
   }
+    
 
   public static class TradingDaysMinusKey implements Serializable {
 
@@ -58,6 +84,7 @@ public class TradingDaysMinus {
     @Column(name = "trading_date_minus")
     public LocalDate tradingDateMinus;
 
+   
     public TradingDaysMinusKey() {
     }
 

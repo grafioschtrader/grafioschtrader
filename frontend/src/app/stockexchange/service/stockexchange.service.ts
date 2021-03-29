@@ -4,7 +4,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {Observable} from 'rxjs';
 import {Injectable} from '@angular/core';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
@@ -19,9 +19,12 @@ export class StockexchangeService extends AuthServiceWithLogout <Stockexchange> 
     super(loginService, httpClient, messageToastService);
   }
 
-  public getAllStockexchanges(): Observable<Stockexchange[]> {
+  public getAllStockexchanges(includeNameOfCalendarIndex: boolean): Observable<Stockexchange[]> {
     return <Observable<Stockexchange[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}/`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      {
+        headers: this.prepareHeaders(), params: new HttpParams().set('includeNameOfCalendarIndex',
+          includeNameOfCalendarIndex.toString())
+      }).pipe(catchError(this.handleError.bind(this)));
   }
 
   public stockexchangeHasSecurity(idStockexchange: number): Observable<boolean> {

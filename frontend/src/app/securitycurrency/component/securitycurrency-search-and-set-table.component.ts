@@ -86,7 +86,6 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
         this.transformCurrencypairToCurrencypairWatchlist(<Currencypair[]>data[1]);
       }
     });
-
   }
 
   clearList(): void {

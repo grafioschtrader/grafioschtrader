@@ -438,7 +438,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       menuItems.push(
         {
           label: 'REMOVE_SELECTED_INSTRUMENTS',
-          command: (e) => this.removeSecuritiesAndCurrencypairs(this.singleMultiSelection as SecuritycurrencyPosition<Security | Currencypair>[])
+          command: (e) => this.removeSecuritiesAndCurrencypairs(
+            this.singleMultiSelection as SecuritycurrencyPosition<Security | Currencypair>[])
         }
       );
     }

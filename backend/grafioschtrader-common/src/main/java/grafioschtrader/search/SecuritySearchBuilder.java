@@ -20,6 +20,8 @@ import grafioschtrader.entities.MultilanguageString;
 import grafioschtrader.entities.MultilanguageString_;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Security_;
+import grafioschtrader.entities.Stockexchange;
+import grafioschtrader.entities.Stockexchange_;
 import grafioschtrader.entities.User;
 import grafioschtrader.types.Language;
 
@@ -97,6 +99,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
       addActiveDate(securityRoot, builder, mainPredicates);
       addAssetclassPredicate(securityRoot, builder, mainPredicates);
+      addStockexchangePredicate(securityRoot, builder, mainPredicates);
 
     }
 
@@ -135,8 +138,17 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
         mainPredicates.add(builder.equal(mapJoin.key(), language.getKey()));
         mainPredicates.add(builder.equal(mapJoin.value(), securitycurrencySearch.getSubCategoryNLS()));
       }
-
     }
   }
 
+  private void addStockexchangePredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
+      final List<Predicate> mainPredicates) {
+    if(securitycurrencySearch.idStockexchange != null) {
+      final Join<Security, Stockexchange> joinStockexchane = securityRoot.join(Security_.stockexchange);
+      mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.idStockexchange),
+          securitycurrencySearch.idStockexchange));
+    }
+    
+  }
+  
 }

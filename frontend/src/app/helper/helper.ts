@@ -3,6 +3,7 @@ import {InputType} from '../dynamic-form/models/input.type';
 import {FieldConfig} from '../dynamic-form/models/field.config';
 import * as moment from 'moment';
 import {FormConfig} from '../dynamic-form/models/form.config';
+import {AppSettings} from '../shared/app.settings';
 
 export abstract class Helper {
 
@@ -88,12 +89,12 @@ export abstract class Helper {
         targetObject[config.field] = +config.formControl.value;
       } else if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateString) {
         if (config.formControl.value) {
-          this.formatDateString(config, targetObject, 'YYYY-MM-DD');
+          this.formatDateString(config, targetObject, AppSettings.FORMAT_DATE_SHORT_NATIVE);
         }
       } else if (config.dataType === DataType.DateTimeNumeric) {
         targetObject[config.field] = config.formControl.value.getTime();
       } else if (config.dataType === DataType.DateStringShortUS) {
-        this.formatDateString(config, targetObject, 'YYYYMMDD');
+        this.formatDateString(config, targetObject, AppSettings.FORMAT_DATE_SHORT_US);
       } else {
         targetObject[config.field] = config.formControl.value;
       }

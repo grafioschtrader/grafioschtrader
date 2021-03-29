@@ -1,5 +1,5 @@
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import { Input, OnInit, ViewChild, Directive } from '@angular/core';
+import {Directive, Input, OnInit, ViewChild} from '@angular/core';
 import {FormConfig} from '../../dynamic-form/models/form.config';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {DataType} from '../../dynamic-form/models/data.type';
@@ -20,6 +20,7 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SupplementCriteria} from '../model/supplement.criteria';
+import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 
 
 /**
@@ -45,6 +46,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   constructor(protected multiplyAddClose: boolean,
               protected globalparameterService: GlobalparameterService,
               protected assetclassService: AssetclassService,
+              protected stockexchangeSerice: StockexchangeService,
               public translateService: TranslateService) {
   }
 
@@ -64,7 +66,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       DynamicFieldHelper.createFieldInputStringHeqF('tickerSymbol', 6, false,
         {upperCase: true, userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateStringShortUS, 'activeDate', false,
-        {userDefinedValue: <string> this.secondGroup}),
+        {userDefinedValue: <string>this.secondGroup}),
       DynamicFieldHelper.createFieldTriStateCheckbox('onlyTenantPrivate', 'PRIVATE_SECURITY',
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldTriStateCheckboxHeqF('shortSecurity',
@@ -75,6 +77,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectString('specialInvestmentInstruments', 'FINANCIAL_INSTRUMENT', false,
         {userDefinedValue: this.secondGroup}),
+      DynamicFieldHelper.createFieldSelectNumber('idStockexchange', 'STOCKEXCHANGE', false, {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', false,
         {userDefinedValue: this.secondGroup}),
     ];
@@ -119,15 +122,15 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       this.translateService, SpecialInvestmentInstruments);
 
     this.childClearList();
-
     this.valueChangedOnForm();
     combineLatest([this.globalparameterService.getCurrencies(),
-      this.assetclassService.getSubcategoryForLanguage()]).subscribe(data => {
+      this.assetclassService.getSubcategoryForLanguage(), this.stockexchangeSerice.getAllStockexchanges(false)]).subscribe(data => {
       this.configObject.currency.valueKeyHtmlOptions = data[0];
       this.configObject.currency.valueKeyHtmlOptions.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
       this.configObject.subCategoryNLS.valueKeyHtmlOptions = data[1];
       this.configObject.subCategoryNLS.valueKeyHtmlOptions.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
-
+      this.configObject.idStockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idStockexchange', 'name',
+        data[2], true);
       this.dynamicFormComponent.setDefaultValuesAndEnableSubmit();
       this.configObject.isin.elementRef.nativeElement.focus();
     });
@@ -148,6 +151,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
         this.configObject.onlyTenantPrivate.invisible = this.isCurrency();
         this.configObject.shortSecurity.invisible = this.isCurrency();
         this.configObject.activeDate.invisible = this.isCurrency();
+        this.configObject.idStockexchange.invisible = this.isCurrency();
         this.configObject.specialInvestmentInstruments.invisible = this.isCurrency();
         this.configObject.subCategoryNLS.invisible = this.isCurrency();
       }

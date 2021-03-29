@@ -19,7 +19,9 @@ import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {Subscription} from 'rxjs';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
-
+/**
+ * Edit asset classes
+ */
 @Component({
   selector: 'assetclass-edit',
   template: `
@@ -96,7 +98,6 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
         this.configObject.specialInvestmentInstrument]);
       this.valueChangedOnCategoryType();
       setTimeout(() => this.configObject.categoryType.elementRef.nativeElement.focus());
-
     });
 
   }

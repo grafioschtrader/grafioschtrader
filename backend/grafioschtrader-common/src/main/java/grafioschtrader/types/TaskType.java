@@ -29,11 +29,15 @@ public enum TaskType {
   LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES((byte) 10),
   // Copy the source tenant to the demo accounts
   COPY_DEMO_ACCOUNTS((byte) 11),
-  
   // Creates the calendar for stock exchanged by a manger index
-  UNOFFICIAL_CREATE_STOCK_EXCHANGE_CALENDAR((byte) 20),
+  CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX((byte) 12),
+  
+  // Update from V_0
+  UPD_V_0_11_0 ((byte) 51),
+  
+  
   // Create dividends from dividend table
-  UNOFFICIAL_CREATE_TRANSACTION_FROM_DIVIDENDS_TABLE((byte) 21);
+  UNOFFICIAL_CREATE_TRANSACTION_FROM_DIVIDENDS_TABLE((byte) 100);
   
   private final Byte value;
 

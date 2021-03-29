@@ -9,6 +9,7 @@ import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-table.component';
 import {SecuritycurrencySearchBase} from '../../securitycurrency/component/securitycurrency.search.base';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 
 /**
  * Dialog for adding security or currency pair to a certain watchlist.
@@ -46,8 +47,9 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
 
   constructor(globalparameterService: GlobalparameterService,
               assetclassService: AssetclassService,
+              stockexchangeService: StockexchangeService,
               translateService: TranslateService) {
-    super(true, globalparameterService, assetclassService, translateService);
+    super(true, globalparameterService, assetclassService, stockexchangeService, translateService);
   }
 
 

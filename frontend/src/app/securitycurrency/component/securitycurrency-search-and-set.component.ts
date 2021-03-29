@@ -9,6 +9,7 @@ import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.sea
 import {SecuritycurrencySearchAndSetTableComponent} from './securitycurrency-search-and-set-table.component';
 import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
+import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 
 /**
  * Dialog for selecting a security or currency by search criterias.
@@ -44,8 +45,9 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
 
   constructor(globalparameterService: GlobalparameterService,
               assetclassService: AssetclassService,
+              stockexchangeService: StockexchangeService,
               translateService: TranslateService) {
-    super(false, globalparameterService, assetclassService, translateService);
+    super(false, globalparameterService, assetclassService, stockexchangeService, translateService);
   }
 
   protected initialize(): void {

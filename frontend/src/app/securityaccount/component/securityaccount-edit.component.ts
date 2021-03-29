@@ -18,6 +18,9 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 
+/**
+ * Edit security account
+ */
 @Component({
   selector: 'securityaccount-edit',
   template: `

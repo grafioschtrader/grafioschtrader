@@ -31,8 +31,12 @@ import {HelpIds} from '../../help/help.ids';
                         (submit)="submit($event)">
           </dynamic-form>
         </ng-container>
-        <p-card header="Neu in Version 0.10.0">
-          Eine Watchlist die als Performance gekennzeichnet wird, muss die vom den Portfolios bzw. Wertpapier abhängigen Währungspaare nicht explizit enthalten. Diese erhalten automatisch eine Kursaktualisierung mit der Aktualisierung der Tageskurse der gekennzeichneten Watchlist.
+        <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.11.0</h4>
+          {{'V_0_11_0' | translate}}
+          <h4>0.10.0</h4>
+          {{'V_0_10_0' | translate}}
+
         </p-card>
       </div>
     </div>

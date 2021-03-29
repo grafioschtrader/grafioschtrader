@@ -188,6 +188,12 @@ export class DynamicFieldHelper {
     return DynamicFieldHelper.createFieldDAInputString(DataType.String, fieldName, labelKey, maxLength, required, fieldOptions);
   }
 
+  public static createFieldDAInputStringHeqF(dataType: DataType, fieldName: string, maxLength: number, required: boolean,
+                                             fieldOptions?: FieldOptions): FieldConfig {
+    return this.createFieldDAInputString(dataType, fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName),
+      maxLength, required, fieldOptions);
+  }
+
   public static createFieldDAInputString(dataType: DataType, fieldName: string, labelKey: string, maxLength: number, required: boolean,
                                          fieldOptions?: FieldOptions): FieldConfig {
     if (maxLength < DynamicFieldHelper.ADJUST_INPUT_WITH_UNTIL_MAX_LENGTH && (!fieldOptions || !fieldOptions.inputWidth)) {
