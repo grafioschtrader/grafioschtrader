@@ -10,10 +10,10 @@ echo Build backend and frontend, only output of frontend is shown
 cd ~
 {
 ~/gtupfrontend.sh
-~/gtupbackend.sh &> $builddir/frontbuild.log
+~/gtupbackend.sh &> $builddir/backbuild.log
 } &
 wait
-cat $builddir/frontbuild.log
+cat $builddir/backbuild.log
 
 
 
