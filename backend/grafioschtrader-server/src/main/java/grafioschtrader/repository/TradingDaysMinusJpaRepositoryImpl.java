@@ -37,10 +37,13 @@ public class TradingDaysMinusJpaRepositoryImpl implements TradingDaysMinusJpaRep
   public TradingDaysWithDateBoundaries getTradingDaysByIdStockexchangeAndYear(int idStockexchange, int year) {
     LocalDate fromDate = LocalDate.of(year, 1, 1);
     LocalDate toDate = LocalDate.of(year, 12, 31);
-    return new TradingDaysWithDateBoundaries(tradingDaysMinusJpaRepository
+    List<TradingDaysMinus> tradingDaysMinusList = tradingDaysMinusJpaRepository
         .findByTradingDaysMinusKey_IdStockexchangeAndTradingDaysMinusKey_TradingDateMinusBetween(idStockexchange,
-            fromDate, toDate)
-        .stream().map(tdm -> tdm.getTradingDateMinus()).collect(Collectors.toList()));
+            fromDate, toDate);
+
+    return new TradingDaysWithDateBoundaries(
+        tradingDaysMinusList.stream().map(TradingDaysMinus::getTradingDateMinus).collect(Collectors.toList()),
+        tradingDaysMinusList.stream().map(TradingDaysMinus::getCreateType).collect(Collectors.toList()));
   }
 
   @Override

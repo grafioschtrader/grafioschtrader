@@ -30,10 +30,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import grafioschtrader.dto.MaxDefaultDBValue;
 import grafioschtrader.dto.MaxDefaultDBValueWithKey;
 
-/**
- *
- * @author Hugo Graf
- */
 @Entity
 @Table(name = Globalparameters.TABNAME)
 @XmlRootElement
@@ -137,6 +133,7 @@ public class Globalparameters implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  
   @Id
   @Basic(optional = false)
   @NotNull
@@ -170,6 +167,7 @@ public class Globalparameters implements Serializable {
     this.propertyDate = propertyDate;
   }
   
+    
   public String getPropertyName() {
     return propertyName;
   }

@@ -5,7 +5,6 @@ import {Helper} from '../../helper/helper';
 import {MenuItem, SelectItem} from 'primeng/api';
 import {DayOfWeek} from '../../fullyearcalendar/model/day.of.week';
 import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
-import {TradingCalendarGlobalComponent} from './trading.calendar.global.component';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
@@ -29,13 +28,15 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   contextMenuItems: MenuItem[];
 
   abstract getHelpContextId(): HelpIds;
+
   abstract readData(yearChange: boolean): void;
+
   abstract onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void;
 
   constructor(public translateService: TranslateService,
               protected globalparameterService: GlobalparameterService,
               protected activePanelService: ActivePanelService,
-              protected  markExistingColor: string) {
+              protected  markExistingColors: string[]) {
 
     const language: string = globalparameterService.getUserLang();
 
@@ -113,28 +114,35 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     return menuItems;
   }
 
-
-  markOnOffSingleDays(dayToMarkList: Date[]): void {
+  protected markOnOffSingleDays(dayToMarkList: Date[]): void {
     this.addRemoveDaysMap = new Map();
     this.originalDaysMark = new Set();
 
     dayToMarkList.forEach((tradingDay, i) => {
-      const date = new Date(tradingDay);
-      date.setHours(0, 0, 0, 0);
+      const date = this.getZeroTimeDate(tradingDay);
 
       this.originalDaysMark.add(date.getTime());
       this.yearCalendarData.dates.push({
         id: i, start: date, end: date,
-        color: this.markExistingColor,
+        color: this.getExistingColor(date),
         select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
       });
     });
   }
 
+  protected getZeroTimeDate(dateToSet: Date): Date {
+    const date = new Date(dateToSet);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  protected getExistingColor(date: Date): string {
+    return this.markExistingColors[0];
+  }
+
   addRemoveDays(days: Date[]): void {
     days.forEach(date => this.addRemoveOnOffDay(date));
   }
-
 
   /**
    * Add or remove a day from marked days.
@@ -145,7 +153,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     let i = 0;
 
     for (; i < this.yearCalendarData.dates.length; i++) {
-      if (this.yearCalendarData.dates[i].start === date && (this.yearCalendarData.dates[i].color === this.markExistingColor
+      if (this.yearCalendarData.dates[i].start === date && (this.markExistingColors.includes(this.yearCalendarData.dates[i].color)
         || this.yearCalendarData.dates[i].color === this.NEW_DATE_COLOR)) {
         break;
       }
@@ -160,7 +168,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
       this.adjustAddRemoveMap(date, true);
       this.yearCalendarData.dates = [...this.yearCalendarData.dates, {
         id: date.getTime(), start: date, end: date,
-        color: this.originalDaysMark.has(date.getTime()) ? this.markExistingColor : this.NEW_DATE_COLOR,
+        color: this.originalDaysMark.has(date.getTime()) ? this.getExistingColor(date) : this.NEW_DATE_COLOR,
         select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
       }];
     }
@@ -173,5 +181,4 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
       this.addRemoveDaysMap.set(date.getTime(), addDay);
     }
   }
-
 }

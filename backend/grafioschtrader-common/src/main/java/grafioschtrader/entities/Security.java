@@ -207,6 +207,19 @@ public class Security extends Securitycurrency<Security> implements Serializable
   public Security() {
     super();
   }
+  
+  public Security(String name, String currency, Assetclass assetClass, Stockexchange stockexchange, Date activeFromDate, 
+      Date activeToDate, DistributionFrequency distributionFrequency, String tickerSymbol, String isin) {
+    this.name = name;
+    this.currency = currency;
+    this.assetClass = assetClass;
+    this.stockexchange = stockexchange;
+    this.activeFromDate = activeFromDate;
+    this.activeToDate = activeToDate;
+    this.distributionFrequency = distributionFrequency.getValue();
+    this.tickerSymbol = tickerSymbol;
+    this.isin = isin;
+  }
 
   public String getCurrency() {
     return currency;

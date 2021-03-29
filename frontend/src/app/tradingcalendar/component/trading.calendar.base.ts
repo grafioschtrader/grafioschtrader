@@ -13,6 +13,9 @@ import * as moment from 'moment';
 import {CalendarNavigation} from './calendar.navigation';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
 
+/**
+ * Base class for trading calendar
+ */
 export abstract class TradingCalendarBase extends CalendarNavigation  {
 
   abstract hasRightsToModify(): boolean;
@@ -21,7 +24,7 @@ export abstract class TradingCalendarBase extends CalendarNavigation  {
 
   constructor(translateService: TranslateService,
               globalparameterService: GlobalparameterService,
-              markExistingColor: string,
+              markExistingColor: string[],
               activePanelService: ActivePanelService,
               protected messageToastService: MessageToastService,
               public titleKey?: string) {
@@ -45,7 +48,6 @@ export abstract class TradingCalendarBase extends CalendarNavigation  {
       this.addRemoveOnOffDay(day);
     }
   }
-
 
   onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void {
     if (this.hasRightsToModify()) {

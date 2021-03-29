@@ -81,7 +81,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
               translateService: TranslateService,
               globalparameterService: GlobalparameterService,
               activePanelService: ActivePanelService) {
-    super(translateService, globalparameterService, activePanelService, 'yellow');
+    super(translateService, globalparameterService, activePanelService, ['yellow']);
   }
 
   ngOnInit(): void {

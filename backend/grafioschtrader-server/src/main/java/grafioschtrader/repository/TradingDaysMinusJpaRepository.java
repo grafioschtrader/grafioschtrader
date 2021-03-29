@@ -17,4 +17,8 @@ public interface TradingDaysMinusJpaRepository
 
   @Procedure(procedureName = "copyTradingMinusToOtherStockexchange")
   void copyTradingMinusToOtherStockexchange(Integer idSource, Integer idTarget, LocalDate dateFrom, LocalDate dateTo);
+  
+  @Procedure(procedureName = "updCalendarStockexchangeByIndex")
+  void updCalendarStockexchangeByIndex();
+  
 }

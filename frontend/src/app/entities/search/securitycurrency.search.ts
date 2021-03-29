@@ -3,6 +3,7 @@ export class SecuritycurrencySearch {
   name: string = null;
   tickerSymbol: string = null;
   currency: string = null;
+  idStockexchange: number = null;
   assetclassType: string = null;
   specialInvestmentInstruments: string = null;
   subCategoryNLS: string = null;

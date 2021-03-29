@@ -11,6 +11,9 @@ import {TradingCalendarBase} from './trading.calendar.base';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 
+/**
+ * Component for the  global trading calendar
+ */
 @Component({
   templateUrl: '../view/trading.calendar.html'
 })
@@ -24,7 +27,7 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
               globalparameterService: GlobalparameterService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService) {
-    super(translateService, globalparameterService, TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR,
+    super(translateService, globalparameterService, [TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR],
       activePanelService, messageToastService,  'TRADING_CALENDAR_GLOBAL');
   }
 

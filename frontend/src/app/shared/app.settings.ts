@@ -96,6 +96,7 @@ export class AppSettings {
 
   // Native formats
   public static readonly FORMAT_DATE_SHORT_NATIVE = 'YYYY-MM-DD';
+  public static readonly FORMAT_DATE_SHORT_US = 'YYYYMMDD';
 
   public static readonly DEFAULT_LANGUAGE = 'en';
 

@@ -30,7 +30,7 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field">
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width" >
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -95,7 +95,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
     super('Stockexchange', stockexchangeService, confirmationService, messageToastService, activePanelService,
       dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
 
-    this.addColumnFeqH(DataType.String, 'name', true, false, {width: 200});
+    this.addColumnFeqH(DataType.String, 'name', true, false, {width: 180});
     this.addColumnFeqH(DataType.String, 'countryCode', true, false,
       {fieldValueFN: this.getDisplayNameForCounty.bind(this)});
     this.addColumnFeqH(DataType.String, 'symbol', true, false);
@@ -103,8 +103,10 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
       {templateName: 'check'});
     this.addColumnFeqH(DataType.Boolean, 'noMarketValue', true, false,
       {templateName: 'check'});
-    this.addColumn(DataType.TimeString, 'timeClose', 'STOCKEXCHANGE_CLOSE', true, false);
-    this.addColumnFeqH(DataType.String, 'timeZone', true, false);
+    this.addColumnFeqH(DataType.TimeString, 'timeOpen',  true, false);
+    this.addColumnFeqH(DataType.TimeString, 'timeClose',  true, false);
+    this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
+    this.addColumn(DataType.String, 'nameIndexUpdCalendar', 'ID_INDEX_UPD_CALENDAR', true, false, {width: 180});
     this.multiSortMeta.push({field: 'name', order: 1});
     this.prepareTableAndTranslate();
   }
@@ -128,7 +130,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
   }
 
   protected readData(): void {
-    combineLatest([this.stockexchangeService.getAllStockexchanges(),
+    combineLatest([this.stockexchangeService.getAllStockexchanges(true),
       this.stockexchangeService.stockexchangesHasSecurity(), this.globalparameterService.getCountries()]).subscribe(data => {
       this.entityList = plainToClass(Stockexchange, data[0]);
       data[1].forEach(keyvalue => this.hasSecurityObject[keyvalue.id] = keyvalue.s);

@@ -278,7 +278,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
     const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[] | Assetclass[] | IFeedConnector[]
       | Securitysplit[] | HistoryquotePeriod[]>[] = [];
-    observables.push(this.stockexchangeService.getAllStockexchanges());
+    observables.push(this.stockexchangeService.getAllStockexchanges(false));
     observables.push(this.globalparameterService.getCurrencies());
     observables.push(this.assetclassService.getAllAssetclass());
     observables.push(this.securityService.getFeedConnectors());
@@ -311,7 +311,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       .subscribe((data: [Stockexchange[], ValueKeyHtmlSelectOptions[], Assetclass[], IFeedConnector[],
           Securitysplit[] | HistoryquotePeriod[]]) => {
         this.securityEditSupport.assignLoadedValues(this.configObject, data[0], data[1], data[2]);
-
 
         this.prepareFeedConnectors(data[3], false);
         this.prepareSplitDividendConnector(data[3]);

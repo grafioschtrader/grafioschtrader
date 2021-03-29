@@ -10,12 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.dto.StockexchangeHasSecurity;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 
@@ -30,8 +32,10 @@ public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stock
   @Operation(summary = "Returns all stock exchanges sorted by name", description = "", 
       tags = { RequestMappings.STOCKEXCHANGE })
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Stockexchange>> getAllStockexchanges() {
-    return new ResponseEntity<>(stockexchangeJpaRepository.findAllByOrderByNameAsc(), HttpStatus.OK);
+  public ResponseEntity<List<Stockexchange>> getAllStockexchanges(
+      @Parameter(description="Get name of the index which is used for calenadar update", required=true)
+      @RequestParam()  final boolean includeNameOfCalendarIndex) {
+    return new ResponseEntity<>(stockexchangeJpaRepository.getAllStockExchanges(includeNameOfCalendarIndex), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns if specified stock exchange has a depending security", description = "1 has a security", 

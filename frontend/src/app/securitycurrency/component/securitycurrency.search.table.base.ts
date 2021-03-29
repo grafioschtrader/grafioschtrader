@@ -9,6 +9,9 @@ import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
 import {FilterService} from 'primeng/api';
 
+/**
+ * Base class to show the search result as result in a table
+ */
 export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
 
   securitycurrencyList: (Security | Currencypair)[] = [];
@@ -20,11 +23,11 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
               globalparameterService: GlobalparameterService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
-    this.addColumn(DataType.String, 'name', 'NAME', true, false, {width: 250});
-    this.addColumn(DataType.String, 'isin', 'ISIN', true, false);
-    this.addColumn(DataType.String, 'tickerSymbol', 'TICKER_SYMBOL', true, false);
+    this.addColumnFeqH(DataType.String, 'name',  true, false, {width: 250});
+    this.addColumnFeqH(DataType.String, 'isin', true, false);
+    this.addColumnFeqH(DataType.String, 'tickerSymbol',  true, false);
     this.addColumn(DataType.String, 'assetClass.categoryType', 'ASSETCLASS', true, true, {translateValues: true, width: 60});
-    this.addColumn(DataType.String, 'currency', 'CURRENCY', true, false);
+    this.addColumnFeqH(DataType.String, 'currency', true, false);
 
     this.prepareTableAndTranslate();
   }

@@ -125,7 +125,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     this.valueChangedOnFormula();
     const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[]
       | Assetclass[] | IFeedConnector[] | SecurityCurrencypairDerivedLinks>[] = [];
-    observables.push(this.stockexchangeService.getAllStockexchanges());
+    observables.push(this.stockexchangeService.getAllStockexchanges(false));
     observables.push(this.globalparameterService.getCurrencies());
     observables.push(this.assetclassService.getAllAssetclass());
     if (this.securityCallParam) {

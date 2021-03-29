@@ -1,6 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TradingCalendarBase} from '../../tradingcalendar/component/trading.calendar.base';
-import {AddRemoveDay, SaveTradingDays, TradingDaysPlusService} from '../../tradingcalendar/service/trading.days.plus.service';
+import {
+  AddRemoveDay,
+  SaveTradingDays,
+  TradingDaysPlusService
+} from '../../tradingcalendar/service/trading.days.plus.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -20,14 +24,21 @@ import * as moment from 'moment';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {Stockexchange} from '../../entities/stockexchange';
 import {AppSettings} from '../../shared/app.settings';
+import {CreateType} from '../../entities/dividend.split';
 
+/**
+ * The calendar component for the stock exchange.
+ */
 @Component({
   selector: 'trading-calendar-stockexchange',
   templateUrl: '../../tradingcalendar/view/trading.calendar.html'
 })
 export class TradingCalendarStockexchangeComponent extends TradingCalendarBase implements OnInit {
+  static readonly SYSTEM_CREATED_COLOR = 'red';
+  static readonly USER_CREATED_COLOR = 'blue';
   @Input() stockexchange: Stockexchange;
   @Input() sourceCopyStockexchanges: ValueKeyHtmlSelectOptions[];
+
 
   readonly DATE_ATTRIBUTE = 'tradingDateMinus';
   readonly COPY_FULL_TITLE_KEY = 'TRADING_CALENDAR_FROM_OTHER_EXCHANGE_FULL';
@@ -43,6 +54,8 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   oldestYear: number;
   youngestYear: number;
 
+  private dateCreateTypes: { [key: number]: CreateType };
+
   constructor(private tradingDaysMinusService: TradingDaysMinusService,
               private tradingDaysPlusService: TradingDaysPlusService,
               private dialogService: DialogService,
@@ -50,7 +63,8 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
               globalparameterService: GlobalparameterService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService) {
-    super(translateService, globalparameterService, 'red', activePanelService, messageToastService);
+    super(translateService, globalparameterService, [TradingCalendarStockexchangeComponent.USER_CREATED_COLOR,
+      TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR], activePanelService, messageToastService);
   }
 
   ngOnInit(): void {
@@ -70,15 +84,20 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
       this.youngestYear = moment(data[0].youngestTradingCalendarDay).year();
       this.setYearsBoundariesAfterRead(data[0], yearChange);
       this.tradingDaysPlusList = data[0].dates;
-      this.markDays(data[1].dates);
+      this.markDays(data[1].dates, data[1].createTypes);
     });
   }
 
-  private markDays(tradingDaysMinus: Date[]): void {
+
+  private markDays(tradingDaysMinus: Date[], createTypes: CreateType[] ): void {
+    this.dateCreateTypes = tradingDaysMinus.reduce((result, date, index) => {
+      result[this.getZeroTimeDate(date).getTime()] = createTypes[index];
+      return result;
+    }, {});
+
     this.markWorkingDaysOfFullYear();
     this.markGlobalTradingDay();
     this.markOnOffSingleDays(tradingDaysMinus);
-
   }
 
   /**
@@ -96,6 +115,12 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
       }
       startDate.setDate(startDate.getDate() + 1);
     }
+  }
+
+
+  protected getExistingColor(date: Date): string {
+    return this.dateCreateTypes[date.getTime()] === CreateType.ADD_MODIFIED_USER ?
+      TradingCalendarStockexchangeComponent.USER_CREATED_COLOR : TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR;
   }
 
 
@@ -141,7 +166,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
       (tradingDaysMinus: TradingDaysWithDateBoundaries) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_GLOBAL_SAVE',
           {year: this.yearCalendarData.year});
-        this.markDays(tradingDaysMinus.dates);
+        this.markDays(tradingDaysMinus.dates, tradingDaysMinus.createTypes);
       });
   }
 
@@ -150,7 +175,10 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
     if (this.hasRightsToModify()) {
       menuItems = [
         {label: this.COPY_FULL_TITLE_KEY, command: (e) => this.copyCalendarFromOtherExchange(true)},
-        {label: this.COPY_YEAR_TITLE_KEY + AppSettings.DIALOG_MENU_SUFFIX, command: (e) => this.copyCalendarFromOtherExchange(false)}
+        {
+          label: this.COPY_YEAR_TITLE_KEY + AppSettings.DIALOG_MENU_SUFFIX,
+          command: (e) => this.copyCalendarFromOtherExchange(false)
+        }
       ];
       TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }

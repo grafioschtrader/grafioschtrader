@@ -17,6 +17,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -70,6 +71,13 @@ public class Stockexchange extends Auditable implements Serializable {
   private boolean secondaryMarket;
 
   @Basic(optional = false)
+  @Column(name = "time_open")
+  @JsonFormat(pattern = "HH:mm")
+  @NotNull
+  @PropertyAlwaysUpdatable
+  private LocalTime timeOpen;
+  
+  @Basic(optional = false)
   @Column(name = "time_close")
   @JsonFormat(pattern = "HH:mm")
   @NotNull
@@ -91,6 +99,13 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private String timeZone;
 
+  @PropertyAlwaysUpdatable
+  @Column(name = "id_index_upd_calendar")
+  private Integer idIndexUpdCalendar;
+  
+  @Transient
+  private String nameIndexUpdCalendar;
+  
   public Stockexchange() {
   }
 
@@ -161,12 +176,37 @@ public class Stockexchange extends Auditable implements Serializable {
     this.timeClose = timeClose;
   }
 
+  public LocalTime getTimeOpen() {
+    return timeOpen;
+  }
+
+  public void setTimeOpen(LocalTime timeOpen) {
+    this.timeOpen = timeOpen;
+  }
+
   public String getSymbol() {
     return symbol;
   }
 
   public void setSymbol(String symbol) {
     this.symbol = symbol;
+  }
+  
+
+  public Integer getIdIndexUpdCalendar() {
+    return idIndexUpdCalendar;
+  }
+
+  public void setIdIndexUpdCalendar(Integer idIndexUpdCalendar) {
+    this.idIndexUpdCalendar = idIndexUpdCalendar;
+  }
+  
+  public String getNameIndexUpdCalendar() {
+    return nameIndexUpdCalendar;
+  }
+
+  public void setNameIndexUpdCalendar(String nameIndexUpdCalendar) {
+    this.nameIndexUpdCalendar = nameIndexUpdCalendar;
   }
 
   @Override

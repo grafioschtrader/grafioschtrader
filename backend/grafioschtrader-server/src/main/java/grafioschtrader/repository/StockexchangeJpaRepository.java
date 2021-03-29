@@ -30,6 +30,8 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
   Optional<Stockexchange> findByIdStockexchangeAndNoMarketValueFalse(int idStockexchange);
   
   Stockexchange findByName(String name);
+  
+  Optional<Stockexchange> findBySymbol(String symbol);
 
   @Query(value = "SELECT DISTINCT s.country_code FROM stockexchange s", nativeQuery = true)
   String[] findDistinctCountryCodes();
@@ -42,7 +44,11 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
       + " THEN 1 ELSE 0 END) AS s FROM stockexchange e", nativeQuery = true)
   List<StockexchangeHasSecurity> stockexchangesHasSecurity();
   
+  @Query(nativeQuery = true)
+  List<IdStockexchangeIndexName> getIdStockexchangeAndIndexNameForCalendarUpd();
   
-  
-  
+  public interface IdStockexchangeIndexName {
+    public Integer getIdStockexchange();
+    public String  getNameIndexSecurity();
+  }
 }
