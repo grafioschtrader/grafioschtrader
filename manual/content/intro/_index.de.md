@@ -1,6 +1,6 @@
 ---
 title: "Einführung"
-date: 2021-03-08T15:00:00+01:00
+date: 2021-03-29T15:00:00+01:00
 draft: false
 weight : 1
 chapter: true
@@ -41,5 +41,5 @@ GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher g
 Für **Milliardäre**, in welcher Währung auch immer, hierbei genügt das Zahlenformat von GT leider nicht.
 
 {{% notice info %}}
-Die Informationen dieser Hilfe beziehen sich alle auf die GT Version 0.10.0
+Die Informationen dieser Hilfe beziehen sich alle auf die GT Version 0.11.0
 {{% /notice %}}

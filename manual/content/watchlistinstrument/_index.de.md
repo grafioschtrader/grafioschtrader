@@ -11,3 +11,20 @@ Ein Watchlist ist eine persönliche Zusammenstellung von Instrumenten mit Kursen
 + **Hinzufügen von bestehenden Instrumenten**: Die Watchlist kann mit bestehenden Instrumenten ergänzt werden. Es gibt eine Limite der Anzahl Instrumente in einer Watchlist.
 + **Transaction auf Wertpapier**: Die Erfassung der ersten **Kauftransaktion** eines bestimmten Instrument muss zwingend über eine Watchlist erfolgen. Nachfolgende Transaktion wie erneuter **Kauf**,  **Dividende** oder **Verkauf** können auch über das **Depot** erfolgen.
 + **Bereitstellung der aktuellen Kursen von Instrumenten**: Nur über die Watchlist kann der Benutzer aktiv eine Aktualisierung der Kurse verursachen. Es gibt eine Systemeinstellung für den Zeitabstand bevor eine erneute Aktualisierung der Kurse erfolgt. Die Aktualisierung wird automatisch mit der Wahl der entsprechenden **Watchlist** im Navigationsbereich durchgeführt.
+
+{{< mermaid >}}
+classDiagram
+    Watchlist "*" o-- "*" Instrument
+    Instrument <|-- Währungspaar
+    Instrument <|-- Wertpapier
+    Wertpapier "1" ..> "*" Historische_Kursdaten : hat
+    Wertpapier "*" ..> "1" Handelsplatz : hat
+    Wertpapier "*" ..> "1" Anlageklasse : hat
+    Wertpapier "1" *-- "*" Splits
+    Wertpapier "1" *-- "*" Dividend
+    Historische_Kursdaten <|-- Berechnet
+    Historische_Kursdaten <|-- Periodenkurs
+    Historische_Kursdaten <|-- EOD_Kurs
+    Währungspaar "1" ..> "*" EOD_Kurs : hat
+    Berechnet o-- EOD_Kurs
+{{< /mermaid >}}
