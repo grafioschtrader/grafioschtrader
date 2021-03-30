@@ -38,7 +38,8 @@ GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher g
 + Anleger der nur ein Portfolio bei einem Online-Broker hat und die dortigen Auswertungen genügen.
 
 ### Für wen GT nicht funktioniert
-Für **Milliardäre**, in welcher Währung auch immer, hierbei genügt das Zahlenformat von GT leider nicht.
++ Für **Milliardäre**, in welcher Währung auch immer, hierbei genügt das Zahlenformat von GT leider nicht.
++ Für Investoren die Transaction mit GT von dem Jahre 2000 verwalten wollen. GT implementiert konsequent zweistellige Jahreszahlen.
 
 {{% notice info %}}
 Die Informationen dieser Hilfe beziehen sich alle auf die GT Version 0.11.0

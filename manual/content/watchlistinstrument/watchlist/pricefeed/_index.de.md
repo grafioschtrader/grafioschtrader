@@ -9,3 +9,6 @@ chapter: true
 Diese Watchlist dient primär der Überwachung der historischen und intraday Kursdaten.
 
 ### Wiederholungszähler
+Es gibt zwei Wiederholungszähler, der eine ist für Innertag und der andere für historische Kursdaten. 
+
+### Funktionen
