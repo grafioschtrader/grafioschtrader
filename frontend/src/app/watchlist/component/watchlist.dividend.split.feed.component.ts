@@ -24,7 +24,7 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 
 /**
- * View to check the reliability of the dividend, split feed.
+ * View to check the reliability of the dividend, split feed. It supports multi selection for removal.
  */
 @Component({
   templateUrl: '../view/watchlist.data.html',
@@ -83,7 +83,6 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
   }
-
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
     return this.feedConnectorsKV[valueField];

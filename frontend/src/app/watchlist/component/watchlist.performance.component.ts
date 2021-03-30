@@ -27,7 +27,9 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {InjectableRxStompConfig, RxStompService} from '@stomp/ng2-stompjs';
 import {GlobalSessionNames} from '../../shared/global.session.names';
 
-
+/**
+ * Shows the performance watchlist. It has no special function implemented.
+ */
 @Component({
   templateUrl: '../view/watchlist.data.html',
   styles: [`
@@ -81,7 +83,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     console.log('stomconfig', this.stompConfig);
     this.stompService.configure(this.stompConfig);
 
-
     this.timeFrames.push(new TimeFrame('THIS_WEEK', moment().weekday()));
     this.timeFrames.push(new TimeFrame('DAYS_30', 30));
     this.timeFrames.push(new TimeFrame('DAYS_90', 90));
@@ -102,7 +103,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.Boolean, 'securitycurrency.shortSecurity', 'SHORT_SECURITY', true, true, {
       templateName: 'check'
     });
-
 
     this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {width: 80});
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {maxFractionDigits: 5});
@@ -148,7 +148,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       this.getAndSetDataWebsocket();
     }
   }
-
 
   private getAndSetDataWebsocket(): void {
     this.topicSubscription = this.stompService.watch('/user/queue/security',
@@ -202,7 +201,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   private updateAllPriceThruRest(): void {
     this.watchlistService.getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days)
       .subscribe((data: SecuritycurrencyGroup) => {
-
         if (this.watchlist.idWatchlist === data.idWatchlist) {
           this.selectedSecuritycurrencyPosition = null;
           this.createSecurityPositionList(data);
@@ -232,13 +230,11 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   }
 
   private handleTimeFrame(event, timeFrame: TimeFrame, childMenuItems: MenuItem[]) {
-
     this.choosenTimeFrame = timeFrame;
     childMenuItems.forEach(menuItem => menuItem.icon = AppSettings.ICONNAME_CIRCLE_EMTPY);
     event.item.icon = AppSettings.ICONNAME_CIRCLE_CHECK;
     this.hideShowColumnByFileHeader('TIME_FRAME_ANUAL', timeFrame.days > 600);
     this.updateAllPrice();
-
   }
 
 }
