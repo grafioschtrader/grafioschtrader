@@ -31,7 +31,7 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {filter} from 'rxjs/operators';
 
 /**
- * View to check the reliability of the price data feeds.
+ * View to check the reliability of the price data feeds. It has some special function implemented to update price data.
  */
 @Component({
   templateUrl: '../view/watchlist.data.html',

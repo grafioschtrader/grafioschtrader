@@ -90,7 +90,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       this.form.setDefaultValuesAndEnableSubmit();
       AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
         this.callParam.stockexchange, this.form, this.configObject, this.proposeChangeEntityWithEntity);
-      FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.noMarketValue]);
+      FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.noMarketValue,
+        this.configObject.countryCode, this.configObject.timeZone]);
       if (data.length > 1) {
         this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions(
           'idSecuritycurrency', 'name', data[1], true);
