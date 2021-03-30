@@ -1,8 +1,8 @@
 ---
-title: "Tagesenddaten als Linengrafik"
-date: 2018-01-13T22:54:47+01:00
+title: "Tagesendkurse als Linengrafik"
+date: 2021-03-29T22:54:47+01:00
 draft: false
 weight : 30
 chapter: true
 ---
-## Tagesenddaten als Linengrafik
+## Tagesendkurse als Linengrafik

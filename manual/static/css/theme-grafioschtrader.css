@@ -155,3 +155,11 @@ p {
     margin-top: 0.2rem;
     margin-bottom: 0.1rem;
 }
+
+.classLabel .label {
+    font-size: 14px !important;
+}
+
+g.classGroup text {
+    font-size: 14px !important;
+}
