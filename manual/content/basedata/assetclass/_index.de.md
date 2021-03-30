@@ -6,7 +6,7 @@ weight : 5
 chapter: true
 ---
 ## Anlageklasse
-Die Selektion einer Anlageklasse hat bei der Erfassung eines **Instrument** erheblichen Einfluss auf dessen Eigenschaften. Zudem hat sie Einfluss auf das Reporting und die Art der Transaktion die auf ein Instrument angewendet werden können.
+Die **Selektion** einer **Anlageklasse** hat bei der Erfassung eines **Instrument** erheblichen Einfluss auf dessen Eigenschaften. Zudem hat sie Einfluss auf das Reporting und die Art der Transaktion die auf ein Instrument angewendet werden können.
 + Solbald ein **Instrument** die Anlageklasse referenziert, kann nur noch die Eigenschaft "Unter Anlageklasse" geändert werden.
 + Eine durch ein **Instrument** referenziert Anlageklasse kann nicht gelöscht werden.
 
@@ -17,8 +17,8 @@ Ein **Anlageklasse** wird im **Hauptbereich** in der **Ansicht Anlageklasse** er
 + **Bearbeiten** einer **Anlageklasse** auf dem **selektieren Anlageklasse**.
 + **Löschen** einer **Anlageklasse** auf dem **selektieren Anlageklasse**.
 
-#### Eigenschaften
-Wie oben erwähnt sind die Eigenschaften eingeschränkt veränderbar.
+#### Eigenschaften und Tabellenspalten
+Wie oben erwähnt sind die Eigenschaften eingeschränkt veränderbar. Die Eigenschaften und die Tabellenspalten sind übereinstimmend und bedürfen daher keiner differenzierten Beschreibung.
 
 ##### Anlageklasse
 Die Eigenschaft **Anlageklasse** beeinflusst die Auswahl an **Finanzinstrument**, folgende Kombinationen sind möglich:
