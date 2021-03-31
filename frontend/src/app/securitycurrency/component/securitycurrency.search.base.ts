@@ -104,9 +104,6 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   closeSearchDialog(event): void {
   }
 
-  helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST);
-  }
 
   protected initialize(): void {
     this.dynamicFormComponent.form.setValidators(atLeastOneFieldValidator);

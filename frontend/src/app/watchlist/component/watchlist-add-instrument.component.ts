@@ -10,6 +10,8 @@ import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-t
 import {SecuritycurrencySearchBase} from '../../securitycurrency/component/securitycurrency.search.base';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
+import {BusinessHelper} from '../../shared/helper/business.helper';
+import {HelpIds} from '../../shared/help/help.ids';
 
 /**
  * Dialog for adding security or currency pair to a certain watchlist.
@@ -65,6 +67,10 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
 
   childClearList(): void {
     this.waidc.clearList();
+  }
+
+  helpLink() {
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST);
   }
 
 

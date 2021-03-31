@@ -10,6 +10,8 @@ import {SecuritycurrencySearchAndSetTableComponent} from './securitycurrency-sea
 import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
+import {BusinessHelper} from '../../shared/helper/business.helper';
+import {HelpIds} from '../../shared/help/help.ids';
 
 /**
  * Dialog for selecting a security or currency by search criterias.
@@ -72,6 +74,9 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
     this.sissdc.clearList();
   }
 
+  helpLink() {
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST);
+  }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
     this.sissdc.loadData(securitycurrencySearch);
