@@ -27,6 +27,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 
 /**
@@ -57,7 +58,7 @@ public class Stockexchange extends Auditable implements Serializable {
   
   @NotBlank
   @Column(name = "country_code")
-  @PropertyAlwaysUpdatable
+  @PropertyOnlyCreation
   private String countryCode;
 
   @Basic(optional = false)
@@ -96,7 +97,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @NotNull
   @Size(min = 1, max = 50)
   @Column(name = "time_zone")
-  @PropertyAlwaysUpdatable
+  @PropertyOnlyCreation
   private String timeZone;
 
   @PropertyAlwaysUpdatable
@@ -143,11 +144,11 @@ public class Stockexchange extends Auditable implements Serializable {
     this.name = name;
   }
    
-/*
+
   public String getCountryCode() {
     return countryCode;
   }
-*/
+
   public void setCountryCode(String countryCode) {
     this.countryCode = countryCode;
   }
