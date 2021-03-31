@@ -70,9 +70,8 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST);
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_WATCHLIST);
   }
-
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
     this.waidc.loadData(this.idWatchlist, securitycurrencySearch);

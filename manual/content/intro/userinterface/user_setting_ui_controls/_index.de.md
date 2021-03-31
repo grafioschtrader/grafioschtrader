@@ -20,5 +20,11 @@ Bei gewissen Tabellen ist in der ersten Spalte ein **Expander-Symbol** ersichtli
 #### Tooltip in Kopfzelle
 Ein Tooltip bzw. Quickinfo ist auf einigen **Kopfzellen** des **Tabellenkopfes** implementiert. Dieses erscheint wenn der Mauszeiger eine kurze Zeit über der entsprechenden Kopfzelle verweilt.
 
+### Tabellenspalten ein- und ausblenden
+...
+
+### Filterfunktion
+...
+
 ### Eigenschaften
 Einige Informationsklassen haben die allgemeine Eigenschaft **Bemerkung**, sie dient der Aufnahme einer Notiz. Im weiteren wird diese Eigenschaft in dieser Dokumentation nicht weiter erwähnt.

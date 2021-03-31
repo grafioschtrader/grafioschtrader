@@ -27,7 +27,8 @@ Es gibt Funktionen die in allen Watchlisten implementiert sind. Anderseits unter
 Ein Instrumente kann mit Drag and Drop auf eine andere Watchlist verschoben werden. Dazu ziehen Sie das Symbol der **Instrumentenart** auf Ihre gewählte **Watchlist** im **Navigationsbereich**.
 
 #### Hinzufügen bestehender Instrumente
-In einer aktiven Watchlist des **Hauptbereichs** kann über das **Kontextmenü** ein bestehendes Instrument hinzugeführt werden. Hierzu öffnet sich ein der entsprechende Dialog. ...
+In einer aktiven Watchlist des **Hauptbereichs** kann über das **Kontextmenü** ein bestehendes Instrument hinzugeführt werden. Hierzu öffnet sich ein der entsprechende [Suchdialog für Instrumente](../instrument/searchdialog).
++ Mit der Schaltfläche **Hinzufügen** werden die selektieren Instrumente der Watchlist hinzugefügt.
 
 ## Eigenschaften und Tabellenspalten
 Spalten werden nicht weiter beschrieben falls diese **Instrument** bzw. **Anlagekasse** erwähnt wurden. Einige Spalten sind selbsterklärend oder dessen Tooltip und müssen nicht weiter erklärt werden.
