@@ -6,11 +6,12 @@ export enum HelpIds {
   HELP_INTRO_NAVIGATION = 'intro/userinterface',
   HELP_INTRO_PROPOSE_CHANGE_ENTITY = 'proposechangeentity',
 
-  // Client and portfolio
+  // Tenant, portfolio, security and cash account
   HELP_CLIENT = 'tenantportfolio/client',
   HELP_PROTFOLIO = 'tenantportfolio/portfolio',
   HELP_PORTFOLIO_ACCOUNT = 'tenantportfolio/cashaccount',
   HELP_PORTFOLIO_SECURITYACCOUNT = 'tenantportfolio/securityaccounts',
+  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT = 'tenantportfolio/securityaccounts/securityaccounts/transactionimport',
 
   // Tenant and  Portfolios / Reports
   HELP_PROTFOLIOS = 'reportportfolio',

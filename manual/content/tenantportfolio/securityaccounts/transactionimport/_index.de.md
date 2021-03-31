@@ -1,6 +1,6 @@
 ---
 title: "Transaktionsimport"
-date: 2018-01-13T22:54:47+01:00
+date: 2021-03-30T22:54:47+01:00
 draft: false
 weight : 15
 chapter: true
@@ -18,3 +18,10 @@ Falls Sie Bedenken bezüglich des Datenschutz haben, sollten Sie diese Variante 
 {{% /notice %}}
 #### GT Transform
 Transform ist eine Desktop JavaFX Applikation, die es ermöglicht eine Vielzahl von PDF Dateien zu anonymisieren. Sie kann beispielsweise rekursiv alle PDF eines Dateiverzeichnis einlesen. Danach können in einer Massenverarbeitung die nicht für den Import relevanten Textzeilen entfernt werden. Falls Ihre Wertpapier Transaktionen mehr oder weniger vollständig als PDF-Dateien vorliegen, können Sie diese mit Transform verarbeiten und danach in GT importieren.
+
+### Ansicht Transaktionsimport
+
+#### Funktionen
+
+##### Instrument zuweisen
+Eier Wertpapiertransaktion können Sie eine Instrument zuweisen. Dazu öffnet sich der entsprechende Dialog.

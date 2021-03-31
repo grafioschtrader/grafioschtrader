@@ -3,7 +3,10 @@ import {TranslateService} from '@ngx-translate/core';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
-import {ImportTransactionHeadService, SuccessFailedDirectImportTransaction} from '../service/import.transaction.head.service';
+import {
+  ImportTransactionHeadService,
+  SuccessFailedDirectImportTransaction
+} from '../service/import.transaction.head.service';
 import {ActivatedRoute, Params} from '@angular/router';
 import {Securityaccount} from '../../entities/securityaccount';
 import {Subscription} from 'rxjs';
@@ -36,10 +39,12 @@ import {FileUploadParam} from '../../shared/generaldialog/model/file.upload.para
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm">
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm">
       </dynamic-form>
 
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
+                     appendTo="body"></p-contextMenu>
       <br/>
       <securityaccount-import-transaction-table></securityaccount-import-transaction-table>
     </div>
@@ -87,7 +92,8 @@ export class SecurityaccountImportTransactionComponent
               activePanelService: ActivePanelService,
               translateService: TranslateService) {
 
-    super(globalparameterService, HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, SecurityaccountImportTransactionComponent.MAIN_FIELD,
+    super(globalparameterService, HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
+      SecurityaccountImportTransactionComponent.MAIN_FIELD,
       'IMPORT_SET', importTransactionHeadService, confirmationService, messageToastService, activePanelService,
       translateService);
 
@@ -189,7 +195,6 @@ export class SecurityaccountImportTransactionComponent
   ngOnDestroy(): void {
     super.destroy();
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
-
   }
 
   protected prepareShowMenu(): MenuItem[] {
