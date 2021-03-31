@@ -24,4 +24,4 @@ Transform ist eine Desktop JavaFX Applikation, die es ermöglicht eine Vielzahl 
 #### Funktionen
 
 ##### Instrument zuweisen
-Eier Wertpapiertransaktion können Sie eine Instrument zuweisen. Dazu öffnet sich der entsprechende Dialog.
+Eier Wertpapiertransaktion können Sie eine Instrument zuweisen. Dazu öffnet sich der [Suchdialog für Instrumente](../../../watchlistinstrument/instrument/searchdialog).

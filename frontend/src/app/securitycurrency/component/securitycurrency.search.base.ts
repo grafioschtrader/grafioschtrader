@@ -104,7 +104,6 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   closeSearchDialog(event): void {
   }
 
-
   protected initialize(): void {
     this.dynamicFormComponent.form.setValidators(atLeastOneFieldValidator);
     const denyAssetClass = [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN];
@@ -162,6 +161,10 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
         || fieldConfig.dataType !== DataType.Boolean
         && fieldConfig.formControl.value && fieldConfig.formControl.value !== '');
     return !foundFieldConfig;
+  }
+
+  helpLink() {
+    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_SEARCHDIALOG);
   }
 
   private isCurrency(): boolean {

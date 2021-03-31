@@ -11,7 +11,7 @@ export enum HelpIds {
   HELP_PROTFOLIO = 'tenantportfolio/portfolio',
   HELP_PORTFOLIO_ACCOUNT = 'tenantportfolio/cashaccount',
   HELP_PORTFOLIO_SECURITYACCOUNT = 'tenantportfolio/securityaccounts',
-  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT = 'tenantportfolio/securityaccounts/securityaccounts/transactionimport',
+  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT = 'tenantportfolio/securityaccounts/transactionimport',
 
   // Tenant and  Portfolios / Reports
   HELP_PROTFOLIOS = 'reportportfolio',
@@ -29,11 +29,13 @@ export enum HelpIds {
 
   // Watchlist
   HELP_WATCHLIST = 'watchlistinstrument',
+  HELP_WATCHLIST_WATCHLIST = 'watchlistinstrument/watchlist',
   HELP_WATCHLIST_PERFORMANCE = 'watchlistinstrument/watchlist/performance',
   HELP_WATCHLIST_PRICE_FEED = 'watchlistinstrument/watchlist/pricefeed',
   HELP_WATCHLIST_DIVIDEND_SPLIT_FEED = 'watchlistinstrument/watchlist/dividendsplit',
   HELP_WATCHLIST_CURRENCYPAIR = 'watchlistinstrument/instrument/currencypair',
   HELP_WATCHLIST_SECURITY = 'watchlistinstrument/instrument/security',
+  HELP_WATCHLIST_SEARCHDIALOG= 'watchlistinstrument/instrument/searchdialog',
   HELP_WATCHLIST_DERIVED_INSTRUMENT = 'watchlistinstrument/instrument/security/derivedinstrument',
   HELP_WATCHLIST_HISTORYQUOTES = 'watchlistinstrument/historyquote/pricedata',
   HELP_WATCHLIST_HISTORYQUOTES_CHART = 'watchlistinstrument/eodchart',
