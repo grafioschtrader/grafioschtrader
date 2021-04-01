@@ -56,3 +56,6 @@ Spalten werden nicht weiter beschrieben falls diese **Instrument** bzw. **Anlage
 #### Instrumentenart (I)
 Die Symbole der Instrumente können der [Anlageklasse](../../basedata/assetclass) entnommen werden.
 {{< svg "d.svg" svg-icon-size >}}: Dies steht zusätzlich für ein abgeleitetes Instrument.
+
+### Nachricht an Ersteller
+Damit kann eine Nachricht an den Ersteller dieses Instrument gesendet werden, weiter Informationen zum siehe [Nachrichtensystem](../../admindata).

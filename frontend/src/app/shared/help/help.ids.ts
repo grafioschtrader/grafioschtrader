@@ -34,7 +34,7 @@ export enum HelpIds {
   HELP_WATCHLIST_PRICE_FEED = 'watchlistinstrument/watchlist/pricefeed',
   HELP_WATCHLIST_DIVIDEND_SPLIT_FEED = 'watchlistinstrument/watchlist/dividendsplit',
   HELP_WATCHLIST_CURRENCYPAIR = 'watchlistinstrument/instrument/currencypair',
-  HELP_WATCHLIST_SECURITY = 'watchlistinstrument/instrument/security',
+  HELP_WATCHLIST_SECURITY = 'watchlistinstrument/instrument/securityderived',
   HELP_WATCHLIST_SEARCHDIALOG= 'watchlistinstrument/instrument/searchdialog',
   HELP_WATCHLIST_DERIVED_INSTRUMENT = 'watchlistinstrument/instrument/security/derivedinstrument',
   HELP_WATCHLIST_HISTORYQUOTES = 'watchlistinstrument/historyquote/pricedata',
