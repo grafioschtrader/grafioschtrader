@@ -477,7 +477,7 @@ public class WatchlistReport {
       securitycurrencyPosition.timeFrameChangePercentage = (securitycurrencyPosition.securitycurrency.getSLast()
           - historyCloseAdjusted) / historyCloseAdjusted * 100;
       if (years >= 1) {
-        securitycurrencyPosition.timeFrameAnualChangePercentage = (Math
+        securitycurrencyPosition.timeFrameAnnualChangePercentage = (Math
             .pow(securitycurrencyPosition.timeFrameChangePercentage / 100 + 1, 1.0 / years) - 1.0) * 100;
       }
     }

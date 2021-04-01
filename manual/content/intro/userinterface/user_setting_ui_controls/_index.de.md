@@ -20,10 +20,13 @@ Bei gewissen Tabellen ist in der ersten Spalte ein **Expander-Symbol** ersichtli
 #### Tooltip in Kopfzelle
 Ein Tooltip bzw. Quickinfo ist auf einigen **Kopfzellen** des **Tabellenkopfes** implementiert. Dieses erscheint wenn der Mauszeiger eine kurze Zeit über der entsprechenden Kopfzelle verweilt.
 
-### Tabellenspalten ein- und ausblenden
+### Sortierung der Spalten
 ...
 
 ### Filterfunktion
+...
+
+### Tabellenspalten ein- und ausblenden
 ...
 
 ### Eigenschaften

@@ -8,7 +8,9 @@ chapter: true
 ## Kurs Datenfeed
 Diese Watchlist dient primär der Überwachung der historischen und intraday Kursdaten.
 
-### Wiederholungszähler
+### Funktionen
+
+### Eigenschaften und Tabellenspalten
+#### Wiederholungszähler
 Es gibt zwei Wiederholungszähler, der eine ist für Innertag und der andere für historische Kursdaten. 
 
-### Funktionen

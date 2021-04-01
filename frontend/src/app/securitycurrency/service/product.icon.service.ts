@@ -63,6 +63,9 @@ export class ProductIconService {
       case AssetclassType.FIXED_INCOME:
         icon = 'bo';
         break;
+      case AssetclassType.COMMODITIES:
+        icon = 'co';
+        break;
     }
     return icon;
   }

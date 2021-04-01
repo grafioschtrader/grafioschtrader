@@ -22,17 +22,20 @@ Wie oben erwähnt sind die Eigenschaften eingeschränkt veränderbar. Die Eigens
 
 ##### Anlageklasse
 Die Eigenschaft **Anlageklasse** beeinflusst die Auswahl an **Finanzinstrument**, folgende Kombinationen sind möglich:
+
+
 |Anlageklasse|Direktanlage|ETF|Investment-Fonds|Pensionsfonds|CFD|Forex|Index nicht investierbar|
 |----|:-:|:-:|:-:|:-:|:-:|:-:|:-:| 
-|**Aktien**| X | X | X | X | X |   | X |
-|**Anleihen**| X | X | X | X |   |   | X |
-|**Commodites**| X | X | X |  | X |   | X |
-|**Geldmarkt**| X | X | X |   |   |   |  |
-|**Immobilien**| X | X | X |   |   |   |  |
-|**Kreditderivate**| X |   | X |   |   |   | X |
-|**Multi asset**| X | X | X |   |   |   | X |
-|**Währungspaar**|   |   |   |   |   | X |  |
-|**Wandelanleihe**| X | X | X | X |   |   | X |
+|**Aktien**| {{< svg "eq.svg" svg-icon-size >}} | {{< svg "etf_i.svg" svg-icon-size >}} | {{< svg "f.svg" svg-icon-size >}} |{{< svg "f.svg" svg-icon-size >}} | {{< svg "cfd_i.svg" svg-icon-size >}} |   | {{< svg "i.svg" svg-icon-size >}} |
+|**Anleihen**| {{< svg "bo.svg" svg-icon-size >}} | {{< svg "etf_i.svg" svg-icon-size >}} | {{< svg "f.svg" svg-icon-size >}} | {{< svg "f.svg" svg-icon-size >}} |   |   | {{< svg "i.svg" svg-icon-size >}} |
+|**Commodites**| {{< svg "co.svg" svg-icon-size >}} | {{< svg "etf_c.svg" svg-icon-size >}} | {{< svg "f.svg" svg-icon-size >}} |  | {{< svg "cfd_c.svg" svg-icon-size >}} |   | {{< svg "i.svg" svg-icon-size >}} |
+|**Geldmarkt**| {{< svg "m.svg" svg-icon-size >}} |  {{< svg "etf_i.svg" svg-icon-size >}} | {{< svg "f.svg" svg-icon-size >}} |   |   |   |  |
+|**Immobilien**|  | {{< svg "etf_i.svg" svg-icon-size >}} | {{< svg "fr.svg" svg-icon-size >}} |   |  |  | {{< svg "i.svg" svg-icon-size >}} |
+|**Kreditderivate**|  | {{< svg "etf_i.svg" svg-icon-size >}}  | {{< svg "f.svg" svg-icon-size >}} |  |  |   | {{< svg "i.svg" svg-icon-size >}} |
+|**Multi asset**|  | {{< svg "etf_i.svg" svg-icon-size >}}  | {{< svg "f.svg" svg-icon-size >}} | {{< svg "f.svg" svg-icon-size >}}  |   |   |  {{< svg "i.svg" svg-icon-size >}} |
+|**Währungspaar**|   |   |   |   |   | {{< svg "c.svg" svg-icon-size >}} |  |
+|**Wandelanleihe**| {{< svg "cb.svg" svg-icon-size >}} | {{< svg "etf_i.svg" svg-icon-size >}} | {{< svg "f.svg" svg-icon-size >}} | {{< svg "f.svg" svg-icon-size >}} |   |   | {{< svg "i.svg" svg-icon-size >}} |
+
 
 ##### Unter Anlageklasse
 Die Eigenschaft ist frei definierbar, wobei gleichbleibende Texte erwartet werden. Bei einer Regionen-Kategorisierung sollte beispielsweise der Text "Aktien USA" konsistent für die entsprechenden Anlageklassen eingesetzt werden. Zurzeit werden die beiden Sprachen **Deutsch** und **Englisch** von GT unterstützt.
