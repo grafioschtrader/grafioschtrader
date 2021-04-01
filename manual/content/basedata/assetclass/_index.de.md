@@ -10,7 +10,6 @@ Die **Selektion** einer **Anlageklasse** hat bei der Erfassung eines **Instrumen
 + Solbald ein **Instrument** die Anlageklasse referenziert, kann nur noch die Eigenschaft "Unter Anlageklasse" geändert werden.
 + Eine durch ein **Instrument** referenziert Anlageklasse kann nicht gelöscht werden.
 
-
 ### Erstellen und bearbeiten Anlageklasse
 Ein **Anlageklasse** wird im **Hauptbereich** in der **Ansicht Anlageklasse** erstellt, bearbeitet und gelöscht. Diese **Ansicht** erreichen Sie im **Navigationsbereich** auf dem statischen Element Anlageklasse.
 + **Erstellen** einer **Anlageklasse** über **Kontextmenü**.
