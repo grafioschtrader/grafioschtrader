@@ -23,12 +23,32 @@ Im **Navigationsbereich** ist einer bestimmten Watchlist das **Performance** Wat
 ### Allgemeine Funktionen der Watchlist-Ansichten
 Es gibt Funktionen die in allen Watchlisten implementiert sind. Anderseits unterscheiden sich die Tabellenspalten der Watchlisten, daher kann es pro Watchlist unterschiedliche Funktionen geben. Im folgenden werden die Funktionen behandelt die in allen Ansichen verfügbar sind.
 
-#### Instrument in andere Watchlist verschieben
+#### Funktionem markierte Watchlist-Ansicht
+Diese Funktion ist die markierten Watchlist anwendbar.
+##### Instrument in andere Watchlist verschieben
 Ein Instrumente kann mit Drag and Drop auf eine andere Watchlist verschoben werden. Dazu ziehen Sie das Symbol der **Instrumentenart** auf Ihre gewählte **Watchlist** im **Navigationsbereich**.
 
-#### Hinzufügen bestehender Instrumente
+##### Bestehendes Instrumente hinzufügen
 In einer aktiven Watchlist des **Hauptbereichs** kann über das **Kontextmenü** ein bestehendes Instrument hinzugeführt werden. Hierzu öffnet sich ein der entsprechende [Suchdialog für Instrumente](../instrument/searchdialog).
 + Mit der Schaltfläche **Hinzufügen** werden die selektieren Instrumente der Watchlist hinzugefügt.
+
+##### Hinzufügen neues Wertpapier
+Damit wird ein neues **Wertpapier** erstellt und der Watchlist hinzugefügt, weitere Information siehe [Wertpapier](../instrument/security).
+
+##### Hinzufügen neues abgeleitetes Instrument
+Mit dieser Funktion wird ein **abgeleitetes Instrument** erstellt und der Watchlist hinzugefügt, weitere Information siehe [Abgeleitetes Instrument](../instrument/security/derivedinstrument/).
+
+##### Hinzufügen neu erstelltes Währungspaar
+Damit wird ein neues **Währungspaar** erstellt und der Watchlist hinzugefügt, weitere Information siehe [Währungspaar](../instrument/currencypair).
+
+#### Funktionem selektiertes Instrument
+Diese Funktion können auf einem selektierten Instrument angewendet werden.
+
+##### Instrument entfernen
+
+##### Tagesdaten als Liniengrafik oder Tabelle
+Diese Gruppe von Funktionen ist auf die Watchlist beschränkt, daher siehe [Tagesendkurse als Linengrafik](../eodchart).
+
 
 ### Eigenschaften und Tabellenspalten
 Spalten werden nicht weiter beschrieben falls diese **Instrument** bzw. **Anlagekasse** erwähnt wurden. Einige Spalten sind selbsterklärend oder dessen Tooltip und müssen nicht weiter erklärt werden.
