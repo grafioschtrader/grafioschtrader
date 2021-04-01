@@ -116,17 +116,17 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.Numeric, 'timeFrameChangePercentage', 'TIME_FRAME', true, true, {
       headerSuffix: '%', templateName: 'greenRed'
     });
-    this.addColumn(DataType.Numeric, 'timeFrameAnualChangePercentage', 'TIME_FRAME_ANUAL', true, true, {
+    this.addColumn(DataType.Numeric, 'timeFrameAnnualChangePercentage', 'TIME_FRAME_ANNUAL', true, true, {
       headerSuffix: '%', templateName: 'greenRed'
     });
-    this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, true,
+    this.addColumnFeqH(DataType.Numeric, 'units', true, true,
       {templateName: 'greenRed'});
 
     this.addColumnFeqH(DataType.Numeric, 'positionGainLossPercentage', true, true, {
       headerSuffix: '%', templateName: 'greenRed'
     });
 
-    this.addColumn(DataType.Numeric, 'valueSecurity', 'TOTAL_AMOUNT', true, true);
+    this.addColumnFeqH(DataType.Numeric, 'valueSecurity',  true, true);
     this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE', true, true, {maxFractionDigits: 5});
     this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true, {maxFractionDigits: 5});
     this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true, {maxFractionDigits: 5});
@@ -233,7 +233,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.choosenTimeFrame = timeFrame;
     childMenuItems.forEach(menuItem => menuItem.icon = AppSettings.ICONNAME_CIRCLE_EMTPY);
     event.item.icon = AppSettings.ICONNAME_CIRCLE_CHECK;
-    this.hideShowColumnByFileHeader('TIME_FRAME_ANUAL', timeFrame.days > 600);
+    this.hideShowColumnByFileHeader('TIME_FRAME_ANNUAL', timeFrame.days > 600);
     this.updateAllPrice();
   }
 

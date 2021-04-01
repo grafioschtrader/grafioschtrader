@@ -6,3 +6,8 @@ weight : 30
 chapter: true
 ---
 ## Dividende/Split Feed
+
+### Funktionen
+
+### Eigenschaften und Tabellenspalten
+

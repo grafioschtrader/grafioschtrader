@@ -7,3 +7,13 @@ chapter: true
 ---
 ## Performanz
 Diese **Watchlist-Ansicht** zeigt die Instrumente mit ihren offenen und gehandelten Positionen an. Ein vorhandenes **Expander-Symbol** beim Instrument ist ein Hinweis auf seine bestehenden **Transaktionen**.
+
+### Funktionen
+
+### Eigenschaften und Tabellenspalten
+
+#### Zeit/Datum
+
+#### Aktuell
+
+#### Seit Jahresbeginn %

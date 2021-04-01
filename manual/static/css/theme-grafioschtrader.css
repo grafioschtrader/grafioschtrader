@@ -146,6 +146,11 @@ b, strong, label, th {
     display: inline;
 }
 
+.svg-icon-size {
+    margin: 0 0;
+    display: inline;
+}
+
 ul, ol {
      margin-top: 0; 
      margin-bottom: 0; 
@@ -162,4 +167,8 @@ p {
 
 g.classGroup text {
     font-size: 14px !important;
+}
+
+.svg-table {
+    height: 40px;
 }

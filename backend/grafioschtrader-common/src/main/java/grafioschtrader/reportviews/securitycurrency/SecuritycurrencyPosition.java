@@ -17,7 +17,7 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
   public Double ytdChangePercentage;
 
   public Double timeFrameChangePercentage;
-  public Double timeFrameAnualChangePercentage;
+  public Double timeFrameAnnualChangePercentage;
 
   // units after transaction
   public Double units;
