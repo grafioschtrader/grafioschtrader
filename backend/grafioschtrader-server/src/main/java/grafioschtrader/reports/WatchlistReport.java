@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
@@ -106,34 +107,12 @@ public class WatchlistReport {
         .supplyAsync(() -> historyquoteJpaRepository
             .getYoungestFeedHistorquoteForSecuritycurrencyByWatchlist(idWatchlist, user.getIdTenant()));
     final CompletableFuture<int[]> securitiesIsUsedElsewhereCF = CompletableFuture
-        .supplyAsync(() -> this.watchlistJpaRepository.watchlistSecuritiesHasTransactionOrOtherWatchlist(idWatchlist));
-    final CompletableFuture<int[]> currencypairIsUsedElsewhereCF = CompletableFuture.supplyAsync(
-        () -> this.watchlistJpaRepository.watchlistCurrencypairsHasReferencesButThisWatchlist(idWatchlist));
+        .supplyAsync(() -> watchlistJpaRepository.watchlistSecuritiesHasTransactionOrOtherWatchlist(idWatchlist));
+    final CompletableFuture<int[]> currencypairIsUsedElsewhereCF = CompletableFuture
+        .supplyAsync(() -> watchlistJpaRepository.watchlistCurrencypairsHasReferencesButThisWatchlist(idWatchlist));
 
     return combineSecuritycurrencyGroupWithHistoryquote(getWatchlistWithoutUpdate(idWatchlist), historyquoteCF.get(),
         securitiesIsUsedElsewhereCF.get(), currencypairIsUsedElsewhereCF.get());
-  }
-
-  private SecuritycurrencyGroup combineSecuritycurrencyGroupWithSecurtiesTransaction(
-      SecuritycurrencyGroup securitycurrencyGroup, int[] watchlistSecuritesHasTransactionIds) {
-    markWatchlistSecurityHasEverTransactionTenant(watchlistSecuritesHasTransactionIds,
-        securitycurrencyGroup.securityPositionList);
-    return securitycurrencyGroup;
-  }
-
-  private SecuritycurrencyGroup createWatchlistWithoutUpdate(final Integer idWatchlist, final Integer idTenant) {
-    final Watchlist watchlist = watchlistJpaRepository.getOne(idWatchlist);
-
-    if (!watchlist.getIdTenant().equals(idTenant)) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
-    }
-
-    final List<SecuritycurrencyPosition<Security>> securityPositionList = createSecuritycurrencyPositionList(
-        watchlist.getSecuritycurrencyListByType(Security.class));
-    final List<SecuritycurrencyPosition<Currencypair>> currencypairPositionList = createSecuritycurrencyPositionList(
-        watchlist.getSecuritycurrencyListByType(Currencypair.class));
-    return new SecuritycurrencyGroup(securityPositionList, currencypairPositionList, watchlist.getLastTimestamp(),
-        watchlist.getIdWatchlist());
   }
 
   private SecuritycurrencyGroup combineSecuritycurrencyGroupWithHistoryquote(
@@ -149,10 +128,7 @@ public class WatchlistReport {
         .forEach(securitycurrencyPosition -> combineSecuritycurrencyHistoryquote(securitycurrencyPosition,
             searchHistoryquote, historyquotes, historyquoteComparator));
 
-    markSecurityCurrencypairsIsUsedElsewhere(securitiesIsUsedElsewhereIds, securitycurrencyGroup.securityPositionList);
-    markSecurityCurrencypairsIsUsedElsewhere(currencypairIsUsedElsewhereIds,
-        securitycurrencyGroup.currencypairPositionList);
-
+    this.markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds, currencypairIsUsedElsewhereIds);
     return securitycurrencyGroup;
   }
 
@@ -165,6 +141,27 @@ public class WatchlistReport {
       securitycurrencyPosition.youngestHistoryDate = historyquotes.get(index).getDate();
     }
   }
+
+  public SecuritycurrencyGroup getWatchlistForSplitAndDividend(final Integer idWatchlist) throws InterruptedException, ExecutionException {
+
+    final CompletableFuture<Set<Integer>> securitiesIdsCF = CompletableFuture
+        .supplyAsync(() -> watchlistJpaRepository.hasSplitOrDividendByWatchlist(idWatchlist));
+    final CompletableFuture<int[]> securitiesIsUsedElsewhereCF = CompletableFuture
+        .supplyAsync(() -> watchlistJpaRepository.watchlistSecuritiesHasTransactionOrOtherWatchlist(idWatchlist));
+    final CompletableFuture<int[]> currencypairIsUsedElsewhereCF = CompletableFuture
+        .supplyAsync(() -> watchlistJpaRepository.watchlistCurrencypairsHasReferencesButThisWatchlist(idWatchlist));
+    return combineWatchlistWithDividendSplitMark(getWatchlistWithoutUpdate(idWatchlist), securitiesIdsCF.get(),
+        securitiesIsUsedElsewhereCF.get(), currencypairIsUsedElsewhereCF.get());
+  }
+
+  private SecuritycurrencyGroup combineWatchlistWithDividendSplitMark(final SecuritycurrencyGroup securitycurrencyGroup, Set<Integer> securitiesIds, 
+         final int[] securitiesIsUsedElsewhereIds, final int[] currencypairIsUsedElsewhereIds) {
+    markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds, currencypairIsUsedElsewhereIds);
+    securitycurrencyGroup.securityPositionList.forEach(spl -> spl.watchlistSecurityHasEver = securitiesIds.contains(spl.securitycurrency.getIdSecuritycurrency()));
+    return securitycurrencyGroup;
+  }
+
+ 
 
   /////////////////////////////////////////////////////////////
   // Get Watchlist - Report
@@ -229,6 +226,28 @@ public class WatchlistReport {
     return securitycurrencyGroup;
   }
 
+  private SecuritycurrencyGroup combineSecuritycurrencyGroupWithSecurtiesTransaction(
+      SecuritycurrencyGroup securitycurrencyGroup, int[] watchlistSecuritesHasTransactionIds) {
+    markWatchlistSecurityHasEverTransactionTenant(watchlistSecuritesHasTransactionIds,
+        securitycurrencyGroup.securityPositionList);
+    return securitycurrencyGroup;
+  }
+
+  private SecuritycurrencyGroup createWatchlistWithoutUpdate(final Integer idWatchlist, final Integer idTenant) {
+    final Watchlist watchlist = watchlistJpaRepository.getOne(idWatchlist);
+
+    if (!watchlist.getIdTenant().equals(idTenant)) {
+      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+    }
+
+    final List<SecuritycurrencyPosition<Security>> securityPositionList = createSecuritycurrencyPositionList(
+        watchlist.getSecuritycurrencyListByType(Security.class));
+    final List<SecuritycurrencyPosition<Currencypair>> currencypairPositionList = createSecuritycurrencyPositionList(
+        watchlist.getSecuritycurrencyListByType(Currencypair.class));
+    return new SecuritycurrencyGroup(securityPositionList, currencypairPositionList, watchlist.getLastTimestamp(),
+        watchlist.getIdWatchlist());
+  }
+
   private SecurityCurrency updateLastPrice(Tenant tenant, Watchlist watchlist) {
     final List<Security> securities = watchlist.getSecuritycurrencyListByType(Security.class);
     final List<Currencypair> currencypairs = watchlist.getSecuritycurrencyListByType(Currencypair.class);
@@ -253,7 +272,8 @@ public class WatchlistReport {
   private void updateDependingCurrencyWhenPerformanceWatchlist(final Tenant tenant, Watchlist watchlist,
       List<Currencypair> currencypairs) {
     if (watchlist.getIdWatchlist().equals(tenant.getIdWatchlistPerformance())) {
-      List<Currencypair> currenciesNotInList = currencypairJpaRepository.getAllCurrencypairsForTenantByTenant(tenant.getIdTenant());
+      List<Currencypair> currenciesNotInList = currencypairJpaRepository
+          .getAllCurrencypairsForTenantByTenant(tenant.getIdTenant());
       currenciesNotInList.removeAll(currencypairs);
       currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
     }
@@ -298,14 +318,20 @@ public class WatchlistReport {
             historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame, securitysplitMap),
         watchlist.getLastTimestamp(), watchlist.getIdWatchlist());
 
-    markSecurityCurrencypairsIsUsedElsewhere(securitiesIsUsedElsewhereIds, securitycurrencyGroup.securityPositionList);
-    markSecurityCurrencypairsIsUsedElsewhere(currencypairIsUsedElsewhereIds,
-        securitycurrencyGroup.currencypairPositionList);
+    markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds, currencypairIsUsedElsewhereIds);
     markWatchlistSecurityHasEverTransactionTenant(watchlistSecuritesHasTransactionIds,
         securitycurrencyGroup.securityPositionList);
 
     return securitycurrencyGroup;
   }
+  
+  private void markForUsedSecurityCurrencypairs(final SecuritycurrencyGroup securitycurrencyGroup,
+      final int[] securitiesIsUsedElsewhereIds, final int[] currencypairIsUsedElsewhereIds) {
+    markSecurityCurrencypairsIsUsedElsewhere(securitiesIsUsedElsewhereIds, securitycurrencyGroup.securityPositionList);
+    markSecurityCurrencypairsIsUsedElsewhere(currencypairIsUsedElsewhereIds,
+        securitycurrencyGroup.currencypairPositionList);
+  }
+  
 
   private <T extends Securitycurrency<T>> void markSecurityCurrencypairsIsUsedElsewhere(
       final int[] securitiesCurrencypairsIsUsedElsewhereIds,
@@ -319,7 +345,7 @@ public class WatchlistReport {
       final int[] watchlistSecuritesHasTransactionIds,
       final List<SecuritycurrencyPosition<T>> securitycurrencyPositionList) {
     securitycurrencyPositionList
-        .forEach(securitycurrencyPosition -> securitycurrencyPosition.watchlistSecurityHasEverTransactionTenant = Arrays
+        .forEach(securitycurrencyPosition -> securitycurrencyPosition.watchlistSecurityHasEver = Arrays
             .binarySearch(watchlistSecuritesHasTransactionIds,
                 securitycurrencyPosition.securitycurrency.getIdSecuritycurrency().intValue()) >= 0);
   }
@@ -406,7 +432,8 @@ public class WatchlistReport {
             .setSecuritycurrencyHistoricalDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
         this.securityJpaRepository
             .setSecuritycurrencyIntradayDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
-        this.securityJpaRepository.setDividendDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
+        this.securityJpaRepository
+            .setDividendDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
       } else {
         this.currencypairJpaRepository.setSecuritycurrencyHistoricalDownloadLink(
             (SecuritycurrencyPosition<Currencypair>) securitycurrencyPosition);

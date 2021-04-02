@@ -95,7 +95,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
 
   getWatchlistWithoutUpdate() {
     const watchListObservable: Observable<SecuritycurrencyGroup> =
-      this.watchlistService.getWatchlistWithoutUpdateAndMaxHistoryquote(this.idWatchlist);
+      this.watchlistService.getWatchlistForSplitAndDividend(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
 
     combineLatest([watchListObservable, tenantLimitObservable]).subscribe(result => {

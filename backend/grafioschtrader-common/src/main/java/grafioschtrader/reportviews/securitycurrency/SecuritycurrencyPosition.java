@@ -35,7 +35,8 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
   
   public boolean isUsedElsewhere = true;
 
-  public boolean watchlistSecurityHasEverTransactionTenant;
+  @Schema(description = "Depend on the watchlist it is true when security has transaction or security has split or dividend")
+  public boolean watchlistSecurityHasEver;
 
  
   @Schema(description = "Youngest historical data")

@@ -9,6 +9,6 @@ export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public intradayUrl: string;
   public dividendUrl: string;
   public isUsedElsewhere: boolean;
-  public watchlistSecurityHasEverTransactionTenant: boolean;
+  public watchlistSecurityHasEver: boolean;
   public youngestHistoryDate: Date;
 }

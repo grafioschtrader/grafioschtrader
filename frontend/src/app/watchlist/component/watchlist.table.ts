@@ -155,11 +155,11 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       currencypair?.isCryptocurrency);
   }
 
-
+/*
   watchlistSecurityHasEverTransactionTenant(rowData: SecuritycurrencyPosition<any>): string {
-    return rowData.watchlistSecurityHasEverTransactionTenant ? '' : 'noExpander';
+    return rowData.watchlistSecurityHasEver ? '' : 'noExpander';
   }
-
+*/
   ngOnDestroy(): void {
     this.writeTableDefinition(this.storeKey);
     this.activePanelService.destroyPanel(this);

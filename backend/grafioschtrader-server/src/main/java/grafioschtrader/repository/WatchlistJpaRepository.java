@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -39,6 +40,9 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Modifying
   int deleteByIdWatchlistAndIdTenant(Integer idWatchlist, Integer idTenant);
 
+  @Query(nativeQuery = true)
+  Set<Integer> hasSplitOrDividendByWatchlist(Integer idWatchlist);
+  
   @Query(value = "SELECT w.id_watchlist,(CASE WHEN EXISTS(SELECT NULL FROM watchlist_sec_cur s WHERE s.id_watchlist = w.id_watchlist)"
       + " THEN 1 ELSE 0 END) AS has_security FROM watchlist w WHERE w.id_tenant = ?1", nativeQuery = true)
   List<Object[]> watchlistsOfTenantHasSecurity(Integer idTenant);
