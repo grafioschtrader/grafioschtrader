@@ -22,11 +22,14 @@ Eine GT-Instanz wird Back-End von GT bezeichnet, die von einem oder mehreren Anw
 Eine Informationsklasse besteht aus mehreren Entitäten. Beispielsweise wird für Portfolio oder Konto der allgemeine Begriff Informationsklasse angewendet. Wobei ein einzelnes Konto eine Entität dieser Informationsklasse ist.
 #### Instrumente und Anlageinstrumente
 In GT umfasst dieser Begriff alle Wertpapiere und Währungspaare die einer Watchlist hinzugefügt werden können.
+
+#### Intraday (Innertag) Kurse
+In GT definiert der Intrady Kurs den letzten akutellen Kurs durch den Handelstag. Diese Kurse werden mit einigen Minuten bis halbe Stunde verzögert in GT angezeigt.
+
 #### Offene Position
 Eine offene Position ist ein Trade, der immer noch einen Gewinn erwirtschaften oder einen Verlust verursachen kann. Wenn eine Position geschlossen wird, werden alle Gewinne und Verluste realisiert und der Trade ist nicht länger aktiv. Offene Positionen können entweder long oder short sein, das heisst, dass Sie damit sowohl von steigenden als auch von fallenden Kursen profitieren können.
 #### Portfolio 
 Ein Portfolio ist eine Sammlung von Finanzanlagen in einem oder mehreren Depots. Zusätzlich kommt ein oder mehrere  Bankkonten mit unterschiedlichen Währungen dazu. In GT entspricht ein Portfolio der Nachbildung eines einzelnen Portfolios einer Handelsplattform.
-
 
 #### Veräusserungskosten
 Kosten die anfallen, wenn eine gehaltene Position verkauft wird. Darunter fallen Transaktionskosten, Steuern und Währungskonvertierung.

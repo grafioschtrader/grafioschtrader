@@ -6,4 +6,8 @@ weight : 10
 chapter: true
 ---
 ## Margin basierte Transaktion
-deutsch
+...
+
+### Ansicht Transaktion in Expandierende Tabellenzeile
+Diese ist unter anderem in der Ansicht **Performanz** der **Watchlist** implementiert. 
+...

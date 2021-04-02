@@ -10,3 +10,7 @@ deutsch
 
 ## Wertschriftentransfer
 Der Transfer von einem gehaltenen Wertpapier einer Handelsplattform zu einer anderen Handelsplattform. ...
+
+### Ansicht Transaktion in Expandierende Tabellenzeile
+Diese ist unter anderem in der Ansicht **Performanz** der **Watchlist** implementiert. 
+...

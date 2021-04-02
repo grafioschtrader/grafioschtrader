@@ -19,6 +19,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
+import {HelpIds} from '../../shared/help/help.ids';
 
 
 /**
@@ -94,6 +95,9 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
     super.destroy();
   }
 
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_TRANSACTION_CASH_BASED;
+  }
 
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
   }

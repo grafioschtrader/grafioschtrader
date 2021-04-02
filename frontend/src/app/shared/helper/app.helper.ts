@@ -12,11 +12,9 @@ import {GlobalSessionNames} from '../global.session.names';
 import {AppSettings} from '../app.settings';
 import {ConfirmationService} from 'primeng/api';
 
-
 export const enum Comparison { GT, LT, EQ }
 
 type CompareFunc<T, S> = (a: T, b: S) => Comparison;
-
 
 export class AppHelper {
 
@@ -55,19 +53,16 @@ export class AppHelper {
     return {headers: httpHeaders, params: httpParams};
   }
 
-
   static transformDataToRealClassDataList<T>(type: new() => T, data: T): T {
     const instance = new type();
     return (Object.assign(instance, data));
   }
-
 
   public static createParamObjectFromParamMap(paramMap: ParamMap): any {
     const paramObject = {};
     paramMap.keys.forEach(key => paramObject[key] = JSON.parse(paramMap.get(key)));
     return paramObject;
   }
-
 
   /**
    * Returns 'ABC_DEF_GH' from 'abcDefGh', and TRANSACTION_GAIN_LOSS_MC from 'transactionGainLossMC'
@@ -114,13 +109,6 @@ export class AppHelper {
         case DataType.DateTimeString:
           return moment(dataobject).format(globalparameterService.getTimeDateFormatForTable());
         default:
-          /*
-                    if (field.translateValues && field.translatedVauleMap) {
-                      return dataobject;
-                    } else {
-                      (field.translateValues && translateService) ? translateService.instant(dataobject) : dataobject;
-                    }
-          */
           return dataobject;
       }
     }
@@ -129,7 +117,6 @@ export class AppHelper {
   public static getDateByFormat(globalparameterService: GlobalparameterService, dataobject: string): string {
     return moment(dataobject).format(globalparameterService.getDateFormat());
   }
-
 
   public static numberFormat(globalparameterService: GlobalparameterService, value: number, maxFractionDigits: number,
                              minFractionDigits: number) {
@@ -177,7 +164,6 @@ export class AppHelper {
     return middle * -1;
   }
 
-
   /**
    * Shows a confirm dialog which is expecting an user input to confirm the action.
    */
@@ -207,7 +193,6 @@ export class AppHelper {
     });
   }
 
-
   public static getDefaultFormConfig(globalparameterService: GlobalparameterService, labelcolums: number,
                                      helpLinkFN: Function = null, nonModal = false): FormConfig {
     return {
@@ -232,13 +217,10 @@ export class AppHelper {
     return params;
   }
 
-
-
 }
 
 export class TranslateParam {
   translatedValue: string;
-
 
   constructor(public paramName, public paramValue: string, public translate: boolean) {
   }
