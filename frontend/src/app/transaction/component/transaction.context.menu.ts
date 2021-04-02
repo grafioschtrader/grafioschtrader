@@ -7,7 +7,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {TransactionService} from '../service/transaction.service';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import { ChangeDetectorRef, EventEmitter, Output, ViewChild, Directive } from '@angular/core';
+import {ChangeDetectorRef, Directive, EventEmitter, Output, ViewChild} from '@angular/core';
 import {Security} from '../../entities/security';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
@@ -15,11 +15,11 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {HelpIds} from '../../shared/help/help.ids';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
+import {HelpIds} from '../../shared/help/help.ids';
 
 
 /**
@@ -173,6 +173,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   public getHelpContextId(): HelpIds {
     return null;
   }
+
 
   destroy(): void {
     this.activePanelService.destroyPanel(this);

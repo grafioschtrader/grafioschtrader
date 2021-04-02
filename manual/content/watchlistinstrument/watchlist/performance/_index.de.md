@@ -6,14 +6,16 @@ weight : 10
 chapter: true
 ---
 ## Performanz
-Diese **Watchlist-Ansicht** zeigt die Instrumente mit ihren offenen und gehandelten Positionen an. Ein vorhandenes **Expander-Symbol** beim Instrument ist ein Hinweis auf seine bestehenden **Transaktionen**.
+Durch die Selektion einer Watchlist im **Navigationsbaum** wird diese Ansicht standardmässig im Hauptbereich angezeigt. Die **Watchlist-Ansicht** zeigt die Instrumente mit ihren offenen und gehandelten Positionen an zusätzlich ist es die einzige Möglichkeit einer **Intraday Kursaktualisierung** in GT.
+
+### Intraday Kursaktualisierung
+Die Selektion dieser Watchlist-Ansicht kann eine **Intraday Kursaktualisierung** bewirken, dabei wird der vorgegebene Zeitabstand seit der letzten Kursaktualisierung berücksichtigt. Dieser Zeitabstand wird auch bei jedem einzelnen Instrumente für eine mögliche Kursaktualisierung herangezogen. Wann die letzte Aktualisierung der Intraday Kurse erfolgte, steht in der Titelzeile der Watchlist.
 
 ### Funktionen
+Diese **Performanz-Ansicht** hat nur die allgemeinen Funktionen implementiert.
 
 ### Eigenschaften und Tabellenspalten
+Die nicht selbsterklärenden Eigenschaft haben ein **Tooltip** in der entsprechenden Spalte des **Tabellenkopfes**.
 
-#### Zeit/Datum
-
-#### Aktuell
-
-#### Seit Jahresbeginn %
+### Expandierende Tabellenzeile
+Ein vorhandenes **Expander-Symbol** beim Instrument ist ein Hinweis auf seine bestehenden **Transaktionen**. Weitere Informationen finden Sie unter der Hilfe für diese Ansicht der Transaktionen.

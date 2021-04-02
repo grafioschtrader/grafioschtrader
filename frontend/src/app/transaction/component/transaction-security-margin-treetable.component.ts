@@ -21,6 +21,7 @@ import {TransactionType} from '../../shared/types/transaction.type';
 import {ProposedMarginFinanceCost} from '../model/proposed.margin.finance.cost';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
+import {HelpIds} from '../../shared/help/help.ids';
 
 /**
  * It shows margin transactions as a tree. It supports editing existing transaction and close a open position.
@@ -180,13 +181,10 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     super.onRowUnselect(event);
   }
 
-  /*
-  protected handleEditConnectedTransaction(transaction: Transaction): void {
-    const transactionConnected: Transaction = this.selectedNode.parent.data.transaction;
-    this.handleSecurityEditTransaction(transaction, new CloseMarginPosition(transactionConnected.quotation,
-      transactionConnected.units));
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_TRANSACTION_MARGIN_BASED;
   }
-*/
+
 
   private handleClosePosition(openTransaction: Transaction, hypoTransaction: Transaction): void {
     const closeTransaction = this.getNewTransaction(openTransaction);
