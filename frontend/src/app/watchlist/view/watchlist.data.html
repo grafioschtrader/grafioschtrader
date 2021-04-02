@@ -32,7 +32,7 @@
     <ng-template pTemplate="body" let-spl let-expanded="expanded" let-columns="fields">
       <tr [pSelectableRow]="spl">
         <td style="width:24px">
-          <a *ngIf="spl.watchlistSecurityHasEverTransactionTenant || watchlistType != WatchListType.PERFORMANCE" href="#"
+          <a *ngIf="spl.watchlistSecurityHasEver || watchlistType == WatchListType.PRICE_FEED" href="#"
              [pRowToggler]="spl">
             <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
           </a>
@@ -65,7 +65,7 @@
     </ng-template>
 
     <ng-template pTemplate="rowexpansion" let-spl let-columns="fields">
-      <tr *ngIf="spl.watchlistSecurityHasEverTransactionTenant || watchlistType != WatchListType.PERFORMANCE">
+      <tr *ngIf="spl.watchlistSecurityHasEver || watchlistType != WatchListType.PERFORMANCE">
         <td [attr.colspan]="numberOfVisibleColumns + 1">
           <transaction-security-table *ngIf="watchlistType === WatchListType.PERFORMANCE && !isMarginProduct(spl)"
                                       [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency"
@@ -89,7 +89,7 @@
           <div *ngIf="watchlistType === WatchListType.DIVIDEND_SPLIT_FEDED">
             <watchlist-dividend-table [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency">
             </watchlist-dividend-table>
-            <watchlist-securitysplit-table  [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency">
+            <watchlist-securitysplit-table [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency">
             </watchlist-securitysplit-table>
           </div>
 

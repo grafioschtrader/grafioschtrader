@@ -101,10 +101,11 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     return this.feedConnectorsKV[valueField];
   }
 
+/*
   watchlistSecurityHasEverTransactionTenant(rowData: SecuritycurrencyPosition<any>): string {
     return '';
   }
-
+*/
   getWatchlistWithoutUpdate() {
     const watchListObservable: Observable<SecuritycurrencyGroup> =
       this.watchlistService.getWatchlistWithoutUpdateAndMaxHistoryquote(this.idWatchlist);
