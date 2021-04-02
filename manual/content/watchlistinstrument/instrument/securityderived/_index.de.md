@@ -6,10 +6,10 @@ weight : 8
 chapter: true
 ---
 ## Wertpapier und abgeleitetes Instrument
-Ein Wertpapier und abgeleitetes Wertpapiere haben viele Gemeinsamkeiten, daher werden diese hier zusammen besprochen.
+Ein **Wertpapier** und **abgeleitetes Wertpapiere** haben viele Gemeinsamkeiten, daher werden diese hier zusammen dokumentiert.
 
 ## Unterschiedliche Buchungsansätze
-Mit GT können unterschiedliche Anlageprodukte gehandelt werden. Durch die Art der **Transaktion** gibt es grundsätzlich zwei zwei unterschiedliche Buchungsansätze in GT.
+Mit GT können unterschiedliche Anlageprodukte gehandelt werden. Durch die Art der **Transaktion** gibt es grundsätzlich  zwei unterschiedliche Buchungsansätze in GT.
 
 ### Buchung des zugrundeliegenden Vermögenswertes
 Beim Handel von Aktien, ETF usw. wird der zugrundeliegende **Vermögenswert** beim Kaufen oder Verkaufen **verbucht**.
@@ -20,4 +20,8 @@ Produkte die mit einer Sicherheitsleistung auch **Margin** genannt. Dabei gibt e
 ### Wertpapier-Split
 Wird ein Wertpapier-Split erfasst, so werden die historischen Daten dieses Wertpapiers neu eingelesen.
 
-#### Erstellen Wertpapier oder abgeleitetes Instrument
+### Erstellen Wertpapier oder abgeleitetes Instrument
+...
+
+### Eigenschaften
+Die gemeinsamen Eigenschaften **Wertpapier** und **abgeleitetes Wertpapiere** sind selbsterklären und werden nicht weiter dokumentiert.

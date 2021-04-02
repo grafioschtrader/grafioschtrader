@@ -6,3 +6,11 @@ weight : 8
 chapter: true
 ---
 ## Wertpapier
+
+### Eigenschaften Wertpapier
+#### Handelsplatz
++ Falls ein **Handelsplatz** ohne Kursdaten gewählt wird, wird der Dialog mit dem Reiter **"Historische Kurse für Periode"** erweitert.
++ ...
+
+### Reiter Historische Kurse für Periode
+...

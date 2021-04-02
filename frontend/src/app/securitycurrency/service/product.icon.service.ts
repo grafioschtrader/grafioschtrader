@@ -8,7 +8,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Injectable()
 export class ProductIconService {
 
-  readonly icons = ['bo', 'c', 'cc', 'cb', 'd', 'cfd_c', 'cfd_i', 'd', 'eq', 'etf_c', 'etf_i', 'f', 'fr', 'fx', 'i', 'm'];
+  readonly icons = ['bo', 'c', 'cc', 'cb', 'co', 'd', 'cfd_c', 'cfd_i', 'd', 'eq', 'etf_c', 'etf_i', 'f', 'fr', 'fx', 'i', 'm'];
 
   constructor(private iconReg: SvgIconRegistryService) {
     this.icons.forEach(icon => this.iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + icon + '.svg', icon));

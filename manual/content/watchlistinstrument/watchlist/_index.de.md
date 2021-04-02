@@ -41,21 +41,22 @@ Mit dieser Funktion wird ein **abgeleitetes Instrument** erstellt und der Watchl
 ##### Hinzufügen neu erstelltes Währungspaar
 Damit wird ein neues **Währungspaar** erstellt und der Watchlist hinzugefügt, weitere Information siehe [Währungspaar](../instrument/currencypair).
 
-#### Funktionem selektiertes Instrument
+#### Funktionen selektiertes Instrument
 Diese Funktion können auf einem selektierten Instrument angewendet werden.
 
 ##### Instrument entfernen
+...
 
 ##### Tagesdaten als Liniengrafik oder Tabelle
 Diese Gruppe von Funktionen ist auf die Watchlist beschränkt, daher siehe [Tagesendkurse als Linengrafik](../eodchart).
 
+##### Nachricht an Ersteller
+Damit kann eine Nachricht an den Ersteller dieses Instrument gesendet werden, weiter Informationen zum siehe [Nachrichtensystem](../../admindata).
 
 ### Eigenschaften und Tabellenspalten
-Spalten werden nicht weiter beschrieben falls diese **Instrument** bzw. **Anlagekasse** erwähnt wurden. Einige Spalten sind selbsterklärend oder dessen Tooltip und müssen nicht weiter erklärt werden.
+Spalten werden nicht weiter beschrieben falls diese **Instrument** bzw. **Anlagekasse** erwähnt wurden. Einige Spalten sind selbsterklärend oder dessen Tooltip gibt ausreichend Erklärung.
 
 #### Instrumentenart (I)
 Die Symbole der Instrumente können der [Anlageklasse](../../basedata/assetclass) entnommen werden.
 {{< svg "d.svg" svg-icon-size >}}: Dies steht zusätzlich für ein abgeleitetes Instrument.
 
-### Nachricht an Ersteller
-Damit kann eine Nachricht an den Ersteller dieses Instrument gesendet werden, weiter Informationen zum siehe [Nachrichtensystem](../../admindata).

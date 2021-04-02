@@ -63,16 +63,16 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
       5, this.helpLink.bind(this));
     this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(
-      SecurityDerived.Currencypair),
+      SecurityDerived.Currencypair);
 
       this.config = [
         DynamicFieldHelper.createFieldSelectString('fromCurrency', 'CURRENCY_FROM', true,
           {fieldsetName: 'CURRENCY_BASE_DATA'}),
         DynamicFieldHelper.createFieldSelectString('toCurrency', 'CURRENCY_TO', true,
           {fieldsetName: 'CURRENCY_BASE_DATA'}),
-        DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', 1000, false,
+        DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 1000, false,
           {fieldsetName: 'CURRENCY_BASE_DATA'}),
-        DynamicFieldHelper.createFieldInputString('stockexchangeLink', 'STOCKEXCHANGE_LINK', 254, false,
+        DynamicFieldHelper.createFieldInputStringHeqF('stockexchangeLink',  254, false,
           {fieldsetName: 'CURRENCY_BASE_DATA'}),
         ...this.connectorPriceFieldConfig,
         ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
