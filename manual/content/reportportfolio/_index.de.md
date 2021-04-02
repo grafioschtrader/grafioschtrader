@@ -14,13 +14,15 @@ Auswertungen ist das, was der Benutzer von GT letztendlich interessiert. Die Aus
 ### Warum keine Prozentangabe Vermögensänderung
 In GT gibt es keine Angabe einer prozentualen Vermögensänderung. Auf diese wurde verzichtet, da die Aussagekräftig bei einem nicht andauernden 100 prozentiges Investment gering ist. 
 {{% notice info %}}
+**Benchmarking zukünftige Version**\
 Möglicherweise wird es in zukünftigen GT-Versionen eine Möglichkeit eines Benchmarking geben. Eine Idee einer Simulation: Wie wäre die Performance wenn die selben Beträge in den Benchmark investiert würden im Vergleich zu den Investitionen die real getätigt wurden.
 {{% /notice %}}
 
 ### Abweichung zur Realität
 Für die Berechnung der Performance werden hypothetische Transaktionen durchgeführt. Beispielsweise müssten Wertpapiere verkauft und die Fremdwährungen gegen die Hauptwährung gekauft werden. Dazu werden hypothetische Verkäufe und Währungstransaktionen durchgeführt. Bei den Fremdwährungskursen wird der Mittelkurse genommen. Die Aufwendungen für Transaktionskosten und Steuern werden nicht berücksichtigt.
 {{% notice info %}}
-In einer zukünftigen GT-Version werden die bisher vernachlässigten Veräusserungskosten berücksichtigt werden. Dabei werden aus der Historie von getätigten Transaktionen die Veräusserungskosten abgeleitet.
+**Veräusserungskosten zukünftige Version**\
+In einer zukünftigen GT-Version werden die bisher vernachlässigten Veräusserungskosten berücksichtigt werden. Dabei werden aus der Historie von getätigten Transaktionen die **Veräusserungskosten** abgeleitet.
 {{% /notice %}}
 
 ### Problematik Fremdwährung

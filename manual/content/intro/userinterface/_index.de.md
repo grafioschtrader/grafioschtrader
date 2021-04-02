@@ -15,7 +15,7 @@ Nebst der **Menüleiste** unterteilt sich die Benutzeroberfläche in drei Teile,
 #### Menüleiste
 Die Menüpunkte **Einstellung** und **Abmelden** und **Hilfe** sind statisch.
 {{% notice note %}}
-Warum die rechte Maustaste?</p>
+**Warum die rechte Maustaste?**\
 Auf gewissen Entität kann eine Vielzahl von Befehlen angewendet werden. Die Umsetzung mit Schaltflächen würde sehr viel Raum beanspruchen.
 {{% /notice %}}
 
@@ -29,6 +29,11 @@ Der **Hauptbereich** reflektiert den Inhalt des gewählten Elementes im **Naviga
 Der **Zusatzbereich** ist unterhalb des Hauptbereiches angeordnet. Dessen Inhalt wird weitgehend durch die Interaktionen im **Hauptbereich** gesteuert, beispielsweise durch die Anzeige einer Grafik zu den Daten im Hauptbereich.
 
 ![User Interface](ui_parts.jpg)
+
+{{% notice note %}}
+**Warum diese drei Bereiche?**\
+Neue Funktionalität lässt sich einfache in diese drei Bereiche integrieren. Der Navigationsbereich kann in die Tiefe und Breite wachsten. Der Hauptbereich kann mit Reiter ergänzt werden und im Zustatzbereich lässt sich verschiedenes abbilden.
+{{% /notice %}}
 
 ### Dialoge
 Die Erfassung von Daten durch den Benutzer findet ausschliesslich über **Modal-Dialoge** statt. Ein Model-Dialog öffnet sich im Vordergrund und reduziert die Benutzerinteraktion auf diesen Dialog. Die Sichtbarkeit eines Modal-Dialog wird durch eine **Lightbox** erkennbar, dabei verdunkelt sich die Webseite im Hintergrund. Der Modal-Dialog ermöglicht eine Erfassung von **Entitäten** wie Transaktionen ohne gegen das Konzept einer **Einzelseiten-Webanwendung** zu verstossen, d.h. die aktuelle Seite wird nicht verlassen.

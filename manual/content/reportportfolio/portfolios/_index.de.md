@@ -28,7 +28,6 @@ Der Gewinn Wertpapiere berechnet sich aus der Addition des Kursgewinnes und Divi
 - **Gewinn Wertpapiere**: Der hypothetische Gewinn der auf den Wertpapieren erzielt wird und wurde, damit ist gemeint, falls am **Bis Datum** alle Wertpapiere verkauft würden. Dieser Betrag enthält die Erträge aus Zinsen und Dividenden sowie auch die Aufwände der verbuchten Transaktions und Steuerkosten. Durch die Einstellung 
 
 {{% notice info %}}
-Die Werte **Wertpapier** und **Barsaldo** ergeben das **Total** in der entsprechenden Portfoliowährung.
-
+Die Werte **Wertpapier** und **Barsaldo** ergeben das **Total** in der entsprechenden Portfoliowährung.\
 Auch die Werte **Externe Bargeld Ein/Auszahlung** - **Konto Transaktionskosten** - **Konto und Depotkosten** + **Kontozins** + **Währungsgewinn** müssen das **Total** in der entsprechenden Portfoliowährung ergeben.
 {{% /notice %}}
