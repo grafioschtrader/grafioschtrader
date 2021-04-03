@@ -14,8 +14,5 @@ Die Selektion dieser Watchlist-Ansicht kann eine **Intraday Kursaktualisierung**
 ### Funktionen
 Diese **Performanz-Ansicht** hat nur die allgemeinen Funktionen implementiert.
 
-### Eigenschaften und Tabellenspalten
-Die nicht selbsterklärenden Eigenschaft haben ein **Tooltip** in der entsprechenden Spalte des **Tabellenkopfes**.
-
 ### Expandierende Tabellenzeile
 Ein vorhandenes **Expander-Symbol** beim Instrument ist ein Hinweis auf seine bestehenden **Transaktionen**. Weitere Informationen finden Sie unter der Hilfe für diese Ansicht der Transaktionen.
