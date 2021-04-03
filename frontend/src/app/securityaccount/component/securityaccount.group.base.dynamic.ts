@@ -5,8 +5,7 @@ import {SecurityaccountGroupBase} from './securityaccount.group.base';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
 import {SecurityPositionDynamicGrandSummary} from '../../entities/view/security.position.dynamic.grand.summary';
-import {Assetclass} from '../../entities/assetclass';
-import {SecurityaccountAssetclassCategorytpeGroup} from './securityaccount.assetclass.categorytpe.group';
+import {AssetclassType} from '../../shared/types/assetclass.type';
 
 /**
  * Allow dynamic grouping, but is general a base class of asset class grouping.
@@ -65,35 +64,95 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
     });
   }
 
+  /*
+    public getChartDefinition(title: string,
+                              spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<S>>): any {
+      const values: number[] = [];
+      const labels: string[] = [];
+
+      spdgs.securityPositionGroupSummaryList.forEach((spgs: SecurityPositionDynamicGroupSummary<string>) => {
+        values.push(spgs.groupAccountValueSecurityMC / spdgs.grandAccountValueSecurityMC * 100);
+        const fieldValue = spgs.groupField;
+        if (this.translatedGroupValues) {
+          labels.push(this.translatedGroupValues[fieldValue]);
+        } else {
+          labels.push(fieldValue);
+        }
+      });
+
+      const data = [{
+        values: values,
+        labels: labels,
+        type: 'pie'
+      }];
+
+      const layout = {
+        title: title
+      };
+
+      return {data: data, layout: layout};
+    }
+  */
+
   public getChartDefinition(title: string,
-                            spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<S>>): any {
-    const values: number[] = [];
+                            spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<AssetclassType>>): any {
+
+    const valuesNet: number[] = [];
+    const valuesGross: number [] = [];
+
     const labels: string[] = [];
 
-    spdgs.securityPositionGroupSummaryList.forEach((spgs: SecurityPositionDynamicGroupSummary<string>) => {
-      values.push(spgs.groupAccountValueSecurityMC/ spdgs.grandAccountValueSecurityMC* 100);
-      const fieldValue = spgs.groupField;
-      if (this.translatedGroupValues) {
-        labels.push(this.translatedGroupValues[fieldValue]);
+    spdgs.securityPositionGroupSummaryList.forEach((spgs: SecurityPositionDynamicGroupSummary<AssetclassType>) => {
+      labels.push(this.translatedGroupValues[spgs.groupField]);
+      valuesGross.push(spgs.groupAccountValueSecurityMC / spdgs.grandAccountValueSecurityMC * 100);
+      const enumGroup = (<any>AssetclassType)[spgs.groupField];
+      if (enumGroup === AssetclassType.CURRENCY_FOREIGN || enumGroup === AssetclassType.CURRENCY_CASH) {
+        valuesNet.push(spgs.groupAccountValueSecurityMC);
       } else {
-        labels.push(fieldValue);
+        valuesNet.push(spgs.groupSecurityRiskMC);
       }
     });
 
-    const data = [{
-      values: values,
+    const barChartNet: any = {
+      x: valuesNet,
+      y: labels,
+      type: 'bar',
+      orientation: 'h',
+      domain: {
+        x: [0.1, .48],
+        y: [0, 0.8]
+      },
+      sort: false,
+      hoverinfo: 'label'
+    };
+    const circleChartGross = {
+      values: valuesGross,
       labels: labels,
-      type: 'pie'
-    }];
-
-    const layout = {
-      title: title
+      type: 'pie',
+      domain: {
+        x: [0.52, 1],
+        y: [0, 0.8]
+      },
+      hoverinfo: 'label+percent',
+      sort: false
     };
 
+    const data = [barChartNet, circleChartGross];
+
+    const layout = {
+      title: title,
+      grid: {rows: 1, columns: 2},
+      yaxis: {
+        automargin: true
+      }
+
+    };
+
+    this.translateService.get(SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER).subscribe(
+      translated => barChartNet.name = translated);
     return {data: data, layout: layout};
   }
 
   protected abstract getGroupFieldAsString(enumType: S): string;
-
 
 }
