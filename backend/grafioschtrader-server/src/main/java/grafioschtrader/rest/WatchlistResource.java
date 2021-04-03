@@ -88,6 +88,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Attempts to update the intraday quote data even though retry counter has reached its limit", 
+      description = "",  tags = { RequestMappings.WATCHLIST })
   @GetMapping(value = "{idWatchlist}/tryuptodateintradata", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyLists> tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(
       @PathVariable final Integer idWatchlist) {
@@ -95,6 +97,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Attempts to update the historical quote data even though retry counter has reached its limit", 
+      description = "",  tags = { RequestMappings.WATCHLIST })
   @GetMapping(value = "{idWatchlist}/tryuptodatehistoricaldata", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyLists> tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(
       @PathVariable final Integer idWatchlist) {
