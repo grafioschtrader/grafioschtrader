@@ -34,56 +34,6 @@ export class SecurityaccountAssetclassCategorytpeGroup extends SecurityaccountGr
     return security.assetClass.categoryType;
   }
 
-  public getChartDefinition(title: string,
-                            spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<AssetclassType>>): any {
-
-    const valuesNet: number[] = [];
-    const valuesGross: number [] = [];
-
-    const labels: string[] = [];
-
-    spdgs.securityPositionGroupSummaryList.forEach((spgs: SecurityPositionDynamicGroupSummary<AssetclassType>) => {
-      labels.push(this.translatedGroupValues[spgs.groupField]);
-      valuesGross.push(spgs.groupAccountValueSecurityMC / spdgs.grandAccountValueSecurityMC * 100);
-
-      valuesNet.push(spgs.groupSecurityRiskMC);
-
-    });
-
-    const barChartNet: any = {
-      x: valuesNet,
-      y: labels,
-      type: 'bar',
-      orientation: 'h',
-      domain: {
-        x: [0.1, .48],
-        y: [0, 0.8]
-      },
-      sort: false
-    };
-    const circleChartGross = {
-      values: valuesGross,
-      labels: labels,
-      type: 'pie',
-      domain: {
-        x: [0.52, 1],
-        y: [0, 0.8]
-      },
-      hoverinfo: 'label+percent',
-      sort: false
-    };
-
-    const data = [barChartNet, circleChartGross];
-
-    const layout = {
-      title: title,
-      grid: {rows: 1, columns: 2},
-    };
-
-    this.translateService.get(SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER).subscribe(
-      translated => barChartNet.name = translated);
-    return {data: data, layout: layout};
-  }
 
   protected getGroupFieldAsString(enumType: AssetclassType): string {
     return AssetclassType[AssetclassType[enumType]];

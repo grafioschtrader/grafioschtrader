@@ -34,7 +34,7 @@ export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<Secur
 
   public getGroupValue(security: Security) {
     return security.currency;
-  };
+  }
 
   public getGroupValueFromGroupRow(securityPositionGroupSummary: SecurityPositionCurrenyGroupSummary) {
     return securityPositionGroupSummary.currency;
@@ -56,9 +56,7 @@ export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<Secur
     return `${securityaccountGroupBase.currency} ( ${text}: ${exchangeRate} )`;
   }
 
-
   public translateGroupValues(securityPositionGroupSummary: SecurityPositionCurrenyGroupSummary[]): void {
-
   }
 
   public getChartDefinition(title: string, securityPositionGrandSummary: SecurityPositionGrandSummary): any {
