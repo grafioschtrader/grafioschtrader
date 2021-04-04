@@ -1,5 +1,5 @@
 import {TableConfigBase} from './table.config.base';
-import { ChangeDetectorRef, OnInit, Directive } from '@angular/core';
+import {ChangeDetectorRef, Directive, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../service/user.settings.service';
 import {AppHelper} from '../helper/app.helper';
@@ -20,6 +20,7 @@ import {DynamicDialogHelper} from '../dynamicdialog/component/dynamic.dialog.hel
 import * as filesaver from '../../shared/filesaver/filesaver';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {AppSettings} from '../app.settings';
 
 export enum CrudMenuOptions {
   Allow_Create,
@@ -170,20 +171,23 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
 
     if (this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Create) >= 0) {
       menuItems.push({
-        label: 'CREATE|' + this.entityNameUpper, command: (event) => this.handleEditEntity(null),
+        label: 'CREATE|' + this.entityNameUpper + AppSettings.DIALOG_MENU_SUFFIX,
+        command: (event) => this.handleEditEntity(null),
         disabled: !this.hasRightsForCreateEntity(entity)
       });
     }
     if (entity) {
       if (this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Edit) >= 0) {
         menuItems.push({
-          label: 'EDIT_RECORD|' + this.entityNameUpper, command: (event) => this.handleEditEntity(entity),
+          label: 'EDIT_RECORD|' + this.entityNameUpper + AppSettings.DIALOG_MENU_SUFFIX,
+          command: (event) => this.handleEditEntity(entity),
           disabled: !this.hasRightsForUpdateEntity(entity)
         });
       }
       if (this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Delete) >= 0) {
         menuItems.push({
-          label: 'DELETE_RECORD|' + this.entityNameUpper, command: (event) => this.handleDeleteEntity(entity),
+          label: 'DELETE_RECORD|' + this.entityNameUpper,
+          command: (event) => this.handleDeleteEntity(entity),
           disabled: Object.keys(this.hasSecurityObject).length > 0 && this.hasSecurityObject[this.getId(entity)] !== 0
             || !this.hasRightsForDeleteEntity(entity)
         });
@@ -192,7 +196,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
 
     return menuItems;
-
   }
 
   protected hasRightsForCreateEntity(entity: T): boolean {
@@ -220,13 +223,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
       this.resetMenu(this.entityList.find(entity => entity[this.entityKeyName] === this.selectedEntity[this.entityKeyName]));
     }
   }
-
-  /*
-  // TODO Maybe sub class overwrite prepareEditMenu and not this method
-  protected extendMenu(defaultEditMenu: Menus) {
-    return defaultEditMenu;
-  }
-*/
 
   protected resetMenu(entity: T): void {
     this.selectedEntity = entity;

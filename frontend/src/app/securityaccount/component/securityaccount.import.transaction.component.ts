@@ -153,16 +153,19 @@ export class SecurityaccountImportTransactionComponent
 
     menuItems.push({separator: true});
     menuItems.push({
-      label: 'UPLOAD_CSV', disabled: !this.selectedEntity,
+      label: 'UPLOAD_CSV' + AppSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.selectedEntity,
       command: (event) => this.handleUploadFiles(this.selectedEntity, 'UPLOAD_CSV', 'csv', false)
     });
     menuItems.push({
-      label: 'UPLOAD_PDFS', disabled: !this.selectedEntity,
+      label: 'UPLOAD_PDFS' + AppSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.selectedEntity,
       command: (event) => this.handleUploadFiles(this.selectedEntity, 'UPLOAD_PDFs', 'pdf', true)
     });
 
     menuItems.push({
-      label: 'UPLOAD_TXT_FROM_GT_TRANSFROM', disabled: !this.selectedEntity,
+      label: 'UPLOAD_TXT_FROM_GT_TRANSFROM' + AppSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.selectedEntity,
       command: (event) => this.handleUploadFiles(this.selectedEntity, 'UPLOAD_TXT_FROM_GT_TRANSFROM', 'txt', false)
     });
 

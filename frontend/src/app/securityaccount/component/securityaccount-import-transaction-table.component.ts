@@ -26,7 +26,6 @@ import {
   CallBackSetSecurityWithAfter
 } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
-import {filter} from 'rxjs/operators';
 
 
 /**
@@ -159,7 +158,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccount.name', 'ACCOUNT', true, false);
 
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyExRate', 'EXCHANGE_RATE', true, true);
-    this.addColumnFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'isin',  true, true, {width: 100});
+    this.addColumnFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'isin', true, true, {width: 100});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'symbolImp', 'SYMBOL', true, true);
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'security.name', 'SECURITY', true, true,
       {width: 200});
@@ -271,14 +270,16 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
 
     menuItems.push({
-      label: 'SET_SECURITY', disabled: !this.selectedEntities || this.selectedEntities.length === 0
+      label: 'SET_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.selectedEntities || this.selectedEntities.length === 0
         || !this.selectedEntities.every(ctaitPos => Transaction.isSecurityTransaction(ctaitPos.importTransactionPos.transactionType)),
       command: (event) => this.visibleSetSecurityDialog = true
     });
 
 
     menuItems.push({
-      label: 'SET_CASHACCOUNT', disabled: !this.selectedEntities || this.selectedEntities.length === 0,
+      label: 'SET_CASHACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.selectedEntities || this.selectedEntities.length === 0,
       command: (event) => this.visibleSetCashaccountDialog = true
     });
     menuItems.push({separator: true});
@@ -286,7 +287,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       label: 'IMPORT_CREATE_TRANSACTION', command: (event) => this.handleCreateTransactions(),
       disabled: !this.selectedEntities || this.selectedEntities.length === 0,
     });
-
     return menuItems;
   }
 

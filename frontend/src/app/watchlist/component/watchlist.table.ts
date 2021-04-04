@@ -520,7 +520,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     menuItems.push({separator: true});
     menuItems.push(
       {
-        label: 'CREATE_AND_ADD_CURRENCYPAIR', command: (e) => this.modifyOrCreateAndAddCurrencypair(null),
+        label: 'CREATE_AND_ADD_CURRENCYPAIR'  + AppSettings.DIALOG_MENU_SUFFIX, command: (e) => this.modifyOrCreateAndAddCurrencypair(null),
         disabled: this.reachedWatchlistLimits()
       }
     );
@@ -528,7 +528,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       if (securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist) {
         menuItems.push(
           {
-            label: 'EDIT_RECORD|CURRENCYPAIR',
+            label: 'EDIT_RECORD|CURRENCYPAIR'  + AppSettings.DIALOG_MENU_SUFFIX,
             command: (e) => this.modifyOrCreateAndAddCurrencypair(securitycurrencyPosition.securitycurrency)
           }
         );

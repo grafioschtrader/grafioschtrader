@@ -4,7 +4,7 @@ import {ActivePanelService} from '../../mainmenubar/service/active.panel.service
 import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {FieldFormGroup} from '../../../dynamic-form/models/form.group.definition';
 import {FormConfig} from '../../../dynamic-form/models/form.config';
-import { ViewChild, Directive } from '@angular/core';
+import {Directive, ViewChild} from '@angular/core';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {Subscription} from 'rxjs';
 import {InfoLevelType} from '../../message/info.leve.type';
@@ -19,7 +19,7 @@ import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
 import {AuditHelper} from '../../helper/audit.helper';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import {SecurityaccountImportTransactionTableComponent} from '../../../securityaccount/component/securityaccount-import-transaction-table.component';
+import {AppSettings} from '../../app.settings';
 
 @Directive()
 export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements IGlobalMenuAttach {
@@ -98,9 +98,12 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
 
   getBaseEditMenu(entityName: string): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    menuItems.push({label: 'CREATE|' + entityName, command: (event) => this.handleEditEntityOpenDialog(null)});
     menuItems.push({
-      label: 'EDIT_RECORD|' + entityName, disabled: !this.selectedEntity,
+      label: 'CREATE|' + entityName + AppSettings.DIALOG_MENU_SUFFIX,
+      command: (event) => this.handleEditEntityOpenDialog(null)
+    });
+    menuItems.push({
+      label: 'EDIT_RECORD|' + entityName + AppSettings.DIALOG_MENU_SUFFIX, disabled: !this.selectedEntity,
       command: (event) => this.handleEditEntityOpenDialog(this.selectedEntity)
     });
     menuItems.push({

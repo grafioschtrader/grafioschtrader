@@ -532,6 +532,7 @@
   "TRADING_CALENDAR_GLOBAL_SAVE": "Handelskalender global von Jahr {{year}} wurde gespeichert",
   "TRADING_CALENDAR_UNDERLINE": "Unterstrich oder Hintergrund für Markierungsstil",
   "TRADING_CALENDAR_MARK_YEAR": "Markierung aller Handelstage",
+  "TRADING_CALENDAR_MARK_YEAR_TITLE": "Markiert alle Tags eines Jahres ohne Samstag und Sonntag, wird für neuen Kalender benutzt",
   "TRANSACTION_AVERAGE_PAID": "Durchschnitt Transaktionskosten",
   "TRANSACTION_COST": "Transaktionskosten",
   "TRANSACTION_TIME": "Transaktionszeit",
