@@ -56,7 +56,7 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
   getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
     if (this.hasRightsToModify()) {
-      menuItems.push({label: 'TRADING_CALENDAR_MARK_YEAR', command: (e) => this.markWorkingDaysOfFullYear()});
+      menuItems.push({label: '_TRADING_CALENDAR_MARK_YEAR', command: (e) => this.markWorkingDaysOfFullYear()});
       TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }
     this.contextMenuItems = menuItems;

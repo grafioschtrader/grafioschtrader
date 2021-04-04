@@ -89,7 +89,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
 
-  private markDays(tradingDaysMinus: Date[], createTypes: CreateType[] ): void {
+  private markDays(tradingDaysMinus: Date[], createTypes: CreateType[]): void {
     this.dateCreateTypes = tradingDaysMinus.reduce((result, date, index) => {
       result[this.getZeroTimeDate(date).getTime()] = createTypes[index];
       return result;
@@ -117,12 +117,10 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
     }
   }
 
-
   protected getExistingColor(date: Date): string {
     return this.dateCreateTypes[date.getTime()] === CreateType.ADD_MODIFIED_USER ?
       TradingCalendarStockexchangeComponent.USER_CREATED_COLOR : TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR;
   }
-
 
   markGlobalTradingDay(): void {
     this.yearCalendarData.dates = [];
@@ -139,7 +137,6 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
     this.yearCalendarData.disabledDays = [];
     this.globalTradingMinusDaysSet.forEach(time => this.yearCalendarData.disabledDays.push({date: new Date(time)}));
   }
-
 
   /**
    * A stock exchange trading day was clicked.
@@ -174,7 +171,10 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
     let menuItems: MenuItem[];
     if (this.hasRightsToModify()) {
       menuItems = [
-        {label: this.COPY_FULL_TITLE_KEY, command: (e) => this.copyCalendarFromOtherExchange(true)},
+        {
+          label: this.COPY_FULL_TITLE_KEY + AppSettings.DIALOG_MENU_SUFFIX,
+          command: (e) => this.copyCalendarFromOtherExchange(true)
+        },
         {
           label: this.COPY_YEAR_TITLE_KEY + AppSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.copyCalendarFromOtherExchange(false)

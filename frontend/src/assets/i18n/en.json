@@ -526,6 +526,7 @@
   "TRADING_CALENDAR_GLOBAL_SAVE": "Global trading calendar of year {{year}} has been saved",
   "TRADING_CALENDAR_UNDERLINE": "Underline or background for marking style",
   "TRADING_CALENDAR_MARK_YEAR": "Marking of all trading days",
+  "TRADING_CALENDAR_MARK_YEAR_TITLE": "Marks all tags of a year without Saturday and Sunday, used for new calendar",
   "TRANSACTION": "Transaction",
   "TRANSACTION_IMPLEMENTATION": "Transaction implementation",
   "TRANSACTIONS": "Transactions",

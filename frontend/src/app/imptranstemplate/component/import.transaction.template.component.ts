@@ -23,8 +23,11 @@ import {Assetclass} from '../../entities/assetclass';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
-
+/**
+ * Main component of import transaction template. It combines other components like a table.
+ */
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
@@ -63,11 +66,9 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
   // Access child components
   @ViewChild(ImportTransactionTemplateTableComponent) ittdc: ImportTransactionTemplateTableComponent;
 
-
   visibleTransformPDFToTxtDialog: boolean;
   visibleTemplateFormCheckDialog: boolean;
   platformTransactionImportHtmlOptions: ValueKeyHtmlSelectOptions[];
-
 
   constructor(private activatedRoute: ActivatedRoute,
               private importTransactionPlatformService: ImportTransactionPlatformService,
@@ -124,7 +125,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
   prepareEditMenu(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     menuItems.push({
-      label: 'TRANSFORM_PDF_TO_TXT',
+      label: 'TRANSFORM_PDF_TO_TXT' + AppSettings.DIALOG_MENU_SUFFIX,
       command: () => this.transformPDFToTxtDialog()
     });
     menuItems.push({separator: true});
@@ -132,7 +133,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
 
     menuItems.push({separator: true});
     menuItems.push({
-      label: 'CHECK_TEMPLATE_FORM',
+      label: 'CHECK_TEMPLATE_FORM' + AppSettings.DIALOG_MENU_SUFFIX,
       command: () => this.testTemplateDialog(),
       disabled: !this.selectedEntity || this.ittdc.isEmpty()
     });

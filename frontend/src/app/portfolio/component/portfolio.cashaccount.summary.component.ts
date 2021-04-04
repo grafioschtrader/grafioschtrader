@@ -28,9 +28,8 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-
-import {SecurityaccountImportTransactionTableComponent} from '../../securityaccount/component/securityaccount-import-transaction-table.component';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {AppSettings} from '../../shared/app.settings';
 
 
 /**
@@ -87,10 +86,10 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
       {width: 40});
     this.addColumn(DataType.Numeric, 'closePrice', 'SHARE_PRICE', true, false, {width: 50, maxFractionDigits: 5});
 
-    this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'externalCashTransferMC',  true, false,
+    this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'externalCashTransferMC', true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupExternalCashTransferMC')]}));
 
-    this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'cashTransferMC',  true, false,
+    this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'cashTransferMC', true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupCashTransferMC')]}));
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'cashAccountTransactionFeeMC', true, false,
@@ -160,43 +159,39 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
       });
   }
 
-
   prepareEditMenu(accountPositionSummary: AccountPositionSummary): MenuItem[] {
     const menuItems: MenuItem[] = [];
 
     menuItems.push({
-      label: 'NEW|ACCOUNT', command: (event) => this.handleNewAccount(this.portfolio)
+      label: 'NEW|ACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
+      command: (event) => this.handleNewAccount(this.portfolio)
     });
 
     if (accountPositionSummary) {
       menuItems.push({
-        label: 'EDIT_RECORD|ACCOUNT',
+        label: 'EDIT_RECORD|ACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
         command: (e) => (accountPositionSummary) ? this.handleEditAccount(this.portfolio, accountPositionSummary.cashaccount,
           {hasTransaction: accountPositionSummary.hasTransaction}) : null
       });
 
       menuItems.push({
-        label: 'DELETE_RECORD|ACCOUNT', command: (e) => (accountPositionSummary) ?
+        label: 'DELETE_RECORD|ACCOUNT',
+        command: (e) => (accountPositionSummary) ?
           this.handleDeleteCashaccount(accountPositionSummary.cashaccount.idSecuritycashAccount) : null,
         disabled: accountPositionSummary.hasTransaction
       });
-
       menuItems.push({separator: true});
-
-
       menuItems.push({
-        label: 'SINGLE_ACCOUNT_TRANSACTION',
+        label: 'SINGLE_ACCOUNT_TRANSACTION' + AppSettings.DIALOG_MENU_SUFFIX,
         command: (e) => (accountPositionSummary) ? this.handleSingleAccountTransaction(TransactionType.WITHDRAWAL,
           accountPositionSummary.cashaccount) : null
       });
 
-
       menuItems.push({
-        label: 'ACCOUNT_TRANSFER',
+        label: 'ACCOUNT_TRANSFER' + AppSettings.DIALOG_MENU_SUFFIX,
         command: (e) => (accountPositionSummary) ? this.handleDoubleAccountTransaction(accountPositionSummary.cashaccount) : null
       });
     }
-
 
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
@@ -206,7 +201,6 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   onRowExpand(event): void {
     this.expandedIdCashaccount.push(event.data.cashaccount.idSecuritycashAccount);
   }
-
 
   ////////////////////////////////////////////////
   // Event handler
