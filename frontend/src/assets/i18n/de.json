@@ -333,6 +333,7 @@
   "MAIL_REPLY_LINE": "-----Ursprüngliche Nachricht-----",
   "MAIL_SEND_DIALOG": "Nachricht senden",
   "MAIL_TO_CREATOR": "Nachricht an Ersteller",
+  "MAIL_TO_CREATOR_TITLE": "Dem Ersteller dieser Entität eine Nachricht zukommen lassen",
   "MAILSENDBOX": "Nachricht Ausgang",
   "MARGIN_CLOSE_GAIN": "Gewinn offene Margin Position",
   "MESSAGE": "Nachricht",

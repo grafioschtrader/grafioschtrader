@@ -46,16 +46,13 @@ Mit dieser Funktion wird ein **abgeleitetes Instrument** erstellt und der Watchl
 Damit wird ein neues **Währungspaar** erstellt und der Watchlist hinzugefügt, weitere Information siehe [Währungspaar](../instrument/currencypair).
 
 #### Funktionen selektiertes Instrument
-Diese Funktion können auf einem selektierten Instrument angewendet werden.
-
-##### Instrument entfernen
-...
+Diese Funktion können auf einem selektierten Instrument angewendet werden. Einige dieser Funktionen sind selberklärend und haben möglicheweise ein Hilfstext beim Menü.
 
 #### Kauf, Verkaufen, Zins/Dividende
 Diese Funktionen sind für die entsprechenden Funktion gedacht, weitere Informationen siehe [Wertpapiertransaktion](../../transaction/security).
 
 ##### Tagesdaten als Liniengrafik oder Tabelle
-Diese Gruppe von Funktionen ist auf die Watchlist beschränkt, daher siehe [Tagesendkurse als Linengrafik](../eodchart).
+Diese Gruppe von Funktionen ist nicht auf die Watchlist beschränkt, daher siehe [Tagesendkurse als Linengrafik](../eodchart).
 
 ##### Nachricht an Ersteller
 Damit kann eine Nachricht an den Ersteller dieses Instrument gesendet werden, weiter Informationen zum siehe [Nachrichtensystem](../../admindata).

@@ -54,7 +54,7 @@ export class TranslateHelper {
       if (menuItem.label) {
         if (menuItem.label.startsWith('_')) {
           menuItem.label = menuItem.label.slice(1);
-          menuItem.title = menuItem.label + '_TITLE';
+          menuItem.title =  TranslateHelper.cutOffDialogDots(menuItem.label) + '_TITLE';
         }
         TranslateHelper.translateMenuItem(menuItem, 'label', translateService, translateParam);
         TranslateHelper.translateMenuItem(menuItem, 'title', translateService, translateParam);
@@ -71,7 +71,7 @@ export class TranslateHelper {
       // Translate only once
       const dialogMenuItem = menuItem[targetProperty].endsWith(AppSettings.DIALOG_MENU_SUFFIX);
       if (dialogMenuItem) {
-        menuItem[targetProperty] = menuItem[targetProperty].slice(0, -AppSettings.DIALOG_MENU_SUFFIX.length);
+        menuItem[targetProperty] = TranslateHelper.cutOffDialogDots(menuItem[targetProperty]);
       }
       if (menuItem[targetProperty].indexOf('|') >= 0) {
         const labelWord: string[] = menuItem[targetProperty].split('|');
@@ -90,6 +90,10 @@ export class TranslateHelper {
           translated + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''));
       }
     }
+  }
+
+  private static cutOffDialogDots(label: string): string {
+    return label.endsWith(AppSettings.DIALOG_MENU_SUFFIX) ? label.slice(0, -AppSettings.DIALOG_MENU_SUFFIX.length) : label;
   }
 
 
