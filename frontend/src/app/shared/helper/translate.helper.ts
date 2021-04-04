@@ -41,42 +41,55 @@ export class TranslateHelper {
   }
 
   public static translateMessageError(translateService: TranslateService, fieldConfig: FieldConfig) {
-    fieldConfig.errors.forEach(error => translateService.get(error.keyi18n, {param1: error.param1, param2: error.param2})
+    fieldConfig.errors.forEach(error => translateService.get(error.keyi18n, {
+      param1: error.param1,
+      param2: error.param2
+    })
       .subscribe(text => error.text = text));
   }
 
 
   public static translateMenuItems(menuItems: MenuItem[], translateService: TranslateService, translateParam = true) {
     menuItems.forEach(menuItem => {
-      if (menuItem.label && menuItem.label.toUpperCase() === menuItem.label) {
-        // Translate only once
-        const dialogMenuItem = menuItem.label.endsWith(AppSettings.DIALOG_MENU_SUFFIX);
-        if (dialogMenuItem) {
-          menuItem.label = menuItem.label.slice(0, -AppSettings.DIALOG_MENU_SUFFIX.length);
+      if (menuItem.label) {
+        if (menuItem.label.startsWith('_')) {
+          menuItem.label = menuItem.label.slice(1);
+          menuItem.title = menuItem.label + '_TITLE';
         }
-        if (menuItem.label.indexOf('|') >= 0) {
-          const labelWord: string[] = menuItem.label.split('|');
-
-          if (translateParam) {
-            translateService.get(labelWord[1]).subscribe(param =>
-              translateService.get(labelWord[0], {i18nRecord: param}).subscribe(message =>
-                menuItem.label = message + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''))
-            );
-          } else {
-            translateService.get(labelWord[0], {i18nRecord: labelWord[1]}).subscribe(
-              message => menuItem.label = message);
-          }
-        } else {
-          translateService.get(menuItem.label).subscribe(translated => menuItem.label =
-            translated + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''));
+        TranslateHelper.translateMenuItem(menuItem, 'label', translateService, translateParam);
+        TranslateHelper.translateMenuItem(menuItem, 'title', translateService, translateParam);
+        if (menuItem.items) {
+          // For child menu
+          this.translateMenuItems(<MenuItem[]>menuItem.items, translateService, translateParam);
         }
-
-      }
-      if (menuItem.items) {
-        // For child menu
-        this.translateMenuItems(<MenuItem[]>menuItem.items, translateService, translateParam);
       }
     });
+  }
+
+  private static translateMenuItem(menuItem: MenuItem, targetProperty: string, translateService: TranslateService, translateParam): void {
+    if (menuItem[targetProperty] && menuItem[targetProperty].toUpperCase() === menuItem[targetProperty]) {
+      // Translate only once
+      const dialogMenuItem = menuItem[targetProperty].endsWith(AppSettings.DIALOG_MENU_SUFFIX);
+      if (dialogMenuItem) {
+        menuItem[targetProperty] = menuItem[targetProperty].slice(0, -AppSettings.DIALOG_MENU_SUFFIX.length);
+      }
+      if (menuItem[targetProperty].indexOf('|') >= 0) {
+        const labelWord: string[] = menuItem[targetProperty].split('|');
+
+        if (translateParam) {
+          translateService.get(labelWord[1]).subscribe(param =>
+            translateService.get(labelWord[0], {i18nRecord: param}).subscribe(message =>
+              menuItem[targetProperty] = message + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''))
+          );
+        } else {
+          translateService.get(labelWord[0], {i18nRecord: labelWord[1]}).subscribe(
+            message => menuItem[targetProperty] = message);
+        }
+      } else {
+        translateService.get(menuItem[targetProperty]).subscribe(translated => menuItem[targetProperty] =
+          translated + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''));
+      }
+    }
   }
 
 

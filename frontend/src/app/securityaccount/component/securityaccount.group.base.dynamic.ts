@@ -64,36 +64,6 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
     });
   }
 
-  /*
-    public getChartDefinition(title: string,
-                              spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<S>>): any {
-      const values: number[] = [];
-      const labels: string[] = [];
-
-      spdgs.securityPositionGroupSummaryList.forEach((spgs: SecurityPositionDynamicGroupSummary<string>) => {
-        values.push(spgs.groupAccountValueSecurityMC / spdgs.grandAccountValueSecurityMC * 100);
-        const fieldValue = spgs.groupField;
-        if (this.translatedGroupValues) {
-          labels.push(this.translatedGroupValues[fieldValue]);
-        } else {
-          labels.push(fieldValue);
-        }
-      });
-
-      const data = [{
-        values: values,
-        labels: labels,
-        type: 'pie'
-      }];
-
-      const layout = {
-        title: title
-      };
-
-      return {data: data, layout: layout};
-    }
-  */
-
   public getChartDefinition(title: string,
                             spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<AssetclassType>>): any {
 
@@ -145,7 +115,6 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
       yaxis: {
         automargin: true
       }
-
     };
 
     this.translateService.get(SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER).subscribe(

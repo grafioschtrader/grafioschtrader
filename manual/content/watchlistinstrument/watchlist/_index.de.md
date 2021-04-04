@@ -51,6 +51,9 @@ Diese Funktion können auf einem selektierten Instrument angewendet werden.
 ##### Instrument entfernen
 ...
 
+#### Kauf, Verkaufen, Zins/Dividende
+Diese Funktionen sind für die entsprechenden Funktion gedacht, weitere Informationen siehe [Wertpapiertransaktion](../../transaction/security).
+
 ##### Tagesdaten als Liniengrafik oder Tabelle
 Diese Gruppe von Funktionen ist auf die Watchlist beschränkt, daher siehe [Tagesendkurse als Linengrafik](../eodchart).
 
