@@ -333,6 +333,7 @@
   "MAIL_REPLY_LINE": "-----Original message-----",
   "MAIL_SEND_DIALOG": "Send message",
   "MAIL_TO_CREATOR": "Message to creator",
+  "MAIL_TO_CREATOR_TITLE": "Send a message to the creator of this entity",
   "MAILSENDBOX": "Message sent",
   "MARGIN_CLOSE_GAIN": "Profit open margin position",
   "MESSAGE": "Message",

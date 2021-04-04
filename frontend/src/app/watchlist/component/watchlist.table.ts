@@ -387,7 +387,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       );
       menuItems.push({separator: true});
       menuItems.push({
-        label: 'MAIL_TO_CREATOR',
+        label: '_MAIL_TO_CREATOR' + AppSettings.DIALOG_MENU_SUFFIX,
         command: (e) => this.mailToCreator(securitycurrencyPosition.securitycurrency)
       });
     }
