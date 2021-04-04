@@ -373,14 +373,14 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       menuItems.push(...BusinessHelper.getUrlLinkMenus(securitycurrencyPosition.securitycurrency));
       menuItems.push(
         {
-          label: 'INTRADAY_URL',
+          label: '_INTRADAY_URL',
           command: (e) => BusinessHelper.toExternalWebpage(securitycurrencyPosition.intradayUrl, 'intra'),
           disabled: !securitycurrencyPosition.intradayUrl
         }
       );
       menuItems.push(
         {
-          label: 'HISTORICAL_URL',
+          label: '_HISTORICAL_URL',
           command: (e) => BusinessHelper.toExternalWebpage(securitycurrencyPosition.historicalUrl, 'historical'),
           disabled: !securitycurrencyPosition.historicalUrl
         }
@@ -424,7 +424,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
     menuItems.push(
       {
-        label: 'ADD_EXISTING_SECURITY', command: (e) => this.addExistingSecurity(e),
+        label: 'ADD_EXISTING_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
         disabled: this.reachedWatchlistLimits()
       }
     );
@@ -449,7 +449,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       );
       menuItems.push(
         {
-          label: 'UPDATE', command: (e) => this.handleUpdateAllPrice(),
+          label: '_UPDATE_INTRADAY', command: (e) => this.handleUpdateAllPrice(),
           disabled: !this.securitycurrencyGroup || !this.intraUpdateTimoutSeconds
         }
       );
@@ -457,13 +457,15 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     menuItems.push({separator: true});
     menuItems.push(
       {
-        label: 'CREATE_AND_ADD_SECURITY', command: (e) => this.modifyOrCreateAndAddSecurity(null),
+        label: 'CREATE_AND_ADD_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX,
+        command: (e) => this.modifyOrCreateAndAddSecurity(null),
         disabled: this.reachedWatchlistLimits()
       }
     );
     menuItems.push(
       {
-        label: 'CREATE_AND_ADD_SECURITY_DERIVED', command: (e) => this.modifyOrCreateAndAddSecurityDerived(null),
+        label: 'CREATE_AND_ADD_SECURITY_DERIVED' + AppSettings.DIALOG_MENU_SUFFIX,
+        command: (e) => this.modifyOrCreateAndAddSecurityDerived(null),
         disabled: this.reachedWatchlistLimits()
       }
     );
@@ -482,7 +484,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
       menuItems.push(
         {
-          label: 'EDIT_RECORD|INSTRUMENT',
+          label: 'EDIT_RECORD|INSTRUMENT' + AppSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.modifySecurityOrSecurityDerived(<Security>securitycurrencyPosition.securitycurrency)
         }
       );
@@ -492,24 +494,22 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         menuItems.push({separator: true});
 
         menuItems.push({
-          label: 'ACCUMULATE',
+          label: 'ACCUMULATE' + AppSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.handleTransaction(TransactionType.ACCUMULATE,
             <Security>securitycurrencyPosition.securitycurrency)
         });
 
-
         menuItems.push({
-          label: 'REDUCE',
+          label: 'REDUCE' + AppSettings.DIALOG_MENU_SUFFIX,
           command: (e) => (securitycurrencyPosition) ? this.handleTransaction(TransactionType.REDUCE,
             <Security>securitycurrencyPosition.securitycurrency) : null,
           disabled: !(securitycurrencyPosition.units || securitycurrencyPosition.units === 0)
             && !this.isMarginProduct(securitycurrencyPosition)
         });
 
-
         if (!this.isMarginProduct(securitycurrencyPosition)) {
           menuItems.push({
-            label: 'DIVIDEND',
+            label: 'DIVIDEND' + AppSettings.DIALOG_MENU_SUFFIX,
             command: (e) => this.handleTransaction(TransactionType.DIVIDEND,
               <Security>securitycurrencyPosition.securitycurrency)
           });

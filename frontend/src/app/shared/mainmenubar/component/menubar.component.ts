@@ -55,12 +55,15 @@ export class MenubarComponent implements OnInit, OnDestroy {
     this.menuItems[TopMenuTypes.SETTINGS] = {
       label: 'SETTINGS', icon: 'fa fa-fw fa-wrench', visible: true,
       items: [
-        {label: 'PASSWORD_CHANGE', command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.Password)},
         {
-          label: 'NICKNAME_LOCALE_CHANGE',
+          label: 'PASSWORD_CHANGE' + AppSettings.DIALOG_MENU_SUFFIX,
+          command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.Password)
+        },
+        {
+          label: 'NICKNAME_LOCALE_CHANGE' + AppSettings.DIALOG_MENU_SUFFIX,
           command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.NicknameLocale)
         },
-        {label: 'EXPORT_DATA_SQL', command: () => this.downloadPersonalDataAsZip()},
+        {label: '_EXPORT_DATA_SQL', command: () => this.downloadPersonalDataAsZip()},
         {label: 'DELETE_MY', command: () => this.deleteMyDataAndUserAccount()}
       ]
     };
