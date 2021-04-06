@@ -196,7 +196,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         break;
       }
     }
-
   }
 
   @Override

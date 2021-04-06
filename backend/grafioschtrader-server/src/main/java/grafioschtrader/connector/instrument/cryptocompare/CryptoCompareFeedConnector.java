@@ -23,6 +23,10 @@ import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 
+/**
+ * It has a max row limit 
+ *
+ */
 @Component
 public class CryptoCompareFeedConnector extends BaseFeedConnector {
 

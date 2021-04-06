@@ -1,0 +1,1 @@
+UPDATE securitycurrency SET id_connector_history = 'gt.datafeed.fxubc' WHERE id_connector_history = 'gt.datafeed.exchangeratesapi';
