@@ -16,3 +16,6 @@ Splits können manuel mit dem Wertpapier erfasst werden, andererseits überwacht
 
 ### Dividende
 Dividenden werden für die historische Simulation der Wertentwicklung eines oder mehrere Portfolio benutzt. Es wird keine automatische Übernahme von Dividenden in die realen Portfolios geben. Zurzeit können manuel keine Dividenden erfasst werden.
+
+
+

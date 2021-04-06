@@ -26,8 +26,9 @@ public abstract class TransactionImportHelper {
         importTransactionPos.setSecurity(security);
       } else {
         List<Security> securities = securityJpaRepository.findByIsin(importTransactionPos.getIsin());
-        if(!securities.isEmpty()) {
-          importTransactionPos.setSecurity(security);
+        if (securities.size() == 1) {
+          // When there is only one 
+          importTransactionPos.setSecurity(securities.get(0));
           importTransactionPos.addKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISSMATCH);
         }
       }

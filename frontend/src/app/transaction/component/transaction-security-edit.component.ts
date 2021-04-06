@@ -50,6 +50,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {ClosedMarginPosition} from '../model/closed.margin.position';
+import {AbstractControl} from '@angular/forms';
 
 /**
  * Edit transaction for a investment product, also margin product. The transaction type (buy, dividend, sell,
@@ -110,6 +111,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private valueChangedOnValueCalcFieldsSub: Subscription;
   private valueChangedOnidSecurityaccountSub: Subscription;
   private valueChangedOnTransactionTimeSub: Subscription;
+  private valueChangedOnExDateSub: Subscription;
   private isMarginInstrument: boolean;
   private closedMarginPosition: ClosedMarginPosition;
 
@@ -157,12 +159,12 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
           9, 2, false, this.globalparameterService.getNumberCurrencyMask(),
           {userDefinedValue: 'S', usedLayoutColumns: 8}),
-      /*
-      DynamicFieldHelper.createFieldCurrencyNumber('transactionCostCA', null, false,
-        9, 2, false, this.globalparameterService.getNumberCurrencyMask(),
-        {userDefinedValue: 'C', usedLayoutColumns: 4}),
-*/
-      // Used for accrued interest and daily finance cost for margin instrument
+        /*
+        DynamicFieldHelper.createFieldCurrencyNumber('transactionCostCA', null, false,
+          9, 2, false, this.globalparameterService.getNumberCurrencyMask(),
+          {userDefinedValue: 'C', usedLayoutColumns: 4}),
+  */
+        // Used for accrued interest and daily finance cost for margin instrument
         DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue1', 'ACCRUED_INTEREST', false, 9, 5, true,
           this.globalparameterService.getNumberCurrencyMask(), {userDefinedValue: 'S'}),
         DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue2', 'VALUE_PER_POINT', false, 6, 0, true,
@@ -255,7 +257,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     const taxCost = data.taxCost ? data.taxCost : 0;
     const transactionCost = data.transactionCost ? data.transactionCost : 0;
     const accruedInterest = (!this.flattenFieldConfigObject.assetInvestmentValue1.invisible
-    && !this.isMarginInstrument  && data.assetInvestmentValue1) ? data.assetInvestmentValue1 : 0;
+      && !this.isMarginInstrument && data.assetInvestmentValue1) ? data.assetInvestmentValue1 : 0;
 
     let valuePerPoint = 1.0;
     if (this.isMarginInstrument) {
@@ -349,9 +351,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   /**
    * When transaction time changes, possible the available securities and possible holdings need a update.
    */
-  valueChangedOnTransactionTime(): void {
-    this.valueChangedOnTransactionTimeSub =
-      this.flattenFieldConfigObject.transactionTime.formControl.valueChanges.subscribe(value => {
+  valueChangedOnTransactionTimeAndExDate(): void {
+    this.timeChangedSubscribe(this.valueChangedOnTransactionTimeSub, this.flattenFieldConfigObject.transactionTime.formControl, false);
+    this.timeChangedSubscribe(this.valueChangedOnExDateSub, this.flattenFieldConfigObject.exDate.formControl, true);
+  }
+
+  private timeChangedSubscribe(subscript: Subscription, control: AbstractControl, hasPriority: boolean): void {
+    subscript = control.valueChanges.subscribe(value => {
+      if (!this.flattenFieldConfigObject.exDate.formControl.value || hasPriority) {
         if (value != null && !moment(value).isBefore(DynamicFieldHelper.minDateCalendar)) {
           if (this.transactionCallParam.security == null) {
             this.prepareAsyncActiveSecurityOptions();
@@ -361,7 +368,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
           this.getAndSetQuotationSecurity(this.selectedSecurity);
           this.updateCurrencyExchangeRate();
         }
-      });
+      }
+    });
   }
 
   private setMarginFlags(): void {
@@ -553,6 +561,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     this.cashaccountSecuritySub && this.cashaccountSecuritySub.unsubscribe();
     this.valueChangedOnidSecurityaccountSub && this.valueChangedOnidSecurityaccountSub.unsubscribe();
     this.valueChangedOnTransactionTimeSub && this.valueChangedOnTransactionTimeSub.unsubscribe();
+    this.valueChangedOnExDateSub && this.valueChangedOnExDateSub.unsubscribe();
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 
@@ -641,7 +650,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
     this.valueChangedOnSecurityaccount();
     this.valueChangedOnCashaccountOrSecurity();
-    this.valueChangedOnTransactionTime();
+    this.valueChangedOnTransactionTimeAndExDate();
 
     this.valueChangedOnCalcFields();
     this.setTransactionValue();

@@ -29,10 +29,6 @@ export abstract class SecurityaccountGroupBase<T extends SecurityPositionGroupSu
    */
   public abstract extendColumns(internalColumnConfigs: ColumnConfig[]);
 
-  /**
-   * Super
-   * @param {Security} security
-   */
   public abstract getGroupValue(security: Security);
 
   public abstract translateGroupValues(securityPositionGroupSummary: T[]): void;
