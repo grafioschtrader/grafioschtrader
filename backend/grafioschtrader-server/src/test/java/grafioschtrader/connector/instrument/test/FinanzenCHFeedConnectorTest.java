@@ -125,6 +125,8 @@ class FinanzenCHFeedConnectorTest {
 
     currencies.add(createCurrencypair("ETH", "CHF", "devisen/historisch/ethereum-franken-kurs"));
     currencies.add(createCurrencypair("EUR", "USD", "devisen/historisch/euro-us_dollar-kurs"));
+    currencies.add(createCurrencypair("EUR", "NOK", "devisen/historisch/euro-norwegische_krone-kurs"));
+
 
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();

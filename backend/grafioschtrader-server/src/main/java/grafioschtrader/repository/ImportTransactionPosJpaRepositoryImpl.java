@@ -257,7 +257,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
             idCurrencypair = getPossibleCurrencypairAndLoadCurrencypairs(itp, idItpMap, currencypairs,
                 importTransactionPosList.size() > 1);
           }
-          if (idItpMap != null && itp.getIdTransactionPos() != null
+          if (idItpMap != null && itp.getConnectedIdTransactionPos() != null
               && idItpMap.containsKey(itp.getIdTransactionPos())) {
             // Connected cash account transfer
             ImportTransactionPos otherItp = idItpMap.get(itp.getConnectedIdTransactionPos());

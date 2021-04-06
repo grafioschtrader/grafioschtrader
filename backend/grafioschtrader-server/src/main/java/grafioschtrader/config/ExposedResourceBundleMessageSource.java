@@ -15,7 +15,7 @@ public class ExposedResourceBundleMessageSource extends ReloadableResourceBundle
 
   @Override
   protected Properties loadProperties(Resource resource, String fileName) throws IOException {
-    log.info("Load " + fileName);
+    log.info("Load {}", fileName);
     return super.loadProperties(resource, fileName);
   }
 

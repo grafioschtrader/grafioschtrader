@@ -15,3 +15,7 @@ Die Intrady Kursdaten werden über die Selektion der Watchlist geladen, d.h. der
 **Historische Kursdaten** und **Splits** sind für GT die Grundlage für die Berechnung der Performance der Portfolios für einen Zeitraum. 
 
 #### Historische Kursdaten
+
+
+### Datenanbieter
+...

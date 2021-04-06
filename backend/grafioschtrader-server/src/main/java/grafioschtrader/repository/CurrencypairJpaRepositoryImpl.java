@@ -102,8 +102,6 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
-  @Transactional
-  @Modifying
   public void currencieyFillEmptyDaysInHistoryquote(Currencypair currencypair) {
     final int maxFillDays = globalparametersJpaRepository.getMaxFillDaysCurrency();
     currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays);
@@ -266,7 +264,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   public Currencypair fillEmptyCurrencypair(Currencypair currencypair) {
     currencypair = historyquoteThruConnector.createHistoryQuotesAndSave(currencypairJpaRepository, currencypair,
         null, null);
-    this.currencieyFillEmptyDaysInHistoryquote(currencypair);
+    currencieyFillEmptyDaysInHistoryquote(currencypair);
     updateLastPrice(currencypair);
     return currencypair;
   }

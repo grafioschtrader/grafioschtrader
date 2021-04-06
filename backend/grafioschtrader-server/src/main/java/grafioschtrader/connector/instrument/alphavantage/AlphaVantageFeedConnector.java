@@ -51,7 +51,7 @@ public class AlphaVantageFeedConnector extends BaseFeedConnector {
   /**
    * returns the full-length time series of up to 20 years of historical data
    */
-  private static String FULL = "full";
+  private static final String FULL = "full";
 
   static {
     supportedFeed = new HashMap<>();
