@@ -6,4 +6,14 @@ weight : 10
 chapter: true
 ---
 ## Tenant and Portfolios
-english
+GT defines a **tenant** from the aggregation of all **portfolios** and **watchlists**. Additionally it contains the information regarding the evaluation over all portfolios. A tenant can have one or more portfolios, the number of possible portfolios is limited. The following diagram shows the relationships of these **private data**. For example we can see that an account is assigned to a portfolio.
+
+{{< mermaid >}}
+erDiagram
+    Tenant ||--|{ Portfolio : has
+    Portfolio ||--|{ Account : has
+    Portfolio ||--|{ Security-Account : has
+    Tenant ||--|{ Watchlist : has
+    Watchlist ||--|{ Instruments : has
+    Account ||--|{ Transaktion : has
+{{< /mermaid >}}
