@@ -90,7 +90,8 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_MAX_LIMIT_EXCEEDED_COUNT = GT_PREFIX + "max.limit.request.exceeded.count";
   public static final String GLOB_KEY_MAX_SECURITY_BREACH_COUNT = GT_PREFIX + "max.security.breach.count";
 
-  public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT = GT_PREFIX + "source.demo.idtenant";
+  public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE = GT_PREFIX + "source.demo.idtenant.de";
+  public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN = GT_PREFIX + "source.demo.idtenant.en";
   
   private static final Map<String, MaxDefaultDBValue> defaultLimitMap = new HashMap<>();
 

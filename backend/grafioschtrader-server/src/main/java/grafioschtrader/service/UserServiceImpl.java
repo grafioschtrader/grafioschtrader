@@ -46,10 +46,13 @@ public class UserServiceImpl implements UserService {
   @Value("${gt.allowed.users}")
   private int allowedUsers;
   
-  @Value("${gt.demo.account.pattern}")
-  private String demoAccountPattern;
+  @Value("${gt.demo.account.pattern.de}")
+  private String demoAccountPatternDE;
  
-
+  @Value("${gt.demo.account.pattern.en}")
+  private String demoAccountPatternEN;
+ 
+  
   private final UserJpaRepository userJpaRepository;
 
   private final RoleJpaRepository roleJpaRepository;
@@ -182,7 +185,8 @@ public class UserServiceImpl implements UserService {
   public SuccessfullyChanged changePassword(final ChangePasswortDTO changePasswortDTO) {
     final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    RestHelper.isDemoAccount(demoAccountPattern, user.getUsername());
+    RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
+    RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
 
     if (bCryptPasswordEncoder.matches(changePasswortDTO.oldPassword, user.getPassword())) {
       user.setPassword(bCryptPasswordEncoder.encode(changePasswortDTO.newPassword));
