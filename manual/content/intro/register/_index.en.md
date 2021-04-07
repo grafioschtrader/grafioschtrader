@@ -13,7 +13,7 @@ sequenceDiagram
     participant User
     participant A as Sign in form
     participant R as Register form
-    participant K as Tenant form
+    participant K as Clinet form
     participant Backend
     User->>A: Select register
     A-->>R: Redirect
@@ -24,8 +24,8 @@ sequenceDiagram
     Backend-->>User: Redirect Sign in form
     User->>A: User logs in
     A-->Backend: Check authentication
-    Backend-->>User: Redirect Tenant form
-    User->>K: Enter tenant
+    Backend-->>User: Redirect Client form
+    User->>K: Enter client
     K-->>Backend: Check input
     Backend-->>A: Redirect Sign in form
 {{< /mermaid >}}
