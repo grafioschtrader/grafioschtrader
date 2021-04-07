@@ -47,9 +47,14 @@ public class CopyTenantToDemoAccountsTask implements ITask {
   private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
   
-  @Value("${gt.demo.account.pattern}")
-  private String demoAccountPattern;
+  @Value("${gt.demo.account.pattern.de}")
+  private String demoAccountPatternDE;
 
+  
+  @Value("${gt.demo.account.pattern.en}")
+  private String demoAccountPatternEN;
+  
+  
   @Override
   public TaskType getTaskType() {
     return TaskType.COPY_DEMO_ACCOUNTS;
@@ -64,11 +69,16 @@ public class CopyTenantToDemoAccountsTask implements ITask {
 
   @Override
   @Transactional
-  public void doWork(Integer idEntity, String entity) {
-    Integer[] demoIdTenants = userJpaRepository.findIdTenantByMailPattern(demoAccountPattern);
+   public void doWork(Integer idEntity, String entity) {
+    copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE, demoAccountPatternDE);
+    copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN, demoAccountPatternEN); 
 
-    Optional<Globalparameters> sourceIdTenantOpt = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT);
+  }
+ 
+  private void copyTenant(String sourceTenant, String dap) {
+    Integer[] demoIdTenants = userJpaRepository.findIdTenantByMailPattern(dap);
+
+    Optional<Globalparameters> sourceIdTenantOpt = globalparametersJpaRepository.findById(sourceTenant);
 
     if (sourceIdTenantOpt.isPresent()) {
       for (Integer targetIdTenant : demoIdTenants) {
@@ -77,7 +87,7 @@ public class CopyTenantToDemoAccountsTask implements ITask {
             LocalDateTime.now().plusMinutes(1), targetIdTenant, Tenant.TABNAME));
       }
     }
-
   }
-
+ 
+  
 }

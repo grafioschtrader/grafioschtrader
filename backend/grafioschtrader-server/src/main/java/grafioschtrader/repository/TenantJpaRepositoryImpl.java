@@ -48,9 +48,11 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   @Autowired
   JdbcTemplate jdbcTemplate;
   
-  @Value("${gt.demo.account.pattern}")
-  private String demoAccountPattern;
+  @Value("${gt.demo.account.pattern.de}")
+  private String demoAccountPatternDE;
  
+  @Value("${gt.demo.account.pattern.en}")
+  private String demoAccountPatternEN;
 
   @Override
   @Transactional
@@ -127,7 +129,8 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   @Override
   public void deleteMyDataAndUserAccount() throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    RestHelper.isDemoAccount(demoAccountPattern, user.getUsername());
+    RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
+    RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
     
     MySqlDeleteMyData mySqlDeleteMyData = new MySqlDeleteMyData(jdbcTemplate);
     mySqlDeleteMyData.deleteMyData();

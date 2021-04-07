@@ -54,10 +54,7 @@ public class UserResource {
   @Autowired
   UserJpaRepository userJpaRepository;
   
-  @Value("${gt.demo.account.pattern}")
-  private String demoAccountPattern;
-  
-
+ 
   @GetMapping(value = "/own", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<UserOwnProjection> getOwnUser() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

@@ -428,7 +428,7 @@
   "REJECT": "Rejected",
   "REMOVE_INSTRUMENT": "Remove instrument",
   "REMOVE_INSTRUMENT_FROM_WATCHLIST_CONFIRM": "Do you really want to remove the selected instruments from the watchlist?",
-  "REMOVE_SELECTED_INSTRUMENT": "Remove selected Instruments",
+  "REMOVE_SELECTED_INSTRUMENTS": "Remove selected Instruments",
   "REMOVED_SECURITY_FROM_WATCHLIST": "{{count}} Instrument/s has been removed from the watchlist",
   "REMOVE_DELETE_CURRENCYPAIR": "Remove and delete currencypair",
   "REMOVE_DELETE_INSTRUMENT": "Remove and delete instrument",
