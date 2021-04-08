@@ -14,17 +14,23 @@ Ein Watchlist ist eine persönliche Zusammenstellung von Instrumenten mit Kursen
 
 {{< mermaid >}}
 classDiagram
-    Watchlist "*" o-- "*" Instrument
+     Watchlist "*" o-- "*" Instrument
     Instrument <|-- Währungspaar
     Instrument <|-- Wertpapier
-    Wertpapier "1" ..> "*" Historische_Kursdaten : hat
+    Wertpapier "1" ..> "*" Historische_Kurs_Daten : hat
     Wertpapier "*" ..> "1" Handelsplatz : hat
     Wertpapier "*" ..> "1" Anlageklasse : hat
     Wertpapier "1" *-- "*" Splits
     Wertpapier "1" *-- "*" Dividend
-    Historische_Kursdaten <|-- Berechnet
-    Historische_Kursdaten <|-- Periodenkurs
-    Historische_Kursdaten <|-- EOD_Kurs
+    Historische_Kurs_Daten <|-- Berechnet
+    Historische_Kurs_Daten <|-- Periodenkurs
+    Historische_Kurs_Daten <|-- EOD_Kurs
     Währungspaar "1" ..> "*" EOD_Kurs : hat
     Berechnet o-- EOD_Kurs
+    class Instrument{
+        timestamp: time
+        high: double
+        low: double
+        last: double
+    }
 {{< /mermaid >}}

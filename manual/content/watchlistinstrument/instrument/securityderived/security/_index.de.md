@@ -13,7 +13,8 @@ chapter: true
 + ...
 
 ### Reiter "Historische Kurse für Periode"
-...
+Für bestimmte Wertpapiere wie beispielsweise Festgeld werden keine öffentliche Kurse gestellt. Zu diesem Zweck gibt es "**Historische Kurse für Periode**". Dieser **Reiter** wird automatisch beim Bearbeiten des **Wertpapiers** aktiviert, falls ein **Handelsplatz** on Kursdaten ausgewählt wird. Ändert sich der Kurse über die gesamte Laufzeit nicht, so wird dieser die Angabe bei der **Stücklung** bestimmt. 
 
 ### Reiter "Wertpapier-Split/s"
+
 
