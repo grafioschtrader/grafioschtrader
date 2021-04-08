@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -120,10 +121,11 @@ public class InvestingConnector extends BaseFeedConnector {
 
     StringJoiner sj = new StringJoiner("&");
     for (Map.Entry<String, String> entry : arguments.entrySet())
-      sj.add(URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8"));
+      sj.add(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "="
+          + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
 
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(URL_ENDPOINT_AJAX))
-        .headers("Content-Type", "application/x-www-form-urlencoded", "X-Requested-With", "XMLHttpRequest",
+        .headers("Content-Type", "application/x-www-form-urlencoded", "x-requested-with", "XMLHttpRequest",
             "User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
         .POST(HttpRequest.BodyPublishers.ofString(sj.toString())).build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

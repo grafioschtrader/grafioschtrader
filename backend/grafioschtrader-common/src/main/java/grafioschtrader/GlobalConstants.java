@@ -53,7 +53,7 @@ public class GlobalConstants {
    */
   public static final int PERFORMANCE_MAX_WEEK_LIMIT = 53;
   public static final int PERFORMANCE_MIN_INCLUDE_MONTH_LIMIT = 2;
-  public static final String USER_AGENT_HTTPCLIENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
+  public static final String USER_AGENT_HTTPCLIENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36";
 
   public static final String UNITS = "units";
 

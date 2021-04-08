@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -80,7 +81,7 @@ public class ArivaFeedConnector extends BaseFeedConnector {
     URLConnection connection = request.openConnection();
     connection.setConnectTimeout(TIMEOUT);
     connection.setReadTimeout(TIMEOUT);
-    try (InputStreamReader inputStream = new InputStreamReader(connection.getInputStream(), "UTF-8");
+    try (InputStreamReader inputStream = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStream)) {
 
       String inputLine;
