@@ -11,5 +11,8 @@ In GT wird der allgemeine Begriff Instrumente verwendet, weil dies ist eine Zusa
 - **Abgeleitetes Instrument**: In GT kann ein abgeleitetes Instrument gehandelt werden, falls die zugeordnete **Anlageklasse** dies erlaubt.
 - **Währungspaar**: In GT kann das Währungspaar nicht gehandelt werden. Falls unterschiedliche Währung in GT zur Anwendung kommen, wird es primär für die Berechnung der Performance benötigt.
 
+### Kursdaten
+In GT macht ein **Instrument** ohne **Kursdaten** keinen Sinn, wobei **Kursdaten** ein Oberbegriff für unterschiedliche Preisdaten ist. 
+
 ### Konnektoren
 HIER FOLGT EINE AUSFÜHRLICHE BESCHREIBUNG ...

@@ -23,6 +23,10 @@ public interface HistoryquotePeriodJpaRepository
   @Query(nativeQuery = true)
   List<IDateAndClose> getDateAndCloseByIdSecurity(Integer idSecurity);
 
+  /**
+   * Update the last price of the actual period into the last price of the security.
+   * Should be called every day, because within a day the price can not change.
+   */
   @Query(nativeQuery = true)
   void updatLastPrice();
 }

@@ -133,6 +133,7 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
         HistoryquotePeriod hpLast = hpsNewSorted.get(hpsNewSorted.size() - 1);
         hpLast.setToDate(activeToDate);
         hpsNewSorted = historyquotePeriodJpaRepository.saveAll(hpsNewSorted);
+        historyquotePeriodJpaRepository.updatLastPrice();
       }
     } else {
       // User can't change history quote periods directly if another user created the
