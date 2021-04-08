@@ -40,6 +40,8 @@ export class SecurityEditSupport {
   public connectorDividendConfig: FieldConfig[];
   public connectorSplitConfig: FieldConfig[];
 
+  public hasMarketValue = true;
+
   private assetClassSubscribe: Subscription;
   private activeFromDateSubscribe: Subscription;
   private securitySubscribe: Subscription;
@@ -182,20 +184,23 @@ export class SecurityEditSupport {
     this.valueChangedOnAssetClass(securityDerived, configObject);
     this.valueChangedOnaActiveFromDate(configObject);
     this.valueChangedOnPrivateSecurity(securityDerived, configObject);
-
   }
-
 
   valueChangedOnAssetClass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
     this.assetClassSubscribe = configObject.assetClass.formControl.valueChanges.subscribe((idAssetclass: number) => {
       let assetClass: Assetclass;
       if (idAssetclass) {
         assetClass = Helper.getReferencedDataObject(configObject.assetClass, null);
-        this.enableDisableDenomination(configObject, assetClass);
+        this.enableDisableDenomination(configObject, assetClass, this.hasMarketValue);
         this.hideShowSomeFields(securityDerived, configObject, assetClass);
       }
       this.callbackValueChanged && this.callbackValueChanged.valueChangedOnAssetClassExtend(assetClass);
     });
+  }
+
+  public enableDisableDenominationStockexchangeAssetclass(configObject: { [name: string]: FieldConfig }): void {
+    const assetClass = Helper.getReferencedDataObject(configObject.assetClass, null);
+    this.enableDisableDenomination(configObject, assetClass, this.hasMarketValue);
   }
 
   valueChangedOnaActiveFromDate(configObject: { [name: string]: FieldConfig }): void {
@@ -214,16 +219,20 @@ export class SecurityEditSupport {
    * Private security has no ISIN, ticker symbol and can not be short
    */
   valueChangedOnPrivateSecurity(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
-    this.securitySubscribe = configObject.isTenantPrivate.formControl.valueChanges.subscribe(isPrivate =>
-      FormHelper.hideVisibleFieldConfigs(isPrivate, this.getIsinTickerShortFields(securityDerived, configObject)));
+    this.securitySubscribe = configObject.isTenantPrivate.formControl.valueChanges.subscribe(isPrivate => {
+        if (isPrivate != null) {
+          FormHelper.hideVisibleFieldConfigs(isPrivate, this.getIsinTickerShortFields(securityDerived, configObject));
+        }
+      }
+    );
   }
 
   private getIsinTickerShortFields(securityDerived: SecurityDerived,
                                    configObject: { [name: string]: FieldConfig }): FieldConfig[] {
     const fieldConfigs: FieldConfig[] = [configObject.shortSecurity];
     if (securityDerived === SecurityDerived.Security) {
-      fieldConfigs.push(configObject.isin);
       fieldConfigs.push(configObject.tickerSymbol);
+      fieldConfigs.push(configObject.isin);
     }
     return fieldConfigs;
   }
@@ -245,9 +254,10 @@ export class SecurityEditSupport {
   /**
    * Only fixed income and similar can have denomination property.
    */
-  private enableDisableDenomination(configObject: { [name: string]: FieldConfig }, assetClass: Assetclass): void {
+  private enableDisableDenomination(configObject: { [name: string]: FieldConfig }, assetClass: Assetclass,
+                                    hasMarkedPrice: boolean): void {
     if (configObject.denomination) {
-      const hsd = BusinessHelper.hasSecurityDenomination(assetClass);
+      const hsd = BusinessHelper.hasSecurityDenomination(assetClass, hasMarkedPrice);
       configObject.denomination.invisible = !hsd;
       DynamicFieldHelper.resetValidator(configObject.denomination, hsd ? SecurityEditSupport.denominationValidation : null,
         hsd ? SecurityEditSupport.denominationErrors : null);

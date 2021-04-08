@@ -504,6 +504,10 @@ public class Security extends Securitycurrency<Security> implements Serializable
       this.urlDividendExtend = null;
       this.retrySplitLoad = 0;
     }
+    if(this.stockexchange.isNoMarketValue()) {
+      this.shortSecurity = false;
+    }
+    
   }
   
   

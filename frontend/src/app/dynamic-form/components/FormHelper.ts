@@ -53,12 +53,14 @@ export abstract class FormHelper {
   public static disableEnableFieldConfigsWhenAlreadySet(disable: boolean, fieldConfigs: FieldConfig[]): void {
     fieldConfigs.forEach(fieldConfig => {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
+        const saveVisibleState = fieldConfig.invisible;
         fieldConfig.invisible = false;
         if (disable && fieldConfig.formControl.value != null) {
           fieldConfig.formControl.disable();
         } else {
           fieldConfig.formControl.enable();
         }
+        fieldConfig.invisible = saveVisibleState;
       }
     });
   }

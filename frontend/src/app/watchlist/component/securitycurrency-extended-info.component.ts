@@ -103,7 +103,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
       this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'tickerSymbol', {fieldsetName: 'BASE_DATA'});
     }
 
-    if (BusinessHelper.hasSecurityDenomination(security.assetClass)) {
+    if (BusinessHelper.hasSecurityDenomination(security.assetClass, !security.stockexchange.noMarketValue)) {
       this.addFieldPropertyFeqH(DataType.NumericInteger, this.SECURITYCURRENCY + 'denomination',
         {fieldsetName: 'BASE_DATA'});
     }
