@@ -164,11 +164,15 @@ export class BusinessHelper {
     this.toExternalWebpage(AppSettings.HELP_DOMAIN + '/' + language + '/' + helpIds, 'help');
   }
 
-  public static hasSecurityDenomination(assetclass: Assetclass): boolean {
-    return (assetclass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME]
-      || assetclass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND]
-      || assetclass.categoryType === AssetclassType[AssetclassType.MONEY_MARKET])
-      && assetclass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT];
+  public static hasSecurityDenomination(assetclass: Assetclass, hasMarkedPrice: boolean): boolean {
+    if (hasMarkedPrice) {
+      return !!assetclass && ((assetclass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME]
+        || assetclass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND]
+        || assetclass.categoryType === AssetclassType[AssetclassType.MONEY_MARKET])
+        && assetclass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT]);
+    } else {
+      return true;
+    }
   }
 
   public static toExternalWebpage(url: string, target: string = 'blank'): void {

@@ -12,5 +12,8 @@ chapter: true
 + Falls ein **Handelsplatz** ohne Kursdaten gewählt wird, wird der Dialog mit dem Reiter **"Historische Kurse für Periode"** erweitert.
 + ...
 
-### Reiter Historische Kurse für Periode
+### Reiter "Historische Kurse für Periode"
 ...
+
+### Reiter "Wertpapier-Split/s"
+

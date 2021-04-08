@@ -63,7 +63,8 @@ import {Helper} from '../../helper/helper';
                                     [maxRows]="maxSplits">
           </securitysplit-edit-table>
         </p-tabPanel>
-        <p-tabPanel header="{{'HISTORYQUOTE_FOR_PERIOD' | translate}}" *ngIf="!hasMarketValue || !dataLoaded">
+        <p-tabPanel header="{{'HISTORYQUOTE_FOR_PERIOD' | translate}}" *ngIf="!this.securityEditSupport?.hasMarketValue
+        || !dataLoaded">
           <p>{{'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate}}</p>
           <dynamic-form [config]="periodPrices" [formConfig]="formConfig" [translateService]="translateService"
                         #periodPriceForm="dynamicForm" (submit)="addHistoryquotePeriod($event)">
@@ -96,10 +97,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   configSplitObject: { [name: string]: FieldConfig };
   configPeriodPrices: { [name: string]: FieldConfig };
   canHaveSplits = true;
-  hasMarketValue = true;
 
   dataLoaded = false;
-
   private stockexchangeSubscribe: Subscription;
   private distributionFrequencySubscribe: Subscription;
 
@@ -164,8 +163,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.stockexchangeSubscribe = this.configObject.stockexchange.formControl.valueChanges.subscribe((idStockexchange: number) => {
       this.setHasMarkedValue(idStockexchange);
       this.hideVisibleFeedConnectorsFields([...this.connectorPriceFieldConfig],
-        !this.hasMarketValue, FeedIdentifier.SECURITY);
+        !this.securityEditSupport.hasMarketValue, FeedIdentifier.SECURITY);
       this.enableDisableDividendSplitConnector(Helper.getReferencedDataObject(this.configObject.assetClass, null));
+      this.securityEditSupport.enableDisableDenominationStockexchangeAssetclass(this.configObject);
     });
   }
 
@@ -182,7 +182,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   private enableDisableDividendSplitConnector(assetClass: Assetclass): void {
-    this.canHaveSplits = Security.canHaveSplitConnector(assetClass, this.hasMarketValue);
+    this.canHaveSplits = Security.canHaveSplitConnector(assetClass, this.securityEditSupport.hasMarketValue);
     this.hideVisibleFeedConnectorsFields(this.securityEditSupport.connectorSplitConfig,
       !this.canHaveSplits, null);
     this.enableDisableDividendConnector(assetClass, this.configObject.distributionFrequency.formControl.value);
@@ -191,13 +191,15 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private enableDisableDividendConnector(assetClass: Assetclass, distributionFrequency: string): void {
     this.hideVisibleFeedConnectorsFields(this.securityEditSupport.connectorDividendConfig,
       !Security.canHaveDividendConnector(assetClass, !distributionFrequency
-      || distributionFrequency === '' ? null : DistributionFrequency[distributionFrequency], this.hasMarketValue), null);
+        || distributionFrequency === '' ? null : DistributionFrequency[distributionFrequency],
+        this.securityEditSupport.hasMarketValue), null);
   }
 
   private setHasMarkedValue(idStockexchange: number): void {
-    this.hasMarketValue = idStockexchange && !(<Stockexchange[]>this.configObject.stockexchange.referencedDataObject)
-      .find((stockexchange: Stockexchange) =>
-        stockexchange.idStockexchange === +idStockexchange).noMarketValue;
+    this.securityEditSupport.hasMarketValue = !!idStockexchange
+      && !(<Stockexchange[]>this.configObject.stockexchange.referencedDataObject)
+        .find((stockexchange: Stockexchange) =>
+          stockexchange.idStockexchange === +idStockexchange).noMarketValue;
   }
 
 
@@ -221,7 +223,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.securityService.update(security).subscribe(newSecurity => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'SECURITY'});
       let savedDepending = false;
-      if (this.hasMarketValue) {
+      if (this.securityEditSupport.hasMarketValue) {
         if (this.canHaveSplits && this.seetc) {
           savedDepending = true;
           this.seetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
@@ -284,11 +286,11 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     observables.push(this.securityService.getFeedConnectors());
 
     if (this.securityCurrencypairCallParam) {
-      this.hasMarketValue = !(<Security>this.securityCurrencypairCallParam).stockexchange.noMarketValue;
+      this.securityEditSupport.hasMarketValue = !(<Security>this.securityCurrencypairCallParam).stockexchange.noMarketValue;
     }
 
     if (this.securityCurrencypairCallParam) {
-      if (this.hasMarketValue) {
+      if (this.securityEditSupport.hasMarketValue) {
         // Only load security splits for a existing security
         if ((<Security>this.securityCurrencypairCallParam).splitPropose) {
           // Propose change
@@ -324,7 +326,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         }
 
         if (data.length === 5) {
-          if (this.hasMarketValue) {
+          if (this.securityEditSupport.hasMarketValue) {
             this.seetc.setDataList(<Securitysplit[]>data[4], false);
           } else {
             this.shpetc.setDataList(<HistoryquotePeriod[]>data[4], false);

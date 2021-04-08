@@ -94,9 +94,15 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
   }
 
   private HistoryquotePeriod getSystemCreatedPeriod(Security security) {
-    return new HistoryquotePeriod(security.getIdSecuritycurrency(),
-        ((java.sql.Date) security.getActiveFromDate()).toLocalDate(),
-        ((java.sql.Date) security.getActiveToDate()).toLocalDate(), security.getDenomination());
+    if (security.getActiveFromDate() instanceof java.sql.Date) {
+      return new HistoryquotePeriod(security.getIdSecuritycurrency(),
+          ((java.sql.Date) security.getActiveFromDate()).toLocalDate(),
+          ((java.sql.Date) security.getActiveToDate()).toLocalDate(), security.getDenomination());
+    } else {
+      return new HistoryquotePeriod(security.getIdSecuritycurrency(),
+          DateHelper.getLocalDate(security.getActiveFromDate()), DateHelper.getLocalDate(security.getActiveToDate()),
+          security.getDenomination());
+    }
   }
 
   private List<HistoryquotePeriod> changeHistoryquotePeriods(User user, Security security,
