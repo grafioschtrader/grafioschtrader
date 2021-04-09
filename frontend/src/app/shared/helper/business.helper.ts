@@ -34,7 +34,6 @@ export class BusinessHelper {
     }
   }
 
-
   public static getTotalAmountFromTransaction(transaction: Transaction) {
     let cashaccountAmount: number;
     switch (TransactionType[transaction.transactionType]) {
@@ -47,7 +46,6 @@ export class BusinessHelper {
     }
     return cashaccountAmount;
   }
-
 
   /**
    * Determine the currency pair depending on the portfolio and source and target currency.

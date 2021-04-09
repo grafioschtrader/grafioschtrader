@@ -35,7 +35,7 @@ export enum HelpIds {
   HELP_WATCHLIST_DIVIDEND_SPLIT_FEED = 'watchlistinstrument/watchlist/dividendsplit',
   HELP_WATCHLIST_CURRENCYPAIR = 'watchlistinstrument/instrument/currencypair',
   HELP_WATCHLIST_SECURITY = 'watchlistinstrument/instrument/securityderived',
-  HELP_WATCHLIST_SEARCHDIALOG= 'watchlistinstrument/instrument/searchdialog',
+  HELP_WATCHLIST_SEARCHDIALOG = 'watchlistinstrument/instrument/searchdialog',
   HELP_WATCHLIST_DERIVED_INSTRUMENT = 'watchlistinstrument/instrument/security/derivedinstrument',
   HELP_WATCHLIST_HISTORYQUOTES = 'watchlistinstrument/historyquote/pricedata',
   HELP_WATCHLIST_HISTORYQUOTES_CHART = 'watchlistinstrument/eodchart',
@@ -55,6 +55,7 @@ export enum HelpIds {
   HELP_MESSAGE_SYSTEM = 'masseage',
   HELP_TRADING_CALENDAR = 'admindata/tradingcalendar',
   HELP_HISTORYQUOTE_QUALITY = 'historyquotequality',
+  HELP_GLOBAL_SETTINGS = 'admindata/tradingcalendar',
   HELP_USER = 'admindata/user'
 
 }

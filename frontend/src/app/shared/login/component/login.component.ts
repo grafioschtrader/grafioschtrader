@@ -32,6 +32,8 @@ import {HelpIds} from '../../help/help.ids';
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.12.0</h4>
+          {{'V_0_12_0' | translate}}
           <h4>0.11.0</h4>
           {{'V_0_11_0' | translate}}
           <h4>0.10.0</h4>

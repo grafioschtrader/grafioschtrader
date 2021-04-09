@@ -45,7 +45,6 @@ public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyE
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT, (short) 22,
           LocalDateTime.now().plusMinutes(10), null, Tenant.TABNAME));
     }
-
   }
 
  

@@ -280,6 +280,13 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         null, null, null)
     });
 
+    this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
+      label: 'GLOBAL_SETTINGS',
+      data: new TypeNodeData(TreeNodeType.TradingCalendarGlobal, this.addMainRoute(AppSettings.GLOBAL_SETTINGS_KEY),
+        null, null, null)
+    });
+
+
     if (AuditHelper.hasAdminRole(this.globalParamService)) {
       this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
         label: 'USER_SETTINGS',

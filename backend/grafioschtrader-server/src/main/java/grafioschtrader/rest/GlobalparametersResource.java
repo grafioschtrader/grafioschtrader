@@ -29,6 +29,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.config.ExposedResourceBundleMessageSource;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
+import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
@@ -53,8 +54,16 @@ public class GlobalparametersResource {
 
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
+  
+  @Operation(summary = "Returns all global parameters", description = "", 
+      tags = { RequestMappings.GLOBALPARAMETERS })
+  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Globalparameters>> getAllAssetclass() {
+    return new ResponseEntity<>(globalparametersJpaRepository.findAll(), HttpStatus.OK);
+  }
+  
   @GetMapping(value = "/updatetimeout", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Integer> getIntraUpdateQuotesTimeoutSeconds() {
     return new ResponseEntity<>(globalparametersJpaRepository.getWatchlistIntradayUpdateTimeout(), HttpStatus.OK);
@@ -118,7 +127,8 @@ public class GlobalparametersResource {
     Properties properties = ((ExposedResourceBundleMessageSource) messageSource).getMessages(locale);
     JSONObject jsonObject = new JSONObject();
     for (Entry<Object, Object> entry : properties.entrySet()) {
-      jsonObject.put(entry.getKey().toString().toUpperCase().replaceAll("\\.", "_"), entry.getValue());
+      String key =  entry.getKey().toString();
+      jsonObject.put( key.startsWith("gt.")? key: key.toUpperCase().replaceAll("\\.", "_"), entry.getValue());
     }
     return jsonObject.toString();
   }

@@ -27,6 +27,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.MaxDefaultDBValue;
 import grafioschtrader.dto.MaxDefaultDBValueWithKey;
 
@@ -142,19 +145,24 @@ public class Globalparameters implements Serializable {
   @Column(name = "property_name")
   private String propertyName;
 
-   @Column(name = "property_int")
+  @Column(name = "property_int")
   private Integer propertyInt;
 
   @Size(max = 25)
   @Column(name = "property_string")
   private String propertyString;
 
+  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   @Column(name = "property_date")
   private LocalDate propertyDate;
 
   @Lob
   @Column(name = "property_blob")
   private byte[] propertyBlob;
+  
+  @Column(name = "changed_by_system")
+  private boolean changedBySystem = false;
+
 
   public Globalparameters() {
   }
@@ -213,6 +221,14 @@ public class Globalparameters implements Serializable {
   public Globalparameters setPropertyBlob(byte[] propertyBlob) {
     this.propertyBlob = propertyBlob;
     return this;
+  }
+  
+  public boolean isChangedBySystem() {
+    return changedBySystem;
+  }
+
+  public void setChangedBySystem(boolean changedBySystem) {
+    this.changedBySystem = changedBySystem;
   }
 
   public static String getKeyFromMsgKey(String msgKey) {

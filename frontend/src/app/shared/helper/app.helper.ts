@@ -9,7 +9,6 @@ import {ParamMap} from '@angular/router';
 import {FormConfig} from '../../dynamic-form/models/form.config';
 import {HttpHeaders, HttpParams} from '@angular/common/http';
 import {GlobalSessionNames} from '../global.session.names';
-import {AppSettings} from '../app.settings';
 import {ConfirmationService} from 'primeng/api';
 
 export const enum Comparison { GT, LT, EQ }
@@ -113,6 +112,7 @@ export class AppHelper {
       }
     }
   }
+
 
   public static getDateByFormat(globalparameterService: GlobalparameterService, dataobject: string): string {
     return moment(dataobject).format(globalparameterService.getDateFormat());
