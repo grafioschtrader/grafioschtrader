@@ -240,6 +240,8 @@
   "FP_PER_AMOUNT_PERCENTAGE": "% vom Transaktionsbetrag",
   "FP_PER_AMOUNT_GRADUATED": "Transaktionsbetrag mit Stufentarif",
   "FP_PER_SHARE": "Pro Aktie",
+  "FROM_DATE": "Datum für neuen Kurs",
+  "FROM_DATE_TOOLTIP": "Kurs ab diesem Datum bis zum Ende der Laufzeit oder bis zur nächsten Kursangabe.",
   "FROM_FACTOR": "Aus Anzahl",
   "FULL_LOAD_DATE": "Volle Datenladung",
   "FULL_LOAD_DATE_TOOLTIP": "Erste bzw. letzte volle Datenladung der historischen Kurse - wird auch nach einem Split durchgeführt",

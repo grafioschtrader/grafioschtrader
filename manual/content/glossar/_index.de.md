@@ -48,6 +48,10 @@ Währungen werden im Forex-Handel immer als Paare gehandelt. Anders formuliert: 
 Im Rahmen der abkürzenden Schreibweise wird immer an erster Stelle die **Basiswährung**, danach die **Kurswährung** erwähnt. Die beiden Währungen werden meistens durch einen Schrägstrich oder manchmal auch gar nicht getrennt.
 
 Beispiel: Wenn Sie Euro mit US-Dollar kaufen möchten, müssen Sie das Währungspaar EUR/USD (EURUSD) kaufen. Der Euro ist bei diesem Währungspaar die Basiswährung, der USD-Dollar die Kurswährung. Forextrader sprechen auch vom Euro «gegen» den US-Dollar.
+
+#### Wandelanleihe (convertible bond)
+Bei Wandelanleihen handelt es sich um festverzinsliche Anleihen, die von Aktiengesellschaften begeben werden. Sie wird wie normalen Anleihen auch durch einen Emittenten, einen Zinskupon eine begrenzte Laufzeit und einen Nennwert definiert. Darüber hinaus sind sie mit einem Wandlungsrecht für ihren Besitzer ausgestattet. Mit diesem kann er während Laufzeit die Wandelanleihe in eine bestimmte Anzahl von Aktien des emittierenden Unternehmens umtauschen.
+
 #### Wertpapier
 In GT gehören alle dem nicht Währungspaare zugeordneten Instrumente zur Gruppe der Wertpapiere, Auch solche die nicht Handelbar sind, beispielsweise Indizes. Andererseits sind alle Wertpapiere einer Anlageklasse und einem **Handelsplatz** zugeordnet.
 

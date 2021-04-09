@@ -9,7 +9,9 @@ import {HistoryquotePeriod} from '../../entities/historyquote.period';
 import {HistoryquotePeriodService} from '../service/historyquote.period.service';
 import {FilterService} from 'primeng/api';
 
-
+/**
+ * The split and historyquote period table component.
+ */
 @Component({
   selector: 'security-historyquote-period-edit-table',
   templateUrl: '../view/split.period.table.html'
