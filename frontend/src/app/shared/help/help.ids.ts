@@ -54,7 +54,7 @@ export enum HelpIds {
   // Admin data
   HELP_MESSAGE_SYSTEM = 'masseage',
   HELP_TRADING_CALENDAR = 'admindata/tradingcalendar',
-  HELP_HISTORYQUOTE_QUALITY = 'historyquotequality',
+  HELP_HISTORYQUOTE_QUALITY = 'admindata/historyquotequality/',
   HELP_GLOBAL_SETTINGS = 'admindata/tradingcalendar',
   HELP_USER = 'admindata/user'
 
