@@ -240,6 +240,8 @@
   "FP_PER_AMOUNT_PERCENTAGE": "% of transaction value",
   "FP_PER_AMOUNT_GRADUATED": "Graduated rates of transaction value",
   "FP_PER_SHARE": "Per share",
+  "FROM_DATE": "Date for new price",
+  "FROM_DATE_TOOLTIP": "Rate from this date until the end of the term or until the next rate indication",
   "FROM_FACTOR": "From quantity",
   "FULL_LOAD_DATE": "Full data load",
   "FULL_LOAD_DATE_TOOLTIP": "First or last full data load of historical rates - is also performed after a split.",
