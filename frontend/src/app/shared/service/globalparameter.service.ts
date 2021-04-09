@@ -36,6 +36,11 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> {
     super(httpClient, messageToastService);
   }
 
+  public getAllGlobalparameters(): Observable<Globalparameters[]> {
+    return <Observable<Globalparameters[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   public clearValues(): void {
     for (const key of Object.keys(this)) {
       if (typeof this[key] === 'string' || this[key] instanceof NumberFormat) {

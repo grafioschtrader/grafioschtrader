@@ -52,6 +52,7 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
                   {{getValueByPath(el, field)}}
                 </ng-container>
               </ng-container>
+            </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="rowexpansion" let-stockexchange let-columns="fields">

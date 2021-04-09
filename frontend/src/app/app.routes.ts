@@ -50,6 +50,7 @@ import {MailInOutTabMenuComponent} from './mail/component/mail.in.out.tab.menu.c
 import {MailSendboxTableComponent} from './mail/component/mail.sendbox.table.component';
 import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
+import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
 
 
 const APP_ROUTES: Routes = [
@@ -226,6 +227,12 @@ const APP_ROUTES: Routes = [
         component: SecurityHistoryquoteQualityTreetableComponent,
         canActivate: [AuthGuard]
       },
+      {
+        path: AppSettings.GLOBAL_SETTINGS_KEY,
+        component: GlobalSettingsTableComponent,
+        canActivate: [AuthGuard]
+      },
+
       {path: AppSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [AdminGuard]}
     ]
   },

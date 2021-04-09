@@ -31,6 +31,7 @@ export class AppSettings {
   public static readonly SECURITYACCOUNT_KEY = 'securityaccount';
   public static readonly TRADING_CALENDAR_GLOBAL_KEY = 'tradingcalendarglobal';
   public static readonly SECURITY_HISTORY_QUALITY_KEY = 'historyquotequality';
+  public static readonly GLOBAL_SETTINGS_KEY = 'globalsettings';
   public static readonly TRADING_DAYS_MINUS_KEY = 'tradingdaysminus';
   public static readonly TRADING_DAYS_PLUS_KEY = 'tradingdaysplus';
   public static readonly IMPORT_TRANSACTION_HEAD_KEY = 'importtransactionhead';

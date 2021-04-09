@@ -234,6 +234,7 @@ import {DividendService} from './watchlist/service/dividend.service';
 import {InjectableRxStompConfig, RxStompService, rxStompServiceFactory} from '@stomp/ng2-stompjs';
 import {myRxStompConfig} from './my-rx-stomp.config';
 import {CardModule} from 'primeng/card';
+import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
 
 
 
@@ -250,7 +251,7 @@ export function createTranslateLoader(http: HttpClient) {
     AlgoAssetclassEditComponent, AlgoRuleStrategyCreateComponent, AlgoRuleStrategyCreateWizardComponent, AlgoSecurityEditComponent,
     AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
-    HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent,
+    HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
     HistoryquoteEditComponent, HistoryquoteTableComponent, ImportTransactionEditPlatformComponent, HistoryquoteQualityComponent,
     SecurityHistoryquoteQualityTreetableComponent, SecurityHistoryquoteQualityTableComponent,
     ImportTransactionEditTemplateComponent, ImportTransactionTemplateComponent, ImportTransactionTemplateTableComponent,

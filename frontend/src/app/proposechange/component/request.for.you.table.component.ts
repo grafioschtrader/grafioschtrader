@@ -244,7 +244,6 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
       this.contextMenuItems = null;
     }
 
-
     this.activePanelService.activatePanel(this, {
       showMenu: this.getMenuShowOptions(),
       editMenu: this.contextMenuItems
