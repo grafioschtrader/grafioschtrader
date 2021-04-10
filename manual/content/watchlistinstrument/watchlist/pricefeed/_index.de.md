@@ -12,10 +12,10 @@ Diese Watchlist dient primär der Überwachung der historischen und intraday Kur
 Die spezifischen Funktionen dieser **Watchlist-Ansicht** verlangt die **Benutzerrechte** eines **Privilegierten Benutzer**, andernfalls wird sie nicht angeboten.
 
 #### Reparatur historischer Daten
- Es wird versucht die **historischen Kursdaten** aller Instrumente der Watchlist zu aktualisieren, wessen historischen **Wiederholungszähler grösser 0** ist. Dabei wird das Limit der möglichen Versuche ignoriert.
+ Es wird versucht die **historischen Kursdaten** aller Instrumente der Watchlist zu aktualisieren, wessen historischen **Wiederholungszähler grösser 0** ist. Dabei wird das Limit ('gt.history.retry' Weitere Informationen siehe [Globale Einstellungen](../../../admindata/globalsettings)) der möglichen Versuche ignoriert.
 
 #### Reparatur intraday Daten
-Es wird versucht die **intraday Kursdaten** aller Instrumente der Watchlist zu aktualisieren, wessen Innertag **Wiederholungszähler grösser 0** ist. Dabei wird das Limit der möglichen Versuche ignoriert.
+Es wird versucht die **intraday Kursdaten** aller Instrumente der Watchlist zu aktualisieren, wessen Innertag **Wiederholungszähler grösser 0** ist. Dabei wird das Limit ('gt.intra.retry' Weitere Informationen siehe [Globale Einstellungen](../../../admindata/globalsettings)) der möglichen Versuche ignoriert.
 
 ### Expandierende Tabellenzeile
 Die expandierte Tabellenzeile zeigt fast alle Eigenschaften des Instrumentes an. 

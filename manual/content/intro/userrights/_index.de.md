@@ -24,7 +24,7 @@ Der welche eine **Entität** einer **Informationsklasse** der geteilten Daten er
 Mit der vollständigen Registrierung eines Benutzers, wird dieser automatisch zum **Benutzer mit Limits** zugeordnet.
 
 ### Benutzer mit Limits
-Benutzer mit Limit kann nur eine **bestimmte Anzahl** von **Entitäten** einer **Informationsklasse** bzw. seiner **geteilten Entitäten** pro Tag erstellen bzw. ändern. Dadurch wird verhindert, dass ein Benutzer einen grösseren willentlichen Schaden an den **geteilten Daten** herbei führen kann.
+Benutzer mit Limit kann nur eine **bestimmte Anzahl** von **Entitäten** einer **Informationsklasse** bzw. seiner **geteilten Entitäten** pro Tag erstellen bzw. ändern. Dadurch wird verhindert, dass ein Benutzer einen grösseren willentlichen Schaden an den **geteilten Daten** herbei führen kann. Weitere Informationen siehe [Globale Einstellungen](../../admindata/globalsettings)
 
 ### Benutzer ohne Limits
 Dieser Benutzer unterliegt keiner Einschränkung bezüglich dem Erstellen oder verändern seiner **geteilten Daten**.

@@ -193,7 +193,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   onPage(event) {
     this.rowsPerPage = event.rows;
     this.firstRowIndexOnPage = event.first;
-
   }
 
 
