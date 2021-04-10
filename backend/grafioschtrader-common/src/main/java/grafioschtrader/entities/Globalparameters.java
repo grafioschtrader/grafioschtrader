@@ -171,9 +171,10 @@ public class Globalparameters implements Serializable {
     this.propertyName = propertyName;
   }
 
-  public Globalparameters(String propertyName, LocalDate propertyDate) {
+  public Globalparameters(String propertyName, LocalDate propertyDate, boolean changedBySystem) {
     this.propertyName = propertyName;
     this.propertyDate = propertyDate;
+    this.changedBySystem = changedBySystem;
   }
   
     

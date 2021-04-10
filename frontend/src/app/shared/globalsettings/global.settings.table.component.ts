@@ -22,6 +22,7 @@ import {AppHelper} from '../helper/app.helper';
 
       <p-table [columns]="fields" [value]="globalparametersList" selectionMode="single"
                [(selection)]="selectedEntity" dataKey="propertyName"
+               (sortFunction)="customSort($event)" [customSort]="true"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{'GLOBAL_SETTINGS' | translate}}</h4>
@@ -67,12 +68,14 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
-    this.addColumnFeqH(DataType.String, 'propertyName', true, false,
-      {translateValues: true, width: 500});
+    this.addColumn(DataType.String, 'propertyName', 'PROPERTY_NAME_DESC', true, false,
+      {translateValues: true, width: 450});
     this.addColumnFeqH(DataType.String, 'propertyValue', true, false,
       {fieldValueFN: this.getProperty.bind(this)});
     this.addColumnFeqH(DataType.Boolean, 'changedBySystem', true, false,
       {templateName: 'check'});
+    this.addColumnFeqH(DataType.String, 'propertyName', true, false,
+      {width: 200});
   }
 
   ngOnInit(): void {
@@ -105,11 +108,9 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
   }
 
   hideContextMenu(): void {
-
   }
 
   callMeDeactivate(): void {
-
   }
 
   getHelpContextId(): HelpIds {

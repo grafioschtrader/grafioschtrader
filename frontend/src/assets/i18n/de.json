@@ -399,6 +399,7 @@
   "PRIVATE_SECURITY": "Privates Wertpapier",
   "PRIVATE_SECURITY_TOOLTIP": "Dieses Wertpapier ist ein privates Wertpapier und hat keine Sichtbarkeit für andere Benutzer",
   "PROPERTY_NAME": "Eigenschaft",
+  "PROPERTY_NAME_DESC": "Beschreibung Eigenschaft",
   "PROPERTY_VALUE": "Eigenschaftswert",
   "PRODUCT_LINK": "Produkt Hyperlink",
   "PRODUCT_LINK_TOOLTIP": "Hyperlinks zum Produkt oder Kompanie in der form https://...",

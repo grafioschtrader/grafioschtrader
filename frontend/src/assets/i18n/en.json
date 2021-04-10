@@ -399,6 +399,7 @@
   "PRIVATE_SECURITY": "Privat security",
   "PRIVATE_SECURITY_TOOLTIP": "This security is a private security and has no visibility to other users",
   "PROPERTY_NAME": "Property",
+  "PROPERTY_NAME_DESC": "Description property",
   "PROPERTY_VALUE": "Property value",
   "PRODUCT_LINK": "Product hyperlink",
   "PRODUCT_LINK_TOOLTIP": "Hyperlinks to the product or company in the form https://...",
