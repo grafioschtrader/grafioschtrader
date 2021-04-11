@@ -14,11 +14,11 @@ Konto, Transaktion usw. sind **private Daten** und können von einem andere Benu
 ### Geteilte Daten
 Bei den geteilten Daten bestimmen die **Zugriffsrechte** des Benutzers bzw. ob dieser der Besitzer der **Entität** über die **Veränderbarkeit** einer Entität.
 
-#### Optimistisches Sperren
-GT verwendet ein **optimistisches Sperren** das auf der Basis einer Versionsnummer basiert. Mit der **optimistischen Sperre** verfügt jedes Entität über ein Attribut, das als Versionsnummer fungiert. Jede Entität besitzt eine **Versionsnummer** diese wird beim Aktualisieren bzw. beim Speichern mit der Versionsnummer in der Datenbank verglichen. Wenn diese Versionnummer nicht übereinstimmen, bedeutet dies, dass ein anderer Benutzer die Entität vor Ihnen geändert hatte. Die Aktualisierung schlägt fehl, da Sie eine veraltete Version der Entität modifizierten. Wenn dies der Fall ist, wiederholen Sie den Vorgang, indem Sie das Entität erneut abrufen und damit eine neue Version aktualisieren. Die optimistische Sperre hindert Sie daran, versehentlich **Änderungen** anderer **Benutzer** zu **überschreiben**. Sie hindert auch andere Benutzer daran, versehentlich Ihre Änderungen zu überschreiben.
-
 #### Besitzer einer Entität
 Der welche eine **Entität** einer **Informationsklasse** der geteilten Daten erfasst, wird automatisch zum **Besitzer** dieser. Er kann diese **Entität** unabhängig seiner **Benutzerrechte** bearbeiten. Auch die Benutzer der **Privilegierten- bzw. Administratoren-Gruppe** können uneingeschränkt diese **Entität** ändern, alle anderen Benutzer können über [Datenänderungswunsch](../../basedata/) eine Änderung vorschalgen.
+
+#### Optimistisches Sperren
+GT verwendet ein **optimistisches Sperren** das auf der Basis einer Versionsnummer basiert. Mit der **optimistischen Sperre** verfügt jedes Entität über ein Attribut, das als Versionsnummer fungiert. Jede Entität besitzt eine **Versionsnummer** diese wird beim Aktualisieren bzw. beim Speichern mit der Versionsnummer in der Datenbank verglichen. Wenn diese Versionnummer nicht übereinstimmen, bedeutet dies, dass ein anderer Benutzer die Entität vor Ihnen geändert hatte. Die Aktualisierung schlägt fehl, da Sie eine veraltete Version der Entität modifizierten. Wenn dies der Fall ist, wiederholen Sie den Vorgang, indem Sie das Entität erneut abrufen und damit eine neue Version aktualisieren. Die optimistische Sperre hindert Sie daran, versehentlich **Änderungen** anderer **Benutzer** zu **überschreiben**. Sie hindert auch andere Benutzer daran, versehentlich Ihre Änderungen zu überschreiben.
 
 ## Benutzerrechte
 Mit der vollständigen Registrierung eines Benutzers, wird dieser automatisch zum **Benutzer mit Limits** zugeordnet.
