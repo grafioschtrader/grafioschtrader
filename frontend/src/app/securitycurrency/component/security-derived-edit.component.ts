@@ -44,23 +44,24 @@ import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.d
 @Component({
   selector: 'security-derived-edit',
   template: `
-      <p-dialog header="{{'DERIVED_DATA' | translate}}" [(visible)]="visibleDialog"
-                [responsive]="true" [style]="{width: '600px'}"
-                (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+    <p-dialog header="{{'DERIVED_DATA' | translate}}" [(visible)]="visibleDialog"
+              [responsive]="true" [style]="{width: '600px'}"
+              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                        (submit)="submit($event)">
-          </dynamic-form>
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
+                    (submit)="submit($event)">
+      </dynamic-form>
 
-          <securitycurrency-search-and-set *ngIf="visibleSetSecurityDialog"
-                                           [visibleDialog]="visibleSetSecurityDialog"
-                                           [supplementCriteria]="supplementCriteria"
-                                           [callBackSetSecurityWithAfter]="this"
-                                           (closeDialog)="handleOnCloseSetDialog($event)">
-          </securitycurrency-search-and-set>
+      <securitycurrency-search-and-set *ngIf="visibleSetSecurityDialog"
+                                       [visibleDialog]="visibleSetSecurityDialog"
+                                       [supplementCriteria]="supplementCriteria"
+                                       [callBackSetSecurityWithAfter]="this"
+                                       (closeDialog)="handleOnCloseSetDialog($event)">
+      </securitycurrency-search-and-set>
 
 
-      </p-dialog>
+    </p-dialog>
   `
 })
 export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit, CallBackSetSecurityWithAfter {
@@ -153,16 +154,18 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
 
   valueChangedOnFormula(): void {
     this.formulaSubscribe = this.configObject[this.FORMULA_PRICES].formControl.valueChanges.subscribe((formulaPrices: string) => {
-      if (formulaPrices) {
-        let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
-        this.usedFormulaVars = [];
-        while (match != null) {
-          this.usedFormulaVars.push(match[1]);
-          match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
+      if (!this.configObject[this.FORMULA_PRICES].formControl.disabled) {
+        if (formulaPrices) {
+          let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
+          this.usedFormulaVars = [];
+          while (match != null) {
+            this.usedFormulaVars.push(match[1]);
+            match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
+          }
+          this.addInvestmentInstrumentFieldRow();
         }
-        this.addInvestmentInstrumentFieldRow();
+        this.reduceExpandChoosableAssetclass();
       }
-      this.reduceExpandChoosableAssetclass();
     });
   }
 
