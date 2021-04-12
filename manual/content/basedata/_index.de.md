@@ -15,3 +15,9 @@ Auf dem statischen Element **Basisdaten** im **Navigationsbereich** ist die Funk
 Das Zusammenspiel von **geteilten Daten**, dem **Besitzer einer Entität** und **Benutzerrechte** können dazu führen, dass Sie einen **Datenänderungswunsch** kreieren oder einen erhalten.
 + Die Benutzer der Gruppe **Limits** oder **ohne Limits** kreieren einen **Datenänderungswunsch** falls diese eine **geteile Entität** bearbeiteten und speichern. Sie erhalten einen **Datenänderungswunsch** falls jemand der Gruppe **Limits** oder **ohne Limits** einer seiner erstellten **geteilten Entität** venändern möchte.
 + Ein Benutzer der mit **privilegierten oder administrativen Benutzerrechten** kreiert nie einen **Datenänderungswunsch**. Jedoch erhalten diese alle **Datenänderungswünsche**, auch wenn die betroffene **Entität** ursprünglich von einem anderen Benutzer erstellt wurde.
+
+#### Einschränkungen Datenänderungswunsch
+Für bestimmte Entitäten werden gewisse Datenänderungswünsche nicht unterstützt.
+
+#### Abgeleitetes Instrument
+Die **Preisberechnungsformel** kann nicht verändert werden.

@@ -10,6 +10,10 @@ Durch ein abgeleitetes Instrument wird ermöglicht, die Kursdaten von einem oder
 
 Ein abgeleitetes Instrument kann einem **Handelsplatz** und **Anlageklasse** zugeordnet werden und ist somit in GT handelbar.
 
+### Forex und abgeleitetes Instrument
+Damit ein Währungspaar gehandelt werden kann, muss ein abgeleitetes Instrument einer **Anlageklasse** mit **Forex** als **Finanzinstrument** zugeordnet werden.
+
+
 ### Formel
 Eine Formel besteht aus Zahlen, Variablen, mathematischen und boolesche Operatoren und möglichen Funktionen. GT verwendet das Framework [EvalEx - Java Expression Evaluator](//github.com/uklimaschewski/EvalEx), daher siehe die Webseite für die möglichen Funktionen.
 

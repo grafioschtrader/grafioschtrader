@@ -502,7 +502,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
     if(!this.canHaveDividendConnector()) {
       this.idConnectorDividend = null;
       this.urlDividendExtend = null;
-      this.retrySplitLoad = 0;
+      this.retryDividendLoad = 0;
     }
     if(this.stockexchange.isNoMarketValue()) {
       this.shortSecurity = false;
