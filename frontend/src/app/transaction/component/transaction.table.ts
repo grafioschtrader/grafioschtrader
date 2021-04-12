@@ -18,6 +18,7 @@ import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {TransactionCallParam} from './transaction.call.parm';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {HelpIds} from '../../shared/help/help.ids';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 @Directive()
 export abstract class TransactionTable extends TransactionContextMenu {
@@ -47,7 +48,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
     this.addColumn(DataType.String, 'cashaccount.currency', 'ACCOUNT_CURRENCY', true, false,
       {filterType: FilterType.withOptions});
     this.addColumn(DataType.String, 'transactionType', 'TRANSACTION_TYPE', true, false,
-      {width: 100, translateValues: true, filterType: FilterType.withOptions});
+      {width: 100, translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
     this.addColumn(DataType.String, 'security.name', 'SECURITY', true, false,
       {width: 150, filterType: FilterType.withOptions});
     this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false,

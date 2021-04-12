@@ -16,6 +16,7 @@ import {plainToClass} from 'class-transformer';
 import {MailSendboxService} from '../service/mail.sendbox.service';
 import {MailSendbox} from '../model/mail.sendbox';
 import {filter} from 'rxjs/operators';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 
 @Component({
@@ -38,7 +39,7 @@ export class MailSendboxTableComponent extends MailInOutTable<MailSendbox> imple
       dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
     this.addColumnFeqH(DataType.String, 'idUserTo', true, false, {width: 50});
     this.addColumnFeqH(DataType.String, 'roleNameTo', true, false,
-      {width: 80, translateValues: true});
+      {width: 80, translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.DateTimeString, 'sendTime', true, false, {width: 80});
     this.addColumnFeqH(DataType.String, 'subject', true, false);
     this.prepareTableAndTranslate();

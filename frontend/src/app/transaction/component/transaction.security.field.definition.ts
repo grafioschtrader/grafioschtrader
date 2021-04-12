@@ -1,6 +1,6 @@
 import {TransactionContextMenu} from './transaction.context.menu';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 
 export class TransactionSecurityFieldDefinition {
@@ -12,7 +12,7 @@ export class TransactionSecurityFieldDefinition {
       tcm.addColumn(DataType.String, 'transaction.cashaccount.name', 'ACCOUNT', true, false);
     }
     tcm.addColumn(DataType.String, 'transaction.transactionType', 'TRANSACTION_TYPE', true, false,
-      {translateValues: true});
+      {translateValues: TranslateValue.NORMAL});
     tcm.addColumn(DataType.Numeric, 'transaction.units', 'QUANTITY', true, false);
 
     if (isMarginInstrument) {

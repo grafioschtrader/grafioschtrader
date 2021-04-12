@@ -5,6 +5,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 /**
  * Shows the extended information to a single import import transaction record.
@@ -25,7 +26,7 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
       {fieldsetName: 'IMPORT_VALUE'});
 
     this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionType', 'TRANSACTION_TYPE_IMP',
-      {translateValues: true, fieldsetName: 'IMPORT_VALUE'});
+      {translateValues: TranslateValue.NORMAL, fieldsetName: 'IMPORT_VALUE'});
 
     this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyAccount', 'ACCOUNT_CURRENCY',
       {fieldsetName: 'IMPORT_VALUE'});

@@ -1,10 +1,10 @@
-import {ChangeDetectorRef, Component, Input, OnChanges, OnInit} from '@angular/core';
+import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {FormTemplateCheck} from './form.template.check';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {SingleRecordConfigBase} from '../../shared/datashowbase/single.record.config.base';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 @Component({
   selector: 'template-form-check-dialog-result-success',
@@ -32,27 +32,25 @@ export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordC
 
 
   ngOnInit(): void {
-
-    this.addFieldProperty(DataType.String, this.TEMPLATE_PURPOSE, 'TEMPLATE_PURPOSE');
-    this.addFieldProperty(DataType.DateString, this.VALID_SINCE, 'VALID_SINCE');
-
-    this.addFieldProperty(DataType.String, 'transactionType', 'TRANSACTION_TYPE', {translateValues: true});
+    this.addFieldPropertyFeqH(DataType.String, this.TEMPLATE_PURPOSE);
+    this.addFieldPropertyFeqH(DataType.DateString, this.VALID_SINCE);
+    this.addFieldPropertyFeqH(DataType.String, 'transactionType',
+      {translateValues: TranslateValue.NORMAL});
     this.addFieldProperty(DataType.DateString, 'transactionTime', 'DATE');
-    this.addFieldProperty(DataType.DateString, 'exDate', 'exDate');
+    this.addFieldPropertyFeqH(DataType.DateString, 'exDate');
     this.addFieldProperty(DataType.String, 'currencyAccount', 'ACCOUNT_CURRENCY');
-    this.addFieldProperty(DataType.String, 'isin', 'ISIN');
+    this.addFieldPropertyFeqH(DataType.String, 'isin');
     this.addFieldProperty(DataType.String, 'currencySecurity', 'SECURITY_CURRENCY');
     this.addFieldProperty(DataType.NumericRaw, 'currencyExRate', 'EXCHANGE_RATE', {maxFractionDigits: 5});
     this.addFieldProperty(DataType.NumericRaw, 'units', 'QUANTITY');
     this.addFieldProperty(DataType.NumericRaw, 'quotation', 'QUOTATION_DIV', {maxFractionDigits: 5});
-    this.addFieldProperty(DataType.Numeric, 'accruedInterest', 'ACCRUED_INTEREST');
-    this.addFieldProperty(DataType.Numeric, 'taxCost', 'TAX_COST');
-    this.addFieldProperty(DataType.Numeric, 'transactionCost', 'TRANSACTION_COST');
+    this.addFieldPropertyFeqH(DataType.Numeric, 'accruedInterest');
+    this.addFieldPropertyFeqH(DataType.Numeric, 'taxCost');
+    this.addFieldPropertyFeqH(DataType.Numeric, 'transactionCost');
     this.addFieldProperty(DataType.String, 'field1StringImp', 'IMPORT_FREE_STR');
     this.addFieldProperty(DataType.Numeric, 'cashaccountAmount', 'TOTAL_AMOUNT');
     this.addFieldProperty(DataType.Numeric, 'calcCashaccountAmount', 'CALC_TOTAL_VALUE');
     this.translateHeadersAndColumns();
-
   }
 
   ngOnChanges(): void {

@@ -3,7 +3,7 @@ import {FieldFormGroup, FormGroupDefinition} from '../../dynamic-form/models/for
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {MenuItem} from 'primeng/api';
-import {ColumnConfig} from '../datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
 import {Helper} from '../../helper/helper';
 import {AppSettings} from '../app.settings';
 
@@ -54,7 +54,7 @@ export class TranslateHelper {
       if (menuItem.label) {
         if (menuItem.label.startsWith('_')) {
           menuItem.label = menuItem.label.slice(1);
-          menuItem.title =  TranslateHelper.cutOffDialogDots(menuItem.label) + '_TITLE';
+          menuItem.title = TranslateHelper.cutOffDialogDots(menuItem.label) + '_TITLE';
         }
         TranslateHelper.translateMenuItem(menuItem, 'label', translateService, translateParam);
         TranslateHelper.translateMenuItem(menuItem, 'title', translateService, translateParam);
@@ -110,13 +110,14 @@ export class TranslateHelper {
 
       data.forEach(datavalue => {
         columnConfigs.forEach(columnConfig => {
-          const value = Helper.getValueByPath(datavalue, columnConfig.field);
+          let value = Helper.getValueByPath(datavalue, columnConfig.field);
           if (!columnConfig.translatedValueMap) {
             columnConfig.translatedValueMap = {};
           }
           if (!columnConfig.translatedValueMap.hasOwnProperty(value)) {
             if (value) {
               // Add value and translation
+              value = columnConfig.translateValues === TranslateValue.UPPER_CASE ? value.toUpperCase() : value;
               translateService.get(value).subscribe(translated => {
                 columnConfig.translatedValueMap[value] = translated;
                 // Expand data with a field that contains the value

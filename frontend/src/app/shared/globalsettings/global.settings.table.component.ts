@@ -9,7 +9,7 @@ import {IGlobalMenuAttach} from '../mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../help/help.ids';
 import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig} from '../datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
 import {AppHelper} from '../helper/app.helper';
 
 /**
@@ -69,7 +69,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
               usersettingsService: UserSettingsService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
     this.addColumn(DataType.String, 'propertyName', 'PROPERTY_NAME_DESC', true, false,
-      {translateValues: true, width: 450});
+      {translateValues: TranslateValue.NORMAL, width: 450});
     this.addColumnFeqH(DataType.String, 'propertyValue', true, false,
       {fieldValueFN: this.getProperty.bind(this)});
     this.addColumnFeqH(DataType.Boolean, 'changedBySystem', true, false,

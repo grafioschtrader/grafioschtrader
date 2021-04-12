@@ -8,7 +8,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {SecurityCurrencypairDerivedLinks} from '../../securitycurrency/model/security.currencypair.derived.links';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {AppSettings} from '../../shared/app.settings';
@@ -84,12 +84,12 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
     this.addDerivedFields(security);
 
     this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'name',
-      {translateValues: true, fieldsetName: 'BASE_DATA'});
+      {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
 
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.categoryType', 'ASSETCLASS',
-      {translateValues: true, fieldsetName: 'BASE_DATA'});
+      {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT',
-      {translateValues: true, fieldsetName: 'BASE_DATA'});
+      {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.subCategoryNLS.map.'
       + this.globalparameterService.getUserLang(),
       'SUB_ASSETCLASS', {fieldsetName: 'BASE_DATA'});
@@ -112,7 +112,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
     this.addFieldPropertyFeqH(DataType.DateString, this.SECURITYCURRENCY + 'activeToDate',
       {fieldsetName: 'BASE_DATA'});
     this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'distributionFrequency',
-      {translateValues: true, fieldsetName: 'BASE_DATA'});
+      {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
     this.addFieldProperty(DataType.Boolean, this.SECURITYCURRENCY + 'shortSecurity', 'SHORT_SECURITY', {
       fieldsetName: 'BASE_DATA', templateName: 'check'
     });

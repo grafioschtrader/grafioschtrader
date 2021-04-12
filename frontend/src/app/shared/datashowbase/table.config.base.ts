@@ -115,7 +115,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     }
   }
 
-
   public prepareFilter(data: any[]) {
     this.fields.forEach(field => {
       if (field.filterType && field.filterType === FilterType.withOptions) {
@@ -189,18 +188,15 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     this.createFilterField(data);
   }
 
-
   onPage(event) {
     this.rowsPerPage = event.rows;
     this.firstRowIndexOnPage = event.first;
   }
 
-
   onColResize(event) {
     const columnConfig = this.getColumnConfigByHeaderTranslated(event.element.innerText.trim());
     columnConfig.width = event.element.style.width;
   }
-
 
   get groupFields(): ColumnConfig[] {
     const groupFields: ColumnConfig[] = [];

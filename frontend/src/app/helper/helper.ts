@@ -65,7 +65,6 @@ export abstract class Helper {
           return null;
         }
         dataobject = dataobject[iPath[i]];
-
       }
     }
     return dataobject;
