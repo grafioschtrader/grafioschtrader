@@ -26,6 +26,7 @@ import {
   CallBackSetSecurityWithAfter
 } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 
 /**
@@ -154,7 +155,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.addColumn(DataType.String, 'fileType', 'FILE_TYPE', true, false);
     this.addColumn(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', true, false, {width: 60});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionType', 'TRANSACTION_TYPE_IMP', true, false,
-      {width: 60, translateValues: true});
+      {width: 60, translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccount.name', 'ACCOUNT', true, false);
 
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyExRate', 'EXCHANGE_RATE', true, true);

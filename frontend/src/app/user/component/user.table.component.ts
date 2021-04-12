@@ -16,7 +16,7 @@ import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {UserTaskType} from '../../shared/types/user.task.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {AppSettings} from '../../shared/app.settings';
@@ -133,7 +133,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
       {fieldValueFN: this.getLimitProposeIcon.bind(this), templateName: 'icon', width: 20});
 
     this.addColumnFeqH(DataType.String, 'mostPrivilegedRole', true, false,
-      {translateValues: true});
+      {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.Boolean, 'enabled', true, false,
       {templateName: 'check'});
     this.addColumn(DataType.String, 'localeStr', 'LOCALE', true, false);

@@ -14,6 +14,7 @@ import {AssetclassCallParam} from './assetclass.call.param';
 import {plainToClass} from 'class-transformer';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 /**
  * Shows the asset class as a table.
@@ -80,11 +81,11 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
       changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
 
     this.addColumn(DataType.String, this.CATEGORY_TYPE, 'ASSETCLASS', true, false,
-      {translateValues: true});
+      {translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'subCategoryNLS.map.en', 'SUB_ASSETCLASS', true, false, {headerSuffix: 'EN'});
     this.addColumn(DataType.String, 'subCategoryNLS.map.de', 'SUB_ASSETCLASS', true, false, {headerSuffix: 'DE'});
     this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false,
-      {translateValues: true});
+      {translateValues: TranslateValue.NORMAL});
 
     this.multiSortMeta.push({field: this.CATEGORY_TYPE, order: 1});
     this.prepareTableAndTranslate();

@@ -12,6 +12,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 @Component({
   template: `
@@ -73,7 +74,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.de', 'PLATFORM_PLAN_NAME', true, false,
       {headerSuffix: 'DE'});
     this.addColumn(DataType.String, 'transactionFeePlan', 'TRANSACTION_FEE_PLAN', true, false,
-      {translateValues: true});
+      {translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'importTransactionPlatform.name', 'PLATFORM_TRANSACTION_IMPORT', true, false);
 
     this.prepareTableAndTranslate();

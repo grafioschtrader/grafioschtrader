@@ -7,7 +7,7 @@ import {FieldDescriptorInputAndShow} from '../model/field.descriptor.input.and.s
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
-import {OptionalParams} from '../../shared/datashowbase/column.config';
+import {OptionalParams, TranslateValue} from '../../shared/datashowbase/column.config';
 import {DynamicFormPropertyHelps} from '../model/dynamic.form.property.helps';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
@@ -51,7 +51,7 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
     fieldDescriptorInputAndShows.forEach(fDIAS => {
       const optinalParams: OptionalParams = {};
       if (DataType[fDIAS.dataType] === DataType.None) {
-        optinalParams.translateValues = true;
+        optinalParams.translateValues = TranslateValue.NORMAL;
       }
       if (fDIAS.dynamicFormPropertyHelps
         && (<string[]>fDIAS.dynamicFormPropertyHelps)

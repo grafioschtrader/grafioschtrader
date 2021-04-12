@@ -29,7 +29,7 @@ export class ColumnConfig {
    * Value of the object will be translated with the translation service. The value must be in the objects value is
    * the key for the translation. This key must be defined in the translation files.
    */
-  public translateValues: boolean;
+  public translateValues: TranslateValue;
   public translatedValueMap: { [key: string]: string };
   public fieldTranslated: string;
   templateName?: string;
@@ -85,7 +85,7 @@ export interface OptionalParams {
   /**
    * Cell content may be translated in an other language
    */
-  translateValues?: boolean;
+  translateValues?: TranslateValue;
   templateName?: string;
   maxFractionDigits?: number;
   minFractionDigits?: number;
@@ -117,4 +117,12 @@ export interface OptionalGroupParams {
    * 99: use all free columns. This field will also be change programmatically.
    */
   colspan: number;
+}
+
+export enum TranslateValue {
+  // Start with one otherwise a boolean check could be wrong
+  // No other action than translation
+  NORMAL = 1,
+  // To uppercase before translation into sore
+  UPPER_CASE = 2
 }

@@ -12,24 +12,26 @@ import {ProposeChangeEntityService} from '../service/propose.change.entity.servi
 import {plainToClass} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 
 /**
- * Only delete is possible.
+ * Shows your created change request on entities in a table. The only available operation is to delete a request.
  */
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
-      <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity" [dataKey]="entityKeyName"
+      <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
+               [dataKey]="entityKeyName"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{'YOUR_CHANGE_REQUESTS' | translate}}</h4>
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field">
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -43,7 +45,8 @@ import {ConfirmationService, FilterService} from 'primeng/api';
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
+                     appendTo="body"></p-contextMenu>
     </div>
   `,
   providers: [DialogService]
@@ -66,10 +69,10 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
       [CrudMenuOptions.Allow_Delete]);
 
     this.addColumn(DataType.String, 'entity', 'ENTITY_NAME', true, false,
-      {translateValues: true});
-    this.addColumn(DataType.String, 'noteRequest', 'PROPOSECHANGENOTE', true, false);
-    this.addColumn(DataType.String, 'dataChangeState', 'PROPOSE_STATE', true, false,
-      {translateValues: true});
+      {translateValues: TranslateValue.UPPER_CASE});
+    this.addColumnFeqH(DataType.String, 'noteRequest', true, false);
+    this.addColumnFeqH(DataType.String, 'dataChangeState', true, false,
+      {translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'noteAcceptReject', 'PROPOSEACCEPTREJECT', true, false);
 
     this.prepareTableAndTranslate();

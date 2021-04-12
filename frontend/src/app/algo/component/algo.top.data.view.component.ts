@@ -11,7 +11,7 @@ import {AlgoAssetclassService} from '../service/algo.assetclass.service';
 import {AlgoAssetclass} from '../../entities/algo.assetclass';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {plainToClass} from 'class-transformer';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AlgoTopAssetSecurity} from '../../entities/algo.top.asset.security';
 import {AlgoStrategy} from '../../entities/algo.strategy';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
@@ -24,7 +24,12 @@ import {TreeAlgoAssetclass} from '../model/tree.algo.assetclass';
 import {TreeAlgoStrategy} from '../model/tree.algo.strategy';
 import {AlgoSecurity} from '../../entities/algo.security';
 import {TreeAlgoSecurity} from '../model/tree.algo.security';
-import {AlgoCallParam, AlgoDialogVisible, AlgoStrategyDefinitionForm, AlgoStrategyParamCall} from '../model/algo.dialog.visible';
+import {
+  AlgoCallParam,
+  AlgoDialogVisible,
+  AlgoStrategyDefinitionForm,
+  AlgoStrategyParamCall
+} from '../model/algo.dialog.visible';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
@@ -181,9 +186,9 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   private translateDataForAssetclass(): void {
     const fieldsAssetclass: ColumnConfig[] = [];
     this.addColumnToFields(fieldsAssetclass, DataType.String, 'assetclass.categoryType',
-      '', true, false, {translateValues: true});
+      '', true, false, {translateValues: TranslateValue.NORMAL});
     this.addColumnToFields(fieldsAssetclass, DataType.String, 'assetclass.specialInvestmentInstrument',
-      '', true, false, {translateValues: true});
+      '', true, false, {translateValues: TranslateValue.NORMAL});
 
     TranslateHelper.createTranslatedValueStore(this.translateService, fieldsAssetclass, this.algoTop.algoAssetclassList);
   }
@@ -191,7 +196,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   private translateDataForStrategy(): void {
     const fieldAlgoStrategy: ColumnConfig[] = [];
     this.addColumnToFields(fieldAlgoStrategy, DataType.String, 'algoStrategyImplementations',
-      '', true, false, {translateValues: true});
+      '', true, false, {translateValues: TranslateValue.NORMAL});
     const algoStrategyList: AlgoStrategy[] = [];
     this.traverseObjectTreeForAlgoStrategy(algoStrategyList, this.algoTop);
     TranslateHelper.createTranslatedValueStore(this.translateService, fieldAlgoStrategy, algoStrategyList);
@@ -206,7 +211,6 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       });
     }
   }
-
 
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
@@ -330,7 +334,6 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       } else {
         this.readDataWithoutTopLevel();
       }
-
     }
   }
 

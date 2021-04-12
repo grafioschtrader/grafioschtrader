@@ -23,6 +23,7 @@ import {
 } from '../../shared/service/parent.child.register.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 /**
  * It shows the transactions for a cash account.
@@ -61,7 +62,7 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
   ngOnInit(): void {
     this.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false,);
     this.addColumn(DataType.String, 'transaction.transactionType', 'TRANSACTION_TYPE', true, false,
-      {width: 100, translateValues: true});
+      {width: 100, translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'transaction.security.name', 'SECURITY', true, false, {width: 150});
     this.addColumn(DataType.Numeric, 'transaction.units', 'QUANTITY', true, false);
     this.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false);

@@ -15,7 +15,7 @@ import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamic.
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
 import {MailInOutTable} from './mail.in.out.table';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {filter} from 'rxjs/operators';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 @Component({
   templateUrl: '../view/mail.in.out.table.html',
@@ -42,7 +42,7 @@ export class MailInboxTableComponent extends MailInOutTable<MailInbox> implement
 
     this.addColumnFeqH(DataType.String, 'idUserFrom', true, false, {width: 50});
     this.addColumnFeqH(DataType.String, 'roleNameTo', true, false,
-      {width: 80, translateValues: true});
+      {width: 80, translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.DateTimeString, 'receivedTime', true, false, {width: 80});
     this.addColumnFeqH(DataType.String, 'subject', true, false);
     this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false,

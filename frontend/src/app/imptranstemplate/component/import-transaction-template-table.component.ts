@@ -15,7 +15,7 @@ import {plainToClass} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {combineLatest} from 'rxjs';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 
 /**
  * This table is controlled by a master data selection view.
@@ -83,7 +83,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
 
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false);
     this.addColumn(DataType.String, 'templateFormatType', 'TEMPLATE_FORMAT', true, false,
-      {translateValues: true});
+      {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.DateString, 'validSince', true, false);
     this.addColumnFeqH(DataType.String, 'templateLanguage', true, false,
       {fieldValueFN: this.getDisplayNameForLanguage.bind(this)});

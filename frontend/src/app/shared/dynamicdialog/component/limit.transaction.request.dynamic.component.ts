@@ -50,7 +50,7 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
       (fDIaSs: FieldDescriptorInputAndShow[]) => {
         this.config = DynamicFieldHelper.createConfigFieldsFromDescriptor(fDIaSs, '', true, 'SEND');
         this.config.splice(this.config.length - 1, 0,
-          DynamicFieldHelper.createFieldTextareaInputString(this.NOTE_REQUEST, 'PROPOSECHANGENOTE', 1000, true));
+          DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.NOTE_REQUEST, 1000, true));
         this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
         this.configObject[this.ENTITY_NAME].readonly = true;
         this.configObject[this.ENTITY_NAME].defaultValue = this.dynamicDialogConfig.data.entityName;

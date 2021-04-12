@@ -140,7 +140,7 @@ export class AuditHelper {
   }
 
   public static getNoteRequestInputDefinition(required = false): FieldConfig {
-    return DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_REQUEST_INPUT, 'PROPOSECHANGENOTE', 1000, required);
+    return DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_REQUEST_INPUT, 'NOTE_REQUEST', 1000, required);
   }
 
   public static copyNoteRequestToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer) {

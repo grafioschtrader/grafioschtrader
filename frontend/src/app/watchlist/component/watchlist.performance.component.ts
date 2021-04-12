@@ -26,6 +26,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {InjectableRxStompConfig, RxStompService} from '@stomp/ng2-stompjs';
 import {GlobalSessionNames} from '../../shared/global.session.names';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 /**
  * Shows the performance watchlist. It has no special function implemented.
@@ -93,9 +94,9 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.choosenTimeFrame = this.timeFrames[0];
   this.addBaseColumns();
        this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', 'ASSETCLASS', true, true,
-      {translateValues: true, width: 60});
+      {translateValues: TranslateValue.NORMAL, width: 60});
     this.addColumn(DataType.String, 'securitycurrency.assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', false, true,
-      {translateValues: true, width: 60});
+      {translateValues: TranslateValue.NORMAL, width: 60});
 
     this.addColumn(DataType.String, 'securitycurrency.assetClass.subCategoryNLS.map.' + this.globalparameterService.getUserLang(),
       'SUB_ASSETCLASS', true, true, {width: 80});

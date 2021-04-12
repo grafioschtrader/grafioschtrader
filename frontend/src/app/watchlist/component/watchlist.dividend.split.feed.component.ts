@@ -20,7 +20,7 @@ import {combineLatest, Observable} from 'rxjs';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 
 /**
@@ -72,7 +72,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
       filterService, translateService, globalparameterService, usersettingsService, WatchlistTable.MULTIPLE);
     this.addBaseColumns();
       this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
-      true, {translateValues: true});
+      true, {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorDividend', true,
       true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
     this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retryDividendLoad', true,

@@ -17,7 +17,7 @@ import {AppHelper} from '../../shared/helper/app.helper';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {UserEntityChangeLimitService} from '../service/user.entity.change.limit.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 
@@ -123,7 +123,8 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
               globalparameterService: GlobalparameterService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
-    this.addColumn(DataType.String, this.UPPER_CASE_ENTITY_NAME, 'ENTITY_NAME', true, false, {translateValues: true});
+    this.addColumn(DataType.String, this.UPPER_CASE_ENTITY_NAME, 'ENTITY_NAME', true, false,
+      {translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.None, 'userChangePropose', 'L', true, true,
       {fieldValueFN: this.getLimitProposeIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumnFeqH(DataType.NumericInteger, 'dayLimit', true, false);
