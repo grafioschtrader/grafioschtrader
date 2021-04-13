@@ -4,6 +4,7 @@ import {SpecialInvestmentInstruments} from '../../shared/types/special.investmen
 import {AssetclassType} from '../../shared/types/assetclass.type';
 import {Security} from '../../entities/security';
 import {AppSettings} from '../../shared/app.settings';
+import {Assetclass} from '../../entities/assetclass';
 
 @Injectable()
 export class ProductIconService {
@@ -14,7 +15,7 @@ export class ProductIconService {
     this.icons.forEach(icon => this.iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + icon + '.svg', icon));
   }
 
-  getIconForAssetClass(security: Security, isCryptocurrency: boolean): string {
+  getIconForInstrument(security: Security, isCryptocurrency: boolean): string {
     let icon = isCryptocurrency ? 'cc' : 'c';
     if (security) {
       const assetclass = security.assetClass;
@@ -22,28 +23,33 @@ export class ProductIconService {
         !== SpecialInvestmentInstruments.FOREX) {
         icon = 'd';
       } else {
-        switch (SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument]) {
-          case SpecialInvestmentInstruments.DIRECT_INVESTMENT:
-            icon = this.getDirectInvestmentIcon(assetclass.categoryType);
-            break;
-          case SpecialInvestmentInstruments.MUTUAL_FUND:
-          case SpecialInvestmentInstruments.PENSION_FUNDS:
-            icon = assetclass.categoryType === AssetclassType[AssetclassType.REAL_ESTATE] ? 'fr' : 'f';
-            break;
-          case SpecialInvestmentInstruments.NON_INVESTABLE_INDICES:
-            icon = 'i';
-            break;
-          case SpecialInvestmentInstruments.CFD:
-            icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'cfd_c' : 'cfd_i';
-            break;
-          case SpecialInvestmentInstruments.ETF:
-            icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'etf_c' : 'etf_i';
-            break;
-          case SpecialInvestmentInstruments.FOREX:
-            icon = 'fx';
-            break;
-        }
+        icon = this.getIconForAssetclass(assetclass, icon);
       }
+    }
+    return icon;
+  }
+
+  getIconForAssetclass(assetclass: Assetclass, icon: string) {
+    switch (SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument]) {
+      case SpecialInvestmentInstruments.DIRECT_INVESTMENT:
+        icon = this.getDirectInvestmentIcon(assetclass.categoryType);
+        break;
+      case SpecialInvestmentInstruments.MUTUAL_FUND:
+      case SpecialInvestmentInstruments.PENSION_FUNDS:
+        icon = assetclass.categoryType === AssetclassType[AssetclassType.REAL_ESTATE] ? 'fr' : 'f';
+        break;
+      case SpecialInvestmentInstruments.NON_INVESTABLE_INDICES:
+        icon = 'i';
+        break;
+      case SpecialInvestmentInstruments.CFD:
+        icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'cfd_c' : 'cfd_i';
+        break;
+      case SpecialInvestmentInstruments.ETF:
+        icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'etf_c' : 'etf_i';
+        break;
+      case SpecialInvestmentInstruments.FOREX:
+        icon = 'fx';
+        break;
     }
     return icon;
   }

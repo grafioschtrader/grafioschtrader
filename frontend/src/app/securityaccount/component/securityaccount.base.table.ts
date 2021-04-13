@@ -284,7 +284,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   getInstrumentIcon(securityPositionSummary: SecurityPositionSummary): string {
-    return this.productIconService.getIconForAssetClass(securityPositionSummary.security, null);
+    return this.productIconService.getIconForInstrument(securityPositionSummary.security, null);
   }
 
 
