@@ -46,8 +46,8 @@ export enum HelpIds {
   HELP_TRANSACTION_MARGIN_BASED = 'transaction/security/marginbased',
 
   // Base data
-  HELP_BASEDATA_ASSETCLASS = 'basedata/assetclass',
-  HELP_BASEDATA_STOCKEXCHANGE = 'basedata/stockexchange',
+  HELP_BASEDATA_ASSETCLASS = 'basedata/instrumentbased/assetclass',
+  HELP_BASEDATA_STOCKEXCHANGE = 'basedata/instrumentbased/stockexchange',
   HELP_BASEDATA_TRADING_PLATFORM_PLAN = 'basedata/tradingplatformplan',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE = 'basedata/imptranstemplate',
 
