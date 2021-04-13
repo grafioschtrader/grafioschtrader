@@ -151,7 +151,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
                     valueField: any): string {
     const currencypair: Currencypair = securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ?
       securitycurrencyPosition.securitycurrency : null;
-    return this.productIconService.getIconForAssetClass(currencypair ? null : <Security>securitycurrencyPosition.securitycurrency,
+    return this.productIconService.getIconForInstrument(currencypair ? null : <Security>securitycurrencyPosition.securitycurrency,
       currencypair?.isCryptocurrency);
   }
 

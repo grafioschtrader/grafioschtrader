@@ -14,7 +14,13 @@ import {AssetclassCallParam} from './assetclass.call.param';
 import {plainToClass} from 'class-transformer';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
+import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
+import {Security} from '../../entities/security';
+import {Currencypair} from '../../entities/currencypair';
+import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
+import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 
 /**
  * Shows the asset class as a table.
@@ -33,7 +39,7 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field">
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -42,7 +48,14 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
         <ng-template pTemplate="body" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields">
-              {{getValueByPath(el, field)}}
+              <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'icon'">
+                  <svg-icon [name]="getValueByPath(el, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  {{getValueByPath(el, field)}}
+                </ng-container>
+              </ng-container>
             </td>
           </tr>
         </ng-template>
@@ -68,6 +81,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
   readonly CATEGORY_TYPE_TRANS = this.CATEGORY_TYPE + '$';
 
   constructor(private assetclassService: AssetclassService,
+              private productIconService: ProductIconService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
@@ -82,6 +96,8 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
 
     this.addColumn(DataType.String, this.CATEGORY_TYPE, 'ASSETCLASS', true, false,
       {translateValues: TranslateValue.NORMAL});
+    this.addColumn(DataType.String, 'assetclassIcon', AppSettings.INSTRUMENT_HEADER, true, false,
+      {fieldValueFN: this.getAssetclassIcon.bind(this), templateName: 'icon', width: 25});
     this.addColumn(DataType.String, 'subCategoryNLS.map.en', 'SUB_ASSETCLASS', true, false, {headerSuffix: 'EN'});
     this.addColumn(DataType.String, 'subCategoryNLS.map.de', 'SUB_ASSETCLASS', true, false, {headerSuffix: 'DE'});
     this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false,
@@ -108,6 +124,11 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
       data[1].forEach(keyvalue => this.hasSecurityObject[keyvalue[0]] = keyvalue[1]);
       this.refreshSelectedEntity();
     });
+  }
+
+  getAssetclassIcon(assetclass: Assetclass, field: ColumnConfig,
+                    valueField: any): string {
+    return this.productIconService.getIconForAssetclass(assetclass, null);
   }
 
   public getHelpContextId(): HelpIds {
