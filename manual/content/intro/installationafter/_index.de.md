@@ -14,8 +14,8 @@ Nach der installation von GT und mit dem **ersten Start** des **Back-End** werde
 + **Handelsplatz**: Die "wichtigsten" **Handelsplätze** und ihre Handelskalender.
 + **Anlageklassen**: Die **Anlageklassen** mit einer **länderspezifisch** ausgerichteten **Unter Anlageklasse**.
 + **Instrumente**: Die Selektion der **Instrumente** beinhaltet die Indizes, welche im Handelskalender benutzt werden. Zusätzlich sind Instrumente mit einer vielfallt unterschiedlicher **Konnektoren** beigefügt, diese können als Vorlage bzw. Spickzettel für Ihre Instrumente dienen.
-++ **Splits** und **Divideden**: Die beigefügten **Instrumente** kommen mit ihren **Splits** und **Dividenden**.
-++ **Historische Kursdaten**: Die **historischen Kursdaten** der bei beigefügten Instrumente, diese sind bis 26.03.2021 nachgeführt. Diese werden danach vom System kontinuierlich zum aktuellen Datum automatisch nachgeführt.
++ **Splits** und **Divideden**: Die beigefügten **Instrumente** kommen mit ihren **Splits** und **Dividenden**.
++ **Historische Kursdaten**: Die **historischen Kursdaten** der bei beigefügten Instrumente, diese sind bis 26.03.2021 nachgeführt. Diese werden danach vom System kontinuierlich zum aktuellen Datum automatisch nachgeführt.
 
 ### Neue Versionen
 Seit der **Version 0.10.0** werden die Daten der Datenbank migriert, d.h Sie können GT produktiv einsetzen. Ihre Daten werden mit einem Versionswechsel automatisch in die neue Version migriert.
