@@ -9,7 +9,9 @@ chapter: true
 An den Handelsplätze werden die Instrumente gehandelt. In GT sind diese aus folgenden Gründen wichtig:
 + Mit dem Handelskalender eines Handelsplatz lässt sich die **Vollständigkeit** der **historischen Kursdaten** evaluieren.
 + Die Zuordnung des Handlesplatzes zu einem **Wertpapier** bestimmt, ob es überhaupt öffentlich zugängliche Kursdaten für dieses gibt.
-+ Das **Land** und die **Zeitzone** können bei einem bestehenden Handelsplatz nicht mehr verändert werden, dies soll einer totalen Umschreibung eines Handelsplatzes entgegen wirken.
++ In einer zukünftigen GT-Version wird die Aktualisierung der **historischen Kursdaten** gestaffelt in den Zeiträumen der **geschlossenen Handelsplätze** durchgeführt.
+
+Das **Land** und die **Zeitzone** können bei einem bestehenden Handelsplatz nicht mehr verändert werden, dies soll einer totalen Umschreibung eines Handelsplatzes entgegen wirken.
 
 ### Erstellen und bearbeiten Anlageklasse
 Ein **Handelsplatz** wird im Hauptbereich in der **Ansicht Handelsplatz** erstellt, bearbeitet und gelöscht. Diese **Ansicht** erreichen Sie im **Navigationsbereich** auf dem statischen Element Handelsplatz.

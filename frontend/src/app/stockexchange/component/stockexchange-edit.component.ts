@@ -70,7 +70,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeOpen', 8, true),
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeClose', 8, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true),
-      DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', true),
+      DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', false),
 
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
@@ -84,7 +84,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       obserables.push(this.getSecurityObservable());
     }
 
-    combineLatest([this.globalparameterService.getTimezones(), this.getSecurityObservable()]).subscribe(data => {
+    combineLatest(obserables).subscribe(data => {
       this.configObject.timeZone.valueKeyHtmlOptions = data[0];
       this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
       this.form.setDefaultValuesAndEnableSubmit();
