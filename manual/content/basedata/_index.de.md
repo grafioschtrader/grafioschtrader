@@ -20,4 +20,4 @@ Das Zusammenspiel von **geteilten Daten**, dem **Besitzer einer Entität** und *
 Für bestimmte Entitäten werden gewisse Datenänderungswünsche nicht unterstützt.
 
 #### Abgeleitetes Instrument
-Die **Preisberechnungsformel** kann nicht verändert werden.
+Für die **Preisberechnungsformel** kann kein Datenänderungswunsch angebracht werden.

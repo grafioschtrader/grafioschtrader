@@ -96,6 +96,7 @@ public interface RequestMappings {
   public static final String TENANT = "tenant";
   public static final String TENANT_MAP = API + TENANT;
   
-  public static final String USER_ENTITY_CHANGE_LIMIT_MAP = API + "userentitychangelimit";
+  public static final String USER_ENTITY_CHANGE_LIMIT = "userentitychangelimit";
+  public static final String USER_ENTITY_CHANGE_LIMIT_MAP = API + USER_ENTITY_CHANGE_LIMIT;
 
 }

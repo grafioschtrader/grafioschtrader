@@ -38,6 +38,7 @@ import grafioschtrader.entities.TenantBaseID;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserEntityChangeCount;
 import grafioschtrader.entities.UserEntityChangeCount.UserEntityChangeCountId;
+import grafioschtrader.entities.UserEntityChangeLimit;
 import grafioschtrader.entities.projection.UserCountLimit;
 import grafioschtrader.error.LimitEntityTransactionError;
 import grafioschtrader.exceptions.LimitEntityTransactionException;
@@ -123,6 +124,12 @@ public abstract class UpdateCreate<T extends BaseID> {
         Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class));
 
     logAddUpdDel(user.getIdUser(), result, OperationType.ADD);
+    if(entity instanceof UserEntityChangeLimit && ((UserEntityChangeLimit) entity).getIdProposeRequest() != null) {
+      // UserEntityChangeLimit can have a proposal request without an existing UserEntityChangeLimit, because the
+      // user which caused it, product only a proposal on no entity
+      updateEntity(entity);
+    }
+    
     return ResponseEntity.ok().body(result);
   }
 

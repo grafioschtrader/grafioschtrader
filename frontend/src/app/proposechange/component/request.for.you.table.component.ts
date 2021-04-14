@@ -181,7 +181,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     this.entityMappingArr[this.HISTORYQUOTE] = new EntityMapping(new HistoryquotePrepareEdit(this.securityService,
       this.currencypairService));
 
-    this.addColumn(DataType.String, 'proposeChangeEntity.entity', 'ENTITY_NAME', true, false,
+    this.addColumnFeqH(DataType.String, 'proposeChangeEntity.entity', true, false,
       {translateValues: TranslateValue.UPPER_CASE });
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.noteRequest', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'proposeChangeEntity.createdBy', true, false);

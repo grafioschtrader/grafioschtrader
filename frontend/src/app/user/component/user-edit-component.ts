@@ -15,6 +15,9 @@ import {AppSettings} from '../../shared/app.settings';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 
+/**
+ * Component for editing the users properties.
+ */
 @Component({
   selector: 'user-edit',
   template: `

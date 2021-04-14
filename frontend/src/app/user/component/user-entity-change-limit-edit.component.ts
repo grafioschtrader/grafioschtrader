@@ -16,7 +16,9 @@ import {User} from '../../entities/user';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 
-
+/**
+ * Edit the limit of a information class.
+ */
 @Component({
   selector: 'user-entity-change-limit-edit',
   template: `

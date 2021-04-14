@@ -8,4 +8,4 @@ chapter: true
 ## Handelskalender global
 Mit dem **globale Handelskalender** und dem Handelskalender pro Handlesplatz dient der Vollständigkeitsprüfung der historischen Kursdaten.
 
-Dieser definiert die **Obermenge** der **Handelstage** aller **Handelsplätze**. An Samstagen und Sonntagen findet Grundsätzlich kein Handel statt. Zudem gibt es mit dem 1. Januar und 25. Dezember noch zwei Tage, an denen alle relevanten Handelsplätze geschlossen sind.
+Dieser definiert die **Obermenge** der **Handelstage** aller **Handelsplätze**. An **Samstagen** und **Sonntagen** findet Grundsätzlich **kein Handel** statt. Nur der **Administrator** hat die notwendigen **Benutzerrechte** für Änderungen an diesem Handelskalender. Meistens wird dieser nur den 1. Januar und 25. Dezember als globale **nicht Handelstage** eintragen.

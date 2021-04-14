@@ -21,13 +21,13 @@ Der welche eine **Entität** einer **Informationsklasse** der geteilten Daten er
 GT verwendet ein **optimistisches Sperren** das auf der Basis einer Versionsnummer basiert. Mit der **optimistischen Sperre** verfügt jedes Entität über ein Attribut, das als Versionsnummer fungiert. Jede Entität besitzt eine **Versionsnummer** diese wird beim Aktualisieren bzw. beim Speichern mit der Versionsnummer in der Datenbank verglichen. Wenn diese Versionnummer nicht übereinstimmen, bedeutet dies, dass ein anderer Benutzer die Entität vor Ihnen geändert hatte. Die Aktualisierung schlägt fehl, da Sie eine veraltete Version der Entität modifizierten. Wenn dies der Fall ist, wiederholen Sie den Vorgang, indem Sie das Entität erneut abrufen und damit eine neue Version aktualisieren. Die optimistische Sperre hindert Sie daran, versehentlich **Änderungen** anderer **Benutzer** zu **überschreiben**. Sie hindert auch andere Benutzer daran, versehentlich Ihre Änderungen zu überschreiben.
 
 ## Benutzerrechte
-Mit der vollständigen Registrierung eines Benutzers, wird dieser automatisch zum **Benutzer mit Limits** zugeordnet.
+Mit der **vollständigen Registrierung** eines Benutzers, wird dieser automatisch zum **Benutzer mit Limits** zugeordnet.
 
 ### Benutzer mit Limits
-Benutzer mit Limit kann nur eine **bestimmte Anzahl** von **Entitäten** einer **Informationsklasse** bzw. seiner **geteilten Entitäten** pro Tag erstellen bzw. ändern. Dadurch wird verhindert, dass ein Benutzer einen grösseren willentlichen Schaden an den **geteilten Daten** herbei führen kann. Weitere Informationen siehe [Globale Einstellungen](../../admindata/globalsettings)
+Benutzer mit Limit kann nur eine **bestimmte Anzahl** von **Entitäten** einer **Informationsklasse** bzw. **seiner geteilten Entitäten** pro Tag erstellen bzw. ändern. Dadurch wird verhindert, dass ein Benutzer einen grösseren willentlichen Schaden an den **geteilten Daten** herbei führen kann. Weitere Informationen siehe [Globale Einstellungen](../../admindata/globalsettings)
 
 ### Benutzer ohne Limits
-Dieser Benutzer unterliegt keiner Einschränkung bezüglich dem Erstellen oder verändern seiner **geteilten Daten**.
+Dieser Benutzer unterliegt keiner Einschränkung bezüglich dem Erstellen oder verändern **seiner geteilten Daten**.
 
 ### Privilegierter Benutzer
 Dieser hat die gleichen Benutzerrechte wie Benutzer ohne Limits plus kann er auch die **geteilten Daten** aller Benutzer verändern. Das Bearbeiten des **Handelskalender global** ist dem Benutzer dieser Gruppe nicht erlaubt.

@@ -28,17 +28,10 @@ public class ValueFormatConverter {
   public ValueFormatConverter() {
     this.numberFormat = NumberFormat.getInstance(Locale.getDefault());
     simpleDateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    localDateFormatter = DateTimeFormatter.ofPattern(GlobalConstants.STANDARD_DATE_FORMAT);
     this.thousandSeparatorsPattern = Pattern.quote("" + "" + new DecimalFormatSymbols().getDecimalSeparator());
   }
-  /*
-   * public ValueFormatConverter(Locale locale, String dateFormat, String
-   * thousandSeparatorsPattern, String localTimeFormat) { this.numberFormat =
-   * NumberFormat.getInstance(locale); if(localTimeFormat == null) {
-   * simpleDateFormat = new SimpleDateFormat(dateFormat); } else {
-   * localTimeFormater = DateTimeFormatter.ofPattern(localTimeFormat);
-   * localDateFormatter = DateTimeFormatter.ofPattern(dateFormat); }
-   * this.thousandSeparatorsPattern = thousandSeparatorsPattern; }
-   */
+ 
 
   public ValueFormatConverter(String dateFormat, String localTimeFormat, char thousandSeparators,
       String thousandSeparatorsPattern, char decimalSeparator) {

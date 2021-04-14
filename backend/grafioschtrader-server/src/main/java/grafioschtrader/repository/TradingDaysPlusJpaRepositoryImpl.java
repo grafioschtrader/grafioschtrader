@@ -40,12 +40,6 @@ public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepos
       numberOfTradingDays = tradingDaysPlusJpaRepository.countByTradingDateBetween(tradingDay, yesterday);
       numberOfTradingDaysYesterdayNowMap.put(tradingDay, numberOfTradingDays);
     }
-    /*
-     * numberOfTradingDays =
-     * numberOfTradingDaysYesterdayNowMap.computeIfAbsent(tradingDay, td ->
-     * numberOfTradingDaysYesterdayNowMap.put(td,
-     * tradingDaysPlusJpaRepository.countByTradingDateBetween(td, yesterday)));
-     */
     return numberOfTradingDays != 0;
   }
 

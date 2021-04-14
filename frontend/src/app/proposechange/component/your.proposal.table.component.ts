@@ -68,7 +68,7 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
       dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService,
       [CrudMenuOptions.Allow_Delete]);
 
-    this.addColumn(DataType.String, 'entity', 'ENTITY_NAME', true, false,
+    this.addColumnFeqH(DataType.String, 'entity',  true, false,
       {translateValues: TranslateValue.UPPER_CASE});
     this.addColumnFeqH(DataType.String, 'noteRequest', true, false);
     this.addColumnFeqH(DataType.String, 'dataChangeState', true, false,
