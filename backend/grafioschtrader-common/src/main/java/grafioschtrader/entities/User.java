@@ -126,7 +126,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   public ProposeUserTask userChangePropose;
 
   @Transient
-  private List<ProposeUserTask> userChangeLimitProposeList;
+  private List<ProposeUserTask> userChangeLimitProposeList = new ArrayList<>();
 
   public User() {
 
@@ -318,9 +318,6 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   }
 
   public void addUserChangeLimitPropose(ProposeUserTask proposeUserTask) {
-    if (userChangeLimitProposeList == null) {
-      userChangeLimitProposeList = new ArrayList<>();
-    }
     userChangeLimitProposeList.add(proposeUserTask);
   }
 

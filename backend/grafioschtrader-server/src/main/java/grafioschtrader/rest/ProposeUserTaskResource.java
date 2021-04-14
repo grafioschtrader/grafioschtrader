@@ -22,6 +22,7 @@ import grafioschtrader.dynamic.model.FieldDescriptorInputAndShow;
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.repository.ProposeUserTaskJpaRepository;
 import grafioschtrader.usertask.UserTaskType;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -32,6 +33,8 @@ public class ProposeUserTaskResource extends UpdateCreateDeleteAuditResource<Pro
   @Autowired
   private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
 
+  @Operation(summary = "It returns input field defintion for a form which allows the user to apply for some user task", 
+      description = "", tags = { RequestMappings.PROPOSEUSER_TASK })
   @GetMapping(value = "/form/{userTaskType}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<FieldDescriptorInputAndShow>> getFormDefinitionsByUserTaskType(
       @PathVariable final byte userTaskType) {
@@ -39,6 +42,8 @@ public class ProposeUserTaskResource extends UpdateCreateDeleteAuditResource<Pro
         ProposeUserTask.getModelByUserTaskType(UserTaskType.getUserTaskTypeByValue(userTaskType))), HttpStatus.OK);
   }
 
+  @Operation(summary = "The request was denied by the admin.", 
+      description = "It send a Email to the user, since he may not have anymore any access to GT", tags = { RequestMappings.PROPOSEUSER_TASK })
   @PostMapping(value = "/reject/{idProposeRequest}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<StringResponse> rejectUserTask(@PathVariable final Integer idProposeRequest,
       @RequestBody String rejectNote) throws MessagingException {

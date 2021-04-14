@@ -20,6 +20,9 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
+import {AppSettings} from '../../shared/app.settings';
+import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
+import {Menu} from 'primeng/menu';
 
 /**
  * It is implemented as a nested table.
@@ -27,57 +30,58 @@ import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propos
 @Component({
   selector: 'user-entity-change-limit-table',
   template: `
-      <div #cmDiv class="data-container" (click)="onComponentClick($event)"
-           [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-          <div class="datatable nestedtable">
-              <p-table [columns]="fields" [value]="user.userEntityChangeLimitList" selectionMode="single"
-                       (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
-                       (onPage)="onPage($event)" dataKey="idUserEntityChangeLimit" [paginator]="true" [rows]="20"
-                       (sortFunction)="customSort($event)" [customSort]="true"
-                       sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                       styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-                  <ng-template pTemplate="header" let-fields>
-                      <tr>
-                          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
-                              {{field.headerTranslated}}
-                              <p-sortIcon [field]="field.field"></p-sortIcon>
-                          </th>
-                      </tr>
-                  </ng-template>
+    <div #cmDiv class="data-container" (click)="onComponentClick($event)"
+         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+      <div class="datatable nestedtable">
+        <p-table [columns]="fields" [value]="user.userEntityChangeLimitList" selectionMode="single"
+                 (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+                 (onPage)="onPage($event)" dataKey="idUserEntityChangeLimit" [paginator]="true" [rows]="20"
+                 (sortFunction)="customSort($event)" [customSort]="true"
+                 sortMode="multiple" [multiSortMeta]="multiSortMeta"
+                 styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+          <ng-template pTemplate="header" let-fields>
+            <tr>
+              <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width"
+                  [pTooltip]="field.headerTooltipTranslated">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
 
-                  <ng-template pTemplate="body" let-el let-columns="fields">
-                      <tr [pSelectableRow]="el">
-                          <ng-container *ngFor="let field of fields">
+          <ng-template pTemplate="body" let-el let-columns="fields">
+            <tr [pSelectableRow]="el">
+              <ng-container *ngFor="let field of fields">
 
-                              <td *ngIf="field.visible" [style.width.px]="field.width"
-                                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)?
+                <td *ngIf="field.visible" [style.width.px]="field.width"
+                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)?
                                       'text-right': ''">
-                                  <ng-container [ngSwitch]="field.templateName">
-                                      <ng-container *ngSwitchCase="'icon'">
-                                          <svg-icon [name]="getValueByPath(el, field)"
-                                                    [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                                      </ng-container>
-                                      <ng-container *ngSwitchDefault>
-                                          {{getValueByPath(el, field)}}
-                                      </ng-container>
-                                  </ng-container>
-                              </td>
-                          </ng-container>
-                      </tr>
-                  </ng-template>
-              </p-table>
-              <p-contextMenu *ngIf="contextMenuItems" #cm [target]="cmDiv" [model]="contextMenuItems"
-                             appendTo="body"></p-contextMenu>
-          </div>
+                  <ng-container [ngSwitch]="field.templateName">
+                    <ng-container *ngSwitchCase="'icon'">
+                      <svg-icon [name]="getValueByPath(el, field)"
+                                [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                    </ng-container>
+                    <ng-container *ngSwitchDefault>
+                      {{getValueByPath(el, field)}}
+                    </ng-container>
+                  </ng-container>
+                </td>
+              </ng-container>
+            </tr>
+          </ng-template>
+        </p-table>
+        <p-contextMenu *ngIf="contextMenuItems" #cm [target]="cmDiv" [model]="contextMenuItems"
+                       appendTo="body"></p-contextMenu>
       </div>
+    </div>
 
-      <user-entity-change-limit-edit *ngIf="visibleDialog"
-                                     [visibleDialog]="visibleDialog"
-                                     [user]="user"
-                                     [existingUserEntityChangeLimit]="existingUserEntityChangeLimit"
-                                     [proposeChangeEntityWithEntity]="proposeChangeEntityWithEntity"
-                                     (closeDialog)="handleCloseDialog($event)">
-      </user-entity-change-limit-edit>
+    <user-entity-change-limit-edit *ngIf="visibleDialog"
+                                   [visibleDialog]="visibleDialog"
+                                   [user]="user"
+                                   [existingUserEntityChangeLimit]="existingUserEntityChangeLimit"
+                                   [proposeChangeEntityWithEntity]="proposeChangeEntityWithEntity"
+                                   (closeDialog)="handleCloseDialog($event)">
+    </user-entity-change-limit-edit>
   `
 })
 export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
@@ -101,21 +105,21 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
 
   private proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   private proposeMap: Map<number, ProposeChangeEntityWithEntity> = new Map();
+  private deleteMenu:  MenuItem = {label: 'DELETE_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT,
+  command: (event) => this.handleDelete(this.selectedUserEntityChangeLimit)};
   private menuItems: MenuItem[] = [
     {
-      label: 'EDIT_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT,
+      label: 'EDIT_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT + AppSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleEditEntity(this.selectedUserEntityChangeLimit)
     },
-    {
-      label: 'DELETE_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT,
-      command: (event) => this.handleDelete(this.selectedUserEntityChangeLimit)
-    },
+    this.deleteMenu
   ];
 
   constructor(private activePanelService: ActivePanelService,
               private userEntityChangeLimitService: UserEntityChangeLimitService,
               private messageToastService: MessageToastService,
               private confirmationService: ConfirmationService,
+              private proposeUserTaskService: ProposeUserTaskService,
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               usersettingsService: UserSettingsService,
@@ -186,9 +190,9 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
   }
 
   ngOnInit(): void {
+    this.createProposeLimitForView();
     this.user.userEntityChangeLimitList.forEach((userEntityChangeLimit: UserEntityChangeLimit) =>
       userEntityChangeLimit[this.UPPER_CASE_ENTITY_NAME] = userEntityChangeLimit.entityName.toUpperCase());
-    this.createProposeLimitForView();
     this.createTranslatedValueStoreAndFilterField(this.user.userEntityChangeLimitList);
   }
 
@@ -196,19 +200,22 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
     if (this.user.userChangeLimitProposeList) {
       for (const proposeUserTask of this.user.userChangeLimitProposeList) {
         const entityField = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'entity');
-        const existingLimit = this.user.userEntityChangeLimitList.find(uec => uec.entityName === entityField.valueDesarialized);
-        if (existingLimit) {
-          this.proposeMap.set(existingLimit.idUserEntityChangeLimit,
-            AuditHelper.convertToProposeChangeEntityWithEntity(existingLimit, proposeUserTask));
-        } else {
+        let existingLimit = this.user.userEntityChangeLimitList.find(uec => uec.entityName === entityField.valueDesarialized) ;
+        this.deleteMenu.disabled = !existingLimit;
+        if (!existingLimit) {
+          existingLimit = new UserEntityChangeLimit();
           // create and add user entity change Limit
           const uecl: UserEntityChangeLimit = new UserEntityChangeLimit();
           uecl.idUser = this.user.idUser;
+          existingLimit.idUser = uecl.idUser;
           uecl.entityName = entityField.valueDesarialized;
+          existingLimit.entityName = uecl.entityName;
           uecl.dayLimit = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'dayLimit').valueDesarialized;
           uecl.untilDate = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'untilDate').valueDesarialized;
           this.user.userEntityChangeLimitList.push(uecl);
         }
+        this.proposeMap.set(existingLimit.idUserEntityChangeLimit,
+          AuditHelper.convertToProposeChangeEntityWithEntity(existingLimit, proposeUserTask));
       }
     }
   }
@@ -216,6 +223,14 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
   handleCloseDialog(processedActionData: ProcessedActionData) {
     this.visibleDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      if (processedActionData.action === ProcessedAction.REJECT_DATA_CHANGE) {
+        console.log(this.selectedUserEntityChangeLimit);
+        this.proposeUserTaskService.rejectUserTask(this.proposeChangeEntityWithEntity.proposeChangeEntity.idProposeRequest,
+          processedActionData.data).subscribe(stringResponse => this.messageToastService.showMessage(InfoLevelType.SUCCESS,
+          stringResponse.response));
+        this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED,
+          processedActionData.data));
+      }
       this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED,
         processedActionData.data));
     }

@@ -55,14 +55,14 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User> implements U
     List<ProposeUserTask> proposeUserTasks = proposeUserTaskJpaRepository.findAll();
     Comparator<User> byIdUser = (User u1, User u2) -> u1.getIdUser().compareTo(u2.getIdUser());
     User user = new User();
-    proposeUserTasks.forEach(put -> {
-      user.setIdUser(put.getIdTargetUser());
+    proposeUserTasks.forEach(proposeUT -> {
+      user.setIdUser(proposeUT.getIdTargetUser());
       int index = Collections.binarySearch(users, user, byIdUser);
       if (index >= 0) {
-        if (put.getUserTaskType() == UserTaskType.RELEASE_LOGOUT) {
-          users.get(index).userChangePropose = put;
+        if (proposeUT.getUserTaskType() == UserTaskType.RELEASE_LOGOUT) {
+          users.get(index).userChangePropose = proposeUT;
         } else {
-          users.get(index).addUserChangeLimitPropose(put);
+          users.get(index).addUserChangeLimitPropose(proposeUT);
         }
       }
     });

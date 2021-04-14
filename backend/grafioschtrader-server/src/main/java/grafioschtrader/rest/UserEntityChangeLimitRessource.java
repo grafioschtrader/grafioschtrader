@@ -24,9 +24,12 @@ import grafioschtrader.repository.MailSendboxJpaRepository;
 import grafioschtrader.repository.ProposeUserTaskJpaRepository;
 import grafioschtrader.repository.UserEntityChangeLimitJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.USER_ENTITY_CHANGE_LIMIT_MAP)
+@Tag(name = RequestMappings.USER_ENTITY_CHANGE_LIMIT, description = "Controller for user change limits")
 public class UserEntityChangeLimitRessource extends UpdateCreateDeleteAuditResource<UserEntityChangeLimit> {
 
   @Autowired
@@ -44,6 +47,9 @@ public class UserEntityChangeLimitRessource extends UpdateCreateDeleteAuditResou
   @Autowired
   private UserJpaRepository userJpaRepository;
 
+  @Operation(summary = "Get the limits for shated information classes by user if there are", 
+      description = "", 
+      tags = { RequestMappings.USER_ENTITY_CHANGE_LIMIT })
   @GetMapping(value = "/{idUser}/entities", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getPossibleEntities(@PathVariable final Integer idUser,
       @RequestParam("idUserEntityChangeLimit") Optional<Integer> idUserEntityChangeLimitOpt) {
