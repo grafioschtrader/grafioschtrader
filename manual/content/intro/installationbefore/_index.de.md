@@ -13,6 +13,7 @@ Das folgende Video beantwortet diese Fragen:
 + Auf welcher Infrastruktur kann GT betrieben werden
 + Warum basiert GT auf JWT
 + Warum braucht es ein DNS und TLS Zertifikat
+{{< youtube sF8iGgKRupE >}}
 
 ### Lokale installation ohne DNS und SSL/TLS Zertifikate
 Es ist durchaus möglich GT lokal oder in einem lokalen Netzwerk zu installieren. Software-Entwickler arbeiten meistens mit einer lokalen Version. Sie können GT auch in einem lokalen Netzwerk ohne Domain Name System (DNS) nutzen, allerdings verzichten Sie dabei auf ein SSL/TLS Zertifikat.
