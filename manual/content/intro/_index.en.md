@@ -36,3 +36,13 @@ GT is the attempt to replicate the portfolios according to the reality, therefor
 + The day trader lacks real-time quotes.
 + Investors who want to manage their trading detached from cash accounts.
 + Investor who has only one portfolio with an online broker and the evaluations there are sufficient.
+
+### For whom GT does not work
++ For **billionaires**, in whatever currency, here the number format of GT is unfortunately not sufficient.
++ For investors who want to manage transaction with GT before 2000. GT consistently implements double-digit years.
++ For investors who want to assign an instrument to a **sector/topic** and **countries/regions** at the same time.
++ For investors from Switzerland, Germany or USA who need a **Valor-No.**, **Securities Identification Number (WKN)** or **CUSIP-Number**. GT uses the International Securities Identification Number ISIN and the not always unique ticker/symbols.
+
+{{% notice info %}}
+The information in this help refers to **GT** version **0.12.0**.
+{{% /notice %}}

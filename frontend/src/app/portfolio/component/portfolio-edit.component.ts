@@ -13,6 +13,9 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
+/**
+ * Component for editing the portfolio.
+ */
 @Component({
   selector: 'portfolio-edit',
   template: `

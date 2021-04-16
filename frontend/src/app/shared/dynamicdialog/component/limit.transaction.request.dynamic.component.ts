@@ -13,7 +13,7 @@ import {UserTaskType} from '../../types/user.task.type';
 import {ProposeChangeField} from '../../../entities/propose.change.field';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
-import {FieldDescriptorInputAndShow} from '../../../algo/model/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {Helper} from '../../../helper/helper';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 

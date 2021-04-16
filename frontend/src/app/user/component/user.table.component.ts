@@ -203,7 +203,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.visibleEditLimitDialog = true;
   }
 
-  handleEditLimitCloseDialog(processedActionData: ProcessedActionData) {
+  handleEditLimitCloseDialog(processedActionData: ProcessedActionData): void {
     this.visibleEditLimitDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();

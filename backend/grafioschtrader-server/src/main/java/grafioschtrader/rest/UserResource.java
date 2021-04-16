@@ -30,6 +30,7 @@ import grafioschtrader.entities.projection.UserOwnProjection;
 import grafioschtrader.repository.UserJpaRepository;
 import grafioschtrader.repository.VerificationTokenJpaRepository;
 import grafioschtrader.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Every user can access and edit some of its user data.
@@ -39,6 +40,7 @@ import grafioschtrader.service.UserService;
  */
 @RestController
 @RequestMapping(RequestMappings.USER_MAP)
+@Tag(name = RequestMappings.USER, description = "Controller for chaning user properites. Accesible by every user.")
 public class UserResource {
   public static final String TOKEN_EXPIRED = "TOKEN_EXPIRED";
   public static final String TOKEN_SUCCESS = "TOKEN_SUCCESS";
@@ -53,8 +55,7 @@ public class UserResource {
 
   @Autowired
   UserJpaRepository userJpaRepository;
-  
- 
+
   @GetMapping(value = "/own", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<UserOwnProjection> getOwnUser() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -84,7 +85,7 @@ public class UserResource {
   }
 
   @PutMapping(value = "/password", produces = APPLICATION_JSON_VALUE)
-   public ResponseEntity<SuccessfullyChanged> changePassword(@RequestBody final ChangePasswortDTO changePasswortDTO) {
+  public ResponseEntity<SuccessfullyChanged> changePassword(@RequestBody final ChangePasswortDTO changePasswortDTO) {
     return ResponseEntity.ok().body(userService.changePassword(changePasswortDTO));
   }
 

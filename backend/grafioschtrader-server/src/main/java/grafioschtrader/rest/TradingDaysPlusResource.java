@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class TradingDaysPlusResource {
 
   @Autowired
-  TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
   @Operation(summary = "Returns all possible tranding days of year", description = "", 
       tags = { RequestMappings.TRADINGDAYSPLUS })
@@ -35,6 +35,8 @@ public class TradingDaysPlusResource {
     return new ResponseEntity<>(tradingDaysPlusJpaRepository.getTradingDaysByYear(year), HttpStatus.OK);
   }
 
+  @Operation(summary = "Save trading days of year", description = "Only admin can change this calendar", 
+      tags = { RequestMappings.TRADINGDAYSPLUS })
   @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TradingDaysWithDateBoundaries> deleteAndCreateMultiple(
       @Valid @RequestBody final SaveTradingDays saveTradingDaysPlus) {

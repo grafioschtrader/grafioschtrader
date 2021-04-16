@@ -1,5 +1,5 @@
 import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {FieldDescriptorInputAndShow} from '../../algo/model/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {MenuItem} from 'primeng/api';
 
 export class IndicatorDefinitions {

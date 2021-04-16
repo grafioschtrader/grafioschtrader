@@ -14,7 +14,7 @@ import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.messa
 import {AlgoCallParam} from '../model/algo.dialog.visible';
 import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.implementations';
 import {Subscription} from 'rxjs';
-import {FieldDescriptorInputAndShow} from '../model/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {AlgoRuleStrategyParam} from '../../entities/algo.rule.strategy.param';

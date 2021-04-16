@@ -235,8 +235,7 @@ import {InjectableRxStompConfig, RxStompService, rxStompServiceFactory} from '@s
 import {myRxStompConfig} from './my-rx-stomp.config';
 import {CardModule} from 'primeng/card';
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
-
-
+import {GlobalSettingsEditComponent} from './shared/globalsettings/global.settings-edit.component';
 
 
 export function createTranslateLoader(http: HttpClient) {
@@ -248,7 +247,8 @@ export function createTranslateLoader(http: HttpClient) {
 
 @NgModule({
   declarations: [
-    AlgoAssetclassEditComponent, AlgoRuleStrategyCreateComponent, AlgoRuleStrategyCreateWizardComponent, AlgoSecurityEditComponent,
+    AlgoAssetclassEditComponent, AlgoRuleStrategyCreateComponent, AlgoRuleStrategyCreateWizardComponent,
+    AlgoSecurityEditComponent, GlobalSettingsEditComponent,
     AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,

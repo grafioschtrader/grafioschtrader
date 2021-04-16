@@ -8,6 +8,7 @@ import javax.persistence.EntityManager;
 
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
+import grafioschtrader.entities.Globalparameters;
 
 public interface GlobalparametersJpaRepositoryCustom {
 
@@ -49,5 +50,7 @@ public interface GlobalparametersJpaRepositoryCustom {
   List<ValueKeyHtmlSelectOptions> getAllZoneIds();
 
   List<ValueKeyHtmlSelectOptions> getSupportedLocales();
+  
+  Globalparameters saveOnlyAttributes(Globalparameters globalparameters);
   
 }

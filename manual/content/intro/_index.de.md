@@ -39,7 +39,8 @@ GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher g
 
 ### Für wen GT nicht funktioniert
 + Für **Milliardäre**, in welcher Währung auch immer, hierbei genügt das Zahlenformat von GT leider nicht.
-+ Für Investoren die Transaction mit GT von dem Jahre 2000 verwalten wollen. GT implementiert konsequent zweistellige Jahreszahlen.
++ Für Investoren die Transaction mit GT vor dem Jahre 2000 verwalten wollen. GT implementiert konsequent zweistellige Jahreszahlen.
++ Für Kapitalanleger die gleichzeitig ein Instrumente einer **Branche/Thema** und **Länder/Regionen** zuordnen wollen.
 + Für Anleger aus der Schweiz, Deutschland bzw. USA die eine **Valoren-Nr.**, **Wertpapierkennnummer (WKN)** bzw. **CUSIP-Nummer** benötigen. GT benutzt die Internationale Wertpapierkennnummer ISIN und die nicht immer eindeutigen Ticker/Symbole. 
 
 {{% notice info %}}

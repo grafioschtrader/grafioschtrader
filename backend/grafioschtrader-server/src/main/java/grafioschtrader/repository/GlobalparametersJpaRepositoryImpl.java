@@ -9,18 +9,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
+import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
+import grafioschtrader.entities.User;
 
 public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRepositoryCustom {
 
@@ -28,7 +32,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   private EntityManager entityManager;
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Override
   public int getMaxValueByKey(String key) {
@@ -84,7 +88,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   @Override
   public int getMaxFillDaysCurrency() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY)
-        .map(g -> g.getPropertyInt()).orElse(Globalparameters.DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY);
+        .map(Globalparameters:: getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY);
   }
 
   @Override
@@ -121,5 +125,18 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return dropdownValues.stream().sorted((x, y) -> x.value.compareTo(y.value)).collect(Collectors.toList());
   }
   
+  @Override
+  public Globalparameters saveOnlyAttributes(Globalparameters updGp) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (UserAccessHelper.isAdmin(user)) {
+      Optional<Globalparameters> existingGpOpt = globalparametersJpaRepository.findById(updGp.getPropertyName());
+      if(existingGpOpt.isPresent()) {
+        Globalparameters existingGp = existingGpOpt.get();
+        existingGp.replaceExistingPropertyValue(updGp);
+        return globalparametersJpaRepository.save(existingGp);
+      }
+    }
+    throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+  }
   
 }

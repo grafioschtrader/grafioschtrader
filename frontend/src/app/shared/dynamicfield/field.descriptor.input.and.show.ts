@@ -1,5 +1,8 @@
 import {DataType} from '../../dynamic-form/models/data.type';
-import {DynamicFormPropertyHelps} from './dynamic.form.property.helps';
+
+export enum DynamicFormPropertyHelps {
+  PERCENTAGE
+}
 
 export class FieldDescriptorInputAndShow {
   fieldName: string;

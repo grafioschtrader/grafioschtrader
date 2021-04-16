@@ -3,12 +3,11 @@ import {AlgoStrategyParamCall} from '../model/algo.dialog.visible';
 import {SingleRecordConfigBase} from '../../shared/datashowbase/single.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {FieldDescriptorInputAndShow} from '../model/field.descriptor.input.and.show';
+import {DynamicFormPropertyHelps, FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {OptionalParams, TranslateValue} from '../../shared/datashowbase/column.config';
-import {DynamicFormPropertyHelps} from '../model/dynamic.form.property.helps';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 
