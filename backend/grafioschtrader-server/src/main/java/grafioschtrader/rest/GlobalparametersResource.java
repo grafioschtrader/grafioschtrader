@@ -32,13 +32,10 @@ import org.springframework.web.bind.annotation.RestController;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.config.ExposedResourceBundleMessageSource;
 import grafioschtrader.dto.TenantLimit;
-import grafioschtrader.dto.TradingDaysWithDateBoundaries;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
-import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
-import grafioschtrader.repository.TradingDaysBase.SaveTradingDays;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 

@@ -4,7 +4,7 @@ export enum HelpIds {
   HELP_INTRO = 'intro',
   HELP_INTRO_REGISTER = 'intro/register',
   HELP_INTRO_NAVIGATION = 'intro/userinterface',
-  HELP_INTRO_PROPOSE_CHANGE_ENTITY = 'proposechangeentity',
+  HELP_INTRO_PROPOSE_CHANGE_ENTITY = 'basedata',
 
   // Tenant, portfolio, security and cash account
   HELP_CLIENT = 'tenantportfolio/client',

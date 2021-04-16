@@ -6,4 +6,4 @@ weight : 30
 chapter: true
 ---
 ## Globale Einstellungen
-Dieser Tabelle können Sie die **globalen Einstellungen** von GT entnehmen. Sehr viele **Eigenschaften** beziehen sich auf unterschiedliche **Limiten**, wie beispielsweise die Anzahl möglicher Portfolios pro Klient.
+Dieser Tabelle können Sie die **globalen Einstellungen** von GT entnehmen. Sehr viele **Eigenschaften** beziehen sich auf unterschiedliche **Limiten**, wie beispielsweise die Anzahl möglicher Portfolios pro Klient. Die Veränderung der Eigenschaften ist dem Administratoren vorbehalten.

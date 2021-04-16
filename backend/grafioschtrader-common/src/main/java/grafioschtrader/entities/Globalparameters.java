@@ -30,7 +30,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.MaxDefaultDBValue;
 import grafioschtrader.dto.MaxDefaultDBValueWithKey;
 
