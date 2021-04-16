@@ -1,6 +1,6 @@
 ---
 title: "Unterschiedliche Installationsarten"
-date: 2021-04-10T22:54:47+01:00
+date: 2021-04-16T14:54:47+01:00
 draft: false
 weight : 55
 chapter: true
@@ -8,23 +8,29 @@ chapter: true
 ## Unterschiedliche Installationsarten
 Grafioschtrader (GT) kann für unterschiedliche Nutzungen installiert werden.
 
+Das folgende Video beantwortet diese Fragen:
++ Repository der GT-Daten, Tabellen werden unter den Benutzer geteilt
++ Auf welcher Infrastruktur kann GT betrieben werden
++ Warum basiert GT auf JWT
++ Warum braucht es ein DNS und TLS Zertifikat
+
 ### Lokale installation ohne DNS und SSL/TLS Zertifikate
 Es ist durchaus möglich GT lokal oder in einem lokalen Netzwerk zu installieren. Software-Entwickler arbeiten meistens mit einer lokalen Version. Sie können GT auch in einem lokalen Netzwerk ohne Domain Name System (DNS) nutzen, allerdings verzichten Sie dabei auf ein SSL/TLS Zertifikat.
 + **Vorteile**: 
-  + Installation ist einfacher.
+  + Installation ist einfacher, kein DNS und TLS Zertifikat.
   + Sicher von Angriffen ausserhalb des lokalen Netzes.
   + Auch die geteilten Daten gehören Ihnen und Sie haben die Benutzerrechte des Administratoren
 + **Nachteile**:
   + Sie müssen alle Ihre **geteilten Daten** selber verwalten.
   + GT wird es in der **Zukunft** ermöglichen **historische Kursdaten** unter den **GT-Instanzen** zu versenden, damit reduziert sich die Abhängigkeiten zu den externen Datenquellen.
-  + Ein zukünftiger Smartphone-App kann nicht auf Ihre GT-Instanz zugreiffen.
+  + Ein zukünftige Smartphone-App kann nicht auf Ihre GT-Instanz zugreiffen.
 
 ### Installation mit DNS und SSL/TLS Zertifikate
 Sie können eine **GT-Instanz** für Ihre alleinige oder allgemeine Nutzung installieren. Dabei verwenden Sie **DNS** und ein **SSL/TLS Zertifikat**.
 + **Voteile**: 
   + Sie können von den **anderen Benutzer profitieren**, da eine gemeinsame Verwaltung der **geteilten Daten**.
   + Sie geniessen die Vorteile der GT-Weiterentwicklung bezüglich der Kommunikation zwischen den GT-Instanzen.  
-+ **Nachteile**: 
++ **Nachteil**:
   + Installation ist komplizierter.
 
 #### Selbst gehostet mit DDNS/DNS und TLS Zertifikat
