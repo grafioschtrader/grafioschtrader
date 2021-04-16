@@ -48,6 +48,7 @@ export class ColumnConfig {
 
   export?: boolean;
 
+
   constructor(dataType: DataType, field: string, headerKey: string, visible: boolean,
               changeVisibility: boolean, optionalsParams?: OptionalParams) {
     this.dataType = dataType;
@@ -123,6 +124,7 @@ export enum TranslateValue {
   // Start with one otherwise a boolean check could be wrong
   // No other action than translation
   NORMAL = 1,
-  // To uppercase before translation into sore
+  // To uppercase before translation into store
   UPPER_CASE = 2
 }
+

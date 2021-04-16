@@ -11,6 +11,12 @@ import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
 import {AppHelper} from '../helper/app.helper';
+import {AppSettings} from '../app.settings';
+import {AuditHelper} from '../helper/audit.helper';
+import {User} from '../../entities/user';
+import {ProcessedActionData} from '../types/processed.action.data';
+import {ProcessedAction} from '../types/processed.action';
+import {TranslateHelper} from '../helper/translate.helper';
 
 /**
  * Shows global settings in table
@@ -54,12 +60,20 @@ import {AppHelper} from '../helper/app.helper';
       <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
                      appendTo="body"></p-contextMenu>
     </div>
+    <globalsettings-edit *ngIf="visibleDialog"
+                         [visibleDialog]="visibleDialog"
+                         [globalparameters]="selectedEntity"
+                         (closeDialog)="handleGlobalparameterCloseDialog($event)">
+    </globalsettings-edit>
   `
 })
 export class GlobalSettingsTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
   contextMenuItems: MenuItem[] = [];
+  editMenu: MenuItem;
   globalparametersList: Globalparameters[];
   selectedEntity: Globalparameters;
+  callParam: User;
+  visibleDialog = false;
 
   constructor(private activePanelService: ActivePanelService,
               changeDetectionStrategy: ChangeDetectorRef,
@@ -68,6 +82,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
               globalparameterService: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+
     this.addColumn(DataType.String, 'propertyName', 'PROPERTY_NAME_DESC', true, false,
       {translateValues: TranslateValue.NORMAL, width: 450});
     this.addColumnFeqH(DataType.String, 'propertyValue', true, false,
@@ -76,6 +91,10 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
       {templateName: 'check'});
     this.addColumnFeqH(DataType.String, 'propertyName', true, false,
       {width: 200});
+    this.editMenu = { label: 'EDIT_RECORD|GLOBAL_SETTINGS' + AppSettings.DIALOG_MENU_SUFFIX,
+      command: (event) => this.handleEditEntity(this.selectedEntity),
+      disabled: !AuditHelper.hasAdminRole(this.globalparameterService)};
+    TranslateHelper.translateMenuItems([this.editMenu], translateService);
   }
 
   ngOnInit(): void {
@@ -105,6 +124,33 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
   }
 
   onComponentClick(event): void {
+    this.resetMenu();
+  }
+
+  private resetMenu(): void {
+    this.activePanelService.activatePanel(this, {
+      showMenu: this.getMenuShowOptions(),
+      editMenu: this.getEditMenu()
+    });
+  }
+
+  protected getEditMenu(): MenuItem[] {
+    this.contextMenuItems = [];
+    if (this.selectedEntity) {
+      this.contextMenuItems.push(this.editMenu);
+    }
+    return this.contextMenuItems;
+  }
+
+  handleEditEntity(globalparameters: Globalparameters): void {
+    this.visibleDialog = true;
+  }
+
+  handleGlobalparameterCloseDialog(processedActionData: ProcessedActionData): void {
+    this.visibleDialog = false;
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
   }
 
   hideContextMenu(): void {

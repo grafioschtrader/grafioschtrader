@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -21,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,11 +32,13 @@ import org.springframework.web.bind.annotation.RestController;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.config.ExposedResourceBundleMessageSource;
 import grafioschtrader.dto.TenantLimit;
+import grafioschtrader.dto.TradingDaysWithDateBoundaries;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
+import grafioschtrader.repository.TradingDaysBase.SaveTradingDays;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -46,7 +52,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = RequestMappings.GLOBALPARAMETERS, description = "Controller for global parameters")
 public class GlobalparametersResource {
 
-  @Autowired
+  @Autowired 
   private MessageSource messageSource;
 
   @Autowired
@@ -148,5 +154,12 @@ public class GlobalparametersResource {
     return new ResponseEntity<>(globalparametersJpaRepository.getAllZoneIds(), HttpStatus.OK);
   }
 
+  @Operation(summary = "Change a property value of existing global parameter", 
+      description = "Only admin can change this calendar",  tags = { RequestMappings.GLOBALPARAMETERS })
+  @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Globalparameters> replacePropertyValue(
+      @Valid @RequestBody final Globalparameters globalparameters) {
+    return new ResponseEntity<>(globalparametersJpaRepository.saveOnlyAttributes(globalparameters), HttpStatus.OK);
+  }
   
 }

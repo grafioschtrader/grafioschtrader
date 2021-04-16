@@ -1,6 +1,5 @@
-import {FieldDescriptorInputAndShow} from '../../algo/model/field.descriptor.input.and.show';
+import {DynamicFormPropertyHelps, FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {DynamicFormPropertyHelps} from '../../algo/model/dynamic.form.property.helps';
 import {CalendarConfig, FieldConfig} from '../../dynamic-form/models/field.config';
 import {InputType} from '../../dynamic-form/models/input.type';
 import {AppHelper} from './app.helper';

@@ -1,9 +1,8 @@
 export class Globalparameters {
-  propertyName: string;
-
-  propertyInt: number;
-  propertyString: string;
-  propertyDate: string;
-  propertyBlob: string;
-  changedBySystem: boolean;
+  propertyName: string = null;
+  propertyInt: number = null;
+  propertyString: string  = null;
+  propertyDate: string = null;
+  propertyBlob: string = null;
+  changedBySystem: boolean = null;
 }

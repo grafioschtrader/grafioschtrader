@@ -51,6 +51,12 @@ public interface RequestMappings {
   public static final String IMPORTTRANSACTIONTEMPLATE = "importtransactiontemplate";
   public static final String IMPORTTRANSACTIONTEMPLATE_MAP = API + IMPORTTRANSACTIONTEMPLATE;
   
+  public static final String MAIL_INBOX = "mailinbox";
+  public static final String MAIL_INBOX_MAP = API + MAIL_INBOX;
+  
+  public static final String MAIL_SENDBOX = "mailsendbox";
+  public static final String MAIL_SENDBOX_MAP = API + MAIL_SENDBOX;
+   
   public static final String PORTFOLIO = "portfolio";
   public static final String PORTFOLIO_MAP = API + PORTFOLIO;
   
@@ -88,11 +94,14 @@ public interface RequestMappings {
   public static final String WATCHLIST = "watchlist";
   public static final String WATCHLIST_MAP = API + WATCHLIST;
   
-  public static final String USER_MAP = API + "user";
-  public static final String USERADMIN_MAP = API + "useradmin";
-  public static final String MAIL_INBOX_MAP = API + "mailinbox";
-  public static final String MAIL_SENDBOX_MAP = API + "mailsendbox";
+  public static final String USER = "user";
+  public static final String USER_MAP = API + USER; 
   
+  public static final String USERADMIN = "useradmin";
+  public static final String USERADMIN_MAP = API + USERADMIN;
+  
+ 
+   
   public static final String TENANT = "tenant";
   public static final String TENANT_MAP = API + TENANT;
   

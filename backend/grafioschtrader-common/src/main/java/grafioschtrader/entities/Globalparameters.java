@@ -30,6 +30,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.MaxDefaultDBValue;
 import grafioschtrader.dto.MaxDefaultDBValueWithKey;
 
@@ -244,6 +245,21 @@ public class Globalparameters implements Serializable {
     return new MaxDefaultDBValueWithKey(key, defaultLimitMap.get(key));
   }
 
+  public void replaceExistingPropertyValue(Globalparameters gpNew) {
+    if(gpNew.getPropertyDate() != null && propertyDate != null) {
+      this.propertyDate = gpNew.getPropertyDate();
+    } else if(gpNew.getPropertyInt() != null && propertyInt != null) {
+      this.propertyInt = gpNew.getPropertyInt();
+    } else if(gpNew.getPropertyString() != null && propertyString != null) {
+      this.propertyString = gpNew.getPropertyString(); 
+    } else if(gpNew.getPropertyBlob() != null && propertyBlob != null) {
+      setPropertyBlob(gpNew.getPropertyBlob()); 
+    } else {
+      throw new IllegalArgumentException();
+    }
+  }
+  
+  
   @Override
   public int hashCode() {
     int hash = 0;

@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.entities.MailInbox;
 import grafioschtrader.repository.MailInboxJpaRepository;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.MAIL_INBOX_MAP)
+@Tag(name = RequestMappings.MAIL_INBOX, description = "Controller for intenal mail inbox")
 public class MailInboxResource {
 
   @Autowired

@@ -23,9 +23,11 @@ import grafioschtrader.entities.User;
 import grafioschtrader.entities.User.AdminModify;
 import grafioschtrader.repository.ProposeUserTaskJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.USERADMIN_MAP)
+@Tag(name = RequestMappings.USERADMIN, description = "Controller for chaning user properites. Accesible only be admin.")
 public class UserAdminResource extends UpdateCreateResource<User> {
 
   @Autowired

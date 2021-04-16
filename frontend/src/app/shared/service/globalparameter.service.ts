@@ -12,11 +12,12 @@ import {BaseAuthService} from '../login/service/base.auth.service';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
 import * as moment from 'moment';
 import {CurrencyMaskConfig, CurrencyMaskInputMode} from 'ngx-currency';
+import {ServiceEntityUpdate} from '../edit/service.entity.update';
 import NumberFormat = Intl.NumberFormat;
 
 
 @Injectable()
-export class GlobalparameterService extends BaseAuthService<Globalparameters> {
+export class GlobalparameterService extends BaseAuthService<Globalparameters> implements ServiceEntityUpdate<Globalparameters> {
 
   // Cached values
   private _numberFormat: NumberFormat;
@@ -182,7 +183,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> {
     return this._useWebsocket;
   }
 
-
   public getNumberFormat(): NumberFormat {
     if (!this._numberFormat) {
       this._numberFormat = new Intl.NumberFormat(this.getLocale(), {
@@ -233,7 +233,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> {
     return this.getGlobalparameterNumber(GlobalSessionNames.START_FEED_DATE, 'startfeeddate');
   }
 
-
   private getGlobalparameterNumber(globalSessionNames: GlobalSessionNames, uriPart: string): Observable<number> {
     if (sessionStorage.getItem(globalSessionNames)) {
       return of(+sessionStorage.getItem(globalSessionNames));
@@ -243,6 +242,11 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> {
         this.getHeaders()).pipe(tap(value => sessionStorage.setItem(globalSessionNames, '' + value)),
         catchError(this.handleError.bind(this)));
     }
+  }
 
+  update(globalparameters: Globalparameters): Observable<Globalparameters> {
+    return <Observable<Globalparameters>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/`, globalparameters,
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 }

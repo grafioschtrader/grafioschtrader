@@ -1,5 +1,5 @@
 import {AlgoStrategy} from '../../entities/algo.strategy';
-import {FieldDescriptorInputAndShow} from '../model/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AlgoTopAssetSecurity} from '../../entities/algo.top.asset.security';
 import {InputAndShowDefinitionStrategy} from '../model/input.and.show.definition.strategy';
