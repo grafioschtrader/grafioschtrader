@@ -3,18 +3,23 @@ import {StockexchangeService} from '../../stockexchange/service/stockexchange.se
 import {Stockexchange} from '../../entities/stockexchange';
 import {StockexchangeCallParam} from '../../stockexchange/component/stockexchange.call.param';
 import {BasePrepareEdit} from './base.prepare.edit';
+import {combineLatest} from 'rxjs';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 
 export class StockexchangePrepareEdit extends BasePrepareEdit implements PrepareCallParam {
-  constructor(private stockexchangeService: StockexchangeService) {
+  constructor(private stockexchangeService: StockexchangeService,
+              private globalparameterService: GlobalparameterService) {
     super();
   }
 
   prepareForEditEntity(entity: Stockexchange, entityMapping: EntityMapping): void {
-    this.stockexchangeService.stockexchangeHasSecurity(entity.idStockexchange).subscribe(hasSecurity => {
+    combineLatest([this.stockexchangeService.stockexchangeHasSecurity(entity.idStockexchange),
+      this.globalparameterService.getCountries()]).subscribe(data => {
       entityMapping.callParam = new StockexchangeCallParam();
       entityMapping.callParam.stockexchange = new Stockexchange();
       Object.assign(entityMapping.callParam.stockexchange, entity);
-      entityMapping.callParam.hasSecurity = hasSecurity;
+      entityMapping.callParam.hasSecurity = data[0];
+      entityMapping.callParam.countriesAsHtmlOptions = data[1];
       entityMapping.visibleDialog = true;
     });
   }

@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import grafioschtrader.dto.CopyTradingDaysFromSourceToTarget;
 import grafioschtrader.dto.TradingDaysWithDateBoundaries;
 import grafioschtrader.repository.TradingDaysBase.SaveTradingDays;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import grafioschtrader.repository.TradingDaysMinusJpaRepository;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.TRADINGDAYSMINUS_MAP)

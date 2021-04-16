@@ -37,8 +37,7 @@ import {FilterService, MenuItem} from 'primeng/api';
 import {SecurityPrepareEdit} from './security.prepare.edit';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
-import {Globalparameters} from '../../entities/globalparameters';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 /**
  * Shows the requested changes on entities in a table.
@@ -57,7 +56,7 @@ import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.con
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field"  [pTooltip]="field.headerTooltipTranslated">
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -169,7 +168,8 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
 
     this.entityMappingArr[this.ASSETCLASS] = new EntityMapping(new AssetclassPrepareEdit(assetclassService));
-    this.entityMappingArr[this.STOCKEXCHANGE] = new EntityMapping(new StockexchangePrepareEdit(stockexchangeService));
+    this.entityMappingArr[this.STOCKEXCHANGE] = new EntityMapping(new StockexchangePrepareEdit(stockexchangeService,
+      this.globalparameterService));
     this.entityMappingArr[this.IMPORT_TRANSACTION_PLATFORM] =
       new EntityMapping(new ImportTransactionPlatformPrepareEdit(importTransactionPlatformService));
     this.entityMappingArr[this.IMPORT_TRANSACTION_TEMPLATE] =
@@ -182,7 +182,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
       this.currencypairService));
 
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.entity', true, false,
-      {translateValues: TranslateValue.UPPER_CASE });
+      {translateValues: TranslateValue.UPPER_CASE});
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.noteRequest', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'proposeChangeEntity.createdBy', true, false);
     this.addColumn(DataType.NumericInteger, 'proposeChangeEntity.idOwnerEntity', 'OWNER_ENTITY', true, false);

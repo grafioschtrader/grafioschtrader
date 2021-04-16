@@ -1,6 +1,5 @@
 package grafioschtrader.task.exec.update;
 
-import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 

@@ -65,3 +65,6 @@ In GT ist Entität der allgemeine Begriff für Einheit einer Informationsklasse.
 Eine GT-Instanz wird Back-End von GT bezeichnet, die von einem oder mehreren Anwendern oder zukünftig auch von anderen GT-Instanz genutzt wird. Dabei muss eine einzelne GT-Instanz minimal einer eindeutigen URL zugeordnet werden können.
 #### Informationsklasse
 Eine Informationsklasse besteht aus mehreren Entitäten. Beispielsweise wird für Portfolio oder Konto der allgemeine Begriff Informationsklasse angewendet. Wobei ein einzelnes Konto eine Entität dieser Informationsklasse ist.
+
+#### SaaS (Software as a Service)
+Bei "Software als Service", kurz SaaS (Software as a Service), verwenden Sie bereitgestellte Software, die Sie nicht lokal installiert haben, sondern über eine Internetverbindung benutzen. Hard- und Software werden dabei vom Anbieter der Dienstleistung gestellt. Sie nehmen lediglich die Funktionen der Software von außen in Anspruch.
