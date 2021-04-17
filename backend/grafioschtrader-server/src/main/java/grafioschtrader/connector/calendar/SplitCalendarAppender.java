@@ -97,7 +97,7 @@ public class SplitCalendarAppender {
       }
     }
     Globalparameters globalparameters = new Globalparameters(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE, now, true);
-    globalparametersJpaRepository.saveOnlyAttributes(globalparameters);
+    globalparametersJpaRepository.save(globalparameters);
   }
 
   private void matchSecurityNameWithSplitNameOthweiseRemoveIt(Map<String, TickerSecuritysplit> splitTickerMap,
