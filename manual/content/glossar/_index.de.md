@@ -66,5 +66,12 @@ Eine GT-Instanz wird Back-End von GT bezeichnet, die von einem oder mehreren Anw
 #### Informationsklasse
 Eine Informationsklasse besteht aus mehreren Entitäten. Beispielsweise wird für Portfolio oder Konto der allgemeine Begriff Informationsklasse angewendet. Wobei ein einzelnes Konto eine Entität dieser Informationsklasse ist.
 
+#### JSON
+Bei JSON (JavaScript Object Notation) handelt es sich um ein Textformat zum Austausch von Daten. Es ist einfach zu erlernen und zu lesen. JSON basiert auf der JavaScript-Sprache. 
+
+#### REST API
+REST steht für REpresentational State Transfer, API für Application Programming Interface. Gemeint ist damit eine Programmierschnittstelle, die sich an den Paradigmen und Verhalten des World Wide Web (WWW) orientiert. Somit wird das API die HTTP-Anfragen mit GET, PUT, POST und DELETE usw. durchführen. Es kann für die Kommunikation zwischen Servern oder Client und Server in Netzwerken eingesetzt werden. 
+
+
 #### SaaS (Software as a Service)
 Bei "Software als Service", kurz SaaS (Software as a Service), verwenden Sie bereitgestellte Software, die Sie nicht lokal installiert haben, sondern über eine Internetverbindung benutzen. Hard- und Software werden dabei vom Anbieter der Dienstleistung gestellt. Sie nehmen lediglich die Funktionen der Software von außen in Anspruch.

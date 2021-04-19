@@ -13,6 +13,7 @@ In GT wird der allgemeine Begriff Instrumente verwendet, weil dies ist eine Zusa
 
 ### Kursdaten
 In GT macht ein **Instrument** ohne **Kursdaten** keinen Sinn, wobei **Kursdaten** ein Oberbegriff für unterschiedliche Preisdaten ist. 
+{{< youtube Zij10hSO9OQ >}}
 
 ### Konnektoren
 HIER FOLGT EINE AUSFÜHRLICHE BESCHREIBUNG ...
