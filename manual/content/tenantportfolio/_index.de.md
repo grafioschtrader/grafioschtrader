@@ -19,4 +19,4 @@ erDiagram
 {{< /mermaid >}}
 
 Das folgende Video erklärt Ihnen die Erstellung von Portfolios, Depots und Kontos:
-{{< youtube 6L6xMCSGm_8 >}}
+{{< youtube Xhc4T6_HluQ >}}

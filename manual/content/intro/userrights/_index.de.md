@@ -34,3 +34,6 @@ Dieser hat die gleichen Benutzerrechte wie Benutzer ohne Limits plus kann er auc
 
 ### Administrator
 Er kann alle **geteilten Daten** verändern. Zusätzlich vergibt dieser dieser die Benutzerrechte.
+
+## Schutz der Fremddaten und das Anfragelimit
+...

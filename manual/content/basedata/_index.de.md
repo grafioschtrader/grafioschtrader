@@ -1,6 +1,6 @@
 ---
 title: "Basisdaten"
-date: 2021-03-14T22:54:47+01:00
+date: 2021-04-18T22:54:47+01:00
 draft: false
 weight : 25
 chapter: true
@@ -15,6 +15,9 @@ Auf dem statischen Element **Basisdaten** im **Navigationsbereich** ist die Funk
 Das Zusammenspiel von **geteilten Daten**, dem **Besitzer einer Entität** und **Benutzerrechte** können dazu führen, dass Sie einen **Datenänderungswunsch** kreieren oder einen erhalten.
 + Die Benutzer der Gruppe **Limits** oder **ohne Limits** kreieren einen **Datenänderungswunsch** falls diese eine **geteile Entität** bearbeiteten und speichern. Sie erhalten einen **Datenänderungswunsch** falls jemand der Gruppe **Limits** oder **ohne Limits** einer seiner erstellten **geteilten Entität** venändern möchte.
 + Ein Benutzer der mit **privilegierten oder administrativen Benutzerrechten** kreiert nie einen **Datenänderungswunsch**. Jedoch erhalten diese alle **Datenänderungswünsche**, auch wenn die betroffene **Entität** ursprünglich von einem anderen Benutzer erstellt wurde.
+
+Im folgenden Video sehen wir dies in einem Praxisbeispiel:
+{{< youtube zNXjOknUZjo >}}
 
 #### Einschränkungen Datenänderungswunsch
 Für bestimmte Entitäten werden gewisse Datenänderungswünsche nicht unterstützt.
