@@ -1,11 +1,12 @@
 ---
 title: "Transaktion"
-date: 2018-01-13T22:54:47+01:00
+date: 2021-04-20T02:54:47+01:00
 draft: false
 weight : 20
 chapter: true
 ---
 ## Transaktion
+Es wird unterschieden zwischen **Transaktionen** die sich nur auf **Bankkonten** beziehen oder solche bei denen ein **Instrument** beteiligt ist.
 - Ein Konto kann überzogen werden, d.h. negativer Kontostand ist möglich
 
 

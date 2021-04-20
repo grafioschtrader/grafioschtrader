@@ -166,25 +166,21 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
 
   valueChangedOnCalcFields(): void {
     this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges.subscribe(data => {
-      this.setCalculatedDebitAmount();
+      if (!this.configObject.transactionCost.invisible) {
+        const values: any = {};
+        this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
+        this.configObject.debitAmount.formControl.setValue((values.cashaccountAmount + (values.transactionCost
+          ? values.transactionCost : 0)));
+      }
     });
   }
 
-  private setCalculatedDebitAmount(): void {
-    if (!this.configObject.transactionCost.invisible) {
-      const values: any = {};
-      this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
-      this.configObject.debitAmount.formControl.setValue((values.cashaccountAmount + (values.transactionCost
-        ? values.transactionCost : 0)));
-    }
-  }
 
 
   onHide(event) {
     this.transactionTypeChangedSub && this.transactionTypeChangedSub.unsubscribe();
     this.chashaccountChangedSub && this.chashaccountChangedSub.unsubscribe();
     super.close();
-
   }
 
   submit(value: { [name: string]: any }) {
@@ -213,11 +209,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   }
 
   protected initialize(): void {
-
-    this.valueChangedOnCashaccount();
-    this.valueChangedOnTransactionType();
-    this.valueChangedOnCalcFields();
-
     this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
       TransactionType, [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
         TransactionType.WITHDRAWAL, TransactionType.FEE]);
@@ -231,12 +222,19 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     }
   }
 
+  private setValueChanged(): void {
+    this.valueChangedOnCashaccount();
+    this.valueChangedOnTransactionType();
+    this.valueChangedOnCalcFields();
+  }
+
   private getSinglePortfolioByIdPortfolio(): void {
     // Portfolio maybe out of date
     this.portfolioService.getPortfolioByIdPortfolio(this.transactionCallParam.portfolio.idPortfolio).subscribe((portfolio: Portfolio) => {
         // this.transactionCallParam.portfolio = portfolio;
         this.portfolios = [portfolio];
         this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
+        this.setValueChanged();
         this.setExistingTransactionToView();
       }
     );
@@ -247,6 +245,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       .subscribe((data: Portfolio[]) => {
         this.portfolios = data;
         this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
+        this.setValueChanged();
         this.setExistingTransactionToView();
       });
   }
