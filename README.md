@@ -9,7 +9,7 @@
 + **Import of transactions**: An import of single or multiple PDFs with securities transactions Via CSV file, account transactions can also be loaded.
 + **Evaluations by asset classes**: Evaluations by common asset classes such as stocks, bonds, real estate, commodities, etc.
 ## Take al look
-* The [manual](//hugograf.github.io/grafioschtrader/de/intro/) in German which is in progress.
+* At the user [manual](//hugograf.github.io/grafioschtrader/de/intro/) and a [YouTube channel](//www.youtube.com/channel/UCpogJM4KxrZGOyPoQx1xVKQ) in German language which are in progress.
 * [GT in action](//www.grafioschtrader.info/grafioschtrader) with a following demo account or create your own account.
 
 | E-Mail  | Password |
