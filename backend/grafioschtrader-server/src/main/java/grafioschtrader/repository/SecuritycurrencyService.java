@@ -28,7 +28,10 @@ import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
+import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.User;
@@ -184,6 +187,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     S createEditSecuritycurrency = existingEntity;
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     boolean historyAccessHasChanged = securitycurrency.getIdSecuritycurrency() == null && asyncHistoryquotes;
+    checkAndClearSecuritycurrencyConnectors(securitycurrency);
     S cloneSecuritycurrency = beforeSave(securitycurrency, existingEntity, user);
     if (existingEntity != null) {
       if (historyNeedToBeReloaded(securitycurrency, createEditSecuritycurrency)) {
@@ -204,6 +208,22 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     
     return createEditSecuritycurrency;
   }
+  
+  protected void checkAndClearSecuritycurrencyConnectors(final S securitycurrency) {
+    if(securitycurrency.getIdConnectorIntra() != null) {
+      FeedSupport fd = IFeedConnector.FeedSupport.INTRA;
+      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, securitycurrency.getIdConnectorIntra(),
+          fd);
+      fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
+    }
+    if(securitycurrency.getIdConnectorHistory() != null) {
+      FeedSupport fd = IFeedConnector.FeedSupport.HISTORY;
+      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, securitycurrency.getIdConnectorHistory(),
+          fd);
+      fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
+    }
+  }
+ 
 
   protected S beforeSave(S securitycurrency, S existingEntity, User user) {
      return null;

@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -13,8 +14,10 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
@@ -26,16 +29,20 @@ import grafioschtrader.usertask.UserTaskType;
 public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User> implements UserJpaRepositoryCustom {
 
   @Autowired
-  UserJpaRepository userJpaRepository;
+  private UserJpaRepository userJpaRepository;
 
   @Autowired
   RoleJpaRepository roleJpaRepository;
 
   @Autowired
-  ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
+  private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
 
   @Autowired
-  public JavaMailSender emailSender;
+  private JavaMailSender emailSender;
+  
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+  
 
   @Value("${spring.mail.username}")
   private String springMailUsername;
@@ -82,6 +89,13 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User> implements U
     helper.setText(text);
     emailSender.send(message);
 
+  }
+
+  @Override
+  public Integer moveCreatedByUserToOtherUser(Integer fromIdUser, Integer toIdUser) throws SQLException {
+    String url = jdbcTemplate.getDataSource().getConnection().getMetaData().getURL();
+    String databaseName = StringUtils.substringAfterLast(url, "/");
+    return userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser, databaseName);
   }
   
 }

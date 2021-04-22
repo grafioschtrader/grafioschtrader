@@ -30,3 +30,6 @@ sequenceDiagram
     Backend-->>A: Redirect Sign in form
 {{< /mermaid >}}
 It looks easier in the video...
+### Eigenschaften
+- **Spitzname**: This nickname is unique per GT instance, otherwise you could not be distinguished from the other users. Currently, this is not yet used between users.
+- **E-Mail**: Must be one unique to the GT instance, otherwise GT could not distinguish you from other users.

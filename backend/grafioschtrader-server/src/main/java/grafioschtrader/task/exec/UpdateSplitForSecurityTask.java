@@ -38,13 +38,13 @@ import grafioschtrader.types.TaskType;
 public class UpdateSplitForSecurityTask extends UpdateDividendSplitForSecurity<Securitysplit> implements ITask {
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -55,8 +55,8 @@ public class UpdateSplitForSecurityTask extends UpdateDividendSplitForSecurity<S
 
   @Override
   @Transactional
-  public void doWork(Integer idEntity, String entity) {
-    Security security = securityJpaRepository.getOne(idEntity);
+  public void doWork(TaskDataChange taskDataChange) {
+    Security security = securityJpaRepository.getOne(taskDataChange.getIdEntity());
     if (security.getIdConnectorSplit() != null) {
       List<String> errorMessages = loadSplitData(security);
       if (!errorMessages.isEmpty()) {

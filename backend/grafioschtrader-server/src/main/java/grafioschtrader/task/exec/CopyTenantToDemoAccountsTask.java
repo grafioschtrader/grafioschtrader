@@ -63,13 +63,13 @@ public class CopyTenantToDemoAccountsTask implements ITask {
   
   @Scheduled(cron = "${gt.demo.account.tenant.copy}", zone = "UTC")
   public void catchAllUpSecuritycurrencyHistoryquote() {
-    TaskDataChange taskDataChange =  new TaskDataChange(TaskType.COPY_DEMO_ACCOUNTS, (short) 35);
+    TaskDataChange taskDataChange = new TaskDataChange(TaskType.COPY_DEMO_ACCOUNTS, (short) 35);
     taskDataChangeRepository.save(taskDataChange);
   }
 
   @Override
   @Transactional
-   public void doWork(Integer idEntity, String entity) {
+   public void doWork(TaskDataChange taskDataChange) {
     copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE, demoAccountPatternDE);
     copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN, demoAccountPatternEN); 
 

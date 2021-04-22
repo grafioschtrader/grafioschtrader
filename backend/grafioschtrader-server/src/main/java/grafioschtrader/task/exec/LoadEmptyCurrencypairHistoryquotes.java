@@ -3,6 +3,7 @@ package grafioschtrader.task.exec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
@@ -11,7 +12,7 @@ import grafioschtrader.types.TaskType;
 public class LoadEmptyCurrencypairHistoryquotes implements ITask {
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
   
   @Override
   public TaskType getTaskType() {
@@ -19,9 +20,8 @@ public class LoadEmptyCurrencypairHistoryquotes implements ITask {
   }
 
   @Override
-  public void doWork(Integer idEntity, String entity) {
-    
-    currencypairJpaRepository.fillEmptyCurrencypair(idEntity);
+  public void doWork(TaskDataChange taskDataChange) {
+    currencypairJpaRepository.fillEmptyCurrencypair(taskDataChange.getIdEntity());
   }
   
 }

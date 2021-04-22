@@ -77,7 +77,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private debitChashaccountChangedSub: Subscription;
   private creditChashaccountChangedSub: Subscription;
 
-
   constructor(private historyquoteService: HistoryquoteService,
               private portfolioService: PortfolioService,
               private currencypairService: CurrencypairService,
@@ -87,12 +86,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     super(translateService, globalparameterService);
   }
 
-
   ngOnInit(): void {
-
     this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
       4, this.helpLink.bind(this));
-
 
     // When the input on the following group changes, some calculations must be executed
     const calcGroupConfig: FieldConfig[] = [

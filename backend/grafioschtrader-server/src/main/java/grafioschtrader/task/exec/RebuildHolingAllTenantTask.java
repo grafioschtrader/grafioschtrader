@@ -3,6 +3,7 @@ package grafioschtrader.task.exec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
@@ -13,13 +14,13 @@ import grafioschtrader.types.TaskType;
 public class RebuildHolingAllTenantTask implements ITask {
 
   @Autowired
-  HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
   @Autowired
-  HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
+  private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
   @Autowired
-  HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
+  private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
   @Override
   public TaskType getTaskType() {
@@ -27,7 +28,8 @@ public class RebuildHolingAllTenantTask implements ITask {
   }
 
   @Override
-  public void doWork(Integer idTenant, String entity) {
+  public void doWork(TaskDataChange taskDataChange) {
+    Integer idTenant = taskDataChange.getIdEntity();
     if (idTenant == null) {
       holdSecurityaccountSecurityRepository.createSecurityHoldingsEntireForAllTenant();
       holdCashaccountDepositJpaRepository.createCashaccountDepositTimeFrameForAllTenant();

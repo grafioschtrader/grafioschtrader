@@ -3,6 +3,7 @@ package grafioschtrader.task.exec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
@@ -17,7 +18,7 @@ import grafioschtrader.types.TaskType;
 public class HoldingSecurityRebuild implements ITask {
 
   @Autowired
-  HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
   
   @Override
   public TaskType getTaskType() {
@@ -25,8 +26,8 @@ public class HoldingSecurityRebuild implements ITask {
   }
 
   @Override
-  public void doWork(Integer idEntity, String entity) {
-    holdSecurityaccountSecurityJpaRepository.rebuildHoldingsForSecurity(idEntity);
+  public void doWork(TaskDataChange taskDataChange) {
+    holdSecurityaccountSecurityJpaRepository.rebuildHoldingsForSecurity(taskDataChange.getIdEntity());
   }
 
 }

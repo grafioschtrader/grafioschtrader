@@ -16,6 +16,7 @@ import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.task.ITask;
@@ -31,7 +32,7 @@ import grafioschtrader.types.TaskType;
 public class UpdateDividendForSecurityTask extends UpdateDividendSplitForSecurity<Dividend> implements ITask {
   
   @Autowired
-  DividendJpaRepository dividendJpaRepository;
+  private DividendJpaRepository dividendJpaRepository;
   
   private final Logger log = LoggerFactory.getLogger(this.getClass());
   
@@ -42,15 +43,15 @@ public class UpdateDividendForSecurityTask extends UpdateDividendSplitForSecurit
 
   @Override
   @Transactional
-  public void doWork(Integer idEntity, String entity) {
-    Security security = securityJpaRepository.getOne(idEntity);
+  public void doWork(TaskDataChange taskDataChange) {
+    Security security = securityJpaRepository.getOne(taskDataChange.getIdEntity());
     if (security.getIdConnectorDividend() != null) {
       List<String> errorMessages = loadDividendData(security);
       if (!errorMessages.isEmpty()) {
         throw new TaskBackgroundException("gt.dividend.connector.failure", errorMessages);
       }
     } else {
-      throw new TaskBackgroundException("gt.dividend.split.connector.notfound");
+      throw new TaskBackgroundException("gt.dividend.connector.notfound");
     }
   }
 

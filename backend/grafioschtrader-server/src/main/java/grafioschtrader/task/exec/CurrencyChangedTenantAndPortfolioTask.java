@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.Portfolio;
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
@@ -47,8 +48,8 @@ public class CurrencyChangedTenantAndPortfolioTask implements ITask {
 
   @Override
   @Transactional
-  public void doWork(Integer idTenant, String entityName) {
-    
+  public void doWork(TaskDataChange taskDataChange) {
+    Integer idTenant = taskDataChange.getIdEntity();
     Optional<Tenant> tenantOpt = tenantJpaRepository.createNotExistingCurrencypairs(idTenant);
     if(tenantOpt.isPresent()) {
       for(Portfolio portfolio: tenantOpt.get().getPortfolioList()) {

@@ -50,7 +50,7 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   }
 
   @Override
-  public void doWork(Integer idEntity, String entity) {
+  public void doWork(TaskDataChange taskDataChange) {
     currencypairJpaRepository.catchAllUpCurrencypairHistoryquote();
     currencypairJpaRepository.allCurrenciesFillEmptyDaysInHistoryquote();
     securityJpaRepository.catchAllUpSecurityHistoryquote();

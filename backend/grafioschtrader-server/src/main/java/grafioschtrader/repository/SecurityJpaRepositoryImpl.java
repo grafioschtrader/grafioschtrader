@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,6 +36,8 @@ import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
@@ -73,16 +75,16 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   private IIntradayLoad<Security> intradayThruCalculation;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
+  private SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
 
   @Autowired
-  HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
+  private HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired
   private MessageSource messages;
@@ -398,6 +400,25 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
     return cloneSecurity;
   }
+  
+
+  @Override
+  protected void checkAndClearSecuritycurrencyConnectors(final Security security) {
+    super.checkAndClearSecuritycurrencyConnectors(security);
+    if(security.getIdConnectorDividend() != null) {
+      FeedSupport fd = IFeedConnector.FeedSupport.DIVIDEND;
+      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, security.getIdConnectorDividend(),
+          fd);
+      fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);
+    }
+    if(security.getIdConnectorSplit() != null) {
+      FeedSupport fd = IFeedConnector.FeedSupport.SPLIT;
+      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, security.getIdConnectorSplit(),
+          fd);
+      fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);
+    }
+  }
+  
 
   @Override
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {

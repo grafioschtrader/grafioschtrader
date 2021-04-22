@@ -44,5 +44,5 @@ GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher g
 + Für Anleger aus der Schweiz, Deutschland bzw. USA die eine **Valoren-Nr.**, **Wertpapierkennnummer (WKN)** bzw. **CUSIP-Nummer** benötigen. GT benutzt die Internationale Wertpapierkennnummer ISIN und die nicht immer eindeutigen Ticker/Symbole. 
 
 {{% notice info %}}
-Die Informationen dieser Hilfe bezieht sich auf die **GT** Version **0.12.0**.
+Die Informationen dieser Hilfe bezieht sich auf die **GT** Version **0.13.0**.
 {{% /notice %}}

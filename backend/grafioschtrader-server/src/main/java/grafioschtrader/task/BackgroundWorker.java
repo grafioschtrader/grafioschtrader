@@ -1,11 +1,13 @@
 package grafioschtrader.task;
 
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -49,10 +51,11 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
         if (taskDataChangeOpt.isPresent()) {
           final TaskDataChange taskDataChange = taskDataChangeOpt.get();
           LocalDateTime startTime = LocalDateTime.now();
-          tasks.stream().filter(task -> task.getTaskType() == taskDataChange.getTaskType()).findFirst().ifPresentOrElse(task -> {
-            executeJob(task, taskDataChange, startTime);
-          }, () -> finishedJob(taskDataChange, startTime, ProgressStateType.TASK_NOT_FOUND));
-         
+          tasks.stream().filter(task -> task.getTaskType() == taskDataChange.getTaskType()).findFirst()
+              .ifPresentOrElse(task -> {
+                executeJob(task, taskDataChange, startTime);
+              }, () -> finishedJob(taskDataChange, startTime, ProgressStateType.TASK_NOT_FOUND));
+
         }
         TimeUnit.SECONDS.sleep(15);
       } catch (InterruptedException e) {
@@ -60,17 +63,17 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
       }
     }
   }
-  
+
   private void executeJob(ITask task, final TaskDataChange taskDataChange, LocalDateTime startTime) {
     try {
-      task.doWork(taskDataChange.getIdEntity(), taskDataChange.getEntity());
+      task.doWork(cloneTaskDataChange(taskDataChange));
       finishedJob(taskDataChange, startTime, ProgressStateType.PROCESSED);
-      if(task.removeAllOtherJobsOfSameTask()) {
+      if (task.removeAllOtherJobsOfSameTask()) {
         taskDataChangeRepository.removeByIdTask(task.getTaskType().getValue());
       }
     } catch (TaskBackgroundException tbe) {
       System.out.println("=================================== - TaskBackgroundException");
-      if(tbe.getErrorMsgOfSystem() != null) {
+      if (tbe.getErrorMsgOfSystem() != null) {
         tbe.getErrorMsgOfSystem().forEach(System.out::println);
       }
       finishedJob(taskDataChange, startTime, ProgressStateType.FAILED);
@@ -80,9 +83,16 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
       finishedJob(taskDataChange, startTime, ProgressStateType.FAILED);
     }
   }
-  
 
-  private void finishedJob(final TaskDataChange taskDataChange, LocalDateTime startTime, ProgressStateType progressStateType) {
+  private TaskDataChange cloneTaskDataChange(TaskDataChange taskDataChange)
+      throws IllegalAccessException, InvocationTargetException {
+    TaskDataChange tdcNew = new TaskDataChange();
+    BeanUtils.copyProperties(tdcNew, taskDataChange);
+    return tdcNew;
+  }
+
+  private void finishedJob(final TaskDataChange taskDataChange, LocalDateTime startTime,
+      ProgressStateType progressStateType) {
     taskDataChange.finishedJob(startTime, progressStateType);
     taskDataChangeRepository.save(taskDataChange);
   }
@@ -91,7 +101,5 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
   public void destroy() {
     someCondition = false;
   }
-
-  
 
 }

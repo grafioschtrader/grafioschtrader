@@ -32,3 +32,7 @@ sequenceDiagram
 {{< /mermaid >}}
 Im Video ist es vielleicht einfacher...
 {{< youtube C9MKBfUXLPA >}}
+
+### Eigenschaften
+- **Spitzname**: Dieser Spitzname ist pro GT-Instanz einzigartig, andernfalls könnten Sie nicht von den anderen Benutzer unterschieden werden. Zurzeit wird diese zwischen den Benutzer noch nicht genutzt.
+- **E-Mail**: Muss eine für die GT-Instanz einzigartig sein, sonst könnte Sie GT nicht von anderen Benutzer unterscheiden.

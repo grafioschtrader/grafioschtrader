@@ -58,44 +58,47 @@ public abstract class FinanzenBase<T extends Securitycurrency<T>> {
       } else {
 
         Elements cols = row.select("td");
-        final Historyquote historyquote = new Historyquote();
+        String date = cols.get(0).text();
+        if (!date.equals("00:00")) {
+          final Historyquote historyquote = new Historyquote();
 
-        historyquote.setDate(dateFormat.parse(cols.get(0).text()));
+          historyquote.setDate(dateFormat.parse(date));
 
-        if (colMapping[1] != -1) {
-          final Double open = parseDouble(colMapping[1], cols);
-          if (open != null) {
-            historyquote.setOpen(open);
+          if (colMapping[1] != -1) {
+            final Double open = parseDouble(colMapping[1], cols);
+            if (open != null) {
+              historyquote.setOpen(open);
+            }
           }
-        }
 
-        final Double close = parseDouble(colMapping[2], cols);
-        if (close != null) {
-          historyquote.setClose(close);
-        } else {
-          continue;
-        }
-
-        if (colMapping[3] != -1) {
-          final Double high = parseDouble(colMapping[3], cols);
-          if (high != null) {
-            historyquote.setHigh(high);
+          final Double close = parseDouble(colMapping[2], cols);
+          if (close != null) {
+            historyquote.setClose(close);
+          } else {
+            continue;
           }
-        }
 
-        if (colMapping[4] != -1) {
-          final Double low = parseDouble(colMapping[4], cols);
-          if (low != null) {
-            historyquote.setLow(low);
+          if (colMapping[3] != -1) {
+            final Double high = parseDouble(colMapping[3], cols);
+            if (high != null) {
+              historyquote.setHigh(high);
+            }
           }
-        }
 
-        if (colMapping[5] != -1) {
-          final Long volume = parseLong(colMapping[5], cols);
-          historyquote.setVolume(volume == null ? null : volume);
-        }
+          if (colMapping[4] != -1) {
+            final Double low = parseDouble(colMapping[4], cols);
+            if (low != null) {
+              historyquote.setLow(low);
+            }
+          }
 
-        historyquotes.add(historyquote);
+          if (colMapping[5] != -1) {
+            final Long volume = parseLong(colMapping[5], cols);
+            historyquote.setVolume(volume == null ? null : volume);
+          }
+
+          historyquotes.add(historyquote);
+        }
       }
     }
     return rows.size();

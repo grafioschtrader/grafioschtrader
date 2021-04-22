@@ -102,6 +102,18 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
+  protected initialize(): void {
+    this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
+      TransactionType, [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
+        TransactionType.WITHDRAWAL, TransactionType.FEE]);
+    this.selectSingleOptions(this.configObject.transactionType, true);
+    if (this.transactionCallParam.portfolio) {
+      this.getSinglePortfolioByIdPortfolio();
+    } else {
+      this.getAllPortfolios();
+    }
+  }
+
   isVisibleDialog(): boolean {
     return this.visibleCashaccountTransactionSingleDialog;
   }
@@ -144,7 +156,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         const invisibleWithdrawal = TransactionType[data] !== TransactionType.WITHDRAWAL;
         this.configObject.debitAmount.invisible = invisibleWithdrawal;
         this.configObject.transactionCost.invisible = invisibleWithdrawal;
-
       }
     );
   }
@@ -176,7 +187,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   }
 
 
-
   onHide(event) {
     this.transactionTypeChangedSub && this.transactionTypeChangedSub.unsubscribe();
     this.chashaccountChangedSub && this.chashaccountChangedSub.unsubscribe();
@@ -201,26 +211,12 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       this.closeDialog.emit(new ProcessedActionData(transaction.idTransaction ? ProcessedAction.UPDATED
         : ProcessedAction.CREATED, newTransaction));
     }, () => this.configObject.submit.disabled = false);
-
   }
 
   helpLink() {
     BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 
-  protected initialize(): void {
-    this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-      TransactionType, [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
-        TransactionType.WITHDRAWAL, TransactionType.FEE]);
-
-    this.selectSingleOptions(this.configObject.transactionType, true);
-
-    if (this.transactionCallParam.portfolio) {
-      this.getSinglePortfolioByIdPortfolio();
-    } else {
-      this.getAllPortfolios();
-    }
-  }
 
   private setValueChanged(): void {
     this.valueChangedOnCashaccount();

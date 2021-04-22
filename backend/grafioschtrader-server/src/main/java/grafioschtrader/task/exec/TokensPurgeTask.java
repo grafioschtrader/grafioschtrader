@@ -15,7 +15,6 @@ import grafioschtrader.repository.UserJpaRepository;
 @Transactional
 public class TokensPurgeTask {
 
-  
   @Autowired
   private UserJpaRepository userJpaRepository;
 

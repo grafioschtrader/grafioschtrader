@@ -11,12 +11,16 @@ import org.apache.http.HttpException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
+
 // import org.apache.http.HttpException;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -93,6 +97,13 @@ public interface IFeedConnector {
    */
   String getSecurityHistoricalDownloadLink(Security security);
 
+  
+  boolean hasFeedIndentifier(FeedIdentifier feedIdentifier);
+  
+  
+  <S extends Securitycurrency<S>> void checkAndClearSecuritycurrencyUrlExtend(Securitycurrency<S> securitycurrency, FeedSupport feedSupport);
+  
+  
   /**
    * Get the intraday download link for a security.
    * 

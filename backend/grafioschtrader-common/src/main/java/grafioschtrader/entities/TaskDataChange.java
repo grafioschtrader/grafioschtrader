@@ -22,6 +22,10 @@ import grafioschtrader.types.TaskType;
 @Entity
 @Table(name = TaskDataChange.TABNAME)
 public class TaskDataChange {
+  public byte getIdTask() {
+    return idTask;
+  }
+
   public static final String TABNAME = "task_data_change";
 
   @Id

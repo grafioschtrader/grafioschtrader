@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
@@ -17,8 +18,7 @@ import grafioschtrader.types.TaskType;
 public class SecurityLoadHistoricalIntraPriceDataTask implements ITask {
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
-
+  private SecurityJpaRepository securityJpaRepository;
   
   @Override
   public TaskType getTaskType() {
@@ -27,8 +27,8 @@ public class SecurityLoadHistoricalIntraPriceDataTask implements ITask {
 
   @Override
   @Transactional
-  public void doWork(Integer idEntity, String entity) {
-    Optional<Security> securityOpt = securityJpaRepository.findById(idEntity);
+  public void doWork(TaskDataChange taskDataChange) {
+    Optional<Security> securityOpt = securityJpaRepository.findById(taskDataChange.getIdEntity());
     if(securityOpt.isPresent()) {
       Security security = securityJpaRepository.rebuildSecurityCurrencypairHisotry(securityOpt.get());
      securityJpaRepository.updateLastPriceByList(Arrays.asList(security));
