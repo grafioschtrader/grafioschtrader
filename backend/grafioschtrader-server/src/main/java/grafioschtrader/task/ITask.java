@@ -1,12 +1,13 @@
 package grafioschtrader.task;
 
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.types.TaskType;
 
 public interface ITask {
   
   TaskType getTaskType(); 
   
-  void doWork(Integer idEntity, String entity);
+  void doWork(TaskDataChange taskDataChange);
   
   default boolean removeAllOtherJobsOfSameTask() {
     return false;

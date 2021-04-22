@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
@@ -44,8 +45,9 @@ public class CurrencyChangedTenantOrPortfolioTask implements ITask {
 
   @Override
   @Transactional
-  public void doWork(Integer idEntity, String entityName) {
-    if (Tenant.TABNAME.equals(entityName)) {
+  public void doWork(TaskDataChange taskDataChange) {
+    Integer idEntity = taskDataChange.getIdEntity();
+    if (Tenant.TABNAME.equals(taskDataChange.getEntity())) {
       tenantJpaRepository.createNotExistingCurrencypairs(idEntity);
     } else  {
       idEntity = portfolioJpaRepository.createNotExistingCurrencypairs(idEntity);

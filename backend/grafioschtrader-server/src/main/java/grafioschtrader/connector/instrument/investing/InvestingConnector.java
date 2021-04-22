@@ -17,7 +17,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -33,10 +36,12 @@ import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.common.ValueFormatConverter;
 import grafioschtrader.connector.IConnectorNames;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 
 /**
  * www.investing.com used manly a single ajax-call to load the data.
@@ -52,6 +57,9 @@ public class InvestingConnector extends BaseFeedConnector {
   private static final String DATE_FORMAT_FORM = "MM/dd/yyyy";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int MAX_ROWS_DELIVERD = 5000;
+  private static final String URL_EXTENDED_REGEX = "^[A-Za-z]+\\/[A-Za-z0-9_\\-]+\\,\\d+\\,\\d+$";
+  private static final Pattern URL_EXTENDED_PATTERN = Pattern.compile(URL_EXTENDED_REGEX);
+  private static final String INVESTING = "investing";
 
   static {
     supportedFeed = new HashMap<>();
@@ -60,7 +68,7 @@ public class InvestingConnector extends BaseFeedConnector {
   }
 
   public InvestingConnector() {
-    super(supportedFeed, "investing", "Investing.com");
+    super(supportedFeed, INVESTING, "Investing.com");
   }
 
   @Override
@@ -76,6 +84,21 @@ public class InvestingConnector extends BaseFeedConnector {
   private <T extends Securitycurrency<T>> String getHistoricalLink(final Securitycurrency<T> securitycurreny) {
     return IConnectorNames.DOMAIN_INVESTING + securitycurreny.getUrlHistoryExtend().split(URL_EXTENDED_SEPARATOR)[0]
         + "-historical-data";
+  }
+
+  @Override
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(String urlExtend,
+      String errorMsgKey, FeedIdentifier feedIdentifier) {
+
+    boolean clear = super.checkAndClearSecuritycurrencyConnector(urlExtend, errorMsgKey, feedIdentifier);
+    if(!clear) {
+      Matcher m = URL_EXTENDED_PATTERN.matcher(urlExtend);
+      if (!m.matches()) {
+        throw new GeneralNotTranslatedWithArgumentsException("gt.connector.regex.url",
+            new Object[] { INVESTING, URL_EXTENDED_REGEX });
+      }
+    }
+    return clear;
   }
 
   @Override

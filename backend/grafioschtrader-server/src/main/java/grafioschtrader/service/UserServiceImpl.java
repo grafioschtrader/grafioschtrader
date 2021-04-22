@@ -1,5 +1,6 @@
 package grafioschtrader.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import grafioschtrader.dto.ChangePasswortDTO;
 import grafioschtrader.dto.UserDTO;
 import grafioschtrader.entities.Role;
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.SuccessfullyChanged;
 import grafioschtrader.entities.projection.UserOwnProjection;
@@ -26,15 +28,16 @@ import grafioschtrader.exceptions.RequestLimitAndSecurityBreachException;
 import grafioschtrader.registration.OnRegistrationCompleteEvent;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.RoleJpaRepository;
+import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
 import grafioschtrader.rest.helper.RestHelper;
 import grafioschtrader.security.UserRightLimitCounter;
+import grafioschtrader.types.TaskType;
 
 @Service
 public class UserServiceImpl implements UserService {
 
   private final MessageSource messages;
-
  
   @Autowired
   private ApplicationEventPublisher eventPublisher;
@@ -52,20 +55,23 @@ public class UserServiceImpl implements UserService {
   @Value("${gt.demo.account.pattern.en}")
   private String demoAccountPatternEN;
  
-  
   private final UserJpaRepository userJpaRepository;
 
   private final RoleJpaRepository roleJpaRepository;
 
   private final GlobalparametersJpaRepository globalparametersJpaRepository;
+  
+  private final TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired
   public UserServiceImpl(final UserJpaRepository userJpaRepository, final RoleJpaRepository roleJpaRepository,
-      final MessageSource messages, GlobalparametersJpaRepository globalparametersJpaRepository) {
+      final MessageSource messages, GlobalparametersJpaRepository globalparametersJpaRepository,
+      final TaskDataChangeJpaRepository taskDataChangeJpaRepository) {
     this.userJpaRepository = userJpaRepository;
     this.roleJpaRepository = roleJpaRepository;
     this.messages = messages;
     this.globalparametersJpaRepository = globalparametersJpaRepository;
+    this.taskDataChangeJpaRepository = taskDataChangeJpaRepository;
   }
 
   /**
@@ -155,11 +161,19 @@ public class UserServiceImpl implements UserService {
       roles.add(roleJpaRepository.findByRolename(Role.ROLE_ADMIN));
       roles.add(roleJpaRepository.findByRolename(Role.ROLE_ALL_EDIT));
       roles.add(roleJpaRepository.findByRolename(Role.ROLE_USER));
-      // It is not possible to give this user the id 1 when @GeneratedValue(strategy = GenerationType.IDENTITY)  is  used
     } else {
       roles.add(roleJpaRepository.findByRolename(Role.ROLE_LIMIT_EDIT));
     }
-    return userJpaRepository.save(userDTO.toUser(roles));
+    User user = userJpaRepository.save(userDTO.toUser(roles));
+    if (isMainUserAdmin) {  
+      // It is not possible to give this user the id 1 when @GeneratedValue(strategy = GenerationType.IDENTITY) is used
+      // But we move all existing entities to this user
+      TaskDataChange tdc = new TaskDataChange(TaskType.MOVE_CREATED_BY_USER_TO_OTHER_USER, (short) 20,
+        LocalDateTime.now().plusMinutes(5), user.getIdUser());
+      tdc.setOldValueNumber(1.0);
+      taskDataChangeJpaRepository.save(tdc);
+    }
+    return user;
   }
 
   @Override
@@ -167,7 +181,6 @@ public class UserServiceImpl implements UserService {
     user.setTimezoneOffset(timezoneOffset);
     return userJpaRepository.save(user);
   }
-
  
 
   @Override

@@ -39,7 +39,7 @@ public class CreateStockexchangeTradingDaysMinusByIndexTask implements ITask {
 
   @Override
   @Transactional
-  public void doWork(Integer idEntity, String entity) {
+  public void doWork(TaskDataChange taskDataChange) {
     tradingDaysMinusJpaRepository.updCalendarStockexchangeByIndex();
     log.info("Update stock exchange tranding calendars");
   }

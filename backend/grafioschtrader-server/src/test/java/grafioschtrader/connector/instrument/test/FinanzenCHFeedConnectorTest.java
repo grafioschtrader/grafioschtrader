@@ -119,7 +119,7 @@ class FinanzenCHFeedConnectorTest {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
     final LocalDate from = LocalDate.parse("08.03.2016", germanFormatter);
-    final LocalDate to = LocalDate.parse("23.10.2019", germanFormatter);
+    final LocalDate to = LocalDate.parse("22.04.2021", germanFormatter);
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 

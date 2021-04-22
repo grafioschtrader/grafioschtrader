@@ -13,6 +13,7 @@ import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
@@ -42,7 +43,7 @@ public class Upd_V_0_11_0 implements ITask {
   }
 
   @Override
-  public void doWork(Integer idEntity, String entity) {
+  public void doWork(TaskDataChange taskDataChange) {
     Assetclass assetclass = addAssetclassStockCanada();
     addStockIndexCanada(assetclass);
     connectIndexToStockexchange();

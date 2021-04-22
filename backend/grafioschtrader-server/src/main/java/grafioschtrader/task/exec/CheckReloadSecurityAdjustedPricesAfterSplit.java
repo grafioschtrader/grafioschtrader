@@ -46,8 +46,8 @@ public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
 
   @Override
   @Transactional
-  public void doWork(Integer idEntity, String entity) {
-    Optional<Security> securityOpt = securityJpaRepository.findById(idEntity);
+  public void doWork(TaskDataChange taskDataChange) {
+    Optional<Security> securityOpt = securityJpaRepository.findById(taskDataChange.getIdEntity());
     if (securityOpt.isPresent()) {
       loadSplitsAndPossiblePrices(securityOpt.get());
     }

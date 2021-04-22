@@ -35,4 +35,10 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
     return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/`
       + `${idUser}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
+
+  public moveCreatedByUserToOtherUser(fromIdUser: number, toIdUser: number): Observable<number> {
+    return this.httpClient.patch(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/`
+      + `${fromIdUser}/${toIdUser}`, null,
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
+  }
 }

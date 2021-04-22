@@ -14,6 +14,7 @@ import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.DividendJpaRepository.DivdendForHoldings;
@@ -30,19 +31,19 @@ import grafioschtrader.types.TransactionType;
 public class TransferDividendToTransactionTest implements ITask {
 
   @Autowired
-  DividendJpaRepository dividendJpaRepository;
+  private DividendJpaRepository dividendJpaRepository;
+ 
+  @Autowired
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Autowired
-  TransactionJpaRepository transactionJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private PortfolioJpaRepository portfolioJpaRepository;
 
   @Autowired
-  PortfolioJpaRepository portfolioJpaRepository;
-
-  @Autowired
-  HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
 
   @Override
   public TaskType getTaskType() {
@@ -51,8 +52,9 @@ public class TransferDividendToTransactionTest implements ITask {
 
   @Override
   @Transactional
-  public void doWork(Integer idTenant, String entity) {
+  public void doWork(TaskDataChange taskDataChange) {
 
+    Integer idTenant = taskDataChange.getIdEntity();
     transactionJpaRepository.removeSystemCreatedDividensFromTenant(idTenant);
     List<DivdendForHoldings> dfhList = dividendJpaRepository.getDivdendForSecurityHoldingByIdTenant(idTenant);
 

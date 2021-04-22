@@ -94,6 +94,13 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
                                    [user]="selectedEntity"
                                    (closeDialog)="handleEditLimitCloseDialog($event)">
     </user-entity-change-limit-edit>
+
+    <user-change-owner-entities *ngIf="visibleChangeEntitiesOwnerDialog"
+                                [visibleDialog]="visibleChangeEntitiesOwnerDialog"
+                                [fromUser]="selectedEntity"
+                                [allUsers]="entityList"
+                                (closeDialog)="handleChangeOwnerCloseDialog($event)">
+    </user-change-owner-entities>
   `,
   providers: [DialogService]
 })
@@ -108,10 +115,15 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
 
   callParam: User;
   visibleEditLimitDialog: boolean;
+  visibleChangeEntitiesOwnerDialog: boolean;
 
-  limitChangeMenuItem: MenuItem = {
+  private limitChangeMenuItem: MenuItem = {
     label: 'CREATE|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT + AppSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.addUserEntityChangeLimit()
+  };
+
+  private changeEntitiesOwnerMenuItem: MenuItem = {
+    label: 'USER_CHANGE_OWNER_ENTITIES' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) => this.changeOwnerEntities()
   };
 
   constructor(private iconReg: SvgIconRegistryService,
@@ -148,7 +160,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.addColumnFeqH(DataType.NumericInteger, 'securityBreachCount', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'limitRequestExceedCount', true, false);
 
-    TranslateHelper.translateMenuItems([this.limitChangeMenuItem], translateService);
+    TranslateHelper.translateMenuItems([this.limitChangeMenuItem, this.changeEntitiesOwnerMenuItem], translateService);
     this.prepareTableAndTranslate();
   }
 
@@ -203,11 +215,19 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.visibleEditLimitDialog = true;
   }
 
+  changeOwnerEntities(): void {
+    this.visibleChangeEntitiesOwnerDialog = true;
+  }
+
   handleEditLimitCloseDialog(processedActionData: ProcessedActionData): void {
     this.visibleEditLimitDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
+  }
+
+  handleChangeOwnerCloseDialog(processedActionData: ProcessedActionData): void {
+    this.visibleChangeEntitiesOwnerDialog = false;
   }
 
   handleChangesOnLimitTable(event) {
@@ -244,6 +264,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
       if (this.selectedEntity && AuditHelper.isLimitedEditUser(this.selectedEntity)) {
         this.contextMenuItems.push(this.limitChangeMenuItem);
       }
+      this.contextMenuItems.push(this.changeEntitiesOwnerMenuItem);
     } else {
       this.contextMenuItems = null;
     }

@@ -5,10 +5,12 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.UserOwnProjection;
+import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository.IHoldSecuritySplitTransactionBySecurity;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
 @Repository
@@ -33,4 +35,8 @@ public interface UserJpaRepository
   @Query(value ="SELECT id_Tenant FROM user WHERE email REGEXP ?1", nativeQuery = true)
   Integer[] findIdTenantByMailPattern(String mailPattern);
   
+  
+  @Query(value = "CALL moveCreatedByUserToOtherUser(:fromIdUser, :toIdUser, :schemaName);", nativeQuery = true)
+  Integer moveCreatedByUserToOtherUser(@Param("fromIdUser") Integer fromIdUser,
+      @Param("toIdUser") Integer toIdUser, @Param("schemaName") String schemaName);
 }

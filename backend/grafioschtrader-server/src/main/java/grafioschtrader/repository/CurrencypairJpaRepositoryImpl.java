@@ -204,6 +204,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   protected boolean historyNeedToBeReloaded(final Currencypair securityCurrencyChanged,
       final Currencypair securitycurreny2) {
     return !(securityCurrencyChanged.getIdConnectorHistory().equals(securitycurreny2.getIdConnectorHistory())
+        && securityCurrencyChanged.getUrlHistoryExtend().equals(securitycurreny2.getUrlHistoryExtend())
         && securityCurrencyChanged.getFromCurrency().equals(securitycurreny2.getFromCurrency())
         && securityCurrencyChanged.getToCurrency().equals(securitycurreny2.getToCurrency()));
   }

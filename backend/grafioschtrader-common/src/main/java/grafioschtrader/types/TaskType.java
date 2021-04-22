@@ -29,8 +29,10 @@ public enum TaskType {
   LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES((byte) 10),
   // Copy the source tenant to the demo accounts
   COPY_DEMO_ACCOUNTS((byte) 11),
-  // Creates the calendar for stock exchanged by a manger index
+  // Creates the calendar for stock exchanged by a mayor index
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX((byte) 12),
+  // Moves shared entities from one user to another user by changing field created_by
+  MOVE_CREATED_BY_USER_TO_OTHER_USER((byte) 13),
   
   // Update from V_0
   UPD_V_0_11_0 ((byte) 51),

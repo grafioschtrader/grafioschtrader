@@ -3,6 +3,7 @@ package grafioschtrader.task.exec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
@@ -12,7 +13,7 @@ import grafioschtrader.types.TaskType;
 public class RebuildHoldingCashaccountDeposit implements ITask {
 
   @Autowired
-  HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
+  private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
   
   @Override
@@ -28,7 +29,7 @@ public class RebuildHoldingCashaccountDeposit implements ITask {
   
 
   @Override
-  public void doWork(Integer idEntity, String entity) {
+  public void doWork(TaskDataChange taskDataChange) {
     holdCashaccountDepositJpaRepository.adjustBecauseOfHistoryquotePriceChanges();
   }
 }

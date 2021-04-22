@@ -15,6 +15,9 @@ import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {TranslateHelper} from '../../helper/translate.helper';
 
+/**
+ * Change nickname and locale of an user
+ */
 @Component({
   selector: 'nickname-lang-edit',
   template: `
@@ -40,7 +43,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
     this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
       5, this.helpLink.bind(this));
     this.config = [
-      DynamicFieldHelper.createFieldInputString('nickname', 'NICKNAME', 30, true,
+      DynamicFieldHelper.createFieldInputStringHeqF('nickname', 30, true,
         {minLength: 2}),
       DynamicFieldHelper.createFieldSelectString('localeStr', 'LOCALE', true,
         {inputWidth: 10}),

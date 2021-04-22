@@ -94,7 +94,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   LocalDate findByIdPortfolioMinFromHoldDate(Integer idTenant);
 
   /**
-   * A stored procudure is used so that only transactions affected by the split
+   * A stored procedure is used so that only transactions affected by the split
    * are selected with the splits in chronological order.
    * 
    * @param idSecurity

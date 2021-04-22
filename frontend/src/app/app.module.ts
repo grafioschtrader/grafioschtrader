@@ -236,6 +236,7 @@ import {myRxStompConfig} from './my-rx-stomp.config';
 import {CardModule} from 'primeng/card';
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
 import {GlobalSettingsEditComponent} from './shared/globalsettings/global.settings-edit.component';
+import {UserChangeOwnerEntitiesComponent} from './user/component/user-change-owner-entities.component';
 
 
 export function createTranslateLoader(http: HttpClient) {
@@ -283,7 +284,7 @@ export function createTranslateLoader(http: HttpClient) {
     TransactionSecurityEditComponent, TransactionSecurityTableComponent, TransformPdfToTxtDialogComponent,
     UploadFileDialogComponent, UserEditComponent, UserEntityChangeLimitEditComponent, UserEntityChangeLimitTableComponent,
     MailInboxTableComponent, UserTableComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
-    WatchlistCorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent, SecuritycurrencyExtendedInfoComponent,
+    WatchlistCorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent, SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent,
     WatchlistPerformanceComponent, WatchlistTabMenuComponent, WatchlistDividendSplitFeedComponent,
     WatchlistSecuritysplitTableComponent, WatchlistDividendTableComponent, YourProposalTableComponent
   ],
