@@ -30,10 +30,13 @@ Benutzer mit Limit kann nur eine **bestimmte Anzahl** von **Entitäten** einer *
 Dieser Benutzer unterliegt keiner Einschränkung bezüglich dem Erstellen oder verändern **seiner geteilten Daten**.
 
 ### Privilegierter Benutzer
-Dieser hat die gleichen Benutzerrechte wie Benutzer ohne Limits plus kann er auch die **geteilten Daten** aller Benutzer verändern. Das Bearbeiten des **Handelskalender global** ist dem Benutzer dieser Gruppe nicht erlaubt.
+Dieser hat die gleichen Benutzerrechte wie Benutzer ohne Limits plus kann er auch die **geteilten Daten** aller Benutzer verändern. Das Bearbeiten des **Handelskalender global** und der **Globale Einstellungen** ist dem Benutzer dieser Gruppe nicht erlaubt.
 
 ### Administrator
-Er kann alle **geteilten Daten** verändern. Zusätzlich vergibt dieser dieser die Benutzerrechte.
+Er kann alle **geteilten Daten** verändern. Zusätzlich kann er Globale und einige Einstellungen des Benutzers ändern.
 
 ## Schutz der Fremddaten und das Anfragelimit
-...
+Der **Client** von GT kommuniziert mittels einem **REST-API** mit dem **Back-End**. Dieses REST-API ist eine allgemeine Schnittstelle und könnte auch von einem anderen Dienst benutzt werden. Die **privaten Daten** müssen aber besonders geschützt bleiben. Gezielte Zugriff auf die privaten Daten anderer Benutzer werden erkannt und bestraft. Bei mehrfacher Widerhandlung wird der Benutzer gesperrt, die Globale Einstellung von **gt.max.security.breach.count** bestimmt dieses Limit.
+
+### Anfragelimit
+GT implementiert eine **Anfragelimit** mittels **Token-Bucket** auf Minuten- und Stundenbasis. D.h es können pro Benutzer nur eine limitierte Anzahl von Anfragen in den genannten Zeiträumen an das **Back-end** erfolgreich erteilt werden. Am häufigsten wird diese Ratenbegrenzung eingesetzt, um einen Ressourcenmangel zu vermeiden und so die Verfügbarkeit von API-basierten Diensten zu verbessern. Im täglichen Gebrauch wird dieses Abfragelimit kaum überschritten, andernfalls erhält der Benutzer ein Hinweis. Bei mehrmaligen Verstoss und mit dem überschreiten der Globalen Einstellung von **gt.max.limit.request.exceeded.count** wird dieser Benutzer von GT gesperrt.

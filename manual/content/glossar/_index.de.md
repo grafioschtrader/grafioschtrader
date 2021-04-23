@@ -72,6 +72,8 @@ Bei JSON (JavaScript Object Notation) handelt es sich um ein Textformat zum Aust
 #### REST API
 REST steht für REpresentational State Transfer, API für Application Programming Interface. Gemeint ist damit eine Programmierschnittstelle, die sich an den Paradigmen und Verhalten des World Wide Web (WWW) orientiert. Somit wird das API die HTTP-Anfragen mit GET, PUT, POST und DELETE usw. durchführen. Es kann für die Kommunikation zwischen Servern oder Client und Server in Netzwerken eingesetzt werden. 
 
-
 #### SaaS (Software as a Service)
 Bei "Software als Service", kurz SaaS (Software as a Service), verwenden Sie bereitgestellte Software, die Sie nicht lokal installiert haben, sondern über eine Internetverbindung benutzen. Hard- und Software werden dabei vom Anbieter der Dienstleistung gestellt. Sie nehmen lediglich die Funktionen der Software von außen in Anspruch.
+
+#### Token-Bucket 
+Ein Token-Bucket verwaltet ein gleitendes Gesamt-Nutzungsbudget als Saldo von Tokens. Diese Technik erkennt, dass nicht alle Eingaben in einen Dienst 1:1 mit Anfragen übereinstimmen. Ein Token-Bucket fügt Tokens mit einem bestimmten Durchsatz hinzu. Wenn eine Dienstanfrage gestellt wird, reserviert der Dienst ein Token für die Verarbeitung der Anfrage und die Anzahl der Tokens im Bucket verringert sich. Wenn der Bucket keine Tokens mehr enthält, hat der Dienst sein Limit erreicht und antwortet mit einem Rückstausignal. 

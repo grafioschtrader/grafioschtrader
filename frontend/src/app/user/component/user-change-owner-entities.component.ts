@@ -17,6 +17,9 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 
+/**
+ * Dialog for changing the owner of entities.
+ */
 @Component({
   selector: 'user-change-owner-entities',
   template: `
