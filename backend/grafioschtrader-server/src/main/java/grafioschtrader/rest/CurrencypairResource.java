@@ -108,6 +108,8 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   ////////////////////////////////////////////////////////////
   // User depended Request
   ////////////////////////////////////////////////////////////
+  @Operation(summary = "Gel all used currency pairs in transactions. That means currency pairs which werse used in all transactions.",
+      description = "A client could merge transactions with this currencypairs", tags = {RequestMappings.CURRENCYPAIR })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> getCurrencypairInTransactionByTenant() {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
@@ -116,11 +118,13 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   }
 
   /**
-   * Returns all transactions for a certain currency pair of a tenant.
+   * 
    * 
    * @param idCurrencypair
    * @return
    */
+  @Operation(summary = "Returns all transactions for a certain currency pair of a tenant.",
+      description = "", tags = {RequestMappings.CURRENCYPAIR })
   @GetMapping(value = "/tenant/{idCurrencypair}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CurrencypairWithTransaction> findOrCreateCurrencypairByFromAndToCurrency(
       @PathVariable final Integer idCurrencypair) {

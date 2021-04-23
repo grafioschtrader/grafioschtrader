@@ -32,13 +32,12 @@ import {HelpIds} from '../../help/help.ids';
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.13.0</h4>
+          {{'V_0_13_0' | translate}}
           <h4>0.12.0</h4>
           {{'V_0_12_0' | translate}}
           <h4>0.11.0</h4>
           {{'V_0_11_0' | translate}}
-          <h4>0.10.0</h4>
-          {{'V_0_10_0' | translate}}
-
         </p-card>
       </div>
     </div>
@@ -85,7 +84,6 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
         (e) => this.router.navigate([`/${AppSettings.REGISTER_KEY}`])));
     }
     this.config.push(DynamicFieldHelper.createSubmitButton('SIGN_IN'));
-
     this.queryParams = this.activatedRoute.params.subscribe(params => this.successLastRegistration = params['success']);
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }

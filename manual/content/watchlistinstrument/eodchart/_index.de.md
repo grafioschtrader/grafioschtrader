@@ -11,3 +11,6 @@ chapter: true
 Die Ansicht des **Zusatzbereichs** kann von Unterschiedlichen Ansichten des **Hauptbereiches** aktiviert werden.
 + **Tagesenddaten als Liniengrafik**: Erstellt eine neue Liniengrafik mit dem selektieren **Instrument**.
 + **Hinzufügen als Liniengrafik**: Das selektierte **Instrument** wird der Liniengrafik hinzugefügt.
+
+#### Tranaktionen in der Lieniengrafik
+Die **Transaktionen** wie **kaufen**, **verkaufen** und **Zins/Dividende** werden als Punkte in der Liniengrafik angezeigt. Die Grösse des Punktes bei Instrumenten ist einheitlich, bei den Währungspaaren wiederspiegelt sie das Transaktionsvolumen.
