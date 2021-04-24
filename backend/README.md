@@ -12,7 +12,7 @@ GT depends heavily on other libraries, to get them. Execute the following:
 mvn clean install -Dmaven.test.skip=true
 ```
 ### application.properties
-GT has some properties in the configuration file **backend/grafioschtrader-server/src/main/resources/application.properties**. The following properties must be checked and maybe changed:
+GT has some properties in the configuration file **backend/grafioschtrader-server/src/main/resources/application.properties**. The properties which settings starts with *ENC* must have a new value and other properties should be checked:
 - spring.datasource.url
 - spring.datasource.username
 - spring.datasource.password
