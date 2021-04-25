@@ -1,0 +1,4 @@
+Go to the website of <a target="_blank" href="//www.swissfunddata.ch/sfdpub/">SWISS FUND DATA</a> and find the desired security<br>.
+The menu item "Search|Quick Search" can be an instrument, for example, with the ISIN.<br>
+At the end of the URL you will see a number, this can be taken over.<br> 
+In the case of Swisscanto (CH) Real Estate Fund Responsible IFCA (ISIN: CH0037430946), the URL reads "www.swissfunddata.ch/sfdpub/de/funds/show/13872" and 13872 is adopted.

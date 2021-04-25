@@ -110,10 +110,10 @@ public abstract class BaseFeedConnector implements IFeedConnector {
           BufferedReader br = new BufferedReader(isr)) {
         String line;
         while ((line = br.readLine()) != null) {
-          if (line.equalsIgnoreCase("[historical]")) {
+          if (line.trim().equalsIgnoreCase("[historical]")) {
             historicalOn = true;
             intraOn = false;
-          } else if (line.equalsIgnoreCase("[intra]")) {
+          } else if (line.trim().equalsIgnoreCase("[intra]")) {
             historicalOn = false;
             intraOn = true;
           } else {
