@@ -1,4 +1,7 @@
-Unless otherwise described, GT will only get a new version if the new features require an update of the database. It is the goal that the master branch always contains the most reliable and feature rich source code. # Grafioschtrader (GT)
+## Preface
+**Unless otherwise described, GT will only get a new version if the new features require an update of the database. It is the goal that the master branch always contains the most reliable and feature rich source code.** 
+
+# Grafioschtrader (GT)
 + **Multi-tenancy**: GT can be run for a group of investors or in single mode.
 + **Web application**: GT is a web application and provides the clearest results using a desktop web browser.
 + **Multiple portfolios with currency accounts**: Replicates multiple portfolios with one or more securities accounts and one or more bank cash accounts.
