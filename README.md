@@ -26,9 +26,8 @@
 For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
 
 ## Installation and Development
-For installing and for supporting the development go to the [wiki of GT](./wiki).
+For installing and for supporting the development go to the [wiki of GT]//github.com/hugograf/grafioschtrader/wiki).
 ![Architektur](manual/content/Komponenten.svg)
-
 
 ### Email account
 GT requires access to an Email account for user registration. The settings for Google's Gmail would be similar to the following. Note that for Gmail maybe the security settings must changed. Gmail must be enabled for less secure apps.
@@ -40,5 +39,6 @@ spring.mail.password=DEC(YOUR_MAIL_PASSWORD)
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 ```
+
 ## Contributing
-If you want to contribute to a project and make it better, your help is very welcome. Take a look at [projects](//github.com/hugograf/grafioschtrader/projects/1). 
+If you want to contribute to a project and make it better, your help is very welcome. Take a look at [projects](//github.com/hugograf/grafioschtrader/projects/1).
