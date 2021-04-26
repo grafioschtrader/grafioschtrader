@@ -1,6 +1,6 @@
 ---
 title: "Nach Installation und neue Versionen"
-date: 2021-04-10T22:54:47+01:00
+date: 2021-04-2522:54:47+01:00
 draft: false
 weight : 60
 chapter: true
@@ -9,7 +9,8 @@ chapter: true
 Die Daten von Grafioschtrader (GT) werden mittels eines relationalen Datenbankmanagementsystem (RDBMS) verwaltet. Falls die Struktur der GT-Datenbank ändert, wird automatisch eine Migration der Datenbank durchgeführt werden.
 
 ### Nach der Installation von GT
-Nach der installation von GT und mit dem **ersten Start** des **Back-End** werden bestimmte geteilte **Informationsklassen** mit einigen **Entitäten** befüllt.
+Nach der installation von GT und mit dem **ersten Start** des **Back-End** werden bestimmte geteilte **Informationsklassen** mit einigen **Entitäten** befüllt. Der Benutzer der in `application.properties` unter dem property `gt.main.user.admin.mail` genannten E-Mail Adresse wird mit seiner Registrierung zum Besitzer dieser Entitäten.
+
 + **Handelskalender Global**: Die **Obermenge** aller **Handelstage**.
 + **Handelsplatz**: Die "wichtigsten" **Handelsplätze** und ihre Handelskalender.
 + **Anlageklassen**: Die **Anlageklassen** mit einer **länderspezifisch** ausgerichteten **Unter Anlageklasse**.
