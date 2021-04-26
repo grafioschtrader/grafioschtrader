@@ -26,7 +26,7 @@
 For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
 
 ## Installation and Development
-For installing and for supporting the development go to the [wiki of GT]//github.com/hugograf/grafioschtrader/wiki).
+For installing and for supporting the development go to the [wiki of GT](//github.com/hugograf/grafioschtrader/wiki).
 ![Architektur](manual/content/Komponenten.svg)
 
 ### Email account
