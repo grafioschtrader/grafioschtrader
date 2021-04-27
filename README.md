@@ -15,12 +15,14 @@
 * At the user [manual](//hugograf.github.io/grafioschtrader/de/intro/) and a [YouTube channel](//www.youtube.com/channel/UCpogJM4KxrZGOyPoQx1xVKQ) in German language which are in progress.
 * [GT in action](//www.grafioschtrader.info/grafioschtrader) with a following demo accounts or create your own account.
 
-| E-Mail  | Password |
-| ------------- | ------------- |
-| gt1@grafioschtrader.info  | gt1  |
-| gt2@grafioschtrader.info  | gt2  |
-| gt3@grafioschtrader.info  | gt3  |
-| gt4@grafioschtrader.info  | gt4  |
+| E-Mail  | Password | Language |
+| ------------- | ------------- |----|
+| gt1@grafioschtrader.info  | gt1  | German |
+| gt2@grafioschtrader.info  | gt2  | German |
+| gt3@grafioschtrader.info  | gt3  | German |
+| gt4@grafioschtrader.info  | gt4  | German |
+| gt5@grafioschtrader.info  | gt5  | English |
+| gt5@grafioschtrader.info  | gt6  | English |
 
 ![Architektur](manual/content/watchlist_chart.jpg)
 For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
