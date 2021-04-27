@@ -22,7 +22,7 @@
 | gt3@grafioschtrader.info  | gt3  | German |
 | gt4@grafioschtrader.info  | gt4  | German |
 | gt5@grafioschtrader.info  | gt5  | English |
-| gt5@grafioschtrader.info  | gt6  | English |
+| gt6@grafioschtrader.info  | gt6  | English |
 
 ![Architektur](manual/content/watchlist_chart.jpg)
 For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
