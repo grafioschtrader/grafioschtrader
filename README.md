@@ -32,11 +32,23 @@ For installing and for supporting the development go to the [wiki of GT](//githu
 ![Architektur](manual/content/Komponenten.svg)
 
 ### Email account
-GT requires access to an Email account for user registration. The settings for Google's Gmail would be similar to the following. Note that for Gmail maybe the security settings must changed. Gmail must be enabled for less secure apps.
+GT requires access to an Email account for user registration. For encrypting you have to proceed according to the description of chapter [application.properties](./backend#applicationproperties).
+#### Settings for Gmail
+The settings for Google's Gmail would be similar to the following. Note that for Gmail maybe the security settings must changed. Gmail must be enabled for less secure apps.
 ```
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
 spring.mail.username=grafiosch@gmail.com
+spring.mail.password=DEC(YOUR_MAIL_PASSWORD)
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+```
+#### Settings for Outlook
+In my case, the following setting works:
+```
+spring.mail.host=smtp-mail.outlook.com
+spring.mail.port=587
+spring.mail.username=hugo.graf@outlook.com
 spring.mail.password=DEC(YOUR_MAIL_PASSWORD)
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
