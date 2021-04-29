@@ -47,8 +47,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     List<Tenant> tenants = tenantJpaRepository.findAll();
     tenants.forEach(this::createCashaccountBalanceEntireByTenant);
   }
-  
-  
+
   @Override
   @Transactional
   @Modifying
@@ -57,7 +56,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     createCashaccountBalanceEntireByTenant(tenantJpaRepository.getOne(idTenant));
     log.debug("End - HoldCashaccountSaldo: {}", System.currentTimeMillis() - startTime);
   }
-  
+
   private void createCashaccountBalanceEntireByTenant(Tenant tenant) {
     holdCashaccountBalanceJpaRepository.removeByIdTenant(tenant.getIdTenant());
     Map<FromToCurrency, Currencypair> currencypairFromToCurrencyMap = HoldingsHelper
@@ -81,9 +80,8 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
           .add(getHoldCashaccountBalance(tenant, csct, cashaccountSum, currencypairFromToCurrencyMap));
     }
     holdCashaccountBalanceJpaRepository.saveAll(holdCashaccountBalanceList);
-    
+
   }
-  
 
   @Override
   // @Transactional
@@ -177,7 +175,5 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     }
 
   }
-
-  
 
 }

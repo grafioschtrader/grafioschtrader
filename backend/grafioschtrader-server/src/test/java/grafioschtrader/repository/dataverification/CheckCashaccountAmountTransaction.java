@@ -1,4 +1,4 @@
-package grafioschtrader.data.verification;
+package grafioschtrader.repository.dataverification;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -25,7 +25,6 @@ import grafioschtrader.types.TransactionType;
 /**
  * It checks the total amount of a transaction.
  * TODO It should be integrated in future test.  
- * @author hugo
  *
  */
 @ExtendWith(SpringExtension.class)
@@ -33,7 +32,7 @@ import grafioschtrader.types.TransactionType;
 class CheckCashaccountAmountTransaction {
 
   @Autowired
-  TransactionJpaRepository transactionJpaRepository;
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Test
   @Disabled

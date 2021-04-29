@@ -31,10 +31,10 @@ public class TokenAuthenticationService {
 
   @Value("${gt.use.websocket}")
   private boolean useWebsockt;
-  
+
   @Value("${gt.use.algo}")
   private boolean useAlgo;
-  
+
   private static final String AUTH_HEADER_NAME = "x-auth-token";
 
   private final JwtTokenHandler jwtTokenHandler;
@@ -86,8 +86,7 @@ public class TokenAuthenticationService {
 
     // if (StompCommand.CONNECT.equals(accessor.getCommand())) {
     final String token = accessor.getFirstNativeHeader(AUTH_HEADER_NAME);
- 
-    
+
     if (token == null || token.isEmpty()) {
       return null;
     }
@@ -111,19 +110,18 @@ public class TokenAuthenticationService {
     }
     return configurationWithLogin;
   }
-  
+
   static class ConfigurationWithLogin {
     public List<EntityNameWithKeyName> entityNameWithKeyNameList = new ArrayList<>();
     public boolean useWebsocket;
     public boolean useAlgo;
     public List<String> crypotcurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
+
     public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo) {
       this.useWebsocket = useWebsocket;
       this.useAlgo = useAlgo;
     }
   }
-  
-  
 
   static class EntityNameWithKeyName {
     public String entityName;

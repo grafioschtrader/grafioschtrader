@@ -21,7 +21,7 @@ import grafioschtrader.algo.strategy.model.AlgoStrategyImplementations;
 public class AlgoStrategy extends AlgoRuleStrategy {
 
   public static final String TABNAME = "algo_strategy";
-  
+
   private static final long serialVersionUID = 1L;
 
   @Basic(optional = false)

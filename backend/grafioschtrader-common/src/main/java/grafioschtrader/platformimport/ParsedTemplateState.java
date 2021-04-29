@@ -12,7 +12,6 @@ public class ParsedTemplateState {
   private String templatePurpose;
   private Date validSince;
 
-
   public ParsedTemplateState(String templatePurpose, Date validSince) {
     this.templatePurpose = templatePurpose;
     this.validSince = validSince;

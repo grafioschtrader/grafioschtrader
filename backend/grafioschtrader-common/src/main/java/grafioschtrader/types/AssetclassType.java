@@ -11,19 +11,18 @@ package grafioschtrader.types;
  */
 public enum AssetclassType {
 
-
-  //Equities, can have dividends
-  EQUITIES((byte) 0), 
+  // Equities, can have dividends
+  EQUITIES((byte) 0),
 
   // Fixed income, can have dividends when ETF
-  FIXED_INCOME((byte) 1), 
+  FIXED_INCOME((byte) 1),
 
   // Money market, can have dividends when ETF
-  MONEY_MARKET((byte) 2), 
+  MONEY_MARKET((byte) 2),
 
   // Commodities, may never have dividends
-  COMMODITIES((byte) 3), 
-  
+  COMMODITIES((byte) 3),
+
   // Real estate, can have dividends
   REAL_ESTATE((byte) 4),
 
@@ -31,17 +30,19 @@ public enum AssetclassType {
   MULIT_ASSET((byte) 5),
 
   // Convertible bond, may have dividends when ETF or Fonds
-  CONVERTIBLE_BOND((byte) 6), 
-  
+  CONVERTIBLE_BOND((byte) 6),
+
   // Credit derivative, may never have dividends
   CREDIT_DERIVATIVE((byte) 7),
 
   // Forex, may never have dividends
   CURRENCY_PAIR((byte) 8),
 
-  // Exist only for Client and is not saved to repository. It may be used for grouping 
-  CURRENCY_CASH((byte) 11), 
-  //Exist only for Client and is not saved to repository. It may be used for grouping
+  // Exist only for Client and is not saved to repository. It may be used for
+  // grouping
+  CURRENCY_CASH((byte) 11),
+  // Exist only for Client and is not saved to repository. It may be used for
+  // grouping
   CURRENCY_FOREIGN((byte) 12);
 
   private final Byte value;

@@ -21,7 +21,6 @@ import grafioschtrader.GlobalConstants;
 @Table(name = "verificationtoken")
 public class VerificationToken extends BaseID {
 
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)

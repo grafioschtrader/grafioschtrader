@@ -47,10 +47,10 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
 
   @Autowired
   JdbcTemplate jdbcTemplate;
-  
+
   @Value("${gt.demo.account.pattern.de}")
   private String demoAccountPatternDE;
- 
+
   @Value("${gt.demo.account.pattern.en}")
   private String demoAccountPatternEN;
 
@@ -131,7 +131,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
     RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
-    
+
     MySqlDeleteMyData mySqlDeleteMyData = new MySqlDeleteMyData(jdbcTemplate);
     mySqlDeleteMyData.deleteMyData();
   }
@@ -168,7 +168,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
         LocalDateTime.now(), tenant.getIdTenant(), Tenant.TABNAME));
     return tenant;
   }
-  
+
   @Override
   public Tenant setWatchlistForPerformance(Integer idWatchlist) {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
@@ -177,6 +177,5 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     tenantJpaRepository.save(tenant);
     return tenant;
   }
-  
 
 }

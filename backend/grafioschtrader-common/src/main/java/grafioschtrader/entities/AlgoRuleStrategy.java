@@ -31,7 +31,7 @@ public abstract class AlgoRuleStrategy extends TenantBaseID implements Serializa
 
   public static final String TABNAME = "algo_rule_strategy";
   public static final String ALGO_RULE_STRATEGY_PARAM = "algo_rule_strategy_param";
-  
+
   private static final long serialVersionUID = 1L;
 
   @Id

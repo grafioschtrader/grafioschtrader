@@ -60,7 +60,7 @@ public class SecurityDividendsReport {
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
-  
+
   @Autowired
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 

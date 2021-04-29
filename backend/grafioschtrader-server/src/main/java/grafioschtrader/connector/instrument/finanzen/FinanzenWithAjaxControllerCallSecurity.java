@@ -52,12 +52,10 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
 
   public static String HISTORICAL_PRICE_LIST = "HistoricPriceList";
   public static String HISTORICAL_PRICE_LIST_REDESIGN = HISTORICAL_PRICE_LIST + "Redesign";
-  
+
   protected static Map<ControllerUrlMapping, String> contollerUrlMapping;
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  
-  
   static {
     contollerUrlMapping = new ConcurrentHashMap<>();
     contollerUrlMapping.put(
@@ -72,14 +70,12 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
     contollerUrlMapping.put(
         new ControllerUrlMapping(AssetclassType.EQUITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT),
         "SharesController");
-    contollerUrlMapping.put(
-        new ControllerUrlMapping(AssetclassType.COMMODITIES, SpecialInvestmentInstruments.ETF),
+    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.COMMODITIES, SpecialInvestmentInstruments.ETF),
         "FundController");
     contollerUrlMapping.put(
         new ControllerUrlMapping(AssetclassType.COMMODITIES, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES),
         "CommodityController");
-    contollerUrlMapping.put(
-        new ControllerUrlMapping(AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD),
+    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD),
         "CommodityController");
     contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF),
         "FundController");
@@ -105,8 +101,8 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
    * @param locale
    * @param useLastPartUrl
    */
-  public FinanzenWithAjaxControllerCallSecurity(String domain, String controller, IFeedConnector feedConnector, Locale locale,
-      UseLastPartUrl useLastPartUrl, int indicesNameUrlPart) {
+  public FinanzenWithAjaxControllerCallSecurity(String domain, String controller, IFeedConnector feedConnector,
+      Locale locale, UseLastPartUrl useLastPartUrl, int indicesNameUrlPart) {
     super(domain, feedConnector, locale);
     this.controller = controller;
     this.useLastPartUrl = useLastPartUrl;
@@ -140,7 +136,7 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
       String suffix = (sii == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) ? "/false" : "";
       url = getAjaxController(security, from, to, sii, productName + "/" + stockExchange, suffix);
     } else {
-      String suffix = possibleTwoPartUrl.length == 3? possibleTwoPartUrl[2]: "";
+      String suffix = possibleTwoPartUrl.length == 3 ? possibleTwoPartUrl[2] : "";
       url = getAjaxController(security, from, to, sii, possibleTwoPartUrl[1] + "/" + "", suffix);
     }
     log.info("In {} for security {} is URL for Ajax call {}", feedConnector.getID(), security.getName(), url);
@@ -154,8 +150,8 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
         new ControllerUrlMapping(security.getAssetClass().getCategoryType(), sii),
         f -> contollerUrlMapping.computeIfAbsent(new ControllerUrlMapping(null, sii), c -> DEFAULT_URL_CONTROLLER));
 
-    return domain + "Ajax/" + ajaxController + "_" + controller + "/" + productStockExchangeStr + dateFormat.format(from)
-        + "_" + dateFormat.format(to) + suffix;
+    return domain + "Ajax/" + ajaxController + "_" + controller + "/" + productStockExchangeStr
+        + dateFormat.format(from) + "_" + dateFormat.format(to) + suffix;
   }
 
   @Override

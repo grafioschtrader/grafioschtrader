@@ -48,7 +48,7 @@ public class ParseFormInputPDFasTXT {
     for (int i = 0; i < formInputLines.length; i++) {
       formInputLines[i] = formInputLines[i].trim();
     }
- 
+
     for (int row = 0; row < formInputLines.length; row++) {
       matchRequiredTemplatesPropertyByRow(row);
     }

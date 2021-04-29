@@ -104,8 +104,6 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean simulateAccruedRecords,
       final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater) {
 
-  
-    
     final CalcTransactionPos ctp = initTransactionCalcTransCost(transaction, securityPositionSummary, securitysplitMap,
         dateCurrencyMap, null);
 

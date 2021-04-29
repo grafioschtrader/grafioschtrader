@@ -22,7 +22,7 @@ import grafioschtrader.types.HistoryquotePeriodCreateType;
 public class HistoryquotePeriod extends BaseID implements Serializable {
 
   public static final String TABNAME = "historyquote_period";
-  
+
   private static final long serialVersionUID = 1L;
 
   @Id

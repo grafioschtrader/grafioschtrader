@@ -50,7 +50,7 @@ public class SecuritycurrencySearch implements Serializable {
   public void setName(String name) {
     this.name = name;
   }
-  
+
   public Integer getIdStockexchange() {
     return idStockexchange;
   }

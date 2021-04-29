@@ -28,21 +28,20 @@ public class ImportProperties {
   private Date datetime;
 
   /**
-   * Date part of Transaction when it comes separated as date and time 
+   * Date part of Transaction when it comes separated as date and time
    */
   private LocalDate date;
-  
+
   /**
-   * Time part of Transaction when it comes separated as date and time 
+   * Time part of Transaction when it comes separated as date and time
    */
   private LocalTime time;
-  
-  
+
   /**
    * Date of ex dividend
    */
   private Date exdiv;
-  
+
   /**
    * Transaction type
    */
@@ -57,7 +56,7 @@ public class ImportProperties {
    * Is used to for finding the right security paper
    */
   private String isin;
-  
+
   /**
    * Symbol is used when there is no ISIN
    */
@@ -110,7 +109,7 @@ public class ImportProperties {
    * Transaction Tax 1
    */
   private Double tt2;
-  
+
   /**
    * Currency for tax and transaction cost
    */
@@ -155,15 +154,13 @@ public class ImportProperties {
     this.fileOrLineNumber = fileOrLineNumber;
   }
 
-
   public Date getDatetime() {
-    if(datetime == null && date != null && time != null) {
+    if (datetime == null && date != null && time != null) {
       datetime = DateHelper.convertToDateViaInstant(LocalDateTime.of(date, time));
     }
     return datetime;
   }
 
-  
   public void setDatetime(Date date) {
     this.datetime = date;
   }
@@ -307,8 +304,7 @@ public class ImportProperties {
   public void setTt2(Double tt2) {
     this.tt2 = tt2;
   }
-  
-  
+
   public String getCct() {
     return cct;
   }

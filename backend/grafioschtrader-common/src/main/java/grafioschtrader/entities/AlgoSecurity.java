@@ -13,7 +13,7 @@ import javax.persistence.Table;
 public class AlgoSecurity extends AlgoAssetclassSecurity {
 
   public static final String TABNAME = "algo_security";
-  
+
   private static final long serialVersionUID = 1L;
 
   @Column(name = "id_algo_assetclass_security_p")

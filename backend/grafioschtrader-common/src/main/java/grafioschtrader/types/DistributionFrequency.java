@@ -2,13 +2,13 @@ package grafioschtrader.types;
 
 public enum DistributionFrequency {
   // Never pay out
-  DF_NONE((byte) 0), 
+  DF_NONE((byte) 0),
   // One a year
   DF_YEAR((byte) 1),
   // Twice a year
-  DF_SEMI_ANNUAL((byte) 2), 
+  DF_SEMI_ANNUAL((byte) 2),
   // Each quarter
-  DF_QUARTERLY((byte) 4), 
+  DF_QUARTERLY((byte) 4),
   // Each Month
   DF_MONTHLY((byte) 12),
   // Not determined disbursement

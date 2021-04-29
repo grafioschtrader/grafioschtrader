@@ -124,8 +124,8 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
           if (hasTradingDaysBetweenUntilDateAndYesterday) {
             log.warn("Currencypair {}/{} for Date {} ist not updated!", currency, dateCurrencyMap.getMainCurrency(),
                 dateCurrencyMap.getUntilDate());
-            throw new DataViolationException("currencypair", "gt.missing.currencypair.day", new Object[] {
-                dateCurrencyMap.getUntilDate(), currency, dateCurrencyMap.getMainCurrency() });
+            throw new DataViolationException("currencypair", "gt.missing.currencypair.day",
+                new Object[] { dateCurrencyMap.getUntilDate(), currency, dateCurrencyMap.getMainCurrency() });
           } else {
             currencyExchangeRate = dateCurrencyMap.getCurrencypairByFromCurrency(currency).getSLast();
           }

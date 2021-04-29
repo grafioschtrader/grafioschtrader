@@ -30,8 +30,8 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /*-
- * Stocks, Bond, ETF:
- * 
+ * Stocks, Bond, ETF:<br>
+ * It difficult to check the url extension with a regex pattern
  * 
  * Dividend: Value are summarized, can not be used in this application.
  * Splits: Not supported 
@@ -51,7 +51,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   }
 
   public FinanzenNETFeedConnector() {
-    super(supportedFeed, "finanzennet", "Finanzen NET");
+    super(supportedFeed, "finanzennet", "Finanzen NET", null);
   }
 
   @Override
@@ -78,6 +78,8 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
     return finanzenBase.getHistoryquotes(security, from, to);
   }
 
+ 
+  
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
     return domain + currencypair.getUrlHistoryExtend();
@@ -122,7 +124,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   }
 
   private void updateSecuritycurrency(Elements rows, Security security) throws IOException, ParseException {
-    
+
     for (int i = 0; i < rows.size(); i++) {
       final Element row = rows.get(i);
       final Elements cols = row.select("td,th");

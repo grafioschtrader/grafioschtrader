@@ -24,7 +24,7 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 
 /**
- * It has a max row limit 
+ * It has a max row limit
  *
  */
 @Component
@@ -46,7 +46,7 @@ public class CryptoCompareFeedConnector extends BaseFeedConnector {
   }
 
   public CryptoCompareFeedConnector() {
-    super(supportedFeed, "cryptocompare", "CryptoCompare");
+    super(supportedFeed, "cryptocompare", "CryptoCompare", null);
   }
 
   @Value("${gt.connector.cryptocompare.apikey}")

@@ -72,11 +72,9 @@ public class Securitysplit extends DividendSplit implements Serializable {
   @Max(value = 99_999_999)
   private Integer toFactor;
 
- 
   public Securitysplit() {
   }
 
- 
   public Securitysplit(Integer idSecuritycurrency,
       @NotNull @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = "yyyy-MM-dd") Date splitDate,
       @NotNull @Min(1) @Max(99_999) Integer fromFactor, @NotNull @Min(1) @Max(99_999) Integer toFactor,
@@ -94,7 +92,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
   public void setIdSecuritysplit(Integer idSecuritysplit) {
     this.idSecuritysplit = idSecuritysplit;
   }
-   
+
   public Date getSplitDate() {
     return splitDate;
   }
@@ -121,16 +119,15 @@ public class Securitysplit extends DividendSplit implements Serializable {
 
   @Override
   public Date getEventDate() {
-   return this.splitDate;
+    return this.splitDate;
   }
-  
 
   public static double calcSplitFatorForFromDate(Integer idSecuritycurrency, LocalDate toDate,
       Map<Integer, List<Securitysplit>> securitysplitMap) {
     return calcSplitFatorForFromDate(idSecuritycurrency,
         Date.from(toDate.atStartOfDay(ZoneId.systemDefault()).toInstant()), securitysplitMap);
   }
-  
+
   @JsonIgnore
   public double getFactor() {
     return (double) toFactor / fromFactor;
@@ -167,8 +164,6 @@ public class Securitysplit extends DividendSplit implements Serializable {
     return factor;
   }
 
- 
-  
   /**
    * Returns the factor for a security split, that happened after toDate.
    * 
@@ -182,20 +177,20 @@ public class Securitysplit extends DividendSplit implements Serializable {
    *         the split date.
    * 
    */
-  public static SplitFactorAfterBefore calcSplitFatorForFromDateAndToDate(Integer idSecuritycurrency, Date fromDate, Date toDate,
-      Map<Integer, List<Securitysplit>> securitysplitMap) {
+  public static SplitFactorAfterBefore calcSplitFatorForFromDateAndToDate(Integer idSecuritycurrency, Date fromDate,
+      Date toDate, Map<Integer, List<Securitysplit>> securitysplitMap) {
     SplitFactorAfterBefore splitFactorAfterBefore = new SplitFactorAfterBefore();
     List<Securitysplit> securitysplitList = securitysplitMap.get(idSecuritycurrency);
 
     if (securitysplitList != null) {
       for (Securitysplit securitySplit : securitysplitList) {
         if (securitySplit.getSplitDate().after(fromDate)) {
-          if(toDate == null || securitySplit.getSplitDate().before(toDate)) {
+          if (toDate == null || securitySplit.getSplitDate().before(toDate)) {
             splitFactorAfterBefore.fromToDateFactor *= securitySplit.getFactor();
           } else {
             splitFactorAfterBefore.toDateUntilNow *= securitySplit.getFactor();
           }
-        } 
+        }
       }
     }
     return splitFactorAfterBefore;
@@ -206,7 +201,6 @@ public class Securitysplit extends DividendSplit implements Serializable {
     return idSecuritysplit;
   }
 
-
   @Override
   public String toString() {
     return "Securitysplit [idSecuritysplit=" + idSecuritysplit + ", splitDate=" + splitDate + ", fromFactor="
@@ -214,11 +208,9 @@ public class Securitysplit extends DividendSplit implements Serializable {
         + createType + "]";
   }
 
-  public static class SplitFactorAfterBefore  {
+  public static class SplitFactorAfterBefore {
     public double fromToDateFactor = 1.0;
     public double toDateUntilNow = 1.0;
   }
-    
-    
 
 }

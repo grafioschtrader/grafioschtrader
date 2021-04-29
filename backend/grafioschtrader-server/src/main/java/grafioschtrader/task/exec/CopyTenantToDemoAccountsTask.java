@@ -36,7 +36,7 @@ public class CopyTenantToDemoAccountsTask implements ITask {
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
-    
+
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
@@ -46,21 +46,17 @@ public class CopyTenantToDemoAccountsTask implements ITask {
   @Autowired
   private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
-  
   @Value("${gt.demo.account.pattern.de}")
   private String demoAccountPatternDE;
 
-  
   @Value("${gt.demo.account.pattern.en}")
   private String demoAccountPatternEN;
-  
-  
+
   @Override
   public TaskType getTaskType() {
     return TaskType.COPY_DEMO_ACCOUNTS;
   }
-    
-  
+
   @Scheduled(cron = "${gt.demo.account.tenant.copy}", zone = "UTC")
   public void catchAllUpSecuritycurrencyHistoryquote() {
     TaskDataChange taskDataChange = new TaskDataChange(TaskType.COPY_DEMO_ACCOUNTS, (short) 35);
@@ -69,12 +65,12 @@ public class CopyTenantToDemoAccountsTask implements ITask {
 
   @Override
   @Transactional
-   public void doWork(TaskDataChange taskDataChange) {
+  public void doWork(TaskDataChange taskDataChange) {
     copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE, demoAccountPatternDE);
-    copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN, demoAccountPatternEN); 
+    copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN, demoAccountPatternEN);
 
   }
- 
+
   private void copyTenant(String sourceTenant, String dap) {
     Integer[] demoIdTenants = userJpaRepository.findIdTenantByMailPattern(dap);
 
@@ -88,6 +84,5 @@ public class CopyTenantToDemoAccountsTask implements ITask {
       }
     }
   }
- 
-  
+
 }

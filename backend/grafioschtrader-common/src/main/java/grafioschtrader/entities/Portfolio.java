@@ -153,8 +153,7 @@ public class Portfolio extends TenantBaseID implements Serializable {
       Integer idSecurityaccount, String currency) {
     for (Cashaccount cashaccount : cashaccountList) {
       if (cashaccount.getCurrency().equals(currency)) {
-        if (cashaccount.getConnectIdSecurityaccount() == null
-            || (cashaccount.getConnectIdSecurityaccount() != null
+        if (cashaccount.getConnectIdSecurityaccount() == null || (cashaccount.getConnectIdSecurityaccount() != null
             && cashaccount.getConnectIdSecurityaccount().equals(idSecurityaccount))) {
           return cashaccount;
         }

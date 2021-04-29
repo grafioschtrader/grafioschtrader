@@ -20,8 +20,7 @@ public interface SecurityaccountJpaRepository extends JpaRepository<Securityacco
   Securityaccount findByIdSecuritycashAccountAndIdTenant(Integer idSecuritycashAccount, Integer idTenant);
 
   List<Securityaccount> findByIdTenant(Integer idTenant);
-  
-  
+
   @Query("SELECT s FROM Securityaccount s, Portfolio p WHERE p.name = ?1 AND s.name = ?2")
   Securityaccount findByPortfolioNameAndName(String portfolioName, String name);
 
@@ -41,7 +40,7 @@ public interface SecurityaccountJpaRepository extends JpaRepository<Securityacco
 
   @Query(nativeQuery = true)
   List<ITransactionCost> getAllTransactionCostByTenant(Integer idTenant);
-  
+
   @Query(nativeQuery = true)
   List<ITransactionCost> getAllTransactionCostBySecurityaccount(Integer idSecurityaccount);
 }

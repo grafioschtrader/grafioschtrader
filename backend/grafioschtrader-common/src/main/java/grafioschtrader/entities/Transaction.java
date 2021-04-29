@@ -590,7 +590,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     if (roundCashaccountAmount == calcCashaccountAmount) {
       cashaccountAmount = roundCashaccountAmount;
     } else {
-       throw new DataViolationException("cashaccount.amount", "gt.cashaccount.amount.calc",
+      throw new DataViolationException("cashaccount.amount", "gt.cashaccount.amount.calc",
           new Object[] { calcCashaccountAmount, roundCashaccountAmount, cashaccountAmount });
     }
   }
@@ -603,7 +603,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       double securityRiskC = DataHelper.round(Math.abs(validateSecurityGeneralCashaccountAmount(0))
           * (getTransactionType() == TransactionType.ACCUMULATE ? 1.0 : -1.0));
       securityRisk = DataHelper.round(securityRisk);
-      
+
       if (securityRiskC != securityRisk) {
         throw new DataViolationException("security.risk", "gt.security.risk.calc",
             new Object[] { securityRiskC, securityRisk });
@@ -634,8 +634,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       // For reduce and dividend
       calcCashaccountAmount -= taxCostC + transactionCostC - accruedInterestC;
     }
-    return DataHelper.divideMultiplyExchangeRate(calcCashaccountAmount, currencyExRate,
-        security.getCurrency(), cashaccount.getCurrency());
+    return DataHelper.divideMultiplyExchangeRate(calcCashaccountAmount, currencyExRate, security.getCurrency(),
+        cashaccount.getCurrency());
   }
 
   @Override

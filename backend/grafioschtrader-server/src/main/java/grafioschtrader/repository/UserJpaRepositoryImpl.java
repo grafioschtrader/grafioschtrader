@@ -39,14 +39,13 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User> implements U
 
   @Autowired
   private JavaMailSender emailSender;
-  
+
   @Autowired
   private JdbcTemplate jdbcTemplate;
-  
 
   @Value("${spring.mail.username}")
   private String springMailUsername;
-  
+
   @Override
   public User saveOnlyAttributes(User user, User existingEntity,
       final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
@@ -97,5 +96,5 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User> implements U
     String databaseName = StringUtils.substringAfterLast(url, "/");
     return userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser, databaseName);
   }
-  
+
 }

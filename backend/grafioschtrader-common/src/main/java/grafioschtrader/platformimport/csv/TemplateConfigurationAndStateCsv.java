@@ -115,7 +115,5 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   public Map<Integer, String> getColumnPropertyMapping() {
     return columnPropertyMapping;
   }
-  
-  
 
 }

@@ -276,7 +276,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       ////////////////////////////////////////////////////////////////////////////////////////////////////
       final Currencypair currencypair = dateCurrencyMap
           .getCurrencypairByIdCurrencypair(transaction.getIdCurrencypair());
-     
+
       if (!accountPositionSummary.cashaccount.getCurrency().equals(mainCurrency)
           && !currencypair.getToCurrency().equals(mainCurrency)
           && !currencypair.getFromCurrency().equals(mainCurrency)) {
@@ -320,7 +320,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
             + (transaction.getTransactionCost() != null ? transaction.getTransactionCost() : 0.0)) * exchangeRate;
       }
 
-    } 
+    }
   }
 
   /**

@@ -42,7 +42,6 @@ import grafioschtrader.repository.SecurityJpaRepository;
  */
 public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfBase {
 
-
   public static final String ORDER_NOTHING = "0";
   private MultipartFile uploadFile;
 
@@ -54,7 +53,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
 
   public void importCSV(ImportTransactionPosJpaRepository importTransactionPosJpaRepository,
       SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale) throws IOException {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
+      throws IOException {
 
     Map<TemplateConfigurationAndStateCsv, ImportTransactionTemplate> templateScannedMap = ImportTransactionHelperCsv
         .readTemplates(importTransactionTemplateList, userLocale);
@@ -91,15 +91,14 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
             // Header line
             template = checkAndGetTemplate(templateScannedMap, line, templateId);
             /*
-            valueFormatConverter = new ValueFormatConverter(template.getLocale(), template.getDateFormat(),
-                template.getThousandSeparatorsPattern(), template.getTimeFormat());
-                */
-            valueFormatConverter = new ValueFormatConverter(template.getDateFormat(),
-                template.getTimeFormat(), template.getThousandSeparators(), 
-                template.getThousandSeparatorsPattern(), template.getDecimalSeparator());
+             * valueFormatConverter = new ValueFormatConverter(template.getLocale(),
+             * template.getDateFormat(), template.getThousandSeparatorsPattern(),
+             * template.getTimeFormat());
+             */
+            valueFormatConverter = new ValueFormatConverter(template.getDateFormat(), template.getTimeFormat(),
+                template.getThousandSeparators(), template.getThousandSeparatorsPattern(),
+                template.getDecimalSeparator());
 
-            
-            
             break;
           default:
             parseSingleDataLine(templateScannedMap, template, line, lineCounter, valueFormatConverter,
@@ -132,14 +131,14 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       if (!importPropertiesDuringDay.isEmpty() && !DateHelper.isSameDay(importPropertiesDuringDay.get(0).getDatetime(),
           parseLineSuccessError.importProperties.getDatetime())) {
         // Day of transaction has changed
-       
+
         transferToImportTransactionPosForOneDay(importPropertiesDuringDay, uploadFile.getOriginalFilename(),
             templateScannedMap.get(template), template, securityJpaRepository, cashaccountList,
             importTransactionPosJpaRepository);
         importPropertiesDuringDay.clear();
       }
       importPropertiesDuringDay.add(parseLineSuccessError.importProperties);
-     
+
     } else {
       if (!parseLineSuccessError.isEmpty()) {
         failedReadLine(importTransactionPosFailedJpaRepository, importTransactionPosJpaRepository,
@@ -161,17 +160,17 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       String propertyName = template.getColumnPropertyMapping().get(i);
       if (propertyName != null) {
         String value = values[i];
-        if(!StringUtils.isEmpty(value)) {
+        if (!StringUtils.isEmpty(value)) {
           if (propertyName.equals(template.getBondProperty()) && value.contains(template.getBondIndicator())) {
             importProperties.setPer(template.getBondIndicator());
           }
           try {
             valueFormatConverter.convertAndSetValue(importProperties, propertyName, value,
                 TemplateConfiguration.getPropertyDataTypeMap().get(propertyName));
-         
+
           } catch (Exception ex) {
             System.out.println("Line:" + lineNumber + " Field:" + propertyName);
-            
+
             Throwable cause = ex.getCause();
             return new ParseLineSuccessError(null, lastSuccessProperty, cause.getMessage());
           }
@@ -215,7 +214,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
   private void createImportTransactionPosByOrder(List<ImportProperties> importPropertiesList, String fileName,
       ImportTransactionTemplate importTransactionTemplate, SecurityJpaRepository securityJpaRepository,
       List<Cashaccount> cashaccountList, ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
- 
+
     this.checkAndSaveSuccessImportTransaction(importTransactionTemplate, cashaccountList, importPropertiesList,
         fileName, importTransactionPosJpaRepository, securityJpaRepository);
 
@@ -252,7 +251,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
 
     } else {
       // Template with id not found
-      throw new GeneralNotTranslatedWithArgumentsException("gt.import.csv.id", new Object[]{requiredTempalteId});
+      throw new GeneralNotTranslatedWithArgumentsException("gt.import.csv.id", new Object[] { requiredTempalteId });
 
     }
 

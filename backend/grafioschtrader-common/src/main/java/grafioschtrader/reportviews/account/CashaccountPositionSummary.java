@@ -168,9 +168,4 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
         + ", balanceCurrencyTransactionMC=" + balanceCurrencyTransactionMC + "]";
   }
 
- 
-
-  
-  
-  
 }

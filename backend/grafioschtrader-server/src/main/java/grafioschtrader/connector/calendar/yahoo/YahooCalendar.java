@@ -32,7 +32,8 @@ import grafioschtrader.types.CreateType;
 public class YahooCalendar implements ICalendarFeedConnector {
 
   @Override
-  public Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countyCodes) throws Exception {
+  public Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countyCodes)
+      throws Exception {
     LocalDate fromDate = forDate.minusDays(1);
 
     HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
@@ -45,12 +46,11 @@ public class YahooCalendar implements ICalendarFeedConnector {
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return parseSplitCalendar(Jsoup.parse(response.body()), forDate);
   }
-  
+
   @Override
   public int getPriority() {
     return 20;
   }
-
 
   private Map<String, TickerSecuritysplit> parseSplitCalendar(Document doc, LocalDate forDate) {
     Map<String, TickerSecuritysplit> splitTickerMap = new HashMap<>();

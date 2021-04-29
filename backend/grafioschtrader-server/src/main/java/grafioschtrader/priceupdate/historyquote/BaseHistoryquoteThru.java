@@ -51,7 +51,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
   public <U extends SecuritycurrencyPositionSummary<S>> void reloadAsyncFullHistoryquote(
       final SecurityServiceAsyncExectuion<S, U> securityServiceAsyncExectuion,
       final SecuritycurrencyService<S, U> securitycurrencyService, final S securitycurrency) {
-   
+
     Hibernate.initialize(securitycurrency.getHistoryquoteList());
     securityServiceAsyncExectuion.asyncLoadHistoryIntraData(securitycurrencyService, securitycurrency, true,
         globalparametersJpaRepository.getMaxIntraRetry(),
@@ -74,7 +74,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
     }
     final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList = historyqouteEntityBaseAccess
         .getMaxHistoryquoteResult(globalparametersJpaRepository.getMaxHistoryRetry(), this);
- 
+
     return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar);
   }
 

@@ -17,17 +17,17 @@ public interface SecuritysplitJpaRepository
   Long deleteByIdSecuritycurrency(Integer idSecuritycurrency);
 
   Long deleteByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
-  
+
   List<Securitysplit> findByIdSecuritycurrencyOrderBySplitDateAsc(Integer idSecuritycurrency);
 
   List<Securitysplit> findByIdSecuritycurrencyInOrderByIdSecuritycurrencyAscSplitDateAsc(Set<Integer> idSecurity);
-  
+
   @Query(nativeQuery = true)
   List<Securitysplit> getByIdWatchlist(Integer idWatchlist);
 
   @Query(nativeQuery = true)
   List<Securitysplit> getByIdTenant(Integer idTenant);
-  
+
   @Query(nativeQuery = true)
   Double getSplitFactorAfterThanEqualDate(Integer idSecuritycurrency, Date date);
 

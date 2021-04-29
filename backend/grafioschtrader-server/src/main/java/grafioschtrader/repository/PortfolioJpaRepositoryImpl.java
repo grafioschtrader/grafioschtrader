@@ -95,7 +95,6 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
     return portfolioJpaRepository.deleteByIdPortfolioAndIdTenant(id, idTenant);
   }
 
-  
   @Override
   @Transactional
   public Integer createNotExistingCurrencypairs(Integer idPortfolio) {

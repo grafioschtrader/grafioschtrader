@@ -9,9 +9,9 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
 /**
- * When a security split happens it influences the calculation of the performance. History quotes prices
- * are adjusted and holdings in transaction must respect this changed. The entity security holding gets
- * out dated. 
+ * When a security split happens it influences the calculation of the
+ * performance. History quotes prices are adjusted and holdings in transaction
+ * must respect this changed. The entity security holding gets out dated.
  *
  */
 @Component
@@ -19,7 +19,7 @@ public class HoldingSecurityRebuild implements ITask {
 
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
-  
+
   @Override
   public TaskType getTaskType() {
     return TaskType.HOLDINGS_SECURITY_REBUILD;

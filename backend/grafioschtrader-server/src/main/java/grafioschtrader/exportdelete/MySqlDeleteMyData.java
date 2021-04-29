@@ -7,7 +7,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import grafioschtrader.GlobalConstants;
 
 /**
- * Deletes the private data of the main tenant of a user in the application context.
+ * Deletes the private data of the main tenant of a user in the application
+ * context.
  * 
  * @author Hugo Graf
  *

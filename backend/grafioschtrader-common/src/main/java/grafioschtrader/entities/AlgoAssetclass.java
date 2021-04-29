@@ -17,8 +17,8 @@ import javax.persistence.Transient;
 @DiscriminatorValue("A")
 public class AlgoAssetclass extends AlgoAssetclassSecurity {
 
-  public static final String TABNAME = "algo_assetclass"; 
-  
+  public static final String TABNAME = "algo_assetclass";
+
   private static final long serialVersionUID = 1L;
 
   @Column(name = "id_algo_assetclass_security_p")
@@ -47,7 +47,7 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
 
   @Transient
   private Float addedPercentage;
-  
+
   public Float getAddedPercentage() {
     addedPercentage = (float) algoSecurityList.stream().mapToDouble(algoSecurity -> algoSecurity.getPercentage()).sum();
     return addedPercentage;

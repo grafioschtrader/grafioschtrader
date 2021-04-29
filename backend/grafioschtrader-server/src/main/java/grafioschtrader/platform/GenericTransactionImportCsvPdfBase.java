@@ -123,10 +123,8 @@ public abstract class GenericTransactionImportCsvPdfBase {
             importTransactionHead.getIdTenant(), fileNameOriginal, importTransactionHead.getIdTransactionHead(),
             importTransactionTemplate.getIdTransactionImportTemplate(), withdrawalIp));
 
-    importTransactionPosList.get(0)
-        .setConnectedIdTransactionPos(importTransactionPosList.get(1).getIdTransactionPos());
-    importTransactionPosList.get(1)
-        .setConnectedIdTransactionPos(importTransactionPosList.get(0).getIdTransactionPos());
+    importTransactionPosList.get(0).setConnectedIdTransactionPos(importTransactionPosList.get(1).getIdTransactionPos());
+    importTransactionPosList.get(1).setConnectedIdTransactionPos(importTransactionPosList.get(0).getIdTransactionPos());
     return importTransactionPosList;
   }
 

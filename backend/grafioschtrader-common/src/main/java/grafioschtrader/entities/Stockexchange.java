@@ -55,7 +55,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @Size(min = 2, max = 32)
   @PropertyAlwaysUpdatable
   private String name;
-  
+
   @NotBlank
   @Column(name = "country_code")
   @PropertyOnlyCreation
@@ -77,7 +77,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @NotNull
   @PropertyAlwaysUpdatable
   private LocalTime timeOpen;
-  
+
   @Basic(optional = false)
   @Column(name = "time_close")
   @JsonFormat(pattern = "HH:mm")
@@ -103,10 +103,10 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   @Column(name = "id_index_upd_calendar")
   private Integer idIndexUpdCalendar;
-  
+
   @Transient
   private String nameIndexUpdCalendar;
-  
+
   public Stockexchange() {
   }
 
@@ -143,7 +143,6 @@ public class Stockexchange extends Auditable implements Serializable {
   public void setName(String name) {
     this.name = name;
   }
-   
 
   public String getCountryCode() {
     return countryCode;
@@ -192,7 +191,6 @@ public class Stockexchange extends Auditable implements Serializable {
   public void setSymbol(String symbol) {
     this.symbol = symbol;
   }
-  
 
   public Integer getIdIndexUpdCalendar() {
     return idIndexUpdCalendar;
@@ -201,7 +199,7 @@ public class Stockexchange extends Auditable implements Serializable {
   public void setIdIndexUpdCalendar(Integer idIndexUpdCalendar) {
     this.idIndexUpdCalendar = idIndexUpdCalendar;
   }
-  
+
   public String getNameIndexUpdCalendar() {
     return nameIndexUpdCalendar;
   }

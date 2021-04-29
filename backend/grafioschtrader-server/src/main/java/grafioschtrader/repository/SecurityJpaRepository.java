@@ -40,7 +40,7 @@ public interface SecurityJpaRepository extends JpaRepository<Security, Integer>,
 
   List<Security> findByActiveToDateGreaterThanEqualAndIdTenantPrivateIsNullOrIdTenantPrivateOrderByName(Date date,
       Integer idTenantPrivate);
-  
+
   List<Security> findByTickerSymbolInOrderByIdSecuritycurrency(Set<String> tickers);
 
   @Query(nativeQuery = true)
@@ -112,11 +112,9 @@ public interface SecurityJpaRepository extends JpaRepository<Security, Integer>,
   @Override
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
       Date untilDate);
-  
+
   public enum SplitAdjustedHistoryquotes {
-    NOT_DETCTABLE,
-    ADJUSTED,
-    NOT_ADJUSTED
+    NOT_DETCTABLE, ADJUSTED, NOT_ADJUSTED
   }
-  
+
 }

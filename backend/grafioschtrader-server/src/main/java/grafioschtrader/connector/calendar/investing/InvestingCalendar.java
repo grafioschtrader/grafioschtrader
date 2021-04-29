@@ -118,8 +118,7 @@ public class InvestingCalendar implements ICalendarFeedConnector {
     ObjectMapper objectMapper = new ObjectMapper();
     SplitCalendarResponse splitCalendarResponse = objectMapper.readValue(response.body(), SplitCalendarResponse.class);
 
-    return readSplitTable(Jsoup.parseBodyFragment("<table>" + splitCalendarResponse.data + "</table>"),
-        forDate);
+    return readSplitTable(Jsoup.parseBodyFragment("<table>" + splitCalendarResponse.data + "</table>"), forDate);
   }
 
   private Map<String, TickerSecuritysplit> readSplitTable(Document doc, LocalDate forDate) {
@@ -133,7 +132,7 @@ public class InvestingCalendar implements ICalendarFeedConnector {
 
       if (cols.size() == 3) {
         setRowDataToSplitMap(cols, forDate, fractionFormat, splitTickerMap, namePattern);
-      } 
+      }
     }
 
     return splitTickerMap;
@@ -146,8 +145,8 @@ public class InvestingCalendar implements ICalendarFeedConnector {
       String[] countrySplitString = cols.get(1).select("span").attr("class").split("\\s+");
       String countryCode = countrySplitString.length >= 2 ? countrySplitString[1] : null;
       String ticker = tickerTransformer(m.group(2), countryCode);
-      splitTickerMap.putIfAbsent(ticker, new TickerSecuritysplit(m.group(1).trim(),
-          getSecuritySplit(cols.get(2).text(), forDate, fractionFormat)));
+      splitTickerMap.putIfAbsent(ticker,
+          new TickerSecuritysplit(m.group(1).trim(), getSecuritySplit(cols.get(2).text(), forDate, fractionFormat)));
     }
   }
 

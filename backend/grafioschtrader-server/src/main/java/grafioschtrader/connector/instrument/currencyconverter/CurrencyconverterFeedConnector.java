@@ -27,7 +27,7 @@ public class CurrencyconverterFeedConnector extends BaseFeedConnector {
   }
 
   public CurrencyconverterFeedConnector() {
-    super(supportedFeed, "currencyconverter", "Free Currency Converter");
+    super(supportedFeed, "currencyconverter", "Free Currency Converter", null);
   }
 
   @Value("${gt.connector.currencyconverter.apikey}")
@@ -39,11 +39,10 @@ public class CurrencyconverterFeedConnector extends BaseFeedConnector {
   public boolean isActivated() {
     return !apiKey.isEmpty();
   }
-  
+
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return "https://free.currconv.com/api/v7/convert?q=" + getQueryString(currencypair) + "&apiKey="
-        + apiKey;
+    return "https://free.currconv.com/api/v7/convert?q=" + getQueryString(currencypair) + "&apiKey=" + apiKey;
   }
 
   @Override

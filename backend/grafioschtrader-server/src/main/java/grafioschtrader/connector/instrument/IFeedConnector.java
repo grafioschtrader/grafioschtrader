@@ -11,9 +11,6 @@ import org.apache.http.HttpException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
-
 // import org.apache.http.HttpException;
 
 import grafioschtrader.entities.Currencypair;
@@ -58,7 +55,6 @@ public interface IFeedConnector {
 
   }
 
- 
   @Schema(description = "Id of the connector as it is used in the database")
   String getID();
 
@@ -67,12 +63,12 @@ public interface IFeedConnector {
 
   @JsonIgnore
   boolean isActivated();
-  
+
   Map<FeedSupport, FeedIdentifier[]> getSecuritycurrencyFeedSupport();
 
   @Schema(description = "Shows a help text to the connector which can be shown in the user interface")
   Description getDescription();
-  
+
   /**
    * Returns true if this connector supports currency data regardless of
    * historical or last price.
@@ -97,13 +93,11 @@ public interface IFeedConnector {
    */
   String getSecurityHistoricalDownloadLink(Security security);
 
-  
   boolean hasFeedIndentifier(FeedIdentifier feedIdentifier);
-  
-  
-  <S extends Securitycurrency<S>> void checkAndClearSecuritycurrencyUrlExtend(Securitycurrency<S> securitycurrency, FeedSupport feedSupport);
-  
-  
+
+  <S extends Securitycurrency<S>> void checkAndClearSecuritycurrencyUrlExtend(Securitycurrency<S> securitycurrency,
+      FeedSupport feedSupport);
+
   /**
    * Get the intraday download link for a security.
    * 
@@ -113,8 +107,8 @@ public interface IFeedConnector {
   String getSecurityIntradayDownloadLink(Security security);
 
   /**
-   * Return the url as string for access the historical currency price data. It may also
-   * be used in the front end to check the settings.
+   * Return the url as string for access the historical currency price data. It
+   * may also be used in the front end to check the settings.
    * 
    * @param currencypair
    * @return
@@ -122,15 +116,13 @@ public interface IFeedConnector {
   String getCurrencypairHistoricalDownloadLink(Currencypair currencypair);
 
   /**
-   * Return the url as string for access the historical security price data. It may also
-   * be used in the frontend to check the settings.
+   * Return the url as string for access the historical security price data. It
+   * may also be used in the frontend to check the settings.
    * 
    * @param currencypair
    * @return
    */
   String getCurrencypairIntradayDownloadLink(Currencypair currencypair);
-
- 
 
   /**
    * Returns the Ticker, ISIN or WKN when one of this support the load of the
@@ -163,8 +155,8 @@ public interface IFeedConnector {
   void updateSecurityLastPrice(Security security) throws Exception;
 
   /**
-   * Delays in seconds of data provider for intraday data  
-   *   
+   * Delays in seconds of data provider for intraday data
+   * 
    * @return
    */
   int getIntradayDelayedSeconds();
@@ -204,7 +196,7 @@ public interface IFeedConnector {
    * @throws Exception
    */
   List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception;
-  
+
   /**
    * The link to get Split data for a security
    * 
@@ -213,7 +205,6 @@ public interface IFeedConnector {
    */
   String getSplitHistoricalDownloadLink(Security security);
 
-  
   /**
    * Get split data for a security from a specified day until now.
    * 
@@ -223,10 +214,9 @@ public interface IFeedConnector {
    * @throws Exception
    */
   List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate) throws Exception;
-  
-  
+
   class Description {
-    
+
     @Schema(description = "Help text for the histrical data connector")
     public String historicalDescription = "";
     @Schema(description = "Help text for the intraday data connector")
@@ -239,8 +229,7 @@ public interface IFeedConnector {
     public String getIntraDescription() {
       return intraDescription.trim().length() > 0 ? intraDescription : null;
     }
-    
+
   }
 
- 
 }

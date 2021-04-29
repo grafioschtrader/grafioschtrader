@@ -31,7 +31,6 @@ public class ValueFormatConverter {
     localDateFormatter = DateTimeFormatter.ofPattern(GlobalConstants.STANDARD_DATE_FORMAT);
     this.thousandSeparatorsPattern = Pattern.quote("" + "" + new DecimalFormatSymbols().getDecimalSeparator());
   }
- 
 
   public ValueFormatConverter(String dateFormat, String localTimeFormat, char thousandSeparators,
       String thousandSeparatorsPattern, char decimalSeparator) {

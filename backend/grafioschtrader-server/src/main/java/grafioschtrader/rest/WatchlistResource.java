@@ -88,8 +88,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Attempts to update the intraday quote data even though retry counter has reached its limit", 
-      description = "",  tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Attempts to update the intraday quote data even though retry counter has reached its limit", description = "", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "{idWatchlist}/tryuptodateintradata", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyLists> tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(
       @PathVariable final Integer idWatchlist) {
@@ -97,8 +97,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Attempts to update the historical quote data even though retry counter has reached its limit", 
-      description = "",  tags = { RequestMappings.WATCHLIST })
+  @Operation(summary = "Attempts to update the historical quote data even though retry counter has reached its limit", description = "", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "{idWatchlist}/tryuptodatehistoricaldata", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyLists> tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(
       @PathVariable final Integer idWatchlist) {
@@ -181,7 +181,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   // Get Watchlist - Report
   /////////////////////////////////////////////////////////////
 
-   @Operation(summary = "Returns the content of watchlist without updated prices", description = "First call this to get the content of a watchlist fast", tags = {
+  @Operation(summary = "Returns the content of watchlist without updated prices", description = "First call this to get the content of a watchlist fast", tags = {
       RequestMappings.WATCHLIST })
   @GetMapping(value = "/{idWatchlist}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyGroup> getWatchlistwithoutUpdate(@PathVariable final Integer idWatchlist) {
@@ -198,7 +198,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         watchlistReport.getWatchlistwithPeriodPerformance(idWatchlist, user.getIdTenant(), daysTimeFrame),
         HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Returns the content of a watchlist with the setting of youngest date of history quote. "
       + "This should help to detect non working historical data feeds.", description = "", tags = {
           RequestMappings.WATCHLIST })
@@ -209,13 +209,12 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns the content of a watchlist which includes if the security has ever have splits or dividends",
-       description = "", tags = {RequestMappings.WATCHLIST })
+  @Operation(summary = "Returns the content of a watchlist which includes if the security has ever have splits or dividends", description = "", tags = {
+      RequestMappings.WATCHLIST })
   @GetMapping(value = "/{idWatchlist}/dividendsplit", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<SecuritycurrencyGroup> getWatchlistForSplitAndDividend(
-      @PathVariable final Integer idWatchlist) throws InterruptedException, ExecutionException {
-    return new ResponseEntity<>(watchlistReport.getWatchlistForSplitAndDividend(idWatchlist),
-        HttpStatus.OK);
+  public ResponseEntity<SecuritycurrencyGroup> getWatchlistForSplitAndDividend(@PathVariable final Integer idWatchlist)
+      throws InterruptedException, ExecutionException {
+    return new ResponseEntity<>(watchlistReport.getWatchlistForSplitAndDividend(idWatchlist), HttpStatus.OK);
   }
-  
+
 }

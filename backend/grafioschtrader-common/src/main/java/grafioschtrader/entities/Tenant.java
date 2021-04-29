@@ -58,16 +58,14 @@ public class Tenant extends TenantBaseID implements Serializable {
   @ValidCurrencyCode
   private String currency;
 
-  
   @Column(name = "create_id_user")
   @Schema(description = "User ID which created this tenant, can not be set from outside")
   private Integer createIdUser;
-  
 
   @Column(name = "tenant_kind_type")
   @Schema(description = "Type of tenant, can not be set from outside")
   private byte tenantKindType;
-    
+
   @Basic(optional = false)
   @NotNull
   @Column(name = "exclude_div_tax")
@@ -89,13 +87,12 @@ public class Tenant extends TenantBaseID implements Serializable {
   @Column(name = "id_watchlist_performance")
   @Schema(description = "The id of the watchlist which caused a update of the tenant depend currencies")
   private Integer idWatchlistPerformance;
-  
-  
+
   public Tenant() {
   }
 
-  
-  public Tenant(String tenantName, String currency, Integer createIdUser, TenantKindType tenantKindType, boolean excludeDivTax) {
+  public Tenant(String tenantName, String currency, Integer createIdUser, TenantKindType tenantKindType,
+      boolean excludeDivTax) {
     this.tenantName = tenantName;
     this.currency = currency;
     this.createIdUser = createIdUser;
@@ -134,8 +131,7 @@ public class Tenant extends TenantBaseID implements Serializable {
   public void setCreateIdUser(Integer createIdUser) {
     this.createIdUser = createIdUser;
   }
-  
-  
+
   public TenantKindType getTenantKindType() {
     return TenantKindType.getTenantKindTypeByValue(tenantKindType);
   }
@@ -195,19 +191,15 @@ public class Tenant extends TenantBaseID implements Serializable {
     this.idWatchlistPerformance = idWatchlistPerformance;
   }
 
-
   public void updateThis(Tenant sourceTenant) {
     this.setTenantName(sourceTenant.getTenantName());
     this.setCurrency(sourceTenant.getCurrency());
     this.setExcludeDivTax(sourceTenant.isExcludeDivTax());
   }
-  
-  
 
   @Override
   public String toString() {
     return "grafioschtrader.entities.Tenant[ idTenant=" + idTenant + " ]";
   }
-  
- 
+
 }

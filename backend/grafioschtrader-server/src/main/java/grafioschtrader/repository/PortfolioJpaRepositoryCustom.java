@@ -22,11 +22,10 @@ public interface PortfolioJpaRepositoryCustom extends BaseRepositoryCustom<Portf
    */
   Portfolio removeSecurityaccounts(Integer idPortfolio);
 
- 
   List<Portfolio> setExistingTransactionOnSecurityaccount(Integer idTenant);
 
   int delEntityWithTenant(Integer id, Integer idTenant);
 
   Integer createNotExistingCurrencypairs(Integer idPortfolio);
-  
+
 }

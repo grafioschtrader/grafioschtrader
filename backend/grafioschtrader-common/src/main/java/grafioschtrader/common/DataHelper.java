@@ -85,17 +85,15 @@ public abstract class DataHelper {
     }
   }
 
-  public static double divideMultiplyExchangeRate(double amount, Double currencyExRate, 
-      String sourceCurrency, String targetCurrency) {
-   return divideMultiplyExchangeRate(amount, currencyExRate, sourceCurrency, targetCurrency, false);
+  public static double divideMultiplyExchangeRate(double amount, Double currencyExRate, String sourceCurrency,
+      String targetCurrency) {
+    return divideMultiplyExchangeRate(amount, currencyExRate, sourceCurrency, targetCurrency, false);
   }
-  
-  
-  public static double divideMultiplyExchangeRate(double amount, Double currencyExRate, 
-      String sourceCurrency, String targetCurrency, boolean forReverseCalculation) {
+
+  public static double divideMultiplyExchangeRate(double amount, Double currencyExRate, String sourceCurrency,
+      String targetCurrency, boolean forReverseCalculation) {
     if (currencyExRate != null) {
-      Currencypair currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency,
-          targetCurrency);
+      Currencypair currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency, targetCurrency);
       if (currencypair != null) {
         if (sourceCurrency.equals(currencypair.getFromCurrency()) && !forReverseCalculation) {
           return amount * currencyExRate;
@@ -235,10 +233,10 @@ public abstract class DataHelper {
     }
     return exchangeRate;
   }
-  
-  public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor)  {
-      Map<Object, Boolean> map = new ConcurrentHashMap<>();
-      return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+
+  public static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+    Map<Object, Boolean> map = new ConcurrentHashMap<>();
+    return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
   }
 
   /**

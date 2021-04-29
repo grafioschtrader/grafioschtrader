@@ -13,7 +13,6 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 
 public class CustomAuthenticationFailureHandler implements AuthenticationFailureHandler {
 
-  
   @Override
   public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
       AuthenticationException e) throws IOException, ServletException {
@@ -21,6 +20,6 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
     httpResponse.setContentType("text/plain");
     httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
 
-    httpResponse.getWriter().append(e instanceof LockedException? "login.ipaddress.locked" :"login.failure");
+    httpResponse.getWriter().append(e instanceof LockedException ? "login.ipaddress.locked" : "login.failure");
   }
 }

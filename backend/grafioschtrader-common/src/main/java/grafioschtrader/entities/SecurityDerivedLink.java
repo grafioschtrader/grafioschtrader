@@ -15,7 +15,7 @@ import javax.persistence.Table;
 public class SecurityDerivedLink implements Serializable {
 
   public static final String TABNAME = "security_derived_link";
-  
+
   private static final long serialVersionUID = 1L;
 
   @EmbeddedId

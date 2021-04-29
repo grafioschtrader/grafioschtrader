@@ -22,10 +22,9 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public final class JwtTokenHandler {
 
-  private static final String ID_USER = "idUser"; 
+  private static final String ID_USER = "idUser";
   private final String secret;
   private final UserService userService;
-  
 
   @Autowired
   public JwtTokenHandler(@Value("${gt.jwt.secret}") final String secret, final UserService userService) {
@@ -34,13 +33,15 @@ public final class JwtTokenHandler {
   }
 
   Optional<UserDetails> parseUserFromToken(final String token) {
-    final Claims jwsClaims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token).getBody();
+    final Claims jwsClaims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
+        .getBody();
     Integer userId = (Integer) jwsClaims.get(ID_USER);
     return Optional.ofNullable(userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject()));
   }
 
   public Integer getUserId(final String token) {
-    final Claims jwsClaims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token).getBody();
+    final Claims jwsClaims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
+        .getBody();
     return (Integer) jwsClaims.get(ID_USER);
   }
 

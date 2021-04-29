@@ -16,25 +16,26 @@ import grafioschtrader.rest.UpdateCreateJpaRepository;
 public interface TransactionJpaRepository extends JpaRepository<Transaction, Integer>, TransactionJpaRepositoryCustom,
     UpdateCreateJpaRepository<Transaction> {
 
-  
   // TODO remove it after usage
-  
+
   @Query(value = "SELECT t.* FROM transaction t JOIN cashaccount c ON t.id_cash_account = c.id_securitycash_account"
-  + " JOIN security s ON t.id_securitycurrency = s.id_securitycurrency"
-  + " JOIN currencypair cp ON t.id_currency_pair = cp.id_securitycurrency" 
-  + " WHERE cp.from_currency = s.currency", nativeQuery = true)
+      + " JOIN security s ON t.id_securitycurrency = s.id_securitycurrency"
+      + " JOIN currencypair cp ON t.id_currency_pair = cp.id_securitycurrency"
+      + " WHERE cp.from_currency = s.currency", nativeQuery = true)
   List<Transaction> findWrongCurrencypairTransaction();
 
   Stream<Transaction> findBySecurity_idSecuritycurrency(Integer idSecuritycurrency);
 
   /**
    * Get close or finance cost of a margin position
+   * 
    * @param idTenant
    * @param connectedIdTransaction
    * @return
    */
-  List<Transaction> findByIdTenantAndConnectedIdTransactionAndUnitsIsNotNull(Integer idTenant, Integer connectedIdTransaction);
-  
+  List<Transaction> findByIdTenantAndConnectedIdTransactionAndUnitsIsNotNull(Integer idTenant,
+      Integer connectedIdTransaction);
+
   @Query(value = "SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t LEFT JOIN Fetch t.security s"
       + " JOIN Fetch t.cashaccount WHERE p.idPortfolio=?1 ORDER BY t.transactionTime")
   List<Transaction> getTransactionsByIdPortfolio(Integer idPortfolio);
@@ -65,7 +66,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   @Query(value = "DELETE FROM transaction WHERE id_tenant = ?1 AND note = 'System-Created' AND transaction_type = 6", nativeQuery = true)
   void removeSystemCreatedDividensFromTenant(Integer idTenant);
-  
+
   /**
    * Return all margin transactions for a certain security account
    * 
@@ -97,8 +98,6 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       + "WHERE s.idSecuritycurrency = :idSecurity AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)")
   List<Transaction> getMarginTransactionMapForSecurity(Integer idSecurity);
 
-  
-  
   @Transactional
   @Modifying
   @Query(value = "DELETE FROM Transaction WHERE id_cash_account = ?1", nativeQuery = true)
@@ -108,12 +107,9 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       + " JOIN Fetch t.cashaccount WHERE p.idTenant=?1 AND s.idSecuritycurrency=?2 ORDER BY t.transactionTime")
   List<Transaction> findByIdTenantAndIdSecurity(Integer idTenant, Integer idSecuritycurrency);
 
-    
-  
   @Query(value = "SELECT t FROM Transaction t WHERE t.idTenant=?1 AND (t.idTransaction = ?2 OR t.connectedIdTransaction = ?3) ORDER BY t.transactionTime")
-  List<Transaction> findByIdTenantAndIdTransactionOrConnectedIdTransaction(Integer idTenant, Integer idTransaction, Integer connectedIdTransaction);
-    
-  
+  List<Transaction> findByIdTenantAndIdTransactionOrConnectedIdTransaction(Integer idTenant, Integer idTransaction,
+      Integer connectedIdTransaction);
 
   @Query(value = "SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.securityTransactionList t JOIN Fetch t.security s"
       + " JOIN Fetch t.cashaccount WHERE p.idTenant=?1 AND a.idSecuritycashAccount IN ?2 AND s.idSecuritycurrency=?3 ORDER BY t.transactionTime")
@@ -130,11 +126,9 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       + " JOIN Fetch t.security JOIN Fetch t.cashaccount WHERE p.idTenant = w.idTenant AND w.idWatchlist = ?1 AND s.idSecuritycurrency = t.security.idSecuritycurrency")
   List<Transaction> findByIdWatchlist(Integer idWatchlist);
 
-  
   @Query(nativeQuery = true)
   List<Transaction> getTransactionWhyHistoryquoteYounger();
 
-  
   /**
    * It works only for security transactions.
    * 

@@ -511,13 +511,12 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         && currencySecurity != null && !currencyAccount.equals(currencySecurity) ? taxCost * currencyExRate
             : (taxCost != null) ? taxCost : 0;
   }
-  
+
   private double getTransactionCostEx() {
     return transactionCost != null && currencyExRate != null && currencyCost != null && currencyAccount != null
         && currencySecurity != null && !currencyAccount.equals(currencySecurity) ? transactionCost * currencyExRate
             : (transactionCost != null) ? transactionCost : 0;
   }
-  
 
   public static ImportTransactionPos createFromImportPropertiesSuccess(Integer idTenant, String fileNameOriginal,
       Integer idTransactionHead, Integer idTransactionImportTemplate, ImportProperties importProperties) {

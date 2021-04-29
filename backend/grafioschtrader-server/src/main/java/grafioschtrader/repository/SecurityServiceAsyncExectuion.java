@@ -19,7 +19,6 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
   @Autowired
   PlatformTransactionManager platformTransactionManager;
 
-
   @Transactional
   @Modifying
   @Async
@@ -33,7 +32,7 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
       protected void doInTransactionWithoutResult(final TransactionStatus transactionStatus) {
         try {
           S sc = securitycurrency;
-          
+
           if (sc.getIdSecuritycurrency() != null && withDeletion) {
             securitycurrencyService.historyquoteJpaRepository.removeAllSecurityHistoryquote(sc.getIdSecuritycurrency());
             sc = securitycurrencyService.getJpaRepository().getOne(sc.getIdSecuritycurrency());
@@ -41,7 +40,7 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
           sc = securitycurrencyService.updateLastPriceSecurityCurrency(sc, maxIntraRetry, scIntradayUpdateTimeout);
           securitycurrencyService.createWithHistoryQuote(sc);
           securitycurrencyService.afterFullLoad(sc);
-          
+
         } catch (final Exception e) {
           e.printStackTrace();
           transactionStatus.setRollbackOnly();

@@ -30,7 +30,6 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Securitycurrency;
@@ -51,8 +50,8 @@ import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
  * @param <U>
  */
 public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U extends SecuritycurrencyPositionSummary<S>>
-    extends BaseRepositoryImpl<S> implements IHistoryquoteEntityAccess<S>, IIntradayEntityAccess<S>,
-    ISecuritycurrencyService<S> {
+    extends BaseRepositoryImpl<S>
+    implements IHistoryquoteEntityAccess<S>, IIntradayEntityAccess<S>, ISecuritycurrencyService<S> {
 
   @Autowired
   protected SecurityServiceAsyncExectuion<S, U> securityServiceAsyncExectuion;
@@ -76,7 +75,8 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   public abstract JpaRepository<S, Integer> getJpaRepository();
 
   /**
-   * Checks if the data provider was changed by the user and the EOD must be reloaded.
+   * Checks if the data provider was changed by the user and the EOD must be
+   * reloaded.
    * 
    * @param securityCurrencyChanged
    * @param securitycurreny2
@@ -87,13 +87,12 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   protected abstract IHistoryquoteLoad<S> getHistorquoteLoad(S securitycurrency);
 
   private boolean asyncHistoryquotes;
-  
-  
+
   @Value("${gt.security.async.historyquotes}")
   public void setApiKey(boolean asyncHistoryquotes) {
     this.asyncHistoryquotes = asyncHistoryquotes;
   }
-  
+
   protected S createWithHistoryQuote(final S securitycurrency) {
     return getHistorquoteLoad(securitycurrency).createHistoryQuotesAndSave(getJpaRepository(), securitycurrency, null,
         null);
@@ -105,9 +104,9 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   }
 
   protected void afterFullLoad(final S securitycurrency) {
-    
+
   }
-  
+
   @Override
   public void setSecuritycurrencyHistoricalDownloadLink(final SecuritycurrencyPosition<S> securitycurrencyPosition) {
     securitycurrencyPosition.historicalUrl = getHistorquoteLoad(securitycurrencyPosition.securitycurrency)
@@ -163,10 +162,11 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         if (price == null) {
           price = (securityPositionSummary.closePrice != null) ? securityPositionSummary.closePrice : 0.0;
         }
-        price = (securityPositionSummary instanceof SecurityPositionSummary)? 
-            price * ((SecurityPositionSummary) securityPositionSummary).closePriceFactor: price;
+        price = (securityPositionSummary instanceof SecurityPositionSummary)
+            ? price * ((SecurityPositionSummary) securityPositionSummary).closePriceFactor
+            : price;
         positionCloseOnLatestPrice.calculatePositionClose(securityPositionSummary, price);
-        securityPositionSummary.closePrice = price; 
+        securityPositionSummary.closePrice = price;
         securityPositionSummary.closeDate = date;
       }
     }
@@ -175,15 +175,15 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   @Override
   public List<IFeedConnector> getFeedConnectors(final boolean isCurrency) {
     return feedConnectorbeans.stream()
-        .filter( (fc -> fc.isActivated() && (isCurrency && fc.supportsCurrency() || !isCurrency && fc.supportsSecurity())))
+        .filter(
+            (fc -> fc.isActivated() && (isCurrency && fc.supportsCurrency() || !isCurrency && fc.supportsSecurity())))
         .collect(Collectors.toList());
   }
 
   @Override
   @Transactional
   public S saveOnlyAttributes(final S securitycurrency, S existingEntity,
-      final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
-      throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     S createEditSecuritycurrency = existingEntity;
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     boolean historyAccessHasChanged = securitycurrency.getIdSecuritycurrency() == null && asyncHistoryquotes;
@@ -205,36 +205,34 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     createEditSecuritycurrency = afterMainEntitySaved(getJpaRepository().save(createEditSecuritycurrency),
         beforSaveSecuritycurrency);
     afterSave(createEditSecuritycurrency, cloneSecuritycurrency, user, historyAccessHasChanged);
-    
+
     return createEditSecuritycurrency;
   }
-  
+
   protected void checkAndClearSecuritycurrencyConnectors(final S securitycurrency) {
-    if(securitycurrency.getIdConnectorIntra() != null) {
+    if (securitycurrency.getIdConnectorIntra() != null) {
       FeedSupport fd = IFeedConnector.FeedSupport.INTRA;
-      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, securitycurrency.getIdConnectorIntra(),
-          fd);
+      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
+          securitycurrency.getIdConnectorIntra(), fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
     }
-    if(securitycurrency.getIdConnectorHistory() != null) {
+    if (securitycurrency.getIdConnectorHistory() != null) {
       FeedSupport fd = IFeedConnector.FeedSupport.HISTORY;
-      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, securitycurrency.getIdConnectorHistory(),
-          fd);
+      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
+          securitycurrency.getIdConnectorHistory(), fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
     }
   }
- 
 
   protected S beforeSave(S securitycurrency, S existingEntity, User user) {
-     return null;
+    return null;
   }
-  
+
   protected void afterSave(S securitycurrency, S cloneSecuritycurrency, User user, boolean historyAccessHasChanged) {
     if (historyAccessHasChanged) {
       reloadAsyncHistoryquotes(securitycurrency);
     }
- }
-  
+  }
 
   protected S afterMainEntitySaved(S securitycurrency, S beforSaveSecuritycurrency) {
     return securitycurrency;

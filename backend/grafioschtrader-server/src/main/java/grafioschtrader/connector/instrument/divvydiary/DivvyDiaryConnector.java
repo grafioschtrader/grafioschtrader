@@ -44,7 +44,7 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
   private static final String DOMAIN_NAME_WITH_VERSION = "https://api.divvydiary.com/";
 
   public DivvyDiaryConnector() {
-    super(supportedFeed, "divvydiary", "DivvyDiary");
+    super(supportedFeed, "divvydiary", "DivvyDiary", null);
   }
 
   @Override
@@ -56,16 +56,16 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
     objectMapper.registerModule(new JavaTimeModule());
     objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    
+
     List<Dividend> dividends = new ArrayList<>();
     URL url = new URL(getDividendHistoricalDownloadLink(security));
     final DividendHead dividendHead = objectMapper.readValue(url, DividendHead.class);
 
     for (DividendDetail dd : dividendHead.dividends) {
       LocalDate exDate = dd.exDate.toLocalDate();
-      if(!exDate.isBefore(fromDate)) {
+      if (!exDate.isBefore(fromDate)) {
         dividends.add(new Dividend(security.getIdSecuritycurrency(), dd.exDate.toLocalDate(), dd.payDate.toLocalDate(),
-          dd.amount, dd.currency, CreateType.CONNECTOR_CREATED));
+            dd.amount, dd.currency, CreateType.CONNECTOR_CREATED));
       }
     }
     return dividends;
@@ -81,9 +81,11 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
   }
 
   private static class DividendDetail {
-   // @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
+    // @JsonFormat(shape = JsonFormat.Shape.STRING, pattern =
+    // "yyyy-MM-dd'T'HH:mm:ssZ")
     public LocalDateTime exDate;
-   // @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
+    // @JsonFormat(shape = JsonFormat.Shape.STRING, pattern =
+    // "yyyy-MM-dd'T'HH:mm:ssZ")
     public LocalDateTime payDate;
     public Double amount;
     public String currency;

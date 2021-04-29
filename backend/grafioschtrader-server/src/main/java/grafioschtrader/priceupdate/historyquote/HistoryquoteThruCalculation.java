@@ -72,8 +72,6 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
     return null;
   }
 
-  
-
   @Override
   public HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy,
       SecurityJpaRepository securityJpaRepository, MessageSource messages) {

@@ -127,7 +127,6 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   private void createWithHistoryQuoteWithConnector(final S securitycurrency, final IFeedConnector feedConnector,
       final Date fromDate, final Date toDate) throws Exception {
 
-
     final Date correctedFromDate = getCorrectedFromDate(securitycurrency, fromDate);
     final Date toDateCalc = (toDate == null) ? new Date() : toDate;
 

@@ -8,6 +8,5 @@ import grafioschtrader.rest.UpdateCreateJpaRepository;
 public interface ImportTransactionPlatformJpaRepository extends JpaRepository<ImportTransactionPlatform, Integer>,
     ImportTransactionPlatformJpaRepositoryCustom, UpdateCreateJpaRepository<ImportTransactionPlatform> {
 
-  
   ImportTransactionPlatform findFristByNameContaining(String name);
 }

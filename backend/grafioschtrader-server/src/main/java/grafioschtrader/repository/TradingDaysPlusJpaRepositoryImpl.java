@@ -50,7 +50,8 @@ public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepos
     LocalDate toDate = LocalDate.of(year, 12, 31);
     return new TradingDaysWithDateBoundaries(
         tradingDaysPlusJpaRepository.findByTradingDateBetweenOrderByTradingDate(fromDate, toDate).stream()
-            .map(TradingDaysPlus::getTradingDate).collect(Collectors.toList()), null);
+            .map(TradingDaysPlus::getTradingDate).collect(Collectors.toList()),
+        null);
   }
 
   @Override

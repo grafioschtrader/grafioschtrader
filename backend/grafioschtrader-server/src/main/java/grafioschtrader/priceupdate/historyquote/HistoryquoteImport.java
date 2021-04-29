@@ -41,14 +41,15 @@ import grafioschtrader.repository.HistoryquoteJpaRepository.SecurityCurrencyIdAn
 import grafioschtrader.types.HistoryquoteCreateType;
 
 /**
- * Import delimited EOD into history quote. First row must contain the delimited column names.
- * This column names correspondent to property names of history quote.
+ * Import delimited EOD into history quote. First row must contain the delimited
+ * column names. This column names correspondent to property names of history
+ * quote.
  *
  */
 public class HistoryquoteImport {
 
   private final String CSV_FIELD_SEPARATOR = ";";
-  
+
   private final HistoryquoteJpaRepository historyquoteJpaRepository;
   private final Validator validator;
 
@@ -170,7 +171,8 @@ public class HistoryquoteImport {
         String value = data[fieldColumnMapping.col];
         if (value != null && !value.isBlank() || fieldColumnMapping.required) {
           if (fieldColumnMapping.field.getType() == Date.class) {
-            value = value.startsWith("\"")? value.substring(1, value.length() -1 ) :value.substring(0, value.length());
+            value = value.startsWith("\"") ? value.substring(1, value.length() - 1)
+                : value.substring(0, value.length());
           }
 
           valueFormatConverter.convertAndSetValue(historyquote, fieldColumnMapping.field.getName(), value,

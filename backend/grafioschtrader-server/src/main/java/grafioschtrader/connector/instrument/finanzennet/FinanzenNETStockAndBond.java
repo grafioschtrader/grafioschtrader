@@ -44,6 +44,7 @@ import grafioschtrader.entities.Security;
 
 /*-
 *
+*
 * Stock (DE0007100000, Daimler): 
 * https://www.finanzen.net/aktien/Daimler-Aktie
 * https://www.finanzen.net/historische-kurse/Daimler Link: historische-kurse/Daimler use form data and cookie
@@ -188,7 +189,7 @@ public class FinanzenNETStockAndBond extends FinanzenBase<Security> {
   protected String getCookiesAsString(CookieStore cookieStore) {
     String cookiesString = "";
     for (Cookie cookie : cookieStore.getCookies()) {
-        cookiesString += cookie.getName() + "=" + cookie.getValue() + "; ";
+      cookiesString += cookie.getName() + "=" + cookie.getValue() + "; ";
     }
     return cookiesString;
   }

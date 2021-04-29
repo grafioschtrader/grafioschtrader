@@ -4,6 +4,7 @@ package grafioschtrader.connector.instrument.yahoo;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -50,6 +51,7 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
@@ -73,8 +75,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String DATE_FORMAT_SPLIT = "yyyy-MM-dd";
   private static final String DIVDEND_EVENT = "dividend";
   private static final String SPLIT_EVENT = "split";
-  
- 
+  private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
+  private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
+  private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
   private static final String DOMAIN_NAME_WITH_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
 
   static {
@@ -87,7 +90,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   public YahooFeedConnectorCOM() {
-    super(supportedFeed, "yahoo", "Yahoo USA Finance");
+    super(supportedFeed, "yahoo", "Yahoo USA Finance", null);
 
   }
 
@@ -119,11 +122,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
     // https://query1.finance.yahoo.com/v7/finance/quote?symbols=USDGBP=X
-
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final URL url = new URL(getCurrencypairIntradayDownloadLink(currencypair));
     setQuoteResult(url, currencypair);
-
   }
 
   @Override
@@ -137,7 +138,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private String getCurrencyPairSymbol(final Currencypair currencypair) {
-    if (GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(currencypair.getFromCurrency()) 
+    if (GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(currencypair.getFromCurrency())
         || GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(currencypair.getToCurrency())) {
       return currencypair.getFromCurrency() + "-" + currencypair.getToCurrency();
     } else {
@@ -191,6 +192,36 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
       throws IOException, ParseException, URISyntaxException {
     return this.getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0);
   }
+
+  @Override
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
+      String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
+      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+
+    boolean clear = super.checkAndClearSecuritycurrencyConnector(feedSupport, urlExtend, errorMsgKey, feedIdentifier,
+        specialInvestmentInstruments, assetclassType);
+    if (!clear) {
+      switch (specialInvestmentInstruments) {
+      case CFD:
+      case NON_INVESTABLE_INDICES:
+        checkUrlExtendsionWithRegex(new String[] { URL_NORMAL_REGEX, URL_COMMODITIES }, urlExtend);
+        break;
+      case FOREX:
+        checkUrlExtendsionWithRegex(new String[] { URL_FOREX_REGEX }, urlExtend);
+        break;
+      default:
+        checkUrlExtendsionWithRegex(new String[] { URL_NORMAL_REGEX }, urlExtend);
+      }
+    }
+    return clear;
+  }
+  
+  @Override
+  protected boolean isConnectionOk(HttpURLConnection huc) {
+    return !huc.getURL().getPath().contains("lookup");
+  }
+    
+  
 
   private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
       final double divider) throws IOException, URISyntaxException {

@@ -58,9 +58,9 @@ public class SecurityMarginUnitsCheck {
             .reduce(0.0, (a, b) -> a + b));
 
     if (targetTransaction.isMarginOpenPosition()) {
-      double unitsInOpenTransaction = targetTransaction.getUnits() * Securitysplit.calcSplitFatorForFromDate(
-          targetTransaction.getSecurity().getIdSecuritycurrency(), targetTransaction.getTransactionTime(),
-          securitySplitMap);
+      double unitsInOpenTransaction = targetTransaction.getUnits()
+          * Securitysplit.calcSplitFatorForFromDate(targetTransaction.getSecurity().getIdSecuritycurrency(),
+              targetTransaction.getTransactionTime(), securitySplitMap);
 
       if (unitsInOpenTransaction < unitsRequired) {
         dataViolationException.addDataViolation(GlobalConstants.UNITS, "units.open.not.enough",

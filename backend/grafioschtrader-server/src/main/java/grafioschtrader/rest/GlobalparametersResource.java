@@ -49,24 +49,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = RequestMappings.GLOBALPARAMETERS, description = "Controller for global parameters")
 public class GlobalparametersResource {
 
-  @Autowired 
+  @Autowired
   private MessageSource messageSource;
 
   @Autowired
   private MessageSource messages;
 
-
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
-  
-  @Operation(summary = "Returns all global parameters", description = "", 
-      tags = { RequestMappings.GLOBALPARAMETERS })
+  @Operation(summary = "Returns all global parameters", description = "", tags = { RequestMappings.GLOBALPARAMETERS })
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Globalparameters>> getAllAssetclass() {
     return new ResponseEntity<>(globalparametersJpaRepository.findAll(), HttpStatus.OK);
   }
-  
+
   @GetMapping(value = "/updatetimeout", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Integer> getIntraUpdateQuotesTimeoutSeconds() {
     return new ResponseEntity<>(globalparametersJpaRepository.getWatchlistIntradayUpdateTimeout(), HttpStatus.OK);
@@ -84,13 +81,12 @@ public class GlobalparametersResource {
   }
 
   @GetMapping(value = "/tenantlimits", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<TenantLimit>> getMaxTenantLimitsByMsgKey(
-      @RequestParam() final List<String> msgKeys)  {
+  public ResponseEntity<List<TenantLimit>> getMaxTenantLimitsByMsgKey(@RequestParam() final List<String> msgKeys) {
     return new ResponseEntity<>(globalparametersJpaRepository.getMaxTenantLimitsByMsgKeys(msgKeys), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns the possible currencies as it can be used in html option", description = "", 
-      tags = { RequestMappings.GLOBALPARAMETERS})
+  @Operation(summary = "Returns the possible currencies as it can be used in html option", description = "", tags = {
+      RequestMappings.GLOBALPARAMETERS })
   @GetMapping(value = "/currencies", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCurrencies() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -104,9 +100,9 @@ public class GlobalparametersResource {
 
     return new ResponseEntity<>(currencies, HttpStatus.OK);
   }
-  
-  @Operation(summary = "Returns the possible countries as it can be used in html option", description = "", 
-      tags = { RequestMappings.GLOBALPARAMETERS})
+
+  @Operation(summary = "Returns the possible countries as it can be used in html option", description = "", tags = {
+      RequestMappings.GLOBALPARAMETERS })
   @GetMapping(value = "/countries", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCountries() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -114,49 +110,47 @@ public class GlobalparametersResource {
     List<ValueKeyHtmlSelectOptions> valueKeyHtmlSelectOptions = new ArrayList<>();
     Locale userLocale = user.createAndGetJavaLocale();
     for (String countryCode : locales) {
-        Locale obj = new Locale("", countryCode);
-        valueKeyHtmlSelectOptions.add(new ValueKeyHtmlSelectOptions(obj.getCountry(), obj.getDisplayCountry(userLocale)));
+      Locale obj = new Locale("", countryCode);
+      valueKeyHtmlSelectOptions.add(new ValueKeyHtmlSelectOptions(obj.getCountry(), obj.getDisplayCountry(userLocale)));
     }
     Collections.sort(valueKeyHtmlSelectOptions);
     return new ResponseEntity<>(valueKeyHtmlSelectOptions, HttpStatus.OK);
   }
-  
 
-  @Operation(summary = "Some language translations are provided by the backend", description = "Properties names are separated by underscore", 
-      tags = { RequestMappings.GLOBALPARAMETERS})
+  @Operation(summary = "Some language translations are provided by the backend", description = "Properties names are separated by underscore", tags = {
+      RequestMappings.GLOBALPARAMETERS })
   @GetMapping(value = "/properties/{language}", produces = APPLICATION_JSON_VALUE)
   public String getLanguageProperties(@PathVariable final String language) {
     Locale locale = Locale.forLanguageTag(language);
     Properties properties = ((ExposedResourceBundleMessageSource) messageSource).getMessages(locale);
     JSONObject jsonObject = new JSONObject();
     for (Entry<Object, Object> entry : properties.entrySet()) {
-      String key =  entry.getKey().toString();
-      jsonObject.put( key.startsWith("gt.")? key: key.toUpperCase().replaceAll("\\.", "_"), entry.getValue());
+      String key = entry.getKey().toString();
+      jsonObject.put(key.startsWith("gt.") ? key : key.toUpperCase().replaceAll("\\.", "_"), entry.getValue());
     }
     return jsonObject.toString();
   }
 
-  @Operation(summary = "Returns the locales as key value properties", description = "", 
-      tags = { RequestMappings.GLOBALPARAMETERS})
+  @Operation(summary = "Returns the locales as key value properties", description = "", tags = {
+      RequestMappings.GLOBALPARAMETERS })
   @GetMapping(value = "/locales", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getSupportedLocalesEnDe() {
     return new ResponseEntity<>(globalparametersJpaRepository.getSupportedLocales(), HttpStatus.OK);
   }
-  
 
-  @Operation(summary = "Returns the country time zones as key value pair", description = "", 
-      tags = { RequestMappings.GLOBALPARAMETERS})
+  @Operation(summary = "Returns the country time zones as key value pair", description = "", tags = {
+      RequestMappings.GLOBALPARAMETERS })
   @GetMapping(value = "/timezones", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getTimezones() {
     return new ResponseEntity<>(globalparametersJpaRepository.getAllZoneIds(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Change a property value of existing global parameter", 
-      description = "Only admin can change this calendar",  tags = { RequestMappings.GLOBALPARAMETERS })
+  @Operation(summary = "Change a property value of existing global parameter", description = "Only admin can change this calendar", tags = {
+      RequestMappings.GLOBALPARAMETERS })
   @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Globalparameters> replacePropertyValue(
       @Valid @RequestBody final Globalparameters globalparameters) {
     return new ResponseEntity<>(globalparametersJpaRepository.saveOnlyAttributes(globalparameters), HttpStatus.OK);
   }
-  
+
 }

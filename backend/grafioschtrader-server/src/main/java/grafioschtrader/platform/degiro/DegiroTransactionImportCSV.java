@@ -13,10 +13,11 @@ import grafioschtrader.platformimport.csv.TemplateConfigurationAndStateCsv;
 public class DegiroTransactionImportCSV extends GenericTransactionImportCSV {
 
   /**
-   * Degiro add 0.1 percentage for fx trades which are not included in the given currency exchange rate
+   * Degiro add 0.1 percentage for fx trades which are not included in the given
+   * currency exchange rate
    */
   public static double autoFXTranderCostFactorOnExchangeRate = 1.001;
-  
+
   public DegiroTransactionImportCSV(ImportTransactionHead importTransactionHead, MultipartFile uploadFile,
       List<ImportTransactionTemplate> importTransactionTemplateList) {
     super(importTransactionHead, uploadFile, importTransactionTemplateList);
@@ -28,13 +29,13 @@ public class DegiroTransactionImportCSV extends GenericTransactionImportCSV {
     ParseLineSuccessError pl = super.parseDataLine(lineNumber, line, template, valueFormatConverter);
     if (template.getTemplateId() == 1) {
       pl.importProperties.setTransType(pl.importProperties.getUnits() < 0 ? "Sell" : "Buy");
-      if(pl.importProperties.getOrder() == null) {
+      if (pl.importProperties.getOrder() == null) {
         pl.importProperties.setOrder(GenericTransactionImportCSV.ORDER_NOTHING);
       }
-      if(pl.importProperties.getCex() != null) {
+      if (pl.importProperties.getCex() != null) {
         pl.importProperties.setCex(pl.importProperties.getCex() * autoFXTranderCostFactorOnExchangeRate);
       }
-      
+
     }
     return pl;
   }

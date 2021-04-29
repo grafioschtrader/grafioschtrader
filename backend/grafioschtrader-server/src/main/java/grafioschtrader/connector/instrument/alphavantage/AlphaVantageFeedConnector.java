@@ -38,14 +38,14 @@ import grafioschtrader.entities.Security;
 @Component
 public class AlphaVantageFeedConnector extends BaseFeedConnector {
 
-  private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
+  private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final int TIMEOUT = 15000;
+  private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   /**
    * returns only the latest 100 data points
    */
   private static final String COMPACT = "compact";
-
   private String apiKey;
 
   /**
@@ -60,19 +60,18 @@ public class AlphaVantageFeedConnector extends BaseFeedConnector {
   }
 
   public AlphaVantageFeedConnector() {
-    super(supportedFeed, "alphavantage", "Alpha Vantage");
+    super(supportedFeed, "alphavantage", "Alpha Vantage", URL_NORMAL_REGEX);
   }
 
   @Value("${gt.connector.alphavantage.apikey}")
   public void setApiKey(String apiKey) {
     this.apiKey = apiKey;
   }
-  
+
   @Override
   public boolean isActivated() {
     return !apiKey.isEmpty();
   }
-  
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {

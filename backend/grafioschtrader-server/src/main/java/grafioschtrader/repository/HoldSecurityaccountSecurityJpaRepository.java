@@ -104,12 +104,10 @@ public interface HoldSecurityaccountSecurityJpaRepository
   List<IHoldSecuritySplitTransactionBySecurity> getHoldSecuritySplitTransactionBySecurity(
       @Param("idSecurity") Integer idSecurity);
 
-  
   @Query(value = "CALL holdSecuritySplitMarginTransaction(:idSecurity);", nativeQuery = true)
   List<IHoldSecuritySplitTransactionBySecurity> getHoldSecuritySplitMarginTransactionBySecurity(
       @Param("idSecurity") Integer idSecurity);
 
-  
   public static interface ITransactionSecuritySplit {
     public Integer getIdSecuritycurrency();
 
@@ -204,7 +202,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
     public String getTenantCurrency();
 
     public String getPorfolioCurrency();
-    
+
     public Integer getIdTransactionMargin();
   }
 

@@ -15,16 +15,16 @@ import javax.validation.Payload;
  * Annotation to validate the ISO Currency code and some crypto currencies.
  *
  */
-@Target({FIELD, PARAMETER})
+@Target({ FIELD, PARAMETER })
 @Retention(RUNTIME)
 @Constraint(validatedBy = ValidCurrencyCodeValidator.class)
 @Documented
 public @interface ValidCurrencyCode {
-    String message() default "{gt.validCurrencyCode}";
+  String message() default "{gt.validCurrencyCode}";
 
-    Class<?>[] groups() default {};
+  Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default {};
+  Class<? extends Payload>[] payload() default {};
 
-    boolean optional() default false;
+  boolean optional() default false;
 }

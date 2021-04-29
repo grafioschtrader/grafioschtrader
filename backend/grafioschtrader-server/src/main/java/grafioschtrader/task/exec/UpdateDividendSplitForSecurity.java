@@ -27,12 +27,12 @@ public abstract class UpdateDividendSplitForSecurity<S extends DividendSplit> {
 
   @Autowired
   protected SecurityJpaRepository securityJpaRepository;
-  
-  protected List<S> updateDividendSplitData(Security security, List<S> dividendSplitsRead, List<S> existingDividendsSplits,
-      JpaRepository<S, Integer> jpaRepository) {
-    
-    List<S> canCreateSplits = dividendSplitsRead
-        .stream().filter(ns -> existingDividendsSplits.stream()
+
+  protected List<S> updateDividendSplitData(Security security, List<S> dividendSplitsRead,
+      List<S> existingDividendsSplits, JpaRepository<S, Integer> jpaRepository) {
+
+    List<S> canCreateSplits = dividendSplitsRead.stream()
+        .filter(ns -> existingDividendsSplits.stream()
             .filter(es -> DateHelper.isSameDay(es.getEventDate(), ns.getEventDate())).findFirst().isEmpty())
         .peek(ns -> {
           ns.setCreateType(CreateType.CONNECTOR_CREATED);
@@ -40,6 +40,5 @@ public abstract class UpdateDividendSplitForSecurity<S extends DividendSplit> {
         }).collect(Collectors.toList());
     return jpaRepository.saveAll(canCreateSplits);
   }
- 
-  
+
 }

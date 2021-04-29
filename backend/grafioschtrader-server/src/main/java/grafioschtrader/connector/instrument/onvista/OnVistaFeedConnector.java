@@ -37,7 +37,7 @@ import grafioschtrader.entities.Security;
  *
  */
 @Component
-public class OnVistaFeedConnector extends BaseFeedConnector  {
+public class OnVistaFeedConnector extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int MAX_YEAR_DOWNLOAD = 5;
@@ -50,14 +50,15 @@ public class OnVistaFeedConnector extends BaseFeedConnector  {
     // supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] {
     // FeedIdentifier.SECURITY_URL,
     // FeedIdentifier.CURRENCY_URL });
-    supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
+    supportedFeed.put(FeedSupport.HISTORY,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
     monthToStrings = new MonthToString[] { new MonthToString(1, "M1"), new MonthToString(3, "M3"),
         new MonthToString(6, "M6"), new MonthToString(12, "Y1"), new MonthToString(36, "Y3"),
         new MonthToString(60, "Y5") };
   }
 
   public OnVistaFeedConnector() {
-    super(supportedFeed, "onvista", "Onvista");
+    super(supportedFeed, "onvista", "Onvista", null);
   }
 
   @Override

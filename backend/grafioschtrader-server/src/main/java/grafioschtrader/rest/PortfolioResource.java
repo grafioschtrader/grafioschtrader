@@ -60,24 +60,24 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
   @Operation(summary = "Get a portfolio by its Id", description = "", tags = { RequestMappings.PORTFOLIO })
   @GetMapping(value = "/{idPortfolio}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Portfolio> getPortfolioByIdPortfolio(
-      @Parameter(description="Id of portfolio", required=true)
-      @PathVariable final Integer idPortfolio) {
+      @Parameter(description = "Id of portfolio", required = true) @PathVariable final Integer idPortfolio) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(portfolioJpaRepository.findByIdTenantAndIdPortfolio(user.getIdTenant(), idPortfolio),
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Get the portfofolio which the cash or security account belongs", description = "", tags = { RequestMappings.PORTFOLIO })
+  @Operation(summary = "Get the portfofolio which the cash or security account belongs", description = "", tags = {
+      RequestMappings.PORTFOLIO })
   @GetMapping(value = "/account/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Portfolio> getPortfolioByIdSecuritycashaccount(
-      @Parameter(description="Id of cash or security account", required=true)
-      @PathVariable final Integer idSecuritycashaccount) {
+      @Parameter(description = "Id of cash or security account", required = true) @PathVariable final Integer idSecuritycashaccount) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(portfolioJpaRepository.findBySecuritycashaccountList_idSecuritycashAccountAndIdTenant(
         idSecuritycashaccount, user.getIdTenant()), HttpStatus.OK);
   }
 
-  @Operation(summary = "Get all portfolios for tenant sorted by portfolio name", description = "", tags = { RequestMappings.PORTFOLIO })
+  @Operation(summary = "Get all portfolios for tenant sorted by portfolio name", description = "", tags = {
+      RequestMappings.PORTFOLIO })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Portfolio>> getPortfoliosForTenantOrderByName() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -85,24 +85,21 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
         HttpStatus.OK);
   }
 
-  
-  @Operation(summary = "Get a summary of all cash and security accounts grouped by portfolio", 
-      description = "Best was to see value of teants portfolios until certain date", tags = { RequestMappings.PORTFOLIO })
+  @Operation(summary = "Get a summary of all cash and security accounts grouped by portfolio", description = "Best was to see value of teants portfolios until certain date", tags = {
+      RequestMappings.PORTFOLIO })
   @GetMapping(value = "/securitycashaccountsummary/portfolio", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AccountPositionGrandSummary> getAccountPositionSummaryGroupPortfolioTenant(
-      @Parameter(description="Until which date are transactions included", required=true)
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
+      @Parameter(description = "Until which date are transactions included", required = true) @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(accountPositionGroupSummaryReport.getAccountGrandSummaryIdTenant(user.getIdTenant(),
         new GroupPortfolio(), untilDate), HttpStatus.OK);
   }
 
-  @Operation(summary = "Get a summary of all cash and security accounts grouped by currency", 
-      description = "Best was to see value of teants portfolios until certain date", tags = { RequestMappings.PORTFOLIO })
+  @Operation(summary = "Get a summary of all cash and security accounts grouped by currency", description = "Best was to see value of teants portfolios until certain date", tags = {
+      RequestMappings.PORTFOLIO })
   @GetMapping(value = "/securitycashaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AccountPositionGrandSummary> getAccountPositionSummaryGroupCurrencyTenant(
-      @Parameter(description="Until which date are transactions included", required=true)
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
+      @Parameter(description = "Until which date are transactions included", required = true) @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(accountPositionGroupSummaryReport.getAccountGrandSummaryIdTenant(user.getIdTenant(),
         new GroupCurrency(), untilDate), HttpStatus.OK);
@@ -110,8 +107,7 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
 
   @GetMapping(value = "/dividends", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityDividendsGrandTotal> getDividenInterestByTenant(
-      @RequestParam() final List<Integer> idsSecurityaccount,
-      @RequestParam() final List<Integer> idsCashaccount) {
+      @RequestParam() final List<Integer> idsSecurityaccount, @RequestParam() final List<Integer> idsCashaccount) {
 
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(securityDividendsReport.getSecurityDividendsGrandTotalByTenant(user.getIdTenant(),

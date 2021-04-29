@@ -20,7 +20,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-
 @RestController
 @RequestMapping(RequestMappings.STOCKEXCHANGE_MAP)
 @Tag(name = RequestMappings.STOCKEXCHANGE, description = "Controller for stockexchange")
@@ -29,25 +28,25 @@ public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stock
   @Autowired
   StockexchangeJpaRepository stockexchangeJpaRepository;
 
-  @Operation(summary = "Returns all stock exchanges sorted by name", description = "", 
-      tags = { RequestMappings.STOCKEXCHANGE })
+  @Operation(summary = "Returns all stock exchanges sorted by name", description = "", tags = {
+      RequestMappings.STOCKEXCHANGE })
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Stockexchange>> getAllStockexchanges(
-      @Parameter(description="Get name of the index which is used for calenadar update", required=true)
-      @RequestParam()  final boolean includeNameOfCalendarIndex) {
-    return new ResponseEntity<>(stockexchangeJpaRepository.getAllStockExchanges(includeNameOfCalendarIndex), HttpStatus.OK);
+      @Parameter(description = "Get name of the index which is used for calenadar update", required = true) @RequestParam() final boolean includeNameOfCalendarIndex) {
+    return new ResponseEntity<>(stockexchangeJpaRepository.getAllStockExchanges(includeNameOfCalendarIndex),
+        HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns if specified stock exchange has a depending security", description = "1 has a security", 
-      tags = { RequestMappings.STOCKEXCHANGE })
+  @Operation(summary = "Returns if specified stock exchange has a depending security", description = "1 has a security", tags = {
+      RequestMappings.STOCKEXCHANGE })
   @GetMapping(value = "/{idStockexchange}/hassecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> stockexchangeHasSecurity(@PathVariable final Integer idStockexchange) {
     return new ResponseEntity<>(stockexchangeJpaRepository.stockexchangeHasSecurity(idStockexchange) > 0,
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns if stock exchanges has a at least one depending security", description = "1 has a security", 
-      tags = { RequestMappings.STOCKEXCHANGE })
+  @Operation(summary = "Returns if stock exchanges has a at least one depending security", description = "1 has a security", tags = {
+      RequestMappings.STOCKEXCHANGE })
   @GetMapping(value = "/hassecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<StockexchangeHasSecurity>> stockexchangesHasSecurity() {
     return new ResponseEntity<>(stockexchangeJpaRepository.stockexchangesHasSecurity(), HttpStatus.OK);

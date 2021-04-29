@@ -16,7 +16,7 @@ public interface TenantJpaRepository
 
   @EntityGraph(value = "graph.tenant.portfolios", type = EntityGraphType.FETCH)
   Tenant findByTenantName(String tenantName);
-  
-  List <Tenant> findByTenantKindType(byte tenantKindType);
+
+  List<Tenant> findByTenantKindType(byte tenantKindType);
 
 }

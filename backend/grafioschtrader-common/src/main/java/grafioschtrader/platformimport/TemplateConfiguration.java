@@ -37,7 +37,7 @@ public abstract class TemplateConfiguration {
   private static final String CONF_TIME_FORMAT = "timeFormat";
   private static final String CONF_OVER_RULE_SEPARATORS = "overRuleSeparators";
   private static final String CONF_OTHER_FLAG_OPTIONS = "otherFlagOptions";
-  
+
   private static final String ALL_SEPARATOR = "All";
 
   protected EnumSet<ImportKnownOtherFlags> importKnownOtherFlagsSet = EnumSet.noneOf(ImportKnownOtherFlags.class);
@@ -153,7 +153,6 @@ public abstract class TemplateConfiguration {
     return startRowConfig;
   }
 
- 
   private void processOtherFlagOptions(String flagOptionsStr) {
     String[] flagOptions = flagOptionsStr.split(Pattern.quote("|"));
     for (int i = 0; i < flagOptions.length; i++) {
@@ -177,7 +176,7 @@ public abstract class TemplateConfiguration {
 
     Separators separators = setAndOverRuleSeparators(separatorsConfig);
 
-    if(separators != null) {
+    if (separators != null) {
       decimalFormatSymbols.setDecimalSeparator(separators.decimalSeparator);
       thousandSeparators = separators.thousandSeparators;
     }
@@ -208,25 +207,24 @@ public abstract class TemplateConfiguration {
       String userLaCo = userLocale.toString().replace("_", "-");
       while (matcher.find()) {
         String match = matcher.group();
-        if(match.startsWith(ALL_SEPARATOR) || match.startsWith(userLaCo) && match.endsWith(">")) {
+        if (match.startsWith(ALL_SEPARATOR) || match.startsWith(userLaCo) && match.endsWith(">")) {
           return setSeparators(match);
         }
       }
     }
     return null;
   }
-  
+
   private Separators setSeparators(String localMatch) {
     Pattern pSeparators = Pattern.compile("<([ '\\.\\,’]{0,3})\\|(.?)>");
     Matcher mSeparators = pSeparators.matcher(localMatch);
-    while(mSeparators.find()){
+    while (mSeparators.find()) {
       Separators separators = new Separators(mSeparators.group(1));
-      separators.decimalSeparator = mSeparators.group(2).equals("")? null: mSeparators.group(2).charAt(0);
+      separators.decimalSeparator = mSeparators.group(2).equals("") ? null : mSeparators.group(2).charAt(0);
       return separators;
     }
     return null;
   }
-  
 
   protected void addionalConfigurations(String[] splitEqual) {
 
@@ -246,11 +244,10 @@ public abstract class TemplateConfiguration {
   public String getDateFormat() {
     return dateFormat;
   }
-  
+
   public String getTimeFormat() {
     return timeFormat;
   }
- 
 
   public char getDecimalSeparator() {
     return decimalSeparator;
@@ -259,7 +256,7 @@ public abstract class TemplateConfiguration {
   public char getThousandSeparators() {
     return decimalFormatSymbols.getGroupingSeparator();
   }
-  
+
   public String getThousandSeparatorsPattern() {
     return thousandSeparatorsPattern;
   }
@@ -287,10 +284,10 @@ public abstract class TemplateConfiguration {
   private static class Separators {
     public String thousandSeparators;
     public char decimalSeparator;
-    
+
     public Separators(String thousandSeparators) {
       this.thousandSeparators = thousandSeparators;
     }
-    
+
   }
 }

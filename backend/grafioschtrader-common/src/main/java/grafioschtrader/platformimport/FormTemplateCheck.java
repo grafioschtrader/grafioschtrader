@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class FormTemplateCheck {
   @Schema(description = "Form data as text which is used to check the templates.")
   private String pdfAsTxt;
-  
+
   private Integer idTransactionImportPlatform;
   private ImportTransactionPos importTransactionPos;
   private ParsedTemplateState successParsedTemplateState;

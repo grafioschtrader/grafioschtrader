@@ -7,13 +7,12 @@ public class TaskBackgroundException extends RuntimeException {
 
   private String errorMessagesKey;
   private List<String> errorMsgOfSystem;
-  
- 
+
   public TaskBackgroundException(String errorMessagesKey) {
     super();
     this.errorMessagesKey = errorMessagesKey;
   }
-  
+
   public TaskBackgroundException(String errorMessagesKey, List<String> errorMsgOfSystem) {
     super();
     this.errorMessagesKey = errorMessagesKey;
@@ -27,7 +26,5 @@ public class TaskBackgroundException extends RuntimeException {
   public List<String> getErrorMsgOfSystem() {
     return errorMsgOfSystem;
   }
-  
-  
-  
+
 }

@@ -35,7 +35,7 @@ import grafioschtrader.types.TransactionType;
 public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountDepositJpaRepositoryCustom {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
-  
+
   @Autowired
   HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
@@ -48,7 +48,6 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
   @Autowired
   TransactionJpaRepository transactionJpaRepository;
 
-  
   @Override
   @Transactional
   @Modifying
@@ -56,8 +55,7 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
     List<Tenant> tenants = tenantJpaRepository.findAll();
     tenants.forEach(this::createCashaccountDepositTimeFrameByTenant);
   }
-  
-  
+
   @Transactional
   @Modifying
   @Override
@@ -77,8 +75,6 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
     log.debug("End - HoldCashaccountDeposit: {}", System.currentTimeMillis() - startTime);
   }
 
-  
-  
   @Override
   public void adjustCashaccountDepositOrWithdrawal(Transaction transaction1, Transaction transaction2) {
     HoldDepositForTenant holdDepositForTenant = new HoldDepositForTenant();
@@ -204,7 +200,8 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
           holdDepositForTenant.currencypairFromToCurrencyMap).amountMC;
       HoldCashaccountDeposit holdCashaccount = new HoldCashaccountDeposit(transaction.getIdTenant(), idPortfolio,
           transaction.getCashaccount().getIdSecuritycashAccount(), transaction.getTransactionDate(), toHoldDate,
-          DataHelper.round(holdDepositForTenant.depositCashaccoutCurrency), DataHelper.round(holdDepositForTenant.depositTenantCurrency));
+          DataHelper.round(holdDepositForTenant.depositCashaccoutCurrency),
+          DataHelper.round(holdDepositForTenant.depositTenantCurrency));
       if (!holdDepositForTenant.tenant.getCurrency().equals(portfolioCurrency)) {
         holdDepositForTenant.depositPortfolioCurrency += DataHelper.calcDepositOnTransactionsOfCashaccount(transaction,
             holdDepositForTenant.fromToCurrencyWithDateMap, portfolioCurrency,
@@ -293,7 +290,5 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
 
     }
   }
-
- 
 
 }

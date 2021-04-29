@@ -38,11 +38,10 @@ public abstract class ImportTransactionHelperPdf {
    */
   public static Map<TemplateConfigurationPDFasTXT, ImportTransactionTemplate> readTemplates(
       List<ImportTransactionTemplate> importTransactionTemplateList, Locale userLocale) {
-    
+
     Map<TemplateConfigurationPDFasTXT, ImportTransactionTemplate> templateScannedMap = new HashMap<>();
     for (ImportTransactionTemplate itt : importTransactionTemplateList) {
-      TemplateConfigurationPDFasTXT templateConfigurationPDFasTXT = new TemplateConfigurationPDFasTXT(itt,
-          userLocale);
+      TemplateConfigurationPDFasTXT templateConfigurationPDFasTXT = new TemplateConfigurationPDFasTXT(itt, userLocale);
       templateScannedMap.put(templateConfigurationPDFasTXT, itt);
       templateConfigurationPDFasTXT.parseTemplate();
     }

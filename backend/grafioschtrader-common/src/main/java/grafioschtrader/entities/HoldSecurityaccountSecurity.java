@@ -47,7 +47,8 @@ public class HoldSecurityaccountSecurity extends HoldBase {
 
   public HoldSecurityaccountSecurity(Integer idTenant, Integer idPortfolio, Integer idSecuritycashAccount,
       Integer idSecuritycurrency, LocalDate fromHoldDate, double holdings, Double marginRealHoldings,
-      Double marginAveragePrice, double splitPriceFactor, Integer idCurrencypairTenant, Integer idCurrencypairPortoflio) {
+      Double marginAveragePrice, double splitPriceFactor, Integer idCurrencypairTenant,
+      Integer idCurrencypairPortoflio) {
     super(idTenant, idPortfolio);
     hssk = new HoldSecurityaccountSecurityKey(idSecuritycashAccount, idSecuritycurrency, fromHoldDate);
     this.hodlings = holdings;
@@ -94,8 +95,6 @@ public class HoldSecurityaccountSecurity extends HoldBase {
     this.marginAveragePrice = marginAveragePrice;
   }
 
- 
-
   @Override
   public String toString() {
     return "HoldSecurityaccountSecurity [hssk=" + hssk + ", hodlings=" + hodlings + ", idCurrencypairPortoflio="
@@ -103,8 +102,6 @@ public class HoldSecurityaccountSecurity extends HoldBase {
         + splitPriceFactor + ", marginRealHoldings=" + marginRealHoldings + ", marginBasePrice=" + marginAveragePrice
         + ", idTenant=" + idTenant + ", idPortfolio=" + idPortfolio + ", toHoldDate=" + toHoldDate + "]";
   }
-
-
 
   public static class HoldSecurityaccountSecurityKey implements Serializable {
     private static final long serialVersionUID = 1L;

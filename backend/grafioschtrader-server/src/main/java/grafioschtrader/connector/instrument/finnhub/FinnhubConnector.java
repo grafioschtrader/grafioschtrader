@@ -46,20 +46,21 @@ public class FinnhubConnector extends BaseFeedConnector {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
     supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
-   // supportedFeed.put(FeedSupport.SPLIT, new FeedIdentifier[] { FeedIdentifier.SPLIT_URL });
+    // supportedFeed.put(FeedSupport.SPLIT, new FeedIdentifier[] {
+    // FeedIdentifier.SPLIT_URL });
   }
 
   private static final String DOMAIN_NAME_WITH_VERSION = "https://finnhub.io/api/v1/";
 
   public FinnhubConnector() {
-    super(supportedFeed, "finnhub", "Finnhub");
+    super(supportedFeed, "finnhub", "Finnhub", null);
   }
 
   @Value("${gt.connector.finnhub.apikey}")
   public void setApiKey(String apiKey) {
     this.apiKey = apiKey;
   }
-  
+
   @Override
   public boolean isActivated() {
     return !apiKey.isEmpty();
@@ -130,13 +131,11 @@ public class FinnhubConnector extends BaseFeedConnector {
   public String getSplitHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security, LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY));
   }
-  
+
   private String getSplitHistoricalDownloadLink(Security security, LocalDate from) {
     return DOMAIN_NAME_WITH_VERSION + "stock/split?symbol=" + security.getUrlSplitExtend().toUpperCase() + "&from="
         + from + "&to=" + LocalDate.now() + "&token=" + apiKey;
   }
-  
- 
 
   @Override
   public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate) throws Exception {
@@ -145,10 +144,10 @@ public class FinnhubConnector extends BaseFeedConnector {
     final Split[] splits = objectMapper.readValue(url, Split[].class);
     for (int i = 0; i < splits.length; i++) {
       Split split = splits[i];
-      Securitysplit securitysplit = new Securitysplit(security.getIdSecuritycurrency(), split.date,
-          split.fromFactor, split.toFactor, CreateType.CONNECTOR_CREATED);
+      Securitysplit securitysplit = new Securitysplit(security.getIdSecuritycurrency(), split.date, split.fromFactor,
+          split.toFactor, CreateType.CONNECTOR_CREATED);
       securitysplits.add(securitysplit);
-    
+
     }
     return securitysplits;
   }
@@ -196,8 +195,6 @@ public class FinnhubConnector extends BaseFeedConnector {
 
   }
 
-  
-  
   static class Split {
     public String symbol;
     public Date date;

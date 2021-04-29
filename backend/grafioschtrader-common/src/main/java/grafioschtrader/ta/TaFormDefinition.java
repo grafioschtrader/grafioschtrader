@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class TaFormDefinition implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  
+
   @Schema(description = "A technical indicator  has one or more input parameters which can be set")
   public List<FieldDescriptorInputAndShow> taFormList;
 

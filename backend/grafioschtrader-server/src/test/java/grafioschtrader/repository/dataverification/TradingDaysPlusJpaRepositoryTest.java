@@ -1,4 +1,4 @@
-package grafioschtrader.repository.test;
+package grafioschtrader.repository.dataverification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,7 +20,7 @@ import grafioschtrader.test.start.GTforTest;
 class TradingDaysPlusJpaRepositoryTest {
 
   @Autowired
-  TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
   @Test
   void findTradingDaysTest() {

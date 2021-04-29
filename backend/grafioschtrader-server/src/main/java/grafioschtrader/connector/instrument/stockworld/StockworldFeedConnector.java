@@ -37,6 +37,7 @@ import grafioschtrader.entities.Security;
 public class StockworldFeedConnector extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
+  private static final String URL_EXTENDED_REGEX = "^\\d+$";
 
   static {
     supportedFeed = new HashMap<>();
@@ -45,7 +46,7 @@ public class StockworldFeedConnector extends BaseFeedConnector {
   }
 
   public StockworldFeedConnector() {
-    super(supportedFeed, "stockworld", "Stockworld");
+    super(supportedFeed, "stockworld", "Stockworld", URL_EXTENDED_REGEX);
   }
 
   @Override

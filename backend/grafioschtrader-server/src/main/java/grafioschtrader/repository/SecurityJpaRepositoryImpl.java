@@ -36,7 +36,6 @@ import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -400,25 +399,23 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
     return cloneSecurity;
   }
-  
 
   @Override
-  protected void checkAndClearSecuritycurrencyConnectors(final Security security) {
+  public void checkAndClearSecuritycurrencyConnectors(final Security security) {
     super.checkAndClearSecuritycurrencyConnectors(security);
-    if(security.getIdConnectorDividend() != null) {
+    if (security.getIdConnectorDividend() != null) {
       FeedSupport fd = IFeedConnector.FeedSupport.DIVIDEND;
-      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, security.getIdConnectorDividend(),
-          fd);
+      IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
+          security.getIdConnectorDividend(), fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);
     }
-    if(security.getIdConnectorSplit() != null) {
+    if (security.getIdConnectorSplit() != null) {
       FeedSupport fd = IFeedConnector.FeedSupport.SPLIT;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, security.getIdConnectorSplit(),
           fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);
     }
   }
-  
 
   @Override
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {

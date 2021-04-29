@@ -18,11 +18,9 @@ public class DegiroTransactionImport extends GenericTransactionImport {
   }
 
   @Override
-  public GenericTransactionImportCSV getCSVImporter(ImportTransactionHead importTransactionHead,  MultipartFile uploadFile,
-      List<ImportTransactionTemplate> importTransactionTemplateList) {
-    return  new DegiroTransactionImportCSV(importTransactionHead, uploadFile,
-        importTransactionTemplateList);
+  public GenericTransactionImportCSV getCSVImporter(ImportTransactionHead importTransactionHead,
+      MultipartFile uploadFile, List<ImportTransactionTemplate> importTransactionTemplateList) {
+    return new DegiroTransactionImportCSV(importTransactionHead, uploadFile, importTransactionTemplateList);
   }
-  
- 
+
 }

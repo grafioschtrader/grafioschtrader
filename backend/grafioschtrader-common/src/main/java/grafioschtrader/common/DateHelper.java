@@ -30,8 +30,7 @@ public class DateHelper {
     long diffInMillies = to.getTime() - from.getTime();
     return timeUnit.convert(diffInMillies, TimeUnit.MILLISECONDS);
   }
-  
-  
+
   public static Date setTimeToZeroAndAddDay(Date date, int addDay) {
     Calendar day = Calendar.getInstance();
     day.setTime(date);
@@ -128,7 +127,6 @@ public class DateHelper {
     cal2.setTime(date2);
     return isSameDay(cal1, cal2);
   }
-  
 
   public static LocalDate getLocalDate(Date date) {
     Instant instant = date.toInstant();
@@ -145,11 +143,8 @@ public class DateHelper {
     return localDate.atStartOfDay(zoneId).toEpochSecond();
   }
 
-  
   public static Date convertToDateViaInstant(LocalDateTime dateToConvert) {
-    return java.util.Date
-      .from(dateToConvert.atZone(ZoneId.systemDefault())
-      .toInstant());
+    return java.util.Date.from(dateToConvert.atZone(ZoneId.systemDefault()).toInstant());
   }
-  
+
 }

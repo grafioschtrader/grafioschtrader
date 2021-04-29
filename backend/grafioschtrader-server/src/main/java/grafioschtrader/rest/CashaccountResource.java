@@ -36,20 +36,19 @@ public class CashaccountResource extends UpdateCreateResource<Cashaccount> {
   @Autowired
   AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
 
-
-  @Operation(summary = "Returns the performance report over a portfolio with all its cash accounts, it includes securities as well", 
-      description = "", tags = { RequestMappings.CASHACCOUNT })
+  @Operation(summary = "Returns the performance report over a portfolio with all its cash accounts, it includes securities as well", description = "", tags = {
+      RequestMappings.CASHACCOUNT })
   @GetMapping(value = "/{idPortfolio}/portfoliocashaccountsummary", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AccountPositionGroupSummary> getAccountPositionSummaryPortfolio(
-      @PathVariable final Integer idPortfolio,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
+      @PathVariable final Integer idPortfolio, @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
-        accountPositionGroupSummaryReport.getAccountGrandSummaryPortfolio(user.getIdTenant(), idPortfolio, untilDate), HttpStatus.OK);
+        accountPositionGroupSummaryReport.getAccountGrandSummaryPortfolio(user.getIdTenant(), idPortfolio, untilDate),
+        HttpStatus.OK);
   }
 
-  @Operation(summary = "Delete a cash account when possible", 
-      description = "A used cash account will not be deleted", tags = { RequestMappings.CASHACCOUNT })
+  @Operation(summary = "Delete a cash account when possible", description = "A used cash account will not be deleted", tags = {
+      RequestMappings.CASHACCOUNT })
   @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteCashaccount(@PathVariable final Integer idSecuritycashaccount) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

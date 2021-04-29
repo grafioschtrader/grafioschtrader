@@ -38,15 +38,15 @@ public class CashAccountTransfer {
   }
 
   public CashAccountTransfer(Transaction[] transactions) {
-    int i = (transactions[0].getTransactionType() == TransactionType.WITHDRAWAL)? 0: 1;
+    int i = (transactions[0].getTransactionType() == TransactionType.WITHDRAWAL) ? 0 : 1;
     this.withdrawalTransaction = transactions[i];
     this.depositTransaction = transactions[(i + 1) % 2];
   }
 
   public Transaction[] getTransactionsAsArray() {
-    return new Transaction[] {withdrawalTransaction, depositTransaction};
+    return new Transaction[] { withdrawalTransaction, depositTransaction };
   }
-  
+
   public Transaction getWithdrawalTransaction() {
     return withdrawalTransaction;
   }
@@ -89,9 +89,8 @@ public class CashAccountTransfer {
 
     // Calculate the withdrawal amount
     double calcWithCashaccountAmount = (DataHelper.divideMultiplyExchangeRate(depositTransaction.getCashaccountAmount(),
-        currencyExRate, withdrawalTransaction.getCashaccount().getCurrency(), depositTransaction.getCashaccount().getCurrency(),
-        true)
-        + transCost) * -1;
+        currencyExRate, withdrawalTransaction.getCashaccount().getCurrency(),
+        depositTransaction.getCashaccount().getCurrency(), true) + transCost) * -1;
 
     calcWithCashaccountAmount = DataHelper.round(calcWithCashaccountAmount, 2);
 
@@ -100,8 +99,8 @@ public class CashAccountTransfer {
     if (withCashaccountAmount == calcWithCashaccountAmount) {
       withdrawalTransaction.setCashaccountAmount(calcWithCashaccountAmount);
     } else {
-      throw new DataViolationException("debit.amount", "gt.cashaccount.amount.calc", new Object[] { calcWithCashaccountAmount,
-          withCashaccountAmount, withdrawalTransaction.getCashaccountAmount() });
+      throw new DataViolationException("debit.amount", "gt.cashaccount.amount.calc", new Object[] {
+          calcWithCashaccountAmount, withCashaccountAmount, withdrawalTransaction.getCashaccountAmount() });
     }
   }
 

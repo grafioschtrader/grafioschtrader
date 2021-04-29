@@ -88,13 +88,14 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   @Override
   public int getMaxFillDaysCurrency() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY)
-        .map(Globalparameters:: getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY);
+        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY);
   }
 
   @Override
   public Date getStartFeedDate() throws ParseException {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_START_FEED_DATE)
-        .map(g -> DateHelper.getDateFromLocalDate(g.getPropertyDate())).orElse(Globalparameters.DEFAULT_START_FEED_DATE);
+        .map(g -> DateHelper.getDateFromLocalDate(g.getPropertyDate()))
+        .orElse(Globalparameters.DEFAULT_START_FEED_DATE);
   }
 
   @Override
@@ -124,13 +125,13 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     return dropdownValues.stream().sorted((x, y) -> x.value.compareTo(y.value)).collect(Collectors.toList());
   }
-  
+
   @Override
   public Globalparameters saveOnlyAttributes(Globalparameters updGp) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     if (UserAccessHelper.isAdmin(user)) {
       Optional<Globalparameters> existingGpOpt = globalparametersJpaRepository.findById(updGp.getPropertyName());
-      if(existingGpOpt.isPresent()) {
+      if (existingGpOpt.isPresent()) {
         Globalparameters existingGp = existingGpOpt.get();
         existingGp.replaceExistingPropertyValue(updGp);
         return globalparametersJpaRepository.save(existingGp);
@@ -138,5 +139,5 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
   }
-  
+
 }

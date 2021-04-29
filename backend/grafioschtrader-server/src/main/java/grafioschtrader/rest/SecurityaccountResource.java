@@ -32,7 +32,6 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-
 @RestController
 @RequestMapping(RequestMappings.SECURITYACCOUNT_MAP)
 @Tag(name = RequestMappings.SECURITYACCOUNT, description = "Controller for security account")
@@ -136,8 +135,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
   ///////////////////////////////////////////////////////////////
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryPortfolio(
-      @PathVariable final Integer idPortfolio,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(securityPositionGrandSummaryReport
         .getSecurityPositionGrandSummaryIdPortfolio(idPortfolio, includeClosedPosition, untilDate), HttpStatus.OK);
@@ -145,8 +143,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/assetclasstype", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassTypeAndPortfolio(
-      @PathVariable final Integer idPortfolio,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(AssetclassType.class, SecurityGroupByBaseReport.ASSETCLASS_CATEGORY_FIELD_NAME)
@@ -156,8 +153,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/specialinvestmentinstrument", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySpecInvestInstAndPortfolio(
-      @PathVariable final Integer idPortfolio,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<SecurityPositionGrandSummary>(
         getDynamicGroupReport(SpecialInvestmentInstruments.class,
@@ -168,8 +164,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/subcategorynls", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySubCategoryNLSAndPortfolio(
-      @PathVariable final Integer idPortfolio,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(getAssetclassSubCategoryReport().getSecurityPositionGrandSummaryIdPortfolio(idPortfolio,
         includeClosedPosition, untilDate), HttpStatus.OK);
@@ -177,8 +172,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/idassetclass", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassAndPortfolio(
-      @PathVariable final Integer idPortfolio,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(Integer.class, SecurityGroupByBaseReport.ASSETCLASS_ID_ASSETCLASS_FIELD_NAME)
@@ -191,8 +185,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccount(
-      @PathVariable final Integer idSecurityaccount,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(securityPositionGrandSummaryReport.getSecurityPositionGrandSummaryIdSecurityaccount(
         idSecurityaccount, includeClosedPosition, untilDate), HttpStatus.OK);
@@ -200,8 +193,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/assetclasstype", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccountByAssetclassTypeAndSecurityaccount(
-      @PathVariable final Integer idSecurityaccount,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(AssetclassType.class, SecurityGroupByBaseReport.ASSETCLASS_CATEGORY_FIELD_NAME)
@@ -211,8 +203,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/specialinvestmentinstrument", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccountBySpecInvestInstAndSecurityaccount(
-      @PathVariable final Integer idSecurityaccount,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(SpecialInvestmentInstruments.class,
@@ -223,8 +214,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/subcategorynls", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySubCategoryNLSAndSecurityaccount(
-      @PathVariable final Integer idSecurityaccount,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(getAssetclassSubCategoryReport().getSecurityPositionGrandSummaryIdSecurityaccount(
         idSecurityaccount, includeClosedPosition, untilDate), HttpStatus.OK);
@@ -232,8 +222,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/idassetclass", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassAndSecurityaccount(
-      @PathVariable final Integer idSecurityaccount,
-      @RequestParam() final boolean includeClosedPosition,
+      @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(Integer.class, SecurityGroupByBaseReport.ASSETCLASS_ID_ASSETCLASS_FIELD_NAME)

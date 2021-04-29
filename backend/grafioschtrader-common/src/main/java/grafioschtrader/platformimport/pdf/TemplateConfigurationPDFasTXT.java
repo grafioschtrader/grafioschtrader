@@ -123,8 +123,8 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
         case "PL":
           if (startRow > 0) {
             String[] rowSplitSpacePL = templateLines[startRow - 1].split("\\s+", 2);
-            propertyWithOptions.startPL = setFirstWord(rowSplitSpacePL, 
-                propertyWithOptionsAndBraces, dataViolationException, propertyOptionsSplit[i], 1);
+            propertyWithOptions.startPL = setFirstWord(rowSplitSpacePL, propertyWithOptionsAndBraces,
+                dataViolationException, propertyOptionsSplit[i], 1);
           } else {
             dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.pl.row", "PL");
           }
@@ -136,8 +136,8 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
         case "NL":
           if (startRow < lastLine) {
             String[] rowSplitSpaceNL = templateLines[startRow + 1].split("\\s+", 2);
-            propertyWithOptions.startNL = setFirstWord(rowSplitSpaceNL, 
-                propertyWithOptionsAndBraces, dataViolationException, propertyOptionsSplit[i], 1);
+            propertyWithOptions.startNL = setFirstWord(rowSplitSpaceNL, propertyWithOptionsAndBraces,
+                dataViolationException, propertyOptionsSplit[i], 1);
           } else {
             dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.pl.row", "NL");
           }
@@ -155,9 +155,8 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
     }
   }
 
-  private String setFirstWord(String[] rowSplitSpace, 
-      String propertyWithOptionsAndBraces, DataViolationException dataViolationException, String propertyOption,
-      int requiredWords) {
+  private String setFirstWord(String[] rowSplitSpace, String propertyWithOptionsAndBraces,
+      DataViolationException dataViolationException, String propertyOption, int requiredWords) {
     if (rowSplitSpace.length >= requiredWords) {
       return rowSplitSpace[0];
     } else {

@@ -32,13 +32,12 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
 
   @Schema(description = "Divdend data html access produced from data connector of security")
   public String dividendUrl;
-  
+
   public boolean isUsedElsewhere = true;
 
   @Schema(description = "Depend on the watchlist it is true when security has transaction or security has split or dividend")
   public boolean watchlistSecurityHasEver;
 
- 
   @Schema(description = "Youngest historical data")
   public Date youngestHistoryDate;
 

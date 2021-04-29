@@ -188,7 +188,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       // 2 files and more
       if (singleMultiTemplateFormatType.templateFormatType == TemplateFormatType.PDF) {
         pti.importMultiplePdfAsPdf(importTransactionHead, uploadFiles, importTransactionTemplateList,
-            importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository, 
+            importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository,
             user.createAndGetJavaLocale());
       } else {
         // TODO not the right format

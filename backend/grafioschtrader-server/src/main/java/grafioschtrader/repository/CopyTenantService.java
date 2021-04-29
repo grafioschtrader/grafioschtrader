@@ -42,7 +42,7 @@ public class CopyTenantService {
         portfolioMap);
     Map<Integer, Cashaccount> cashaccoutMap = copyCashaccount(sourceIdTenant, targetIdTenant, portfolioMap,
         securityaccountMap);
-    Map<Integer, Watchlist>  watchlistMap = copyWatchlist(sourceIdTenant, targetIdTenant);
+    Map<Integer, Watchlist> watchlistMap = copyWatchlist(sourceIdTenant, targetIdTenant);
     copyTransaction(sourceIdTenant, targetIdTenant, securityaccountMap, cashaccoutMap);
     updateTenantReference(sourceIdTenant, targetIdTenant, watchlistMap);
   }
@@ -171,15 +171,16 @@ public class CopyTenantService {
       em.persist(transaction);
     }
   }
-  
-  private void updateTenantReference(Integer sourceIdTenant, Integer targetIdTenant, Map<Integer, Watchlist>  watchlistMap) {
+
+  private void updateTenantReference(Integer sourceIdTenant, Integer targetIdTenant,
+      Map<Integer, Watchlist> watchlistMap) {
     Tenant sourceTenant = em.find(Tenant.class, sourceIdTenant);
     Tenant targetTenant = em.find(Tenant.class, targetIdTenant);
     Watchlist watchlist = watchlistMap.get(sourceTenant.getIdWatchlistPerformance());
-    if(watchlist != null) {
-       targetTenant.setIdWatchlistPerformance(watchlist.getIdWatchlist());
-       em.persist(targetTenant);
-       em.flush();
+    if (watchlist != null) {
+      targetTenant.setIdWatchlistPerformance(watchlist.getIdWatchlist());
+      em.persist(targetTenant);
+      em.flush();
     }
   }
 

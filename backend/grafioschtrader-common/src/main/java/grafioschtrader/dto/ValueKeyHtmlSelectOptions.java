@@ -16,10 +16,10 @@ public class ValueKeyHtmlSelectOptions implements Serializable, Comparable<Value
     this.key = key;
     this.value = value;
   }
-  
+
   @Override
   public int compareTo(ValueKeyHtmlSelectOptions vKhso) {
-      return this.value.compareTo(vKhso.value);
+    return this.value.compareTo(vKhso.value);
   }
 
 }

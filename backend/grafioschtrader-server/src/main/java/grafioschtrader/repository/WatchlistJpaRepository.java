@@ -26,7 +26,7 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Modifying
   @Query(nativeQuery = true)
   int deleteByIdTenantAndWatchlistAndIds(Integer idTenant, Integer idWatchlist, List<Integer> ids);
-  
+
   @Query(value = "SELECT count(s) FROM Watchlist w JOIN w.securitycurrencyList s WHERE w.idTenant = ?1 AND w.idWatchlist= ?2")
   Long countPostionsInWatchlist(Integer idTenant, Integer idWatchlist);
 
@@ -42,7 +42,7 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
 
   @Query(nativeQuery = true)
   Set<Integer> hasSplitOrDividendByWatchlist(Integer idWatchlist);
-  
+
   @Query(value = "SELECT w.id_watchlist,(CASE WHEN EXISTS(SELECT NULL FROM watchlist_sec_cur s WHERE s.id_watchlist = w.id_watchlist)"
       + " THEN 1 ELSE 0 END) AS has_security FROM watchlist w WHERE w.id_tenant = ?1", nativeQuery = true)
   List<Object[]> watchlistsOfTenantHasSecurity(Integer idTenant);

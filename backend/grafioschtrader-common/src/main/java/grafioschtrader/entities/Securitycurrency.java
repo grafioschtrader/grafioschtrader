@@ -283,15 +283,13 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   public void setSLast(Double sLast) {
     this.sLast = sLast;
   }
-/*
-  public Integer getCreateUserId() {
-    return createUserId;
-  }
 
-  public void setCreateUserId(Integer createUserId) {
-    this.createUserId = createUserId;
-  }
-*/
+  /*
+   * public Integer getCreateUserId() { return createUserId; }
+   * 
+   * public void setCreateUserId(Integer createUserId) { this.createUserId =
+   * createUserId; }
+   */
   public List<Historyquote> getHistoryquoteList() {
     return historyquoteList;
   }
@@ -326,7 +324,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
     urlIntraExtend = idConnectorIntra != null ? urlIntraExtend : null;
   }
 
-  public boolean isActiveForIntradayUpdate(S securitycurrency, Date now) {
+  public boolean isActiveForIntradayUpdate(Date now) {
     return true;
   }
 

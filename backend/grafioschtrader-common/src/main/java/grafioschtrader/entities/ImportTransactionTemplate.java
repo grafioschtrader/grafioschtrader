@@ -100,7 +100,7 @@ public class ImportTransactionTemplate extends Auditable {
   public String getTemplateAsTxt() {
     return templateAsTxt;
   }
-  
+
   public void setTemplateAsTxt(String templateAsTxt) {
     this.templateAsTxt = templateAsTxt;
   }
@@ -112,7 +112,6 @@ public class ImportTransactionTemplate extends Auditable {
   public void setValidSince(Date validSince) {
     this.validSince = validSince;
   }
-  
 
   public String getTemplateLanguage() {
     return templateLanguage;
@@ -134,7 +133,5 @@ public class ImportTransactionTemplate extends Auditable {
         + ", templateFormatType=" + templateFormatType + ", validSince=" + validSince + ", templateLanguage="
         + templateLanguage + ", templateAsTxt=" + templateAsTxt + "]";
   }
-
- 
 
 }

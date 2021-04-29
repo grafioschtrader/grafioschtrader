@@ -35,7 +35,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-
 @RestController
 @RequestMapping(RequestMappings.TRANSACTION_MAP)
 @Tag(name = RequestMappings.TRANSACTION, description = "Controller for transaction")
@@ -51,20 +50,16 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     return transactionJpaRepository;
   }
 
- 
-  @Operation(summary = "Get connected transaction for a existing open margin position", description = "", 
-      tags = { RequestMappings.TRANSACTION})
+  @Operation(summary = "Get connected transaction for a existing open margin position", description = "", tags = {
+      RequestMappings.TRANSACTION })
   @GetMapping(value = "/connectedmargin/{idTransaction}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ClosedMarginUnits> getClosedMarginUnitsByIdTransaction(
-      @Parameter(description="Id of open margin position", required=true)
-      @PathVariable final Integer idTransaction) {
+      @Parameter(description = "Id of open margin position", required = true) @PathVariable final Integer idTransaction) {
     return new ResponseEntity<>(transactionJpaRepository.getClosedMarginUnitsByIdTransaction(idTransaction),
         HttpStatus.OK);
   }
 
-  
-  @Operation(summary = "Get all transactions of a tenant", description = "", 
-      tags = { RequestMappings.TRANSACTION})
+  @Operation(summary = "Get all transactions of a tenant", description = "", tags = { RequestMappings.TRANSACTION })
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Transaction>> getTransactionByTenant() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -73,25 +68,21 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     return new ResponseEntity<>(transaction, HttpStatus.OK);
   }
 
- 
-  @Operation(summary = "Get all transactions of a portfolio", description = "", 
-      tags = { RequestMappings.TRANSACTION})
+  @Operation(summary = "Get all transactions of a portfolio", description = "", tags = { RequestMappings.TRANSACTION })
   @GetMapping(value = "/portfolio/{idPortfolio}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Transaction>> getTransactionByPortfolio(
-      @Parameter(description="Id of portfolio", required=true)  @PathVariable final Integer idPortfolio) {
+      @Parameter(description = "Id of portfolio", required = true) @PathVariable final Integer idPortfolio) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     List<Transaction> transaction = transactionJpaRepository.getTransactionsByIdPortfolio(idPortfolio,
         user.getIdTenant());
     return new ResponseEntity<>(transaction, HttpStatus.OK);
   }
 
-  
-  @Operation(summary = "Get a single transaction by transactions Id", description = "", 
-      tags = { RequestMappings.TRANSACTION})
+  @Operation(summary = "Get a single transaction by transactions Id", description = "", tags = {
+      RequestMappings.TRANSACTION })
   @GetMapping(value = "/{idTransaction}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Transaction> getTransactionByIdTransaction(
-      @Parameter(description="Id of transaction", required=true)
-      @PathVariable final Integer idTransaction) {
+      @Parameter(description = "Id of transaction", required = true) @PathVariable final Integer idTransaction) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Transaction transaction = transactionJpaRepository.getOne(idTransaction);
     if (!user.getIdTenant().equals(transaction.getIdTenant())) {
@@ -101,12 +92,11 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     return new ResponseEntity<>(transaction, HttpStatus.OK);
   }
 
-  
-  @Operation(summary = "Get all transactions from a cash account by Id cash account", description = "", 
-      tags = { RequestMappings.TRANSACTION})
+  @Operation(summary = "Get all transactions from a cash account by Id cash account", description = "", tags = {
+      RequestMappings.TRANSACTION })
   @GetMapping(value = "/{idSecuritycashAccount}/cashaccount", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CashaccountTransactionPosition[]> getTransactionsWithSaldoForCashaccount(
-      @Parameter(description="Id of cash account", required=true) @PathVariable final Integer idSecuritycashAccount) {
+      @Parameter(description = "Id of cash account", required = true) @PathVariable final Integer idSecuritycashAccount) {
     return new ResponseEntity<>(transactionJpaRepository.getTransactionsWithSaldoForCashaccount(idSecuritycashAccount),
         HttpStatus.OK);
   }
@@ -114,25 +104,23 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   ///////////////////////////////////////////////////////////
   // Create, update for security transaction
   ///////////////////////////////////////////////////////////
-  @Operation(summary = "New security transaction", description = "", 
-      tags = { RequestMappings.TRANSACTION})
+  @Operation(summary = "New security transaction", description = "", tags = { RequestMappings.TRANSACTION })
   @PostMapping(value = "/securitytrans", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Transaction> createTransaction(
       @Validated(SecurityTransaction.class) @RequestBody Transaction entity) throws Exception {
     return createEntity(entity);
   }
 
-  @Operation(summary = "Update transaction with security involved", description = "", 
-      tags = { RequestMappings.TRANSACTION})
+  @Operation(summary = "Update transaction with security involved", description = "", tags = {
+      RequestMappings.TRANSACTION })
   @PutMapping(value = "/securitytrans", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Transaction> updateTransaction(
       @Validated(SecurityTransaction.class) @RequestBody Transaction entity) throws Exception {
     return updateEntity(entity);
   }
 
-
-  @Operation(summary = "Get the calculated finance cost of a margin position ", description = "", 
-      tags = { RequestMappings.TRANSACTION})
+  @Operation(summary = "Get the calculated finance cost of a margin position ", description = "", tags = {
+      RequestMappings.TRANSACTION })
   @GetMapping(value = "/financecost/{idTransaction}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ProposedMarginFinanceCost> getEstimatedMarginFinanceCost(
       @PathVariable final Integer idTransaction) throws Exception {

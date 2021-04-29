@@ -31,7 +31,6 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 
-
 @Entity
 @Table(name = Securitycashaccount.TABNAME)
 @Inheritance(strategy = JOINED)
@@ -67,9 +66,8 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   @JsonIgnore
   @Column(name = "id_tenant")
   private Integer idTenant;
-  
-  
- public Securitycashaccount() {
+
+  public Securitycashaccount() {
   }
 
   public Securitycashaccount(String name, Portfolio portfolio) {
@@ -114,7 +112,6 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   public void setPortfolio(Portfolio portfolio) {
     this.portfolio = portfolio;
   }
-  
 
   @Override
   public Integer getIdTenant() {
@@ -126,8 +123,6 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
     this.idTenant = idTenant;
   }
 
-  
-  
   @Override
   public String toString() {
     return "grafioschtrader.entities.Securitycashaccount[ idSecuritycashAccount=" + idSecuritycashAccount + " ]";

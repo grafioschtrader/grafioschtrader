@@ -13,26 +13,25 @@ import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
-
 @Component
 public class SecurityLoadHistoricalIntraPriceDataTask implements ITask {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
-  
+
   @Override
   public TaskType getTaskType() {
-    return  TaskType.SECURITY_LOAD_HISORICAL_INTRA_PRICE_DATA;
+    return TaskType.SECURITY_LOAD_HISORICAL_INTRA_PRICE_DATA;
   }
 
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) {
     Optional<Security> securityOpt = securityJpaRepository.findById(taskDataChange.getIdEntity());
-    if(securityOpt.isPresent()) {
+    if (securityOpt.isPresent()) {
       Security security = securityJpaRepository.rebuildSecurityCurrencypairHisotry(securityOpt.get());
-     securityJpaRepository.updateLastPriceByList(Arrays.asList(security));
+      securityJpaRepository.updateLastPriceByList(Arrays.asList(security));
     }
   }
- 
+
 }

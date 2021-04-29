@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
@@ -53,10 +54,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Autowired
   CurrencypairJpaRepository currencypairJpaRepository;
-  
+
   @Autowired
   TaskDataChangeJpaRepository taskDataChangeJpaRepository;
-  
 
   ////////////////////////////////////////////////////////////////
   // Historical prices
@@ -80,11 +80,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Modifying
   public void fillEmptyCurrencypair(Integer idSecuritycurrency) {
     Optional<Currencypair> currencypairOpt = currencypairJpaRepository.findById(idSecuritycurrency);
-    if(currencypairOpt.isPresent()) {
+    if (currencypairOpt.isPresent()) {
       fillEmptyCurrencypair(currencypairOpt.get());
     }
   }
-  
+
   @Override
   @Transactional
   @Modifying
@@ -204,7 +204,8 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   protected boolean historyNeedToBeReloaded(final Currencypair securityCurrencyChanged,
       final Currencypair securitycurreny2) {
     return !(securityCurrencyChanged.getIdConnectorHistory().equals(securitycurreny2.getIdConnectorHistory())
-        && securityCurrencyChanged.getUrlHistoryExtend().equals(securitycurreny2.getUrlHistoryExtend())
+        && ObjectUtils.nullSafeEquals(securityCurrencyChanged.getUrlHistoryExtend(),
+            securitycurreny2.getUrlHistoryExtend())
         && securityCurrencyChanged.getFromCurrency().equals(securitycurreny2.getFromCurrency())
         && securityCurrencyChanged.getToCurrency().equals(securitycurreny2.getToCurrency()));
   }
@@ -239,8 +240,8 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     // currencypairNew.setCreateUserId(AppSettings.SYSTEM_ID_USER);
 
     if (currencypairNew.getIsCryptocurrency()) {
-      currencypairNew.setIdConnectorIntra(
-          globalparametersJpaRepository.getOne(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
+      currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
+          .getOne(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
           .getOne(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR).getPropertyString());
     } else {
@@ -261,26 +262,24 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
     return currencypair;
   }
-  
+
   public Currencypair fillEmptyCurrencypair(Currencypair currencypair) {
-    currencypair = historyquoteThruConnector.createHistoryQuotesAndSave(currencypairJpaRepository, currencypair,
-        null, null);
+    currencypair = historyquoteThruConnector.createHistoryQuotesAndSave(currencypairJpaRepository, currencypair, null,
+        null);
     currencieyFillEmptyDaysInHistoryquote(currencypair);
     updateLastPrice(currencypair);
     return currencypair;
   }
-  
 
   @Override
   public void createTaskDataChangeOfEmptyHistoryqoute() {
     List<Integer> ids = currencypairJpaRepository.getAllIdOfEmptyHistorqute();
-    for(int i = 0; i < ids.size(); i++) {
+    for (int i = 0; i < ids.size(); i++) {
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES, (short) 42,
           LocalDateTime.now().plusMinutes(i), ids.get(i), Currencypair.TABNAME));
     }
   }
-  
-  
+
   @Override
   public void updateAllLastPrice() {
     intradayThruConnector.updateLastPriceOfSecuritycurrency(currencypairJpaRepository.findAll());

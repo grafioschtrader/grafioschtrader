@@ -49,7 +49,7 @@ public class CurrencyChangedTenantOrPortfolioTask implements ITask {
     Integer idEntity = taskDataChange.getIdEntity();
     if (Tenant.TABNAME.equals(taskDataChange.getEntity())) {
       tenantJpaRepository.createNotExistingCurrencypairs(idEntity);
-    } else  {
+    } else {
       idEntity = portfolioJpaRepository.createNotExistingCurrencypairs(idEntity);
     }
     holdSecurityaccountSecurityRepository.createSecurityHoldingsEntireByTenant(idEntity);

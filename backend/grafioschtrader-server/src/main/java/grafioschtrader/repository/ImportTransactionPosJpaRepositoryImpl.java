@@ -329,7 +329,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       if (itpList[i].getIdTransaction() != null) {
         existingTransactions[i] = transactionJpaRepository.findByIdTransactionAndIdTenant(itpList[i].getIdTransaction(),
             user.getIdTenant());
-        transactions[i].setIdTransaction(existingTransactions[i] == null? null: existingTransactions[i].getIdTransaction());
+        transactions[i]
+            .setIdTransaction(existingTransactions[i] == null ? null : existingTransactions[i].getIdTransaction());
       }
     }
 

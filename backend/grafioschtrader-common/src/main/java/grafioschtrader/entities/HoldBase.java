@@ -56,6 +56,4 @@ public abstract class HoldBase {
     return "HoldBase [idTenant=" + idTenant + ", idPortfolio=" + idPortfolio + ", toHoldDate=" + toHoldDate + "]";
   }
 
-  
-
 }

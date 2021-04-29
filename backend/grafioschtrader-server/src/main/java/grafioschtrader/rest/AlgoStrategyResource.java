@@ -32,8 +32,7 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
     super(AlgoStrategy.class);
   }
 
-  @Operation(summary = "", description = "", 
-      tags = { RequestMappings.ALGOSTRATEGY})
+  @Operation(summary = "", description = "", tags = { RequestMappings.ALGOSTRATEGY })
   @GetMapping(value = "/form/{algoStrategyImplementations}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<InputAndShowDefinitionStrategy> getFormDefinitionsByAlgoStrategy(
       @PathVariable final byte algoStrategyImplementations) {
@@ -41,8 +40,7 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
         AlgoStrategyImplementations.getAlgoStrategyImplentaions(algoStrategyImplementations)), HttpStatus.OK);
   }
 
-  @Operation(summary = "", description = "", 
-      tags = { RequestMappings.ALGOSTRATEGY})
+  @Operation(summary = "", description = "", tags = { RequestMappings.ALGOSTRATEGY })
   @GetMapping(value = "/unusedsrategies/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<AlgoStrategyImplementations>> getUnusedStrategiesForManualAdding(
       @PathVariable() final Integer idAlgoAssetclassSecurity) {

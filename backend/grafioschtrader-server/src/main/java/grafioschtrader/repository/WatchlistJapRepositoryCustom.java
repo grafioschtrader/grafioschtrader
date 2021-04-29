@@ -14,7 +14,7 @@ public interface WatchlistJapRepositoryCustom extends BaseRepositoryCustom<Watch
   Watchlist addSecuritycurrenciesToWatchlist(Integer idWatchlist, SecuritycurrencyLists securitycurrencyLists);
 
   int removeMultipleFromWatchlist(Integer idWatchlist, final List<Integer> idsSecuritycurrency);
-  
+
   Watchlist removeSecurityFromWatchlistAndDelete(Integer idWatchlist, Integer idSecuritycurrency);
 
   Watchlist removeCurrencypairFromWatchlistAndDelete(Integer idWatchlist, Integer idSecuritycurrency);

@@ -149,12 +149,12 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     }
   }
 
-  
   public int removeMultipleFromWatchlist(Integer idWatchlist, final List<Integer> idsSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return watchlistJpaRepository.deleteByIdTenantAndWatchlistAndIds(user.getIdTenant(), idWatchlist, idsSecuritycurrency);
+    return watchlistJpaRepository.deleteByIdTenantAndWatchlistAndIds(user.getIdTenant(), idWatchlist,
+        idsSecuritycurrency);
   }
-  
+
   @Override
   public Watchlist removeSecurityFromWatchlistAndDelete(final Integer idWatchlist, final Integer idSecuritycurrency) {
     return removeSecuritycurrencyFromWatchlistAndDelete(idWatchlist, idSecuritycurrency, securityJpaRepository);

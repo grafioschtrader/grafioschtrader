@@ -37,7 +37,7 @@ import grafioschtrader.algo.rule.BuySell;
 public abstract class AlgoTopAssetSecurity extends TenantBaseID implements Serializable {
 
   public static final String TABNAME = "algo_top_asset_security";
-  
+
   private static final long serialVersionUID = 1L;
 
   @Id

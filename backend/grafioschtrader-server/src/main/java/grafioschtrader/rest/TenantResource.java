@@ -35,7 +35,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-
 @RestController
 @RequestMapping(RequestMappings.TENANT_MAP)
 @Tag(name = RequestMappings.TENANT, description = "Controller for tenant")
@@ -63,12 +62,11 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   @Operation(summary = "Chance tenants currency and also in its each protfolio", description = "", tags = {
       RequestMappings.TENANT })
   @PatchMapping("/watchlistforperformance/{idWatchlist}")
-  public ResponseEntity<Tenant> setWatchlistForPerformance (
+  public ResponseEntity<Tenant> setWatchlistForPerformance(
       @Parameter(description = "ID of watchlist", required = true) @PathVariable Integer idWatchlist) {
     return new ResponseEntity<>(tenantJpaRepository.setWatchlistForPerformance(idWatchlist), HttpStatus.OK);
   }
 
-    
   @Operation(summary = "Chance tenants currency and also in its each protfolio", description = "", tags = {
       RequestMappings.TENANT })
   @PatchMapping("{currency}")
@@ -77,8 +75,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
     return new ResponseEntity<>(tenantJpaRepository.changeCurrencyTenantAndPortfolios(currency), HttpStatus.OK);
   }
 
-  @Operation(summary = "Export the data of a client with it private ond public data", 
-      description = "The created zip file will cotains two files one with ddl and the 2nd with dml statements", tags = {
+  @Operation(summary = "Export the data of a client with it private ond public data", description = "The created zip file will cotains two files one with ddl and the 2nd with dml statements", tags = {
       RequestMappings.TENANT })
   @GetMapping(value = "/exportpersonaldataaszip", produces = "application/zip")
   public void zipFiles(HttpServletResponse response) throws Exception {
@@ -125,9 +122,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
     tempSqlStatement.delete();
   }
 
-  
-  @Operation(summary = "Delete the private data the main tenant of the user. It als removes the user from this application", 
-      description = "", tags = {
+  @Operation(summary = "Delete the private data the main tenant of the user. It als removes the user from this application", description = "", tags = {
       RequestMappings.TENANT })
   @DeleteMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteMyDataAndUserAccount() throws Exception {

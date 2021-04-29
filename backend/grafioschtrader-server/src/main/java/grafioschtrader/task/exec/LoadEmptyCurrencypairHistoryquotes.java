@@ -13,7 +13,7 @@ public class LoadEmptyCurrencypairHistoryquotes implements ITask {
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
-  
+
   @Override
   public TaskType getTaskType() {
     return TaskType.LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES;
@@ -23,5 +23,5 @@ public class LoadEmptyCurrencypairHistoryquotes implements ITask {
   public void doWork(TaskDataChange taskDataChange) {
     currencypairJpaRepository.fillEmptyCurrencypair(taskDataChange.getIdEntity());
   }
-  
+
 }

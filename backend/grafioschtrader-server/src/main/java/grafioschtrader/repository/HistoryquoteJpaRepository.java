@@ -31,7 +31,6 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   List<Historyquote> findByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
 
-  
   List<SecurityCurrencyIdAndDate> findByIdSecuritycurrency(Integer idSecuritycurrency);
 
   List<Historyquote> findByIdSecuritycurrencyAndDateBetweenOrderByDate(Integer idSecuritycurrency, Date fromDate,
@@ -100,7 +99,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<IDateAndClose> getByIdSecuritycurrencyAndCreateTypeNotOrderByDate(Integer idSecuritycurrency, byte createType);
 
   List<Historyquote> getByIdSecuritycurrencyOrderByDate(Integer idSecuritycurrency);
-  
+
   @Query(nativeQuery = true)
   List<ISecuritycurrencyIdDateClose> getCertainOrOlderDayInHistorquoteForSecuritycurrencyByWatchlist(
       Integer idWatchlist, Date date);
@@ -189,6 +188,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   public interface SecurityCurrencyIdAndDate {
     Integer getIdSecuritycurrency();
+
     Date getDate();
   }
 

@@ -17,13 +17,17 @@ public enum TaskType {
   CURRENCY_CHANGED_ON_TENANT_AND_PORTFOLIO((byte) 4),
   // Load or reload security price historical data
   SECURITY_LOAD_HISORICAL_INTRA_PRICE_DATA((byte) 5),
-  // The splits of security has changed, rebuild for all clients its security holdings
+  // The splits of security has changed, rebuild for all clients its security
+  // holdings
   HOLDINGS_SECURITY_REBUILD((byte) 6),
-  // Changed historical currency prices may influence the deposit holdings since it depends on it
+  // Changed historical currency prices may influence the deposit holdings since
+  // it depends on it
   REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE((byte) 7),
-  // When a split is added it may take some days until the data provider reflect that in adjusted historical prices
+  // When a split is added it may take some days until the data provider reflect
+  // that in adjusted historical prices
   CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES((byte) 8),
-  // Rebuild Holdings for all tenants, normally one one when the database was created from export 
+  // Rebuild Holdings for all tenants, normally one one when the database was
+  // created from export
   REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT((byte) 9),
   //
   LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES((byte) 10),
@@ -31,16 +35,16 @@ public enum TaskType {
   COPY_DEMO_ACCOUNTS((byte) 11),
   // Creates the calendar for stock exchanged by a mayor index
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX((byte) 12),
-  // Moves shared entities from one user to another user by changing field created_by
+  // Moves shared entities from one user to another user by changing field
+  // created_by
   MOVE_CREATED_BY_USER_TO_OTHER_USER((byte) 13),
-  
+
   // Update from V_0
-  UPD_V_0_11_0 ((byte) 51),
-  
-  
+  UPD_V_0_11_0((byte) 51),
+
   // Create dividends from dividend table
   UNOFFICIAL_CREATE_TRANSACTION_FROM_DIVIDENDS_TABLE((byte) 100);
-  
+
   private final Byte value;
 
   private TaskType(final Byte value) {

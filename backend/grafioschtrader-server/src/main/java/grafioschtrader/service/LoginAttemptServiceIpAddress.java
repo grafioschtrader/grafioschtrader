@@ -10,7 +10,6 @@ import grafioschtrader.GlobalConstants;
 @Service
 public class LoginAttemptServiceIpAddress {
 
-
   private PassiveExpiringMap<String, Integer> attemptsIPAdressCache;
 
   public LoginAttemptServiceIpAddress() {
@@ -24,7 +23,7 @@ public class LoginAttemptServiceIpAddress {
 
   public void loginFailed(HttpServletRequest request) {
     String ipAddress = getClientIP(request);
-    int attempts = attemptsIPAdressCache.getOrDefault (ipAddress, 0);
+    int attempts = attemptsIPAdressCache.getOrDefault(ipAddress, 0);
     attempts++;
     attemptsIPAdressCache.put(ipAddress, attempts);
   }

@@ -26,22 +26,22 @@ Mit der Zeit verliert man die Übersicht wo wie viel in was investiert ist. Zude
 
 ### Für wen eignet sich GT
 GT ist der Versuch die Nachbildung der Portfolios gemäss der Realität, daher gibt es Kontos wie bei Ihrem Onlinebörsenbroker. Jede Buchung ist mit einem Geldkonto verbunden, somit werden die Buchungen gemäss Ihrer Handelsplattform nachgebildet.
-+ Der Investor der seine Finanzdaten nicht einer intransparent Platform anvertrauen will. Sie können die GT selber hosten, dazu genügt ein [Raspberry Pi 4](//www.raspberrypi.org/products/raspberry-pi-4-model-b/) mit 4GB Arbeitsspeicher.
-+ Ein Shareholder der eine Historie über alle seine Trades haben will. Sie können alle geschlossenen Positionen jederzeit einsehen.
-+ Privatanleger der wissen will, wie sich seine Währungsgewinne entwickeln. Es wird laufend der Währungsgewinn auf den Fremdwährungskonten ausgewiesen.
-+ Investoren-Club der eine eigene GT-Instanz hosten will und sich ein Mitglied gerne um technischen Aspekte kümmert.
-+ Anleger mit mehreren Portfolios bei unterschiedlichen Handelsplattformen. GT liefert Informationen pro Portfolio und kann diese aggregiert darstellen.
++ Der Investor der seine Finanzdaten nicht einer intransparent Platform anvertrauen will. Sie können **GT selber hosten**, dazu genügt ein [Raspberry Pi 4](//www.raspberrypi.org/products/raspberry-pi-4-model-b/) mit 4GB (möglicherweise auch 2GB) Arbeitsspeicher.
++ Ein Shareholder der eine **Historie** über alle seine **Trades** haben will. Sie können alle geschlossenen Positionen jederzeit einsehen.
++ Privatanleger der wissen will, wie sich seine **Währungsgewinne** entwickeln. Es wird laufend der Währungsgewinn auf den Fremdwährungskonten ausgewiesen.
++ **Investoren-Club** der eine eigene GT-Instanz **hosten** will und sich ein Mitglied gerne um technischen Aspekte kümmert.
++ Anleger mit **mehreren Portfolios** bei unterschiedlichen Handelsplattformen. GT liefert Informationen pro Portfolio und kann diese aggregiert darstellen.
 
 ### Für wen ist GT nicht gedacht
-+ Dem Daytrader fehlen die Echtzeitkurse.
++ Dem Daytrader fehlen die **Echtzeitkurse**.
 + Investoren die ihren Handel losgelöst von Geldkontos verwalten möchten.
 + Anleger der nur ein Portfolio bei einem Online-Broker hat und die dortigen Auswertungen genügen.
 
 ### Für wen GT nicht funktioniert
 + Für **Milliardäre**, in welcher Währung auch immer, hierbei genügt das Zahlenformat von GT leider nicht.
-+ Für Investoren die Transaction mit GT vor dem Jahre 2000 verwalten wollen. GT implementiert konsequent zweistellige Jahreszahlen.
++ Für Investoren die Transaction mit GT **vor** dem **Jahre 2000** verwalten wollen. GT implementiert konsequent zweistellige Jahreszahlen.
 + Für Kapitalanleger die gleichzeitig ein Instrumente einer **Branche/Thema** und **Länder/Regionen** zuordnen wollen.
-+ Für Anleger aus der Schweiz, Deutschland bzw. USA die eine **Valoren-Nr.**, **Wertpapierkennnummer (WKN)** bzw. **CUSIP-Nummer** benötigen. GT benutzt die Internationale Wertpapierkennnummer ISIN und die nicht immer eindeutigen Ticker/Symbole. 
++ Für Anleger aus der Schweiz, Deutschland bzw. USA die eine **Valoren-Nr.**, **Wertpapierkennnummer (WKN)** bzw. **CUSIP-Nummer** benötigen. GT benutzt die Internationale Wertpapierkennnummer **ISIN** und die nicht immer eindeutigen Ticker/Symbole. 
 
 {{% notice info %}}
 Die Informationen dieser Hilfe bezieht sich auf die **GT** Version **0.13.0**.
