@@ -1,6 +1,7 @@
 #!/bin/bash
 echo Build backend and frontend, only output of frontend is shown
 memorytotal="$(free -m | awk '/^Mem/ { print $2}')"
+. ~/gtvar.sh
 cd ~
 if [ $memorytotal -gt 2000 ]
   then
