@@ -6,19 +6,10 @@ cp grafioschtrader/backend/grafioschtrader-server/src/main/resources/application
 cd grafioschtrader
 git reset --hard origin/master
 git pull
-cd ..
-if [ -f application.properties ]; then
-	mv grafioschtrader/backend/grafioschtrader-server/src/main/resources/application.properties application.properties.new
-	~/merger.sh -i application.properties -s application.properties.new -o grafioschtrader/backend/grafioschtrader-server/src/main/resources/application.properties
-fi
-echo Build backend and frontend, only output of frontend is shown
 cd ~
-~/gtupfrontend.sh &
-~/gtupbackend.sh &> $builddir/backbuild.log &
-wait
-cat $builddir/backbuild.log
-
-
-
-
-
+if [ -f application.properties ]; then
+        mv grafioschtrader/backend/grafioschtrader-server/src/main/resources/application.properties application.properties.new
+        ~/merger.sh -i application.properties -s application.properties.new -o grafioschtrader/backend/grafioschtrader-server/src/main/resources/application.propert$
+fi
+cp $builddir/grafioschtrader/util/shellscripts/gtup{front,back}*.sh .
+~/gtupfrontback.sh
