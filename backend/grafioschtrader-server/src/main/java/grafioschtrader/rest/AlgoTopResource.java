@@ -43,12 +43,15 @@ public class AlgoTopResource extends UpdateCreateDeleteWithTenantResource<AlgoTo
     return new ResponseEntity<>(algoTopJpaRepository.findByIdTenantOrderByName(user.getIdTenant()), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns top level allgorithmic tranding by specified ", description = "", tags = { RequestMappings.ALGOTOP})
+  @Operation(summary = "Returns top level allgorithmic tranding by specified ", description = "", tags = {
+      RequestMappings.ALGOTOP })
   @GetMapping(value = "/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<AlgoTop> getAlgoTopByIdAlgoAssetclassSecurity(@Parameter(description="Id of top level algorithmic trading", required=true) @PathVariable final Integer idAlgoAssetclassSecurity) {
+  public ResponseEntity<AlgoTop> getAlgoTopByIdAlgoAssetclassSecurity(
+      @Parameter(description = "Id of top level algorithmic trading", required = true) @PathVariable final Integer idAlgoAssetclassSecurity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(algoTopJpaRepository.findByIdTenantAndIdAlgoAssetclassSecurity(user.getIdTenant(),
-        idAlgoAssetclassSecurity), HttpStatus.OK);
+    return new ResponseEntity<>(
+        algoTopJpaRepository.findByIdTenantAndIdAlgoAssetclassSecurity(user.getIdTenant(), idAlgoAssetclassSecurity),
+        HttpStatus.OK);
   }
 
   @Override

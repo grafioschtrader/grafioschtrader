@@ -17,14 +17,14 @@ import grafioschtrader.security.TokenAuthenticationService;
 
 @Component
 @ConditionalOnExpression("${gt.use.websocket:false}")
-public class AuthChannelInterceptorAdapter implements ChannelInterceptor { 
+public class AuthChannelInterceptorAdapter implements ChannelInterceptor {
 
   @Autowired
   TokenAuthenticationService tokenAuthenticationService;
-  
+
   @Override
-  public Message<?> preSend(final Message<?> message, final MessageChannel channel)  {
-     try {
+  public Message<?> preSend(final Message<?> message, final MessageChannel channel) {
+    try {
       StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
       if (accessor.getCommand() != StompCommand.DISCONNECT && accessor.getCommand() != StompCommand.UNSUBSCRIBE) {
         Authentication auth = tokenAuthenticationService.generateAuthenticationFromStompHeader(message, accessor);

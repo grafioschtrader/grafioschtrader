@@ -26,7 +26,7 @@ public class SecurityCalcService {
 
   @Autowired
   TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
-  
+
   private final SecurityGeneralCalc securityGeneralCalc;
   private final SecurityMarginCalc securityMarginCalc;
 

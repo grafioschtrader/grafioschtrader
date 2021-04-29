@@ -24,8 +24,8 @@ import weka.core.Instances;
 import weka.core.Utils;
 
 /**
- * Train a model to forecast the transaction cost for the for the different trading
- * platform, it does not include other cost like taxes.
+ * Train a model to forecast the transaction cost for the for the different
+ * trading platform, it does not include other cost like taxes.
  * 
  * TODO Integrate it for the estimation of transaction costs
  */
@@ -114,7 +114,6 @@ public class TransactionCostEstimatorWekaTask {
     return dataSet;
   }
 
-
   /**
    * Can be used to check a real transaction cost to the estimated.
    * 
@@ -140,7 +139,8 @@ public class TransactionCostEstimatorWekaTask {
   }
 
   private Classifier loadModelFromStore(Securityaccount securityaccount) {
-    return securityaccount.getWekaModel()!= null ?SerializationUtils.deserialize(securityaccount.getWekaModel()): null;
+    return securityaccount.getWekaModel() != null ? SerializationUtils.deserialize(securityaccount.getWekaModel())
+        : null;
   }
 
 }

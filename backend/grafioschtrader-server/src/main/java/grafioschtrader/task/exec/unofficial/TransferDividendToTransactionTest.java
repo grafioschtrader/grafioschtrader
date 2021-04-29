@@ -32,7 +32,7 @@ public class TransferDividendToTransactionTest implements ITask {
 
   @Autowired
   private DividendJpaRepository dividendJpaRepository;
- 
+
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
 

@@ -56,7 +56,8 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
 
   @Override
   @Transactional
-  public FormTemplateCheck checkFormAgainstTemplate(FormTemplateCheck formTemplateCheck, Locale userLocale) throws Exception {
+  public FormTemplateCheck checkFormAgainstTemplate(FormTemplateCheck formTemplateCheck, Locale userLocale)
+      throws Exception {
     List<ImportTransactionTemplate> importTransactionTemplateList = importTransactionTemplateJpaRepository
         .findByIdTransactionImportPlatformAndTemplateFormatTypeOrderByTemplatePurpose(
             formTemplateCheck.getIdTransactionImportPlatform(), TemplateFormatType.PDF.getValue());
@@ -75,9 +76,8 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
       importTransactionPos.calcDiffCashaccountAmount();
       formTemplateCheck.setImportTransactionPos(importTransactionPos);
       ImportTransactionTemplate importTransactionTemplate = parseInputPDFasTXT.getSuccessTemplate(importPropertiesList);
-      formTemplateCheck
-          .setSuccessParsedTemplateState(new ParsedTemplateState(importTransactionTemplate.getTemplatePurpose(),
-              importTransactionTemplate.getValidSince()));
+      formTemplateCheck.setSuccessParsedTemplateState(new ParsedTemplateState(
+          importTransactionTemplate.getTemplatePurpose(), importTransactionTemplate.getValidSince()));
     } else {
       // Found no matching template
       formTemplateCheck.setFailedParseTemplateStateList(parseInputPDFasTXT.getLastMatchingProperties());
@@ -91,8 +91,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
     Locale userLocale = user.createAndGetJavaLocale();
     return Arrays.stream(Locale.getAvailableLocales()).filter(DataHelper.distinctByKey(Locale::getLanguage))
         .map(loc -> new ValueKeyHtmlSelectOptions(loc.getLanguage(), loc.getDisplayLanguage(userLocale)))
-        .sorted((x, y) -> x.value.compareTo(y.value))
-        .collect(Collectors.toList());
+        .sorted((x, y) -> x.value.compareTo(y.value)).collect(Collectors.toList());
   }
 
 }

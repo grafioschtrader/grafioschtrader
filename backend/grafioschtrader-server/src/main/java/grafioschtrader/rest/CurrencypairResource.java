@@ -53,8 +53,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairJpaRepository.findById(idSecuritycurrency).orElse(null), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns all currency pairs", 
-      description = "", tags = { RequestMappings.CURRENCYPAIR })
+  @Operation(summary = "Returns all currency pairs", description = "", tags = { RequestMappings.CURRENCYPAIR })
   @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> getAllCurrencypairs() {
     return new ResponseEntity<>(currencypairJpaRepository.findAll(), HttpStatus.OK);
@@ -64,7 +63,8 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   public ResponseEntity<Currencypair> findOrCreateCurrencypairByFromAndToCurrency(
       @PathVariable final String baseCurrency, @PathVariable final String quoteCurrency) {
     return new ResponseEntity<>(
-        currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(baseCurrency, quoteCurrency), HttpStatus.OK);
+        currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(baseCurrency, quoteCurrency),
+        HttpStatus.OK);
   }
 
   @GetMapping(value = "/{baseCurrency}/{quoteCurrency}/{dateString}", produces = APPLICATION_JSON_VALUE)
@@ -75,16 +75,16 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     final Currencypair currencypair = this.currencypairJpaRepository.findByFromCurrencyAndToCurrency(baseCurrency,
         quoteCurrency);
     if (currencypair != null) {
-      historyquote = historyquoteJpaRepository
-          .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(currencypair.getIdSecuritycurrency(), dateString, false);
+      historyquote = historyquoteJpaRepository.getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
+          currencypair.getIdSecuritycurrency(), dateString, false);
     }
     final CurrencypairWithHistoryquote currencypairWithHistoryquote = new CurrencypairWithHistoryquote(currencypair,
         historyquote);
     return new ResponseEntity<>(currencypairWithHistoryquote, HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns all connectors of data provider with it supported capabilities",
-      description = "", tags = {RequestMappings.CURRENCYPAIR })
+  @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = "", tags = {
+      RequestMappings.CURRENCYPAIR })
   @GetMapping(value = "/feedConnectors", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IFeedConnector>> getFeedConnectors() {
     return new ResponseEntity<>(currencypairJpaRepository.getFeedConnectors(true), HttpStatus.OK);
@@ -108,8 +108,8 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   ////////////////////////////////////////////////////////////
   // User depended Request
   ////////////////////////////////////////////////////////////
-  @Operation(summary = "Gel all used currency pairs in transactions. That means currency pairs which werse used in all transactions.",
-      description = "A client could merge transactions with this currencypairs", tags = {RequestMappings.CURRENCYPAIR })
+  @Operation(summary = "Gel all used currency pairs in transactions. That means currency pairs which werse used in all transactions.", description = "A client could merge transactions with this currencypairs", tags = {
+      RequestMappings.CURRENCYPAIR })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> getCurrencypairInTransactionByTenant() {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
@@ -123,8 +123,8 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
    * @param idCurrencypair
    * @return
    */
-  @Operation(summary = "Returns all transactions for a certain currency pair of a tenant.",
-      description = "", tags = {RequestMappings.CURRENCYPAIR })
+  @Operation(summary = "Returns all transactions for a certain currency pair of a tenant.", description = "", tags = {
+      RequestMappings.CURRENCYPAIR })
   @GetMapping(value = "/tenant/{idCurrencypair}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CurrencypairWithTransaction> findOrCreateCurrencypairByFromAndToCurrency(
       @PathVariable final Integer idCurrencypair) {

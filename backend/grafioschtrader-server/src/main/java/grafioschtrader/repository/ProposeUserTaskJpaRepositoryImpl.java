@@ -42,12 +42,10 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
 
   @Autowired
   private MessageSource messages;
- 
+
   @Autowired
   UserJpaRepository userJpaRepository;
- 
-  
-  
+
   @Override
   public void createReleaseLougout(Integer idTargetUser, String field, String note) throws Exception {
 

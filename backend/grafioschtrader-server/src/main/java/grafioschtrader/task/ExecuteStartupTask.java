@@ -18,7 +18,8 @@ import grafioschtrader.types.TaskType;
 
 /**
  * Execute Job PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU when it was not executed
- * the day before or there is no existing {@link grafioschtrader.entities.TaskDataChange}. 
+ * the day before or there is no existing
+ * {@link grafioschtrader.entities.TaskDataChange}.
  * 
  * @author Hugo Graf
  *
@@ -28,26 +29,23 @@ public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyE
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
-  
-  
+
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
-
 
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
         .findById(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE);
-    if(gpLastAppend.isEmpty() || gpLastAppend.get().getPropertyDate().isBefore(LocalDate.now().minusDays(1L))) {
-      addDataUpdateTask();      
-    } else if(taskDataChangeJpaRepository.count() == 0) {
+    if (gpLastAppend.isEmpty() || gpLastAppend.get().getPropertyDate().isBefore(LocalDate.now().minusDays(1L))) {
+      addDataUpdateTask();
+    } else if (taskDataChangeJpaRepository.count() == 0) {
       addDataUpdateTask();
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT, (short) 22,
           LocalDateTime.now().plusMinutes(10), null, Tenant.TABNAME));
     }
   }
 
- 
   private void addDataUpdateTask() {
     TaskDataChange taskDataChange = new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU, (short) 10,
         LocalDateTime.now().plusMinutes(5), null, null);

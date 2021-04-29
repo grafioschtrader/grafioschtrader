@@ -34,5 +34,5 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
   List<Transaction> getTransactionsByIdPortfolio(Integer idPortfolio, Integer idTenant);
 
   ClosedMarginUnits getClosedMarginUnitsByIdTransaction(final Integer idTransaction);
-  
+
 }

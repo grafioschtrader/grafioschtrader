@@ -32,10 +32,12 @@ public class SwissquoteTransactionImport extends GenericTransactionImport {
   public void importCSV(ImportTransactionHead importTransactionHead, MultipartFile uploadFile,
       List<ImportTransactionTemplate> importTransactionTemplateList,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale) throws IOException {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
+      throws IOException {
     SwissqouteTransactionImportCSV stic = new SwissqouteTransactionImportCSV(importTransactionHead, uploadFile,
         importTransactionTemplateList);
-    stic.importCSV(importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository, userLocale);
+    stic.importCSV(importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository,
+        userLocale);
   }
 
 }

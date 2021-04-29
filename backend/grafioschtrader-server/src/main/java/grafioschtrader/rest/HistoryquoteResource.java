@@ -65,49 +65,40 @@ public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> 
   @Autowired
   private Validator validator;
 
-  
-  @Operation(summary = "Returns youngest close price before a specified date", description = "", 
-      tags = { RequestMappings.HISTORYQUOTE})
+  @Operation(summary = "Returns youngest close price before a specified date", description = "", tags = {
+      RequestMappings.HISTORYQUOTE })
   @GetMapping(value = "/{idSecuritycurrency}/{dateString}/{asTraded}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ISecuritycurrencyIdDateClose> getIdSecurityAndCertainOrOlderDay(
-      @Parameter(description="Id of security or currency pair", required=true)
-      @PathVariable final Integer idSecuritycurrency, 
-      @Parameter(description="Date as string in format yyyymmdd", required=true)
-      @PathVariable final String dateString,
-      @Parameter(description="Price at that time when true otherweise adjusted price", required=true)
-      @PathVariable final boolean asTraded) throws ParseException {
-    return new ResponseEntity<>(
-        historyquoteJpaRepository.getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idSecuritycurrency, dateString, asTraded),
-        HttpStatus.OK);
+      @Parameter(description = "Id of security or currency pair", required = true) @PathVariable final Integer idSecuritycurrency,
+      @Parameter(description = "Date as string in format yyyymmdd", required = true) @PathVariable final String dateString,
+      @Parameter(description = "Price at that time when true otherweise adjusted price", required = true) @PathVariable final boolean asTraded)
+      throws ParseException {
+    return new ResponseEntity<>(historyquoteJpaRepository.getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
+        idSecuritycurrency, dateString, asTraded), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns historyquotes with its summary of missing quotes", 
-      description = "Missing prices were determined based on the trading calendar.", tags = { RequestMappings.HISTORYQUOTE })
+  @Operation(summary = "Returns historyquotes with its summary of missing quotes", description = "Missing prices were determined based on the trading calendar.", tags = {
+      RequestMappings.HISTORYQUOTE })
   @GetMapping(value = "/securitycurrency/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public <S extends Securitycurrency<S>> ResponseEntity<HistoryquotesWithMissings<S>> getHistoryqoutesByIdSecuritycurrency(
-      @Parameter(description="Id of security or currency pair", required=true)
-      @PathVariable final Integer idSecuritycurrency, 
-      @Parameter(description="True if it is a currency pair", required=true)
-      @RequestParam() final boolean isCurrencypair)
+      @Parameter(description = "Id of security or currency pair", required = true) @PathVariable final Integer idSecuritycurrency,
+      @Parameter(description = "True if it is a currency pair", required = true) @RequestParam() final boolean isCurrencypair)
       throws InterruptedException, ExecutionException {
     return new ResponseEntity<>(
         historyquoteJpaRepository.getHistoryqoutesByIdSecuritycurrencyWithMissing(idSecuritycurrency, isCurrencypair),
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Return the close prices of a security or currency pair", description = "Includes only date and close price", 
-      tags = { RequestMappings.HISTORYQUOTE })
+  @Operation(summary = "Return the close prices of a security or currency pair", description = "Includes only date and close price", tags = {
+      RequestMappings.HISTORYQUOTE })
   @GetMapping(value = "/securitycurrency/{idSecuritycurrency}/dateclose", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IDateAndClose>> getDateCloseByIdSecuritycurrency(
-      @Parameter(description="Id of security or currency pair", required=true)
-      @PathVariable final Integer idSecuritycurrency) {
+      @Parameter(description = "Id of security or currency pair", required = true) @PathVariable final Integer idSecuritycurrency) {
     return new ResponseEntity<>(historyquoteJpaRepository.getHistoryquoteDateClose(idSecuritycurrency), HttpStatus.OK);
   }
 
- 
-  @Operation(summary = "Returns the meta data model for all tecnical indicators like SMA, EMA ", 
-      description = "May be used to for the UI to build a dynamic form", 
-      tags = { RequestMappings.HISTORYQUOTE })
+  @Operation(summary = "Returns the meta data model for all tecnical indicators like SMA, EMA ", description = "May be used to for the UI to build a dynamic form", tags = {
+      RequestMappings.HISTORYQUOTE })
   @GetMapping(value = "/alltaforms", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Map<TaIndicators, TaFormDefinition>> getAllTaForms() {
     return new ResponseEntity<>(TaIndicatorHelper.getTaFormMap(), HttpStatus.OK);
@@ -131,44 +122,37 @@ public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> 
     return new ResponseEntity<>(taTraceIndicatorData, HttpStatus.OK);
   }
 
-  
-  @Operation(summary = "Returns the supported separators for numbers and the date formats", 
-      description = "May be used to show this selection in the UI", 
-      tags = { RequestMappings.HISTORYQUOTE })
+  @Operation(summary = "Returns the supported separators for numbers and the date formats", description = "May be used to show this selection in the UI", tags = {
+      RequestMappings.HISTORYQUOTE })
   @GetMapping(value = "/supportedcsvformat", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SupportedCSVFormats> getPossibleCSVFormats() {
     return new ResponseEntity<>(new SupportedCSVFormats(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Import delimited data to EOD", description = "", 
-      tags = { RequestMappings.HISTORYQUOTE })
+  @Operation(summary = "Import delimited data to EOD", description = "", tags = { RequestMappings.HISTORYQUOTE })
   @PostMapping(value = "/{idSecuritycurrency}/uploadhistoryquotes", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<UploadHistoryquotesSuccess> uploadPdfTransactions(
-      @PathVariable() Integer idSecuritycurrency, @RequestParam("file") MultipartFile[] uploadFiles,
-      @RequestParam(required = false) char decimalSeparator,
-      @RequestParam(required = false) char thousandSeparator,
-      @RequestParam(required = false) String dateFormat) throws Exception {
+  public ResponseEntity<UploadHistoryquotesSuccess> uploadPdfTransactions(@PathVariable() Integer idSecuritycurrency,
+      @RequestParam("file") MultipartFile[] uploadFiles, @RequestParam(required = false) char decimalSeparator,
+      @RequestParam(required = false) char thousandSeparator, @RequestParam(required = false) String dateFormat)
+      throws Exception {
 
     HistoryquoteImport historyquoteImport = new HistoryquoteImport(historyquoteJpaRepository, validator);
     return new ResponseEntity<>(historyquoteImport.uploadHistoryquotes(idSecuritycurrency, uploadFiles,
         new SupportedCSVFormat(decimalSeparator, thousandSeparator, dateFormat)), HttpStatus.OK);
   }
 
-  @Operation(summary = "Delete linear filled and/or manual imported quotes", description = "", 
-      tags = { RequestMappings.HISTORYQUOTE })
+  @Operation(summary = "Delete linear filled and/or manual imported quotes", description = "", tags = {
+      RequestMappings.HISTORYQUOTE })
   @DeleteMapping(value = "/delete/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<DeleteHistoryquotesSuccess> deleteHistoryquotesByCreateTypes(
-      @Parameter(description="Id of security or currency pair", required=true)
-      @PathVariable Integer idSecuritycurrency,
-      @Parameter(description="Possible values 2 (MANUAL_IMPORTED) or 3 (FILLED_CLOSED_LINEAR_TRADING_DAY)", required=true)
-      @RequestParam(value = "createTypes") List<Byte> historyquoteCreateTypesAsBytes) {
+      @Parameter(description = "Id of security or currency pair", required = true) @PathVariable Integer idSecuritycurrency,
+      @Parameter(description = "Possible values 2 (MANUAL_IMPORTED) or 3 (FILLED_CLOSED_LINEAR_TRADING_DAY)", required = true) @RequestParam(value = "createTypes") List<Byte> historyquoteCreateTypesAsBytes) {
     return new ResponseEntity<>(
         historyquoteJpaRepository.deleteHistoryquotesByCreateTypes(idSecuritycurrency, historyquoteCreateTypesAsBytes),
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Delete single history quote", description = "", 
-      tags = { RequestMappings.HISTORYQUOTE })
+  @Operation(summary = "Delete single history quote", description = "", tags = { RequestMappings.HISTORYQUOTE })
   @DeleteMapping(value = "/{idHistoryquote}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteHistoryquote(@PathVariable final Integer idHistoryquote) {
 

@@ -39,7 +39,7 @@ public class SecurityTransactionCostReport {
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
-  
+
   @Autowired
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 

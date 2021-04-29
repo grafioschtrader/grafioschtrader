@@ -20,3 +20,6 @@ Nach der installation von GT und mit dem **ersten Start** des **Back-End** werde
 
 ### Neue Versionen
 Seit der **Version 0.10.0** werden die Daten der Datenbank migriert, d.h Sie können GT produktiv einsetzen. Ihre Daten werden mit einem Versionswechsel automatisch in die neue Version migriert.
+
+In diesem Video wird dies ausführlich erklärt:
+{{< youtube NiCT8B076-0 >}}

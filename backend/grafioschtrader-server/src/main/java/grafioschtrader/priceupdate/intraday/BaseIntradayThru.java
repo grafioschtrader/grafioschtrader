@@ -28,13 +28,14 @@ public abstract class BaseIntradayThru<S extends Securitycurrency<S>> implements
   @Override
   public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry) {
     final int scIntradayUpdateTimeout = globalparametersJpaRepository.getSecurityCurrencyIntradayUpdateTimeout();
-    if(securtycurrencies.size() > 1) {
-    ThreadHelper.executeForkJoinPool(() -> securtycurrencies.parallelStream().forEach(
-        securitycurrency -> updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout)),
-        4);
-    } else if(securtycurrencies.size() == 1) {
-      securtycurrencies.set(0, 
-      updateLastPriceSecurityCurrency(securtycurrencies.get(0), maxIntraRetry, scIntradayUpdateTimeout));
+    if (securtycurrencies.size() > 1) {
+      ThreadHelper.executeForkJoinPool(() -> securtycurrencies.parallelStream()
+          .forEach(securitycurrency -> updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry,
+              scIntradayUpdateTimeout)),
+          4);
+    } else if (securtycurrencies.size() == 1) {
+      securtycurrencies.set(0,
+          updateLastPriceSecurityCurrency(securtycurrencies.get(0), maxIntraRetry, scIntradayUpdateTimeout));
     }
     return securtycurrencies;
   }

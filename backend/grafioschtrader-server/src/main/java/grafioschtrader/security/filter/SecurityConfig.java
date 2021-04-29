@@ -54,7 +54,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     http.exceptionHandling().and().anonymous().and().servletApi().and().headers().cacheControl();
 
     http.authorizeRequests()
-         // It must be accessible before login
+        // It must be accessible before login
         .antMatchers(HttpMethod.GET, "/api/globalparameters/locales").permitAll()
         .antMatchers(HttpMethod.GET, "/api/globalparameters/properties/*").permitAll().antMatchers("/").permitAll()
         .antMatchers(HttpMethod.GET, "/api/actuator/**").permitAll()

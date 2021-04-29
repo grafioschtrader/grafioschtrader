@@ -25,11 +25,9 @@ public interface HoldCashaccountDepositJpaRepository extends
   @Query(nativeQuery = true)
   List<CashaccountForeignExChangeRate> getCashaccountForeignExChangeRateByIdTenant(Integer idTenant);
 
-  
   @Query(nativeQuery = true)
   List<CashaccountForeignExChangeRate> getCashaccountForeignExChangeRate();
 
-  
   void removeByIdTenant(Integer idTenant);
 
   @Transactional
@@ -46,7 +44,7 @@ public interface HoldCashaccountDepositJpaRepository extends
 
   @Query(nativeQuery = true)
   List<HoldCashaccountDeposit> getPrevHoldingRecords();
-   
+
   public static interface CashaccountForeignExChangeRate {
     public LocalDate getDate();
 

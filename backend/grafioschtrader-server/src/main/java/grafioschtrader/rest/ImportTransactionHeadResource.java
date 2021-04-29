@@ -41,8 +41,8 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
     super(ImportTransactionHead.class);
   }
 
-  @Operation(summary = "Return all import transaction head for a specified security account", description = "", 
-      tags = { RequestMappings.IMPORTTRANSACTIONHEAD})
+  @Operation(summary = "Return all import transaction head for a specified security account", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONHEAD })
   @GetMapping(value = "/securityaccount/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionHead>> getImportTransactionHeadBySecurityaccount(
       @PathVariable final Integer idSecuritycashaccount) {
@@ -52,24 +52,22 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
         HttpStatus.OK);
   }
 
- 
-  @Operation(summary = "Upload one or more PDF/CSV/Txt files, each for a single transaction.", description = "", 
-      tags = { RequestMappings.IMPORTTRANSACTIONHEAD})
+  @Operation(summary = "Upload one or more PDF/CSV/Txt files, each for a single transaction.", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONHEAD })
   @PostMapping(value = "/{idSecuritycashaccount}/uploadpdftransactions", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessFailedDirectImportTransaction> uploadPdfTransactions(
-      @PathVariable() Integer idSecuritycashaccount,
-      @RequestParam("file") MultipartFile[] uploadFiles) throws Exception {
+      @PathVariable() Integer idSecuritycashaccount, @RequestParam("file") MultipartFile[] uploadFiles)
+      throws Exception {
     return new ResponseEntity<>(
         importTransactionHeadJpaRepository.uploadPdfFileSecurityAccountTransactions(idSecuritycashaccount, uploadFiles),
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Upload of different kind of transaction files with a existing transaction head record.", description = "", 
-      tags = { RequestMappings.IMPORTTRANSACTIONHEAD})
+  @Operation(summary = "Upload of different kind of transaction files with a existing transaction head record.", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONHEAD })
   @PostMapping(value = "/{idTransactionHead}/uploadtransaction", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> uploadCsvFileSecurityAccountTransactions(
-      @PathVariable() Integer idTransactionHead, @RequestParam("file") MultipartFile[] uploadFiles)
-      throws Exception {
+  public ResponseEntity<Void> uploadCsvFileSecurityAccountTransactions(@PathVariable() Integer idTransactionHead,
+      @RequestParam("file") MultipartFile[] uploadFiles) throws Exception {
     importTransactionHeadJpaRepository.uploadCsvPdfTxtFileSecurityAccountTransactions(idTransactionHead, uploadFiles);
     return ResponseEntity.noContent().build();
   }

@@ -51,8 +51,8 @@ public class PerformanceReport {
   @Autowired
   PortfolioJpaRepository portfolioJpaRepository;
 
-  PassiveExpiringMap<PortfolioOrTenantKey, FirstAndMissingTradingDays> firstAndMissingTradingDaysMap = 
-      new PassiveExpiringMap<>(120_000);
+  PassiveExpiringMap<PortfolioOrTenantKey, FirstAndMissingTradingDays> firstAndMissingTradingDaysMap = new PassiveExpiringMap<>(
+      120_000);
 
   public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByTenant()
       throws InterruptedException, ExecutionException {

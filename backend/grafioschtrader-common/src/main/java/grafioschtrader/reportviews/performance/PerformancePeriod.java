@@ -15,19 +15,19 @@ import java.util.stream.LongStream;
 import grafioschtrader.common.DataHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Contains the data for period performance") 
+@Schema(description = "Contains the data for period performance")
 public class PerformancePeriod {
   public final static int PERIOD_WEEK = 5;
   public final static int PERIOD_YEAR = 12;
 
   private final WeekYear periodSplit;
-  
+
   @Schema(description = "Totals of the first day in the period")
   private final PeriodHoldingAndDiff firstDayTotals;
-  
+
   @Schema(description = "Totals of the last in the period")
   private final PeriodHoldingAndDiff lastDayTotals;
-  
+
   @Schema(description = "The difference between the first and last day of the period")
   private final PeriodHoldingAndDiff difference;
   private final double[] sumPeriodColSteps;

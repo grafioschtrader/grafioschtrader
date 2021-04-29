@@ -1,0 +1,2 @@
+UPDATE securitycurrency SET url_history_extend = NULL WHERE id_connector_history IS NULL;
+UPDATE securitycurrency SET url_intra_extend = NULL WHERE id_connector_intra IS NULL;

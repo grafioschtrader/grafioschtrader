@@ -15,8 +15,9 @@ import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
-/** 
- * It reads the EOD day from external resources and the dividend, split calendars. 
+/**
+ * It reads the EOD day from external resources and the dividend, split
+ * calendars.
  * 
  * Should run on every day but Sunday is not required.
  *
@@ -27,7 +28,7 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
-  
+
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
 
@@ -35,17 +36,17 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  private  SplitCalendarAppender splitCalendarAppender;
-  
+  private SplitCalendarAppender splitCalendarAppender;
+
   @Autowired
   private HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
-  
+
   @Autowired
   private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
   @Scheduled(cron = "${gt.eod.cron.quotation}", zone = "UTC")
   public void catchAllUpSecuritycurrencyHistoryquote() {
-    TaskDataChange taskDataChange =  new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU, (short) 5);
+    TaskDataChange taskDataChange = new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU, (short) 5);
     taskDataChangeRepository.save(taskDataChange);
   }
 

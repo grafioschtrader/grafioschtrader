@@ -83,9 +83,10 @@ public class HoldCashaccountDeposit extends HoldBase {
 
   @Override
   public String toString() {
-    return "HoldCashaccountDeposit [holdCashaccountKey=" + holdCashaccountKey + ", toHoldDate=" + toHoldDate + ", deposit=" + deposit
-        + ", depositPortfolioCurrency=" + depositPortfolioCurrency + ", depositTenantCurrency=" + depositTenantCurrency
-        + ", idTenant=" + idTenant + ", idPortfolio=" + idPortfolio + ", validTimestamp=" + validTimestamp + "]";
+    return "HoldCashaccountDeposit [holdCashaccountKey=" + holdCashaccountKey + ", toHoldDate=" + toHoldDate
+        + ", deposit=" + deposit + ", depositPortfolioCurrency=" + depositPortfolioCurrency + ", depositTenantCurrency="
+        + depositTenantCurrency + ", idTenant=" + idTenant + ", idPortfolio=" + idPortfolio + ", validTimestamp="
+        + validTimestamp + "]";
   }
 
   public static class HoldCashaccountDepositKey implements Serializable {
@@ -97,7 +98,7 @@ public class HoldCashaccountDeposit extends HoldBase {
 
     @Column(name = "from_hold_date")
     private LocalDate fromHoldDate;
-    
+
     public HoldCashaccountDepositKey() {
     }
 
@@ -107,9 +108,6 @@ public class HoldCashaccountDeposit extends HoldBase {
       this.fromHoldDate = fromHoldDate;
     }
 
-    
-    
-    
     public Integer getIdSecuritycashAccount() {
       return idSecuritycashAccount;
     }

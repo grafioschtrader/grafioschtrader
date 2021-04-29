@@ -22,8 +22,7 @@ public abstract class UpdateCreateDeleteAuditResource<T extends BaseID> extends 
   @Override
   protected abstract UpdateCreateJpaRepository<T> getUpdateCreateJpaRepository();
 
-  @Operation(summary = "Delete a record of an enity by its Id, it is for entities which share data", 
-      description = "User privileges are checked for deletion" )
+  @Operation(summary = "Delete a record of an enity by its Id, it is for entities which share data", description = "User privileges are checked for deletion")
   @DeleteMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteResource(@PathVariable final Integer id) {
     deleteById(id);

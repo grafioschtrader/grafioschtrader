@@ -46,7 +46,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
     ;
     Date now = new Date();
     if (feedConnector != null && (securitycurrency.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
-        && securitycurrency.isActiveForIntradayUpdate(securitycurrency, now)
+        && securitycurrency.isActiveForIntradayUpdate(now)
         && allowDelayedIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)) {
       try {
         intraEntityAccess.updateIntraSecurityCurrency(securitycurrency, feedConnector);
@@ -72,7 +72,6 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
           : feedConnector.getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency);
     }
   }
-  
 
   private boolean allowDelayedIntradayUpdate(final S securitycurrency, final IFeedConnector feedConnector,
       final int scIntradayUpdateTimeout) {

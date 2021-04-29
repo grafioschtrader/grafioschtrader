@@ -5,15 +5,15 @@ public enum SpecialInvestmentInstruments {
   // Can have dividends
   DIRECT_INVESTMENT((byte) 0),
   // Can have dividends
-  ETF((byte) 1), 
+  ETF((byte) 1),
   // Can have dividends
-  MUTUAL_FUND((byte) 2), 
+  MUTUAL_FUND((byte) 2),
   // Can have dividends
   PENSION_FUNDS((byte) 3),
   // Can never have dividends
   CFD((byte) 4),
   // Can never have dividends
-  FOREX((byte) 5), 
+  FOREX((byte) 5),
   // Can never have dividends
   NON_INVESTABLE_INDICES((byte) 10);
 

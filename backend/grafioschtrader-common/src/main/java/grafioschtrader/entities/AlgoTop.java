@@ -13,7 +13,7 @@ import grafioschtrader.algo.RuleStrategy;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 
 /**
- * Algorithmic tranding  top level. It does not include the depending children.
+ * Algorithmic tranding top level. It does not include the depending children.
  * 
  * 
  * @author Hugo Graf
@@ -23,7 +23,7 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 @Table(name = AlgoTop.TABNAME)
 @DiscriminatorValue("T")
 public class AlgoTop extends AlgoTopAssetSecurity {
-  
+
   public static final String TABNAME = "algo_top";
 
   private static final long serialVersionUID = 1L;
@@ -48,7 +48,7 @@ public class AlgoTop extends AlgoTopAssetSecurity {
 
   @Column(name = "activatable")
   private boolean activatable;
-  
+
   @Transient
   public Float addedPercentage;
 

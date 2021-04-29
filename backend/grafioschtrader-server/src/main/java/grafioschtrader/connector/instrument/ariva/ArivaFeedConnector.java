@@ -27,12 +27,10 @@ public class ArivaFeedConnector extends BaseFeedConnector {
 
   /*-
    * Stocks, Bond, ETF:
-   * Siehe https://forum.portfolio-performance.info/t/daten-kurs-fundamental-von-ariva-de-importieren/444
-   * iShares STOXX Global Select Dividend 100 UCITS ETF (DE)
-   * 102519136
+   * Look https://forum.portfolio-performance.info/t/daten-kurs-fundamental-von-ariva-de-importieren/444
    * http://www.ariva.de/quote/historic/historic.csv?secu=102519136&boerse_id=6&clean_split=1&clean_payout=0&clean_bezug=1&min_time=14.1.2000&max_time=14.1.2017&trenner=%3B&go=Download
    * http://www.ariva.de/quote/historic/historic.csv?secu=102519136&boerse_id=12&clean_split=1&clean_payout=0&clean_bezug=1&min_time=14.1.2000&max_time=09.03.2018&trenner=%3B&go=Download
- 
+  
    *
    * Dividend:
    * Dividend data not supported because they are not exactly, and prices may be in EUR instead of the stock currency.
@@ -40,10 +38,9 @@ public class ArivaFeedConnector extends BaseFeedConnector {
    * Splits:
    * Splits are mixed with dividends, please refere to https://www.ariva.de/apple-aktie/historische_ereignisse 
    */
-  private static String DATE_FORMAT_GE = "dd.MM.yyyy";
-
-  private static int TIMEOUT = 15000;
-
+  private static final String DATE_FORMAT_GE = "dd.MM.yyyy";
+  private static final int TIMEOUT = 15000;
+  private static final String URL_EXTENDED_REGEX = "^\\d+&boerse_id=\\d+(&currency=[A-Za-z]{3})?$";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   static {
@@ -52,7 +49,7 @@ public class ArivaFeedConnector extends BaseFeedConnector {
   }
 
   public ArivaFeedConnector() {
-    super(supportedFeed, "ariva", "Ariva");
+    super(supportedFeed, "ariva", "Ariva", URL_EXTENDED_REGEX);
   }
 
   @Override

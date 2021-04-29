@@ -23,6 +23,10 @@ import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 
+/**
+ * User for historical currency pair prices.
+ * 
+ */
 @Component
 public class ExchangerateHostFeedConnector extends BaseFeedConnector {
 
@@ -39,7 +43,7 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
   }
 
   public ExchangerateHostFeedConnector() {
-    super(supportedFeed, "exchangeratehosts", "exchange.host");
+    super(supportedFeed, "exchangeratehosts", "exchange.host", null);
   }
 
   @Override
@@ -68,7 +72,8 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
     do {
 
       long days = DateHelper.getDateDiff(startDate, toDate, TimeUnit.DAYS);
-      endDate = days > READ_TIME_SERIE_LIMIT? DateHelper.setTimeToZeroAndAddDay(startDate, READ_TIME_SERIE_LIMIT): toDate;
+      endDate = days > READ_TIME_SERIE_LIMIT ? DateHelper.setTimeToZeroAndAddDay(startDate, READ_TIME_SERIE_LIMIT)
+          : toDate;
 
       log.debug("From Date: {}", startDate);
       log.debug("To Date: {}", endDate);

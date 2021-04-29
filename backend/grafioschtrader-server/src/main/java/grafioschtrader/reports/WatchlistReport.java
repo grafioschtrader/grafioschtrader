@@ -128,7 +128,8 @@ public class WatchlistReport {
         .forEach(securitycurrencyPosition -> combineSecuritycurrencyHistoryquote(securitycurrencyPosition,
             searchHistoryquote, historyquotes, historyquoteComparator));
 
-    this.markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds, currencypairIsUsedElsewhereIds);
+    this.markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds,
+        currencypairIsUsedElsewhereIds);
     return securitycurrencyGroup;
   }
 
@@ -142,7 +143,8 @@ public class WatchlistReport {
     }
   }
 
-  public SecuritycurrencyGroup getWatchlistForSplitAndDividend(final Integer idWatchlist) throws InterruptedException, ExecutionException {
+  public SecuritycurrencyGroup getWatchlistForSplitAndDividend(final Integer idWatchlist)
+      throws InterruptedException, ExecutionException {
 
     final CompletableFuture<Set<Integer>> securitiesIdsCF = CompletableFuture
         .supplyAsync(() -> watchlistJpaRepository.hasSplitOrDividendByWatchlist(idWatchlist));
@@ -154,14 +156,15 @@ public class WatchlistReport {
         securitiesIsUsedElsewhereCF.get(), currencypairIsUsedElsewhereCF.get());
   }
 
-  private SecuritycurrencyGroup combineWatchlistWithDividendSplitMark(final SecuritycurrencyGroup securitycurrencyGroup, Set<Integer> securitiesIds, 
-         final int[] securitiesIsUsedElsewhereIds, final int[] currencypairIsUsedElsewhereIds) {
-    markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds, currencypairIsUsedElsewhereIds);
-    securitycurrencyGroup.securityPositionList.forEach(spl -> spl.watchlistSecurityHasEver = securitiesIds.contains(spl.securitycurrency.getIdSecuritycurrency()));
+  private SecuritycurrencyGroup combineWatchlistWithDividendSplitMark(final SecuritycurrencyGroup securitycurrencyGroup,
+      Set<Integer> securitiesIds, final int[] securitiesIsUsedElsewhereIds,
+      final int[] currencypairIsUsedElsewhereIds) {
+    markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds,
+        currencypairIsUsedElsewhereIds);
+    securitycurrencyGroup.securityPositionList.forEach(
+        spl -> spl.watchlistSecurityHasEver = securitiesIds.contains(spl.securitycurrency.getIdSecuritycurrency()));
     return securitycurrencyGroup;
   }
-
- 
 
   /////////////////////////////////////////////////////////////
   // Get Watchlist - Report
@@ -318,20 +321,20 @@ public class WatchlistReport {
             historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame, securitysplitMap),
         watchlist.getLastTimestamp(), watchlist.getIdWatchlist());
 
-    markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds, currencypairIsUsedElsewhereIds);
+    markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds,
+        currencypairIsUsedElsewhereIds);
     markWatchlistSecurityHasEverTransactionTenant(watchlistSecuritesHasTransactionIds,
         securitycurrencyGroup.securityPositionList);
 
     return securitycurrencyGroup;
   }
-  
+
   private void markForUsedSecurityCurrencypairs(final SecuritycurrencyGroup securitycurrencyGroup,
       final int[] securitiesIsUsedElsewhereIds, final int[] currencypairIsUsedElsewhereIds) {
     markSecurityCurrencypairsIsUsedElsewhere(securitiesIsUsedElsewhereIds, securitycurrencyGroup.securityPositionList);
     markSecurityCurrencypairsIsUsedElsewhere(currencypairIsUsedElsewhereIds,
         securitycurrencyGroup.currencypairPositionList);
   }
-  
 
   private <T extends Securitycurrency<T>> void markSecurityCurrencypairsIsUsedElsewhere(
       final int[] securitiesCurrencypairsIsUsedElsewhereIds,
@@ -345,9 +348,9 @@ public class WatchlistReport {
       final int[] watchlistSecuritesHasTransactionIds,
       final List<SecuritycurrencyPosition<T>> securitycurrencyPositionList) {
     securitycurrencyPositionList
-        .forEach(securitycurrencyPosition -> securitycurrencyPosition.watchlistSecurityHasEver = Arrays
-            .binarySearch(watchlistSecuritesHasTransactionIds,
-                securitycurrencyPosition.securitycurrency.getIdSecuritycurrency().intValue()) >= 0);
+        .forEach(securitycurrencyPosition -> securitycurrencyPosition.watchlistSecurityHasEver = Arrays.binarySearch(
+            watchlistSecuritesHasTransactionIds,
+            securitycurrencyPosition.securitycurrency.getIdSecuritycurrency().intValue()) >= 0);
   }
 
   private <S extends Securitycurrency<S>> List<SecuritycurrencyPosition<S>> setDailyChangeAndTimeFrameChange(

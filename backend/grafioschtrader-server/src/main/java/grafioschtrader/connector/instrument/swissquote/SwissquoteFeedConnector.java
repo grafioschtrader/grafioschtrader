@@ -23,21 +23,20 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 
 /**
- * Stock, Bond, ETF:
- * https://www.swissquote.ch/mobile/public/wc/h.a?l=en
+ * Stock, Bond, ETF: https://www.swissquote.ch/mobile/public/wc/h.a?l=en
  * Swissquote connector supports only last prices for securities and currencies.
  * 
- * Dividend: Not Supported 
- * Splits: Not Supported
+ * Dividend: Not Supported Splits: Not Supported
  *
  */
 @Component
 public class SwissquoteFeedConnector extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  private static String BASE_URL = "http://www.swissquote.ch/mobile/public/wc/mq.a?s=";
+  private static String BASE_URL = "https://www.swissquote.ch/mobile/public/wc/mq.a?s=";
   private static String BASE_URL_SUFFIX = "&l=en";
   private static Locale SQ_LOCALE = new Locale("de", "CH");
+  private static final String URL_EXTENDED_REGEX = "^(([A-Z]{2})([A-Z0-9]{9,10})([0-9]{1})(_[A-Za-z0-9]{1,3}_[A-Za-z]{3})?)|([A-Za-z0-9]{1,6})$";
 
   private final static int MAX_NOF_THREADS = 5;
   private final Semaphore sqMaxRunning = new Semaphore(MAX_NOF_THREADS);
@@ -48,7 +47,7 @@ public class SwissquoteFeedConnector extends BaseFeedConnector {
   }
 
   public SwissquoteFeedConnector() {
-    super(supportedFeed, "swissquote", "Swissquote");
+    super(supportedFeed, "swissquote", "Swissquote", URL_EXTENDED_REGEX);
   }
 
   @Override
@@ -88,7 +87,6 @@ public class SwissquoteFeedConnector extends BaseFeedConnector {
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-
     try {
       sqMaxRunning.acquire();
       final Connection swissquoteConnection = Jsoup.connect(getCurrencypairIntradayDownloadLink(currencypair));

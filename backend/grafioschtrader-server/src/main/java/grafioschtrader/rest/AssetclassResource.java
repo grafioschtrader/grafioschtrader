@@ -36,8 +36,7 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
   @Autowired
   AssetclassJpaRepository assetclassJpaRepository;
 
-  @Operation(summary = "Returns all asset classes sorted", description = "", 
-      tags = { RequestMappings.ALGOASSETCLASS })
+  @Operation(summary = "Returns all asset classes sorted", description = "", tags = { RequestMappings.ALGOASSETCLASS })
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Assetclass>> getAllAssetclass() {
     return new ResponseEntity<>(assetclassJpaRepository.findAll(), HttpStatus.OK);
@@ -63,7 +62,6 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
     return new ResponseEntity<>(Assetclass.possibleInstrumentsMap, HttpStatus.OK);
   }
 
-  
   @GetMapping(value = "/watchlist/{idWatchlist}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Assetclass>> getInvestableAssetclassesByWatchlist(
       @PathVariable final Integer idWatchlist) {

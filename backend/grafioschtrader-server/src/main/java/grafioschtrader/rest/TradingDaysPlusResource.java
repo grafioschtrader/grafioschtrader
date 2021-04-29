@@ -28,15 +28,15 @@ public class TradingDaysPlusResource {
   @Autowired
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
-  @Operation(summary = "Returns all possible tranding days of year", description = "", 
-      tags = { RequestMappings.TRADINGDAYSPLUS })
+  @Operation(summary = "Returns all possible tranding days of year", description = "", tags = {
+      RequestMappings.TRADINGDAYSPLUS })
   @GetMapping(value = "/{year}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TradingDaysWithDateBoundaries> getTradingDaysByYear(@PathVariable final int year) {
     return new ResponseEntity<>(tradingDaysPlusJpaRepository.getTradingDaysByYear(year), HttpStatus.OK);
   }
 
-  @Operation(summary = "Save trading days of year", description = "Only admin can change this calendar", 
-      tags = { RequestMappings.TRADINGDAYSPLUS })
+  @Operation(summary = "Save trading days of year", description = "Only admin can change this calendar", tags = {
+      RequestMappings.TRADINGDAYSPLUS })
   @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TradingDaysWithDateBoundaries> deleteAndCreateMultiple(
       @Valid @RequestBody final SaveTradingDays saveTradingDaysPlus) {

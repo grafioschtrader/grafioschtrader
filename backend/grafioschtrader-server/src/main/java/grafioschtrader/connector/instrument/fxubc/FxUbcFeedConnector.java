@@ -51,15 +51,14 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int CONNECTION_TIMEOUT = 8000;
-  
-  
+
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
   }
 
   public FxUbcFeedConnector() {
-    super(supportedFeed, "fxubc", "Pacific Exchange Rate Service");
+    super(supportedFeed, "fxubc", "Pacific Exchange Rate Service", null);
   }
 
   @Override
@@ -98,7 +97,7 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
         toDate.add(Calendar.DATE, -1);
         startDate.add(Calendar.DATE, 1);
       }
-      
+
       List<Historyquote> h = getQuotes(currencyPair, dateFormat, startDate, toDate);
 
       long days = DateHelper.getDateDiff(startDate.getTime(), toDate.getTime(), TimeUnit.DAYS);
@@ -112,7 +111,6 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
         historyquotes.addAll(h);
       }
 
-     
       toDate = (Calendar) startDate.clone();
       toDate.add(Calendar.DATE, -1);
       againstLoseDataCounter++;

@@ -43,7 +43,8 @@ public class SecurityGeneralUnitsCheck {
     transactionAfter.forEach(transaction -> {
       checkUnitsIntegrity(securitySplitMap, security, transaction, transactionTimeUnits, dataViolationException);
       if (!transactionTimeUnits.isEmpty() && transactionTimeUnits.get(0).units < 0.0) {
-        dataViolationException.addDataViolation(GlobalConstants.UNITS, "units.less.zero", transaction.getTransactionTime());
+        dataViolationException.addDataViolation(GlobalConstants.UNITS, "units.less.zero",
+            transaction.getTransactionTime());
       }
     });
 
@@ -94,7 +95,8 @@ public class SecurityGeneralUnitsCheck {
       break;
     case DIVIDEND:
       if (!checkDividendUnits(unitsSplited, transaction, transactionTimeUnits)) {
-        dataViolationException.addDataViolation(GlobalConstants.UNITS, "dividend.units.exceeds", transaction.getTransactionTime());
+        dataViolationException.addDataViolation(GlobalConstants.UNITS, "dividend.units.exceeds",
+            transaction.getTransactionTime());
       }
       break;
     default:

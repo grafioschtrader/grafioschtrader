@@ -8,8 +8,8 @@ public class GlobalConstants {
   /**
    * Supported languages in this application
    */
-  public static final List<String> GT_LANGUAGE_CODES = Arrays.asList("de", "en"); 
-  
+  public static final List<String> GT_LANGUAGE_CODES = Arrays.asList("de", "en");
+
   /**
    * If a record is created by the system id gets this id
    */
@@ -37,13 +37,12 @@ public class GlobalConstants {
   public static final int OLDEST_TRADING_YEAR = 2000;
   public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2025-12-31";
 
-  
   public static final int MAX_LOGIN_ATTEMPT = 5;
   /**
    * Time in milliseconds
    */
   public static final int SUSPEND_IP_ADDRESS_TIME = 60 * 60 * 24 * 1000;
-  
+
   /**
    * The standard note text size
    */

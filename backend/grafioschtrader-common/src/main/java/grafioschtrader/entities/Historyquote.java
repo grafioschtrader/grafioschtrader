@@ -36,7 +36,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  */
 @Entity
 @Table(name = Historyquote.TABNAME)
-@Schema(description = "Contains a single qoute for end of day data") 
+@Schema(description = "Contains a single qoute for end of day data")
 public class Historyquote extends ProposeTransientTransfer implements Serializable {
 
   public static final String TABNAME = "historyquote";
@@ -46,7 +46,7 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_history_quote")
   private Integer idHistoryQuote;
-    
+
   @Schema(description = "Trading date to which these data belong")
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
@@ -93,7 +93,6 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
   @Temporal(TemporalType.TIMESTAMP)
   private Date createModifyTime;
 
-  
   @Column(name = "id_securitycurrency")
   private Integer idSecuritycurrency;
 
@@ -142,11 +141,9 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     this.idHistoryQuote = idhistoryQuote;
   }
 
-    
   public Date getDate() {
     return date;
   }
-
 
   public void setDate(Date date) {
     this.date = date;

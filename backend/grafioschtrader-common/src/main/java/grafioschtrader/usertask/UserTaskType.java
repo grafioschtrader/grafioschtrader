@@ -8,7 +8,8 @@ public enum UserTaskType {
    */
   RELEASE_LOGOUT((byte) 0),
   /**
-   * Used for user entity change limit, for example number of CUD on stock exchange
+   * Used for user entity change limit, for example number of CUD on stock
+   * exchange
    */
   LIMIT_CUD_CHANGE((byte) 1);
 

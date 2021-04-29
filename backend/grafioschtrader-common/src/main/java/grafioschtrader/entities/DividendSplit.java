@@ -16,11 +16,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @MappedSuperclass
 public abstract class DividendSplit extends BaseID {
-  
+
   @Basic(optional = false)
   @Column(name = "id_securitycurrency")
   protected Integer idSecuritycurrency;
-  
+
   @Schema(description = "Who has crated this EOD record")
   @Column(name = "create_type")
   @NotNull
@@ -34,17 +34,16 @@ public abstract class DividendSplit extends BaseID {
 
   @JsonIgnore
   public abstract Date getEventDate();
-  
-  
+
   public DividendSplit() {
   }
-  
+
   public DividendSplit(Integer idSecuritycurrency, CreateType createType) {
     super();
     this.idSecuritycurrency = idSecuritycurrency;
     this.createType = createType.getValue();
   }
-  
+
   public Integer getIdSecuritycurrency() {
     return idSecuritycurrency;
   }
@@ -53,7 +52,6 @@ public abstract class DividendSplit extends BaseID {
     this.idSecuritycurrency = idSecuritycurrency;
   }
 
-  
   public CreateType getCreateType() {
     return CreateType.getCreateType(createType);
   }
@@ -70,7 +68,4 @@ public abstract class DividendSplit extends BaseID {
     this.createModifyTime = createModifyTime;
   }
 
-  
-  
-  
 }

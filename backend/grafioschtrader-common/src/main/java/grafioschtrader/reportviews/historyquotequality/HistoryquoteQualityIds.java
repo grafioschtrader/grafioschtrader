@@ -10,7 +10,7 @@ public class HistoryquoteQualityIds {
   public Integer idStockexchange;
   public Byte categoryType;
   public Byte specialInvestmentInstrument;
-  
+
   @Schema(description = "Can be used for the UI to differentiate the individual elements.", required = true)
   public int uniqueKey;
 

@@ -30,6 +30,7 @@ public abstract class Securitycurrency_ {
   public static volatile SingularAttribute<Securitycurrency, Date> fullLoadTimestamp;
   public static volatile SingularAttribute<Security, String> urlHistoryExtend;
   public static volatile SingularAttribute<Security, String> urlIntraExtend;
-  // public static volatile SingularAttribute<Securitycurrency, Integer> createUserId;
+  // public static volatile SingularAttribute<Securitycurrency, Integer>
+  // createUserId;
 
 }

@@ -143,12 +143,12 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
   private void addStockexchangePredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {
-    if(securitycurrencySearch.idStockexchange != null) {
+    if (securitycurrencySearch.idStockexchange != null) {
       final Join<Security, Stockexchange> joinStockexchane = securityRoot.join(Security_.stockexchange);
-      mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.idStockexchange),
-          securitycurrencySearch.idStockexchange));
+      mainPredicates.add(
+          builder.equal(joinStockexchane.get(Stockexchange_.idStockexchange), securitycurrencySearch.idStockexchange));
     }
-    
+
   }
-  
+
 }

@@ -24,6 +24,5 @@ public class GeneralNotTranslatedWithArgumentsException extends RuntimeException
   public Object[] getArguments() {
     return arguments;
   }
-  
-  
+
 }

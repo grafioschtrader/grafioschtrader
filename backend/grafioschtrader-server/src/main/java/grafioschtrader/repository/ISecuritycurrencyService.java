@@ -12,8 +12,6 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
 
   public void setSecuritycurrencyHistoricalDownloadLink(SecuritycurrencyPosition<S> securitycurrencyPosition);
 
- 
-  
   /**
    * Update the last price of every currency pair
    */

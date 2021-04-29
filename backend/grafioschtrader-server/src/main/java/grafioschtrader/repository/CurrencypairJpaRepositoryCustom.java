@@ -13,12 +13,13 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
   List<Currencypair> catchAllUpCurrencypairHistoryquote();
 
   void allCurrenciesFillEmptyDaysInHistoryquote();
+
   void currencieyFillEmptyDaysInHistoryquote(Currencypair currencypair);
 
   void fillEmptyCurrencypair(Integer idSecuritycurrency);
-  
+
   Double getClosePriceForDate(Currencypair currencypair, Date closeDate);
-  
+
   /**
    * Update last price of a certain currency pair
    * 
@@ -39,9 +40,8 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   List<Currencypair> tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(Integer idTenant, Integer idWatchlist);
 
-  
   void createTaskDataChangeOfEmptyHistoryqoute();
-  
+
   /**
    * Find a currency by the currency pair, if not then it will be created
    * 
@@ -58,13 +58,11 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
       Date untilDate);
 
   Currencypair createNonExistingCurrencypair(String fromCurrency, String toCurrency, boolean loadAsync);
-  
+
   List<Currencypair> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch);
 
   List<Currencypair> watchlistSearchForAdding(Integer idWatchlist, SecuritycurrencySearch securitycurrencySearch);
 
   double getCurrencyExchangeRate(String fromCurrency, String toCurrency, Map<String, Currencypair> currencypairMap);
-  
-  
-  
+
 }

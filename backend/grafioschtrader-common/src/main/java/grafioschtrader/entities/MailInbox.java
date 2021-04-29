@@ -16,7 +16,7 @@ import grafioschtrader.GlobalConstants;
 
 /**
  * Contains the receiving Messages.
- *  
+ * 
  * @author Hugo Graf
  *
  */

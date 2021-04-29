@@ -8,9 +8,8 @@ import grafioschtrader.entities.Transaction;
 
 public interface HoldSecurityaccountSecurityJpaRepositoryCustom {
 
-  
   void createSecurityHoldingsEntireForAllTenant();
-  
+
   /**
    * Security holdings are completely rebuild for a tenant.
    * 
@@ -27,8 +26,7 @@ public interface HoldSecurityaccountSecurityJpaRepositoryCustom {
   void adjustSecurityHoldingForSecurityaccountAndSecurity(Securityaccount securityaccount, Transaction transaction);
 
   void rebuildHoldingsForSecurity(Integer idSecuritycurrency);
-  
-  
+
   MissingQuotesWithSecurities getMissingQuotesWithSecurities(Integer year)
       throws InterruptedException, ExecutionException;
 }

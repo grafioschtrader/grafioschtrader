@@ -47,7 +47,7 @@ public class Globalparameters implements Serializable {
   // Connector settings
   public static final String GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR = GT_PREFIX + "cryptocurrency.history.connector";
   public static final String GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR = GT_PREFIX + "cryptocurrency.intra.connector";
- 
+
   public static final String GLOB_KEY_CURRENCY_HISTORY_CONNECTOR = GT_PREFIX + "currency.history.connector";
   public static final String GLOB_KEY_CURRENCY_INTRA_CONNECTOR = GT_PREFIX + "currency.intra.connector";
   public static final String GLOB_KEY_INTRA_RETRY = GT_PREFIX + "intra.retry";
@@ -57,11 +57,10 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS = GT_PREFIX + "w.intra.update.timeout.seconds";
   public static final String GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY = GT_PREFIX + "history.max.filldays.currency";
 
-  // History quote quality. Date which last time when a history quality update was happened
+  // History quote quality. Date which last time when a history quality update was
+  // happened
   public static final String GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE = GT_PREFIX + "historyquote.quality.update.date";
   public static final String GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE = GT_PREFIX + "securitysplit.append.date";
-  
-  
 
   // Tenant data entity limits
   private static final String MAX = "max.";
@@ -75,7 +74,6 @@ public class Globalparameters implements Serializable {
   // User day entity limits
   public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
 
-  
   public static final String GLOB_KEY_LIMIT_DAY_ASSETCLASS = GT_LIMIT_DAY + Assetclass.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_STOCKEXCHANGE = GT_LIMIT_DAY + Stockexchange.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK = GT_LIMIT_DAY + ProposeUserTask.class.getSimpleName();
@@ -95,7 +93,7 @@ public class Globalparameters implements Serializable {
 
   public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE = GT_PREFIX + "source.demo.idtenant.de";
   public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN = GT_PREFIX + "source.demo.idtenant.en";
-  
+
   private static final Map<String, MaxDefaultDBValue> defaultLimitMap = new HashMap<>();
 
   static {
@@ -121,7 +119,6 @@ public class Globalparameters implements Serializable {
 
   }
 
-  
   public static final short DEFAULT_INTRA_RETRY = 4;
   public static final short DEFAULT_HISTORY_RETRY = 4;
   public static final int DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS = 300;
@@ -137,7 +134,6 @@ public class Globalparameters implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  
   @Id
   @Basic(optional = false)
   @NotNull
@@ -159,10 +155,9 @@ public class Globalparameters implements Serializable {
   @Lob
   @Column(name = "property_blob")
   private byte[] propertyBlob;
-  
+
   @Column(name = "changed_by_system")
   private boolean changedBySystem = false;
-
 
   public Globalparameters() {
   }
@@ -176,8 +171,7 @@ public class Globalparameters implements Serializable {
     this.propertyDate = propertyDate;
     this.changedBySystem = changedBySystem;
   }
-  
-    
+
   public String getPropertyName() {
     return propertyName;
   }
@@ -186,8 +180,7 @@ public class Globalparameters implements Serializable {
     this.propertyName = propertyName;
     return this;
   }
-  
-  
+
   public Integer getPropertyInt() {
     return propertyInt;
   }
@@ -223,7 +216,7 @@ public class Globalparameters implements Serializable {
     this.propertyBlob = propertyBlob;
     return this;
   }
-  
+
   public boolean isChangedBySystem() {
     return changedBySystem;
   }
@@ -245,20 +238,19 @@ public class Globalparameters implements Serializable {
   }
 
   public void replaceExistingPropertyValue(Globalparameters gpNew) {
-    if(gpNew.getPropertyDate() != null && propertyDate != null) {
+    if (gpNew.getPropertyDate() != null && propertyDate != null) {
       this.propertyDate = gpNew.getPropertyDate();
-    } else if(gpNew.getPropertyInt() != null && propertyInt != null) {
+    } else if (gpNew.getPropertyInt() != null && propertyInt != null) {
       this.propertyInt = gpNew.getPropertyInt();
-    } else if(gpNew.getPropertyString() != null && propertyString != null) {
-      this.propertyString = gpNew.getPropertyString(); 
-    } else if(gpNew.getPropertyBlob() != null && propertyBlob != null) {
-      setPropertyBlob(gpNew.getPropertyBlob()); 
+    } else if (gpNew.getPropertyString() != null && propertyString != null) {
+      this.propertyString = gpNew.getPropertyString();
+    } else if (gpNew.getPropertyBlob() != null && propertyBlob != null) {
+      setPropertyBlob(gpNew.getPropertyBlob());
     } else {
       throw new IllegalArgumentException();
     }
   }
-  
-  
+
   @Override
   public int hashCode() {
     int hash = 0;

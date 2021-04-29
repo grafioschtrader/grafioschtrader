@@ -16,7 +16,6 @@ public class MigrosTransactionImport extends GenericTransactionImport {
     super("migros", "Migros Bank");
   }
 
-  
   @Override
   public GenericTransactionImportPDF getPDFImporter(ImportTransactionHead importTransactionHead,
       List<ImportTransactionTemplate> importTransactionTemplateList) {

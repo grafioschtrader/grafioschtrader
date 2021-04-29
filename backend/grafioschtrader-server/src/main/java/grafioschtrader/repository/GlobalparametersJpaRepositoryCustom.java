@@ -45,12 +45,11 @@ public interface GlobalparametersJpaRepositoryCustom {
   int getMaxLimitExceededCount();
 
   int getMaxSecurityBreachCount();
-  
-  
+
   List<ValueKeyHtmlSelectOptions> getAllZoneIds();
 
   List<ValueKeyHtmlSelectOptions> getSupportedLocales();
-  
+
   Globalparameters saveOnlyAttributes(Globalparameters globalparameters);
-  
+
 }

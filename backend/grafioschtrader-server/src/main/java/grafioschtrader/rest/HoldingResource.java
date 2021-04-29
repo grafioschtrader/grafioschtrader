@@ -63,11 +63,11 @@ public class HoldingResource {
     }
   }
 
-  @Operation(summary = "Returns the missing qoutes for securties during the holding period", description = "", 
-      tags = { RequestMappings.HOLDING})
+  @Operation(summary = "Returns the missing qoutes for securties during the holding period", description = "", tags = {
+      RequestMappings.HOLDING })
   @GetMapping(value = "/missingquotes/{year}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<MissingQuotesWithSecurities> getMissingQuotesWithSecurities(
-      @PathVariable() final Integer year) throws InterruptedException, ExecutionException {
+  public ResponseEntity<MissingQuotesWithSecurities> getMissingQuotesWithSecurities(@PathVariable() final Integer year)
+      throws InterruptedException, ExecutionException {
     return new ResponseEntity<>(holdSecurityaccountSecurityRepository.getMissingQuotesWithSecurities(year),
         HttpStatus.OK);
   }

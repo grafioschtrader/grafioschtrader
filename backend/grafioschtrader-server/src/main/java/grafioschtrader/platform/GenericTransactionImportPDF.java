@@ -29,7 +29,8 @@ import grafioschtrader.repository.ImportTransactionPosJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
- * It is a generic importer CSV and PDF importer. It can be used for the most online broker.
+ * It is a generic importer CSV and PDF importer. It can be used for the most
+ * online broker.
  * 
  * 
  * @author Hugo Graf
@@ -44,7 +45,8 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
 
   public void importMultiplePdfForm(MultipartFile[] uploadFiles,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale) throws Exception {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
+      throws Exception {
     Map<TemplateConfigurationPDFasTXT, ImportTransactionTemplate> templateScannedMap = ImportTransactionHelperPdf
         .readTemplates(importTransactionTemplateList, userLocale);
 
@@ -56,7 +58,8 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
 
   public void importSinglePdfForm(MultipartFile uploadFile,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale) throws Exception {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
+      throws Exception {
     Map<TemplateConfigurationPDFasTXT, ImportTransactionTemplate> templateScannedMap = ImportTransactionHelperPdf
         .readTemplates(importTransactionTemplateList, userLocale);
 
@@ -89,17 +92,17 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
       }
     }
   }
-  
+
   /**
-   * Override this if the PDF as text needs some cleaning after reading as text before it is processed 
+   * Override this if the PDF as text needs some cleaning after reading as text
+   * before it is processed
    * 
-   * @param readPDFAsText 
+   * @param readPDFAsText
    * @return
    */
   protected String cleanReadPDF(String readPDFAsText) {
     return readPDFAsText;
   }
-  
 
   public void importGTTransform(MultipartFile uploadFile,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,

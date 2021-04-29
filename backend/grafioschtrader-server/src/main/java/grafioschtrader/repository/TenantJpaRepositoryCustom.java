@@ -17,10 +17,10 @@ public interface TenantJpaRepositoryCustom extends BaseRepositoryCustom<Tenant> 
   StringBuilder exportPersonalData() throws Exception;
 
   void deleteMyDataAndUserAccount() throws Exception;
-  
+
   Optional<Tenant> createNotExistingCurrencypairs(Integer idTenant);
-  
+
   Tenant changeCurrencyTenantAndPortfolios(String currency);
-  
+
   Tenant setWatchlistForPerformance(Integer idWatchlist);
 }

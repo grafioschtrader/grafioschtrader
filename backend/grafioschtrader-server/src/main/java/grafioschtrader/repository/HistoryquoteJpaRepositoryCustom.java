@@ -41,7 +41,7 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
 
   List<TaTraceIndicatorData> getTaWithShortMediumLongInputPeriod(Integer idSecuritycurrency, TaIndicators taIndicator,
       ShortMediumLongInputPeriod shortMediumLongInputPeriod);
- 
+
   <S extends Securitycurrency<S>> HistoryquotesWithMissings<S> getHistoryqoutesByIdSecuritycurrencyWithMissing(
       int idSecuritycurrency, boolean isCurrencypair) throws InterruptedException, ExecutionException;
 

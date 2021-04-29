@@ -38,7 +38,5 @@ public class FromToCurrency {
   public String toString() {
     return "FromToCurrency [fromCurrency=" + fromCurrency + ", toCurrency=" + toCurrency + "]";
   }
-  
-  
-  
+
 }

@@ -27,12 +27,12 @@ public class SecurityPositionByCurrencyGrandSummaryReport extends SecurityPositi
 
   @Autowired
   protected HistoryquoteJpaRepository historyquoteJpaRepository;
- 
+
   private final SecurityCashaccountGroupByCurrencyBaseReport securityCashaccountGroupByCurrencyBaseReport;
 
-  
   public SecurityPositionByCurrencyGrandSummaryReport(TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository) {
-    securityCashaccountGroupByCurrencyBaseReport = new SecurityCashaccountGroupByCurrencyBaseReport(tradingDaysPlusJpaRepository);
+    securityCashaccountGroupByCurrencyBaseReport = new SecurityCashaccountGroupByCurrencyBaseReport(
+        tradingDaysPlusJpaRepository);
   }
 
   /**

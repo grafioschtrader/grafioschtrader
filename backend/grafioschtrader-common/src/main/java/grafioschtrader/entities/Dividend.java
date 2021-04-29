@@ -49,8 +49,9 @@ public class Dividend extends DividendSplit implements Serializable {
 
   public Dividend() {
   }
-  
-  public Dividend(Integer idSecuritycurrency, LocalDate exDate, LocalDate payDate, Double amount, String currency, CreateType createType) {
+
+  public Dividend(Integer idSecuritycurrency, LocalDate exDate, LocalDate payDate, Double amount, String currency,
+      CreateType createType) {
     super(idSecuritycurrency, createType);
     this.exDate = exDate;
     this.payDate = payDate;
@@ -66,7 +67,6 @@ public class Dividend extends DividendSplit implements Serializable {
     this.idDividend = idDividend;
   }
 
-  
   public LocalDate getExDate() {
     return exDate;
   }
@@ -112,7 +112,7 @@ public class Dividend extends DividendSplit implements Serializable {
 
   @Override
   public Date getEventDate() {
-   return DateHelper.getDateFromLocalDate(exDate);
+    return DateHelper.getDateFromLocalDate(exDate);
   }
 
 }

@@ -15,7 +15,7 @@ public interface AlgoTopJpaRepository extends JpaRepository<AlgoTop, Integer>, A
     UpdateCreateDeleteWithTenantJpaRepository<AlgoTop> {
 
   List<AlgoTop> findByIdTenantOrderByName(Integer idTenant);
- 
+
   AlgoTop findByIdTenantAndIdAlgoAssetclassSecurity(Integer idTenant, Integer idAlgoAssetclassSecurity);
 
   @Transactional

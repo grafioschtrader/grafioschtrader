@@ -78,7 +78,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(name = TABNAME_USER_ROLE, joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_role", referencedColumnName = "id_role"))
   private Collection<Role> roles;
-  
+
   @JoinColumn(name = "id_user")
   @OneToMany(fetch = FetchType.LAZY)
   private List<UserEntityChangeLimit> userEntityChangeLimitList;
@@ -111,7 +111,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
 
   @Transient
   private Map<String, Role> roleMap;
-  
+
   @Transient
   private Integer actualIdTenant;
 
@@ -215,9 +215,8 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
     this.roles = roles;
   }
 
-  
   public Integer getActualIdTenant() {
-    return actualIdTenant != null? actualIdTenant: idTenant;
+    return actualIdTenant != null ? actualIdTenant : idTenant;
   }
 
   public void setActualIdTenant(Integer actualIdTenant) {

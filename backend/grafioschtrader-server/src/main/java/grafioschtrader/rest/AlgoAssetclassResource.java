@@ -31,8 +31,8 @@ public class AlgoAssetclassResource extends UpdateCreateDeleteWithTenantResource
     super(AlgoAssetclass.class);
   }
 
-  @Operation(summary = "Get the full algorithmic tranding tree for a strategy without the top level", description = "", 
-      tags = { RequestMappings.ALGOASSETCLASS})
+  @Operation(summary = "Get the full algorithmic tranding tree for a strategy without the top level", description = "", tags = {
+      RequestMappings.ALGOASSETCLASS })
   @GetMapping(value = "/{idAlgoAssetclassParent}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AlgoAssetclass>> getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(
       @PathVariable final Integer idAlgoAssetclassParent) {

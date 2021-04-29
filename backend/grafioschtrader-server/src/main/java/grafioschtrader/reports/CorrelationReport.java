@@ -9,8 +9,5 @@ public class CorrelationReport {
 
   @Autowired
   JdbcTemplate jdbcTemplate;
-  
-  
-  
-  
+
 }

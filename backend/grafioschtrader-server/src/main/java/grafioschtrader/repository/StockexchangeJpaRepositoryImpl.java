@@ -28,7 +28,8 @@ public class StockexchangeJpaRepositoryImpl extends BaseRepositoryImpl<Stockexch
   public List<Stockexchange> getAllStockExchanges(boolean includeNameOfCalendarIndex) {
     List<Stockexchange> stockexchanes = stockexchangeJpaRepository.findAllByOrderByNameAsc();
     if (includeNameOfCalendarIndex) {
-      Map<Integer, String> idSecurtyMap = stockexchangeJpaRepository.getIdStockexchangeAndIndexNameForCalendarUpd().stream()
+      Map<Integer, String> idSecurtyMap = stockexchangeJpaRepository.getIdStockexchangeAndIndexNameForCalendarUpd()
+          .stream()
           .collect(Collectors.toMap(IdStockexchangeIndexName::getIdStockexchange, e -> e.getNameIndexSecurity()));
       stockexchanes.forEach(se -> se.setNameIndexUpdCalendar(idSecurtyMap.get(se.getIdStockexchange())));
     }

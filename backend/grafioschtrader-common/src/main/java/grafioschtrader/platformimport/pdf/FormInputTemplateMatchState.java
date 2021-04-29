@@ -34,15 +34,17 @@ public class FormInputTemplateMatchState {
         templateConfigurationPDFasTXT.getImportKnownOtherFlagsSet(), fileNumber);
     importPropertiesList.add(importPropertiesPrimary);
     /*
-    valueFormatConverter = new ValueFormatConverter(templateConfigurationPDFasTXT.getLocale(),
-        templateConfigurationPDFasTXT.getDateFormat(), templateConfigurationPDFasTXT.getThousandSeparatorsPattern(),
-        templateConfigurationPDFasTXT.getTimeFormat());
-        */
+     * valueFormatConverter = new
+     * ValueFormatConverter(templateConfigurationPDFasTXT.getLocale(),
+     * templateConfigurationPDFasTXT.getDateFormat(),
+     * templateConfigurationPDFasTXT.getThousandSeparatorsPattern(),
+     * templateConfigurationPDFasTXT.getTimeFormat());
+     */
     valueFormatConverter = new ValueFormatConverter(templateConfigurationPDFasTXT.getDateFormat(),
-        templateConfigurationPDFasTXT.getTimeFormat(), templateConfigurationPDFasTXT.getThousandSeparators(), 
-        templateConfigurationPDFasTXT.getThousandSeparatorsPattern(), templateConfigurationPDFasTXT.getDecimalSeparator());
-    
-    
+        templateConfigurationPDFasTXT.getTimeFormat(), templateConfigurationPDFasTXT.getThousandSeparators(),
+        templateConfigurationPDFasTXT.getThousandSeparatorsPattern(),
+        templateConfigurationPDFasTXT.getDecimalSeparator());
+
     properties = templateConfigurationPDFasTXT.getPropertyWithOptionsConfiguration();
     setNextActProperty(0);
   }

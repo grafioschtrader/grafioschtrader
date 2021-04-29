@@ -42,7 +42,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
   @Autowired
   TaskDataChangeJpaRepository taskDataChangeJpaRepository;
-  
+
   @Override
   public Map<Integer, List<Securitysplit>> getSecuritysplitMapByIdTenant(final Integer idTenant) {
     return getMapForList(securitysplitJpaRepository.getByIdTenant(idTenant));
@@ -118,7 +118,6 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
       // Adjust holdings
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, (short) 22,
           LocalDateTime.now(), security.getIdSecuritycurrency(), Security.TABNAME));
-      
 
     } else {
       // User can't change splits directly if another user created the security ->

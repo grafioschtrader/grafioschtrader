@@ -31,7 +31,8 @@ public class GenericTransactionImport extends BaseTransactionImport implements I
   public void importSinglePdfAsPdf(ImportTransactionHead importTransactionHead, MultipartFile uploadFile,
       List<ImportTransactionTemplate> importTransactionTemplateList,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale) throws Exception {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
+      throws Exception {
     GenericTransactionImportPDF gti = getPDFImporter(importTransactionHead, importTransactionTemplateList);
     gti.importSinglePdfForm(uploadFile, importTransactionPosJpaRepository, securityJpaRepository,
         importTransactionPosFailedJpaRepository, userLocale);
@@ -41,7 +42,8 @@ public class GenericTransactionImport extends BaseTransactionImport implements I
   public void importMultiplePdfAsPdf(ImportTransactionHead importTransactionHead, MultipartFile[] uploadFiles,
       List<ImportTransactionTemplate> importTransactionTemplateList,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale) throws Exception {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
+      throws Exception {
     GenericTransactionImportPDF gti = getPDFImporter(importTransactionHead, importTransactionTemplateList);
     gti.importMultiplePdfForm(uploadFiles, importTransactionPosJpaRepository, securityJpaRepository,
         importTransactionPosFailedJpaRepository, userLocale);
@@ -52,9 +54,11 @@ public class GenericTransactionImport extends BaseTransactionImport implements I
   public void importCSV(ImportTransactionHead importTransactionHead, MultipartFile uploadFile,
       List<ImportTransactionTemplate> importTransactionTemplateList,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale) throws IOException {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
+      throws IOException {
     GenericTransactionImportCSV gti = getCSVImporter(importTransactionHead, uploadFile, importTransactionTemplateList);
-    gti.importCSV(importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository, userLocale);
+    gti.importCSV(importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository,
+        userLocale);
 
   }
 
@@ -72,11 +76,10 @@ public class GenericTransactionImport extends BaseTransactionImport implements I
       List<ImportTransactionTemplate> importTransactionTemplateList) {
     return new GenericTransactionImportPDF(importTransactionHead, importTransactionTemplateList);
   }
-  
-  public GenericTransactionImportCSV getCSVImporter(ImportTransactionHead importTransactionHead,  MultipartFile uploadFile,
-      List<ImportTransactionTemplate> importTransactionTemplateList) {
-    return  new GenericTransactionImportCSV(importTransactionHead, uploadFile,
-        importTransactionTemplateList);
+
+  public GenericTransactionImportCSV getCSVImporter(ImportTransactionHead importTransactionHead,
+      MultipartFile uploadFile, List<ImportTransactionTemplate> importTransactionTemplateList) {
+    return new GenericTransactionImportCSV(importTransactionHead, uploadFile, importTransactionTemplateList);
   }
 
 }

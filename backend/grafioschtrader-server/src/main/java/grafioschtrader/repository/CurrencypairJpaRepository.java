@@ -21,17 +21,16 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
   Currencypair findByFromCurrencyAndToCurrency(String fromCurrency, String toCurrency);
 
   List<Currencypair> findByFromCurrency(String fromCurrency);
-  
+
   @Query(value = "SELECT c.from_currency FROM currencypair c WHERE c.to_currency = ?1", nativeQuery = true)
   Set<String> getFromCurrencyByToCurrency(String toCurrency);
-  
+
   @Query(nativeQuery = true)
   Set<String> getSecurityTransactionCurrenciesForTenantExclude(Integer idTenant, String excludeCurrency);
-  
+
   @Query(nativeQuery = true)
   Set<String> getSecurityTransactionCurrenciesForPortfolioExclude(Integer idPortfolio, String excludCurrency);
-  
-  
+
   @EntityGraph(value = "graph.currency.historyquote", type = EntityGraphType.FETCH)
   Currencypair findByIdSecuritycurrency(Integer idSecuritycurrency);
 
@@ -58,7 +57,9 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
       Integer idTenant, Integer idWatchlist);
 
   /**
-   * Gel all used currency pairs in transactions. That means currency pairs between security cash accounts. 
+   * Gel all used currency pairs in transactions. That means currency pairs
+   * between security cash accounts.
+   * 
    * @param idTenant
    * @return
    */
@@ -73,10 +74,10 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
 
   @Query(nativeQuery = true)
   List<Integer> getAllIdOfEmptyHistorqute();
-  
+
   /**
-   * For a tenant gets all used existing currency pairs of all accounts, securities and
-   * transaction.
+   * For a tenant gets all used existing currency pairs of all accounts,
+   * securities and transaction.
    * 
    * @param idTenant
    * @return
@@ -105,5 +106,5 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
 
   @Query(nativeQuery = true)
   List<Currencypair> getHoldCashaccountOutDatetedCurrencypairs();
-  
+
 }

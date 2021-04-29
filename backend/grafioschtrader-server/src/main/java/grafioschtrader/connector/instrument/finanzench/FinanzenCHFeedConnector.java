@@ -28,6 +28,7 @@ import grafioschtrader.connector.instrument.finanzen.UseLastPartUrl;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
@@ -35,8 +36,10 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 public class FinanzenCHFeedConnector extends BaseFeedConnector {
 
   protected static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  static String domain = "https://www.finanzen.ch/";
-  private static Locale FC_LOCALE = new Locale("de", "CH");
+  private static final String domain = "https://www.finanzen.ch/";
+  private static final String URL_HISTORICAL_REGEX = "^[a-z]+\\/historisch\\/[A-Za-z0-9\\-\\_%]+(\\/[A-Za-z]{2,10})?$";
+  private static final String URL_INTRA_REGEX = "^[a-z]+\\/[A-Za-z0-9\\-\\_%]+(\\/[A-Za-z]{2,10})?$";
+  private static final Locale FC_LOCALE = new Locale("de", "CH");
 
   static {
     supportedFeed = new HashMap<>();
@@ -46,7 +49,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   }
 
   public FinanzenCHFeedConnector() {
-    super(supportedFeed, "finanzench", "Finanzen CH");
+    super(supportedFeed, "finanzench", "Finanzen CH", null);
   }
 
   @Override
@@ -60,17 +63,34 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   }
 
   @Override
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
+      String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
+      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+
+    boolean clear = super.checkAndClearSecuritycurrencyConnector(feedSupport, urlExtend, errorMsgKey, feedIdentifier,
+        specialInvestmentInstruments, assetclassType);
+    switch (feedSupport) {
+    case HISTORY:
+      checkUrlExtendsionWithRegex(new String[] { URL_HISTORICAL_REGEX }, urlExtend);
+      break;
+    default:
+      checkUrlExtendsionWithRegex(new String[] { URL_INTRA_REGEX }, urlExtend);
+    }
+    return clear;
+  }
+
+  @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     final String url = getSecurityIntradayDownloadLink(security);
-    
+
     HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL).build();
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
 
     HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-  
+
     final Document doc = Jsoup.parse(response.body());
     final Elements elementPrices = doc.select("table.pricebox th");
-    
+
     final Iterator<Element> iter = elementPrices.iterator();
 
     final double lastPrice = NumberFormat.getNumberInstance(FC_LOCALE).parse(iter.next().text().replace("'", ""))
@@ -84,7 +104,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     security.setSPrevClose(lastPrice + dalyChange);
     security.setSChangePercentage(changePercentage);
     security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
-    
+
   }
 
   @Override

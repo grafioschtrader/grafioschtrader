@@ -16,7 +16,7 @@ public class CountEnabledUsers implements InfoContributor {
 
   @Value("${gt.allowed.users}")
   private int allowed;
-  
+
   @Autowired
   private UserJpaRepository userJpaRepository;
 

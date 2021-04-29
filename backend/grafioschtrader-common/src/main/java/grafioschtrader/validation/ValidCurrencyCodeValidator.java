@@ -23,8 +23,8 @@ public class ValidCurrencyCodeValidator implements ConstraintValidator<ValidCurr
   public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
     boolean containsIsoCode = false;
     if (value != null) {
-      containsIsoCode = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(value) || Currency.getAvailableCurrencies().stream()
-          .map(Currency::getCurrencyCode).anyMatch(Predicate.isEqual(value));
+      containsIsoCode = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(value) || Currency.getAvailableCurrencies()
+          .stream().map(Currency::getCurrencyCode).anyMatch(Predicate.isEqual(value));
     }
     return isOptional ? (containsIsoCode || (StringUtils.isEmpty(value))) : containsIsoCode;
   }

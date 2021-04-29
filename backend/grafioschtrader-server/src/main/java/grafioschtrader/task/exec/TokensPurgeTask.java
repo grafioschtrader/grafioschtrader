@@ -18,7 +18,6 @@ public class TokensPurgeTask {
   @Autowired
   private UserJpaRepository userJpaRepository;
 
-
   @Scheduled(cron = "${gt.purge.cron.expression}", zone = "UTC")
   public void purgeExpired() {
     userJpaRepository.removeWithExpiredVerificationToken();

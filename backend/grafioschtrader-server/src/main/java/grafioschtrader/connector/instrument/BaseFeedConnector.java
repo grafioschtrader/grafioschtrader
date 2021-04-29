@@ -2,13 +2,16 @@ package grafioschtrader.connector.instrument;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,8 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.connector.ConnectorHelper;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
@@ -30,7 +32,9 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.User;
 import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
+import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.Language;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public abstract class BaseFeedConnector implements IFeedConnector {
 
@@ -44,12 +48,14 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   protected Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   protected String id;
   protected String readableName;
+  protected String regexStrPattern;
 
   public BaseFeedConnector(final Map<FeedSupport, FeedIdentifier[]> supportedFeed, final String id,
-      final String readableNameKey) {
+      final String readableNameKey, String regexStrPattern) {
     this.supportedFeed = supportedFeed;
     this.id = ID_PREFIX + id;
     this.readableName = readableNameKey;
+    this.regexStrPattern = regexStrPattern;
   }
 
   @Override
@@ -169,41 +175,100 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     return false;
   }
 
+  protected void checkUrlExtendsionWithRegex(String[] patterns, String urlExtend) {
+    boolean oneMatches = false;
+    String notMatchingPattern = null;
+    for (int i = 0; i < patterns.length; i++) {
+      Pattern p = Pattern.compile(patterns[i]);
+      Matcher m = p.matcher(urlExtend);
+      if (m.matches()) {
+        oneMatches = true;
+      } else {
+        notMatchingPattern = patterns[i];
+      }
+    }
+    if (!oneMatches) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.connector.regex.url",
+          new Object[] { id, notMatchingPattern });
+    }
+
+  }
+
   @Override
   public <S extends Securitycurrency<S>> void checkAndClearSecuritycurrencyUrlExtend(
       Securitycurrency<S> securitycurrency, FeedSupport feedSupport) {
+    SpecialInvestmentInstruments specInst = securitycurrency instanceof Security
+        ? ((Security) securitycurrency).getAssetClass().getSpecialInvestmentInstrument()
+        : null;
+    AssetclassType assetclassType = specInst == null ? null
+        : ((Security) securitycurrency).getAssetClass().getCategoryType();
+
     switch (feedSupport) {
     case HISTORY:
-      if (checkAndClearSecuritycurrencyConnector(securitycurrency.getUrlHistoryExtend(),
+      if (checkAndClearSecuritycurrencyConnector(feedSupport, securitycurrency.getUrlHistoryExtend(),
           "gt.connector.historical.url.failure",
-          securitycurrency instanceof Security ? FeedIdentifier.SECURITY_URL : FeedIdentifier.CURRENCY_URL)) {
+          specInst != null ? FeedIdentifier.SECURITY_URL : FeedIdentifier.CURRENCY_URL, specInst, assetclassType)) {
         securitycurrency.setUrlHistoryExtend(null);
+      } else {
+        if (specInst != null) {
+          if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
+            checkUrl(getSecurityHistoricalDownloadLink((Security) securitycurrency),
+                "gt.connector.historical.url.connect.failure");
+          }
+        } else {
+          checkUrl(getCurrencypairHistoricalDownloadLink((Currencypair) securitycurrency),
+              "gt.connector.historical.url.connect.failure");
+        }
       }
       break;
     case INTRA:
-      if (checkAndClearSecuritycurrencyConnector(securitycurrency.getUrlIntraExtend(), "gt.connector.intra.url.failure",
-          securitycurrency instanceof Security ? FeedIdentifier.SECURITY_URL : FeedIdentifier.CURRENCY_URL)) {
+      if (checkAndClearSecuritycurrencyConnector(feedSupport, securitycurrency.getUrlIntraExtend(),
+          "gt.connector.intra.url.failure",
+          specInst != null ? FeedIdentifier.SECURITY_URL : FeedIdentifier.CURRENCY_URL, specInst, assetclassType)) {
         securitycurrency.setUrlIntraExtend(null);
+      } else {
+        if (specInst != null) {
+          if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
+            checkUrl(getSecurityIntradayDownloadLink((Security) securitycurrency),
+                "gt.connector.intra.url.connect.failure");
+          }
+        } else {
+          checkUrl(getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency),
+              "gt.connector.intra.url.connect.failure");
+        }
       }
       break;
     case DIVIDEND:
-      if (checkAndClearSecuritycurrencyConnector(((Security) securitycurrency).getUrlDividendExtend(),
-          "gt.connector.dividend.url.failure", FeedIdentifier.DIVIDEND_URL)) {
+      if (checkAndClearSecuritycurrencyConnector(feedSupport, ((Security) securitycurrency).getUrlDividendExtend(),
+          "gt.connector.dividend.url.failure", FeedIdentifier.DIVIDEND_URL, specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlDividendExtend(null);
       }
       break;
     case SPLIT:
-      if (checkAndClearSecuritycurrencyConnector(((Security) securitycurrency).getUrlSplitExtend(),
-          "gt.connector.split.url.failure", FeedIdentifier.SPLIT_URL)) {
+      if (checkAndClearSecuritycurrencyConnector(feedSupport, ((Security) securitycurrency).getUrlSplitExtend(),
+          "gt.connector.split.url.failure", FeedIdentifier.SPLIT_URL, specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlSplitExtend(null);
       }
       break;
-      
+
     }
   }
 
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(String urlExtend,
-      String errorMsgKey, FeedIdentifier feedIdentifier) {
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
+      String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
+      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+
+    boolean clear = shouldClearUrlExtension(urlExtend, errorMsgKey, feedIdentifier, specialInvestmentInstruments,
+        assetclassType);
+    if (!clear && regexStrPattern != null) {
+      checkUrlExtendsionWithRegex(new String[] { regexStrPattern }, urlExtend);
+    }
+    return clear;
+  }
+
+  protected <S extends Securitycurrency<S>> boolean shouldClearUrlExtension(String urlExtend, String errorMsgKey,
+      FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
+      AssetclassType assetclassType) {
 
     if (hasFeedIndentifier(feedIdentifier)) {
       if (StringUtils.isEmpty(urlExtend)) {
@@ -213,6 +278,31 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       return true;
     }
     return false;
+  }
+
+  private void checkUrl(String url, String failureMsgKey) {
+    try {
+      URL u = new URL(url);
+      HttpURLConnection.setFollowRedirects(true);
+      HttpURLConnection huc = (HttpURLConnection) u.openConnection();
+      huc.setRequestProperty("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
+      huc.setRequestMethod("GET");
+      huc.connect();
+      int code = huc.getResponseCode();
+      if (code != HttpURLConnection.HTTP_OK) {
+        throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
+      } else {
+        if(!isConnectionOk(huc)) {
+          throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
+        }
+      }
+    } catch (Exception e) {
+      throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
+    }
+  }
+
+  protected boolean isConnectionOk(HttpURLConnection huc) {
+    return true;
   }
 
   @Override

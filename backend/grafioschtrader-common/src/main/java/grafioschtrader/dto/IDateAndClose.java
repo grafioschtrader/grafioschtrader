@@ -11,8 +11,7 @@ public interface IDateAndClose {
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   @Schema(description = "Date of close")
   LocalDate getDate();
-  
-  
+
   @Schema(description = "Close price")
   Double getClose();
 }

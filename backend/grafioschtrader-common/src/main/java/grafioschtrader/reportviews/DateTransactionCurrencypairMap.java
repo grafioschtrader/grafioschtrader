@@ -19,9 +19,9 @@ import grafioschtrader.exceptions.DataViolationException;
  * 
  */
 public class DateTransactionCurrencypairMap {
- 
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
-  
+
   private DateCurrency searchDateCurrency = new DateCurrency();
   private String mainCurrency;
   private Date untilDate;
@@ -36,14 +36,11 @@ public class DateTransactionCurrencypairMap {
   private boolean isUntilDateEqualNowOrAfterOrInActualWeekend;
   private boolean useUntilDateForFeeAndInterest = true;
   private boolean hasTradingDaysBetweenUntilDateAndYesterday = false;
-  
 
- 
   public DateTransactionCurrencypairMap(final Date untilDate, boolean hasTradingDaysBetweenUntilDateAndYesterday) {
     this.untilDate = untilDate;
     this.hasTradingDaysBetweenUntilDateAndYesterday = hasTradingDaysBetweenUntilDateAndYesterday;
   }
- 
 
   /**
    * 
@@ -58,11 +55,10 @@ public class DateTransactionCurrencypairMap {
    *                                      history quote.
    * @param useUntilDateForFeeAndInterest
    */
- 
+
   public DateTransactionCurrencypairMap(final String mainCurrency, final Date untilDate,
-      List<Object[]> dateTransactionCurrency, List<Currencypair> currencypairs, 
-      boolean hasTradingDaysBetweenUntilDateAndYesterday,
-      boolean useUntilDateForFeeAndInterest) {
+      List<Object[]> dateTransactionCurrency, List<Currencypair> currencypairs,
+      boolean hasTradingDaysBetweenUntilDateAndYesterday, boolean useUntilDateForFeeAndInterest) {
     this.mainCurrency = mainCurrency;
     this.untilDate = untilDate;
     this.hasTradingDaysBetweenUntilDateAndYesterday = hasTradingDaysBetweenUntilDateAndYesterday;
@@ -81,10 +77,11 @@ public class DateTransactionCurrencypairMap {
   }
 
   public DateTransactionCurrencypairMap(final String mainCurrency, final Date untilDate,
-      List<Object[]> dateTransactionCurrency, List<Currencypair> currencypairs, boolean hasTradingDaysBetweenUntilDateAndYesterday) {
-    this(mainCurrency, untilDate, dateTransactionCurrency, currencypairs, hasTradingDaysBetweenUntilDateAndYesterday, true);
+      List<Object[]> dateTransactionCurrency, List<Currencypair> currencypairs,
+      boolean hasTradingDaysBetweenUntilDateAndYesterday) {
+    this(mainCurrency, untilDate, dateTransactionCurrency, currencypairs, hasTradingDaysBetweenUntilDateAndYesterday,
+        true);
   }
-  
 
   public void putToDateFromCurrencyMap(List<Object[]> dateCurrency) {
     dateCurrency.forEach(objects -> {
@@ -120,12 +117,12 @@ public class DateTransactionCurrencypairMap {
     Double closePrice = getExactDateAndFromCurrency(date, fromCurrency);
 
     if (closePrice == null) {
-      
+
       if (closePrice == null && requried) {
-        log.warn("Missing close price for date {} and currency pair from {} to {}", searchDateCurrency.date, 
+        log.warn("Missing close price for date {} and currency pair from {} to {}", searchDateCurrency.date,
             fromCurrency, mainCurrency);
-        throw new DataViolationException("currencypair", "gt.missing.currencypair.day", new Object[] { searchDateCurrency.date,
-            fromCurrency, mainCurrency });
+        throw new DataViolationException("currencypair", "gt.missing.currencypair.day",
+            new Object[] { searchDateCurrency.date, fromCurrency, mainCurrency });
       }
     }
 
@@ -136,25 +133,26 @@ public class DateTransactionCurrencypairMap {
     searchDateCurrency.date = DateHelper.setTimeToZeroAndAddDay(date, 0);
     searchDateCurrency.fromCurrency = fromCurrency;
     Double closePrice = dateFromCurrencyMap.get(searchDateCurrency);
-    if(closePrice == null && !hasTradingDaysBetweenUntilDateAndYesterday && DateHelper.isSameDay(date, untilDate)) {
-       closePrice = getClosePriceFromLastPrice(date, fromCurrency);
+    if (closePrice == null && !hasTradingDaysBetweenUntilDateAndYesterday && DateHelper.isSameDay(date, untilDate)) {
+      closePrice = getClosePriceFromLastPrice(date, fromCurrency);
     }
 
     return closePrice;
   }
 
   /**
-   *  Sometimes prices near the actual date are missing, because there were no
-   *  recently updates. In this case take the actual price from currency pair.
+   * Sometimes prices near the actual date are missing, because there were no
+   * recently updates. In this case take the actual price from currency pair.
+   * 
    * @param fromCurrency
    * @return
    */
   private Double getClosePriceFromLastPrice(Date date, String fromCurrency) {
-    Double  closePrice = null;
+    Double closePrice = null;
     long diffDays = DateHelper.getDateDiff(date, new Date(), TimeUnit.DAYS);
     // TODO 4 should come from global parameters
     if (diffDays < 4) {
-     
+
       Currencypair currencypair = getCurrencypairByFromCurrency(fromCurrency);
       if (currencypair != null) {
         closePrice = currencypair.getSLast();
@@ -162,8 +160,7 @@ public class DateTransactionCurrencypairMap {
     }
     return closePrice;
   }
-  
-  
+
   public boolean isUntilDateEqualNowOrAfter() {
     return isUntilDateEqualNowOrAfter;
   }

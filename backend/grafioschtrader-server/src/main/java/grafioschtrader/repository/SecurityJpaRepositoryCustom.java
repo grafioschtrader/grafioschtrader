@@ -58,7 +58,6 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   List<SecurityPositionSummary> processOpenPositionsWithActualPrice(Date untilDate,
       Map<Security, SecurityPositionSummary> summarySecurityMap);
 
-  
   /**
    * Some cases the historical prices must be reloaded completely. For example
    * when a split is added. It is an asynchronous loading.
@@ -72,22 +71,22 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy);
 
   boolean checkUserCanChangeDerivedFields(User user, Security security, Security existingSecurity);
-  
-  
+
   void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
-  
+
   /**
    * Some cases the historical prices must be reloaded completely. For example
    * when a split is added.
-  
+   * 
    * @param security
    * @return
    */
   Security rebuildSecurityCurrencypairHisotry(Security security);
-  
+
   /**
-   * It tries to detect if the historical price data after the latest split has been adjusted.
-   *   
+   * It tries to detect if the historical price data after the latest split has
+   * been adjusted.
+   * 
    * @param security
    * @param securitysplits
    * @return
@@ -95,6 +94,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    */
   SplitAdjustedHistoryquotes isYoungestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits, boolean useConnector) throws Exception;
-  
+
+  // TODO remove it
+  void checkAndClearSecuritycurrencyConnectors(final Security security);
 
 }

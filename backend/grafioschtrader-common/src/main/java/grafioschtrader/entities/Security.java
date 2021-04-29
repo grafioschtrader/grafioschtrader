@@ -207,8 +207,8 @@ public class Security extends Securitycurrency<Security> implements Serializable
   public Security() {
     super();
   }
-  
-  public Security(String name, String currency, Assetclass assetClass, Stockexchange stockexchange, Date activeFromDate, 
+
+  public Security(String name, String currency, Assetclass assetClass, Stockexchange stockexchange, Date activeFromDate,
       Date activeToDate, DistributionFrequency distributionFrequency, String tickerSymbol, String isin) {
     this.name = name;
     this.currency = currency;
@@ -464,8 +464,8 @@ public class Security extends Securitycurrency<Security> implements Serializable
   }
 
   @Override
-  public boolean isActiveForIntradayUpdate(Security security, Date now) {
-    return !now.after(security.getActiveToDate());
+  public boolean isActiveForIntradayUpdate(Date now) {
+    return !now.after(getActiveToDate());
   }
 
   @JsonIgnore
@@ -482,9 +482,9 @@ public class Security extends Securitycurrency<Security> implements Serializable
             || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
         break;
       case COMMODITIES:
-        canHaveDividend =  this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
+        canHaveDividend = this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
         break;
-      case CREDIT_DERIVATIVE:  
+      case CREDIT_DERIVATIVE:
       case CURRENCY_PAIR:
         canHaveDividend = false;
         break;
@@ -494,33 +494,32 @@ public class Security extends Securitycurrency<Security> implements Serializable
   }
 
   public void clearProperties() {
-    if(!this.canHaveSplitConnector()) {
+    if (!this.canHaveSplitConnector()) {
       this.idConnectorSplit = null;
       this.urlSplitExtend = null;
       this.retrySplitLoad = 0;
     }
-    if(!this.canHaveDividendConnector()) {
+    if (!this.canHaveDividendConnector()) {
       this.idConnectorDividend = null;
       this.urlDividendExtend = null;
       this.retryDividendLoad = 0;
     }
-    if(this.stockexchange.isNoMarketValue()) {
+    if (this.stockexchange.isNoMarketValue()) {
       this.shortSecurity = false;
     }
-    
+
   }
-  
-  
+
   @JsonIgnore
   public boolean canHaveSplitConnector() {
     return !((this.assetClass.getCategoryType() == AssetclassType.CONVERTIBLE_BOND
-        || this.assetClass.getCategoryType() == AssetclassType.FIXED_INCOME) 
-        && this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT) 
+        || this.assetClass.getCategoryType() == AssetclassType.FIXED_INCOME)
+        && this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT)
         && (this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF
-        || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.PENSION_FUNDS
-        || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.MUTUAL_FUND
-        || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.CFD
-        || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT);
+            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.PENSION_FUNDS
+            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.MUTUAL_FUND
+            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.CFD
+            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT);
   }
 
   @JsonIgnore

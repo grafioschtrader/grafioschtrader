@@ -12,8 +12,10 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import grafioschtrader.GrafioschtraderApplication;
+
 /**
- * With tests use a different application context without a tomcat reconfiguration.
+ * With tests use a different application context without a tomcat
+ * reconfiguration.
  * 
  * 
  * @author Hugo Graf

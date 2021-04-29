@@ -7,7 +7,6 @@ import java.util.Date;
 import grafioschtrader.entities.Historyquote;
 
 public class FeedConnectorHelper {
-  
 
   public static Double parseDoubleGE(String item) {
     final String text = item.replace(".", "").replace(",", ".");

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum CreateType {
-  
-  //Created by a feed connector
+
+  // Created by a feed connector
   CONNECTOR_CREATED((byte) 0),
   // Added or modified by the user
   ADD_MODIFIED_USER((byte) 5);
@@ -30,6 +30,5 @@ public enum CreateType {
     }
     return null;
   }
-  
-  
+
 }

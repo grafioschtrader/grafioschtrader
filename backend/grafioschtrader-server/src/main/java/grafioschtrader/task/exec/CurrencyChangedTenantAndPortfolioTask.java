@@ -16,6 +16,7 @@ import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
+
 /**
  * Changed currency of tenant and portfolio it needs a creation of currencies
  * and possible recreation of holing tables
@@ -51,8 +52,8 @@ public class CurrencyChangedTenantAndPortfolioTask implements ITask {
   public void doWork(TaskDataChange taskDataChange) {
     Integer idTenant = taskDataChange.getIdEntity();
     Optional<Tenant> tenantOpt = tenantJpaRepository.createNotExistingCurrencypairs(idTenant);
-    if(tenantOpt.isPresent()) {
-      for(Portfolio portfolio: tenantOpt.get().getPortfolioList()) {
+    if (tenantOpt.isPresent()) {
+      for (Portfolio portfolio : tenantOpt.get().getPortfolioList()) {
         portfolioJpaRepository.createNotExistingCurrencypairs(portfolio.getIdPortfolio());
       }
       holdSecurityaccountSecurityRepository.createSecurityHoldingsEntireByTenant(idTenant);
@@ -60,5 +61,5 @@ public class CurrencyChangedTenantAndPortfolioTask implements ITask {
       holdCashaccountBalanceJpaRepository.createCashaccountBalanceEntireByTenant(idTenant);
     }
   }
-  
+
 }

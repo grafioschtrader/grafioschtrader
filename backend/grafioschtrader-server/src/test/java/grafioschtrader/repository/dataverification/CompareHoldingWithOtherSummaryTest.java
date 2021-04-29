@@ -1,4 +1,4 @@
-package grafioschtrader.data.verification;
+package grafioschtrader.repository.dataverification;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -38,16 +38,16 @@ import grafioschtrader.repository.helper.GroupPortfolio;
 class CompareHoldingWithOtherSummaryTest {
 
   @Autowired
-  AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
+  private AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
 
   @Autowired
-  TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
   @Autowired
-  HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Test
   @Disabled

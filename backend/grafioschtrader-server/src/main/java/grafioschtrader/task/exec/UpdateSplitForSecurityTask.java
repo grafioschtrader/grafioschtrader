@@ -100,8 +100,8 @@ public class UpdateSplitForSecurityTask extends UpdateDividendSplitForSecurity<S
         this.securitysplitJpaRepository);
     Optional<Date> maxSplitDate = createdSplits.stream().map(Securitysplit::getSplitDate).max(Date::compareTo);
 
-    if (securityJpaRepository.isYoungestSplitHistoryquotePossibleAdjusted(security,
-        securitysplitsRead, true) == SplitAdjustedHistoryquotes.ADJUSTED) {
+    if (securityJpaRepository.isYoungestSplitHistoryquotePossibleAdjusted(security, securitysplitsRead,
+        true) == SplitAdjustedHistoryquotes.ADJUSTED) {
       if (!maxSplitDate.isEmpty() && security.getFullLoadTimestamp() != null
           && maxSplitDate.get().after(security.getFullLoadTimestamp())) {
         securityJpaRepository.reloadAsyncFullHistoryquote(security);

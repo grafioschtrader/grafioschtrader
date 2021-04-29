@@ -1,24 +1,23 @@
 package grafioschtrader.connector.instrument.finanzen;
 
 public class FinanzenHelper {
-  private static final String[][] stockexchangeMapperArray = { 
+  private static final String[][] stockexchangeMapperArray = {
       // NASDAQ
-      { "NASDAQ", "NAS" }, 
+      { "NASDAQ", "NAS" },
       // Six Exchange
-      { "SIX", "SWX" }, 
+      { "SIX", "SWX" },
       // Frankfurt
-      { "FSX", "FSE" }, 
+      { "FSX", "FSE" },
       // Madrid
-      {"MCE", "STN"},
+      { "MCE", "STN" },
       // Milano -> Take global market
-      {"MIL", "GVIE"},
+      { "MIL", "GVIE" },
       // Japan / Tokio
-      {"JPX", "TOKIO"},
+      { "JPX", "TOKIO" },
       // Austria / Wien
-      {"VIE" ,"WIEN"},
+      { "VIE", "WIEN" },
       // Zürcher Kantonalbank
-      { "ZKB", "ZKK" }
-      };
+      { "ZKB", "ZKK" } };
 
   public static String getMappedStockexchangeSymbol(String stockexchangeSymbol) {
     String symbol = stockexchangeSymbol.toLowerCase();

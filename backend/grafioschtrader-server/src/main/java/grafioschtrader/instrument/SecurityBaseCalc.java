@@ -66,7 +66,8 @@ public abstract class SecurityBaseCalc {
 
     final CalcTransactionPos ctp = new CalcTransactionPos(
         DataHelper.getCurrencyExchangeRateToMainCurreny(transaction, dateCurrencyMap),
-        splitToOpenTransaction == null? splitFactorAfterBefore.fromToDateFactor: splitToOpenTransaction.fromToDateFactor);
+        splitToOpenTransaction == null ? splitFactorAfterBefore.fromToDateFactor
+            : splitToOpenTransaction.fromToDateFactor);
 
     if (transaction.getTransactionType() == TransactionType.ACCUMULATE
         || transaction.getTransactionType() == TransactionType.REDUCE

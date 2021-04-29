@@ -18,12 +18,13 @@ public class HoldingsHelper {
         .getAllCurrencypairsByTenantInPortfolioAndAccounts(idTenant);
     return transformToCurrencypairMapWithFromCurrencyAsKey(currencypairs);
   }
-  
-  public static Map<FromToCurrency, Currencypair> transformToCurrencypairMapWithFromCurrencyAsKey(List <Currencypair> currencypairs) {
+
+  public static Map<FromToCurrency, Currencypair> transformToCurrencypairMapWithFromCurrencyAsKey(
+      List<Currencypair> currencypairs) {
     return currencypairs.stream()
-    .collect(Collectors.toMap(
-        currencypair -> new FromToCurrency(currencypair.getFromCurrency(), currencypair.getToCurrency()),
-        Function.identity()));
+        .collect(Collectors.toMap(
+            currencypair -> new FromToCurrency(currencypair.getFromCurrency(), currencypair.getToCurrency()),
+            Function.identity()));
   }
 
   @Transactional

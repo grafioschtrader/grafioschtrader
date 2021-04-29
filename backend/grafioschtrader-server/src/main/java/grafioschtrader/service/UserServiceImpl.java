@@ -38,29 +38,28 @@ import grafioschtrader.types.TaskType;
 public class UserServiceImpl implements UserService {
 
   private final MessageSource messages;
- 
+
   @Autowired
   private ApplicationEventPublisher eventPublisher;
 
   @Value("${gt.main.user.admin.mail}")
   private String mainUserAdminMail;
-  
-  
+
   @Value("${gt.allowed.users}")
   private int allowedUsers;
-  
+
   @Value("${gt.demo.account.pattern.de}")
   private String demoAccountPatternDE;
- 
+
   @Value("${gt.demo.account.pattern.en}")
   private String demoAccountPatternEN;
- 
+
   private final UserJpaRepository userJpaRepository;
 
   private final RoleJpaRepository roleJpaRepository;
 
   private final GlobalparametersJpaRepository globalparametersJpaRepository;
-  
+
   private final TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired
@@ -146,9 +145,9 @@ public class UserServiceImpl implements UserService {
     eventPublisher.publishEvent(new OnRegistrationCompleteEvent(newUser, hostNameAndBaseName));
     return newUser;
   }
-  
+
   private void checkApplExeedsUserLimit(String localeStr) {
-    if(userJpaRepository.countByEnabled(true) >= allowedUsers) {
+    if (userJpaRepository.countByEnabled(true) >= allowedUsers) {
       throw new DataViolationException("applimit", "appl.exeeds.user.limit", allowedUsers, localeStr);
     }
   }
@@ -165,11 +164,12 @@ public class UserServiceImpl implements UserService {
       roles.add(roleJpaRepository.findByRolename(Role.ROLE_LIMIT_EDIT));
     }
     User user = userJpaRepository.save(userDTO.toUser(roles));
-    if (isMainUserAdmin) {  
-      // It is not possible to give this user the id 1 when @GeneratedValue(strategy = GenerationType.IDENTITY) is used
+    if (isMainUserAdmin) {
+      // It is not possible to give this user the id 1 when @GeneratedValue(strategy =
+      // GenerationType.IDENTITY) is used
       // But we move all existing entities to this user
       TaskDataChange tdc = new TaskDataChange(TaskType.MOVE_CREATED_BY_USER_TO_OTHER_USER, (short) 20,
-        LocalDateTime.now().plusMinutes(5), user.getIdUser());
+          LocalDateTime.now().plusMinutes(5), user.getIdUser());
       tdc.setOldValueNumber(1.0);
       taskDataChangeJpaRepository.save(tdc);
     }
@@ -181,7 +181,6 @@ public class UserServiceImpl implements UserService {
     user.setTimezoneOffset(timezoneOffset);
     return userJpaRepository.save(user);
   }
- 
 
   @Override
   public SuccessfullyChanged updateNicknameLocal(UserOwnProjection userOwnProjection) {
@@ -224,7 +223,4 @@ public class UserServiceImpl implements UserService {
     return userJpaRepository.save(user);
   }
 
- 
-  
-  
 }

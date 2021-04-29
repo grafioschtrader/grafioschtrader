@@ -96,7 +96,8 @@ public class SplitCalendarAppender {
         }
       }
     }
-    Globalparameters globalparameters = new Globalparameters(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE, now, true);
+    Globalparameters globalparameters = new Globalparameters(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE, now,
+        true);
     globalparametersJpaRepository.save(globalparameters);
   }
 

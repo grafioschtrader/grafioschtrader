@@ -96,7 +96,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
     createSecurityHoldingsEntireByTenant(tenant);
     log.debug("End - HoldSecurityaccountSecurity: {}", System.currentTimeMillis() - startTime);
   }
-  
+
   private void createSecurityHoldingsEntireByTenant(Tenant tenant) {
     createSecurityHoldingsForTimeFrameByPortfolios(tenant.getPortfolioList(), tenant.getCurrency(),
         loadCurrencypairSecuritySplit(tenant.getIdTenant()));

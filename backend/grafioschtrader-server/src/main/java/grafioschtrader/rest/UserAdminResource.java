@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.entities.ProposeUserTask;
-import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.User.AdminModify;
 import grafioschtrader.repository.ProposeUserTaskJpaRepository;
@@ -60,25 +59,20 @@ public class UserAdminResource extends UpdateCreateResource<User> {
     return updateEntity(user);
   }
 
-  
-  @Operation(summary = "Change the owner of shared entities", description = "", tags = {
-      RequestMappings.USERADMIN })
+  @Operation(summary = "Change the owner of shared entities", description = "", tags = { RequestMappings.USERADMIN })
   @PatchMapping("{fromIdUser}/{toIdUser}")
   public ResponseEntity<Integer> moveCreatedByUserToOtherUser(
       @Parameter(description = "Id of user who give up his entities", required = true) @PathVariable Integer fromIdUser,
       @Parameter(description = "Id of user who gets the entities", required = true) @PathVariable Integer toIdUser)
-      throws SQLException 
-  {
+      throws SQLException {
     return new ResponseEntity<>(userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser), HttpStatus.OK);
   }
-  
-  
+
   @Override
   protected UpdateCreateJpaRepository<User> getUpdateCreateJpaRepository() {
     return userJpaRepository;
   }
 
-  
   @Override
   protected ResponseEntity<User> changeEntityWithPossibleProposals(final User userAtWork, User entity,
       User existingEntity) throws Exception {

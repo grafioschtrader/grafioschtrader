@@ -38,27 +38,22 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   @Autowired
   TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
 
-  @Operation(summary = "Return all import transaction template for a certain import transaction platform", description = "", 
-      tags = { RequestMappings.IMPORTTRANSACTIONTEMPLATE})
+  @Operation(summary = "Return all import transaction template for a certain import transaction platform", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/importtransactionplatform/{idTransactionImportPlatform}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionTemplate>> getImportTransactionPlatformByPlatform(
-      @Parameter(description="ID of the import transaction platform", required=true)
-      @PathVariable final Integer idTransactionImportPlatform,
-      @Parameter(description="true when a empty template is requried", required=true)
-      @RequestParam() final boolean excludeTemplate) {
+      @Parameter(description = "ID of the import transaction platform", required = true) @PathVariable final Integer idTransactionImportPlatform,
+      @Parameter(description = "true when a empty template is requried", required = true) @RequestParam() final boolean excludeTemplate) {
 
     return getImportTransactionPlatformById(idTransactionImportPlatform, excludeTemplate);
   }
 
-  
-  @Operation(summary = "Return all import transaction template for a certain trading platform plan", description = "", 
-      tags = { RequestMappings.IMPORTTRANSACTIONTEMPLATE})
+  @Operation(summary = "Return all import transaction template for a certain trading platform plan", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/importtransactionplatform/tradingplatformplan/{idTradingPlatformPlan}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionTemplate>> getImportTransactionPlatformByTradingPlatformPlan(
-      @Parameter(description="Id of trading platform plan", required=true)
-      @PathVariable final Integer idTradingPlatformPlan,
-      @Parameter(description="true when a empty template is requried", required=true)
-      @RequestParam() final boolean excludeTemplate) {
+      @Parameter(description = "Id of trading platform plan", required = true) @PathVariable final Integer idTradingPlatformPlan,
+      @Parameter(description = "true when a empty template is requried", required = true) @RequestParam() final boolean excludeTemplate) {
     TradingPlatformPlan tradingPlatformPlan = tradingPlatformPlanJpaRepository.findById(idTradingPlatformPlan)
         .orElse(null);
 
@@ -82,22 +77,22 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
     return importTransactionTemplateJpaRepository;
   }
 
-  @Operation(summary = "Check a text of a transaction report against the form temlates to match the input fields", description = "", 
-      tags = { RequestMappings.IMPORTTRANSACTIONTEMPLATE})
+  @Operation(summary = "Check a text of a transaction report against the form temlates to match the input fields", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
   @PostMapping(value = "/checkformagainsttemplate")
   public ResponseEntity<FormTemplateCheck> checkFormAgainstTemplate(@RequestBody FormTemplateCheck formTemplateCheck)
       throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(importTransactionTemplateJpaRepository.checkFormAgainstTemplate(formTemplateCheck, user.createAndGetJavaLocale()),
-        HttpStatus.OK);
+    return new ResponseEntity<>(importTransactionTemplateJpaRepository.checkFormAgainstTemplate(formTemplateCheck,
+        user.createAndGetJavaLocale()), HttpStatus.OK);
   }
-  
-  @Operation(summary = "Returns the possible languages for the template", description = "", 
-      tags = { RequestMappings.IMPORTTRANSACTIONTEMPLATE})
+
+  @Operation(summary = "Returns the possible languages for the template", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/languages", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getPossibleLanguagesForTemplate() {
-    return new ResponseEntity<>(importTransactionTemplateJpaRepository.getPossibleLanguagesForTemplate(), HttpStatus.OK);
+    return new ResponseEntity<>(importTransactionTemplateJpaRepository.getPossibleLanguagesForTemplate(),
+        HttpStatus.OK);
   }
-  
 
 }

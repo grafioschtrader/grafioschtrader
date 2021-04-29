@@ -25,7 +25,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 // Spring ehcache is not working, 
 // @EnableCaching
 public class GrafioschtraderApplication {
-  
+
   public static void main(final String[] args) {
     // ApplicationContext context =
     SpringApplication.run(GrafioschtraderApplication.class, args);
@@ -58,8 +58,5 @@ public class GrafioschtraderApplication {
   void started() {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
   }
-
- 
-  
 
 }

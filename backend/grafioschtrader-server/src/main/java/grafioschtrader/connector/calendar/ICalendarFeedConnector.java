@@ -15,14 +15,16 @@ public interface ICalendarFeedConnector {
    * @return
    * @throws Exception
    */
-  Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countyCodes) throws Exception;
+  Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countyCodes)
+      throws Exception;
 
   /**
    * Priority of the data provider, first means lower number
+   * 
    * @return
    */
   int getPriority();
-  
+
   class TickerSecuritysplit {
     public TickerSecuritysplit(String companyName, Securitysplit securitysplit) {
       this.companyName = companyName;

@@ -81,7 +81,7 @@ public abstract class Auditable extends ProposeTransientTransfer implements Seri
   }
 
   public void setVersion(Integer version) {
-   this.version = version;
+    this.version = version;
   }
 
 }

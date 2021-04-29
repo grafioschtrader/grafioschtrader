@@ -124,18 +124,19 @@ public abstract class UpdateCreate<T extends BaseID> {
         Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class));
 
     logAddUpdDel(user.getIdUser(), result, OperationType.ADD);
-    if(entity instanceof UserEntityChangeLimit && ((UserEntityChangeLimit) entity).getIdProposeRequest() != null) {
-      // UserEntityChangeLimit can have a proposal request without an existing UserEntityChangeLimit, because the
+    if (entity instanceof UserEntityChangeLimit && ((UserEntityChangeLimit) entity).getIdProposeRequest() != null) {
+      // UserEntityChangeLimit can have a proposal request without an existing
+      // UserEntityChangeLimit, because the
       // user which caused it, product only a proposal on no entity
       updateEntity(entity);
     }
-    
+
     return ResponseEntity.ok().body(result);
   }
 
   /**
-   * There is a limit of changes for a user on own public data. This limit is checked here.
-   * Only limit user is checked against limit violations.
+   * There is a limit of changes for a user on own public data. This limit is
+   * checked here. Only limit user is checked against limit violations.
    * 
    * @param entity
    * @param user

@@ -16,9 +16,9 @@ import grafioschtrader.repository.SecurityServiceAsyncExectuion;
 import grafioschtrader.repository.SecuritycurrencyService;
 
 /**
- *  Current and historical price data of instruments can arise differently. 
- *  They can be loaded from an external data source or derived from existing instruments. 
- *  Therefore this interface exists. 
+ * Current and historical price data of instruments can arise differently. They
+ * can be loaded from an external data source or derived from existing
+ * instruments. Therefore this interface exists.
  *
  * @param <S>
  */
@@ -77,7 +77,6 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    */
   String getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(S securitycurrency);
 
-  
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy,
       SecurityJpaRepository securityJpaRepository, MessageSource messages);
 }

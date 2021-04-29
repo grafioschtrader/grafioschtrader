@@ -41,8 +41,7 @@ public class TradingDaysMinus {
   @Column(name = "create_type")
   @NotNull
   private byte createType;
-  
-    
+
   public TradingDaysMinus() {
   }
 
@@ -54,7 +53,7 @@ public class TradingDaysMinus {
   public TradingDaysMinus(Integer idStockexchange, LocalDate tradingDateMinus) {
     this(idStockexchange, tradingDateMinus, CreateType.ADD_MODIFIED_USER);
   }
-  
+
   public CreateType getCreateType() {
     return CreateType.getCreateType(createType);
   }
@@ -62,8 +61,7 @@ public class TradingDaysMinus {
   public void setCreateType(CreateType createType) {
     this.createType = createType.getValue();
   }
-  
-  
+
   public Integer getIdStockexchange() {
     return tradingDaysMinusKey.idStockexchange;
   }
@@ -72,7 +70,6 @@ public class TradingDaysMinus {
   public LocalDate getTradingDateMinus() {
     return tradingDaysMinusKey.tradingDateMinus;
   }
-    
 
   public static class TradingDaysMinusKey implements Serializable {
 
@@ -84,7 +81,6 @@ public class TradingDaysMinus {
     @Column(name = "trading_date_minus")
     public LocalDate tradingDateMinus;
 
-   
     public TradingDaysMinusKey() {
     }
 

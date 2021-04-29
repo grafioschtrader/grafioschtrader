@@ -10,15 +10,17 @@ import grafioschtrader.entities.User;
 public interface HistoryquotePeriodJpaRepositoryCustom {
 
   /**
-   * When the lifetime of a security with history quote period is changed the corresponding period must also be adjusted. 
+   * When the lifetime of a security with history quote period is changed the
+   * corresponding period must also be adjusted.
    * 
    * @param security
    */
   void adjustHistoryquotePeriod(Security security);
 
   /**
-   * History quote period are created manually, normally used when one price does not fit the whole lifetime
-   * of a security
+   * History quote period are created manually, normally used when one price does
+   * not fit the whole lifetime of a security
+   * 
    * @param user
    * @param hpdacm
    * @return

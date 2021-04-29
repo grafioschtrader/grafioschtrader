@@ -24,18 +24,18 @@ import grafioschtrader.types.CreateType;
 import grafioschtrader.types.TaskType;
 
 /**
- * Normally called when the dividend data connector is changed or thru dividend calendar
- * calendar a possible update was detected.
+ * Normally called when the dividend data connector is changed or thru dividend
+ * calendar calendar a possible update was detected.
  *
  */
 @Component
 public class UpdateDividendForSecurityTask extends UpdateDividendSplitForSecurity<Dividend> implements ITask {
-  
+
   @Autowired
   private DividendJpaRepository dividendJpaRepository;
-  
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
-  
+
   @Override
   public TaskType getTaskType() {
     return TaskType.SECURTY_DIVIDEND_UPDATE_FOR_SECURITY;
@@ -55,7 +55,6 @@ public class UpdateDividendForSecurityTask extends UpdateDividendSplitForSecurit
     }
   }
 
-  
   private List<String> loadDividendData(Security security) {
     List<String> errorMessages = new ArrayList<>();
     short retryDividendLoad = security.getRetryDividendLoad();
@@ -85,7 +84,7 @@ public class UpdateDividendForSecurityTask extends UpdateDividendSplitForSecurit
     List<Dividend> existingDividends = dividendJpaRepository
         .findByIdSecuritycurrencyOrderByExDateAsc(security.getIdSecuritycurrency());
     updateDividendSplitData(security, dividendsRead, existingDividends, this.dividendJpaRepository);
-  
+
   }
-  
+
 }

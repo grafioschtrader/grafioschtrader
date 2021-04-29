@@ -37,13 +37,15 @@ public class SwissFundDataConnector extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private final Logger log = LoggerFactory.getLogger(this.getClass());
+  private static final String URL_EXTENDED_REGEX = "^\\d+$";
+
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
   }
 
   public SwissFundDataConnector() {
-    super(supportedFeed, "swissfunddata", "Swiss Fund Data");
+    super(supportedFeed, "swissfunddata", "Swiss Fund Data", URL_EXTENDED_REGEX);
   }
 
   @Override

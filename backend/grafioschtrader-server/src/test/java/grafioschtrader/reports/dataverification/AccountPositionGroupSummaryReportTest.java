@@ -1,4 +1,4 @@
-package grafioschtrader.data.verification;
+package grafioschtrader.reports.dataverification;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -31,7 +31,7 @@ import grafioschtrader.test.start.GTforTest;
 class AccountPositionGroupSummaryReportTest {
 
   @Autowired
-  AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
+  private AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
 
   @Test
   @Disabled
