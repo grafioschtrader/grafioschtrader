@@ -21,7 +21,7 @@ public class ImportTransactionPlatformJpaRepositoryImpl extends BaseRepositoryIm
 
   @Override
   public ImportTransactionPlatform saveOnlyAttributes(ImportTransactionPlatform importTransactionPlatform,
-      ImportTransactionPlatform existingEntity, final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      ImportTransactionPlatform existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return importTransactionPlatformJpaRepository.save(importTransactionPlatform);
   }
 

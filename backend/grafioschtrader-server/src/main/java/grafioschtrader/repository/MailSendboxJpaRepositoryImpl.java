@@ -43,7 +43,7 @@ public class MailSendboxJpaRepositoryImpl extends MailInOutService<MailSendbox>
 
   @Override
   public MailSendbox saveOnlyAttributes(MailSendbox entity, MailSendbox existingEntity,
-      Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     MailSendbox mailSendbox = sendInternalMail(entity.getIdUserFrom(), entity.getIdUserTo(), entity.getRoleNameTo(),
         entity.getSubject(), entity.getMessage());
     connectRoleNameToMail(mailSendbox);

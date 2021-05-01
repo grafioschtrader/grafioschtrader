@@ -32,32 +32,32 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     implements ImportTransactionHeadJpaRepositoryCustom {
 
   @Autowired
-  ImportTransactionHeadJpaRepository importTransactionHeadJpaRepository;
+  private ImportTransactionHeadJpaRepository importTransactionHeadJpaRepository;
 
   @Autowired
-  ImportTransactionTemplateJpaRepository importTransactionTemplateJpaRepository;
+  private ImportTransactionTemplateJpaRepository importTransactionTemplateJpaRepository;
 
   @Autowired
-  ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
+  private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
 
   @Autowired
-  ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository;
+  private ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  SecurityaccountJpaRepository securityaccountJpaRepository;
+  private SecurityaccountJpaRepository securityaccountJpaRepository;
 
   @Autowired
-  PortfolioJpaRepository portfolioJpaRepository;
+  private PortfolioJpaRepository portfolioJpaRepository;
 
   @Autowired(required = false)
   public List<IPlatformTransactionImport> platformTransactionImportList = new ArrayList<>();
 
   @Override
   public ImportTransactionHead saveOnlyAttributes(ImportTransactionHead importTransactionHead,
-      ImportTransactionHead existingEntity, final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      ImportTransactionHead existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
 
     ImportTransactionHead createImportTransactionHead = importTransactionHead;
     if (existingEntity != null) {

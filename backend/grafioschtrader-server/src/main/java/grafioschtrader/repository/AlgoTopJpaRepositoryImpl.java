@@ -56,7 +56,7 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
 
   @Override
   public AlgoTop saveOnlyAttributes(AlgoTop algoTopOrAlgoTopCreate, AlgoTop existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     if (algoTopOrAlgoTopCreate instanceof AlgoTopCreate) {
       // When new
       var algoTop = new AlgoTop();

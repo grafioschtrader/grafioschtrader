@@ -19,7 +19,7 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
   @Transactional
   @Modifying
   public Securityaccount saveOnlyAttributes(final Securityaccount securityaccount, Securityaccount existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     /*
      * Securityaccount createEditSecurityaccount = securityaccount; if
      * (securityaccount.getIdSecuritycashAccount() != null) {
@@ -30,7 +30,7 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
      */
 
     return RepositoryHelper.saveOnlyAttributes(securityaccountJpaRepository, securityaccount, existingEntity,
-        udatePropertyLevelClasses);
+        updatePropertyLevelClasses);
   }
 
 }

@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -58,7 +59,7 @@ public class SixFeedConnector extends BaseFeedConnector {
 
   private static final String DOMAIN_NAME_WITH_PROTO = "https://www.six-group.com/";
   private static final ObjectMapper objectMapper = new ObjectMapper();
-  private static final String FROM_DATE_FORMAT_SIX = "yyyyMMdd";
+  private static final String FROM_DATE_FORMAT_SIX = GlobalConstants.SHORT_STANDARD_DATE_FORMAT;
   private static final String DATE_FORMAT_SIX = "yyyyMMdd HH:mm:ss";
   private static final String URL_EXTENDED_REGEX = "^([A-Z]{2})([A-Z0-9]{9})([0-9]{1})[A-Za-z]{3}\\d$";
 

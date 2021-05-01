@@ -26,7 +26,7 @@ public class AssetclassJpaRepositoryImpl extends BaseRepositoryImpl<Assetclass>
 
   @Override
   public Assetclass saveOnlyAttributes(final Assetclass assetclass, final Assetclass existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
 
     SpecialInvestmentInstruments[] siis = Assetclass.possibleInstrumentsMap.get(assetclass.getCategoryType());
 
@@ -35,7 +35,7 @@ public class AssetclassJpaRepositoryImpl extends BaseRepositoryImpl<Assetclass>
     }
 
     return RepositoryHelper.saveOnlyAttributes(assetclassJpaRepository, assetclass, existingEntity,
-        udatePropertyLevelClasses);
+        updatePropertyLevelClasses);
 
   }
 

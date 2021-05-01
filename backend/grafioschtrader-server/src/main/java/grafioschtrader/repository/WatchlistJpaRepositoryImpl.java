@@ -98,9 +98,9 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   @Transactional
   @Modifying
   public Watchlist saveOnlyAttributes(Watchlist watchlist, Watchlist existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     watchlist = RepositoryHelper.saveOnlyAttributes(watchlistJpaRepository, watchlist, existingEntity,
-        udatePropertyLevelClasses);
+        updatePropertyLevelClasses);
     setPossiblePerformanceWatchlist(watchlist, existingEntity);
     return watchlist;
   }

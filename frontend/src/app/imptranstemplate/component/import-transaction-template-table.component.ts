@@ -82,6 +82,9 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
       usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
 
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false);
+    this.addColumnFeqH(DataType.String, 'templateCategory',  true, false,
+      {translateValues: TranslateValue.NORMAL});
+
     this.addColumn(DataType.String, 'templateFormatType', 'TEMPLATE_FORMAT', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.DateString, 'validSince', true, false);

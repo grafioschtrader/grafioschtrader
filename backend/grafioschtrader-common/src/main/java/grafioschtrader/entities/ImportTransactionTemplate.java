@@ -1,6 +1,10 @@
 package grafioschtrader.entities;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -12,10 +16,15 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.springframework.util.Assert;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.platformimport.TemplateConfiguration;
+import grafioschtrader.types.TemplateCategory;
 import grafioschtrader.types.TemplateFormatType;
 
 /**
@@ -32,6 +41,7 @@ public class ImportTransactionTemplate extends Auditable {
 
   public static final String TABNAME = "imp_trans_template";
 
+  private static final String TEMPLATE_PURPOSE = "templatePurpose=";
   private static final long serialVersionUID = 1L;
 
   @Id
@@ -46,6 +56,10 @@ public class ImportTransactionTemplate extends Auditable {
   @Column(name = "template_purpose")
   @PropertyAlwaysUpdatable
   private String templatePurpose;
+
+  @Column(name = "template_category")
+  @PropertyAlwaysUpdatable
+  private byte templateCategory;
 
   @Column(name = "template_format_type")
   @PropertyAlwaysUpdatable
@@ -64,6 +78,16 @@ public class ImportTransactionTemplate extends Auditable {
   @Column(name = "template_as_txt")
   @PropertyAlwaysUpdatable
   private String templateAsTxt;
+
+  public ImportTransactionTemplate() {
+  }
+
+  public ImportTransactionTemplate(TemplateCategory templateCategory, TemplateFormatType templateFormatType,
+      String templateLanguage) {
+    this.templateCategory = templateCategory.getValue();
+    this.templateFormatType = templateFormatType.getValue();
+    this.templateLanguage = templateLanguage;
+  }
 
   public Integer getIdTransactionImportTemplate() {
     return idTransactionImportTemplate;
@@ -97,6 +121,15 @@ public class ImportTransactionTemplate extends Auditable {
     this.templatePurpose = templatePurpose;
   }
 
+  public TemplateCategory getTemplateCategory() {
+    return TemplateCategory.getTemplateCategory(templateCategory);
+  }
+
+  public void setTemplateCategory(TemplateCategory templateCategory) {
+    Assert.notNull(templateCategory, "Template category mustn't be null!");
+    this.templateCategory = templateCategory.getValue();
+  }
+
   public String getTemplateAsTxt() {
     return templateAsTxt;
   }
@@ -124,6 +157,32 @@ public class ImportTransactionTemplate extends Auditable {
   @Override
   public Integer getId() {
     return idTransactionImportTemplate;
+  }
+
+  @JsonIgnore
+  public boolean isLanguageLocaleOK() {
+    return Arrays.stream(Locale.getAvailableLocales()).anyMatch(loc -> loc.getLanguage().equals(templateLanguage));
+  }
+
+  public boolean copyPurposeInTextToFieldPurpose() {
+    if (templateAsTxt != null) {
+      Pattern purposeP = Pattern.compile("^" + TEMPLATE_PURPOSE + "(.*)$", Pattern.MULTILINE);
+      Matcher m = purposeP.matcher(templateAsTxt);
+      if (m.find()) {
+        templatePurpose = m.group(1);
+        return true;
+      }
+    }
+    return false;
+
+  }
+
+  public void replacePurposeInTemplateAsText() {
+    // remove existing purpose
+    templateAsTxt = templateAsTxt.replaceFirst(TEMPLATE_PURPOSE + ".*(?:\\r?\\n)?", "");
+    // add purpose
+    templateAsTxt = templateAsTxt.replaceFirst(Pattern.quote(TemplateConfiguration.SECTION_END),
+        TemplateConfiguration.SECTION_END + System.lineSeparator() + TEMPLATE_PURPOSE + this.templatePurpose);
   }
 
   @Override

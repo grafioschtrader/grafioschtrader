@@ -15,7 +15,7 @@ public class AlgoAssetclassJpaRepositoryImpl extends BaseRepositoryImpl<AlgoAsse
 
   @Override
   public AlgoAssetclass saveOnlyAttributes(AlgoAssetclass algoAssetclass, AlgoAssetclass existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return algoAssetclassJpaRepository.save(algoAssetclass);
   }
 

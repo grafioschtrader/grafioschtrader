@@ -30,10 +30,10 @@ public class UserEntityChangeLimitJpaRepositoryImpl extends BaseRepositoryImpl<U
 
   @Override
   public UserEntityChangeLimit saveOnlyAttributes(UserEntityChangeLimit userEntityChangeLimit,
-      UserEntityChangeLimit existingEntity, final Set<Class<? extends Annotation>> udatePropertyLevelClasses)
+      UserEntityChangeLimit existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws Exception {
     return RepositoryHelper.saveOnlyAttributes(userEntityChangeLimitJpaRepository, userEntityChangeLimit,
-        existingEntity, udatePropertyLevelClasses);
+        existingEntity, updatePropertyLevelClasses);
   }
 
   @Override

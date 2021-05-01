@@ -31,7 +31,7 @@ public abstract class TemplateConfiguration {
    */
   public static final String FO_BOND_QUATION_CORRECTION = "bondQuationCorrection";
 
-  private static final String SECTION_END = "[END]";
+  public static final String SECTION_END = "[END]";
   private static final String CONF_TRANSACTION_TYPE = "transType";
   private static final String CONF_DATE_FORMAT = "dateFormat";
   private static final String CONF_TIME_FORMAT = "timeFormat";

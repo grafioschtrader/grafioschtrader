@@ -84,7 +84,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   @Override
   public ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
       final Integer idSecuritycurrency, final String dateString, final boolean asTraded) throws ParseException {
-    final Date date = new SimpleDateFormat("yyyyMMdd").parse(dateString);
+    final Date date = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).parse(dateString);
     final List<Integer> securitycurrencies = new ArrayList<>();
     securitycurrencies.add(idSecuritycurrency);
     final List<ISecuritycurrencyIdDateClose> securitycurrencyIdDateCloseList = historyquoteJpaRepository
@@ -149,7 +149,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   @Transactional
   @Modifying
   public Historyquote saveOnlyAttributes(final Historyquote historyquote, final Historyquote existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     long dayDiff = checkDatePastMinus1Day(historyquote);
 
     final Historyquote historyquoteFillDate = historyquoteJpaRepository

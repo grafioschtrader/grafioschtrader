@@ -31,6 +31,7 @@ public class GlobalConstants {
    */
   public static final int MAX_PRECISION = 8;
 
+  public static final String SHORT_STANDARD_DATE_FORMAT = "yyyyMMdd";
   public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
   public static final String STANDARD_LOCAL_DATE_TIME = "yyyy-MM-dd HH:mm";
   public static final String OLDEST_TRADING_DAY = "2000-01-01";

@@ -20,7 +20,7 @@ import {Subscription} from 'rxjs';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
 /**
- * Edit asset classes
+ * Edit asset classes in a dialog
  */
 @Component({
   selector: 'assetclass-edit',

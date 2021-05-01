@@ -128,7 +128,6 @@ export class SelectOptionsHelper {
     return valueKeyHtmlSelectOptions;
   }
 
-
   private static createHtmlOptionsFromEnumWithEmptyOrNot(valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[],
                                                          translateService: TranslateService, e: EnumI, allowedEnums?: any[],
                                                          deny?: boolean, disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
@@ -144,6 +143,8 @@ export class SelectOptionsHelper {
         }
       }
     }
+    valueKeyHtmlSelectOptions.sort((a, b) =>
+      (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
     return valueKeyHtmlSelectOptions;
   }
 

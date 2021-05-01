@@ -48,11 +48,11 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User> implements U
 
   @Override
   public User saveOnlyAttributes(User user, User existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     Map<String, Role> roleMap = roleJpaRepository.findAll().stream()
         .collect(Collectors.toMap(Role::getRolename, Function.identity()));
     existingEntity.setRoleMap(roleMap);
-    return RepositoryHelper.saveOnlyAttributes(userJpaRepository, user, existingEntity, udatePropertyLevelClasses);
+    return RepositoryHelper.saveOnlyAttributes(userJpaRepository, user, existingEntity, updatePropertyLevelClasses);
   }
 
   @Override

@@ -4,9 +4,6 @@ import {ActivatedRoute} from '@angular/router';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {SingleRecordMasterViewBase} from '../../shared/masterdetail/component/single.record.master.view.base';
 import {HelpIds} from '../../shared/help/help.ids';
-import {AppHelper} from '../../shared/helper/app.helper';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {InputType} from '../../dynamic-form/models/input.type';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
 import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.transaction.import';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
@@ -19,11 +16,18 @@ import {ConfirmationService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {plainToClass} from 'class-transformer';
-import {Assetclass} from '../../entities/assetclass';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {
+  ImportTransactionTemplateService,
+  SuccessFailedImportTransactionTemplate
+} from '../service/import.transaction.template.service';
+import * as filesaver from '../../shared/filesaver/filesaver';
+import {NgxFileDropEntry} from 'ngx-file-drop';
+import {AppHelper} from '../../shared/helper/app.helper';
 
 /**
  * Main component of import transaction template. It combines other components like a table.
@@ -33,11 +37,20 @@ import {AppSettings} from '../../shared/app.settings';
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
-      <h4 class="ui-widget-header singleRowTableHeader">{{'IMPORTTRANSACTIONPLATFORM' | translate}}</h4>
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm">
+      <div class="flex-two-columns">
+        <h4 class="ui-widget-header singleRowTableHeader">{{'IMPORTTRANSACTIONPLATFORM' | translate}}</h4>
+        <div class="right-half" *ngIf="!ittdc?.isEmpty()">
+          <ngx-file-drop dropZoneLabel="{{'DROP_TEMPLATE_HERE' | translate}}" (onFileDrop)="dropped($event)"
+                         dropZoneClassName="drop-zone-trans-long"
+                         contentClassName="content-trans">
+          </ngx-file-drop>
+        </div>
+      </div>
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm">
       </dynamic-form>
-
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
+                     appendTo="body"></p-contextMenu>
       <br/>
       <import-transaction-template-table></import-transaction-template-table>
     </div>
@@ -72,6 +85,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
 
   constructor(private activatedRoute: ActivatedRoute,
               private importTransactionPlatformService: ImportTransactionPlatformService,
+              private importTransactionTemplateService: ImportTransactionTemplateService,
               globalparameterService: GlobalparameterService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
@@ -87,7 +101,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
       DynamicFieldHelper.createFieldSelectNumber(ImportTransactionTemplateComponent.MAIN_FIELD, 'NAME', false,
         {usedLayoutColumns: 6}),
       DynamicFieldHelper.createFieldInputString('idCsvImportImplementation', 'TRANSACTION_IMPLEMENTATION', 32,
-       false, {disabled: true, usedLayoutColumns: 6})
+        false, {disabled: true, usedLayoutColumns: 6})
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -130,6 +144,11 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
     });
     menuItems.push({separator: true});
     menuItems = menuItems.concat(this.getBaseEditMenu('IMPORTTRANSACTIONPLATFORM'));
+    menuItems.push({
+      label: 'EXPORT_ALL_IMPORTTEMPLATES',
+      command: () => this.exportAllTemplates(this.selectedEntity),
+      disabled: this.ittdc.isEmpty()
+    });
 
     menuItems.push({separator: true});
     menuItems.push({
@@ -165,6 +184,16 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
     this.refreshMenus();
   }
 
+  private async exportAllTemplates(itp: ImportTransactionPlatform): Promise<void> {
+    const blob = await this.importTransactionTemplateService.getTemplatesByPlatformPlanAsZip(
+      this.selectedEntity.idTransactionImportPlatform)
+      .catch(error => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'DOWNLOAD_TEMPLATE_DATA_FAILED'));
+    if (blob) {
+      filesaver.saveAs(blob, itp.name + '.zip');
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'DOWNLOAD_TEMPLATE_DATA_SUCCESS');
+    }
+  }
+
   ngOnDestroy(): void {
     super.destroy();
   }
@@ -176,5 +205,18 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
 
   protected prepareCallParm(entity: ImportTransactionPlatform): void {
     this.callParam = new CallParam(null, entity);
+  }
+
+  public dropped(files: NgxFileDropEntry[]) {
+    AppHelper.processDroppedFiles(files, this.messageToastService, 'tmpl', this.uploadTemplateFiles.bind(this));
+  }
+
+  private uploadTemplateFiles(formData: FormData): void {
+    this.importTransactionTemplateService.uploadImportTemplateFiles(this.selectedEntity.idTransactionImportPlatform,
+      formData).subscribe((sitt: SuccessFailedImportTransactionTemplate) => {
+      this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'UPLOAD_TEMPLATES_SUCCESS',
+        {successNew: sitt.successNew, successUpdated: sitt.successUpdated, notOwner:
+          sitt.notOwner, fileNameError: sitt.fileNameError, contentError: sitt.contentError});
+    });
   }
 }

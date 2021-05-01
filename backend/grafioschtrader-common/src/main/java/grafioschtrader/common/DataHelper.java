@@ -1,5 +1,6 @@
 package grafioschtrader.common;
 
+import java.beans.FeatureDescriptor;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -17,12 +18,15 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Currencypair;
@@ -104,6 +108,9 @@ public abstract class DataHelper {
     }
     return amount;
   }
+  
+  
+  
 
   /**
    * Copy properties from the source to the target object.
@@ -145,20 +152,20 @@ public abstract class DataHelper {
    * 
    * @param newEntity
    * @param existingEntity
-   * @param udatePropertyLevelClasses
+   * @param updatePropertyLevelClasses
    * @return
    * @throws IllegalAccessException
    * @throws InvocationTargetException
    * @throws NoSuchMethodException
    */
   public static List<ProposeChangeField> getDiffPropertiesOfEntity(Object newEntity, Object existingEntity,
-      Set<Class<? extends Annotation>> udatePropertyLevelClasses)
+      Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     List<ProposeChangeField> proposeChangeFieldList = new ArrayList<>();
 
     List<Field> fields = FieldUtils.getAllFieldsList(newEntity.getClass());
     for (Field field : fields) {
-      if (fieldContainsAnnotation(field, udatePropertyLevelClasses)) {
+      if (fieldContainsAnnotation(field, updatePropertyLevelClasses)) {
         String name = field.getName();
         Object valueNew = PropertyUtils.getProperty(newEntity, name);
         Object valueExisting = PropertyUtils.getProperty(existingEntity, name);
@@ -183,9 +190,9 @@ public abstract class DataHelper {
   }
 
   public static List<Field> getFieldByPropertiesAnnotation(Class<?> clazz,
-      Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return FieldUtils.getAllFieldsList(clazz).stream()
-        .filter(field -> fieldContainsAnnotation(field, udatePropertyLevelClasses)).collect(Collectors.toList());
+        .filter(field -> fieldContainsAnnotation(field, updatePropertyLevelClasses)).collect(Collectors.toList());
 
   }
 

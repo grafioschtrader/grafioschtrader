@@ -36,7 +36,7 @@ public class ProposeChangeEntityJpaRepositoryImpl extends ProposeRequestService<
   @Transactional
   @Modifying
   public ProposeChangeEntity saveOnlyAttributes(final ProposeChangeEntity proposeChangeEntity,
-      final ProposeChangeEntity existingEntity, final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      final ProposeChangeEntity existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return proposeChangeEntityJpaRepository.save(proposeChangeEntity);
   }
 
