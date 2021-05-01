@@ -62,14 +62,14 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
 
   @Override
   public ProposeUserTask saveOnlyAttributes(ProposeUserTask proposeUserTask, ProposeUserTask existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     proposeUserTask.setIdTargetUser(user.getIdUser());
-    return save(proposeUserTask, existingEntity, udatePropertyLevelClasses);
+    return save(proposeUserTask, existingEntity, updatePropertyLevelClasses);
   }
 
   private ProposeUserTask save(ProposeUserTask proposeUserTask, ProposeUserTask existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     proposeUserTask
         .setEntity(proposeUserTask.getUserTaskType() == UserTaskType.RELEASE_LOGOUT ? User.class.getSimpleName()
             : UserEntityChangeLimit.class.getSimpleName());

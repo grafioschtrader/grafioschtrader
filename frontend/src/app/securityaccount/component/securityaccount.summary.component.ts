@@ -21,6 +21,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
+import {AppHelper} from '../../shared/helper/app.helper';
 
 
 /**
@@ -93,40 +94,23 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   }
 
 
-  public dropped(files: NgxFileDropEntry[]) {
-    let totalFilesSize = 0;
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      if (files[i].fileEntry.isFile && files[i].fileEntry.name.toLocaleLowerCase().endsWith('.pdf')) {
-        // Is it a PDF-file
-        const fileEntry = files[i].fileEntry as FileSystemFileEntry;
-        fileEntry.file((file: File) => {
-          totalFilesSize += file.size;
-          formData.append('file', file, files[i].relativePath);
-          if (i === files.length - 1) {
-            this.uploadTransactionFiles(formData);
-          }
-        });
-      } else {
-        this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'PDF_ONLY_ALLOWED');
-        break;
-      }
-    }
+  public dropped(files: NgxFileDropEntry[]): void {
+    AppHelper.processDroppedFiles(files, this.messageToastService, 'pdf', this.uploadTransactionFiles.bind(this));
   }
 
-  private uploadTransactionFiles(formData: FormData) {
+  private uploadTransactionFiles(formData: FormData): void {
     this.importTransactionHeadService.uploadPdfFileSecurityAccountTransactions(this.idSecurityaccount, formData).subscribe(
-      (successFailedDirectImportTransaction: SuccessFailedDirectImportTransaction) => {
+      (sfdit: SuccessFailedDirectImportTransaction) => {
         const data = {object: JSON.stringify(this.securityAccount)};
-        data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = JSON.stringify(successFailedDirectImportTransaction);
-        if (successFailedDirectImportTransaction.failed) {
+        data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = JSON.stringify(sfdit);
+        if (sfdit.failed) {
           this.ngZone.run(() => this.router.navigate([`${AppSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
             this.idSecurityaccount, data])).then();
         } else {
           // Success created transactions
-          this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'CREATED_TRANS_FROM_IMPORT',
-            {noOfImportedTransactions: successFailedDirectImportTransaction.noOfImportedTransactions,
-              noOfDifferentSecurities: successFailedDirectImportTransaction.noOfDifferentSecurities});
+          this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'CREATED_TRANS_FROM_IMPORT',
+            {noOfImportedTransactions: sfdit.noOfImportedTransactions,
+              noOfDifferentSecurities: sfdit.noOfDifferentSecurities});
         }
       });
   }

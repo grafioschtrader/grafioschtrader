@@ -39,7 +39,7 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
   @Transactional
   @Modifying
   public Cashaccount saveOnlyAttributes(final Cashaccount cashaccount, Cashaccount existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     Cashaccount createEditCashaccount = cashaccount;
     if (existingEntity != null) {
       createEditCashaccount = existingEntity;

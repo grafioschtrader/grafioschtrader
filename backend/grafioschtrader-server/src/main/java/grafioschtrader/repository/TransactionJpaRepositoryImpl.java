@@ -143,12 +143,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   @Transactional
   @Modifying
   public Transaction saveOnlyAttributes(final Transaction transaction, Transaction existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
-    return saveOnly(transaction, existingEntity, udatePropertyLevelClasses);
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
+    return saveOnly(transaction, existingEntity, updatePropertyLevelClasses);
   }
 
   private Transaction saveOnly(final Transaction transaction, Transaction existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     Securityaccount securityaccount = checkTransactionSecurityAndCashaccountBeforSave(transaction).securityaccount;
     checkCurrencypair(transaction);
     return processAndSaveTransaction(transaction, existingEntity, securityaccount, true, false);

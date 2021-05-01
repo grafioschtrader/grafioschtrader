@@ -19,9 +19,9 @@ public class StockexchangeJpaRepositoryImpl extends BaseRepositoryImpl<Stockexch
 
   @Override
   public Stockexchange saveOnlyAttributes(final Stockexchange stockexchange, final Stockexchange existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) throws Exception {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     return RepositoryHelper.saveOnlyAttributes(stockexchangeJpaRepository, stockexchange, existingEntity,
-        udatePropertyLevelClasses);
+        updatePropertyLevelClasses);
   }
 
   @Override

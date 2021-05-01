@@ -6,23 +6,21 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ImportTransactionTemplateService} from '../service/import.transaction.template.service';
-import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
+import {ImportTransactionTemplate, TemplateCategory} from '../../entities/import.transaction.template';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.message.rules';
-import {InputType} from '../../dynamic-form/models/input.type';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {Validators} from '@angular/forms';
 import {TemplateFormatType} from '../../shared/types/template.format.type';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 import {Auditable} from '../../entities/auditable';
-import {AppSettings} from '../../shared/app.settings';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
-
+/**
+ * Edit import transaction template in a dialog
+ */
 @Component({
   selector: 'import-transaction-edit-template',
   template: `
@@ -30,7 +28,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
               [responsive]="true" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
                     (submit)="submit($event)">
       </dynamic-form>
     </p-dialog>`
@@ -53,9 +52,10 @@ export class ImportTransactionEditTemplateComponent extends SimpleEntityEditBase
       3, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldInputStringHeqF('templatePurpose',  50, true),
+      DynamicFieldHelper.createFieldInputStringHeqF('templatePurpose', 50, true),
+      DynamicFieldHelper.createFieldSelectStringHeqF('templateCategory', true),
       DynamicFieldHelper.createFieldSelectString('templateFormatType', 'TEMPLATE_FORMAT', true),
-      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'validSince',  true),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'validSince', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('templateLanguage', true, {inputWidth: 10}),
       DynamicFieldHelper.createFieldTextareaInputString('templateAsTxt', 'PDF_TEMPLATE_AS_TXT', 4096, true,
         {textareaRows: 30}),
@@ -69,10 +69,12 @@ export class ImportTransactionEditTemplateComponent extends SimpleEntityEditBase
     this.importTransactionTemplateService.getPossibleLanguagesForTemplate().subscribe(data => {
         this.configObject.templateFormatType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
           TemplateFormatType);
+        this.configObject.templateCategory.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+          this.translateService, TemplateCategory);
         this.configObject.templateLanguage.valueKeyHtmlOptions = data;
         this.form.setDefaultValuesAndEnableSubmit();
         AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
-          <Auditable> this.callParam.thisObject, this.form, this.configObject, this.proposeChangeEntityWithEntity);
+          <Auditable>this.callParam.thisObject, this.form, this.configObject, this.proposeChangeEntityWithEntity);
         this.configObject.templatePurpose.elementRef.nativeElement.focus();
       }
     );

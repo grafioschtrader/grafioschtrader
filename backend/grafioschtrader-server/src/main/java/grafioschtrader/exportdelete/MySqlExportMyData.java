@@ -50,7 +50,7 @@ public class MySqlExportMyData extends MyDataExportDeleteDefinition {
     Integer[] idTenat0Array = new Integer[idArray.length];
     Arrays.fill(idTenat0Array, 0);
 
-    log.info("Execute: query={}, param={}", query, idArray);
+    log.debug("Execute: query={}, param={}", query, idArray);
     final List<Map<String, Object>> rows = jdbcTemplate.queryForList(query, idArray);
     if (!rows.isEmpty()) {
 

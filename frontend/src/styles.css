@@ -379,6 +379,14 @@ select option:disabled {
   border-radius: 8px;
 }
 
+.drop-zone-trans-long {
+  margin: auto;
+  height: 34px;
+  width: 200px;
+  border: 2px dotted #0782d0;
+  border-radius: 8px;
+}
+
 .content-trans {
   color: #0782d0;
   height: 34px;

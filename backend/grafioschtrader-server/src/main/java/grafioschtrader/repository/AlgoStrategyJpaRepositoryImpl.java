@@ -21,7 +21,7 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
 
   @Override
   public AlgoStrategy saveOnlyAttributes(AlgoStrategy algoStrategy, AlgoStrategy existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return algoStrategyJpaRepository.save(algoStrategy);
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "grafioschtrader-client",
-  "version": "0.12.0",
+  "version": "0.14.0",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -29,13 +29,13 @@
     "angular-plotly.js": "^3.0.0",
     "angular-svg-icon": "11.0.0",
     "bootstrap": "^3.4.1",
-    "class-transformer": "^0.3.2",
+    "class-transformer": "^0.4.0",
     "copee": "^1.0.6",
     "deepmerge": "^4.2.2",
     "font-awesome": "^4.7.0",
     "moment": "^2.29.1",
     "ngx-currency": "^2.5.2",
-    "ngx-file-drop": "^10.1.1",
+    "ngx-file-drop": "^11.1.0",
     "ngx-toastr": "^13.2.0",
     "normalize.css": "^8.0.1",
     "plotly.js": "^1.58.4",

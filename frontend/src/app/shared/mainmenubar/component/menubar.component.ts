@@ -20,7 +20,9 @@ import {BusinessHelper} from '../../helper/business.helper';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {AppSettings} from '../../app.settings';
 
-
+/**
+ * Represents the menubar of GT
+ */
 @Component({
   selector: 'menubar',
   template: `

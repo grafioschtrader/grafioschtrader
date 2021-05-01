@@ -62,7 +62,7 @@ export class ImportTransactionHeadService extends AuthServiceWithLogout<ImportTr
 
 }
 
-export class SuccessFailedDirectImportTransaction {
+export interface SuccessFailedDirectImportTransaction {
   idTransactionHead: number;
   noOfImportedTransactions: number;
   noOfDifferentSecurities: number;

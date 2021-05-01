@@ -4,6 +4,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.ImportTransactionTemplate;
@@ -22,7 +25,9 @@ import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.User;
 import grafioschtrader.platformimport.FormTemplateCheck;
 import grafioschtrader.repository.ImportTransactionTemplateJpaRepository;
+import grafioschtrader.repository.ImportTransactionTemplateJpaRepositoryCustom.SuccessFailedImportTransactionTemplate;
 import grafioschtrader.repository.TradingPlatformPlanJpaRepository;
+import grafioschtrader.repository.ImportTransactionHeadJpaRepositoryImpl.SuccessFailedDirectImportTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,10 +38,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditResource<ImportTransactionTemplate> {
 
   @Autowired
-  ImportTransactionTemplateJpaRepository importTransactionTemplateJpaRepository;
+  private ImportTransactionTemplateJpaRepository importTransactionTemplateJpaRepository;
 
   @Autowired
-  TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
+  private TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
 
   @Operation(summary = "Return all import transaction template for a certain import transaction platform", description = "", tags = {
       RequestMappings.IMPORTTRANSACTIONTEMPLATE })
@@ -92,6 +97,26 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   @GetMapping(value = "/languages", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getPossibleLanguagesForTemplate() {
     return new ResponseEntity<>(importTransactionTemplateJpaRepository.getPossibleLanguagesForTemplate(),
+        HttpStatus.OK);
+  }
+
+  @Operation(summary = "Export all import transaction template of a certain trading platform plan", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+  @GetMapping(value = "/exportalltemplates/{idTransactionImportPlatform}", produces = "application/zip")
+  public void getTemplatesByPlatformPlanAsZip(
+      @Parameter(description = "ID of the import transaction platform", required = true) @PathVariable final Integer idTransactionImportPlatform,
+      HttpServletResponse response) throws Exception {
+    importTransactionTemplateJpaRepository.getTemplatesByPlatformPlanAsZip(idTransactionImportPlatform, response);
+  }
+  
+  @Operation(summary = "Upload one or more Template files, each Import transaction template", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+  @PostMapping(value = "uploadtemplatefiles/{idTransactionImportPlatform}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SuccessFailedImportTransactionTemplate> uploadImportTemplateFiles(
+      @PathVariable() Integer idTransactionImportPlatform, @RequestParam("file") MultipartFile[] uploadFiles)
+      throws Exception {
+    return new ResponseEntity<>(
+        importTransactionTemplateJpaRepository.uploadImportTemplateFiles(idTransactionImportPlatform, uploadFiles),
         HttpStatus.OK);
   }
 

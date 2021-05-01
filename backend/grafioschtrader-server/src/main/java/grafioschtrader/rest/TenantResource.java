@@ -2,21 +2,11 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +33,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
   private ResourceLoader resourceLoader;
@@ -78,48 +68,8 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   @Operation(summary = "Export the data of a client with it private ond public data", description = "The created zip file will cotains two files one with ddl and the 2nd with dml statements", tags = {
       RequestMappings.TENANT })
   @GetMapping(value = "/exportpersonaldataaszip", produces = "application/zip")
-  public void zipFiles(HttpServletResponse response) throws Exception {
-
-    Resource resource = resourceLoader.getResource("classpath:/db/migration/gt_ddl.sql");
-
-    StringBuilder sqlStatement = tenantJpaRepository.exportPersonalData();
-
-    File tempSqlStatement = File.createTempFile("gt_data", ".sql");
-
-    // Delete temp file when program exits.
-    tempSqlStatement.deleteOnExit();
-
-    // Write to temp file
-    BufferedWriter out = new BufferedWriter(new FileWriter(tempSqlStatement));
-    out.write(sqlStatement.toString());
-    out.close();
-
-    // setting headers
-    response.setStatus(HttpServletResponse.SC_OK);
-    response.addHeader("Content-Disposition", "attachment; filename=\"gt.zip\"");
-
-    ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
-
-    // create a list to add files to be zipped
-    ArrayList<File> files = new ArrayList<>(1);
-    files.add(resource.getFile());
-    files.add(tempSqlStatement);
-
-    // package files
-    for (File file : files) {
-      // new zip entry and copying inputstream with file to zipOutputStream, after all
-      // closing streams
-      zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
-      FileInputStream fileInputStream = new FileInputStream(file);
-
-      IOUtils.copy(fileInputStream, zipOutputStream);
-
-      fileInputStream.close();
-      zipOutputStream.closeEntry();
-    }
-
-    zipOutputStream.close();
-    tempSqlStatement.delete();
+  public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
+    tenantJpaRepository.getExportPersonalDataAsZip(response);
   }
 
   @Operation(summary = "Delete the private data the main tenant of the user. It als removes the user from this application", description = "", tags = {

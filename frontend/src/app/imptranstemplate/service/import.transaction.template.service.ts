@@ -47,12 +47,10 @@ export class ImportTransactionTemplateService extends AuthServiceWithLogout<Impo
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   update(importTransactionTemplate: ImportTransactionTemplate): Observable<ImportTransactionTemplate> {
     return this.updateEntity(importTransactionTemplate, importTransactionTemplate.idTransactionImportTemplate,
       AppSettings.IMP_TRANS_TEMPLATE_KEY);
   }
-
 
   checkFormAgainstTemplate(formTemplateCheck: FormTemplateCheck): Observable<FormTemplateCheck> {
     return <Observable<FormTemplateCheck>>this.httpClient.post(`${AppSettings.API_ENDPOINT}`
@@ -60,10 +58,30 @@ export class ImportTransactionTemplateService extends AuthServiceWithLogout<Impo
       formTemplateCheck, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
+  public async getTemplatesByPlatformPlanAsZip(idTradingPlatformPlan: number): Promise<Blob> {
+    return await this.httpClient.get<Blob>(
+      `${AppSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_TEMPLATE_KEY}/exportalltemplates/${idTradingPlatformPlan}`,
+      {headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json'})
+      .toPromise();
+  }
+
+  public uploadImportTemplateFiles(idTransactionImportPlatform: number, formData: FormData):
+    Observable<SuccessFailedImportTransactionTemplate> {
+    return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_TEMPLATE_KEY}`
+      + `/uploadtemplatefiles/${idTransactionImportPlatform}`,
+      formData, this.getMultipartHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   private getOptionsWithExcludeTemplate(excludeTemplate: boolean) {
     const httpParams = new HttpParams().set('excludeTemplate', excludeTemplate.toString());
     return {headers: this.prepareHeaders(), params: httpParams};
   }
+}
 
-
+export interface SuccessFailedImportTransactionTemplate {
+  successNew: number;
+  successUpdated: number;
+  notOwner: number;
+  fileNameError: number;
+  contentError: number;
 }

@@ -15,11 +15,11 @@ public class TradingPlatformPlanJpaRepositoryImpl extends BaseRepositoryImpl<Tra
 
   @Override
   public TradingPlatformPlan saveOnlyAttributes(TradingPlatformPlan tradingPlatformPlan,
-      TradingPlatformPlan existingEntity, final Set<Class<? extends Annotation>> udatePropertyLevelClasses)
+      TradingPlatformPlan existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws Exception {
 
     return RepositoryHelper.saveOnlyAttributes(tradingPlatformPlanJpaRepository, tradingPlatformPlan, existingEntity,
-        udatePropertyLevelClasses);
+        updatePropertyLevelClasses);
   }
 
 }

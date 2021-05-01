@@ -322,7 +322,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public List<Security> findByActiveToDateGreaterThanEqualOrderByName(final String dateString) throws ParseException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final Date untilDate = new SimpleDateFormat("yyyyMMdd").parse(dateString);
+    final Date untilDate = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).parse(dateString);
     return securityJpaRepository.findByActiveToDateGreaterThanEqualAndIdTenantPrivateIsNullOrIdTenantPrivateOrderByName(
         untilDate, user.getIdTenant());
   }

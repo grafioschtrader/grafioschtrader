@@ -15,7 +15,7 @@ public class AlgoSecurityJpaRepositoryImpl extends BaseRepositoryImpl<AlgoSecuri
 
   @Override
   public AlgoSecurity saveOnlyAttributes(AlgoSecurity algoSecurity, AlgoSecurity existingEntity,
-      Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return algoSecurityJpaRepository.save(algoSecurity);
   }
 

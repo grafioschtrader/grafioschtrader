@@ -1,18 +1,30 @@
 package grafioschtrader.repository;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
@@ -34,19 +46,22 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   private EntityManager em;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
-  UserJpaRepository userJpaRepository;
+  private UserJpaRepository userJpaRepository;
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  JdbcTemplate jdbcTemplate;
+  private ResourceLoader resourceLoader;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   @Value("${gt.demo.account.pattern.de}")
   private String demoAccountPatternDE;
@@ -84,7 +99,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   @Transactional
   @Modifying
   public Tenant saveOnlyAttributes(final Tenant tenant, Tenant existingEntity,
-      final Set<Class<? extends Annotation>> udatePropertyLevelClasses) {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     Tenant createEditTenant = tenant;
     boolean currencyChanged = existingEntity == null
         || !StringUtils.equals(existingEntity.getCurrency(), tenant.getCurrency());
@@ -120,11 +135,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     return (tenant.isExcludeDivTax());
   }
 
-  @Override
-  public StringBuilder exportPersonalData() throws Exception {
-    MySqlExportMyData mySqlExportMyData = new MySqlExportMyData(jdbcTemplate);
-    return mySqlExportMyData.exportDataMyData();
-  }
+ 
 
   @Override
   public void deleteMyDataAndUserAccount() throws Exception {
@@ -178,4 +189,51 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     return tenant;
   }
 
+  public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
+    Resource resource = resourceLoader.getResource("classpath:/db/migration/gt_ddl.sql");
+
+    StringBuilder sqlStatement = new MySqlExportMyData(jdbcTemplate).exportDataMyData();
+
+    File tempSqlStatement = File.createTempFile("gt_data", ".sql");
+
+    // Delete temp file when program exits.
+    tempSqlStatement.deleteOnExit();
+
+    // Write to temp file
+    try (BufferedWriter out = new BufferedWriter(new FileWriter(tempSqlStatement))) {
+      out.write(sqlStatement.toString());
+
+    } catch (IOException e) {
+      throw e;
+    }
+
+    // setting headers
+    response.setStatus(HttpServletResponse.SC_OK);
+    response.addHeader("Content-Disposition", "attachment; filename=\"gt.zip\"");
+
+    ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+
+    // create a list to add files to be zipped
+    ArrayList<File> files = new ArrayList<>(1);
+    files.add(resource.getFile());
+    files.add(tempSqlStatement);
+
+    // package files
+    for (File file : files) {
+      // new zip entry and copying inputstream with file to zipOutputStream, after all
+      // closing streams
+      zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
+      FileInputStream fileInputStream = new FileInputStream(file);
+
+      IOUtils.copy(fileInputStream, zipOutputStream);
+
+      fileInputStream.close();
+      zipOutputStream.closeEntry();
+    }
+
+    zipOutputStream.close();
+    tempSqlStatement.delete();
+  }
+  
+  
 }

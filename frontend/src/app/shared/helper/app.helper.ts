@@ -10,6 +10,9 @@ import {FormConfig} from '../../dynamic-form/models/form.config';
 import {HttpHeaders, HttpParams} from '@angular/common/http';
 import {GlobalSessionNames} from '../global.session.names';
 import {ConfirmationService} from 'primeng/api';
+import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
+import {InfoLevelType} from '../message/info.leve.type';
+import {MessageToastService} from '../message/message.toast.service';
 
 export const enum Comparison { GT, LT, EQ }
 
@@ -215,6 +218,29 @@ export class AppHelper {
       }
     }
     return params;
+  }
+
+
+  public static processDroppedFiles(files: NgxFileDropEntry[], messageToastService: MessageToastService,
+                                    allowedFileExtension: string, uploadFunc: (formData: FormData) => void): void {
+    let totalFilesSize = 0;
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].fileEntry.isFile && files[i].fileEntry.name.toLocaleLowerCase().endsWith('.' + allowedFileExtension)) {
+        // Is it a PDF-file
+        const fileEntry = files[i].fileEntry as FileSystemFileEntry;
+        fileEntry.file((file: File) => {
+          totalFilesSize += file.size;
+          formData.append('file', file, files[i].relativePath);
+          if (i === files.length - 1) {
+            uploadFunc(formData);
+          }
+        });
+      } else {
+        messageToastService.showMessageI18n(InfoLevelType.ERROR, allowedFileExtension.toUpperCase() + '_ONLY_ALLOWED');
+        break;
+      }
+    }
   }
 
 }
