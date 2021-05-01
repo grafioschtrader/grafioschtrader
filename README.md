@@ -25,12 +25,12 @@
 | gt5@grafioschtrader.info  | gt5  | English |
 | gt6@grafioschtrader.info  | gt6  | English |
 
-![Architektur](manual/content/watchlist_chart.jpg)
+[Architektur](manual/content/watchlist_chart.jpg)
 For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
 
 ## Installation and Development
 For installing and for supporting the development go to the [wiki of GT](//github.com/hugograf/grafioschtrader/wiki).
-[Architektur](//hugograf.github.io/gt-user-manual/de/Komponenten.svg)
+![Architektur](Komponenten.svg)
 
 ### Email account
 GT requires access to an Email account for user registration. For encrypting you have to proceed according to the description of chapter [application.properties](./backend#applicationproperties).
