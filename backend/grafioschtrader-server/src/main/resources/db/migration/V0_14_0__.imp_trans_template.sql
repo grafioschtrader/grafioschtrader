@@ -1,8 +1,8 @@
+DELETE FROM imp_trans_template WHERE id_trans_imp_template <= 38;
 ALTER TABLE `imp_trans_template` ADD IF NOT EXISTS `template_category` TINYINT(2) NOT NULL DEFAULT '0' AFTER `template_purpose`; 
 ALTER TABLE `imp_trans_template` CHANGE `template_format_type` `template_format_type` TINYINT(2) NOT NULL; 
 
 ALTER TABLE `imp_trans_template` ADD UNIQUE `UNIQUE_imp_template` (`id_trans_imp_platform`, `template_format_type`, `template_category`, `template_language`, `valid_since`); 
-DELETE FROM imp_trans_template WHERE id_trans_imp_template <= 38;
 UPDATE imp_trans_template SET template_category = RAND()*99 WHERE id_trans_imp_template >= 39; 
 
 INSERT INTO `imp_trans_template` (`id_trans_imp_template`, `id_trans_imp_platform`, `template_format_type`, `template_purpose`, `template_category`, `template_as_txt`, `valid_since`, `template_language`, `created_by`, `creation_time`, `last_modified_by`, `last_modified_time`, `version`) VALUES
