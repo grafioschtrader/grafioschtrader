@@ -61,7 +61,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
 
 
   // Parent selected entity
-  seclectImportTransactionPlatform: ImportTransactionPlatform;
+  selectImportTransactionPlatform: ImportTransactionPlatform;
 
   parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>;
   private languageAsKeyValue: { [key: string]: string } = {};
@@ -100,15 +100,15 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
 
   parentSelectionChanged(seclectImportTransactionPlatform: ImportTransactionPlatform,
                          parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>) {
-    this.seclectImportTransactionPlatform = seclectImportTransactionPlatform;
+    this.selectImportTransactionPlatform = seclectImportTransactionPlatform;
     this.parentChildRowSelection = parentChildRowSelection;
     this.readData();
   }
 
   readData(): void {
-    if (this.seclectImportTransactionPlatform) {
+    if (this.selectImportTransactionPlatform) {
       combineLatest([this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(
-        this.seclectImportTransactionPlatform.idTransactionImportPlatform, false),
+        this.selectImportTransactionPlatform.idTransactionImportPlatform, false),
         this.importTransactionTemplateService.getPossibleLanguagesForTemplate()]).subscribe(data => {
         this.createTranslatedValueStoreAndFilterField(data[0]);
         this.entityList = plainToClass(ImportTransactionTemplate, data[0]);
@@ -126,13 +126,13 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
   }
 
   prepareCallParm(entity: ImportTransactionTemplate) {
-    this.callParam = new CallParam(this.seclectImportTransactionPlatform, entity);
+    this.callParam = new CallParam(this.selectImportTransactionPlatform, entity);
   }
 
   public prepareEditMenu(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     menuItems.push({separator: true});
-    if (this.seclectImportTransactionPlatform) {
+    if (this.selectImportTransactionPlatform) {
       menuItems = menuItems.concat(super.prepareEditMenu(this.selectedEntity));
     }
     return menuItems;

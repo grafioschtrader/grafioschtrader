@@ -32,7 +32,6 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   config: FieldFormGroup[] = [];
   configObject: { [name: string]: FieldConfig };
 
-
   childEntityList: S[];
   /**
    * Visibilty of edit dialog
@@ -51,7 +50,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   /**
    * The selected entity
    */
-  protected selectedEntity: T;
+  selectedEntity: T;
 
   /**
    * Shows a singe row of a array. If the value of the main field changes then others shown properties are

@@ -542,6 +542,7 @@
   "TRANSACTION_COST": "Transaction cost",
   "TRANSACTION_FEE_PLAN": "Transaction fee plan",
   "TRANSACTION_IMPLEMENTATION": "Transaction implementation",
+  "TRANSACTION_IMPLEMENTATION_TOOLTIP": "There is a special implementation for importing transactions, mostly for CSV",
   "TRANSACTION_TAX_COST": "Tax cost transaction",
   "TRANSACTION_TIME": "Transaction time",
   "TRANSACTION_TYPE": "Transaction type",

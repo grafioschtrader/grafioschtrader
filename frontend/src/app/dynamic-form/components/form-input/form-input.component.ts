@@ -43,7 +43,7 @@ import {BaseInputComponent} from '../base.input.component';
           [attr.placeholder]="config.placeholder"
           [formControlName]="config.field"
           pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
-          readonly="config.readonly"
+          [readonly]="config.readonly"
           [id]="config.field"
           [min]="config.min"
           [max]="config.max"

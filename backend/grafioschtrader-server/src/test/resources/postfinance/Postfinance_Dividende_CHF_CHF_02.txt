@@ -4,12 +4,14 @@ Herrn Vorname Nachname
 Strasse Hausnummer
 CH-2540 Grenchen
 Bern, 06.09.2017
-Dividende Unsere Referenz: 130516418 
+Dividende 
+Unsere Referenz: 12345678 
 Im Hinblick auf folgenden Titel:
 Titel
 Bezeichnung Anzahl
-UBS ETF CH - SLI CHF A 
-ISIN: CH0032912732NKN: 3291273 34
+ISIN: CH0032912732
+UBS ETF CH - SLI CHF A 34 
+NKN: 3291273 
 haben wir Ihrem Konto den folgenden Betrag gutgeschrieben:
 Kontonummer 99999900
 Ausführungsdatum 06.09.2017

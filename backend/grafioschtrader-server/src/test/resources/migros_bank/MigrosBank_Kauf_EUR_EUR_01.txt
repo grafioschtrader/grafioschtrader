@@ -1,4 +1,4 @@
-Auftragsnummer AUF012239999
+Auftragsnummer AUF012345678
 Auftragsdatum 15.01.2021
 Thun, 15.01.2021 Transaktion ohne Beratung
 Börsenabrechnung - Kauf
