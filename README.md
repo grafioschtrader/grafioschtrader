@@ -37,7 +37,7 @@ origin  https://github.com/grafioschtrader/grafioschtrader.git (push)
 | gt5@grafioschtrader.info  | gt5  | English |
 | gt6@grafioschtrader.info  | gt6  | English |
 
-![Branding](branding/youtube_branding.JPG)
+![Branding](branding/github_branding.JPG)
 For questions or suggestions please visit the [forum](//www.grafioschtrader.info/forums/), German and English language are welcome.
 
 ## Installation and Development
