@@ -13,7 +13,7 @@
 + **Evaluations by asset classes**: Evaluations by common asset classes such as stocks, bonds, real estate, commodities, etc.
 
 ## Test Drive GT
-* Check the user [manual](//hugograf.github.io/gt-user-manual/de/intro/) and a [YouTube channel](//www.youtube.com/channel/UCpogJM4KxrZGOyPoQx1xVKQ) in German language which are in progress.
+* Check the user [manual](//grafioschtrader.github.io/gt-user-manual/de/intro/) and a [YouTube channel](//www.youtube.com/channel/UCpogJM4KxrZGOyPoQx1xVKQ) in German language which are in progress.
 * [GT in action](//www.grafioschtrader.info/grafioschtrader) with a following demo accounts or create your own account.
 
 | E-Mail  | Password | Language |
