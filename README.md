@@ -1,3 +1,15 @@
+# Moved repository from hugogarf to here
+Please adjust the the GitHub repository with:
+```
+# As user grafioschtrader
+cd ~/build/grafioschtrader
+git remote set-url origin https://github.com/grafioschtrader/grafioschtrader.git
+```
+After the change, the command `git remote -v`:
+```
+origin  https://github.com/grafioschtrader/grafioschtrader.git (fetch)
+origin  https://github.com/grafioschtrader/grafioschtrader.git (push)
+```
 ## Preface
 - **Unless otherwise described, GT will only get a new version if the new features require an update of the database. It is the goal that the master branch always contains the most reliable and feature rich source code.** 
 - For importing transactions we refer to the [gt-import-transaction-template](//github.com/grafioschtrader/gt-import-transaction-template) and [gt-pdf-transform](//github.com/grafioschtrader/gt-pdf-transform) projects.
