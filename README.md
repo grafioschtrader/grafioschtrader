@@ -5,7 +5,7 @@ Please adjust the the GitHub repository with:
 cd ~/build/grafioschtrader
 git remote set-url origin https://github.com/grafioschtrader/grafioschtrader.git
 ```
-After the change, the command `git remote -v`:
+After the change, the command `git remote -v` should output:
 ```
 origin  https://github.com/grafioschtrader/grafioschtrader.git (fetch)
 origin  https://github.com/grafioschtrader/grafioschtrader.git (push)
