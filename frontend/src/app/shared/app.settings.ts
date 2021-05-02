@@ -91,7 +91,7 @@ export class AppSettings {
   public static readonly PREFIX_ALGO_FIELD = 'ALGO_F_';
 
   // HELP Support
-  public static readonly HELP_DOMAIN = '//hugograf.github.io/gt-user-manual/';
+  public static readonly HELP_DOMAIN = '//grafioschtrader.github.io/gt-user-manual/';
 
   // Native formats
   public static readonly FORMAT_DATE_SHORT_NATIVE = 'YYYY-MM-DD';
