@@ -1,4 +1,4 @@
-# Moved repository from hugogarf to here
+# Moved repository from hugograf to here
 Please adjust the the GitHub repository with:
 ```
 # As user grafioschtrader
