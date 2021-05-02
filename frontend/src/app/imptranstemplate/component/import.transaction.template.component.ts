@@ -39,7 +39,7 @@ import {AppHelper} from '../../shared/helper/app.helper';
 
       <div class="flex-two-columns">
         <h4 class="ui-widget-header singleRowTableHeader">{{'IMPORTTRANSACTIONPLATFORM' | translate}}</h4>
-        <div class="right-half" *ngIf="!ittdc?.isEmpty()">
+        <div class="right-half" *ngIf="selectedEntity">
           <ngx-file-drop dropZoneLabel="{{'DROP_TEMPLATE_HERE' | translate}}" (onFileDrop)="dropped($event)"
                          dropZoneClassName="drop-zone-trans-long"
                          contentClassName="content-trans">
@@ -217,6 +217,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
       this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'UPLOAD_TEMPLATES_SUCCESS',
         {successNew: sitt.successNew, successUpdated: sitt.successUpdated, notOwner:
           sitt.notOwner, fileNameError: sitt.fileNameError, contentError: sitt.contentError});
+      this.setChildData(this.selectedEntity);
     });
   }
 }

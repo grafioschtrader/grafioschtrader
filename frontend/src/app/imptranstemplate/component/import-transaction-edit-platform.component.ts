@@ -19,7 +19,9 @@ import {AppSettings} from '../../shared/app.settings';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
-
+/**
+ * Dialog for editing the transaction import template group
+ */
 @Component({
   selector: 'import-transaction-edit-platform',
   template: `
@@ -53,7 +55,7 @@ export class ImportTransactionEditPlatformComponent extends SimpleEntityEditBase
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'IMPORT_SET_NAME', 32, true),
-      DynamicFieldHelper.createFieldSelectString('idCsvImportImplementation', 'PLATFORM_TRANSACTION_IMPORT', false,
+      DynamicFieldHelper.createFieldSelectString('idCsvImportImplementation', 'TRANSACTION_IMPLEMENTATION', false,
         {valueKeyHtmlOptions: this.platformTransactionImportHtmlOptions}),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];

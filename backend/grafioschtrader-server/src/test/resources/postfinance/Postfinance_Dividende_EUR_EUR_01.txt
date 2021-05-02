@@ -5,7 +5,7 @@ Strasse Hausnummer
 CH-2540 Grenchen
 Bern, 05.06.2019
 Dividende 
-Unsere Referenz: 169933304 
+Unsere Referenz: 12345678 
 Im Hinblick auf folgenden Titel:
 Titel
 Bezeichnung Anzahl
