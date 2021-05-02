@@ -190,8 +190,8 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   }
 
   public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
-    Resource resource = resourceLoader.getResource("classpath:/db/migration/gt_ddl.sql");
-
+    Resource resourceDdl = resourceLoader.getResource("classpath:/db/migration/gt_ddl.sql");
+    
     StringBuilder sqlStatement = new MySqlExportMyData(jdbcTemplate).exportDataMyData();
 
     File tempSqlStatement = File.createTempFile("gt_data", ".sql");
@@ -215,7 +215,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
 
     // create a list to add files to be zipped
     ArrayList<File> files = new ArrayList<>(1);
-    files.add(resource.getFile());
+    files.add(resourceDdl.getFile());
     files.add(tempSqlStatement);
 
     // package files
