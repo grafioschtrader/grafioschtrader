@@ -58,7 +58,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
       DynamicFieldHelper.createFieldInputString('de', 'PLATFORM_PLAN_NAME', 64, true,
         {labelSuffix: 'DE', dataproperty: 'platformPlanNameNLS.map.de'}),
       DynamicFieldHelper.createFieldSelectString('transactionFeePlan', 'TRANSACTION_FEE_PLAN', true),
-      DynamicFieldHelper.createFieldSelectString('idTransactionImportPlatform', 'IMPORTTRANSACTIONTEMPLATE', true,
+      DynamicFieldHelper.createFieldSelectString('idTransactionImportPlatform', 'IMPORTTRANSACTIONGROUP', true,
         {dataproperty: 'importTransactionPlatform.idTransactionImportPlatform'}),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
