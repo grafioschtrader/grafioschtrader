@@ -256,7 +256,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
             null, null, null)
         },
         {
-          label: 'IMPORTTRANSACTIONTEMPLATE',
+          label: 'IMPORTTRANSACTIONGROUP',
           data: new TypeNodeData(TreeNodeType.ImpTransTemplate, this.addMainRoute(AppSettings.IMP_TRANS_TEMPLATE_KEY),
             null, null, null)
         }

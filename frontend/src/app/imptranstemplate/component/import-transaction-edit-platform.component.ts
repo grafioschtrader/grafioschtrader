@@ -25,7 +25,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 @Component({
   selector: 'import-transaction-edit-platform',
   template: `
-    <p-dialog header="{{'IMPORTTRANSACTIONPLATFORM' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'IMPORTTRANSACTIONGROUP' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -44,7 +44,7 @@ export class ImportTransactionEditPlatformComponent extends SimpleEntityEditBase
               globalparameterService: GlobalparameterService,
               messageToastService: MessageToastService,
               importTransactionPlatformService: ImportTransactionPlatformService) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, 'IMPORTTRANSACTIONPLATFORM', translateService, globalparameterService,
+    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, 'IMPORTTRANSACTIONGROUP', translateService, globalparameterService,
       messageToastService, importTransactionPlatformService);
   }
 
