@@ -62,10 +62,10 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('ProposeChangeEntity', proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService,
+      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
       [CrudMenuOptions.Allow_Delete]);
 
     this.addColumnFeqH(DataType.String, 'entity',  true, false,

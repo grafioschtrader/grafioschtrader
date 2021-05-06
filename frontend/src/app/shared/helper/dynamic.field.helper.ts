@@ -9,7 +9,8 @@ import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.messa
 import {email, gtWithMask, maxValue, range, rangeLength, validISIN, webUrl} from '../validator/validator';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {FileRequiredValidator} from '../../dynamic-form/components/form-input-file/file-input.validator';
-import {CurrencyMaskConfig} from 'ngx-currency';
+import {CurrencyMaskConfig, CurrencyMaskInputMode} from 'ngx-currency';
+import {AppSettings} from '../app.settings';
 
 export enum VALIDATION_SPECIAL {
   ISIN,
@@ -330,12 +331,12 @@ export class DynamicFieldHelper {
 
 
   public static createFieldCurrencyNumberVSParam(fieldName: string, labelKey: string, required: boolean,
-                                                 integerLimit: number, maxFractionDigits: number,
+                                                 integerDigits: number, maxFractionDigits: number,
                                                  allowNegative: boolean, defaultCurrencyMaskConfig: CurrencyMaskConfig,
                                                  validationSpecials: VALIDATION_SPECIAL, param: number,
                                                  fieldOptions?: FieldOptions): FieldConfig {
 
-    const width = fieldOptions?.inputWidth || (integerLimit + maxFractionDigits);
+    const width = fieldOptions?.inputWidth || (integerDigits + maxFractionDigits);
     const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
         dataType: DataType.Numeric,
         inputType: InputType.InputCurrencyNumber
@@ -344,16 +345,45 @@ export class DynamicFieldHelper {
         ...fieldOptions,
         inputWidth: width
       });
-    fieldConfig.max = Number('9'.repeat(integerLimit) + '.' + '9'.repeat(maxFractionDigits));
-    fieldConfig.min = allowNegative ? fieldConfig.max * -1 : required ? 1 / Math.pow(10, maxFractionDigits) : 0;
+    this.setMinMaxValues(fieldConfig, integerDigits, maxFractionDigits, allowNegative);
     fieldConfig.currencyMaskConfig = {
       ...defaultCurrencyMaskConfig,
-      ...{precision: maxFractionDigits, allowNegative: allowNegative, min: fieldConfig.min}, max: fieldConfig.max
+      ...{
+        precision: maxFractionDigits, allowNegative: allowNegative, min: fieldConfig.min, max: fieldConfig.max
+      }
     };
 
     return validationSpecials ? this.addValidationParam(fieldConfig, validationSpecials, param) : fieldConfig;
   }
 
+  public static adjustNumberFraction(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
+    fieldConfig.currencyMaskConfig.precision = precision;
+    // Error in ngx-currency: Fraction digits may not be greater than Integer digits + 2 disgits
+    DynamicFieldHelper.setCurrencyMaskMaxMin(fieldConfig, Math.max(integerDigits - precision + 2,
+      AppSettings.FID_SMALL_INTEGER_LIMIT), precision);
+  }
+
+  public static setCurrencyMaskMaxMin(fieldConfig: FieldConfig, integerDigits: number, maxFractionDigits: number): void {
+    this.setMinMaxValues(fieldConfig, integerDigits, maxFractionDigits, fieldConfig.currencyMaskConfig.allowNegative);
+    const newMask = fieldConfig.currencyMaskConfig = {
+      ...fieldConfig.currencyMaskConfig,
+      ...{min: fieldConfig.min, max: fieldConfig.max}
+    };
+    console.log(newMask);
+    fieldConfig.currencyMaskConfig = newMask;
+  }
+
+  private static setMinMaxValues(fieldConfig: FieldConfig, integerDigits: number, maxFractionDigits: number,
+                                 allowNegative: boolean): void {
+    fieldConfig.max = Number('9'.repeat(integerDigits) + '.' + '9'.repeat(maxFractionDigits));
+    fieldConfig.min = allowNegative ?
+      fieldConfig.max * -1 : DynamicFieldHelper.isRequired(fieldConfig) ? 1 / Math.pow(10, maxFractionDigits) : 0;
+
+  }
+
+  public static isRequired(fieldConfig: FieldConfig): boolean {
+    return fieldConfig.validation && fieldConfig.validation.includes(Validators.required);
+  }
 
   public static createFieldCheckboxHeqF(fieldName: string, fieldOptions?: FieldOptions): FieldConfig {
     return this.setFieldBaseAndOptions({dataType: DataType.Boolean, inputType: InputType.Checkbox},
@@ -451,7 +481,6 @@ export class DynamicFieldHelper {
       if (fieldConfig) {
         fieldConfigs.push(fieldConfig);
       }
-
     });
 
     if (addSubmitButton) {
@@ -467,6 +496,7 @@ export class DynamicFieldHelper {
     fieldConfig.formControl.updateValueAndValidity();
     fieldConfig.baseInputComponent.reEvaluateRequired();
   }
+
 
   public static getFieldPercentageSuffix(fDIAS: FieldDescriptorInputAndShow): string {
     if (fDIAS.dynamicFormPropertyHelps

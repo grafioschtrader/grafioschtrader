@@ -34,15 +34,15 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
   private selectedPropertyField: string;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService) {
-    super(HelpIds.HELP_GLOBAL_SETTINGS, 'GLOBAL_SETTINGS', translateService, globalparameterService, messageToastService,
-      globalparameterService);
+    super(HelpIds.HELP_GLOBAL_SETTINGS, 'GLOBAL_SETTINGS', translateService, gps, messageToastService,
+      gps);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
     this.config = [
       this.getPropertyDefinition(this.globalparameters),

@@ -107,19 +107,19 @@ export class PlotlyLocales {
     }
   ];
 
-  public static setPlotyLocales(plotly: any, globalparameterService: GlobalparameterService): any {
+  public static setPlotyLocales(plotly: any, gps: GlobalparameterService): any {
     /*
-    const localeLanguage = PlotlyLocales.PLOTY_LOCALES.find(locale => locale.name === globalparameterService.getUserLang());
+    const localeLanguage = PlotlyLocales.PLOTY_LOCALES.find(locale => locale.name === gps.getUserLang());
     localeLanguage && (<any> Plotly).register(localeLanguage);
-    if (globalparameterService.getLocale().length > 2) {
-      const localeCountry = PlotlyLocales.PLOTY_LOCALES.find(locale => locale.name === globalparameterService.getLocale());
+    if (gps.getLocale().length > 2) {
+      const localeCountry = PlotlyLocales.PLOTY_LOCALES.find(locale => locale.name === gps.getLocale());
       localeCountry && (<any> Plotly).register(localeDE_CH);
     }
     */
     plotly.register(localeFR);
     plotly.register(localeDE_CH);
     const config: any = {};
-    config.locale = globalparameterService.getLocale();
+    config.locale = gps.getLocale();
     return config;
   }
 }

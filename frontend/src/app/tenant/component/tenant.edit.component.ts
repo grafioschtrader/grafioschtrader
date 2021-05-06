@@ -36,7 +36,7 @@ export abstract class TenantEditComponent {
   config: FieldConfig[] = [];
   formConfig: FormConfig;
 
-  constructor(protected globalparameterService: GlobalparameterService,
+  constructor(protected gps: GlobalparameterService,
               protected messageToastService: MessageToastService,
               protected tenantService: TenantService,
               public translateService: TranslateService,
@@ -44,7 +44,7 @@ export abstract class TenantEditComponent {
   }
 
   init(onlyCurrency: boolean): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       this.labelColumns, this.helpLink.bind(this), this.nonModal);
 
     this.config = this.getFields(onlyCurrency);
@@ -79,13 +79,13 @@ export abstract class TenantEditComponent {
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_CLIENT);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_CLIENT);
   }
 
   protected abstract afterSaved(tenant: Tenant): void;
 
   protected loadData() {
-    this.globalparameterService.getCurrencies().subscribe(data => {
+    this.gps.getCurrencies().subscribe(data => {
         this.form.setDefaultValuesAndEnableSubmit();
         this.configObject.currency.valueKeyHtmlOptions = data;
         if (this.callParam && this.callParam.thisObject != null) {

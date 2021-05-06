@@ -26,8 +26,8 @@ export class TransactionCashaccountConnectDebitCreditComponent extends SimpleEdi
 
   @Input() transactionCallParam: TransactionCallParam;
 
-  constructor(public translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(HelpIds.HELP_TRANSACTION_ACCOUNT, globalparameterService);
+  constructor(public translateService: TranslateService, gps: GlobalparameterService) {
+    super(HelpIds.HELP_TRANSACTION_ACCOUNT, gps);
   }
 
   ngOnInit(): void {

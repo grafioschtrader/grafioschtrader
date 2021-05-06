@@ -35,16 +35,16 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
   constructor(private portfolioService: PortfolioService,
               private assetclassService: AssetclassService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               algoAssetclassService: AlgoAssetclassService) {
-    super('ALGO_ASSETCLASS', translateService, globalparameterService,
+    super('ALGO_ASSETCLASS', translateService, gps,
       messageToastService, algoAssetclassService);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
@@ -63,7 +63,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       (data: [Assetclass | Assetclass[], Portfolio[]]) => {
         this.configObject.assetclass.referencedDataObject = Array.isArray(data[0]) ? data[0] : [data[0]];
         this.configObject.assetclass.valueKeyHtmlOptions = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-          this.globalparameterService, this.translateService, this.configObject.assetclass.referencedDataObject);
+          this.gps, this.translateService, this.configObject.assetclass.referencedDataObject);
         this.portfolios = data[1];
         this.setSecurityaccounts();
         this.disableEnableInputForExisting(this.algoCallParam.thisObject != null);

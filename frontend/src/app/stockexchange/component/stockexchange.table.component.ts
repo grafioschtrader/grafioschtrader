@@ -91,10 +91,10 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('Stockexchange', stockexchangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
+      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 180});
     this.addColumnFeqH(DataType.String, 'countryCode', true, false,
@@ -132,7 +132,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
 
   protected readData(): void {
     combineLatest([this.stockexchangeService.getAllStockexchanges(true),
-      this.stockexchangeService.stockexchangesHasSecurity(), this.globalparameterService.getCountries()]).subscribe(data => {
+      this.stockexchangeService.stockexchangesHasSecurity(), this.gps.getCountries()]).subscribe(data => {
       this.entityList = plainToClass(Stockexchange, data[0]);
       data[1].forEach(keyvalue => this.hasSecurityObject[keyvalue.id] = keyvalue.s);
       this.callParam.countriesAsHtmlOptions = data[2];

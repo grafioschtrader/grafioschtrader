@@ -79,9 +79,9 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, 'propertyName', 'PROPERTY_NAME_DESC', true, false,
       {translateValues: TranslateValue.NORMAL, width: 450});
@@ -93,7 +93,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
       {width: 200});
     this.editMenu = { label: 'EDIT_RECORD|GLOBAL_SETTINGS' + AppSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleEditEntity(this.selectedEntity),
-      disabled: !AuditHelper.hasAdminRole(this.globalparameterService)};
+      disabled: !AuditHelper.hasAdminRole(this.gps)};
     TranslateHelper.translateMenuItems([this.editMenu], translateService);
   }
 
@@ -103,16 +103,16 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
 
   getProperty(entity: Globalparameters, field: ColumnConfig): string {
     if (entity.propertyDate) {
-      return AppHelper.getDateByFormat(this.globalparameterService, entity.propertyDate);
+      return AppHelper.getDateByFormat(this.gps, entity.propertyDate);
     } else if (entity.propertyInt) {
-      return AppHelper.numberIntegerFormat(this.globalparameterService, entity.propertyInt);
+      return AppHelper.numberIntegerFormat(this.gps, entity.propertyInt);
     } else {
       return entity.propertyString;
     }
   }
 
   readData(): void {
-    this.globalparameterService.getAllGlobalparameters().subscribe(globalparametersList => {
+    this.gps.getAllGlobalparameters().subscribe(globalparametersList => {
       this.globalparametersList = globalparametersList;
       this.prepareTableAndTranslate();
       this.createTranslatedValueStoreAndFilterField(globalparametersList);

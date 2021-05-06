@@ -48,17 +48,17 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               stockexchangeService: StockexchangeService,
               private securityService: SecurityService) {
-    super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, 'STOCKEXCHANGE', translateService, globalparameterService,
+    super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, 'STOCKEXCHANGE', translateService, gps,
       messageToastService, stockexchangeService);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
@@ -79,7 +79,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
 
   protected initialize(): void {
-    const obserables: Observable<any>[] = [this.globalparameterService.getTimezones()];
+    const obserables: Observable<any>[] = [this.gps.getTimezones()];
     if (this.callParam.stockexchange) {
       obserables.push(this.getSecurityObservable());
     }
@@ -88,7 +88,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       this.configObject.timeZone.valueKeyHtmlOptions = data[0];
       this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
       this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
+      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
         this.callParam.stockexchange, this.form, this.configObject, this.proposeChangeEntityWithEntity);
       FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.noMarketValue,
         this.configObject.countryCode, this.configObject.timeZone]);

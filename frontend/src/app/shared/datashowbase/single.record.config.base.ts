@@ -13,8 +13,8 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
   // Otherwise Object can not be used in the template
   Object = Object;
 
-  constructor(translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+  constructor(translateService: TranslateService, gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   _fieldSetGroups: { [fieldSetName: string]: ColumnConfig };

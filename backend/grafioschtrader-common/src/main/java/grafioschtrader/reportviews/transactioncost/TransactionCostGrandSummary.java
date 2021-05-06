@@ -2,7 +2,9 @@ package grafioschtrader.reportviews.transactioncost;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.reportviews.SecurityCostGrand;
 import grafioschtrader.reportviews.SecurityCostGroup;
@@ -15,13 +17,14 @@ import grafioschtrader.reportviews.SecurityCostGroup;
  */
 public class TransactionCostGrandSummary extends SecurityCostGrand<Integer, TransactionCostGroupSummary> {
 
-  public TransactionCostGrandSummary(String currency) {
-    super(currency, new HashMap<>());
+  public TransactionCostGrandSummary(String currency, Map<String, Integer> currencyPrecisionMap) {
+    super(currency, new HashMap<>(), currencyPrecisionMap);
   }
 
   @Override
   protected TransactionCostGroupSummary createInstance(Integer idSecurityaccount) {
-    return new TransactionCostGroupSummary(idSecurityaccount);
+    return new TransactionCostGroupSummary(idSecurityaccount, 
+        currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
   }
 
   public Collection<TransactionCostGroupSummary> getTransactionCostGroupSummaries() {

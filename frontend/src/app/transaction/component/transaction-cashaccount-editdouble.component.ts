@@ -46,8 +46,6 @@ import {AppSettings} from '../../shared/app.settings';
       </dynamic-form>
     </p-dialog>
   `,
-
-
 })
 export class TransactionCashaccountEditDoubleComponent extends TransactionCashaccountBaseOperations implements OnInit {
 
@@ -57,7 +55,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   // Access the form
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
-
 
   formConfig: FormConfig;
 
@@ -82,19 +79,20 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
               private currencypairService: CurrencypairService,
               private transactionService: TransactionService,
               private messageToastService: MessageToastService,
-              translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              translateService: TranslateService, gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     // When the input on the following group changes, some calculations must be executed
     const calcGroupConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldCurrencyNumberVSParam('currencyExRate', 'EXCHANGE_RATE',
-        true, 7, 8, false,
-        this.globalparameterService.getNumberCurrencyMask(), VALIDATION_SPECIAL.GT_With_Mask_Param, 0.00001, {usedLayoutColumns: 8}),
+        true, AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
+        AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        this.gps.getNumberCurrencyMask(), VALIDATION_SPECIAL.GT_With_Mask_Param, 0.00001, {usedLayoutColumns: 8}),
 
 
       DynamicFieldHelper.createFunctionButtonFieldName('oneOverX', '1/x',
@@ -103,14 +101,23 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         }),
 
       DynamicFieldHelper.createFunctionButtonFieldName('exRateButton', 'TIME_DEPENDING_EXCHANGE_RATE_',
-        (e) => this.getTimeDependingExchangeRate(e), {icon: AppSettings.PATH_ASSET_ICONS + 'refresh.svg',
-          buttonInForm: true, usedLayoutColumns: 1}),
-
-      DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, 11,
-        2, false, {
-          ...this.globalparameterService.getNumberCurrencyMask(),
+        (e) => this.getTimeDependingExchangeRate(e), {
+          icon: AppSettings.PATH_ASSET_ICONS + 'refresh.svg',
+          buttonInForm: true, usedLayoutColumns: 1
+        }),
+      /*
+            DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, 8,
+              8, false, {
+                ...this.gps.getNumberCurrencyMask(),
+                allowZero: false
+              }, VALIDATION_SPECIAL.GT_With_Mask_Param, 0.01),
+      */
+      DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, 8,
+        8, false, {
+          ...this.gps.getNumberCurrencyMask(),
           allowZero: false
-        }, VALIDATION_SPECIAL.GT_With_Mask_Param, 0.01),
+        }, null, null),
+
 
       this.getTransactionCostFieldDefinition(),
     ];
@@ -121,7 +128,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       DynamicFieldHelper.createFieldSelectNumber('idCreditCashaccount', 'CREDIT_ACCOUNT', true),
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
       this.getDebitAmountFieldDefinition(),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 1000, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -146,7 +153,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     });
   }
 
-  setCalculatedDebitAmount(): void {
+  setCalculatedDebitAmount(): number {
     const values: any = {};
     this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
 
@@ -158,6 +165,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       this.configObject.debitAmount.formControl.setValue(values.creditAmount + (values.transactionCost
         ? values.transactionCost : 0));
     }
+    return values.currencyExRate;
   }
 
 
@@ -166,10 +174,21 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       this.debitCashaccount.currency, this.currencypair) + ((values.transactionCost) ? values.transactionCost : 0);
   }
 
+  private adjustNumberInputFractions(): void {
+    const fromCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair.fromCurrency);
+    const toCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair.toCurrency);
+    DynamicFieldHelper.adjustNumberFraction(this.configObject.creditAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
+      toCurrencyFraction);
+    DynamicFieldHelper.adjustNumberFraction(this.configObject.transactionCost, AppSettings.FID_SMALL_INTEGER_LIMIT,
+      fromCurrencyFraction);
+    DynamicFieldHelper.adjustNumberFraction(this.configObject.debitAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
+      fromCurrencyFraction);
+  }
+
   getTimeDependingExchangeRate(event): void {
     const transactionTime: number = +this.configObject.transactionTime.formControl.value;
     BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService,
-      this.globalparameterService,
+      this.gps,
       transactionTime, this.currencypair.idSecuritycurrency, false, this.configObject.currencyExRate.formControl);
   }
 
@@ -202,6 +221,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         this.filterCreditHtmlOptions(this.configObject.idDebitCashaccount.valueKeyHtmlOptions,
           cp.cashaccount.idSecuritycashAccount);
         this.configObject.debitAmount.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.debitCashaccount.currency);
+        this.configObject.transactionCost.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.debitCashaccount.currency);
         this.changeCurrencyExRateState();
       }
     });
@@ -223,7 +243,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 
   protected initialize(): void {
@@ -296,6 +316,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         this.configObject.currencyExRate.formControl.enable();
         this.getCurrencypair();
       }
+
+      this.adjustNumberInputFractions();
     }
     this.disableEnableExchangeRateButton();
   }

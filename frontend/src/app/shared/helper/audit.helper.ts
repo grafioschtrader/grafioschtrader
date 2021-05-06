@@ -30,12 +30,12 @@ export class AuditHelper {
    * Only used for proposal editing.
    */
   public static transferToFormAndChangeButtonForProposaleEdit(translateService: TranslateService,
-                                                              globalparameterService: GlobalparameterService, entityAuditable: Auditable,
+                                                              gps: GlobalparameterService, entityAuditable: Auditable,
                                                               form: DynamicFormComponent, configObject: { [name: string]: FieldConfig },
                                                               proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
     if (entityAuditable) {
       // Existing entity
-      AuditHelper.configureFormFromAuditableRights(translateService, globalparameterService, entityAuditable, form, configObject,
+      AuditHelper.configureFormFromAuditableRights(translateService, gps, entityAuditable, form, configObject,
         proposeChangeEntityWithEntity, true);
     } else {
       // New entity
@@ -57,11 +57,11 @@ export class AuditHelper {
   }
 
   public static configureFormFromAuditableRights(translateService: TranslateService,
-                                                 globalparameterService: GlobalparameterService, entityAuditable: Auditable,
+                                                 gps: GlobalparameterService, entityAuditable: Auditable,
                                                  form: DynamicFormComponent, configObject: { [name: string]: FieldConfig },
                                                  proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
                                                  transferToForm: boolean): void {
-    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(globalparameterService, entityAuditable)) {
+    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(gps, entityAuditable)) {
       // User can not change entity directly but propose one
       AuditHelper.setHeaderChangeRequest(translateService, form, 'YOUR_CHANGE_REQUEST');
       FormHelper.hideVisibleFieldConfigs(true, [
@@ -130,8 +130,8 @@ export class AuditHelper {
                                                   acceptRejectRequired = false): FieldConfig[] {
     return [
       this.getNoteRequestInputDefinition(),
-      DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_ACCEPT_REJECT_INPUT, 'PROPOSEACCEPTREJECT', 1000,
-        acceptRejectRequired),
+      DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_ACCEPT_REJECT_INPUT, 'PROPOSEACCEPTREJECT',
+        AppSettings.FID_MAX_LETTERS, acceptRejectRequired),
       DynamicFieldHelper.createSubmitButtonFieldName(AuditHelper.SUBMIT_FIELD_BUTTON),
       DynamicFieldHelper.createFunctionButtonFieldName(AuditHelper.REJECT_FIELD_BUTTON, 'REJECT_DATA_CHANGE',
         (e) => closed.emit(new ProcessedActionData(ProcessedAction.REJECT_DATA_CHANGE,
@@ -140,7 +140,8 @@ export class AuditHelper {
   }
 
   public static getNoteRequestInputDefinition(required = false): FieldConfig {
-    return DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_REQUEST_INPUT, 'NOTE_REQUEST', 1000, required);
+    return DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_REQUEST_INPUT, 'NOTE_REQUEST',
+      AppSettings.FID_MAX_LETTERS, required);
   }
 
   public static copyNoteRequestToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer) {
@@ -163,29 +164,29 @@ export class AuditHelper {
   /**
    * Users created this entity and can modify and delete it.
    */
-  public static hasRightsForEditingOrDeleteEntity<T>(globalparameterService: GlobalparameterService, entity: any): boolean {
-    return !(entity instanceof Auditable) || AuditHelper.hasRightsForEditingOrDeleteAuditable(globalparameterService, <Auditable>entity);
+  public static hasRightsForEditingOrDeleteEntity<T>(gps: GlobalparameterService, entity: any): boolean {
+    return !(entity instanceof Auditable) || AuditHelper.hasRightsForEditingOrDeleteAuditable(gps, <Auditable>entity);
   }
 
 
-  public static hasRightsForEditingOrDeleteAuditable(globalparameterService: GlobalparameterService,
+  public static hasRightsForEditingOrDeleteAuditable(gps: GlobalparameterService,
                                                      entityAuditable: Auditable): boolean {
-    return AuditHelper.hasHigherPrivileges(globalparameterService)
-      || globalparameterService.isEntityCreatedByUser(entityAuditable)
+    return AuditHelper.hasHigherPrivileges(gps)
+      || gps.isEntityCreatedByUser(entityAuditable)
       || entityAuditable instanceof Security && (<Security>entityAuditable).idTenantPrivate
-      && (<Security>entityAuditable).idTenantPrivate === globalparameterService.getIdUser();
+      && (<Security>entityAuditable).idTenantPrivate === gps.getIdUser();
   }
 
   /**
    * Can edit all data with some few exceptions.
    */
-  public static hasHigherPrivileges(globalparameterService: GlobalparameterService): boolean {
-    return globalparameterService.hasRole(AppSettings.ROLE_ADMIN)
-      || globalparameterService.hasRole(AppSettings.ROLE_ALL_EDIT);
+  public static hasHigherPrivileges(gps: GlobalparameterService): boolean {
+    return gps.hasRole(AppSettings.ROLE_ADMIN)
+      || gps.hasRole(AppSettings.ROLE_ALL_EDIT);
   }
 
-  public static hasAdminRole(globalparameterService: GlobalparameterService): boolean {
-    return globalparameterService.hasRole(AppSettings.ROLE_ADMIN);
+  public static hasAdminRole(gps: GlobalparameterService): boolean {
+    return gps.hasRole(AppSettings.ROLE_ADMIN);
   }
 
   public static isLimitedEditUser(user: User): boolean {

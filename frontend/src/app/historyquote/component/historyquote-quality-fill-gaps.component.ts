@@ -37,12 +37,12 @@ export class HistoryquoteQualityFillGapsComponent extends SimpleEditBase impleme
   constructor(public translateService: TranslateService,
               private securityService: SecurityService,
               private messageToastService: MessageToastService,
-              globalparameterService: GlobalparameterService) {
-    super(HelpIds.HELP_HISTORYQUOTE_QUALITY, globalparameterService);
+              gps: GlobalparameterService) {
+    super(HelpIds.HELP_HISTORYQUOTE_QUALITY, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       7, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldCheckboxHeqF(this.moveWeekendToFriday),

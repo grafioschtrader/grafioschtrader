@@ -63,7 +63,7 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
   protected SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<T>> createAndCalcGrandTotal(
       Map<T, SecurityPositionDynamicGroupSummary<T>> groupMap, DateTransactionCurrencypairMap dateCurrencyMap) {
     final SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<T>> securityPositionGrandSummary = new SecurityPositionDynamicGrandSummary<>(
-        dateCurrencyMap.getMainCurrency());
+        dateCurrencyMap.getMainCurrency(), globalparametersJpaRepository.getPrecisionForCurrency(dateCurrencyMap.getMainCurrency()));
     for (final Map.Entry<T, SecurityPositionDynamicGroupSummary<T>> ospcs : groupMap.entrySet()) {
       securityPositionGrandSummary.calcGrandTotal(
           (SecurityPositionDynamicGroupSummary<SecurityPositionDynamicGroupSummary<T>>) ospcs.getValue());

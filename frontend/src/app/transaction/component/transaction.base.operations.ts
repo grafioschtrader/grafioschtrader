@@ -9,7 +9,7 @@ import {ProcessedAction} from '../../shared/types/processed.action';
 
 export abstract class TransactionBaseOperations {
 
-  constructor(public translateService: TranslateService, protected globalparameterService: GlobalparameterService) {
+  constructor(public translateService: TranslateService, protected gps: GlobalparameterService) {
   }
 
   abstract isVisibleDialog(): boolean;

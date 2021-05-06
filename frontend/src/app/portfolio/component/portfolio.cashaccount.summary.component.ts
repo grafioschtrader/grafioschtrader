@@ -76,15 +76,16 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
       {width: 100, columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]});
     this.addColumn(DataType.String, 'cashaccount.currency', 'CURRENCY', true, false,
       {width: 40});
-    this.addColumn(DataType.Numeric, 'closePrice', 'SHARE_PRICE', true, false, {width: 50, maxFractionDigits: 5});
+    this.addColumn(DataType.Numeric, 'closePrice', 'SHARE_PRICE', true,
+      false, {width: 50, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'externalCashTransferMC', true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupExternalCashTransferMC')]}));
@@ -304,7 +305,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     if (this.tenantLimit) {
       this.handleEditAccount(portfolio, null, null);
     } else {
-      this.globalparameterService.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_CASH_ACCOUNT]).subscribe(tenantLimits => {
+      this.gps.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_CASH_ACCOUNT]).subscribe(tenantLimits => {
         this.tenantLimit = tenantLimits[0];
         if (BusinessHelper.isLimitCheckOk(tenantLimits[0], this.messageToastService)) {
           this.handleEditAccount(portfolio, null, null);

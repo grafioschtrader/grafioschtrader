@@ -63,12 +63,12 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
                         changeDetectionStrategy: ChangeDetectorRef,
                         filterService: FilterService,
                         translateService: TranslateService,
-                        globalparameterService: GlobalparameterService,
+                        gps: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
 
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService,
       productIconService, activatedRoute, router, chartDataService, changeDetectionStrategy, filterService,
-      translateService, globalparameterService, usersettingsService);
+      translateService, gps, usersettingsService);
 
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY],
       new SecurityaccountCurrencyGroup(this.translateService, this));
@@ -77,10 +77,10 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_FINANCIAL_INSTRUMENT],
       new SecurityaccountAssetclassSpecInvestGroup(this.translateService, this));
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_SUB_CATEGORY],
-      new SecurityaccountAssetclassSubCategoryGroup(this.globalparameterService,
+      new SecurityaccountAssetclassSubCategoryGroup(this.gps,
         this.translateService, this));
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_ASSETCLASS_COMBINATION],
-      new SecurityaccountAssetclassGroup(this.globalparameterService,
+      new SecurityaccountAssetclassGroup(this.gps,
         this.translateService, this));
 
     SelectOptionsHelper.createSelectItemForEnum(translateService, SecurityAccountGroup, this.groupOptions);

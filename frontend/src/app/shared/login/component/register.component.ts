@@ -52,7 +52,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   confirmEmail = false;
   applicationInfo: ApplicationInfo;
 
-  constructor(private globalparameterService: GlobalparameterService,
+  constructor(private gps: GlobalparameterService,
               private messageToastService: MessageToastService,
               private actuatorService: ActuatorService,
               private activatedRoute: ActivatedRoute,
@@ -133,7 +133,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.queryParams = this.activatedRoute.params.subscribe(params => {
       this.errorLastRegistration = params['failure'];
     });
-    this.globalparameterService.getSupportedLocales().subscribe(data => {
+    this.gps.getSupportedLocales().subscribe(data => {
         this.configObject.localeStr.valueKeyHtmlOptions = data;
         super.afterViewInit();
         this.configObject.nickname.elementRef.nativeElement.focus();

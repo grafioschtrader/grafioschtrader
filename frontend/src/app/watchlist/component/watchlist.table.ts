@@ -102,10 +102,10 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService,
               public selectMultiMode: string) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     if (selectMultiMode === WatchlistTable.MULTIPLE) {
       this.singleMultiSelection = [];
     }
@@ -140,10 +140,10 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   private translateFormulaToUserLanguage(): void {
-    if (this.globalparameterService.getDecimalSymbol() !== '.') {
+    if (this.gps.getDecimalSymbol() !== '.') {
       this.securitycurrencyGroup.securityPositionList.filter(sp => sp.securitycurrency.formulaPrices)
         .map(sp => sp.securitycurrency.formulaPrices = sp.securitycurrency.formulaPrices.split('.')
-          .join(this.globalparameterService.getDecimalSymbol()));
+          .join(this.gps.getDecimalSymbol()));
     }
   }
 
@@ -324,7 +324,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   protected init(): void {
-    this.idTenant = this.globalparameterService.getIdTenant();
+    this.idTenant = this.gps.getIdTenant();
     this.activePanelService.registerPanel(this);
     this.loading = true;
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
@@ -333,7 +333,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         this.writeTableDefinition(this.storeKey);
       } else {
         //  first time
-        this.globalparameterService.getIntraUpdateTimeout()
+        this.gps.getIntraUpdateTimeout()
           .subscribe((updateTimeout: number) => this.intraUpdateTimoutSeconds = updateTimeout);
 
         this.readTableDefinition(this.storeKey);
@@ -476,9 +476,9 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         {
           label: 'REMOVE_DELETE_INSTRUMENT',
           command: (e) => this.removeAndDeleteSecuritycurrency(<Security>securitycurrencyPosition.securitycurrency, 'SECURITY'),
-          disabled: securitycurrencyPosition.isUsedElsewhere || (!AuditHelper.hasHigherPrivileges(this.globalparameterService)
+          disabled: securitycurrencyPosition.isUsedElsewhere || (!AuditHelper.hasHigherPrivileges(this.gps)
             && (!!(<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate
-              && (<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate !== this.globalparameterService.getIdTenant()))
+              && (<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate !== this.gps.getIdTenant()))
         }
       );
 

@@ -35,13 +35,13 @@ export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase
   constructor(private portfolioService: PortfolioService,
               private importTransactionPosService: ImportTransactionPosService,
               public translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, globalparameterService);
+              gps: GlobalparameterService) {
+    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, gps);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber('idCashaccount', 'ACCOUNT', false,

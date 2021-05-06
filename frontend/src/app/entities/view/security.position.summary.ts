@@ -4,7 +4,6 @@ export class SecurityPositionSummary {
 
   public mainCurrency: string;
   public units: number;
-  public adjustedCostBase: number;
   public splitFactorFromBaseTransaction: number;
   public transactionCost: number;
   public transactionCostMC: number;

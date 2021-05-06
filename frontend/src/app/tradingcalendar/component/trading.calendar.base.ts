@@ -23,12 +23,12 @@ export abstract class TradingCalendarBase extends CalendarNavigation  {
   abstract saveData(convertedAddRemoveDays: AddRemoveDay[]): void;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               markExistingColor: string[],
               activePanelService: ActivePanelService,
               protected messageToastService: MessageToastService,
               public titleKey?: string) {
-    super(translateService, globalparameterService, activePanelService, markExistingColor);
+    super(translateService, gps, activePanelService, markExistingColor);
   }
 
   getHelpContextId(): HelpIds {

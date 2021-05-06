@@ -66,12 +66,12 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
               public watchlistService: WatchlistService,
               public translateService: TranslateService,
               public messageToastService: MessageToastService,
-              globalparameterService: GlobalparameterService) {
-    super(null, globalparameterService);
+              gps: GlobalparameterService) {
+    super(null, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       2, this.helpLink.bind(this));
 
     this.config = [
@@ -145,7 +145,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
         this.assetclassService.getInvestableAssetclassesByWatchlist(idWatchlist).subscribe((assetsclasses: Assetclass[]) => {
           this.assetsclasses = assetsclasses;
           this.valueKeyHtmlOptionsAssetclasses = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-            this.globalparameterService, this.translateService, this.assetsclasses);
+            this.gps, this.translateService, this.assetsclasses);
           this.fillAndfilterAssetclasses();
         });
       } else {

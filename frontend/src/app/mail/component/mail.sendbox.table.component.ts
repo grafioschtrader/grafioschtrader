@@ -33,10 +33,10 @@ export class MailSendboxTableComponent extends MailInOutTable<MailSendbox> imple
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(router, 'sendTime', 'MailSendbox', mailSendboxService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
+      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
     this.addColumnFeqH(DataType.String, 'idUserTo', true, false, {width: 50});
     this.addColumnFeqH(DataType.String, 'roleNameTo', true, false,
       {width: 80, translateValues: TranslateValue.NORMAL});

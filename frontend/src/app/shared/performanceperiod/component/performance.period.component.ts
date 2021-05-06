@@ -78,15 +78,15 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
               private activatedRoute: ActivatedRoute,
               private activePanelService: ActivePanelService,
               private holdingService: HoldingService,
-              private globalparameterService: GlobalparameterService,
+              private gps: GlobalparameterService,
               private chartDataService: ChartDataService,
               public translateService: TranslateService) {
     super();
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, null, false);
     this.formConfig.labelcolumns = 2;
 
-    this.dateFormatPipe = globalparameterService.getDateFormat().replace(/Y/g, 'y').replace(/D/g, 'd');
+    this.dateFormatPipe = gps.getDateFormat().replace(/Y/g, 'y').replace(/D/g, 'd');
     TranslateHelper.translateMenuItems(this.menuItems, this.translateService);
   }
 
@@ -190,7 +190,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   helpLink() {
     // Used in a dialog
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE);
   }
 
 

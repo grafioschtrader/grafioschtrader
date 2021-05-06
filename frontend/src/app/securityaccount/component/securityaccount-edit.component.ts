@@ -17,6 +17,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Edit security account
@@ -42,10 +43,10 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
 
   constructor(private tradingPlatformPlanService: TradingPlatformPlanService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               securityaccountService: SecurityaccountService) {
-    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'SECURITYACCOUNT', translateService, globalparameterService,
+    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'SECURITYACCOUNT', translateService, gps,
       messageToastService, securityaccountService);
     this.untilFields = [new UntilField('shareUseUntil', true),
       new UntilField('bondUseUntil', true),
@@ -57,7 +58,7 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
@@ -68,10 +69,10 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('lowestTransactionCost', true,
         3, 2, false,
         {
-          ...this.globalparameterService.getNumberCurrencyMask(),
+          ...this.gps.getNumberCurrencyMask(),
           prefix: AppHelper.addSpaceToCurrency((<Portfolio>this.callParam.parentObject).currency)
         }, {inputWidth: 10} ),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 1000, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -92,7 +93,7 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
       this.translateService.get(tradingPlatformPlan.transactionFeePlan).subscribe(tp => {
         const valueKeyHtmlSelectOption = new ValueKeyHtmlSelectOptions(tradingPlatformPlan.idTradingPlatformPlan, null);
         valueKeyHtmlSelectOption.value = Helper.getValueByPath(tradingPlatformPlan, 'platformPlanNameNLS.map.'
-          + this.globalparameterService.getUserLang()) + ' / ' + tp;
+          + this.gps.getUserLang()) + ' / ' + tp;
         const indexPos = AppHelper.binarySearch(valueKeyHtmlSelectOptions, valueKeyHtmlSelectOption.value, (option, value) =>
           option.value === value ? Comparison.EQ : option.value > value ? Comparison.GT : Comparison.LT);
         valueKeyHtmlSelectOptions.splice(Math.abs(indexPos), 0, valueKeyHtmlSelectOption);

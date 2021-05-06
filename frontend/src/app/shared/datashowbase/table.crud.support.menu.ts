@@ -62,12 +62,12 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService,
               private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.entityNameUpper = this.entityName.toUpperCase();
-    this.entityKeyName = this.globalparameterService.getKeyNameByEntityName(entityName);
+    this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
   }
 
   ////////////////////////////////////////////////
@@ -207,7 +207,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   }
 
   protected hasRightsForDeleteEntity(entity: T): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteEntity(this.globalparameterService, entity);
+    return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, entity);
   }
 
   protected getId(entity: T): number {

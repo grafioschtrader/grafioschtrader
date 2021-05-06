@@ -59,15 +59,15 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('groupName', 'TOTAL'), new ColumnGroupConfig(null, 'GRAND_TOTAL')]});
 
     this.addColumn(DataType.Numeric, 'closePrice', 'CURRENCY_RATE', true, false,
-      {maxFractionDigits: 5, templateName: 'greenRed'});
+      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, templateName: 'greenRed'});
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'externalCashTransferMC',
       true, false, {templateName: 'greenRed',
@@ -131,7 +131,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
 
   ngOnInit(): void {
     this.translateService.get(this.CHART_TITLE).subscribe(translated => this.CHART_TITLE = translated);
-    this.idTenant = this.globalparameterService.getIdTenant();
+    this.idTenant = this.gps.getIdTenant();
     this.onComponentClick(null);
     this.readData();
   }

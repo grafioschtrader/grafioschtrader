@@ -1,3 +1,5 @@
+import {GlobalSessionNames} from './global.session.names';
+
 export class AppSettings {
 
   // Keywords
@@ -129,7 +131,7 @@ export class AppSettings {
   public static readonly VALUE_SECURITY_ACCOUNT_HEADER = 'ACCOUNT_RELEVANT';
 
   public static readonly DIVIDEND_SETTINGS = 'DIVIDEND_SETTINGS';
-  public static  readonly SPLIT_SETTINGS = 'SPLIT_SETTING';
+  public static readonly SPLIT_SETTINGS = 'SPLIT_SETTING';
 
   // User Rights
   public static readonly ROLE_ADMIN = 'ROLE_ADMIN';
@@ -140,4 +142,28 @@ export class AppSettings {
   public static readonly DIALOG_MENU_SUFFIX = '...';
 
   public static readonly INSTRUMENT_HEADER = 'I';
+
+  public static FID_MAX_DIGITS = 16;
+  public static FID_STANDARD_INTEGER_DIGITS = 9;
+  public static FID_STANDARD_FRACTION_DIGITS = 2;
+  public static FID_SMALL_INTEGER_LIMIT = 6;
+
+  public static FID_MAX_INTEGER_DIGITS = 11;
+  public static FID_MAX_FRACTION_DIGITS = 8;
+
+  public static FID_MAX_LETTERS = 1000;
+
+  public static resetInterFractionLimit(): void {
+    const standardPrecisionMap: { [typename: string]: number } =
+      JSON.parse(sessionStorage.getItem(GlobalSessionNames.STANDARD_PRECISION));
+    if (standardPrecisionMap) {
+      const keys = Object.keys(standardPrecisionMap);
+      keys.forEach(key => {
+        const value = standardPrecisionMap[key.toString()];
+        AppSettings[key] = value;
+      });
+      console.log(this.FID_MAX_DIGITS);
+    }
+  }
+
 }

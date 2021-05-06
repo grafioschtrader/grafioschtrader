@@ -16,7 +16,7 @@ export class RegistrationTokenVerifyComponent implements OnInit, OnDestroy {
   token: string;
   private routeSubscribe: Subscription;
 
-  constructor(private globalparameterService: GlobalparameterService,
+  constructor(private gps: GlobalparameterService,
               private activatedRoute: ActivatedRoute,
               private router: Router,
               private loginService: LoginService) {

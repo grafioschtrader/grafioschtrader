@@ -39,12 +39,12 @@ import grafioschtrader.types.TransactionType;
 
 public abstract class DataHelper {
 
-  public static double round2(double valueToRound) {
-    return round(valueToRound, GlobalConstants.STANDARD_PRECISION);
+  public static double roundStandard(double valueToRound) {
+    return round(valueToRound, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
   public static double round(double valueToRound) {
-    return round(valueToRound, GlobalConstants.MAX_PRECISION);
+    return round(valueToRound, GlobalConstants.FID_MAX_FRACTION_DIGITS);
   }
 
   public static double round(double valueToRound, int numberOfDecimalPlaces) {

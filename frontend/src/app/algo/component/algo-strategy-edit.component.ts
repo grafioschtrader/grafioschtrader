@@ -46,15 +46,15 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[];
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               private algoStrategyService: AlgoStrategyService) {
-    super(HelpIds.HELP_ALGO, 'ALGO_SECURITY', translateService, globalparameterService,
+    super(HelpIds.HELP_ALGO, 'ALGO_SECURITY', translateService, gps,
       messageToastService, algoStrategyService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectString(AlgoStrategyHelper.FIELD_STRATEGY_IMPL, 'ALGO_STRATEGY_NAME', true),

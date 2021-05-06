@@ -52,7 +52,7 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
                dataKey="proposeChangeEntity.idProposeRequest">
         <ng-template pTemplate="caption">
-          <h4>{{'PROPOSE_CHANGE_ENTITY_FOR_USER' | translate}} {{globalparameterService.getIdUser()}}</h4>
+          <h4>{{'PROPOSE_CHANGE_ENTITY_FOR_USER' | translate}} {{gps.getIdUser()}}</h4>
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
@@ -163,13 +163,13 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
     this.entityMappingArr[this.ASSETCLASS] = new EntityMapping(new AssetclassPrepareEdit(assetclassService));
     this.entityMappingArr[this.STOCKEXCHANGE] = new EntityMapping(new StockexchangePrepareEdit(stockexchangeService,
-      this.globalparameterService));
+      this.gps));
     this.entityMappingArr[this.IMPORT_TRANSACTION_PLATFORM] =
       new EntityMapping(new ImportTransactionPlatformPrepareEdit(importTransactionPlatformService));
     this.entityMappingArr[this.IMPORT_TRANSACTION_TEMPLATE] =

@@ -47,11 +47,11 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
 
-  constructor(globalparameterService: GlobalparameterService,
+  constructor(gps: GlobalparameterService,
               assetclassService: AssetclassService,
               stockexchangeService: StockexchangeService,
               translateService: TranslateService) {
-    super(true, globalparameterService, assetclassService, stockexchangeService, translateService);
+    super(true, gps, assetclassService, stockexchangeService, translateService);
   }
 
 
@@ -70,7 +70,7 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_WATCHLIST);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_WATCHLIST);
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {

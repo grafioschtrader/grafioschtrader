@@ -64,12 +64,12 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.DIVIDEND_SPLIT_FEDED, AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
       dialogService, timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router,
       activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
-      filterService, translateService, globalparameterService, usersettingsService, WatchlistTable.MULTIPLE);
+      filterService, translateService, gps, usersettingsService, WatchlistTable.MULTIPLE);
     this.addBaseColumns();
       this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
       true, {translateValues: TranslateValue.NORMAL});

@@ -40,16 +40,16 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
 
   constructor(private importTransactionPlatformService: ImportTransactionPlatformService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               tradingPlatformPlanService: TradingPlatformPlanService) {
-    super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN, 'TRADINGPLATFORMPLAN', translateService, globalparameterService,
+    super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN, 'TRADINGPLATFORMPLAN', translateService, gps,
       messageToastService, tradingPlatformPlanService);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
@@ -75,7 +75,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
         this.form.setDefaultValuesAndEnableSubmit();
         this.configObject.transactionFeePlan.valueKeyHtmlOptions =
           SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, TradingPlatformFeePlan);
-        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService, this.callParam,
+        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps, this.callParam,
           this.form, this.configObject, this.proposeChangeEntityWithEntity);
 
         this.configObject.en.elementRef.nativeElement.focus();

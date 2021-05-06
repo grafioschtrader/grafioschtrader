@@ -15,6 +15,7 @@ import grafioschtrader.reportviews.transactioncost.TransactionCostGrandSummary;
 import grafioschtrader.reportviews.transactioncost.TransactionCostGroupSummary;
 import grafioschtrader.reportviews.transactioncost.TransactionCostPosition;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 // import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
@@ -41,7 +42,7 @@ public class SecurityTransactionCostReport {
   private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   public TransactionCostGrandSummary getTransactionCostGrandSummary(final Integer idTenant) {
     final Tenant tenant = tenantJpaRepository.getOne(idTenant);
@@ -64,7 +65,8 @@ public class SecurityTransactionCostReport {
   private TransactionCostGrandSummary createTransactionCost(Tenant tenant, List<Transaction> transactions,
       List<Object[]> dateTransactionCurrency, List<Currencypair> currencypairs) {
 
-    TransactionCostGrandSummary transactionCostGrandSummary = new TransactionCostGrandSummary(tenant.getCurrency());
+    TransactionCostGrandSummary transactionCostGrandSummary = new TransactionCostGrandSummary(tenant.getCurrency(),
+        globalparametersJpaRepository.getCurrencyPrecision());
     DateTransactionCurrencypairMap dateTransactionCurrencyMap = new DateTransactionCurrencypairMap(tenant.getCurrency(),
         null, dateTransactionCurrency, currencypairs, true, false);
     transactions.stream()
@@ -87,17 +89,18 @@ public class SecurityTransactionCostReport {
   /**
    *
    * 
-   * @param mc
+   * @param mainCurrency
    * @param transaction
    * @param transactionCostGrandSummary
    * @param dateTransactionCurrencyMap
    */
-  private void calcCostAndTax(String mc, Transaction transaction,
+  private void calcCostAndTax(String mainCurrency, Transaction transaction,
       TransactionCostGrandSummary transactionCostGrandSummary,
       DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
 
-    TransactionCostPosition transactionCostPosition = new TransactionCostPosition(transaction);
-    transactionCostPosition.basePriceForTransactionCostMC = transaction.calcCostTaxMaybeBasePrice(mc,
+    TransactionCostPosition transactionCostPosition = new TransactionCostPosition(transaction,
+        globalparametersJpaRepository.getPrecisionForCurrency(mainCurrency));
+    transactionCostPosition.basePriceForTransactionCostMC = transaction.calcCostTaxMaybeBasePrice(mainCurrency,
         transactionCostPosition, dateTransactionCurrencyMap, true);
 
     TransactionCostGroupSummary transactionCostGroupSummary = transactionCostGrandSummary

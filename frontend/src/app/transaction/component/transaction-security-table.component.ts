@@ -52,10 +52,10 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
   }
 
   ngOnInit(): void {

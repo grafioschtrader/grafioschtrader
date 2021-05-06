@@ -42,7 +42,7 @@ public class ImportTransactionHead extends TenantBaseID {
   private String name;
 
   @Column(name = "note")
-  @Size(max = GlobalConstants.NOTE_SIZE)
+  @Size(max = GlobalConstants.FID_MAX_LETTERS)
   private String note;
 
   public ImportTransactionHead() {

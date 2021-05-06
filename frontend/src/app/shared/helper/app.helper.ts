@@ -13,6 +13,7 @@ import {ConfirmationService} from 'primeng/api';
 import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
 
 export const enum Comparison { GT, LT, EQ }
 
@@ -90,26 +91,26 @@ export class AppHelper {
     }
   }
 
-  public static getValueByPathWithField(globalparameterService: GlobalparameterService, translateService: TranslateService,
+  public static getValueByPathWithField(gps: GlobalparameterService, translateService: TranslateService,
                                         dataobject: any, field: ColumnConfig, valueField: string) {
     dataobject = Helper.getValueByPath(dataobject, valueField);
     if (dataobject || field.dataType === DataType.NumericShowZero && dataobject === 0) {
 
       switch (field.dataType) {
         case DataType.NumericInteger:
-          return AppHelper.numberIntegerFormat(globalparameterService, dataobject);
+          return AppHelper.numberIntegerFormat(gps, dataobject);
         case DataType.Numeric:
         case DataType.NumericShowZero:
-          return AppHelper.numberFormat(globalparameterService, dataobject, field.maxFractionDigits, field.minFractionDigits);
+          return AppHelper.numberFormat(gps, dataobject, field.maxFractionDigits, field.minFractionDigits);
         case DataType.NumericRaw:
-          return globalparameterService.getNumberFormatRaw().format(dataobject);
+          return gps.getNumberFormatRaw().format(dataobject);
         case DataType.DateNumeric:
         case DataType.DateString:
-          return this.getDateByFormat(globalparameterService, dataobject);
+          return this.getDateByFormat(gps, dataobject);
         case DataType.DateTimeNumeric:
-          return moment(+dataobject).format(globalparameterService.getTimeDateFormatForTable());
+          return moment(+dataobject).format(gps.getTimeDateFormatForTable());
         case DataType.DateTimeString:
-          return moment(dataobject).format(globalparameterService.getTimeDateFormatForTable());
+          return moment(dataobject).format(gps.getTimeDateFormatForTable());
         default:
           return dataobject;
       }
@@ -117,26 +118,32 @@ export class AppHelper {
   }
 
 
-  public static getDateByFormat(globalparameterService: GlobalparameterService, dataobject: string): string {
-    return moment(dataobject).format(globalparameterService.getDateFormat());
+  public static getDateByFormat(gps: GlobalparameterService, dataobject: string): string {
+    return moment(dataobject).format(gps.getDateFormat());
   }
 
-  public static numberFormat(globalparameterService: GlobalparameterService, value: number, maxFractionDigits: number,
+  public static numberFormat(gps: GlobalparameterService, value: number, maxFractionDigits: number,
                              minFractionDigits: number) {
+
+
     if (maxFractionDigits) {
+
       const n = Math.log(Math.abs(value)) / Math.LN10;
       if (n < 1) {
-        // negativ number
-        return value.toFixed(Math.max(maxFractionDigits, Math.max(minFractionDigits || 2,
+        // negative number means fractions or less than 0
+        return value.toFixed(Math.min(maxFractionDigits, Math.max(minFractionDigits || 2,
           Math.max(2, Math.ceil(Math.abs(n)) + ((n < 0) ? 4 : 2)))))
-          .split('.').join(globalparameterService.getDecimalSymbol());
+          .split('.').join(gps.getDecimalSymbol());
       }
     }
-    return globalparameterService.getNumberFormat().format(value);
+
+
+    return gps.getNumberFormat().format(value);
   }
 
-  public static numberIntegerFormat(globalparameterService: GlobalparameterService, value: number) {
-    return value.toLocaleString(globalparameterService.getLocale());
+
+  public static numberIntegerFormat(gps: GlobalparameterService, value: number) {
+    return value.toLocaleString(gps.getLocale());
   }
 
   /**
@@ -196,14 +203,14 @@ export class AppHelper {
     });
   }
 
-  public static getDefaultFormConfig(globalparameterService: GlobalparameterService, labelcolums: number,
+  public static getDefaultFormConfig(gps: GlobalparameterService, labelcolums: number,
                                      helpLinkFN: Function = null, nonModal = false): FormConfig {
     return {
-      locale: globalparameterService.getLocale(),
-      labelcolumns: labelcolums, language: globalparameterService.getUserLang(),
-      thousandsSeparatorSymbol: globalparameterService.getThousandsSeparatorSymbol(),
-      dateFormat: globalparameterService.getDateFormatForCalendar().toLowerCase(),
-      decimalSymbol: globalparameterService.getDecimalSymbol(), helpLinkFN: helpLinkFN, nonModal: nonModal
+      locale: gps.getLocale(),
+      labelcolumns: labelcolums, language: gps.getUserLang(),
+      thousandsSeparatorSymbol: gps.getThousandsSeparatorSymbol(),
+      dateFormat: gps.getDateFormatForCalendar().toLowerCase(),
+      decimalSymbol: gps.getDecimalSymbol(), helpLinkFN: helpLinkFN, nonModal: nonModal
     };
   }
 

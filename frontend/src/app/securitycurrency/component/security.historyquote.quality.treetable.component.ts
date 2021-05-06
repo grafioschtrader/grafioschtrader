@@ -96,8 +96,8 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
               private activePanelService: ActivePanelService,
               private securityService: SecurityService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
     this.addColumnFeqH(DataType.String, 'name', true, false,
       {width: 250, columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]});
 
@@ -124,7 +124,7 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
     this.securityService.getHistoryquoteQualityHead(historyquoteQualityGrouped).subscribe((hqg: HistoryquoteQualityHead) => {
       const tn: TreeNode[] = [];
       this.historyquoteQualityHead = hqg;
-      this.lastUpdate = AppHelper.getDateByFormat(this.globalparameterService, this.historyquoteQualityHead.lastUpdate);
+      this.lastUpdate = AppHelper.getDateByFormat(this.gps, this.historyquoteQualityHead.lastUpdate);
       this.addTreeNode(tn, hqg, null);
       this.qualityNode = tn[0].children;
     });
@@ -175,7 +175,7 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
 
   /*
   protected getOptionalParameters(): { [key: string]: number } {
-    return {idTenant: this.globalparameterService.getIdTenant()};
+    return {idTenant: this.gps.getIdTenant()};
   }
 */
   handleChangedIdSecurity(idSecurity: number): void {

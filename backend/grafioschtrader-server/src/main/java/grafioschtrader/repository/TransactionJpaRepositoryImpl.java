@@ -38,40 +38,37 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     implements TransactionJpaRepositoryCustom {
 
   @Autowired
-  TransactionJpaRepository transactionJpaRepository;
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Autowired
-  PortfolioJpaRepository portfolioJpaRepository;
+  private PortfolioJpaRepository portfolioJpaRepository;
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  SecurityaccountJpaRepository securityaccountJpaRepository;
+  private SecurityaccountJpaRepository securityaccountJpaRepository;
 
   // @Autowired
-  CashaccountJpaRepository cashaccountJpaRepository;
+  private CashaccountJpaRepository cashaccountJpaRepository;
 
   // @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
   @Autowired
-  HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
+  private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
   @Autowired
-  HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
-
-  @Autowired
-  HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
+  private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
   ///////////////////////////////////////////////////////////////////////////////
   // Methods with general Transaction
@@ -115,7 +112,11 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     clearCurrencypairExRate(cashAccountTransfer.getDepositTransaction());
 
     cashAccountTransfer.setToMinus();
-    cashAccountTransfer.validateWithdrawalCashaccountAmount();
+
+    Integer withdrawalCurrencyFraction = globalparametersJpaRepository
+        .getPrecisionForCurrency(cashAccountTransfer.getWithdrawalTransaction().getCashaccount().getCurrency());
+
+    cashAccountTransfer.validateWithdrawalCashaccountAmount(withdrawalCurrencyFraction);
     cashAccountTransfer.makeAbsToatalAmount();
     CashAccountTransfer newCashAccountTransfer = new CashAccountTransfer(
         processAndSaveTransaction(cashAccountTransfer.getWithdrawalTransaction(),
@@ -251,14 +252,15 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       // is accepted
       transaction.setCashaccountAmount(transaction.getCashaccountAmount() * -1);
     }
-
+    Integer currencyFraction = globalparametersJpaRepository
+        .getPrecisionForCurrency(transaction.getCashaccount().getCurrency());
     switch (transaction.getTransactionType()) {
     case ACCUMULATE:
     case REDUCE:
     case DIVIDEND:
     case FINANCE_COST:
       checkTradingDayAndUnitsIntegrity(transaction);
-      transaction.validateCashaccountAmount(getOpenPositionMarginPosition(transaction));
+      transaction.validateCashaccountAmount(getOpenPositionMarginPosition(transaction), currencyFraction);
       newTransaction = saveSecurityTransaction(transaction, existingEntity, securityaccount, adjustHoldings);
       break;
 
@@ -268,7 +270,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     case WITHDRAWAL:
     case DEPOSIT:
     case INTEREST_CASHACCOUNT:
-      transaction.validateCashaccountAmount(null);
+      transaction.validateCashaccountAmount(null, currencyFraction);
       newTransaction = saveTransactionAndCorrectCashaccountBalance(transaction, existingEntity, adjustHoldings,
           isCashAccountTransfer);
       break;
@@ -475,13 +477,19 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
     final List<Transaction> transactions = transactionJpaRepository
         .findByCashaccount_idSecuritycashAccountAndIdTenantOrderByTransactionTimeDesc(idSecuritycashAccount, idTenant);
+
     final CashaccountTransactionPosition[] cashaccountTransactionPositions = new CashaccountTransactionPosition[transactions
         .size()];
-
-    for (int i = cashaccountTransactionPositions.length - 1; i >= 0; i--) {
-      cashaccountTransactionPositions[i] = new CashaccountTransactionPosition(transactions.get(i),
-          (i == cashaccountTransactionPositions.length - 1) ? transactions.get(i).getCashaccountAmount()
-              : cashaccountTransactionPositions[i + 1].balance + transactions.get(i).getCashaccountAmount());
+    if (cashaccountTransactionPositions.length > 0) {
+      int precision = globalparametersJpaRepository
+          .getPrecisionForCurrency(transactions.get(0).getCashaccount().getCurrency());
+      for (int i = cashaccountTransactionPositions.length - 1; i >= 0; i--) {
+        cashaccountTransactionPositions[i] = new CashaccountTransactionPosition(transactions.get(i),
+            (i == cashaccountTransactionPositions.length - 1) ? transactions.get(i).getCashaccountAmount()
+                : DataHelper.round(
+                    cashaccountTransactionPositions[i + 1].balance + transactions.get(i).getCashaccountAmount(),
+                    precision));
+      }
     }
     return cashaccountTransactionPositions;
   }

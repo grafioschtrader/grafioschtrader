@@ -80,10 +80,10 @@ export class TenantDividendsExtendedComponent extends TableConfigBase implements
   constructor(changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
-    this.idTenant = this.globalparameterService.getIdTenant();
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    this.idTenant = this.gps.getIdTenant();
   }
 
 

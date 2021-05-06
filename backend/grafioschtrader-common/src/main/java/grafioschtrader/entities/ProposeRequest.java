@@ -49,11 +49,11 @@ public abstract class ProposeRequest extends Auditable {
   protected byte dataChangeState;
 
   @Column(name = "note_request")
-  @Size(max = GlobalConstants.NOTE_SIZE)
+  @Size(max = GlobalConstants.FID_MAX_LETTERS)
   protected String noteRequest;
 
   @Column(name = "note_accept_reject")
-  @Size(max = GlobalConstants.NOTE_SIZE)
+  @Size(max = GlobalConstants.FID_MAX_LETTERS)
   protected String noteAcceptReject;
 
   @JoinColumn(name = "id_propose_request")

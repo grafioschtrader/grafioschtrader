@@ -24,12 +24,23 @@ public class GlobalConstants {
   /**
    * Normal precision for decimal numbers
    */
-  public static final int STANDARD_PRECISION = 2;
-
+  public static final int FID_STANDARD_FRACTION_DIGITS = 2;
+  public static final int FID_STANDARD_INTEGER_DIGITS = 9;
+  
+  public static final int FID_SMALL_INTEGER_LIMIT = 6;
+   
   /**
    * Number maybe rounded to this precision
    */
-  public static final int MAX_PRECISION = 8;
+  public static final int FID_MAX_FRACTION_DIGITS = 8;
+  public static final int FID_MAX_INTEGER_DIGITS = 11; 
+  
+  public static final int FID_MAX_DIGITS = 16;
+  /**
+   * The standard note text size
+   */
+  public static final int FID_MAX_LETTERS = 1000;
+  
 
   public static final String SHORT_STANDARD_DATE_FORMAT = "yyyyMMdd";
   public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
@@ -44,10 +55,7 @@ public class GlobalConstants {
    */
   public static final int SUSPEND_IP_ADDRESS_TIME = 60 * 60 * 24 * 1000;
 
-  /**
-   * The standard note text size
-   */
-  public static final int NOTE_SIZE = 1000;
+ 
   /**
    * Maximum of weeks in the period performance report
    */

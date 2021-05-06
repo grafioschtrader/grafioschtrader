@@ -33,14 +33,14 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
   @Input() callParam: CallParam;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               portfolioService: PortfolioService) {
-    super(HelpIds.HELP_PROTFOLIO, 'PORTFOLIO', translateService, globalparameterService, messageToastService, portfolioService);
+    super(HelpIds.HELP_PROTFOLIO, 'PORTFOLIO', translateService, gps, messageToastService, portfolioService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
 
     this.config = [
@@ -52,7 +52,7 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
   }
 
   protected initialize(): void {
-    this.globalparameterService.getCurrencies().subscribe(data => {
+    this.gps.getCurrencies().subscribe(data => {
         this.configObject.currency.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('key',
           'value', data, false);
         this.form.setDefaultValuesAndEnableSubmit();

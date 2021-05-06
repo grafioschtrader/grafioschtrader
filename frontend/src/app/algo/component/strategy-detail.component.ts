@@ -30,8 +30,8 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
 
   dynamicModel: any = {};
 
-  constructor(translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+  constructor(translateService: TranslateService, gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnChanges() {

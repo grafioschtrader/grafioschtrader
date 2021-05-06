@@ -23,7 +23,7 @@ export class LoginService extends BaseAuthService<User> {
 
   constructor(private router: Router,
               public translateService: TranslateService,
-              private globalparameterService: GlobalparameterService,
+              private gps: GlobalparameterService,
               httpClient: HttpClient, messageToastService: MessageToastService) {
     super(httpClient, messageToastService);
   }
@@ -48,7 +48,7 @@ export class LoginService extends BaseAuthService<User> {
 
 
   aftersuccessfully(token: string, configurationWithLogin: ConfigurationWithLogin): void {
-    this.globalparameterService.clearValues();
+    this.gps.clearValues();
     const number = 1000.45;
 
     const responseClaim = this.parseToken(token);
@@ -67,6 +67,11 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.USE_WEBSOCKET, JSON.stringify(configurationWithLogin.useWebsocket));
     sessionStorage.setItem(GlobalSessionNames.USE_ALGO, JSON.stringify(configurationWithLogin.useAlgo));
     sessionStorage.setItem(GlobalSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.crypotcurrencies));
+
+    sessionStorage.setItem(GlobalSessionNames.STANDARD_PRECISION, JSON.stringify(configurationWithLogin.standardPrecision));
+    AppSettings.resetInterFractionLimit();
+
+    sessionStorage.setItem(GlobalSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
     const entityNameWithKeyNameMap = configurationWithLogin.entityNameWithKeyNameList.reduce(
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));
@@ -74,7 +79,7 @@ export class LoginService extends BaseAuthService<User> {
 
   logout(): void {
     sessionStorage.clear();
-    this.globalparameterService.clearValues();
+    this.gps.clearValues();
   }
 
   logoutWithLoginView() {

@@ -64,7 +64,7 @@ public class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
   }
 
   public double getQualityPercentage() {
-    return DataHelper.round2(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
+    return DataHelper.roundStandard(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
   }
 
 }

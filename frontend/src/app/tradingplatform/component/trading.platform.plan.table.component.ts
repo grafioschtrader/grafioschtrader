@@ -63,10 +63,10 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('TradingPlatformPlan', tradingPlatformPlanService, confirmationService, messageToastService,
-      activePanelService, dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService,
+      activePanelService, dialogService, changeDetectionStrategy, filterService, translateService, gps,
       usersettingsService);
 
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.en', 'PLATFORM_PLAN_NAME', true, false,

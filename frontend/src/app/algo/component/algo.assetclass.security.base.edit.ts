@@ -26,10 +26,10 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
 
   constructor(i18nRecord: string,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               serviceEntityUpdate: ServiceEntityUpdate<T>) {
-    super(HelpIds.HELP_ALGO, i18nRecord, translateService, globalparameterService,
+    super(HelpIds.HELP_ALGO, i18nRecord, translateService, gps,
       messageToastService, serviceEntityUpdate);
   }
 

@@ -128,15 +128,15 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
               private viewSizeChangedService: ViewSizeChangedService,
               private securityService: SecurityService,
               private currencypairService: CurrencypairService,
-              private globalparameterService: GlobalparameterService,
+              private gps: GlobalparameterService,
               private changeDetectionStrategy: ChangeDetectorRef,
               private historyquoteService: HistoryquoteService,
               private activatedRoute: ActivatedRoute,
               private translateService: TranslateService,
               private activePanelService: ActivePanelService) {
 
-    this.dateFormat = globalparameterService.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
-    this.language = Helper.CALENDAR_LANG[globalparameterService.getUserLang()];
+    this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
+    this.language = Helper.CALENDAR_LANG[gps.getUserLang()];
     this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();
   }
@@ -574,7 +574,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       // Not used yet
       this.yearRange = `${this.oldestDate.getFullYear()}:${this.youngestDate.getFullYear()}`;
     } else {
-      this.globalparameterService.getStartFeedDateAsTime().subscribe(time => {
+      this.gps.getStartFeedDateAsTime().subscribe(time => {
           this.yearRange = `${new Date(time).getFullYear()}:${new Date().getFullYear()}`;
         }
       );
@@ -635,7 +635,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private plot(element: any, traces: any, layout: any, userUserInputDate: boolean): void {
-    const config = PlotlyLocales.setPlotyLocales(this.plotlyService.getPlotly(), this.globalparameterService);
+    const config = PlotlyLocales.setPlotyLocales(this.plotlyService.getPlotly(), this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.displaylogo = false;
     this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);

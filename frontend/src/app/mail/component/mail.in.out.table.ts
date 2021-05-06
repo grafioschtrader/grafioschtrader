@@ -30,10 +30,10 @@ export abstract class MailInOutTable<T extends MailInOut> extends TableCrudSuppo
                         changeDetectionStrategy: ChangeDetectorRef,
                         filterService: FilterService,
                         translateService: TranslateService,
-                        globalparameterService: GlobalparameterService,
+                        gps: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
     super(entityName, deleteService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService,
+      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
       [CrudMenuOptions.Allow_Delete]);
     this.multiSortMeta.push({field: sortField, order: 1});
   }

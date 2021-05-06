@@ -24,6 +24,7 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.types.ImportKnownOtherFlags;
@@ -620,7 +621,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
           cashaccountAmount = cashaccountAmount != null ? Math.abs(cashaccountAmount) : null;
         }
         calcCashaccountAmount /= (currencyExRate != null ? this.currencyExRate : 1.0);
-        calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, 2);
+        calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
       }
       break;
     default:
@@ -644,7 +645,8 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     if ((importTransactionPosFailedList == null || importTransactionPosFailedList.isEmpty())
         && cashaccountAmount != null) {
       calcCashaccountAmount();
-      diffCashaccountAmount = calcCashaccountAmount - DataHelper.round(cashaccountAmount, 2);
+      diffCashaccountAmount = calcCashaccountAmount
+          - DataHelper.round(cashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
     }
   }
 

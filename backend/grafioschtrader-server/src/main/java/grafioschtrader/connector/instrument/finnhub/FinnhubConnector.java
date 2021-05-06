@@ -119,7 +119,7 @@ public class FinnhubConnector extends BaseFeedConnector {
     security.setSHigh(quote.h);
     security.setSPrevClose(quote.pc);
     security.setSTimestamp(new Date(quote.t * 1000));
-    security.setSChangePercentage(DataHelper.round2((quote.c - quote.pc) / quote.pc * 100));
+    security.setSChangePercentage(DataHelper.roundStandard((quote.c - quote.pc) / quote.pc * 100));
   }
 
   @Override

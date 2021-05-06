@@ -34,11 +34,11 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   abstract onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void;
 
   constructor(public translateService: TranslateService,
-              protected globalparameterService: GlobalparameterService,
+              protected gps: GlobalparameterService,
               protected activePanelService: ActivePanelService,
               protected  markExistingColors: string[]) {
 
-    const language: string = globalparameterService.getUserLang();
+    const language: string = gps.getUserLang();
 
     this.locale = {
       dayNamesMin: Helper.CALENDAR_LANG[language].dayNamesMin,

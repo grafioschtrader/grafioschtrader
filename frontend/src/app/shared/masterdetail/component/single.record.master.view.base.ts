@@ -56,7 +56,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
    * Shows a singe row of a array. If the value of the main field changes then others shown properties are
    * ajusted to this change.
    *
-   * @param globalparameterService Global parameter service.
+   * @param gps Global parameter service.
    * @param helpId Identification for the help service
    * @param mainFieldId if the value of this input field changes, then other properties in the view will be changed as well
    * @param entityName Name of the entity, it is used for translation
@@ -66,7 +66,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
    * @param activePanelService Service for active panel
    * @param translateService Service for translation
    */
-  constructor(private globalparameterService: GlobalparameterService,
+  constructor(private gps: GlobalparameterService,
               private helpId: HelpIds,
               private mainFieldId: string,
               private entityName: string,
@@ -107,7 +107,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
     });
     menuItems.push({
       label: 'DELETE_RECORD|' + entityName, disabled: !this.selectedEntity || !this.childEntityList
-        || this.childEntityList.length > 0 || !AuditHelper.hasRightsForEditingOrDeleteEntity(this.globalparameterService,
+        || this.childEntityList.length > 0 || !AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps,
           this.selectedEntity),
       command: (event) => this.handleDeleteEntity(this.selectedEntity)
     });

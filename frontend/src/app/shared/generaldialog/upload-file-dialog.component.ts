@@ -43,12 +43,12 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
   constructor(public translateService: TranslateService,
               private messageToastService: MessageToastService,
               private userSettingsService: UserSettingsService,
-              globalparameterService: GlobalparameterService) {
-    super(null, globalparameterService);
+              gps: GlobalparameterService) {
+    super(null, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
 
     this.helpId = this.fileUploadParam.helpId;

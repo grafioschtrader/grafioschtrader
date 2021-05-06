@@ -29,10 +29,10 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
   public void calcSingleSecurityTransaction(Transaction transaction,
       Map<Security, SecurityPositionSummary> summarySecurityMap, Map<Integer, List<Securitysplit>> securitysplitMap,
       boolean excludeDivTaxcost, DateTransactionCurrencypairMap dateCurrencyMap,
-      NegativeIdNumberCreater negativeIdNumberCreater) {
+      NegativeIdNumberCreater negativeIdNumberCreater, Map<String, Integer> currencyPrecisionMap) {
 
     SecurityPositionSummary securityPositionSummary = getSecurityPositionSummary(transaction, summarySecurityMap,
-        dateCurrencyMap);
+        dateCurrencyMap, currencyPrecisionMap);
 
     calcTransactionPosition(transaction, securityPositionSummary, excludeDivTaxcost, securitysplitMap, true,
         dateCurrencyMap);

@@ -31,8 +31,8 @@ export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase
 
   titles: string[] = new Array(3);
 
-  constructor(translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+  constructor(translateService: TranslateService, gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
 
@@ -55,8 +55,8 @@ export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.periodHoldingsAndDiff && this.periodHoldingsAndDiff.length > 0) {
-      this.titles[0] = AppHelper.getDateByFormat(this.globalparameterService, this.periodHoldingsAndDiff[0].date);
-      this.titles[1] = AppHelper.getDateByFormat(this.globalparameterService, this.periodHoldingsAndDiff[1].date);
+      this.titles[0] = AppHelper.getDateByFormat(this.gps, this.periodHoldingsAndDiff[0].date);
+      this.titles[1] = AppHelper.getDateByFormat(this.gps, this.periodHoldingsAndDiff[1].date);
     }
   }
 }

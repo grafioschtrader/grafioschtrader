@@ -2,6 +2,7 @@ package grafioschtrader.reportviews.transaction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
@@ -17,8 +18,8 @@ public class SecurityTransactionSummary {
   public List<SecurityTransactionPosition> transactionPositionList = new ArrayList<>();
   public SecurityPositionSummary securityPositionSummary;
 
-  public SecurityTransactionSummary(Security security, String mainCurrency) {
-    securityPositionSummary = new SecurityPositionSummary(mainCurrency, security);
+  public SecurityTransactionSummary(Security security, String mainCurrency, Map<String, Integer> currencyPrecisionMap) {
+    securityPositionSummary = new SecurityPositionSummary(mainCurrency, security, currencyPrecisionMap);
     securityPositionSummary.securitycurrency = security;
   }
 

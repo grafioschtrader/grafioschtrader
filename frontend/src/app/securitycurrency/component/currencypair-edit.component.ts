@@ -21,6 +21,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SecurityDerived, SecurityEditSupport} from './security.edit.support';
+import {AppSettings} from '../../shared/app.settings';
 
 
 /**
@@ -55,12 +56,12 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
               private assetclassService: AssetclassService,
               private currencypairService: CurrencypairService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
     this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(
       SecurityDerived.Currencypair);
@@ -70,7 +71,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
           {fieldsetName: 'CURRENCY_BASE_DATA'}),
         DynamicFieldHelper.createFieldSelectString('toCurrency', 'CURRENCY_TO', true,
           {fieldsetName: 'CURRENCY_BASE_DATA'}),
-        DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 1000, false,
+        DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
           {fieldsetName: 'CURRENCY_BASE_DATA'}),
         DynamicFieldHelper.createFieldInputStringHeqF('stockexchangeLink',  254, false,
           {fieldsetName: 'CURRENCY_BASE_DATA'}),
@@ -110,12 +111,12 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_CURRENCYPAIR);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_CURRENCYPAIR);
   }
 
   protected loadHelperData(): void {
     this.hideVisibleFeedConnectorsFields(this.connectorPriceFieldConfig, false, FeedIdentifier.CURRENCY);
-    const observableCurrencies: Observable<ValueKeyHtmlSelectOptions[]> = this.globalparameterService.getCurrencies();
+    const observableCurrencies: Observable<ValueKeyHtmlSelectOptions[]> = this.gps.getCurrencies();
     const observalbeFeedConnectors: Observable<IFeedConnector[]> = this.currencypairService.getFeedConnectors();
     const observalbeAllCurrencypairs: Observable<Currencypair[]> = this.currencypairService.getAllCurrencypairs();
     combineLatest([observableCurrencies, observalbeFeedConnectors, observalbeAllCurrencypairs])

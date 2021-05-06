@@ -37,11 +37,11 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
       activatedRoute, router, chartDataService, changeDetectionStrategy, filterService, translateService,
-      globalparameterService, usersettingsService);
+      gps, usersettingsService);
     this.securityaccountGroupBase = new SecurityaccountAssetclassCategorytpeGroup(translateService, this);
     this.createColumns();
   }

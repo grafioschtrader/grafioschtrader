@@ -11,6 +11,7 @@ import {Securityaccount} from '../../entities/securityaccount';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 
 @Component({
@@ -30,20 +31,20 @@ export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEnt
   @Input() callParam: CallParam;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               importTransactionHeadService: ImportTransactionHeadService) {
-    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'IMPORT_SET', translateService, globalparameterService,
+    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'IMPORT_SET', translateService, gps,
       messageToastService, importTransactionHeadService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'IMPORT_SET_NAME', 40, true),
-      DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', 1000, false),
+      DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

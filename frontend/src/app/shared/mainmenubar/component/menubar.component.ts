@@ -40,7 +40,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
               private loginService: LoginService,
               private viewSizeChangedService: ViewSizeChangedService,
               private location: Location,
-              private globalparameterService: GlobalparameterService,
+              private gps: GlobalparameterService,
               private tenantService: TenantService,
               private confirmationService: ConfirmationService) {
     this.activePanelService.topMenuItems = this.menuItems;
@@ -112,10 +112,10 @@ export class MenubarComponent implements OnInit, OnDestroy {
     if (this.activePanelService.activatedPanel) {
       const helpIds: HelpIds = this.activePanelService.activatedPanel.getHelpContextId();
       if (helpIds) {
-        BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), helpIds);
+        BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), helpIds);
       } else {
         // Show first steps
-        BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_INTRO);
+        BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_INTRO);
       }
     }
   }

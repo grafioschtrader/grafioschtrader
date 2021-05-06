@@ -36,14 +36,14 @@ export class SelectOptionsHelper {
     });
   }
 
-  public static assetclassCreateValueKeyHtmlSelectOptions(globalparameterService: GlobalparameterService,
+  public static assetclassCreateValueKeyHtmlSelectOptions(gps: GlobalparameterService,
                                                           translateService: TranslateService,
                                                           assetClasses: Assetclass[]): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
     assetClasses.forEach(assetclass => {
       // const observableTranslateCategoryType = translateService.get(<string>assetclass.categoryType);
       // const observableTranslateSpecialInvestment = translateService.get(<string>assetclass.specialInvestmentInstrument);
-      this.translateAssetclass(translateService, globalparameterService.getUserLang(), assetclass, valueKeyHtmlSelectOptions);
+      this.translateAssetclass(translateService, gps.getUserLang(), assetclass, valueKeyHtmlSelectOptions);
     });
     return valueKeyHtmlSelectOptions;
   }

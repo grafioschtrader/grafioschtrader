@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
@@ -34,8 +35,6 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    * units after transaction
    */
   public double units;
-
-  public double adjustedCostBase;
 
   public double splitFactorFromBaseTransaction = 1.0;
 
@@ -88,6 +87,9 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public double openUnitsTimeValuePerPoint;
 
   @JsonIgnore
+  public double adjustedCostBase;
+  
+  @JsonIgnore
   public double adjustedCostBaseMC;
 
   @JsonIgnore
@@ -132,17 +134,76 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public Double transactionCurrencyGainLossMC;
 
-  public SecurityPositionSummary(String mainCurrency) {
+  private Map<String, Integer> currencyPrecisionMap;
+
+  @JsonIgnore
+  public int precision;
+  @JsonIgnore
+  public int precisionMC;
+
+  public SecurityPositionSummary(String mainCurrency, int precisionMC) {
     this.mainCurrency = mainCurrency;
+    this.precisionMC = precisionMC;
   }
 
   public double getUnits() {
     return DataHelper.round(units);
   }
 
-  public SecurityPositionSummary(String mainCurrency, Security security) {
-    this(mainCurrency);
+  public SecurityPositionSummary(String mainCurrency, Security security, Map<String, Integer> currencyPrecisionMap) {
+    this(mainCurrency, currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
     this.securitycurrency = security;
+    this.currencyPrecisionMap = currencyPrecisionMap;
+    this.precision = currencyPrecisionMap.getOrDefault(security.getCurrency(),
+        GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+  }
+
+  public double getAccountValueSecurity() {
+    return DataHelper.round(accountValueSecurity, precision);
+  }
+
+  public double getAccountValueSecurityMC() {
+    return DataHelper.round(accountValueSecurityMC, precisionMC);
+  }
+
+  public double getGainLossSecurityMC() {
+    return DataHelper.round(gainLossSecurityMC, precisionMC);
+  }
+
+  public void setGainLossSecurityMC(double gainLossSecurityMC) {
+    this.gainLossSecurityMC = gainLossSecurityMC;
+  }
+
+  public double getTransactionCost() {
+    return DataHelper.round(transactionCost, precision);
+  }
+
+  public double getTransactionCostMC() {
+    return DataHelper.round(transactionCostMC, precisionMC);
+  }
+
+  public double getTaxCost() {
+    return DataHelper.round(taxCost, precision);
+  }
+
+  public double getTaxCostMC() {
+    return DataHelper.round(taxCostMC, precisionMC);
+  }
+
+  public double getGainLossSecurity() {
+    return DataHelper.round(gainLossSecurity, precision);
+  }
+
+  public double getValueSecurity() {
+    return DataHelper.round(valueSecurity, precision);
+  }
+
+  public double getValueSecurityMC() {
+    return DataHelper.round(valueSecurityMC, precisionMC);
+  }
+
+  public Double getTransactionCurrencyGainLossMC() {
+    return transactionCurrencyGainLossMC;
   }
 
   public void resetForOpenMargin() {
@@ -151,8 +212,9 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     units = 0.0;
   }
 
-  public SecurityPositionSummary(String mainCurrency, Security security, Integer usedIdSecurityaccount) {
-    this(mainCurrency, security);
+  public SecurityPositionSummary(String mainCurrency, Security security, Map<String, Integer> currencyPrecisionMap,
+      Integer usedIdSecurityaccount) {
+    this(mainCurrency, security, currencyPrecisionMap);
     this.usedIdSecurityaccount = usedIdSecurityaccount;
   }
 
@@ -161,9 +223,9 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     if (this.securitycurrency.isMarginInstrument()) {
       calcGainLossByPriceForMargin(price);
     } else {
-      gainLossSecurity = DataHelper.round2(gainLossSecurity + valueSecurity - units * adjustedCostBase / units);
+      gainLossSecurity = DataHelper.roundStandard(gainLossSecurity + valueSecurity - units * adjustedCostBase / units);
     }
-    transactionGainLossPercentage = DataHelper.round2(gainLossSecurity * 100 / adjustedCostBase);
+    transactionGainLossPercentage = DataHelper.roundStandard(gainLossSecurity * 100 / adjustedCostBase);
   }
 
   private void calcGainLossByPriceForMargin(final Double price) {
@@ -175,8 +237,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
       }
     }
 
-    gainLossSecurity = DataHelper.round2(gainLossSecurity + openWinLose);
-    accountValueSecurity += DataHelper.round2(openWinLose);
+    gainLossSecurity = DataHelper.roundStandard(gainLossSecurity + openWinLose);
+    accountValueSecurity += DataHelper.roundStandard(openWinLose);
   }
 
   /**
@@ -206,8 +268,9 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
   @JsonIgnore
   public double getPositionGainLossPercentage() {
-    return securitycurrency.isMarginInstrument() ? this.gainLossSecurity / this.adjustedCostBase * 100
-        : transactionGainLossPercentage;
+    return DataHelper
+        .roundStandard(securitycurrency.isMarginInstrument() ? (this.gainLossSecurity / this.adjustedCostBase * 100)
+            : transactionGainLossPercentage);
   }
 
   public Security getSecurity() {

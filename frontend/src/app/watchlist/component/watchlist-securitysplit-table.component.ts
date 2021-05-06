@@ -24,9 +24,9 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               iconReg: SvgIconRegistryService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService, iconReg,
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps, iconReg,
       'idSecuritysplit', WatchlistSecuritysplitTableComponent.SPLIT_DATE, 'SPLIT');
 
     this.addColumnFeqH(DataType.DateNumeric, 'splitDate', true, false);

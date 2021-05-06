@@ -8,13 +8,13 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 
 export class StockexchangePrepareEdit extends BasePrepareEdit implements PrepareCallParam {
   constructor(private stockexchangeService: StockexchangeService,
-              private globalparameterService: GlobalparameterService) {
+              private gps: GlobalparameterService) {
     super();
   }
 
   prepareForEditEntity(entity: Stockexchange, entityMapping: EntityMapping): void {
     combineLatest([this.stockexchangeService.stockexchangeHasSecurity(entity.idStockexchange),
-      this.globalparameterService.getCountries()]).subscribe(data => {
+      this.gps.getCountries()]).subscribe(data => {
       entityMapping.callParam = new StockexchangeCallParam();
       entityMapping.callParam.stockexchange = new Stockexchange();
       Object.assign(entityMapping.callParam.stockexchange, entity);

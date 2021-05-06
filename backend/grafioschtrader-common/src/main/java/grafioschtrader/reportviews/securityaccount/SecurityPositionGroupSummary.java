@@ -2,6 +2,11 @@ package grafioschtrader.reportviews.securityaccount;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.common.DataHelper;
 
 /**
  * Base class for a group of securities. For example they may be grouped by
@@ -17,10 +22,16 @@ public abstract class SecurityPositionGroupSummary {
 
   public double groupValueSecurityShort;
   public double groupSecurityRiskMC;
-
+  
   public List<SecurityPositionSummary> securityPositionSummaryList = new ArrayList<>();
 
+  private int precision;
+  private int precisionMC;
+
+  
   public void addToGroupSummaryAndCalcGroupTotals(SecurityPositionSummary securityPositionSummary) {
+    precision = securityPositionSummary.precision;
+    precisionMC = securityPositionSummary.precisionMC;
     securityPositionSummaryList.add(securityPositionSummary);
     groupGainLossSecurityMC += securityPositionSummary.gainLossSecurityMC;
     groupAccountValueSecurityMC += securityPositionSummary.accountValueSecurityMC;
@@ -31,5 +42,23 @@ public abstract class SecurityPositionGroupSummary {
         * (securityPositionSummary.securitycurrency.isShortSecurity() ? -1 : 1);
 
   }
+
+  public double getGroupAccountValueSecurityMC() {
+    return DataHelper.round(groupAccountValueSecurityMC, precisionMC);
+  }
+
+  public double getGroupGainLossSecurityMC() {
+    return DataHelper.round(groupGainLossSecurityMC, precisionMC);
+  }
+
+  public double getGroupValueSecurityShort() {
+    return DataHelper.round(groupValueSecurityShort, precision);
+  }
+
+  public double getGroupSecurityRiskMC() {
+    return DataHelper.round(groupSecurityRiskMC, precisionMC);
+  }
+  
+  
 
 }

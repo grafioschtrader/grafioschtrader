@@ -37,15 +37,15 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, changeDetectionStrategy, filterService, translateService, globalparameterService,
+      activatedRoute, router, chartDataService, changeDetectionStrategy, filterService, translateService, gps,
       usersettingsService);
   }
 
   ngOnInit() {
-    this.idTenant = this.globalparameterService.getIdTenant();
+    this.idTenant = this.gps.getIdTenant();
     this.readData();
   }
 

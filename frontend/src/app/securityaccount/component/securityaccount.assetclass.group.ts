@@ -14,13 +14,13 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 export class SecurityaccountAssetclassGroup extends SecurityaccountGroupBaseDynamic<number> {
   private readonly language: string;
 
-  constructor(globalparameterService: GlobalparameterService,
+  constructor(gps: GlobalparameterService,
               translateService: TranslateService,
               datatableConfigBase: TableConfigBase) {
 
     super(translateService, datatableConfigBase, 'idassetclass',
       'security.assetClass', 'GROUP_BY_ASSETCLASS_COMBINATION');
-    this.language = globalparameterService.getUserLang();
+    this.language = gps.getUserLang();
   }
 
   public translateGroupValues(securityPositionGroupSummaries: SecurityPositionDynamicGroupSummary<number>[]) {

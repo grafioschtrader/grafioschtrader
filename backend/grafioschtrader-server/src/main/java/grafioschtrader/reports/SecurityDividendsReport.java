@@ -29,10 +29,10 @@ import grafioschtrader.reportviews.securitydividends.SecurityDividendsPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup;
 import grafioschtrader.reportviews.securitydividends.UnitsCounter;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
-import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.types.TransactionType;
 
 /**
@@ -62,7 +62,7 @@ public class SecurityDividendsReport {
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   private CurrencypairJpaRepository currencypairJpaRepository;
 
@@ -75,7 +75,8 @@ public class SecurityDividendsReport {
       final List<Integer> idsSecurityaccount, final List<Integer> idsCashaccount) {
 
     final Tenant tenant = tenantJpaRepository.getOne(idTenant);
-    securityDividendsGrandTotal = new SecurityDividendsGrandTotal(tenant.getCurrency());
+    securityDividendsGrandTotal = new SecurityDividendsGrandTotal(tenant.getCurrency(),
+        globalparametersJpaRepository.getCurrencyPrecision());
 
     final DateTransactionCurrencypairMap dateCurrencyMap = getHistoryquoteAndCurrencypairs(tenant);
     List<Transaction> transactions = getTransactions(tenant, idsSecurityaccount, idsCashaccount);

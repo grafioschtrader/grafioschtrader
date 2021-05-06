@@ -6,6 +6,7 @@ import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.po
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Shows the extended information to a single import import transaction record.
@@ -17,8 +18,8 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
 export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnInit {
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;
 
-  constructor(translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+  constructor(translateService: TranslateService, gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnInit(): void {
@@ -40,11 +41,11 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
     this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencySecurity', 'SECURITY_CURRENCY',
       {fieldsetName: 'IMPORT_VALUE'});
     this.addFieldProperty(DataType.NumericRaw, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyExRate', 'EXCHANGE_RATE',
-      {fieldsetName: 'IMPORT_VALUE', maxFractionDigits: 5});
+      {fieldsetName: 'IMPORT_VALUE', maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addFieldProperty(DataType.NumericRaw, ImportSettings.IMPORT_TRANSACTION_POS + 'units', 'QUANTITY',
       {fieldsetName: 'IMPORT_VALUE'});
     this.addFieldProperty(DataType.NumericRaw, ImportSettings.IMPORT_TRANSACTION_POS + 'quotation', 'QUOTATION_DIV',
-      {fieldsetName: 'IMPORT_VALUE', maxFractionDigits: 5});
+      {fieldsetName: 'IMPORT_VALUE', maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'accruedInterest', 'ACCRUED_INTEREST',
       {fieldsetName: 'IMPORT_VALUE'});
     this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'taxCost', 'TAX_COST',

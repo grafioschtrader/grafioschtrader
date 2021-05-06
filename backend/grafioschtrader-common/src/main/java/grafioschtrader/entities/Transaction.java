@@ -95,7 +95,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   private Double transactionCost;
 
   @Column(name = "note")
-  @Size(max = GlobalConstants.NOTE_SIZE)
+  @Size(max = GlobalConstants.FID_MAX_LETTERS)
   private String note;
 
   @Basic(optional = false)
@@ -568,7 +568,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return this.transactionTime.compareTo(transaction1.getTransactionTime());
   }
 
-  public void validateCashaccountAmount(Transaction openPositionMarginTransaction) {
+  public void validateCashaccountAmount(Transaction openPositionMarginTransaction, Integer currencyFraction) {
     double calcCashaccountAmount = 0;
     switch (getTransactionType()) {
     case ACCUMULATE:
@@ -584,8 +584,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     default:
       calcCashaccountAmount = cashaccountAmount;
     }
-    calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, 2);
-    double roundCashaccountAmount = DataHelper.round2(cashaccountAmount);
+    calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, currencyFraction);
+    double roundCashaccountAmount = DataHelper.round(cashaccountAmount, currencyFraction);
 
     if (roundCashaccountAmount == calcCashaccountAmount) {
       cashaccountAmount = roundCashaccountAmount;

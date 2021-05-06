@@ -33,8 +33,8 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
                         filterService: FilterService,
                         usersettingsService: UserSettingsService,
                         translateService: TranslateService,
-                        globalparameterService: GlobalparameterService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+                        gps: GlobalparameterService) {
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.multiSortMeta.push({field: dataSortKey, order: 1});
   }
 

@@ -2,6 +2,7 @@ package grafioschtrader.reportviews.securitydividends;
 
 import java.util.Map;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -41,14 +42,37 @@ public class SecurityDividendsPosition {
   public Double exchangeRateEndOfYear;
   public int countPaidTransactions;
 
-  public SecurityDividendsPosition(Integer idSecuritycurrency) {
+  private int precisionMC;
+  private Map<String, Integer> currencyPrecisionMap;
+
+  public SecurityDividendsPosition(Integer idSecuritycurrency, int precisionMC,
+      Map<String, Integer> currencyPrecisionMap) {
     this.idSecuritycurrency = idSecuritycurrency;
+    this.precisionMC = precisionMC;
+    this.currencyPrecisionMap = currencyPrecisionMap;
+  }
+
+  public double getTaxableAmount() {
+    return DataHelper.round(taxableAmount,
+        currencyPrecisionMap.getOrDefault(security.getCurrency(), GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
+  }
+
+  public double getTaxableAmountMC() {
+    return DataHelper.round(taxableAmountMC, precisionMC);
+  }
+
+  public double getRealReceivedDivInterestMC() {
+    return DataHelper.round(realReceivedDivInterestMC, precisionMC);
+  }
+
+  public Double getValueAtEndOfYearMC() {
+    return valueAtEndOfYearMC == null ? null : DataHelper.round(valueAtEndOfYearMC, precisionMC);
   }
 
   public void updateAccumulateReduce(Transaction transaction, SecurityDividendsYearGroup securityDividendsYearGroup,
       DateTransactionCurrencypairMap dateCurrencyMap) {
     if (transaction.getTransactionCost() != null && transaction.getTransactionCost() > 0.0) {
-      SecurityCostPosition securityCostPosition = new SecurityCostPosition();
+      SecurityCostPosition securityCostPosition = new SecurityCostPosition(precisionMC);
 
       transaction.calcCostTaxMaybeBasePrice(dateCurrencyMap.getMainCurrency(), securityCostPosition, dateCurrencyMap,
           false);

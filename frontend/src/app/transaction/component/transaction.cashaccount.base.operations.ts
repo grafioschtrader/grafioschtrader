@@ -12,6 +12,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Cash account operations that are shared between different input forms.
@@ -35,8 +36,8 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
 
   protected valueChangedOnValueCalcFieldsSub: Subscription;
 
-  constructor(translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+  constructor(translateService: TranslateService, gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   preInitialize(): void {
@@ -68,13 +69,15 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
   protected abstract initialize(): void;
 
   protected getTransactionCostFieldDefinition(): FieldConfig {
-    return DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost',  false,
-      6, 2, false, this.globalparameterService.getNumberCurrencyMask());
+    return DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
+      AppSettings.FID_SMALL_INTEGER_LIMIT, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+      this.gps.getNumberCurrencyMask());
   }
 
   protected getDebitAmountFieldDefinition(): FieldConfig {
-    return DynamicFieldHelper.createFieldCurrencyNumberHeqF('debitAmount', false, 11,
-      2, false, this.globalparameterService.getNumberCurrencyMask());
+    return DynamicFieldHelper.createFieldCurrencyNumberHeqF('debitAmount', false, AppSettings.FID_MAX_INTEGER_DIGITS,
+      AppSettings.FID_STANDARD_FRACTION_DIGITS, false, this.gps.getNumberCurrencyMask(),
+      {readonly: true});
   }
 
 

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Currencypair;
@@ -140,8 +141,9 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     cashaccountSum.fee += csct.getFee();
     return new HoldCashaccountBalance(tenant.getIdTenant(), csct.getIdPortfolio(), csct.getIdCashaccount(),
         csct.getFromDate(), cashaccountSum.withdrawlDeposit, cashaccountSum.interestCashaccount, cashaccountSum.fee,
-        cashaccountSum.accumulateReduce, cashaccountSum.dividend, DataHelper.round(cashaccountSum.cashBalance, 2),
-        idCurrencyTenant, idCurrencyPortfolio);
+        cashaccountSum.accumulateReduce, cashaccountSum.dividend,
+        DataHelper.round(cashaccountSum.cashBalance, GlobalConstants.FID_STANDARD_FRACTION_DIGITS), idCurrencyTenant,
+        idCurrencyPortfolio);
   }
 
   private Integer getCurrencypair(Map<FromToCurrency, Currencypair> currencypairFromToCurrencyMap, String fromCurrency,

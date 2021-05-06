@@ -37,7 +37,7 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
 
   constructor(public translateService: TranslateService,
               public mailSendboxService: MailSendboxService,
-              public globalparameterService: GlobalparameterService,
+              public gps: GlobalparameterService,
               private messageToastService: MessageToastService,
               private dialogService: DialogService,
               private dynamicDialogRef: DynamicDialogRef,
@@ -46,7 +46,7 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       3, this.helpLink.bind(this));
     this.mailSendParam = this.dynamicDialogConfig.data.mailSendParam;
     this.config = [
@@ -104,7 +104,7 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
   submit(value: { [name: string]: any }): void {
     const mailSendbox = new MailSendbox();
     this.form.cleanMaskAndTransferValuesToBusinessObject(mailSendbox, true);
-    mailSendbox.idUserFrom = this.globalparameterService.getIdUser();
+    mailSendbox.idUserFrom = this.gps.getIdUser();
     this.mailSendboxService.replyMessage(mailSendbox).subscribe((sendMailSendbox: MailSendbox) => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');
       this.dynamicDialogRef.close();
@@ -112,7 +112,7 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_USER);
   }
 
 }

@@ -15,7 +15,9 @@ import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
 
-
+/**
+ * Shows the login form
+ */
 @Component({
   template: `
     <div class="container">
@@ -56,7 +58,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
               private actuatorService: ActuatorService,
               public translateService: TranslateService,
               private dialogService: DialogService,
-              private globalparameterService: GlobalparameterService) {
+              private gps: GlobalparameterService) {
     super();
   }
 
@@ -92,7 +94,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
     this.loginService.login(value.email, value.password)
       .subscribe((response: Response) => {
         this.loginService.aftersuccessfully(response.headers.get('x-auth-token'), (response as any).body);
-        if (this.globalparameterService.getIdTenant()) {
+        if (this.gps.getIdTenant()) {
           // Navigate to the main view
           this.router.navigate([`/${AppSettings.MAINVIEW_KEY}`]);
         } else {
@@ -124,6 +126,8 @@ export interface ConfigurationWithLogin {
   useAlgo: boolean;
   entityNameWithKeyNameList: EntityNameWithKeyName[];
   crypotcurrencies: string[];
+  standardPrecision:  {[typename: string]: number};
+  currencyPrecision: {[curreny: string]: number};
 }
 
 export interface EntityNameWithKeyName {

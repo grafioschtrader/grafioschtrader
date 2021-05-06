@@ -14,8 +14,8 @@ export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRe
 
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;
 
-  constructor(translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+  constructor(translateService: TranslateService, gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnInit(): void {

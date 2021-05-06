@@ -7,8 +7,10 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,6 +46,24 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return entityManager;
   }
 
+  @Override
+  public Map<String, Integer> getCurrencyPrecision() {
+    Map<String, Integer> currencyPrecisionMap = new HashMap<>();   
+    String curPrecision = globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_CURRENCY_PRECISION)
+    .map(Globalparameters::getPropertyString).orElse(Globalparameters.DEFAULT_CURRENCY_PRECISION);
+    String[] curSinglePre = curPrecision.split(",");
+    
+    for(int i = 0; i < curSinglePre.length; i++ ) {
+      String[] pair = curSinglePre[i].split("=");
+      currencyPrecisionMap.put(pair[0], Integer.parseInt(pair[1]));
+    }
+    return currencyPrecisionMap;
+  }
+
+  public int getPrecisionForCurrency(String currency) {
+    return getCurrencyPrecision().getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+  }
+  
   @Override
   public List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys) {
     return TenantLimitsHelper.getMaxTenantLimitsByMsgKeys(globalparametersJpaRepository, msgKeys);

@@ -36,9 +36,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
                         protected filterService: FilterService,
                         protected usersettingsService: UserSettingsService,
                         translateService: TranslateService,
-                        globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
-    this.formLocale = globalparameterService.getLocale();
+                        gps: GlobalparameterService) {
+    super(translateService, gps);
+    this.formLocale = gps.getLocale();
   }
 
   get numberOfVisibleColumns(): number {
@@ -157,7 +157,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   public filterDate(event, columnConfig: ColumnConfig, table: Table): void {
     if (event) {
       if (columnConfig.dataType === DataType.DateNumeric) {
-        const dateString = moment(event).format(this.globalparameterService.getDateFormat());
+        const dateString = moment(event).format(this.gps.getDateFormat());
         table.filter(dateString, columnConfig.field + '$', 'equals');
       } else {
         const dateStringUS = moment(event).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);

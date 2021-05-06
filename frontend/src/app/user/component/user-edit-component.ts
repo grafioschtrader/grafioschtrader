@@ -34,14 +34,14 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
   @Input() callParam: User;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               userService: UserAdminService) {
-    super(HelpIds.HELP_USER, 'USER', translateService, globalparameterService, messageToastService, userService);
+    super(HelpIds.HELP_USER, 'USER', translateService, gps, messageToastService, userService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
 
     this.config = [
@@ -68,7 +68,7 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
     this.configObject.mostPrivilegedRole.valueKeyHtmlOptions = SelectOptionsHelper.translateArrayKeyEqualValue(this.translateService,
       [AppSettings.ROLE_LIMIT_EDIT, AppSettings.ROLE_USER, AppSettings.ROLE_ALL_EDIT, AppSettings.ROLE_ADMIN]);
     this.callParam != null && this.form.transferBusinessObjectToForm(this.callParam);
-    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
+    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
       (proposeChangeEntityWithEntity) ? proposeChangeEntityWithEntity.proposedEntity : this.callParam,
       this.form, this.configObject, proposeChangeEntityWithEntity);
   }

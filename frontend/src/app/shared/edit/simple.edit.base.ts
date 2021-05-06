@@ -25,7 +25,7 @@ export abstract class SimpleEditBase extends FormBase {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
   constructor(protected helpId: HelpIds,
-              public globalparameterService: GlobalparameterService) {
+              public gps: GlobalparameterService) {
     super();
   }
 
@@ -35,7 +35,7 @@ export abstract class SimpleEditBase extends FormBase {
 
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), this.helpId);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), this.helpId);
   }
 
   onHide(event): void {

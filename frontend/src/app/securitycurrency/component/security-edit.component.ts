@@ -109,14 +109,14 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
               private securitysplitService: SecuritysplitService,
               private historyquotePeriodService: HistoryquotePeriodService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
 
   ngOnInit(): void {
-    this.securityEditSupport = new SecurityEditSupport(this.translateService, this.globalparameterService, this);
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, this);
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
 
     this.config = SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Security);
@@ -141,7 +141,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'fromDate', true),
       DynamicFieldHelper.createFieldCurrencyNumber('price', 'CLOSE', true, 6,
         10, false, {
-          ...this.globalparameterService.getNumberCurrencyMask(),
+          ...this.gps.getNumberCurrencyMask(),
           allowZero: false, allowNegative: false
         }),
       DynamicFieldHelper.createSubmitButton('APPLY')
@@ -268,7 +268,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_SECURITY);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SECURITY);
   }
 
   protected loadHelperData(): void {
@@ -280,7 +280,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[] | Assetclass[] | IFeedConnector[]
       | Securitysplit[] | HistoryquotePeriod[]>[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
-    observables.push(this.globalparameterService.getCurrencies());
+    observables.push(this.gps.getCurrencies());
     observables.push(this.assetclassService.getAllAssetclass());
     observables.push(this.securityService.getFeedConnectors());
 

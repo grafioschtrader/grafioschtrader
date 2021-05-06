@@ -12,13 +12,13 @@ export class SecurityaccountAssetclassSubCategoryGroup extends SecurityaccountGr
 
   private readonly language: string;
 
-  constructor(globalparameterService: GlobalparameterService,
+  constructor(gps: GlobalparameterService,
               translateService: TranslateService,
               datatableConfigBase: TableConfigBase) {
 
     super(translateService, datatableConfigBase, 'subcategorynls', 'security.assetClass.subCategoryNLS.map.'
-      + globalparameterService.getUserLang(), 'GROUP_BY_SUB_CATEGORY');
-    this.language = globalparameterService.getUserLang();
+      + gps.getUserLang(), 'GROUP_BY_SUB_CATEGORY');
+    this.language = gps.getUserLang();
   }
 
   public getGroupValue(security: Security) {

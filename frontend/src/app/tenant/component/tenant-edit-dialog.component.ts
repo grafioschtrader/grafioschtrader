@@ -30,11 +30,11 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 export class TenantEditDialogComponent extends TenantEditComponent implements OnInit {
   @Input() onlyCurrency: boolean;
 
-  constructor(globalparameterService: GlobalparameterService,
+  constructor(gps: GlobalparameterService,
               messageToastService: MessageToastService,
               tenantService: TenantService,
               translateSercice: TranslateService) {
-    super(globalparameterService, messageToastService, tenantService, translateSercice, false, 6);
+    super(gps, messageToastService, tenantService, translateSercice, false, 6);
   }
 
   ngOnInit(): void {

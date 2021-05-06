@@ -75,9 +75,9 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
                         changeDetectionStrategy: ChangeDetectorRef,
                         filterService: FilterService,
                         translateService: TranslateService,
-                        globalparameterService: GlobalparameterService,
+                        gps: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
     this.untilDate = AppHelper.getUntilDateBySessionStorage();
 
@@ -274,7 +274,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.internalColumnConfigs.push(this.addColumn(DataType.Numeric, AppSettings.VALUE_SECURITY_MAIN_CURRENCY_FIELD,
       AppSettings.VALUE_SECURITY_ACCOUNT_HEADER,
       true, true, {
-        width: 75,
+        width: 100,
         columnGroupConfigs: [new ColumnGroupConfig('groupAccountValueSecurityMC'),
           new ColumnGroupConfig('grandAccountValueSecurityMC')]
       }));

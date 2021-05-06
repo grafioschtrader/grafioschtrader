@@ -69,12 +69,12 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.PRICE_FEED, AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
       dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
-      globalparameterService, usersettingsService, WatchlistTable.SINGLE);
+      gps, usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();
 
     this.addBaseColumns();
@@ -114,7 +114,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
   }
 
   protected getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
-    if (this.securityPositionList && AuditHelper.hasHigherPrivileges(this.globalparameterService)) {
+    if (this.securityPositionList && AuditHelper.hasHigherPrivileges(this.gps)) {
       const menuItems: MenuItem[] = [
         {
           label: 'REPAIR_HISTORY_LOAD',

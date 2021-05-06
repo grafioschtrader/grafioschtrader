@@ -30,9 +30,10 @@ public class SecurityPositionByCurrencyGrandSummaryReport extends SecurityPositi
 
   private final SecurityCashaccountGroupByCurrencyBaseReport securityCashaccountGroupByCurrencyBaseReport;
 
-  public SecurityPositionByCurrencyGrandSummaryReport(TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository) {
+  public SecurityPositionByCurrencyGrandSummaryReport(TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository,
+      Map<String, Integer> currencyPrecisionMap) {
     securityCashaccountGroupByCurrencyBaseReport = new SecurityCashaccountGroupByCurrencyBaseReport(
-        tradingDaysPlusJpaRepository);
+        tradingDaysPlusJpaRepository, currencyPrecisionMap);
   }
 
   /**
@@ -49,7 +50,8 @@ public class SecurityPositionByCurrencyGrandSummaryReport extends SecurityPositi
     final Map<String, SecurityPositionCurrenyGroupSummary> currencyTotalMap = securityCashaccountGroupByCurrencyBaseReport
         .createAndCalcSubtotalsPerCurrency(historyquoteJpaRepository, securityPositionSummaryList, dateCurrencyMap);
     final SecurityPositionGrandSummary securityPositionGrandSummary = new SecurityPositionGrandSummary(
-        dateCurrencyMap.getMainCurrency());
+        dateCurrencyMap.getMainCurrency(),
+        globalparametersJpaRepository.getPrecisionForCurrency(dateCurrencyMap.getMainCurrency()));
     for (final Map.Entry<String, SecurityPositionCurrenyGroupSummary> ospcs : currencyTotalMap.entrySet()) {
       securityPositionGrandSummary.calcGrandTotal(ospcs.getValue());
     }

@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.validation.annotation.Validated;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Transaction.CashTransaction;
@@ -80,7 +81,8 @@ public class CashAccountTransfer {
     return List.of(withdrawalTransaction, depositTransaction);
   }
 
-  public void validateWithdrawalCashaccountAmount() {
+  public void validateWithdrawalCashaccountAmount(Integer withdrawalCurrencyFraction) {
+    
     double transCost = withdrawalTransaction.getTransactionCost() != null ? withdrawalTransaction.getTransactionCost()
         : 0.0;
     double currencyExRate = withdrawalTransaction.getCurrencyExRate() != null
@@ -92,9 +94,9 @@ public class CashAccountTransfer {
         currencyExRate, withdrawalTransaction.getCashaccount().getCurrency(),
         depositTransaction.getCashaccount().getCurrency(), true) + transCost) * -1;
 
-    calcWithCashaccountAmount = DataHelper.round(calcWithCashaccountAmount, 2);
+    calcWithCashaccountAmount = DataHelper.round(calcWithCashaccountAmount, withdrawalCurrencyFraction);
 
-    double withCashaccountAmount = DataHelper.round(withdrawalTransaction.getCashaccountAmount(), 2);
+    double withCashaccountAmount = DataHelper.round(withdrawalTransaction.getCashaccountAmount(), withdrawalCurrencyFraction);
 
     if (withCashaccountAmount == calcWithCashaccountAmount) {
       withdrawalTransaction.setCashaccountAmount(calcWithCashaccountAmount);
