@@ -7,7 +7,7 @@ import grafioschtrader.GlobalConstants;
 public abstract class DeleteAndCreateMultiple {
   public Integer idSecuritycurrency;
 
-  @Size(max = GlobalConstants.NOTE_SIZE)
+  @Size(max = GlobalConstants.FID_MAX_LETTERS)
   public String noteRequest;
 
   public String getNoteRequest() {

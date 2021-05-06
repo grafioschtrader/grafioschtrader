@@ -33,15 +33,15 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
   constructor(private portfolioService: PortfolioService,
               private securityService: SecurityService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               algoSecurityService: AlgoSecurityService) {
-    super('ALGO_SECURITY', translateService, globalparameterService,
+    super('ALGO_SECURITY', translateService, gps,
       messageToastService, algoSecurityService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [

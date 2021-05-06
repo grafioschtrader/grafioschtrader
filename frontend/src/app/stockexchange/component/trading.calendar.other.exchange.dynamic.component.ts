@@ -29,7 +29,7 @@ export class TradingCalendarOtherExchangeDynamicComponent extends FormBase imple
   readonly NAME = 'name';
 
   constructor(public translateService: TranslateService,
-              public globalparameterService: GlobalparameterService,
+              public gps: GlobalparameterService,
               private messageToastService: MessageToastService,
               private tradingDaysMinusService: TradingDaysMinusService,
               private ref: DynamicDialogRef,
@@ -38,7 +38,7 @@ export class TradingCalendarOtherExchangeDynamicComponent extends FormBase imple
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF(this.YEAR_OR_FULL_PROP, 20, true, {readonly: true}),
@@ -66,6 +66,6 @@ export class TradingCalendarOtherExchangeDynamicComponent extends FormBase imple
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_BASEDATA_STOCKEXCHANGE);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_BASEDATA_STOCKEXCHANGE);
   }
 }

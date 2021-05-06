@@ -46,15 +46,15 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
   private valueKeyHtmlOptionsSpezInvest: ValueKeyHtmlSelectOptions[];
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               assetclassService: AssetclassService) {
-    super(HelpIds.HELP_BASEDATA_ASSETCLASS, 'ASSETCLASS', translateService, globalparameterService, messageToastService, assetclassService);
+    super(HelpIds.HELP_BASEDATA_ASSETCLASS, 'ASSETCLASS', translateService, gps, messageToastService, assetclassService);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
@@ -92,7 +92,7 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
         this.translateService, SpecialInvestmentInstruments);
       this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpezInvest;
       this.configObject.en.suggestions = this.callParam.subCategorySuggestionsEN;
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
+      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
         this.callParam.assetclass, this.form, this.configObject, this.proposeChangeEntityWithEntity);
       FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.categoryType,
         this.configObject.specialInvestmentInstrument]);

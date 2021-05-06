@@ -31,13 +31,13 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   constructor(private mainDialogService: MainDialogService,
               private messageToastService: MessageToastService,
               private loginService: LoginService,
-              private globalparameterService: GlobalparameterService,
+              private gps: GlobalparameterService,
               translateService: TranslateService) {
     super(translateService, true);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5);
 
     this.config = [

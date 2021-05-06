@@ -25,9 +25,10 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
- * Used for cash account where only one cash account is involved.
+ * Used for cash account transaction where only one cash account is involved.
  */
 @Component({
   selector: 'transaction-cashaccount-editsingle',
@@ -50,7 +51,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   @Input() visibleCashaccountTransactionSingleDialog: boolean;
   formConfig: FormConfig;
 
-  readonly minAmount = 0.01;
+  readonly minAmount = 0.00000001;
   cashaccountCurrency = ' ';
 
   private transactionTypeChangedSub: Subscription;
@@ -62,20 +63,20 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
               private transactionService: TransactionService,
               private messageToastService: MessageToastService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
 
     const calcGroupConfig: FieldConfig[] = [
       // Validator for amount is set dynamically
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', true, 10,
-        2, true, {
-          ...this.globalparameterService.getNumberCurrencyMask(),
+      DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', true,
+        AppSettings.FID_MAX_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, true, {
+          ...this.gps.getNumberCurrencyMask(),
           allowZero: false, allowNegative: true
         }),
       this.getTransactionCostFieldDefinition()
@@ -88,15 +89,12 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         {dataproperty: 'cashaccount.idSecuritycashAccount'}),
       DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', 'SECURITYACCOUNT', false,
         {invisible: true}),
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false, 9,
-        2, false, {
-          ...this.globalparameterService.getNumberCurrencyMask(),
-          allowNegative: false
-        }, {invisible: true}),
-
+      DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+        {...this.gps.getNumberCurrencyMask(), allowNegative: false}, {invisible: true}),
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
       this.getDebitAmountFieldDefinition(),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 1000, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -169,10 +167,18 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         this.portfolios, +data);
       this.prepareSecurityaccount(cp.portfolio);
       this.cashaccountCurrency = cp.cashaccount.currency;
-      this.configObject.cashaccountAmount.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.cashaccountCurrency);
-      this.configObject.debitAmount.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.cashaccountCurrency);
-      this.configObject.taxCost.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.cashaccountCurrency);
+      const precision = this.gps.getCurrencyPrecision(this.cashaccountCurrency);
+      this.adjustNumberInputFractions(this.configObject.cashaccountAmount, AppSettings.FID_MAX_INTEGER_DIGITS, precision);
+      this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INTEGER_DIGITS, precision);
+      this.adjustNumberInputFractions(this.configObject.transactionCost, AppSettings.FID_MAX_INTEGER_DIGITS, precision);
+      this.adjustNumberInputFractions(this.configObject.taxCost, AppSettings.FID_STANDARD_INTEGER_DIGITS, precision);
     });
+  }
+
+  private adjustNumberInputFractions(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
+    fieldConfig.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.cashaccountCurrency);
+    DynamicFieldHelper.adjustNumberFraction(fieldConfig, integerDigits,
+      precision);
   }
 
   valueChangedOnCalcFields(): void {
@@ -214,7 +220,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 
 

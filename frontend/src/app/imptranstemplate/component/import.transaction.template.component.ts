@@ -86,12 +86,12 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
   constructor(private activatedRoute: ActivatedRoute,
               private importTransactionPlatformService: ImportTransactionPlatformService,
               private importTransactionTemplateService: ImportTransactionTemplateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               translateService: TranslateService) {
-    super(globalparameterService, HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, ImportTransactionTemplateComponent.MAIN_FIELD,
+    super(gps, HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, ImportTransactionTemplateComponent.MAIN_FIELD,
       'IMPORTTRANSACTIONGROUP', importTransactionPlatformService,
       confirmationService, messageToastService, activePanelService, translateService);
 

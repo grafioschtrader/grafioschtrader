@@ -21,8 +21,8 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.String, 'isin', true, false);

@@ -64,47 +64,47 @@ public class AccountPositionGrandSummary {
   }
 
   public double getGrandCashBalance() {
-    return DataHelper.round2(grandCashBalance);
+    return DataHelper.roundStandard(grandCashBalance);
   }
 
   public double getGrandValueMC() {
-    return DataHelper.round2(grandValueMC);
+    return DataHelper.roundStandard(grandValueMC);
   }
 
   public double getGrandCashBalanceMC() {
-    return DataHelper.round2(grandCashBalanceMC);
+    return DataHelper.roundStandard(grandCashBalanceMC);
   }
 
   public double getGrandExternalCashTransferMC() {
-    return DataHelper.round2(grandExternalCashTransferMC);
+    return DataHelper.roundStandard(grandExternalCashTransferMC);
   }
 
   public double getGrandCashTransferMC() {
-    return DataHelper.round2(grandCashTransferMC);
+    return DataHelper.roundStandard(grandCashTransferMC);
   }
 
   public double getGrandValueSecuritiesMC() {
-    return DataHelper.round2(grandValueSecuritiesMC);
+    return DataHelper.roundStandard(grandValueSecuritiesMC);
   }
 
   public double getGrandGainLossSecuritiesMC() {
-    return DataHelper.round2(grandGainLossSecuritiesMC);
+    return DataHelper.roundStandard(grandGainLossSecuritiesMC);
   }
 
   public double getGrandGainLossCurrencyMC() {
-    return DataHelper.round2(grandGainLossCurrencyMC);
+    return DataHelper.roundStandard(grandGainLossCurrencyMC);
   }
 
   public double getGrandAccountFeesMC() {
-    return DataHelper.round2(grandAccountFeesMC);
+    return DataHelper.roundStandard(grandAccountFeesMC);
   }
 
   public double getGrandAccountInterestMC() {
-    return DataHelper.round2(grandAccountInterestMC);
+    return DataHelper.roundStandard(grandAccountInterestMC);
   }
 
   public double getGrandAccountInterestLastCloseMC() {
-    return DataHelper.round2(grandAccountInterestLastCloseMC);
+    return DataHelper.roundStandard(grandAccountInterestLastCloseMC);
   }
 
   @Override

@@ -38,16 +38,16 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               historyquoteService: HistoryquoteService) {
-    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, 'HISTORYQUOTES', translateService, globalparameterService,
+    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, 'HISTORYQUOTES', translateService, gps,
       messageToastService, historyquoteService);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
@@ -59,15 +59,15 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
           }
         }),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('volume', false,
-        10, 2, false, this.globalparameterService.getNumberCurrencyMask()),
+        10, 2, false, this.gps.getNumberCurrencyMask()),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('open', false,
-        6, 8, false, this.globalparameterService.getNumberCurrencyMask()),
+        6, 8, false, this.gps.getNumberCurrencyMask()),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('high', false,
-        6, 8, false, this.globalparameterService.getNumberCurrencyMask()),
+        6, 8, false, this.gps.getNumberCurrencyMask()),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('low', false,
-        6, 8, false, this.globalparameterService.getNumberCurrencyMask()),
+        6, 8, false, this.gps.getNumberCurrencyMask()),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('close', true,
-        6, 8, false, this.globalparameterService.getNumberCurrencyMask()),
+        6, 8, false, this.gps.getNumberCurrencyMask()),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
     this.configObject = Object.assign({}, ...this.config.map(d => ({[d.field]: d})));
@@ -82,7 +82,7 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
       this.form.setDefaultValuesAndEnableSubmit();
       FormHelper.disableEnableFieldConfigs(false, [this.configObject.date]);
     }
-    AuditHelper.configureFormFromAuditableRights(this.translateService, this.globalparameterService,
+    AuditHelper.configureFormFromAuditableRights(this.translateService, this.gps,
       this.callParam.securitycurrency, this.form, this.configObject, this.proposeChangeEntityWithEntity, false);
   }
 

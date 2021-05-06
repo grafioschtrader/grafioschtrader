@@ -74,11 +74,11 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('ImportTransactionTemplate', importTransactionTemplateService, confirmationService,
       messageToastService, activePanelService, dialogService, changeDetectionStrategy, filterService,
-      translateService, globalparameterService,
+      translateService, gps,
       usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
 
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false);

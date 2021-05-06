@@ -76,43 +76,43 @@ public class AccountPositionGroupSummary {
   }
 
   public double getGroupAccountFeesMC() {
-    return DataHelper.round2(groupAccountFeesMC);
+    return DataHelper.roundStandard(groupAccountFeesMC);
   }
 
   public double getGroupAccountInterestMC() {
-    return DataHelper.round2(groupAccountInterestMC);
+    return DataHelper.roundStandard(groupAccountInterestMC);
   }
 
   public double getGroupAccountInterestLastCloseMC() {
-    return DataHelper.round2(groupAccountInterestLastCloseMC);
+    return DataHelper.roundStandard(groupAccountInterestLastCloseMC);
   }
 
   public double getGroupExternalCashTransferMC() {
-    return DataHelper.round2(groupExternalCashTransferMC);
+    return DataHelper.roundStandard(groupExternalCashTransferMC);
   }
 
   public double getGroupCashTransferMC() {
-    return DataHelper.round2(groupCashTransferMC);
+    return DataHelper.roundStandard(groupCashTransferMC);
   }
 
   public double getGroupValueMC() {
-    return DataHelper.round2(groupValueMC);
+    return DataHelper.roundStandard(groupValueMC);
   }
 
   public double getGroupCashBalanceMC() {
-    return DataHelper.round2(groupCashBalanceMC);
+    return DataHelper.roundStandard(groupCashBalanceMC);
   }
 
   public double getGroupValueSecuritiesMC() {
-    return DataHelper.round2(groupValueSecuritiesMC);
+    return DataHelper.roundStandard(groupValueSecuritiesMC);
   }
 
   public double getGroupGainLossSecuritiesMC() {
-    return DataHelper.round2(groupGainLossSecuritiesMC);
+    return DataHelper.roundStandard(groupGainLossSecuritiesMC);
   }
 
   public double getGroupGainLossCurrencyMC() {
-    return DataHelper.round2(groupGainLossCurrencyMC);
+    return DataHelper.roundStandard(groupGainLossCurrencyMC);
   }
 
   @Override

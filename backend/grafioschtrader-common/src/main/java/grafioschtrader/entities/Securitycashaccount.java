@@ -54,7 +54,7 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   private String name;
 
   @Column(name = "note")
-  @Size(max = GlobalConstants.NOTE_SIZE)
+  @Size(max = GlobalConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
   private String note;
 

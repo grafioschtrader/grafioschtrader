@@ -6,7 +6,7 @@ import {TableTreetableTotalBase} from './table.treetable.total.base';
 
 export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
 
-  constructor(translateService: TranslateService, globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+  constructor(translateService: TranslateService, gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 }

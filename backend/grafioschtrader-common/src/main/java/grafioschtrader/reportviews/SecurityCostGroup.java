@@ -1,14 +1,22 @@
 package grafioschtrader.reportviews;
 
+import grafioschtrader.common.DataHelper;
+
 public class SecurityCostGroup {
   public double groupTotalTransactionCostMC;
-  public double groupTotalTaxCostMc;
+  public double groupTotalTaxCostMC;
   public double groupTotalAverageTransactionCostMC;
   public int groupCountPaidTransaction;
-
+  
+  protected int precisionMC;
+  
+  public SecurityCostGroup(int precisionMC) {
+    this.precisionMC = precisionMC;
+  }
+  
   public void sumPositionToGroupTotal(SecurityCostPosition securityCostPosition) {
     groupTotalTransactionCostMC += securityCostPosition.transactionCostMC;
-    groupTotalTaxCostMc += securityCostPosition.taxCostMC;
+    groupTotalTaxCostMC += securityCostPosition.taxCostMC;
   }
 
   public void calcAverages(int size) {
@@ -20,6 +28,23 @@ public class SecurityCostGroup {
   }
 
   public void caclulateGroupSummary() {
-  };
+  }
+
+  public double getGroupTotalTaxCostMC() {
+    return DataHelper.round(groupTotalTaxCostMC, precisionMC);
+  }
+
+  public double getGroupTotalTransactionCostMC() {
+    return DataHelper.round(groupTotalTransactionCostMC, precisionMC);
+  }
+
+  public double getGroupTotalTaxCostMc() {
+    return DataHelper.round(groupTotalTaxCostMC, precisionMC);
+  }
+
+  public double getGroupTotalAverageTransactionCostMC() {
+    return DataHelper.round(groupTotalAverageTransactionCostMC, precisionMC);
+  }
+    
 
 }

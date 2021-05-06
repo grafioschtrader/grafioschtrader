@@ -44,7 +44,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   // securitySearchCriteria: Security;
 
   constructor(protected multiplyAddClose: boolean,
-              protected globalparameterService: GlobalparameterService,
+              protected gps: GlobalparameterService,
               protected assetclassService: AssetclassService,
               protected stockexchangeSerice: StockexchangeService,
               public translateService: TranslateService) {
@@ -55,7 +55,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   abstract childLoadData(securitycurrencySearch: SecuritycurrencySearch): void;
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       3, this.helpLink.bind(this));
 
     this.config = [
@@ -119,7 +119,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
 
     this.childClearList();
     this.valueChangedOnForm();
-    combineLatest([this.globalparameterService.getCurrencies(),
+    combineLatest([this.gps.getCurrencies(),
       this.assetclassService.getSubcategoryForLanguage(), this.stockexchangeSerice.getAllStockexchanges(false)]).subscribe(data => {
       this.configObject.currency.valueKeyHtmlOptions = data[0];
       this.configObject.currency.valueKeyHtmlOptions.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
@@ -164,7 +164,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST_SEARCHDIALOG);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SEARCHDIALOG);
   }
 
   private isCurrency(): boolean {

@@ -25,10 +25,10 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
   constructor(helpId: HelpIds,
               private i18nRecord: string,
               public translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               public messageToastService: MessageToastService,
               public serviceEntityUpdate: ServiceEntityUpdate<T>) {
-    super(helpId, globalparameterService);
+    super(helpId, gps);
   }
 
   submit(value: { [name: string]: any }): void {

@@ -45,11 +45,11 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
-  constructor(globalparameterService: GlobalparameterService,
+  constructor(gps: GlobalparameterService,
               assetclassService: AssetclassService,
               stockexchangeService: StockexchangeService,
               translateService: TranslateService) {
-    super(false, globalparameterService, assetclassService, stockexchangeService, translateService);
+    super(false, gps, assetclassService, stockexchangeService, translateService);
   }
 
   protected initialize(): void {
@@ -75,7 +75,7 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_WATCHLIST);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST);
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {

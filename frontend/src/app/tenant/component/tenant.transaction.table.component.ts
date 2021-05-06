@@ -30,10 +30,10 @@ export class TenantTransactionTableComponent extends TransactionTable implements
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
-      messageToastService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
+      messageToastService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
   }
 
 

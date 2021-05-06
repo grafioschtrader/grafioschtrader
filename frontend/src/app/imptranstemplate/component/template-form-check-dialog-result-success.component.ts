@@ -5,7 +5,11 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {TranslateService} from '@ngx-translate/core';
 import {SingleRecordConfigBase} from '../../shared/datashowbase/single.record.config.base';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
+/**
+ * Shows the summary of a success full check template against a platform document as text
+ */
 @Component({
   selector: 'template-form-check-dialog-result-success',
   template: `
@@ -26,10 +30,9 @@ export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordC
   readonly VALID_SINCE = 'validSince';
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
   }
-
 
   ngOnInit(): void {
     this.addFieldPropertyFeqH(DataType.String, this.TEMPLATE_PURPOSE);
@@ -41,9 +44,10 @@ export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordC
     this.addFieldProperty(DataType.String, 'currencyAccount', 'ACCOUNT_CURRENCY');
     this.addFieldPropertyFeqH(DataType.String, 'isin');
     this.addFieldProperty(DataType.String, 'currencySecurity', 'SECURITY_CURRENCY');
-    this.addFieldProperty(DataType.NumericRaw, 'currencyExRate', 'EXCHANGE_RATE', {maxFractionDigits: 5});
+    this.addFieldProperty(DataType.NumericRaw, 'currencyExRate', 'EXCHANGE_RATE', {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addFieldProperty(DataType.NumericRaw, 'units', 'QUANTITY');
-    this.addFieldProperty(DataType.NumericRaw, 'quotation', 'QUOTATION_DIV', {maxFractionDigits: 5});
+    this.addFieldProperty(DataType.NumericRaw, 'quotation', 'QUOTATION_DIV',
+      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addFieldPropertyFeqH(DataType.Numeric, 'accruedInterest');
     this.addFieldPropertyFeqH(DataType.Numeric, 'taxCost');
     this.addFieldPropertyFeqH(DataType.Numeric, 'transactionCost');

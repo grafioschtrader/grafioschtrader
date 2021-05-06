@@ -6,8 +6,8 @@ import {AppHelper} from '../helper/app.helper';
 
 export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
   protected constructor(translateService: TranslateService,
-                        globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+                        gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   setSameFieldNameForGroupField(startIndex: number): void {
@@ -72,7 +72,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
     if (mapKey !== null) {
       data = data.get(mapKey);
     }
-    return AppHelper.getValueByPathWithField(this.globalparameterService, this.translateService, data, columnConfig,
+    return AppHelper.getValueByPathWithField(this.gps, this.translateService, data, columnConfig,
       field);
   }
 

@@ -33,6 +33,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityaccountOpenPositionUn
 import grafioschtrader.reportviews.transaction.SecurityTransactionPosition;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.IPositionCloseOnLatestPrice;
 import grafioschtrader.repository.PortfolioJpaRepository;
@@ -60,25 +61,28 @@ public class SecruityTransactionsReport {
   protected TransactionJpaRepository transactionJpaRepository;
 
   @Autowired
-  PortfolioJpaRepository portfolioJpaRepository;
+  private PortfolioJpaRepository portfolioJpaRepository;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   public enum SecruityTransactionsReportOptions {
     /**
@@ -308,7 +312,8 @@ public class SecruityTransactionsReport {
 
     final SecurityTransactionSummary securityTransactionSummary = new SecurityTransactionSummary(
         securityJpaRepository.findById(idSecuritycurrency).get(),
-        (dateCurrencyMap != null) ? dateCurrencyMap.getMainCurrency() : null);
+        (dateCurrencyMap != null) ? dateCurrencyMap.getMainCurrency() : null,
+        globalparametersJpaRepository.getCurrencyPrecision());
     final boolean excludeDivTaxcost = tenantJpaRepository.isExcludeDividendTaxcost();
 
     final Map<Integer, List<Securitysplit>> securitySplitMap = this.securitysplitJpaRepository

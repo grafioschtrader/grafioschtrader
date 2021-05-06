@@ -60,10 +60,10 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
               private tradingDaysPlusService: TradingDaysPlusService,
               private dialogService: DialogService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService) {
-    super(translateService, globalparameterService, [TradingCalendarStockexchangeComponent.USER_CREATED_COLOR,
+    super(translateService, gps, [TradingCalendarStockexchangeComponent.USER_CREATED_COLOR,
       TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR], activePanelService, messageToastService);
   }
 
@@ -207,6 +207,6 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   public hasRightsToModify(): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteEntity(this.globalparameterService, this.stockexchange);
+    return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, this.stockexchange);
   }
 }

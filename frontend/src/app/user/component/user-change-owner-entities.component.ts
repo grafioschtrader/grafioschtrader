@@ -42,12 +42,12 @@ export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements 
               private userAdminService: UserAdminService,
               private messageToastService: MessageToastService,
               private mainDialogService: MainDialogService,
-              globalparameterService: GlobalparameterService) {
-    super(HelpIds.HELP_USER, globalparameterService);
+              gps: GlobalparameterService) {
+    super(HelpIds.HELP_USER, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldInputString('fromIdUser', 'USER_CURRENT_OWNER', 30, true,

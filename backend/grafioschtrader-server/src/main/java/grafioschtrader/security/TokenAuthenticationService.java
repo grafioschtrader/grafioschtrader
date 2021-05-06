@@ -2,9 +2,12 @@ package grafioschtrader.security;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 
 @Service
 public class TokenAuthenticationService {
@@ -41,6 +45,9 @@ public class TokenAuthenticationService {
 
   @Autowired
   private ObjectMapper jacksonObjectMapper;
+  
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;   
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -98,8 +105,25 @@ public class TokenAuthenticationService {
 
   @Transactional
   public ConfigurationWithLogin getPublicEntitiesAsHtmlSelectOptions() {
-    ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(useWebsockt, useAlgo);
-
+    Map<String, Integer> standardPrecision = new HashMap<>();
+    ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(useWebsockt, useAlgo,
+        globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision);
+   
+    
+    
+    Field[] fields = GlobalConstants.class.getDeclaredFields();
+    for (Field f : fields) {
+        if (Modifier.isStatic(f.getModifiers()) && f.getName().startsWith("FID")) {
+          try {
+            standardPrecision.put(f.getName(), f.getInt(null));
+          } catch (IllegalArgumentException | IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        } 
+    }
+    
+    
     final Set<EntityType<?>> entityTypeList = entityManager.getMetamodel().getEntities();
     for (EntityType<?> entity : entityTypeList) {
       Class<?> clazz = entity.getBindableJavaType();
@@ -112,14 +136,21 @@ public class TokenAuthenticationService {
   }
 
   static class ConfigurationWithLogin {
-    public List<EntityNameWithKeyName> entityNameWithKeyNameList = new ArrayList<>();
-    public boolean useWebsocket;
-    public boolean useAlgo;
-    public List<String> crypotcurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
+    public final List<EntityNameWithKeyName> entityNameWithKeyNameList = new ArrayList<>();
+    public final boolean useWebsocket;
+    public final boolean useAlgo;
+    public static final List<String> crypotcurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
+    public final Map<String, Integer> currencyPrecision; 
+    public final Map<String, Integer> standardPrecision;
+    
+  
 
-    public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo) {
+    public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo, Map<String, Integer> currencyPrecision,
+        Map<String, Integer> standardPrecision) {
       this.useWebsocket = useWebsocket;
       this.useAlgo = useAlgo;
+      this.currencyPrecision = currencyPrecision;
+      this.standardPrecision = standardPrecision;
     }
   }
 
@@ -131,7 +162,8 @@ public class TokenAuthenticationService {
       this.entityName = entityName;
       this.keyName = keyName;
     }
-
   }
+  
+ 
 
 }

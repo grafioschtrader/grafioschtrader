@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DataHelper;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -480,8 +481,8 @@ public class WatchlistReport {
             securitysplitMap);
       }
       final double historyCloseAdjusted = histroyClose / splitFactorAfterBefore.fromToDateFactor;
-      securitycurrencyPosition.ytdChangePercentage = (securitycurrencyPosition.securitycurrency.getSLast()
-          - historyCloseAdjusted) / historyCloseAdjusted * 100;
+      securitycurrencyPosition.ytdChangePercentage = DataHelper.roundStandard((securitycurrencyPosition.securitycurrency.getSLast()
+          - historyCloseAdjusted) / historyCloseAdjusted * 100);
     }
   }
 
@@ -504,11 +505,11 @@ public class WatchlistReport {
 
       final int years = daysTimeFrame / 365;
       final double historyCloseAdjusted = histroyClose / splitFactorAfterBefore.fromToDateFactor;
-      securitycurrencyPosition.timeFrameChangePercentage = (securitycurrencyPosition.securitycurrency.getSLast()
-          - historyCloseAdjusted) / historyCloseAdjusted * 100;
+      securitycurrencyPosition.timeFrameChangePercentage = DataHelper.roundStandard(
+          (securitycurrencyPosition.securitycurrency.getSLast() - historyCloseAdjusted) / historyCloseAdjusted * 100);
       if (years >= 1) {
-        securitycurrencyPosition.timeFrameAnnualChangePercentage = (Math
-            .pow(securitycurrencyPosition.timeFrameChangePercentage / 100 + 1, 1.0 / years) - 1.0) * 100;
+        securitycurrencyPosition.timeFrameAnnualChangePercentage = DataHelper.roundStandard(
+            (Math.pow(securitycurrencyPosition.timeFrameChangePercentage / 100 + 1, 1.0 / years) - 1.0) * 100);
       }
     }
   }

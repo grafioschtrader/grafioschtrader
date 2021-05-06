@@ -206,10 +206,10 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
               dialogService: DialogService,
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               translateService: TranslateService) {
     super('Historyquote', historyquoteService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
+      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     HistoryquoteTableComponent.registerIcons(this.iconReg);
     this.addColumnFeqH(DataType.DateString, 'date', true, false,
@@ -323,7 +323,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
    * The creation of a history quote depends on the right on the security or currency
    */
   protected hasRightsForCreateEntity(histroyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.globalparameterService,
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
       this.nameSecuritycurrency.getSecuritycurrency());
   }
 
@@ -332,7 +332,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
    * The deletion of a history quote depends on the right on the security or currency
    */
   protected hasRightsForDeleteEntity(histroyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.globalparameterService,
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
       this.nameSecuritycurrency.getSecuritycurrency());
   }
 
@@ -393,7 +393,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
 
 
   getDateByFormat(date: string): string {
-    return AppHelper.getDateByFormat(this.globalparameterService, date);
+    return AppHelper.getDateByFormat(this.gps, date);
   }
 
 }

@@ -26,12 +26,12 @@ export class IndicatorEditComponent extends DynamicSimpleEditBase implements OnI
 
 
   constructor(public translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART, globalparameterService);
+              gps: GlobalparameterService) {
+    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
   }
 

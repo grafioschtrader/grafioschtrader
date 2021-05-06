@@ -17,10 +17,10 @@ export abstract class ShowRecordConfigBase {
   baseLocale: BaseLocale;
   fields: ColumnConfig[] = [];
 
-  protected constructor(protected translateService: TranslateService, protected globalparameterService: GlobalparameterService) {
+  protected constructor(protected translateService: TranslateService, protected gps: GlobalparameterService) {
     this.baseLocale = {
-      language: globalparameterService.getUserLang(),
-      dateFormat: globalparameterService.getCalendarTwoNumberDateFormat().toLocaleLowerCase()
+      language: gps.getUserLang(),
+      dateFormat: gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase()
     };
   }
 
@@ -122,7 +122,7 @@ export abstract class ShowRecordConfigBase {
   }
 
   getValueByPathWithField(dataobject: any, field: ColumnConfig, valueField: string) {
-    let value = AppHelper.getValueByPathWithField(this.globalparameterService, this.translateService, dataobject, field, valueField);
+    let value = AppHelper.getValueByPathWithField(this.gps, this.translateService, dataobject, field, valueField);
     if (field.fieldValueFN) {
       value = field.fieldValueFN(dataobject, field, value);
     }

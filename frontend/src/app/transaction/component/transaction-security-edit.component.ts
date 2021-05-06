@@ -51,6 +51,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {ClosedMarginPosition} from '../model/closed.margin.position';
 import {AbstractControl} from '@angular/forms';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Edit transaction for a investment product, also margin product. The transaction type (buy, dividend, sell,
@@ -130,8 +131,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
               private activeRoute: ActivatedRoute,
               private messageToastService: MessageToastService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnInit(): void {
@@ -143,37 +144,44 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         this.transactionCallParam.transaction.transactionTime);
     }
 
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     const calcGroupConfig: FieldConfig[] = [
         DynamicFieldHelper.createFieldCurrencyNumber('currencyExRate', 'EXCHANGE_RATE', true,
-          7, 8, false, this.globalparameterService.getNumberCurrencyMask()),
+          7, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+          this.gps.getNumberCurrencyMask()),
         this.createQuotationField(),
         DynamicFieldHelper.createFieldCurrencyNumber('quotation', 'QUOTATION_DIV', true,
-          7, 8, true, this.globalparameterService.getNumberCurrencyMask(),
+          AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
+          AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(),
           {userDefinedValue: 'S'}),
         DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
-          9, 2, false, this.globalparameterService.getNumberCurrencyMask(),
+          AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+          this.gps.getNumberCurrencyMask(),
           {userDefinedValue: 'S'}),
         DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
-          9, 2, false, this.globalparameterService.getNumberCurrencyMask(),
+          AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+          this.gps.getNumberCurrencyMask(),
           {userDefinedValue: 'S', usedLayoutColumns: 8}),
         /*
         DynamicFieldHelper.createFieldCurrencyNumber('transactionCostCA', null, false,
-          9, 2, false, this.globalparameterService.getNumberCurrencyMask(),
+          9, 2, false, this.gps.getNumberCurrencyMask(),
           {userDefinedValue: 'C', usedLayoutColumns: 4}),
   */
         // Used for accrued interest and daily finance cost for margin instrument
-        DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue1', 'ACCRUED_INTEREST', false, 9, 5, true,
-          this.globalparameterService.getNumberCurrencyMask(), {userDefinedValue: 'S'}),
-        DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue2', 'VALUE_PER_POINT', false, 6, 0, true,
-          this.globalparameterService.getNumberCurrencyMask()),
+        DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue1', 'ACCRUED_INTEREST',
+          false, AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_FRACTION_DIGITS - 3,
+          true,
+          this.gps.getNumberCurrencyMask(), {userDefinedValue: 'S'}),
+        DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue2', 'VALUE_PER_POINT',
+          false, AppSettings.FID_STANDARD_INTEGER_DIGITS - 3, 0, true,
+          this.gps.getNumberCurrencyMask()),
       ]
     ;
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectNumber('transactionType', 'TRANSACTION_TYPE', true),
+      DynamicFieldHelper.createFieldSelectNumberHeqF('transactionType', true),
       FormDefinitionHelper.getTransactionTime(true),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'exDate', false,
         {calendarConfig: {disabledDays: [0, 6]}}),
@@ -182,17 +190,17 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', 'SECURITYACCOUNT', true),
       DynamicFieldHelper.createFieldSelectNumber('idCashaccount', 'CASHACCOUNT', true,
         {dataproperty: 'cashaccount.idSecuritycashAccount'}),
-      DynamicFieldHelper.createFieldCheckbox('taxableInterest', 'TAXABLE_INTEREST', {defaultValue: true}),
+      DynamicFieldHelper.createFieldCheckboxHeqF('taxableInterest', {defaultValue: true}),
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('securityRisk', false,
-        9, 2, true, this.globalparameterService.getNumberCurrencyMask(),
+        9, 2, true, this.gps.getNumberCurrencyMask(),
         {readonly: true, userDefinedValue: 'C'}),
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', false,
-        9, 2, true, this.globalparameterService.getNumberCurrencyMask(),
+        9, 2, true, this.gps.getNumberCurrencyMask(),
         {readonly: true, userDefinedValue: 'C'}),
-      DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', 1000, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
 
@@ -205,11 +213,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private createQuotationField(): FieldConfig {
     if (this.transactionCallParam.transactionType === TransactionType.FINANCE_COST) {
       return DynamicFieldHelper.createFieldCurrencyNumber('units', 'NUMBER_OF_DAYS', true,
-        4, 0, false, this.globalparameterService.getNumberCurrencyMask());
+        4, 0, false, this.gps.getNumberCurrencyMask());
 
     } else {
       return DynamicFieldHelper.createFieldCurrencyNumber('units', 'QUANTITY', true,
-        9, 3, false, this.globalparameterService.getNumberCurrencyMask());
+        9, 3, false, this.gps.getNumberCurrencyMask());
     }
   }
 
@@ -611,7 +619,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(),
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(),
       this.isMarginInstrument ? HelpIds.HELP_TRANSACTION_MARGIN_BASED : HelpIds.HELP_TRANSACTION_CASH_BASED);
   }
 
@@ -690,7 +698,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         }
       } else {
         if (this.historyquoteCheck.hasChanged(security.idSecuritycurrency, transactionTime)) {
-          BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService, this.globalparameterService,
+          BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService, this.gps,
             transactionTime, security.idSecuritycurrency, true, this.flattenFieldConfigObject.quotation.formControl);
         }
       }

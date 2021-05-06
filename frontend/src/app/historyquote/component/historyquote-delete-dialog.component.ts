@@ -39,12 +39,12 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
   constructor(public translateService: TranslateService,
               private historyquoteService: HistoryquoteService,
               private messageToastService: MessageToastService,
-              globalparameterService: GlobalparameterService) {
-    super(HelpIds.HELP_HISTORYQUOTE_QUALITY, globalparameterService);
+              gps: GlobalparameterService) {
+    super(HelpIds.HELP_HISTORYQUOTE_QUALITY, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       7, this.helpLink.bind(this));
 
     this.fieldCreatTypes.forEach(fct => {

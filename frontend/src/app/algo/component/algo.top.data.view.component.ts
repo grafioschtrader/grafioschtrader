@@ -141,8 +141,8 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
               protected messageToastService: MessageToastService,
               private confirmationService: ConfirmationService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
 
     this.addColumn(DataType.String, 'name', 'NAME', true, false,
       {fieldValueFN: this.getReadableUniqueName.bind(this)});
@@ -180,7 +180,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   }
 
   getReadableUniqueName(dataobject: AlgoTreeName, field: ColumnConfig, valueField: any): string {
-    return dataobject.getNameByLanguage(this.globalparameterService.getUserLang());
+    return dataobject.getNameByLanguage(this.gps.getUserLang());
   }
 
   private translateDataForAssetclass(): void {

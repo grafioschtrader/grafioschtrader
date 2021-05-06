@@ -13,6 +13,7 @@ import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Edit a cash account the currency of a cash account can only be changed when there is no transaction for it.
@@ -37,14 +38,14 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
 
   constructor(private portfolioService: PortfolioService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               cashaccountSercice: CashaccountService) {
-    super(HelpIds.HELP_PORTFOLIO_ACCOUNT, 'ACCOUNT', translateService, globalparameterService, messageToastService, cashaccountSercice);
+    super(HelpIds.HELP_PORTFOLIO_ACCOUNT, 'ACCOUNT', translateService, gps, messageToastService, cashaccountSercice);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
@@ -52,7 +53,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
       DynamicFieldHelper.createFieldSelectString('currency', 'CURRENCY', true,
         {inputWidth: 5, disabled: this.callParam.optParam && this.callParam.optParam.hasTransaction}),
       DynamicFieldHelper.createFieldSelectNumber('connectIdSecurityaccount', 'SECURITYACCOUNT_ASSIGNMENT', false),
-      DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', 1000, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -61,7 +62,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
 
   protected initialize(): void {
     this.portfolio = <Portfolio>this.callParam.parentObject;
-    this.globalparameterService.getCurrencies().subscribe(data => {
+    this.gps.getCurrencies().subscribe(data => {
       this.configObject.currency.valueKeyHtmlOptions = data;
 
       this.prepareSecurityaccountOption();

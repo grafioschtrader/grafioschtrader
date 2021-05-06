@@ -18,11 +18,11 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               private iconReg: SvgIconRegistryService,
               public keyfield: string, sortField: string,
               public groupTitle: string) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.multiSortMeta.push({field: sortField, order: -1});
     DividendSplitSvgCreator.registerIcons(this.iconReg);
   }

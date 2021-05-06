@@ -24,9 +24,9 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               iconReg: SvgIconRegistryService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService, iconReg, 'idDividend',
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps, iconReg, 'idDividend',
       WatchlistDividendTableComponent.EX_DATE, 'DIVIDEND');
     this.addColumnFeqH(DataType.DateNumeric, WatchlistDividendTableComponent.EX_DATE, true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,

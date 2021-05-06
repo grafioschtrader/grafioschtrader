@@ -22,7 +22,8 @@ public abstract class SecurityBaseCalc {
   public abstract void calcSingleSecurityTransaction(final Transaction transaction,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
-      final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater);
+      final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
+      Map<String, Integer> currencyPrecisionMap);
 
   public abstract void createHypotheticalSellTransaction(final SecurityPositionSummary securityPositionSummary,
       final double lastPrice, final Map<Integer, List<Securitysplit>> securitysplitMap,
@@ -36,10 +37,10 @@ public abstract class SecurityBaseCalc {
 
   protected SecurityPositionSummary getSecurityPositionSummary(final Transaction transaction,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
-      final DateTransactionCurrencypairMap dateCurrencyMap) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, Map<String, Integer> currencyPrecisionMap) {
     return summarySecurityMap.computeIfAbsent(transaction.getSecurity(),
         key -> new SecurityPositionSummary((dateCurrencyMap != null) ? dateCurrencyMap.getMainCurrency() : null, key,
-            transaction.getIdSecurityaccount()));
+            currencyPrecisionMap, transaction.getIdSecurityaccount()));
   }
 
   protected CalcTransactionPos initTransactionCalcTransCost(final Transaction transaction,

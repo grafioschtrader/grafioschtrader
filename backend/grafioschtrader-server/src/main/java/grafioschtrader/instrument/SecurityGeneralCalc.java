@@ -27,10 +27,11 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   public void calcSingleSecurityTransaction(final Transaction transaction,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
-      final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
+      Map<String, Integer> currencyPrecisionMap) {
 
     SecurityPositionSummary securityPositionSummary = getSecurityPositionSummary(transaction, summarySecurityMap,
-        dateCurrencyMap);
+        dateCurrencyMap, currencyPrecisionMap);
     // TODO excludeDivTaxcost
     calcTransactionPosition(transaction, securityPositionSummary, excludeDivTaxcost, securitysplitMap, true,
         dateCurrencyMap, negativeIdNumberCreater);

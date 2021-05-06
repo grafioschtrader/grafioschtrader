@@ -11,6 +11,7 @@ import {LoginService} from '../../login/service/log-in.service';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {AppSettings} from '../../app.settings';
 
 /**
  * Apply for admin to release security breaches or the too often to many serve requests.
@@ -26,7 +27,7 @@ export class LogoutReleaseRequestDynamicComponent extends FormBase implements On
   readonly NOTE = 'note';
 
   constructor(public translateService: TranslateService,
-              public globalparameterService: GlobalparameterService,
+              public gps: GlobalparameterService,
               private messageToastService: MessageToastService,
               private loginService: LoginService,
               private dialogService: DialogService,
@@ -36,10 +37,10 @@ export class LogoutReleaseRequestDynamicComponent extends FormBase implements On
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
     this.config = [
-      DynamicFieldHelper.createFieldTextareaInputString(this.NOTE, 'REASON', 1000, true,
+      DynamicFieldHelper.createFieldTextareaInputString(this.NOTE, 'REASON', AppSettings.FID_MAX_LETTERS, true,
         {textareaRows: 10}),
       DynamicFieldHelper.createSubmitButton('SEND')
     ];
@@ -56,6 +57,6 @@ export class LogoutReleaseRequestDynamicComponent extends FormBase implements On
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_USER);
   }
 }

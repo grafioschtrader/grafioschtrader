@@ -37,7 +37,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private chartData: ChartData;
 
   constructor(private plotlyService: PlotlyService,
-              private globalparameterService: GlobalparameterService,
+              private gps: GlobalparameterService,
               private translateService: TranslateService,
               private chartDataService: ChartDataService,
               private viewSizeChangedService: ViewSizeChangedService,
@@ -48,7 +48,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
 
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);
-    const config = PlotlyLocales.setPlotyLocales(this.plotlyService.getPlotly(), this.globalparameterService);
+    const config = PlotlyLocales.setPlotyLocales(this.plotlyService.getPlotly(), this.gps);
     config.displaylogo = false;
 
     this.subscriptionChartDataChanged = this.chartDataService.chartDataChanged$.subscribe((chartData: ChartData) => {

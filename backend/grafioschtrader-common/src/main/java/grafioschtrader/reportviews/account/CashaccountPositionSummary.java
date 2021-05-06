@@ -1,5 +1,8 @@
 package grafioschtrader.reportviews.account;
 
+import java.util.Map;
+
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
@@ -15,8 +18,6 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionCurrenyGroupS
 public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<Currencypair> {
 
   public boolean hasTransaction;
-
-  public Cashaccount cashaccount;
 
   /**
    * Fees for managing depot and cash account without any transaction costs.
@@ -96,52 +97,80 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
    */
   public double valueMC;
 
+  private Cashaccount cashaccount;
+  private int precisionMC;
+  private int precision;
+
+  private Map<String, Integer> currencyPrecisionMap;
+
+  public CashaccountPositionSummary(Map<String, Integer> currencyPrecisionMap) {
+    this.currencyPrecisionMap = currencyPrecisionMap;
+  }
+
   public double getAccountFeesMC() {
-    return DataHelper.round2(accountFeesMC);
+    return DataHelper.round(accountFeesMC, precisionMC);
   }
 
   public double getAccountInterestMC() {
-    return DataHelper.round2(accountInterestMC);
+    return DataHelper.round(accountInterestMC, precisionMC);
   }
 
   public double getAccountInterestLastCloseMC() {
-    return DataHelper.round2(accountInterestLastCloseMC);
+    return DataHelper.round(accountInterestLastCloseMC, precisionMC);
   }
 
   public double getCashTransferMC() {
-    return DataHelper.round2(cashTransferMC);
+    return DataHelper.round(cashTransferMC, precisionMC);
   }
 
   public double getExternalCashTransferMC() {
-    return DataHelper.round2(externalCashTransferMC);
+    return DataHelper.round(externalCashTransferMC, precisionMC);
   }
 
   public double getGainLossCurrencyMC() {
-    return DataHelper.round2(gainLossCurrencyMC);
+    return DataHelper.round(gainLossCurrencyMC, precisionMC);
   }
 
   public double getCashBalanceMC() {
-    return DataHelper.round2(cashBalanceMC);
+    return DataHelper.round(cashBalanceMC, precisionMC);
   }
 
   public double getGainLossSecurities() {
-    return DataHelper.round2(gainLossSecurities);
+    return DataHelper.roundStandard(gainLossSecurities);
   }
 
   public double getValueSecurities() {
-    return DataHelper.round2(valueSecurities);
+    return DataHelper.roundStandard(valueSecurities);
   }
 
   public double getGainLossSecuritiesMC() {
-    return DataHelper.round2(gainLossSecuritiesMC);
+    return DataHelper.roundStandard(gainLossSecuritiesMC);
   }
 
   public double getValueSecuritiesMC() {
-    return DataHelper.round2(valueSecuritiesMC);
+    return DataHelper.round(valueSecuritiesMC, precisionMC);
   }
 
   public double getValueMC() {
-    return DataHelper.round2(valueMC);
+    return DataHelper.round(valueMC, precisionMC);
+  }
+  
+  
+  public double getCashBalance() {
+    return DataHelper.round(cashBalance, precision);
+  }
+
+  public Cashaccount getCashaccount() {
+    return cashaccount;
+  }
+
+  public void setCashaccount(Cashaccount cashaccount) {
+    this.precision = this.currencyPrecisionMap.getOrDefault(cashaccount.getCurrency(), 
+        GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+    this.precisionMC = this.currencyPrecisionMap.getOrDefault(cashaccount.getPortfolio().getCurrency(), 
+        GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+
+    this.cashaccount = cashaccount;
   }
 
   public void setSecuritiesValue(SecurityPositionCurrenyGroupSummary securityPositionCurrenyGroupSummary) {
@@ -158,7 +187,7 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
     // accountFeesLastCloseMC = accountFeesLastCloseMC * -1.0 *
     // currencyExchangeRate;
     accountInterestLastCloseMC = accountInterestLastCloseMC * currencyExchangeRate;
-    cashBalanceMC = DataHelper.round(cashBalance * currencyExchangeRate, 2);
+    cashBalanceMC = DataHelper.round(cashBalance * currencyExchangeRate, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
     this.valueMC = cashBalanceMC + valueSecuritiesMC;
   }
 

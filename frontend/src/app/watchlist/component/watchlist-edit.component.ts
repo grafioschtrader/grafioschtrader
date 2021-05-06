@@ -29,14 +29,14 @@ export class WatchlistEditComponent extends SimpleEntityEditBase<Watchlist> impl
   @Input() callParam: CallParam;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               watchlistService: WatchlistService) {
-    super(HelpIds.HELP_WATCHLIST, 'WATCHLIST', translateService, globalparameterService, messageToastService, watchlistService);
+    super(HelpIds.HELP_WATCHLIST, 'WATCHLIST', translateService, gps, messageToastService, watchlistService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
@@ -60,7 +60,7 @@ export class WatchlistEditComponent extends SimpleEntityEditBase<Watchlist> impl
     if (this.callParam.thisObject) {
       Object.assign(watchlist, this.callParam.thisObject);
     }
-    watchlist.idTenant = this.globalparameterService.getIdTenant();
+    watchlist.idTenant = this.gps.getIdTenant();
     this.form.cleanMaskAndTransferValuesToBusinessObject(watchlist);
     return watchlist;
   }

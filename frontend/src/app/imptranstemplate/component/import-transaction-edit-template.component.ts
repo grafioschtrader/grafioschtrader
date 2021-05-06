@@ -40,15 +40,15 @@ export class ImportTransactionEditTemplateComponent extends SimpleEntityEditBase
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               public importTransactionTemplateService: ImportTransactionTemplateService) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, 'IMPORT_SET', translateService, globalparameterService,
+    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, 'IMPORT_SET', translateService, gps,
       messageToastService, importTransactionTemplateService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       3, this.helpLink.bind(this));
 
     this.config = [
@@ -73,7 +73,7 @@ export class ImportTransactionEditTemplateComponent extends SimpleEntityEditBase
           this.translateService, TemplateCategory);
         this.configObject.templateLanguage.valueKeyHtmlOptions = data;
         this.form.setDefaultValuesAndEnableSubmit();
-        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
+        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
           <Auditable>this.callParam.thisObject, this.form, this.configObject, this.proposeChangeEntityWithEntity);
         this.configObject.templatePurpose.elementRef.nativeElement.focus();
       }

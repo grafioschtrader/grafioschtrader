@@ -35,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.validation.WebUrl;
 
@@ -66,7 +67,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   protected String idConnectorHistory;
 
   @Column(name = "note")
-  @Size(max = GlobalConstants.NOTE_SIZE)
+  @Size(max = GlobalConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
   protected String note;
 
@@ -251,7 +252,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @JsonProperty("sChangePercentage")
   public Double getSChangePercentage() {
-    return sChangePercentage;
+    return sChangePercentage == null ? null: DataHelper.roundStandard(sChangePercentage);
   }
 
   public Date getFullLoadTimestamp() {

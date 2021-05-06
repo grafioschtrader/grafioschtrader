@@ -30,7 +30,7 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
   public double groupAccountValueSecurity;
   public double groupTaxCost = 0.0;
 
-  public SecurityPositionCurrenyGroupSummary(String currency, double currencyExchangeRate) {
+  public SecurityPositionCurrenyGroupSummary(String currency, double currencyExchangeRate, int precision) {
     super();
     this.currency = currency;
     this.currencyExchangeRate = currencyExchangeRate;

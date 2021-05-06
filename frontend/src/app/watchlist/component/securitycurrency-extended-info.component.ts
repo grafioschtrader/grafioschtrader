@@ -61,9 +61,9 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
   private additionalInstruments: { [fieldName: string]: Security | CurrencypairWatchlist } = {};
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               private securityService: SecurityService) {
-    super(translateService, globalparameterService);
+    super(translateService, gps);
   }
 
   ngOnInit(): void {
@@ -91,7 +91,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT',
       {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.subCategoryNLS.map.'
-      + this.globalparameterService.getUserLang(),
+      + this.gps.getUserLang(),
       'SUB_ASSETCLASS', {fieldsetName: 'BASE_DATA'});
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'stockexchange.name', 'STOCKEXCHANGE', {fieldsetName: 'BASE_DATA'});
 
@@ -123,20 +123,20 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
   private addPerformanceFields(): void {
     this.addFieldProperty(DataType.DateTimeNumeric, this.SECURITYCURRENCY + 'sTimestamp', 'TIMEDATE', {fieldsetName: this.PERFORMANCE});
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLast', 'LAST', {
-      fieldsetName: this.PERFORMANCE, maxFractionDigits: 5
+      fieldsetName: this.PERFORMANCE, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sChangePercentage', 'DAILY_CHANGE', {
       fieldsetName: this.PERFORMANCE, headerSuffix: '%', templateName: 'greenRed'
     });
 
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sPrevClose', 'DAY_BEFORE_CLOSE', {
-      fieldsetName: this.PERFORMANCE, maxFractionDigits: 5
+      fieldsetName: this.PERFORMANCE, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sHigh', 'HIGH', {
-      fieldsetName: this.PERFORMANCE, maxFractionDigits: 5
+      fieldsetName: this.PERFORMANCE, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLow', 'LOW', {
-      fieldsetName: this.PERFORMANCE, maxFractionDigits: 5
+      fieldsetName: this.PERFORMANCE, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
     });
     this.addFieldProperty(DataType.NumericInteger, this.SECURITYCURRENCY + 'sVolume', 'VOLUME', {fieldsetName: this.PERFORMANCE});
   }

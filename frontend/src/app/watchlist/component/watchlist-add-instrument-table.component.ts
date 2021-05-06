@@ -85,9 +85,9 @@ export class WatchlistAddInstrumentTableComponent extends SecuritycurrencySearch
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.multiSortMeta.push({field: 'name', order: 1});
   }
 

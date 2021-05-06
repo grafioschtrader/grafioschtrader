@@ -3,6 +3,7 @@ package grafioschtrader.repository;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
@@ -11,7 +12,11 @@ import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
 
 public interface GlobalparametersJpaRepositoryCustom {
+  
+  Map<String, Integer> getCurrencyPrecision();
 
+  int getPrecisionForCurrency(String currency);
+  
   int getSecurityCurrencyIntradayUpdateTimeout();
 
   int getWatchlistIntradayUpdateTimeout();

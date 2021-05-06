@@ -19,6 +19,7 @@ import {TransactionCallParam} from './transaction.call.parm';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 @Directive()
 export abstract class TransactionTable extends TransactionContextMenu {
@@ -34,10 +35,10 @@ export abstract class TransactionTable extends TransactionContextMenu {
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false,
       {width: 60, filterType: FilterType.likeDataType});
@@ -54,18 +55,19 @@ export abstract class TransactionTable extends TransactionContextMenu {
     this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false,
       {filterType: FilterType.likeDataType});
     this.addColumn(DataType.Numeric, 'quotation', 'QUOTATION_DIV', true, false,
-      {filterType: FilterType.likeDataType, maxFractionDigits: 5});
+      {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumn(DataType.String, 'currencypair.fromCurrency', 'CURRENCY', true, false,
       {filterType: FilterType.withOptions});
     this.addColumn(DataType.Numeric, 'currencyExRate', 'EXCHANGE_RATE', true, false,
-      {maxFractionDigits: 5, filterType: FilterType.likeDataType});
+      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, filterType: FilterType.likeDataType});
 
     this.addColumnFeqH(DataType.Numeric, 'taxCost', true, false,
-      {filterType: FilterType.likeDataType});
+      {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumnFeqH(DataType.Numeric, 'transactionCost',  true, false,
-      {filterType: FilterType.likeDataType});
+      {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false,
-      {width: 60, filterType: FilterType.likeDataType, templateName: 'greenRed'});
+      {width: 60, filterType: FilterType.likeDataType, templateName: 'greenRed',
+        maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
   }
 
   getSecurity(transaction: Transaction): Security {

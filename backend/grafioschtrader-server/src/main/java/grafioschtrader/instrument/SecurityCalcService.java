@@ -15,6 +15,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.types.TransactionType;
 
@@ -22,10 +23,13 @@ import grafioschtrader.types.TransactionType;
 public class SecurityCalcService {
 
   @Autowired
-  NegativeIdNumberCreater negativeIdNumberCreater;
+  private NegativeIdNumberCreater negativeIdNumberCreater;
 
   @Autowired
-  TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   private final SecurityGeneralCalc securityGeneralCalc;
   private final SecurityMarginCalc securityMarginCalc;
@@ -80,7 +84,8 @@ public class SecurityCalcService {
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
     getSecurityCalc(transaction.getSecurity()).calcSingleSecurityTransaction(transaction, summarySecurityMap,
-        securitysplitMap, excludeDivTaxcost, dateCurrencyMap, negativeIdNumberCreater);
+        securitysplitMap, excludeDivTaxcost, dateCurrencyMap, negativeIdNumberCreater,
+        globalparametersJpaRepository.getCurrencyPrecision());
   }
 
   /**

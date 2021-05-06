@@ -101,8 +101,8 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
   lastPeriodSplit: WeekYear | string;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnInit(): void {
@@ -128,7 +128,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
     if (this.performancePeriod) {
       if (this.performancePeriod.periodSplit !== this.lastPeriodSplit) {
         this.fields.length > 2 && this.spliceColumns(1, this.fields.length - 2);
-        const calendarLang = Helper.CALENDAR_LANG[this.globalparameterService.getUserLang()];
+        const calendarLang = Helper.CALENDAR_LANG[this.gps.getUserLang()];
         if (this.performancePeriod.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
           // for week-day
           for (let i = 1; i < calendarLang.dayNamesShort.length - 1; i++) {
@@ -203,8 +203,8 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
       default:
         if (this.performancePeriod.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
           // Date range for week
-          colVal = moment(dataobject.periodWindow.startDate).format(this.globalparameterService.getDateFormatWithoutYear()) + ' - '
-            + moment(dataobject.periodWindow.endDate).format(this.globalparameterService.getDateFormatWithoutYear());
+          colVal = moment(dataobject.periodWindow.startDate).format(this.gps.getDateFormatWithoutYear()) + ' - '
+            + moment(dataobject.periodWindow.endDate).format(this.gps.getDateFormatWithoutYear());
         } else {
           // Only year
           colVal = moment(dataobject.periodWindow.startDate).year();
@@ -220,7 +220,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
   getDataValue(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
     const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
     if (psmh.hasOwnProperty(dataobject.showField)) {
-      return AppHelper.numberFormat(this.globalparameterService, (<PeriodStep>psmh)[dataobject.showField], field.maxFractionDigits,
+      return AppHelper.numberFormat(this.gps, (<PeriodStep>psmh)[dataobject.showField], field.maxFractionDigits,
         field.minFractionDigits);
     }
     return null;

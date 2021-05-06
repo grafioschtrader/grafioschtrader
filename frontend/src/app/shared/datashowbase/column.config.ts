@@ -33,8 +33,8 @@ export class ColumnConfig {
   public translatedValueMap: { [key: string]: string };
   public fieldTranslated: string;
   templateName?: string;
-  maxFractionDigits?: number;
   minFractionDigits?: number;
+  maxFractionDigits?: number;
   /**
    * Some columns may have a row group, for example the total of values of this cholumn.
    * The format are the same but the field property is different.

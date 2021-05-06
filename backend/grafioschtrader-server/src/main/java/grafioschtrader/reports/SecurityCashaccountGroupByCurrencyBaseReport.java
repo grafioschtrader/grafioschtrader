@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -40,6 +41,8 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
 
   protected SecurityJpaRepository securityJpaRepository;
 
+  protected Map<String, Integer> currencyPrecisionMap;
+
   @Autowired
   public void setSecurityJpaRepository(@Lazy final SecurityJpaRepository securityJpaRepository) {
     this.securityJpaRepository = securityJpaRepository;
@@ -50,14 +53,10 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
     this.currencypairJpaRepository = currencypairJpaRepository;
   }
 
-  /*
-   * @Autowired public void setTradingDaysPlusJpaRepository(@Lazy final
-   * TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository) {
-   * this.tradingDaysPlusJpaRepository = tradingDaysPlusJpaRepository; }
-   */
-
-  public SecurityCashaccountGroupByCurrencyBaseReport(TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository) {
+  public SecurityCashaccountGroupByCurrencyBaseReport(TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository,
+      Map<String, Integer> currencyPrecisionMap) {
     this.tradingDaysPlusJpaRepository = tradingDaysPlusJpaRepository;
+    this.currencyPrecisionMap = currencyPrecisionMap;
   }
 
   public Map<String, SecurityPositionCurrenyGroupSummary> createAndCalcSubtotalsPerCurrency(
@@ -65,14 +64,15 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
       final List<SecurityPositionSummary> securityPositionSummaryList,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
     return this.createAndCalcSubtotalsPerCurrencyAndIdSecurityaccount(historyquoteJpaRepository,
-        securityPositionSummaryList, dateCurrencyMap, Collections.emptySet()).currencyTotalMap;
+        securityPositionSummaryList, dateCurrencyMap, Collections.emptySet(), currencyPrecisionMap).currencyTotalMap;
   }
 
   public CurrencySecurityaccountCurrenyResult createAndCalcSubtotalsPerCurrencyAndIdSecurityaccount(
       final HistoryquoteJpaRepository historyquoteJpaRepository,
       final List<SecurityPositionSummary> securityPositionSummaryList,
       final DateTransactionCurrencypairMap dateCurrencyMap,
-      final Set<SeperateSecurityaccountCurrency> seperateSecurityaccountCurrencySet) {
+      final Set<SeperateSecurityaccountCurrency> seperateSecurityaccountCurrencySet,
+      final Map<String, Integer> currencyPrecisionMap) {
 
     final SeperateSecurityaccountCurrency seperateSecurityaccountCurrency = new SeperateSecurityaccountCurrency();
 
@@ -92,13 +92,15 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
       securityPositionCurrenyGroupSummary = cscr.securityaccountCurrencyTotalMap.get(seperateSecurityaccountCurrency);
       if (securityPositionCurrenyGroupSummary == null
           && seperateSecurityaccountCurrencySet.contains(seperateSecurityaccountCurrency)) {
-        securityPositionCurrenyGroupSummary = new SecurityPositionCurrenyGroupSummary(currency, currencyExchangeRate);
+        securityPositionCurrenyGroupSummary = new SecurityPositionCurrenyGroupSummary(currency, currencyExchangeRate,
+            currencyPrecisionMap.getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
         cscr.securityaccountCurrencyTotalMap.put(
             new SeperateSecurityaccountCurrency(currency, seperateSecurityaccountCurrency.idSecuritycashAccount),
             securityPositionCurrenyGroupSummary);
       } else {
         securityPositionCurrenyGroupSummary = cscr.currencyTotalMap.computeIfAbsent(currency,
-            c -> new SecurityPositionCurrenyGroupSummary(c, currencyExchangeRate));
+            c -> new SecurityPositionCurrenyGroupSummary(c, currencyExchangeRate,
+                currencyPrecisionMap.getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS)));
       }
       securityPositionSummary.calcMainCurrency(currencyExchangeRate);
       securityPositionCurrenyGroupSummary.addToGroupSummaryAndCalcGroupTotals(securityPositionSummary);

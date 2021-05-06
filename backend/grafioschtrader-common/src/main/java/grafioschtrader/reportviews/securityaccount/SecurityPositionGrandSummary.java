@@ -22,14 +22,17 @@ public class SecurityPositionGrandSummary {
   public double grandGainLossSecurityMC = 0.0;
 
   public double grandTaxCostMC = 0.0;
+  
+  protected int precision;
 
   // public double grandTransactionCostMC = 0.0;
 
   public List<SecurityPositionGroupSummary> securityPositionGroupSummaryList = new ArrayList<>();
 
-  public SecurityPositionGrandSummary(String currency) {
+  public SecurityPositionGrandSummary(String currency, Integer precision) {
     super();
     this.currency = currency;
+    this.precision = precision;
   }
 
   /**
@@ -53,8 +56,27 @@ public class SecurityPositionGrandSummary {
     grandAccountValueSecurityMC = DataHelper.round(grandAccountValueSecurityMC);
     grandGainLossSecurityMC = DataHelper.round(grandGainLossSecurityMC);
     grandTaxCostMC = DataHelper.round(grandTaxCostMC);
-    grandSecurityRiskMC = DataHelper.round2(grandSecurityRiskMC);
+    grandSecurityRiskMC = DataHelper.roundStandard(grandSecurityRiskMC);
     // grandTransactionCostMC = DataHelper.round(grandTransactionCostMC);
   }
 
+  public double getGrandAccountValueSecurityMC() {
+    return DataHelper.round(grandAccountValueSecurityMC, precision);
+  }
+
+  public double getGrandSecurityRiskMC() {
+    return DataHelper.round(grandSecurityRiskMC, precision);
+  }
+
+  public double getGrandGainLossSecurityMC() {
+    return DataHelper.round(grandGainLossSecurityMC, precision);
+  }
+
+  public double getGrandTaxCostMC() {
+    return DataHelper.round(grandTaxCostMC, precision);
+  }
+
+  
+  
+  
 }

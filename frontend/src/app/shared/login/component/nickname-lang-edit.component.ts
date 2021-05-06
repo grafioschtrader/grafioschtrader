@@ -35,12 +35,12 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
               private messageToastService: MessageToastService,
               private loginService: LoginService,
               private mainDialogService: MainDialogService,
-              globalparameterService: GlobalparameterService) {
-    super(HelpIds.HELP_USER, globalparameterService);
+              gps: GlobalparameterService) {
+    super(HelpIds.HELP_USER, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('nickname', 30, true,
@@ -53,7 +53,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
   }
 
   protected initialize(): void {
-    combineLatest([this.globalparameterService.getSupportedLocales(), this.loginService.getNicknameLocale()])
+    combineLatest([this.gps.getSupportedLocales(), this.loginService.getNicknameLocale()])
       .subscribe(data => {
         this.configObject.localeStr.valueKeyHtmlOptions = data[0];
         this.form.transferBusinessObjectToForm(data[1]);

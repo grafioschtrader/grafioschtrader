@@ -79,9 +79,9 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
               private router: Router,
               private dataChangedService: DataChangedService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               activePanelService: ActivePanelService) {
-    super(translateService, globalparameterService, activePanelService, ['yellow']);
+    super(translateService, gps, activePanelService, ['yellow']);
   }
 
   ngOnInit(): void {
@@ -143,7 +143,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
 
   /*
   protected getOptionalParameters(): { [key: string]: number } {
-    return {idTenant: this.globalparameterService.getIdTenant()};
+    return {idTenant: this.gps.getIdTenant()};
   }
 */
 

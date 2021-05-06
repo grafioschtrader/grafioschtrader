@@ -59,8 +59,8 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
   selectedNodes: TreeNode[] = [];
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnInit(): void {

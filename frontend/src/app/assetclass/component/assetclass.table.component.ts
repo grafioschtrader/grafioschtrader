@@ -89,10 +89,10 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super('Assetclass', assetclassService, confirmationService, messageToastService, activePanelService, dialogService,
-      changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
+      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.String, this.CATEGORY_TYPE, 'ASSETCLASS', true, false,
       {translateValues: TranslateValue.NORMAL});

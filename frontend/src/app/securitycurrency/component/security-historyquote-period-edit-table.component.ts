@@ -25,9 +25,9 @@ export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTab
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
+              gps: GlobalparameterService) {
     super('fromDate', 'SECURITY_PERIODS_FROM_MAX', HistoryquotePeriod, messageToastService, historyquotePeriodService,
-      changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+      changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.addColumn(DataType.DateString, this.dataSortKey, 'DATE_FROM', true, false);
     this.addColumn(DataType.Numeric, 'price', 'CLOSE', true, false);
     this.prepareTableAndTranslate();

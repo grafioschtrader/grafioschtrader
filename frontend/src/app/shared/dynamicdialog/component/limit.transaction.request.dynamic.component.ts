@@ -16,6 +16,7 @@ import {MessageToastService} from '../../message/message.toast.service';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {Helper} from '../../../helper/helper';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {AppSettings} from '../../app.settings';
 
 
 /**
@@ -33,7 +34,7 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
   private readonly NOTE_REQUEST = 'noteRequest';
 
   constructor(public translateService: TranslateService,
-              public globalparameterService: GlobalparameterService,
+              public gps: GlobalparameterService,
               private messageToastService: MessageToastService,
               private proposeUserTaskService: ProposeUserTaskService,
               private dialogService: DialogService,
@@ -43,14 +44,14 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.proposeUserTaskService.getFormDefinitionsByUserTaskType(UserTaskType.LIMIT_CUD_CHANGE).subscribe(
       (fDIaSs: FieldDescriptorInputAndShow[]) => {
         this.config = DynamicFieldHelper.createConfigFieldsFromDescriptor(fDIaSs, '', true, 'SEND');
         this.config.splice(this.config.length - 1, 0,
-          DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.NOTE_REQUEST, 1000, true));
+          DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.NOTE_REQUEST, AppSettings.FID_MAX_LETTERS, true));
         this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
         this.configObject[this.ENTITY_NAME].readonly = true;
         this.configObject[this.ENTITY_NAME].defaultValue = this.dynamicDialogConfig.data.entityName;
@@ -76,7 +77,7 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
   }
 
   helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.globalparameterService.getUserLang(), HelpIds.HELP_USER);
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_USER);
   }
 
 }

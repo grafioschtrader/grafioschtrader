@@ -33,6 +33,7 @@ import grafioschtrader.reportviews.account.CashaccountPositionSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionCurrenyGroupSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.repository.CashaccountJpaRepository;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
@@ -57,22 +58,23 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   protected SecurityCalcService securityCalcService;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
-  PortfolioJpaRepository portfolioJpaRepository;
+  private PortfolioJpaRepository portfolioJpaRepository;
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
-  @Autowired
-  CashaccountJpaRepository cashaccountJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
-  public AccountPositionGroupSummaryReport(TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository) {
-    super(tradingDaysPlusJpaRepository);
+  public AccountPositionGroupSummaryReport(TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository,
+      GlobalparametersJpaRepository globalparametersJpaRepository) {
+    super(tradingDaysPlusJpaRepository, globalparametersJpaRepository.getCurrencyPrecision());
+    this.globalparametersJpaRepository = globalparametersJpaRepository;
   }
 
   /**
@@ -156,7 +158,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
     ReportHelper.loadUntilDateHistoryquotes(idTenant, historyquoteJpaRepository, dateCurrencyMap);
 
     final long untilDateTime = DateHelper.setTimeToZeroAndAddDay(dateCurrencyMap.getUntilDate(), 1).getTime();
-    final AccessCashaccountPositionSummary accessCashaccountPositionSummary = new AccessCashaccountPositionSummary();
+    final AccessCashaccountPositionSummary accessCashaccountPositionSummary = new AccessCashaccountPositionSummary(
+        globalparametersJpaRepository.getCurrencyPrecision());
 
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdTenant(idTenant);
@@ -277,18 +280,18 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       final Currencypair currencypair = dateCurrencyMap
           .getCurrencypairByIdCurrencypair(transaction.getIdCurrencypair());
 
-      if (!accountPositionSummary.cashaccount.getCurrency().equals(mainCurrency)
+      if (!accountPositionSummary.getCashaccount().getCurrency().equals(mainCurrency)
           && !currencypair.getToCurrency().equals(mainCurrency)
           && !currencypair.getFromCurrency().equals(mainCurrency)) {
         // Transaction that happened between two different currencies but none of them
         // is the main currency.
         this.foreignCurrencyTransaction(currencypair, acps, accountPositionSummary, dateCurrencyMap, transaction);
-      } else if (accountPositionSummary.cashaccount.getCurrency().equals(mainCurrency)) {
+      } else if (accountPositionSummary.getCashaccount().getCurrency().equals(mainCurrency)) {
         // It is an exchange on the cash account with the main currency
         // For example buy or sell with main currency a security on foreign currency
 
         final CashaccountPositionSummary cashaccountPositionSummary = getOrCreatePseudoAccountPositionGroupSummary(acps,
-            accountPositionSummary.cashaccount.getPortfolio(), currencypair.getFromCurrency(), dateCurrencyMap);
+            accountPositionSummary.getCashaccount().getPortfolio(), currencypair.getFromCurrency(), dateCurrencyMap);
         if (cashaccountPositionSummary != null) {
           double cashaccountAmount = transaction.getCashaccountAmount();
           cashaccountPositionSummary.balanceCurrencyTransaction -= cashaccountAmount / transaction.getCurrencyExRate();
@@ -347,7 +350,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
             accountPositionSummary.securitycurrency.getFromCurrency(), true);
 
         double normalizedExchangeRate = currencypair.getFromCurrency().equals(
-            accountPositionSummary.cashaccount.getCurrency()) ? exchangeRate / transaction.getCurrencyExRateNotNull()
+            accountPositionSummary.getCashaccount().getCurrency()) ? exchangeRate / transaction.getCurrencyExRateNotNull()
                 : exchangeRate * transaction.getCurrencyExRateNotNull();
 
         acps.exchangeRateConnectedTransactionMap.put(transaction.getConnectedIdTransaction(), normalizedExchangeRate);
@@ -367,7 +370,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
       accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
       final CashaccountPositionSummary securityACPS = getOrCreatePseudoAccountPositionGroupSummary(acps,
-          accountPositionSummary.cashaccount.getPortfolio(), transaction.getSecurity().getCurrency(), dateCurrencyMap);
+          accountPositionSummary.getCashaccount().getPortfolio(), transaction.getSecurity().getCurrency(), dateCurrencyMap);
 
       securityACPS.balanceCurrencyTransaction -= transaction.getCashaccountAmount() / transaction.getCurrencyExRate();
       securityACPS.balanceCurrencyTransactionMC -= transaction.getCashaccountAmount() * exchangeRate;
@@ -424,7 +427,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
         .collect(Collectors.toSet());
 
     return createAndCalcSubtotalsPerCurrencyAndIdSecurityaccount(historyquoteJpaRepository, securityPositionSummaryList,
-        dateCurrencyMap, seperateSecurityaccountCurrencySet);
+        dateCurrencyMap, seperateSecurityaccountCurrencySet, globalparametersJpaRepository.getCurrencyPrecision());
 
   }
 
@@ -440,7 +443,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       final CurrencySecurityaccountCurrenyResult cscr, final DateTransactionCurrencypairMap dateCurrencyMap) {
 
     acps.cashaccountPositionSummaryByCashaccountMap.values().stream().forEach(cashaccountPositionSummary -> {
-      final Cashaccount cashaccount = cashaccountPositionSummary.cashaccount;
+      final Cashaccount cashaccount = cashaccountPositionSummary.getCashaccount();
 
       final AccountPositionGroupSummary accountPositionGroupSummary = accountGroupMap
           .getAccountPositionGroupSummary(cashaccount);
@@ -493,9 +496,10 @@ class AccessCashaccountPositionSummary {
   public Map<Cashaccount, CashaccountPositionSummary> cashaccountPositionSummaryByCashaccountMap;
   public Map<String, CashaccountPositionSummary> cashaccountPositionSummaryByCurrencyMap;
   private Integer idCounter = 0;
+  private Map<String, Integer> currencyPrecisionMap;
 
-  public AccessCashaccountPositionSummary() {
-
+  public AccessCashaccountPositionSummary(Map<String, Integer> currencyPrecisionMap) {
+    this.currencyPrecisionMap = currencyPrecisionMap;
   }
 
   public void preparteForNewPortfolio() {
@@ -530,7 +534,7 @@ class AccessCashaccountPositionSummary {
    */
   private CashaccountPositionSummary createCashaccountPositionSummary(final Cashaccount cashaccount,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
-    final CashaccountPositionSummary accountPositionSummary = new CashaccountPositionSummary();
+    final CashaccountPositionSummary accountPositionSummary = new CashaccountPositionSummary(currencyPrecisionMap);
 
     if (!dateCurrencyMap.getMainCurrency().equals(cashaccount.getCurrency())) {
       accountPositionSummary.securitycurrency = dateCurrencyMap
@@ -540,7 +544,7 @@ class AccessCashaccountPositionSummary {
     accountPositionSummary.externalCashTransferMC = 0.0;
     // accountPositionSummary.externalTransferMC =
     // accountPositionSummary.balanceCalculated;
-    accountPositionSummary.cashaccount = cashaccount;
+    accountPositionSummary.setCashaccount(cashaccount);
     accountPositionSummary.hasTransaction = cashaccount.getTransactionList() != null
         && cashaccount.getTransactionList().size() > 0;
     return accountPositionSummary;

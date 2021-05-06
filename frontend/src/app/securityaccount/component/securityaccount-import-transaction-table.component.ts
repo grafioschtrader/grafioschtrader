@@ -146,9 +146,9 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.supplementCriteria = new SupplementCriteria(true, false);
 
     this.addColumn(DataType.NumericInteger, ImportSettings.IMPORT_TRANSACTION_POS + 'idFilePart', 'IMPORT_ID_FILE_PART', true, false);
@@ -166,7 +166,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyAccount', 'ACCOUNT_CURRENCY', true, false);
     this.addColumn(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'units', 'QUANTITY', true, false);
     this.addColumn(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'quotation', 'QUOTATION_DIV', true,
-      false, {maxFractionDigits: 5});
+      false, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumnFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'diffCashaccountAmount', true, false);
     this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'readyForTransaction', 'IMPORT_TRANSACTIONAL', true, true, {
       templateName: 'check'

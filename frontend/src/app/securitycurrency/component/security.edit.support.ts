@@ -48,7 +48,7 @@ export class SecurityEditSupport {
 
 
   constructor(private translateService: TranslateService,
-              private globalparameterService: GlobalparameterService,
+              private gps: GlobalparameterService,
               private callbackValueChanged: CallbackValueChanged) {
   }
 
@@ -94,7 +94,7 @@ export class SecurityEditSupport {
       {fieldsetName: 'BASE_DATA'}));
 
     fc.push(DynamicFieldHelper.createFieldCheckboxHeqF('shortSecurity', {fieldsetName: 'BASE_DATA'}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 1000, false,
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
         {fieldsetName: 'BASE_DATA'}));
     if (securityDerived === SecurityDerived.Security) {
       fc.push(DynamicFieldHelper.createFieldInputStringVSHeqF('stockexchangeLink', 254, false,
@@ -163,18 +163,18 @@ export class SecurityEditSupport {
       [new ValueKeyHtmlSelectOptions('', '')].concat(vksoCurrency));
     configObject.assetClass.referencedDataObject = assetclasses;
     configObject.assetClass.valueKeyHtmlOptions = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-      this.globalparameterService, this.translateService, configObject.assetClass.referencedDataObject);
+      this.gps, this.translateService, configObject.assetClass.referencedDataObject);
 
   }
 
   removeFilterAssetclass(configObject: { [name: string]: FieldConfig }): void {
     configObject.assetClass.valueKeyHtmlOptions = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-      this.globalparameterService, this.translateService, configObject.assetClass.referencedDataObject);
+      this.gps, this.translateService, configObject.assetClass.referencedDataObject);
   }
 
   filterAssetclasses(configObject: { [name: string]: FieldConfig }, assetclassType: AssetclassType): void {
     configObject.assetClass.valueKeyHtmlOptions = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-      this.globalparameterService, this.translateService,
+      this.gps, this.translateService,
       (<Assetclass[]>configObject.assetClass.referencedDataObject).filter(assetclass =>
         assetclass.categoryType === AssetclassType[assetclassType]));
 
@@ -247,7 +247,7 @@ export class SecurityEditSupport {
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(formBase, security, proposeChangeEntityWithEntity);
     dynamicForm.cleanMaskAndTransferValuesToBusinessObject(security);
 
-    security.idTenantPrivate = value.isTenantPrivate ? this.globalparameterService.getIdTenant() : null;
+    security.idTenantPrivate = value.isTenantPrivate ? this.gps.getIdTenant() : null;
     return security;
   }
 

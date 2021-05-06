@@ -59,9 +59,9 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(null);
   }
 

@@ -29,6 +29,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionGrandSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.repository.CashaccountJpaRepository;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
@@ -44,6 +45,9 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  */
 public abstract class SecurityPositionSummaryReport {
 
+  @Autowired
+  protected GlobalparametersJpaRepository globalparametersJpaRepository;
+  
   @Autowired
   protected SecurityCalcService securityCalcService;
 
@@ -110,7 +114,7 @@ public abstract class SecurityPositionSummaryReport {
         .findByPortfolio_IdPortfolioAndIdTenant(idPortfolio, idTenant);
 
     if (securityaccountList.isEmpty()) {
-      return new SecurityPositionGrandSummary(null);
+      return new SecurityPositionGrandSummary(null, null);
     } else {
       Tenant tenant = tenantJpaRepository.getOne(securityaccountList.get(0).getPortfolio().getIdTenant());
 

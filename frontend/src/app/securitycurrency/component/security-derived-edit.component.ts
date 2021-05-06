@@ -96,14 +96,14 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
               private assetclassService: AssetclassService,
               private securityService: SecurityService,
               private currencypairService: CurrencypairService,
-              globalparameterService: GlobalparameterService) {
-    super(HelpIds.HELP_WATCHLIST_DERIVED_INSTRUMENT, globalparameterService);
+              gps: GlobalparameterService) {
+    super(HelpIds.HELP_WATCHLIST_DERIVED_INSTRUMENT, gps);
     this.supplementCriteria = new SupplementCriteria(false, true);
   }
 
   ngOnInit(): void {
-    this.securityEditSupport = new SecurityEditSupport(this.translateService, this.globalparameterService, null);
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, null);
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
 
     this.config = [
@@ -127,7 +127,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[]
       | Assetclass[] | IFeedConnector[] | SecurityCurrencypairDerivedLinks>[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
-    observables.push(this.globalparameterService.getCurrencies());
+    observables.push(this.gps.getCurrencies());
     observables.push(this.assetclassService.getAllAssetclass());
     if (this.securityCallParam) {
       observables.push(this.securityService.getDerivedInstrumentsLinksForSecurity(this.securityCallParam.idSecuritycurrency));
@@ -137,7 +137,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       SecurityCurrencypairDerivedLinks]) => {
       this.securityEditSupport.assignLoadedValues(this.configObject, data[0], data[1], data[2]);
       this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
+      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
         this.securityCallParam, this.form, this.configObject, this.proposeChangeEntityWithEntity);
       this.securityCallParam && this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[data.length - 1]);
 
@@ -145,7 +145,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   }
 
   disableBaseInstrumentFields(): void {
-    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.globalparameterService, this.securityCallParam)) {
+    if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securityCallParam)) {
       this.config.filter(fieldConfig => fieldConfig.fieldsetName === this.derivedData).forEach(
         fieldConfig => fieldConfig.formControl.disable());
     }
@@ -269,8 +269,8 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   }
 
   private translateFormulaFromUserLanguage(security: Security): void {
-    if (this.globalparameterService.getDecimalSymbol() !== '.' && security.formulaPrices) {
-      security.formulaPrices = security.formulaPrices.split(this.globalparameterService.getDecimalSymbol()).join('.');
+    if (this.gps.getDecimalSymbol() !== '.' && security.formulaPrices) {
+      security.formulaPrices = security.formulaPrices.split(this.gps.getDecimalSymbol()).join('.');
     }
   }
 

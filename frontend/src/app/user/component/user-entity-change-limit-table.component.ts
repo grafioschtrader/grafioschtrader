@@ -124,8 +124,8 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, this.UPPER_CASE_ENTITY_NAME, 'ENTITY_NAME', true, false,
       {translateValues: TranslateValue.NORMAL});
@@ -134,7 +134,7 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
     this.addColumnFeqH(DataType.NumericInteger, 'dayLimit', true, false);
     this.addColumnFeqH(DataType.DateNumeric, 'untilDate', true, false);
     this.prepareTableAndTranslate();
-    this.entityKeyName = this.globalparameterService.getKeyNameByEntityName(UserEntityChangeLimit.name);
+    this.entityKeyName = this.gps.getKeyNameByEntityName(UserEntityChangeLimit.name);
     this.multiSortMeta.push({field: this.UPPER_CASE_ENTITY_NAME, order: 1});
     TranslateHelper.translateMenuItems(this.menuItems, this.translateService);
   }

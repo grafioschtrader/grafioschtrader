@@ -22,8 +22,8 @@ public class TransactionCostGroupSummary extends SecurityCostGroup {
 
   public List<TransactionCostPosition> transactionCostPositions = new ArrayList<>();
 
-  public TransactionCostGroupSummary(Integer idSecurityaccount) {
-    super();
+  public TransactionCostGroupSummary(Integer idSecurityaccount, int precision) {
+    super(precision);
     this.idSecurityaccount = idSecurityaccount;
   }
 

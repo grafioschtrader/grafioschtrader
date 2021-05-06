@@ -30,6 +30,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   private dateFormatCalendar: string;
   private dateFormatCalendarTowNumber: string;
   private entityKeyMapping: { [entityName: string]: string };
+  private currencyPrecisionMap: { [currency: string]: number };
   private dateFormatWithoutYear: string;
   private _useWebsocket: boolean = null;
 
@@ -94,7 +95,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       allowNegative: true,
       allowZero: true,
       decimal: this.getDecimalSymbol(),
-      precision: 2,
+      precision: AppSettings.FID_STANDARD_FRACTION_DIGITS,
       prefix: '',
       suffix: '',
       thousands: this.getThousandsSeparatorSymbol(),
@@ -155,6 +156,14 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return this.entityKeyMapping[entityName];
   }
 
+
+  public getCurrencyPrecision(currency: string): number {
+    if (!this.currencyPrecisionMap) {
+      this.currencyPrecisionMap = JSON.parse(sessionStorage.getItem(GlobalSessionNames.CURRENCY_PRECISION));
+    }
+    return this.currencyPrecisionMap[currency] ? this.currencyPrecisionMap[currency] : AppSettings.FID_STANDARD_FRACTION_DIGITS;
+  }
+
   public getThousandsSeparatorSymbol(): string {
     if (!this.thousandsSeparatorSymbol) {
       this.thousandsSeparatorSymbol = sessionStorage.getItem(GlobalSessionNames.THOUSANDS_SEPARATOR);
@@ -186,8 +195,8 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   public getNumberFormat(): NumberFormat {
     if (!this._numberFormat) {
       this._numberFormat = new Intl.NumberFormat(this.getLocale(), {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        minimumFractionDigits: AppSettings.FID_STANDARD_FRACTION_DIGITS,
+        maximumFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
       });
     }
     return this._numberFormat;

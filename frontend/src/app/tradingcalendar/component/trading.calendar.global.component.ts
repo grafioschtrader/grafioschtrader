@@ -24,10 +24,10 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
 
   constructor(private tradingDaysPlusService: TradingDaysPlusService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService) {
-    super(translateService, globalparameterService, [TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR],
+    super(translateService, gps, [TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR],
       activePanelService, messageToastService,  'TRADING_CALENDAR_GLOBAL');
   }
 
@@ -80,7 +80,7 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
   }
 
   public hasRightsToModify(): boolean {
-    return AuditHelper.hasAdminRole(this.globalparameterService);
+    return AuditHelper.hasAdminRole(this.gps);
   }
 
 }

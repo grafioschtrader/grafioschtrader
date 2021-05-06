@@ -122,7 +122,7 @@ export class BusinessHelper {
 
   public static setHistoryquoteCloseToFormControl(messageToastService: MessageToastService,
                                                   historyquoteService: HistoryquoteService,
-                                                  globalparameterService: GlobalparameterService,
+                                                  gps: GlobalparameterService,
                                                   transactionTime: number, idSecuritycurrency: number,
                                                   asTraded: boolean, formControl: AbstractControl): void {
     historyquoteService.getCertainOrOlderDayInHistoryquoteByIdSecuritycurrency(idSecuritycurrency,

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -25,13 +27,14 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   public double grandTaxableAmountMC;
   public List<Portfolio> portfolioList;
 
-  public SecurityDividendsGrandTotal(String mainCurrency) {
-    super(mainCurrency, new TreeMap<>());
+  public SecurityDividendsGrandTotal(String mainCurrency, Map<String, Integer> currencyPrecisionMap) {
+    super(mainCurrency, new TreeMap<>(), currencyPrecisionMap);
   }
 
   @Override
   protected SecurityDividendsYearGroup createInstance(Integer key) {
-    return new SecurityDividendsYearGroup(key);
+    return new SecurityDividendsYearGroup(key, 
+        currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS), currencyPrecisionMap);
   }
 
   public void calcDivInterest() {
@@ -67,6 +70,18 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
 
   public Integer getNumberOfCashAccounts() {
     return portfolioList.stream().map(portfolio -> portfolio.getCashaccountList()).mapToInt(List::size).sum();
+  }
+
+  public double getGrandInterestMC() {
+    return DataHelper.round(grandInterestMC, precisionMC);
+  }
+
+  public double getGrandRealReceivedDivInterestMC() {
+    return DataHelper.round(grandRealReceivedDivInterestMC, precisionMC);
+  }
+
+  public double getGrandTaxableAmountMC() {
+    return DataHelper.round(grandTaxableAmountMC, precisionMC);
   }
 
 }

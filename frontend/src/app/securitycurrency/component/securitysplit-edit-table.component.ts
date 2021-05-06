@@ -28,9 +28,9 @@ export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securi
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
+              gps: GlobalparameterService) {
     super('splitDate', 'SECURITY_SPLITS_FROM_MAX', Securitysplit, messageToastService, securitysplitService,
-      changeDetectionStrategy, filterService, usersettingsService, translateService, globalparameterService);
+      changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.addColumnFeqH(DataType.DateString, 'splitDate', true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});

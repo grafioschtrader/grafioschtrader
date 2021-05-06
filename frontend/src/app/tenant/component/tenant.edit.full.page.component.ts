@@ -29,11 +29,11 @@ import {HelpIds} from '../../shared/help/help.ids';
 export class TenantEditFullPageComponent extends TenantEditComponent implements OnInit, AfterViewInit {
 
   constructor(private loginService: LoginService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               tenantService: TenantService,
               translateSercice: TranslateService) {
-    super(globalparameterService, messageToastService, tenantService, translateSercice, true, 4);
+    super(gps, messageToastService, tenantService, translateSercice, true, 4);
   }
 
   ngOnInit(): void {

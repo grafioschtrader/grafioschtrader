@@ -17,5 +17,7 @@ export enum GlobalSessionNames {
   CRYPTOS = 'crypotcurrencies',
   TAB_MENU_TENANT = 'tabMenuTenant',
   TAB_MENU_PORTFOLIO = 'tabMenuPortfolio',
-  PERFORMANCE_DATE_FROM = 'performanceDateFrom'
+  PERFORMANCE_DATE_FROM = 'performanceDateFrom',
+  STANDARD_PRECISION = 'starndardPrecision',
+  CURRENCY_PRECISION = 'currencyPrecision'
 }

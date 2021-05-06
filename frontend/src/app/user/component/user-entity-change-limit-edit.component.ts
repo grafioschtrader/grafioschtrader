@@ -37,16 +37,16 @@ export class UserEntityChangeLimitEditComponent extends SimpleEntityEditBase<Use
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   constructor(translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               userEntityChangeLimitService: UserEntityChangeLimitService) {
-    super(HelpIds.HELP_USER, 'USER_ENTITY_CHANGE_LIMIT', translateService, globalparameterService, messageToastService,
+    super(HelpIds.HELP_USER, 'USER_ENTITY_CHANGE_LIMIT', translateService, gps, messageToastService,
       userEntityChangeLimitService);
   }
 
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.globalparameterService,
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('entityName', true),
@@ -68,7 +68,7 @@ export class UserEntityChangeLimitEditComponent extends SimpleEntityEditBase<Use
           this.configObject.entityName.formControl.disable();
           this.form.transferBusinessObjectToForm(this.existingUserEntityChangeLimit);
         }
-        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.globalparameterService,
+        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
           (this.proposeChangeEntityWithEntity) ? this.proposeChangeEntityWithEntity.proposedEntity : this.existingUserEntityChangeLimit,
           this.form, this.configObject, this.proposeChangeEntityWithEntity);
         this.configObject.entityName.elementRef.nativeElement.focus();

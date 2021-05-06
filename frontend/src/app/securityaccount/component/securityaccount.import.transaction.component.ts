@@ -86,13 +86,13 @@ export class SecurityaccountImportTransactionComponent
   constructor(private activatedRoute: ActivatedRoute,
               private importTransactionHeadService: ImportTransactionHeadService,
               private importTransactionTemplateService: ImportTransactionTemplateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               translateService: TranslateService) {
 
-    super(globalparameterService, HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
+    super(gps, HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
       SecurityaccountImportTransactionComponent.MAIN_FIELD,
       'IMPORT_SET', importTransactionHeadService, confirmationService, messageToastService, activePanelService,
       translateService);
@@ -102,7 +102,7 @@ export class SecurityaccountImportTransactionComponent
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber(SecurityaccountImportTransactionComponent.MAIN_FIELD, 'IMPORT_SET_NAME', false,
         {usedLayoutColumns: 6}),
-      DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', 1000, false,
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
         {usedLayoutColumns: 6, disabled: true}),
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

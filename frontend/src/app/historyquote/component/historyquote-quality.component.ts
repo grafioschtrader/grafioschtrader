@@ -33,8 +33,8 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
   constructor(private securityService: SecurityService,
               private currencypairService: CurrencypairService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService) {
-    super(translateService, globalparameterService);
+              gps: GlobalparameterService) {
+    super(translateService, gps);
   }
 
   ngOnInit(): void {

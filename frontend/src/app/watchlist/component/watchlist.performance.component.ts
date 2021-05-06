@@ -25,7 +25,6 @@ import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {InjectableRxStompConfig, RxStompService} from '@stomp/ng2-stompjs';
-import {GlobalSessionNames} from '../../shared/global.session.names';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 /**
@@ -72,11 +71,11 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
       dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
-      messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, globalparameterService,
+      messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, gps,
       usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();
     // Update StompJs configuration.
@@ -92,13 +91,13 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.timeFrames.push(new TimeFrame('YEAR_2', moment(date).diff(moment(date).subtract(2, 'years'), 'days')));
     this.timeFrames.push(new TimeFrame('YEAR_3', moment(date).diff(moment(date).subtract(3, 'years'), 'days')));
     this.choosenTimeFrame = this.timeFrames[0];
-  this.addBaseColumns();
-       this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', 'ASSETCLASS', true, true,
+    this.addBaseColumns();
+    this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', 'ASSETCLASS', true, true,
       {translateValues: TranslateValue.NORMAL, width: 60});
     this.addColumn(DataType.String, 'securitycurrency.assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', false, true,
       {translateValues: TranslateValue.NORMAL, width: 60});
 
-    this.addColumn(DataType.String, 'securitycurrency.assetClass.subCategoryNLS.map.' + this.globalparameterService.getUserLang(),
+    this.addColumn(DataType.String, 'securitycurrency.assetClass.subCategoryNLS.map.' + this.gps.getUserLang(),
       'SUB_ASSETCLASS', true, true, {width: 80});
 
     this.addColumn(DataType.Boolean, 'securitycurrency.shortSecurity', 'SHORT_SECURITY', true, true, {
@@ -106,7 +105,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     });
 
     this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {width: 80});
-    this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {maxFractionDigits: 5});
+    this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {
       headerSuffix: '%', templateName: 'greenRed'
     });
@@ -127,10 +126,10 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       headerSuffix: '%', templateName: 'greenRed'
     });
 
-    this.addColumnFeqH(DataType.Numeric, 'valueSecurity',  true, true);
-    this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE', true, true, {maxFractionDigits: 5});
-    this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true, {maxFractionDigits: 5});
-    this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true, {maxFractionDigits: 5});
+    this.addColumnFeqH(DataType.Numeric, 'valueSecurity', true, true);
+    this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE', true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+    this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+    this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
 
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
@@ -191,7 +190,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   }
 
   protected updateAllPrice(): void {
-    if (this.globalparameterService.useWebsocket()) {
+    if (this.gps.useWebsocket()) {
       this.updateAllPriceWebSocket();
     } else {
       this.updateAllPriceThruRest();

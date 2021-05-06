@@ -35,10 +35,10 @@ export class MailInboxTableComponent extends MailInOutTable<MailInbox> implement
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(router, 'receivedTime', 'MailInbox', mailInboxService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, globalparameterService, usersettingsService);
+      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     this.addColumnFeqH(DataType.String, 'idUserFrom', true, false, {width: 50});
     this.addColumnFeqH(DataType.String, 'roleNameTo', true, false,

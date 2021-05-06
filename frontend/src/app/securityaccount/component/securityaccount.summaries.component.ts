@@ -38,11 +38,11 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
-              globalparameterService: GlobalparameterService,
+              gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
       activatedRoute, router, chartDataService, changeDetectionStrategy, filterService,
-      translateService, globalparameterService, usersettingsService);
+      translateService, gps, usersettingsService);
 
 
     this.createColumns();

@@ -105,7 +105,7 @@ public class PeriodHoldingAndDiff {
   }
 
   public double getSecuritiesAndMarginGainMC() {
-    return DataHelper.round2(securitiesMC + marginCloseGainMC);
+    return DataHelper.roundStandard(securitiesMC + marginCloseGainMC);
   }
 
   public void setSecuritiesMC(double securitiesMC) {
@@ -137,11 +137,11 @@ public class PeriodHoldingAndDiff {
   }
 
   public double getTotalGainMC() {
-    return DataHelper.round2(gainMC + marginCloseGainMC);
+    return DataHelper.roundStandard(gainMC + marginCloseGainMC);
   }
 
   public double getTotalBalanceMC() {
-    return DataHelper.round2(cashBalanceMC + this.securitiesMC + marginCloseGainMC);
+    return DataHelper.roundStandard(cashBalanceMC + this.securitiesMC + marginCloseGainMC);
   }
 
   public PeriodHoldingAndDiff calculateDiff(PeriodHoldingAndDiff subtrahendsHolding)
@@ -152,7 +152,7 @@ public class PeriodHoldingAndDiff {
       if (property.getWriteMethod() != null && property.getPropertyType() == double.class) {
         double minuedValue = (double) PropertyUtils.getProperty(this, property.getName());
         double subtrahends = (double) PropertyUtils.getProperty(subtrahendsHolding, property.getName());
-        PropertyUtils.setProperty(diff, property.getName(), DataHelper.round2(minuedValue - subtrahends));
+        PropertyUtils.setProperty(diff, property.getName(), DataHelper.roundStandard(minuedValue - subtrahends));
       }
     }
     return diff;

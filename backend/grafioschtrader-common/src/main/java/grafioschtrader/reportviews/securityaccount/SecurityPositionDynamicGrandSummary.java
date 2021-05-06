@@ -8,9 +8,8 @@ public class SecurityPositionDynamicGrandSummary<S extends SecurityPositionGroup
   public double grandValueSecurityShort;
   public double grandSecurityRiskMC;
 
-  public SecurityPositionDynamicGrandSummary(String currency) {
-    super(currency);
-
+  public SecurityPositionDynamicGrandSummary(String currency, int precision) {
+    super(currency, precision);
   }
 
   public void calcGrandTotal(SecurityPositionDynamicGroupSummary<S> securityPositionGroupSummary) {
@@ -23,7 +22,15 @@ public class SecurityPositionDynamicGrandSummary<S extends SecurityPositionGroup
   public void roundGrandTotals() {
     super.roundGrandTotals();
     grandValueSecurityShort = DataHelper.round(grandValueSecurityShort);
-    grandSecurityRiskMC = DataHelper.round2(grandSecurityRiskMC);
+    grandSecurityRiskMC = DataHelper.roundStandard(grandSecurityRiskMC);
   }
 
+  public double getGrandValueSecurityShort() {
+    return DataHelper.round(grandValueSecurityShort, precision);
+  }
+
+  public double getGrandSecurityRiskMC() {
+    return DataHelper.round(grandSecurityRiskMC, precision);
+  }
+  
 }
