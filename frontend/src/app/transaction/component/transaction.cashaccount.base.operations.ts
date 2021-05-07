@@ -71,13 +71,13 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
   protected getTransactionCostFieldDefinition(): FieldConfig {
     return DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
       AppSettings.FID_SMALL_INTEGER_LIMIT, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
-      this.gps.getNumberCurrencyMask());
+      this.gps.getNumberCurrencyMask(), true);
   }
 
   protected getDebitAmountFieldDefinition(): FieldConfig {
-    return DynamicFieldHelper.createFieldCurrencyNumberHeqF('debitAmount', false, AppSettings.FID_MAX_INTEGER_DIGITS,
-      AppSettings.FID_STANDARD_FRACTION_DIGITS, false, this.gps.getNumberCurrencyMask(),
-      {readonly: true});
+    return DynamicFieldHelper.createFieldCurrencyNumberHeqF('debitAmount', false,
+      AppSettings.FID_MAX_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS,
+      false, this.gps.getNumberCurrencyMask(), true, {readonly: true});
   }
 
 

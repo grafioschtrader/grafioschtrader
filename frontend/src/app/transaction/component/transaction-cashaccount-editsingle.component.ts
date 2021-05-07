@@ -77,8 +77,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', true,
         AppSettings.FID_MAX_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, true, {
           ...this.gps.getNumberCurrencyMask(),
-          allowZero: false, allowNegative: true
-        }),
+          allowZero: false
+        }, true),
       this.getTransactionCostFieldDefinition()
     ];
 
@@ -91,7 +91,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         {invisible: true}),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
-        {...this.gps.getNumberCurrencyMask(), allowNegative: false}, {invisible: true}),
+        {...this.gps.getNumberCurrencyMask(), allowNegative: false}, true,
+        {invisible: true}),
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
       this.getDebitAmountFieldDefinition(),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),

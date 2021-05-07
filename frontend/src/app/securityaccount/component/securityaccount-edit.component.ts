@@ -71,7 +71,7 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
         {
           ...this.gps.getNumberCurrencyMask(),
           prefix: AppHelper.addSpaceToCurrency((<Portfolio>this.callParam.parentObject).currency)
-        }, {inputWidth: 10} ),
+        }, true,{inputWidth: 10} ),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];

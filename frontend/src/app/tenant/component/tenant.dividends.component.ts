@@ -56,7 +56,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       {columnGroupConfigs: [new ColumnGroupConfig('grandInterestMC')]}));
 
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'securityCostGroup.groupTotalTaxCostMc', 'TRANSACTION_TAX_COST', true, false,
-      {columnGroupConfigs: [new ColumnGroupConfig('grandTotalTaxCostMc')]}));
+      {columnGroupConfigs: [new ColumnGroupConfig('grandTotalTaxCostMC')]}));
 
     this.addColumn(DataType.NumericInteger, 'yearCountPaidTransactions', 'PAID_TRANSACTIONS', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('grandCountPaidTransaction')]});

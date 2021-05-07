@@ -9,7 +9,7 @@ import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.messa
 import {email, gtWithMask, maxValue, range, rangeLength, validISIN, webUrl} from '../validator/validator';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {FileRequiredValidator} from '../../dynamic-form/components/form-input-file/file-input.validator';
-import {CurrencyMaskConfig, CurrencyMaskInputMode} from 'ngx-currency';
+import {CurrencyMaskConfig} from 'ngx-currency';
 import {AppSettings} from '../app.settings';
 
 export enum VALIDATION_SPECIAL {
@@ -307,26 +307,30 @@ export class DynamicFieldHelper {
   public static createFieldCurrencyNumber(fieldName: string, labelKey: string, required: boolean,
                                           integerLimit: number, maxFractionDigits: number,
                                           allowNegative: boolean, defaultCurrencyMaskConfig: CurrencyMaskConfig,
+                                          isCurrency: boolean,
                                           fieldOptions?: FieldOptions): FieldConfig {
     return this.createFieldCurrencyNumberVSParam(fieldName, labelKey, required, integerLimit, maxFractionDigits, allowNegative,
-      defaultCurrencyMaskConfig, null, null, fieldOptions);
+      defaultCurrencyMaskConfig, null, null, isCurrency, fieldOptions);
   }
 
   public static createFieldCurrencyNumberHeqF(fieldName: string, required: boolean,
                                               integerLimit: number, maxFractionDigits: number,
                                               allowNegative: boolean, defaultCurrencyMaskConfig: CurrencyMaskConfig,
+                                              isCurrency: boolean,
                                               fieldOptions?: FieldOptions): FieldConfig {
     return this.createFieldCurrencyNumberVSParamHeqF(fieldName, required, integerLimit, maxFractionDigits, allowNegative,
-      defaultCurrencyMaskConfig, null, null, fieldOptions);
+      defaultCurrencyMaskConfig, null, null, isCurrency, fieldOptions);
   }
 
   public static createFieldCurrencyNumberVSParamHeqF(fieldName: string, required: boolean,
                                                      integerLimit: number, maxFractionDigits: number,
                                                      allowNegative: boolean, defaultCurrencyMaskConfig: CurrencyMaskConfig,
                                                      validationSpecials: VALIDATION_SPECIAL, param: number,
+                                                     isCurrency: boolean,
                                                      fieldOptions?: FieldOptions): FieldConfig {
     return this.createFieldCurrencyNumberVSParam(fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName), required,
-      integerLimit, maxFractionDigits, allowNegative, defaultCurrencyMaskConfig, validationSpecials, param, fieldOptions);
+      integerLimit, maxFractionDigits, allowNegative, defaultCurrencyMaskConfig, validationSpecials, param,
+      isCurrency, fieldOptions);
   }
 
 
@@ -334,9 +338,10 @@ export class DynamicFieldHelper {
                                                  integerDigits: number, maxFractionDigits: number,
                                                  allowNegative: boolean, defaultCurrencyMaskConfig: CurrencyMaskConfig,
                                                  validationSpecials: VALIDATION_SPECIAL, param: number,
+                                                 isCurrency: boolean,
                                                  fieldOptions?: FieldOptions): FieldConfig {
 
-    const width = fieldOptions?.inputWidth || (integerDigits + maxFractionDigits);
+    const width = fieldOptions?.inputWidth || (integerDigits + maxFractionDigits) + (isCurrency ? 4 : 0);
     const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
         dataType: DataType.Numeric,
         inputType: InputType.InputCurrencyNumber
