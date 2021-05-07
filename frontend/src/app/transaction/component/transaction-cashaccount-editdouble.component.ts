@@ -25,7 +25,7 @@ import {FormConfig} from '../../dynamic-form/models/form.config';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
@@ -90,10 +90,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     // When the input on the following group changes, some calculations must be executed
     const calcGroupConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldCurrencyNumberVSParam('currencyExRate', 'EXCHANGE_RATE',
-        true, AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
-        AppSettings.FID_MAX_FRACTION_DIGITS, false,
-        this.gps.getNumberCurrencyMask(), VALIDATION_SPECIAL.GT_With_Mask_Param, 0.00001, {usedLayoutColumns: 8}),
-
+        true, AppSettings.FID_MAX_FRACTION_DIGITS - 2,
+        AppSettings.FID_MAX_FRACTION_DIGITS, false, this.gps.getNumberCurrencyMask(),
+        null, null, false, {usedLayoutColumns: 8}),
 
       DynamicFieldHelper.createFunctionButtonFieldName('oneOverX', '1/x',
         (e) => this.oneOverX(e), {
@@ -114,10 +113,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       */
       DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, 8,
         8, false, {
-          ...this.gps.getNumberCurrencyMask(),
-          allowZero: false
-        }, null, null),
-
+          ...this.gps.getNumberCurrencyMask(), allowZero: false}, null, null, true),
 
       this.getTransactionCostFieldDefinition(),
     ];

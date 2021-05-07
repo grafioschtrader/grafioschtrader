@@ -82,10 +82,10 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
       {width: 100, columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]});
-    this.addColumn(DataType.String, 'cashaccount.currency', 'CURRENCY', true, false,
+    this.addColumnFeqH(DataType.String, 'cashaccount.currency', true, false,
       {width: 40});
-    this.addColumn(DataType.Numeric, 'closePrice', 'SHARE_PRICE', true,
-      false, {width: 50, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+    this.addColumn(DataType.Numeric, 'closePrice', 'CURRENCY_RATE', true,
+      false, {width: 60, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'externalCashTransferMC', true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupExternalCashTransferMC')]}));

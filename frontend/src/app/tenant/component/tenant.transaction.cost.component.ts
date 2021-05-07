@@ -135,7 +135,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
     this.addColumn(DataType.String, 'securityaccount.name', 'NAME', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]});
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'groupTotalTaxCostMc', 'TAX_COST', true, false,
-      {columnGroupConfigs: [new ColumnGroupConfig('grandTotalTaxCostMc')]}));
+      {columnGroupConfigs: [new ColumnGroupConfig('grandTotalTaxCostMC')]}));
 
     this.addColumn(DataType.NumericInteger, 'groupCountPaidTransaction', 'PAID_TRANSACTIONS', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('grandCountPaidTransaction')]});

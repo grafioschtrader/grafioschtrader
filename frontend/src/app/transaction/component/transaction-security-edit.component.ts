@@ -148,37 +148,37 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       4, this.helpLink.bind(this));
 
     const calcGroupConfig: FieldConfig[] = [
-        DynamicFieldHelper.createFieldCurrencyNumber('currencyExRate', 'EXCHANGE_RATE', true,
-          7, AppSettings.FID_MAX_FRACTION_DIGITS, false,
-          this.gps.getNumberCurrencyMask()),
-        this.createQuotationField(),
-        DynamicFieldHelper.createFieldCurrencyNumber('quotation', 'QUOTATION_DIV', true,
-          AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
-          AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(),
-          {userDefinedValue: 'S'}),
-        DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
-          AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
-          this.gps.getNumberCurrencyMask(),
-          {userDefinedValue: 'S'}),
-        DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
-          AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
-          this.gps.getNumberCurrencyMask(),
-          {userDefinedValue: 'S', usedLayoutColumns: 8}),
-        /*
-        DynamicFieldHelper.createFieldCurrencyNumber('transactionCostCA', null, false,
-          9, 2, false, this.gps.getNumberCurrencyMask(),
-          {userDefinedValue: 'C', usedLayoutColumns: 4}),
-  */
-        // Used for accrued interest and daily finance cost for margin instrument
-        DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue1', 'ACCRUED_INTEREST',
-          false, AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_FRACTION_DIGITS - 3,
-          true,
-          this.gps.getNumberCurrencyMask(), {userDefinedValue: 'S'}),
-        DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue2', 'VALUE_PER_POINT',
-          false, AppSettings.FID_STANDARD_INTEGER_DIGITS - 3, 0, true,
-          this.gps.getNumberCurrencyMask()),
-      ]
-    ;
+      DynamicFieldHelper.createFieldCurrencyNumber('currencyExRate', 'EXCHANGE_RATE', true,
+        7, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        this.gps.getNumberCurrencyMask(), false),
+      this.createQuotationField(),
+      DynamicFieldHelper.createFieldCurrencyNumber('quotation', 'QUOTATION_DIV', true,
+        AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
+        AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(), false,
+        {userDefinedValue: 'S'}),
+      DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+        this.gps.getNumberCurrencyMask(), true,{userDefinedValue: 'S'}),
+      DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+        this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
+
+      /*
+    DynamicFieldHelper.createFieldCurrencyNumber('transactionCostCA', null, false,
+      9, 2, false, this.gps.getNumberCurrencyMask(),
+      {userDefinedValue: 'C', usedLayoutColumns: 4}),
+*/
+      // Used for accrued interest and daily finance cost for margin instrument
+      DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue1', 'ACCRUED_INTEREST',
+        false, AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_FRACTION_DIGITS - 3,
+        true,
+        this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S'}),
+
+      DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue2', 'VALUE_PER_POINT',
+        false, AppSettings.FID_STANDARD_INTEGER_DIGITS - 3, 0, true,
+        this.gps.getNumberCurrencyMask(), true)
+    ];
+
 
     this.config = [
       DynamicFieldHelper.createFieldSelectNumberHeqF('transactionType', true),
@@ -195,11 +195,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('securityRisk', false,
         9, 2, true, this.gps.getNumberCurrencyMask(),
-        {readonly: true, userDefinedValue: 'C'}),
+        true, {readonly: true, userDefinedValue: 'C'}),
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', false,
         9, 2, true, this.gps.getNumberCurrencyMask(),
-        {readonly: true, userDefinedValue: 'C'}),
+        true, {readonly: true, userDefinedValue: 'C'}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
@@ -213,11 +213,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private createQuotationField(): FieldConfig {
     if (this.transactionCallParam.transactionType === TransactionType.FINANCE_COST) {
       return DynamicFieldHelper.createFieldCurrencyNumber('units', 'NUMBER_OF_DAYS', true,
-        4, 0, false, this.gps.getNumberCurrencyMask());
+        4, 0, false, this.gps.getNumberCurrencyMask(), true);
 
     } else {
       return DynamicFieldHelper.createFieldCurrencyNumber('units', 'QUANTITY', true,
-        9, 3, false, this.gps.getNumberCurrencyMask());
+        9, 3, false, this.gps.getNumberCurrencyMask(), false);
     }
   }
 

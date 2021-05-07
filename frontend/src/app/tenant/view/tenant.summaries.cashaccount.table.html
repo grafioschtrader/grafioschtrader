@@ -28,7 +28,7 @@
 
       <ng-template pTemplate="header" let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pTooltip]="field.headerTooltipTranslated">
+          <th *ngFor="let field of fields" [pTooltip]="field.headerTooltipTranslated" [style.width.px]="field.width">
             {{field.headerTranslated}}
           </th>
         </tr>
@@ -37,7 +37,7 @@
       <ng-template pTemplate="body" let-el let-columns="fields" let-rowIndex="rowIndex">
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [style.width.px]="field.width"
+            <td *ngIf="field.visible"
                 [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
               <ng-container [ngSwitch]="field.templateName">

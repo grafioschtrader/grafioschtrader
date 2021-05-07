@@ -140,10 +140,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.periodPrices = [
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'fromDate', true),
       DynamicFieldHelper.createFieldCurrencyNumber('price', 'CLOSE', true, 6,
-        10, false, {
-          ...this.gps.getNumberCurrencyMask(),
-          allowZero: false, allowNegative: false
-        }),
+        10, false, { ...this.gps.getNumberCurrencyMask(),
+          allowZero: false}, false),
       DynamicFieldHelper.createSubmitButton('APPLY')
     ];
 
