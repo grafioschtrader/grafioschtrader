@@ -19,12 +19,11 @@ public class AccountPositionGroupSummary {
 
   public double groupAccountFeesMC;
   public double groupAccountInterestMC;
-//	public double groupAccountFeesLastCloseMC;
   public double groupAccountInterestLastCloseMC;
   public double groupExternalCashTransferMC = 0.0;
   public double groupCashTransferMC = 0.0;
   public double groupCashAccountTransactionFeeMC = 0.0;
-  public double groupCashBalance = 0.0;
+
 
   @Schema(description = "Total value in the main currency of a groupe including securities")
   public double groupValueMC = 0.0;
@@ -41,7 +40,6 @@ public class AccountPositionGroupSummary {
 
   
   private Map<String, Integer> currencyPrecisionMap;
-  private int precision;
   private int precisionMC;
   
   public AccountPositionGroupSummary(String groupName, String currency) {
@@ -54,7 +52,6 @@ public class AccountPositionGroupSummary {
       if(currencyPrecisionMap == null) {
         currencyPrecisionMap = accountPositionSummary.currencyPrecisionMap;
         precisionMC = accountPositionSummary.precisionMC;
-        precision = currencyPrecisionMap.getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
       }
       
       if (accountPositionSummary.securitycurrency != null
@@ -77,20 +74,15 @@ public class AccountPositionGroupSummary {
       groupExternalCashTransferMC += accountPositionSummary.externalCashTransferMC;
       groupCashTransferMC += accountPositionSummary.cashTransferMC;
       groupCashAccountTransactionFeeMC += accountPositionSummary.cashAccountTransactionFeeMC;
-      groupCashBalance += accountPositionSummary.cashBalance;
       groupGainLossCurrencyMC += accountPositionSummary.gainLossCurrencyMC;
       groupCashBalanceMC += accountPositionSummary.cashBalanceMC;
       groupValueMC += accountPositionSummary.valueMC;
       groupValueSecuritiesMC += accountPositionSummary.valueSecuritiesMC;
       groupGainLossSecuritiesMC += accountPositionSummary.gainLossSecuritiesMC;
     }
-
   }
-    
+   
 
-  public double getGroupCashBalance() {
-    return DataHelper.round(groupCashBalance, precision);
-  }
 
   public double getGroupAccountFeesMC() {
     return DataHelper.round(groupAccountFeesMC, precisionMC);
@@ -138,13 +130,16 @@ public class AccountPositionGroupSummary {
 
   @Override
   public String toString() {
-    return "AccountPositionGroupSummary [groupAccountFeesMainCurrency=" + groupAccountFeesMC
-        + ", groupAccountInterestMainCurrency=" + groupAccountInterestMC + ", groupExternalTransferMC="
-        + groupExternalCashTransferMC + ", groupBalance=" + groupCashBalance + ", groupValueMainCurrency="
-        + groupValueMC + ", groupSaldoMainCurrency=" + groupCashBalanceMC + ", groupValueSecuritiesMainCurrency="
-        + groupValueSecuritiesMC + ", groupGainLossMainCurrencySecurities=" + groupGainLossSecuritiesMC
-        + ", groupGainLossCurrency=" + groupGainLossCurrencyMC + ", groupName=" + groupName + ", currency=" + currency
-        + "]";
+    return "AccountPositionGroupSummary [groupAccountFeesMC=" + groupAccountFeesMC + ", groupAccountInterestMC="
+        + groupAccountInterestMC + ", groupAccountInterestLastCloseMC=" + groupAccountInterestLastCloseMC
+        + ", groupExternalCashTransferMC=" + groupExternalCashTransferMC + ", groupCashTransferMC="
+        + groupCashTransferMC + ", groupCashAccountTransactionFeeMC=" + groupCashAccountTransactionFeeMC
+        + ", groupValueMC=" + groupValueMC + ", groupCashBalanceMC=" + groupCashBalanceMC + ", groupValueSecuritiesMC="
+        + groupValueSecuritiesMC + ", groupGainLossSecuritiesMC=" + groupGainLossSecuritiesMC
+        + ", groupGainLossCurrencyMC=" + groupGainLossCurrencyMC + ", groupName=" + groupName + ", currency=" + currency
+        + ", accountPositionSummaryList=" + accountPositionSummaryList + ", currencyPrecisionMap="
+        + currencyPrecisionMap + "]";
   }
 
+ 
 }
