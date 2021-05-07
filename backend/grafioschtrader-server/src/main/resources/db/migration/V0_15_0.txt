@@ -1,1 +1,2 @@
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_blob`, `changed_by_system`) VALUES ('currency.precision', NULL, 'BTC=8,ETH=7,JPY=0', NULL, NULL, '0') 
+ALTER TABLE `user` CHANGE `email` `email` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL; 

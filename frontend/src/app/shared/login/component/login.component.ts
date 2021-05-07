@@ -77,7 +77,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
     this.applicationInfo.users;
 
     this.config = [];
-    this.config.push(DynamicFieldHelper.createFieldDAInputStringVS(DataType.Email, 'email', 'EMAIL', 30, true,
+    this.config.push(DynamicFieldHelper.createFieldDAInputStringVS(DataType.Email, 'email', 'EMAIL', 255, true,
       [VALIDATION_SPECIAL.EMail]));
     this.config.push(DynamicFieldHelper.createFieldDAInputString(DataType.Password, 'password', 'PASSWORD', 30,
       true));
