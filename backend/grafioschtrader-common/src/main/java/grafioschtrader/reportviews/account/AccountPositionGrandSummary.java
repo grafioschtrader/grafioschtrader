@@ -3,6 +3,8 @@ package grafioschtrader.reportviews.account;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,6 +20,7 @@ public class AccountPositionGrandSummary {
   @Schema(description = "Currency of security, ISO 4217")
   public String mainCurrency;
 
+  @JsonIgnore
   public double grandCashBalance = 0.0;
 
   @Schema(description = "Total value in the main currency of all portfolios including securities")
@@ -33,14 +36,16 @@ public class AccountPositionGrandSummary {
   public double grandAccountFeesMC = 0.0;
   public double grandAccountInterestMC = 0.0;
 
-  // public double grandAccountFeesLastCloseMC = 0.0;
+
   public double grandAccountInterestLastCloseMC = 0.0;
+  
+  private int precisionMC;
 
   public List<AccountPositionGroupSummary> accountPositionGroupSummaryList = new ArrayList<>();
 
-  public AccountPositionGrandSummary(String mainCurrency) {
-    super();
+  public AccountPositionGrandSummary(String mainCurrency, int precisionMC) {
     this.mainCurrency = mainCurrency;
+    this.precisionMC = precisionMC;
   }
 
   public void calcTotals(final DateTransactionCurrencypairMap dateTransactionCurrencypairMap) {
@@ -57,54 +62,54 @@ public class AccountPositionGrandSummary {
       grandGainLossCurrencyMC += accountPositionGroupSummary.groupGainLossCurrencyMC;
       grandAccountFeesMC += accountPositionGroupSummary.groupAccountFeesMC;
       grandAccountInterestMC += accountPositionGroupSummary.groupAccountInterestMC;
-      // grandAccountFeesLastCloseMC +=
-      // accountPositionGroupSummary.groupAccountFeesLastCloseMC;
       grandAccountInterestLastCloseMC += accountPositionGroupSummary.groupAccountInterestLastCloseMC;
     }
   }
 
-  public double getGrandCashBalance() {
-    return DataHelper.roundStandard(grandCashBalance);
+ 
+
+  public double getGrandCashAccountTransactionFeeMC() {
+    return DataHelper.round(grandCashAccountTransactionFeeMC, precisionMC);
   }
 
   public double getGrandValueMC() {
-    return DataHelper.roundStandard(grandValueMC);
+    return DataHelper.round(grandValueMC, precisionMC);
   }
 
   public double getGrandCashBalanceMC() {
-    return DataHelper.roundStandard(grandCashBalanceMC);
+    return DataHelper.round(grandCashBalanceMC, precisionMC);
   }
 
   public double getGrandExternalCashTransferMC() {
-    return DataHelper.roundStandard(grandExternalCashTransferMC);
+    return DataHelper.round(grandExternalCashTransferMC, precisionMC);
   }
 
   public double getGrandCashTransferMC() {
-    return DataHelper.roundStandard(grandCashTransferMC);
+    return DataHelper.round(grandCashTransferMC, precisionMC);
   }
 
   public double getGrandValueSecuritiesMC() {
-    return DataHelper.roundStandard(grandValueSecuritiesMC);
+    return DataHelper.round(grandValueSecuritiesMC, precisionMC);
   }
 
   public double getGrandGainLossSecuritiesMC() {
-    return DataHelper.roundStandard(grandGainLossSecuritiesMC);
+    return DataHelper.round(grandGainLossSecuritiesMC, precisionMC);
   }
 
   public double getGrandGainLossCurrencyMC() {
-    return DataHelper.roundStandard(grandGainLossCurrencyMC);
+    return DataHelper.round(grandGainLossCurrencyMC, precisionMC);
   }
 
   public double getGrandAccountFeesMC() {
-    return DataHelper.roundStandard(grandAccountFeesMC);
+    return DataHelper.round(grandAccountFeesMC, precisionMC);
   }
 
   public double getGrandAccountInterestMC() {
-    return DataHelper.roundStandard(grandAccountInterestMC);
+    return DataHelper.round(grandAccountInterestMC, precisionMC);
   }
 
   public double getGrandAccountInterestLastCloseMC() {
-    return DataHelper.roundStandard(grandAccountInterestLastCloseMC);
+    return DataHelper.round(grandAccountInterestLastCloseMC, precisionMC);
   }
 
   @Override

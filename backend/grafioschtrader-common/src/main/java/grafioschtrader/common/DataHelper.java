@@ -265,6 +265,7 @@ public abstract class DataHelper {
       Map<FromToCurrency, Currencypair> currencypairFromToCurrencyMap) {
     CashaccountTransfer ct = new CashaccountTransfer();
     // Transaction cost only WITHDRAWAL expected
+     
     double transactionCost = transaction.getTransactionCost() == null ? 0.0 : transaction.getTransactionCost();
     if (transaction.getIdCurrencypair() == null) {
       if (mainCurrency.equals(transaction.getCashaccount().getCurrency())) {
@@ -299,8 +300,8 @@ public abstract class DataHelper {
             transaction.getCashaccount().getCurrency(), mainCurrency, transaction.getTransactionDate()));
         if (exchangeRate == null) {
           if (mainCurrency.equals(transaction.getCashaccount().getCurrency())) {
-            ct.amountMC = (transaction.getCashaccountAmount() + transactionCost) * transaction.getCurrencyExRate();
-            ct.cashAccountTransactionFeeMC = transactionCost * transaction.getCurrencyExRate();
+            ct.amountMC = transaction.getCashaccountAmount() + transactionCost;
+            ct.cashAccountTransactionFeeMC = transactionCost;
           } else {
             ct.amountMC = (transaction.getCashaccountAmount() + transactionCost) / transaction.getCurrencyExRate();
             ct.cashAccountTransactionFeeMC = transactionCost / transaction.getCurrencyExRate();

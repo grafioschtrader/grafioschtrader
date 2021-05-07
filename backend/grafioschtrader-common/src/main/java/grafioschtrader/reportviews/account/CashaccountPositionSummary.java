@@ -2,6 +2,8 @@ package grafioschtrader.reportviews.account;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Cashaccount;
@@ -98,10 +100,14 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   public double valueMC;
 
   private Cashaccount cashaccount;
-  private int precisionMC;
+  
+  @JsonIgnore
+  public Map<String, Integer> currencyPrecisionMap;
+  @JsonIgnore
+  public int precisionMC;
   private int precision;
 
-  private Map<String, Integer> currencyPrecisionMap;
+  
 
   public CashaccountPositionSummary(Map<String, Integer> currencyPrecisionMap) {
     this.currencyPrecisionMap = currencyPrecisionMap;
@@ -117,6 +123,10 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
 
   public double getAccountInterestLastCloseMC() {
     return DataHelper.round(accountInterestLastCloseMC, precisionMC);
+  }
+  
+  public double getCashAccountTransactionFeeMC() {
+    return DataHelper.round(cashAccountTransactionFeeMC, precisionMC);
   }
 
   public double getCashTransferMC() {

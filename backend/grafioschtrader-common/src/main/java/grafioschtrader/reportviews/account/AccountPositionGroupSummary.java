@@ -2,7 +2,9 @@ package grafioschtrader.reportviews.account;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,6 +39,11 @@ public class AccountPositionGroupSummary {
   public String currency;
   public List<CashaccountPositionSummary> accountPositionSummaryList = new ArrayList<>();
 
+  
+  private Map<String, Integer> currencyPrecisionMap;
+  private int precision;
+  private int precisionMC;
+  
   public AccountPositionGroupSummary(String groupName, String currency) {
     this.groupName = groupName;
     this.currency = currency;
@@ -44,6 +51,12 @@ public class AccountPositionGroupSummary {
 
   public void calcTotals(final DateTransactionCurrencypairMap dateTransactionCurrencypairMap) {
     for (CashaccountPositionSummary accountPositionSummary : accountPositionSummaryList) {
+      if(currencyPrecisionMap == null) {
+        currencyPrecisionMap = accountPositionSummary.currencyPrecisionMap;
+        precisionMC = accountPositionSummary.precisionMC;
+        precision = currencyPrecisionMap.getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+      }
+      
       if (accountPositionSummary.securitycurrency != null
           && !dateTransactionCurrencypairMap.isUntilDateEqualNowOrAfterOrInActualWeekend()) {
         accountPositionSummary.closePrice = dateTransactionCurrencypairMap.getExactDateAndFromCurrency(
@@ -59,7 +72,6 @@ public class AccountPositionGroupSummary {
       groupAccountFeesMC += accountPositionSummary.accountFeesMC;
       groupAccountInterestMC += accountPositionSummary.accountInterestMC;
 
-      // groupAccountFeesLastCloseMC += accountPositionSummary.accountFeesLastCloseMC;
       groupAccountInterestLastCloseMC += accountPositionSummary.accountInterestLastCloseMC;
 
       groupExternalCashTransferMC += accountPositionSummary.externalCashTransferMC;
@@ -74,45 +86,54 @@ public class AccountPositionGroupSummary {
     }
 
   }
+    
+
+  public double getGroupCashBalance() {
+    return DataHelper.round(groupCashBalance, precision);
+  }
 
   public double getGroupAccountFeesMC() {
-    return DataHelper.roundStandard(groupAccountFeesMC);
+    return DataHelper.round(groupAccountFeesMC, precisionMC);
   }
 
   public double getGroupAccountInterestMC() {
-    return DataHelper.roundStandard(groupAccountInterestMC);
+    return DataHelper.round(groupAccountInterestMC, precisionMC);
   }
 
   public double getGroupAccountInterestLastCloseMC() {
-    return DataHelper.roundStandard(groupAccountInterestLastCloseMC);
+    return DataHelper.round(groupAccountInterestLastCloseMC, precisionMC);
+  }
+    
+  public double getGroupCashAccountTransactionFeeMC() {
+    return DataHelper.round(groupCashAccountTransactionFeeMC, precisionMC);
   }
 
   public double getGroupExternalCashTransferMC() {
-    return DataHelper.roundStandard(groupExternalCashTransferMC);
+    return DataHelper.round(groupExternalCashTransferMC, precisionMC);
   }
 
   public double getGroupCashTransferMC() {
-    return DataHelper.roundStandard(groupCashTransferMC);
+    return DataHelper.round(groupCashTransferMC, precisionMC);
   }
 
   public double getGroupValueMC() {
-    return DataHelper.roundStandard(groupValueMC);
+    return DataHelper.round(groupValueMC, precisionMC);
   }
 
   public double getGroupCashBalanceMC() {
-    return DataHelper.roundStandard(groupCashBalanceMC);
+    return DataHelper.round(groupCashBalanceMC, precisionMC);
   }
 
   public double getGroupValueSecuritiesMC() {
-    return DataHelper.roundStandard(groupValueSecuritiesMC);
+    return DataHelper.round(groupValueSecuritiesMC, precisionMC);
   }
 
   public double getGroupGainLossSecuritiesMC() {
-    return DataHelper.roundStandard(groupGainLossSecuritiesMC);
+    return DataHelper.round(groupGainLossSecuritiesMC, precisionMC);
   }
 
   public double getGroupGainLossCurrencyMC() {
-    return DataHelper.roundStandard(groupGainLossCurrencyMC);
+    return DataHelper.round(groupGainLossCurrencyMC, precisionMC);
   }
 
   @Override

@@ -23,25 +23,15 @@ public abstract class AccountGroupMap<K> {
   }
 
   public AccountPositionGrandSummary getGrandGroupSummary(
-      final DateTransactionCurrencypairMap dateTransactionCurrencypairMap) {
+      final DateTransactionCurrencypairMap dateTransactionCurrencypairMap, int precisionMC) {
     final AccountPositionGrandSummary accountPositionGrandSummary = new AccountPositionGrandSummary(
-        dateTransactionCurrencypairMap.getMainCurrency());
+        dateTransactionCurrencypairMap.getMainCurrency(), precisionMC);
     accountPositionGrandSummary.accountPositionGroupSummaryList = getGroupSummaryList();
     accountPositionGrandSummary.calcTotals(dateTransactionCurrencypairMap);
     return accountPositionGrandSummary;
   }
 
-  // public AccountPositionGrandSummary
-  // getGrandGroupSummary(SecurityPositionGrandSummary
-  // securityPositionGrandSummary) {
-  // AccountPositionGrandSummary accountPositionGrandSummary = new
-  // AccountPositionGrandSummary();
-  // accountPositionGrandSummary.accountPositionGroupSummaryList =
-  // getGroupSummaryList();
-  // accountPositionGrandSummary.calcTotals(securityPositionGrandSummary);
-  // return accountPositionGrandSummary;
-  // }
-
+  
   public List<CashaccountPositionSummary> getAllForeignCurrency() {
     return mapAccountGrandSummary.values().stream().map(value -> value.accountPositionSummaryList)
         .flatMap(values -> values.stream())
