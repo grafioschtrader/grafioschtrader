@@ -99,7 +99,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
     getAccountSummaryPositionSummary(tenant.getPortfolioList(), grouping, tenant.getCurrency(), idTenant,
         tenant.isExcludeDivTax(), dateCurrencyMap);
 
-    return grouping.getGrandGroupSummary(dateCurrencyMap);
+    return grouping.getGrandGroupSummary(dateCurrencyMap,
+        globalparametersJpaRepository.getPrecisionForCurrency(tenant.getCurrency()));
   }
 
   /**
@@ -349,8 +350,9 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
         exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionTime(),
             accountPositionSummary.securitycurrency.getFromCurrency(), true);
 
-        double normalizedExchangeRate = currencypair.getFromCurrency().equals(
-            accountPositionSummary.getCashaccount().getCurrency()) ? exchangeRate / transaction.getCurrencyExRateNotNull()
+        double normalizedExchangeRate = currencypair.getFromCurrency()
+            .equals(accountPositionSummary.getCashaccount().getCurrency())
+                ? exchangeRate / transaction.getCurrencyExRateNotNull()
                 : exchangeRate * transaction.getCurrencyExRateNotNull();
 
         acps.exchangeRateConnectedTransactionMap.put(transaction.getConnectedIdTransaction(), normalizedExchangeRate);
@@ -370,7 +372,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
       accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
       final CashaccountPositionSummary securityACPS = getOrCreatePseudoAccountPositionGroupSummary(acps,
-          accountPositionSummary.getCashaccount().getPortfolio(), transaction.getSecurity().getCurrency(), dateCurrencyMap);
+          accountPositionSummary.getCashaccount().getPortfolio(), transaction.getSecurity().getCurrency(),
+          dateCurrencyMap);
 
       securityACPS.balanceCurrencyTransaction -= transaction.getCashaccountAmount() / transaction.getCurrencyExRate();
       securityACPS.balanceCurrencyTransactionMC -= transaction.getCashaccountAmount() * exchangeRate;
