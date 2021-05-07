@@ -64,64 +64,78 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
-      {columnGroupConfigs: [new ColumnGroupConfig('groupName', 'TOTAL'), new ColumnGroupConfig(null, 'GRAND_TOTAL')]});
+      {
+        width: 100, columnGroupConfigs: [new ColumnGroupConfig('groupName', 'TOTAL'),
+          new ColumnGroupConfig(null, 'GRAND_TOTAL')],
+      });
 
     this.addColumn(DataType.Numeric, 'closePrice', 'CURRENCY_RATE', true, false,
       {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, templateName: 'greenRed'});
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'externalCashTransferMC',
-      true, false, {templateName: 'greenRed',
+      true, false, {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupExternalCashTransferMC'),
           new ColumnGroupConfig('grandExternalCashTransferMC')]
       }));
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'cashTransferMC',
-      true, false, {templateName: 'greenRed',
+      true, false, {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupCashTransferMC'),
           new ColumnGroupConfig('grandCashTransferMC')]
       }));
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'cashAccountTransactionFeeMC', true, false,
-      {templateName: 'greenRed',
+      {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupCashAccountTransactionFeeMC'),
           new ColumnGroupConfig('grandCashAccountTransactionFeeMC')]
       }));
 
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'accountFeesMC', 'FEE', true, false,
-      {templateName: 'greenRed',
+      {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupAccountFeesMC'),
           new ColumnGroupConfig('grandAccountFeesMC')]
       }));
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'accountInterestMC', 'INTEREST_CASHACCOUNT', true, false,
-      {templateName: 'greenRed',
+      {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupAccountInterestMC'),
           new ColumnGroupConfig('grandAccountInterestMC')]
       }));
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, false,
-      {templateName: 'greenRed',
+      {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupGainLossCurrencyMC'),
           new ColumnGroupConfig('grandGainLossCurrencyMC')]
       }));
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossSecurities', true, false,
-      {templateName: 'greenRed',
+      {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecuritiesMC'),
           new ColumnGroupConfig('grandGainLossSecuritiesMC')]
       }));
     this.columnConfigs.push(this.addColumn(DataType.Numeric, this.VALUE_SECURITIES_MAIN_CURRENCY, 'SECURITY', true, false,
-      {templateName: 'greenRed',
+      {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupValueSecuritiesMC'),
           new ColumnGroupConfig('grandValueSecuritiesMC')]
       }));
-    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false,
-      {columnGroupConfigs: [new ColumnGroupConfig('groupCashBalance')]});
+    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false);
     this.columnConfigs.push(this.addColumn(DataType.Numeric, this.CASHBALANCE_MC, 'CASH_BALANCE', true, false,
-      {templateName: 'greenRed',
+      {
+        templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupCashBalanceMC'),
           new ColumnGroupConfig('grandCashBalanceMC')]
       }));
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'valueMC', 'TOTAL', true, false,
-      {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupValueMC'), new ColumnGroupConfig('grandValueMC')]}));
+      {
+        templateName: 'greenRed',
+        columnGroupConfigs: [new ColumnGroupConfig('groupValueMC'), new ColumnGroupConfig('grandValueMC')]
+      }));
 
     this.untilDate = AppHelper.getUntilDateBySessionStorage();
 

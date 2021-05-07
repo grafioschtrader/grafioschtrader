@@ -20,9 +20,6 @@ public class AccountPositionGrandSummary {
   @Schema(description = "Currency of security, ISO 4217")
   public String mainCurrency;
 
-  @JsonIgnore
-  public double grandCashBalance = 0.0;
-
   @Schema(description = "Total value in the main currency of all portfolios including securities")
   public double grandValueMC = 0.0;
 
@@ -51,7 +48,6 @@ public class AccountPositionGrandSummary {
   public void calcTotals(final DateTransactionCurrencypairMap dateTransactionCurrencypairMap) {
     for (AccountPositionGroupSummary accountPositionGroupSummary : accountPositionGroupSummaryList) {
       accountPositionGroupSummary.calcTotals(dateTransactionCurrencypairMap);
-      grandCashBalance += accountPositionGroupSummary.groupCashBalance;
       grandExternalCashTransferMC += accountPositionGroupSummary.groupExternalCashTransferMC;
       grandCashTransferMC += accountPositionGroupSummary.groupCashTransferMC;
       grandCashAccountTransactionFeeMC += accountPositionGroupSummary.groupCashAccountTransactionFeeMC;
@@ -112,15 +108,32 @@ public class AccountPositionGrandSummary {
     return DataHelper.round(grandAccountInterestLastCloseMC, precisionMC);
   }
 
-  @Override
-  public String toString() {
-    return "AccountPositionGrandSummary [mainCurrency=" + mainCurrency + ", grandBalance=" + grandCashBalance
-        + ", grandValueMC=" + grandValueMC + ", grandSaldoMC=" + grandCashBalanceMC + ", grandExternalTransferMC="
-        + grandExternalCashTransferMC + ", grandTransferMC=" + grandCashTransferMC + ", grandValueSecuritiesMC="
-        + grandValueSecuritiesMC + ", grandGainLossSecuritiesMC=" + grandGainLossSecuritiesMC
-        + ", grandGainLossCurrencyMC=" + grandGainLossCurrencyMC + ", grandAccountFeesMC=" + grandAccountFeesMC
-        + ", grandAccountInterestMC=" + grandAccountInterestMC + ",  grandAccountInterestLastCloseMC="
-        + grandAccountInterestLastCloseMC + "]";
+  public int getPrecisionMC() {
+    return precisionMC;
   }
 
+  public void setPrecisionMC(int precisionMC) {
+    this.precisionMC = precisionMC;
+  }
+
+  public List<AccountPositionGroupSummary> getAccountPositionGroupSummaryList() {
+    return accountPositionGroupSummaryList;
+  }
+
+  public void setAccountPositionGroupSummaryList(List<AccountPositionGroupSummary> accountPositionGroupSummaryList) {
+    this.accountPositionGroupSummaryList = accountPositionGroupSummaryList;
+  }
+
+  @Override
+  public String toString() {
+    return "AccountPositionGrandSummary [mainCurrency=" + mainCurrency + ", grandValueMC=" + grandValueMC
+        + ", grandCashBalanceMC=" + grandCashBalanceMC + ", grandExternalCashTransferMC=" + grandExternalCashTransferMC
+        + ", grandCashTransferMC=" + grandCashTransferMC + ", grandCashAccountTransactionFeeMC="
+        + grandCashAccountTransactionFeeMC + ", grandValueSecuritiesMC=" + grandValueSecuritiesMC
+        + ", grandGainLossSecuritiesMC=" + grandGainLossSecuritiesMC + ", grandGainLossCurrencyMC="
+        + grandGainLossCurrencyMC + ", grandAccountFeesMC=" + grandAccountFeesMC + ", grandAccountInterestMC="
+        + grandAccountInterestMC + ", grandAccountInterestLastCloseMC=" + grandAccountInterestLastCloseMC + "]";
+  }
+
+  
 }
