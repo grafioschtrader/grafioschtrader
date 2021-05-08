@@ -8,11 +8,9 @@ assignees: ''
 ---
 
 **Which part and what Version?**
-Version: 
-[x]  GT 
-[ ] PDF Transformer 
-[ ] manual 
-
+Version: 0.x.x
+[x] Internal structure (user should not notice)
+[x] Improvement for the user
 
 **What are the steps to reproduce this issue**
 1. ...
