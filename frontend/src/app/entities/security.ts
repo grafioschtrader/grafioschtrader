@@ -58,7 +58,8 @@ export class Security extends Securitycurrency implements BaseID {
       if (distributionFrequency !== null && distributionFrequency !== DistributionFrequency.DF_NONE) {
         canHaveDividend = assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF]
           || assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.PENSION_FUNDS]
-          || assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.MUTUAL_FUND];
+          || assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.MUTUAL_FUND]
+          || assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT];
         switch (AssetclassType[assetClass.categoryType]) {
           case AssetclassType.EQUITIES:
           case AssetclassType.REAL_ESTATE:

@@ -27,7 +27,7 @@ public enum AssetclassType {
   REAL_ESTATE((byte) 4),
 
   // equities, bonds, cash, may have dividends
-  MULIT_ASSET((byte) 5),
+  MULTI_ASSET((byte) 5),
 
   // Convertible bond, may have dividends when ETF or Fonds
   CONVERTIBLE_BOND((byte) 6),

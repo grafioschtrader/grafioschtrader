@@ -382,7 +382,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @JsonIgnore
   public boolean isMarginInstrument() {
     return getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.CFD
-        || getAssetClass().getCategoryType() == AssetclassType.CURRENCY_PAIR;
+        || getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.FOREX;
   }
 
   @JsonIgnore
