@@ -1,7 +1,7 @@
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
-import { ChangeDetectorRef, ElementRef, ViewChild, Directive } from '@angular/core';
+import {ChangeDetectorRef, Directive, ElementRef, ViewChild} from '@angular/core';
 import {SecurityaccountGroupBase} from './securityaccount.group.base';
 import {SecurityPositionCurrenyGroupSummary} from '../../entities/view/security.position.curreny.group.summary';
 import {Subscription} from 'rxjs';
@@ -377,9 +377,10 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     let menuItems: MenuItem[] = null;
 
     if (securityPositionSummary
-      && AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR
-      || (securityPositionSummary.security.assetClass.categoryType === AssetclassType.CURRENCY_PAIR
-      && securityPositionSummary.security.assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT)  ) {
+      && (AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR
+        || (AssetclassType[securityPositionSummary.security.assetClass.categoryType] === AssetclassType.CURRENCY_PAIR
+          && SpecialInvestmentInstruments[securityPositionSummary.security.assetClass.specialInvestmentInstrument]
+          === SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT))) {
       menuItems = [];
       menuItems.push({
         label: 'ACCUMULATE',
