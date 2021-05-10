@@ -33,6 +33,7 @@ import {Securitycurrency} from '../../entities/securitycurrency';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
+import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 
 
 @Directive()
@@ -376,7 +377,9 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     let menuItems: MenuItem[] = null;
 
     if (securityPositionSummary
-      && AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR) {
+      && AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR
+      || (securityPositionSummary.security.assetClass.categoryType === AssetclassType.CURRENCY_PAIR
+      && securityPositionSummary.security.assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT)  ) {
       menuItems = [];
       menuItems.push({
         label: 'ACCUMULATE',

@@ -142,8 +142,7 @@ public class TokenAuthenticationService {
     public static final List<String> crypotcurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
     public final Map<String, Integer> currencyPrecision; 
     public final Map<String, Integer> standardPrecision;
-    
-  
+      
 
     public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo, Map<String, Integer> currencyPrecision,
         Map<String, Integer> standardPrecision) {
