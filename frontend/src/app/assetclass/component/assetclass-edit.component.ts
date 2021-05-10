@@ -82,7 +82,6 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
   }
 
   protected initialize(): void {
-
     (<AssetclassService>this.serviceEntityUpdate).getPossibleAssetclassInstrumentMap().subscribe(assetclassSpezInstMap => {
       this.assetclassSpezInstMap = assetclassSpezInstMap;
       this.form.setDefaultValuesAndEnableSubmit();
@@ -94,10 +93,13 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
       this.configObject.en.suggestions = this.callParam.subCategorySuggestionsEN;
       AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
         this.callParam.assetclass, this.form, this.configObject, this.proposeChangeEntityWithEntity);
+      this.valueChangedOnCategoryType();
       FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.categoryType,
         this.configObject.specialInvestmentInstrument]);
-      this.valueChangedOnCategoryType();
-      setTimeout(() => this.configObject.categoryType.elementRef.nativeElement.focus());
+
+      if (!this.callParam.assetclass) {
+        setTimeout(() => this.configObject.categoryType.elementRef.nativeElement.focus());
+      }
     });
 
   }
@@ -115,11 +117,14 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
 
   valueChangedOnCategoryType(): void {
     this.categoryTypeSubscribe = this.configObject.categoryType
-      .formControl.valueChanges.subscribe(categoryType =>
-        this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpezInvest.filter(
-          v => this.assetclassSpezInstMap[categoryType].includes(v.key)));
-       this.configObject.specialInvestmentInstrument.formControl.setValue(
-         this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions[0].key);
+      .formControl.valueChanges.subscribe(categoryType => {
+        if (!this.callParam.assetclass && categoryType && categoryType.length > 0) {
+          this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpezInvest.filter(
+            v => this.assetclassSpezInstMap[categoryType].includes(v.key));
+          this.configObject.specialInvestmentInstrument.formControl.setValue(
+            this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions[0].key);
+        }
+      });
   }
 
   onHide(event): void {
