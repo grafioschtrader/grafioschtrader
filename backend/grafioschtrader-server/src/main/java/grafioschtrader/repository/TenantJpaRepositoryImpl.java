@@ -190,7 +190,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   }
 
   public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
-    Resource resourceDdl = resourceLoader.getResource("classpath:/db/migration/gt_ddl.sql");
+    Resource resourceDdl = resourceLoader.getResource("classpath:db/migration/gt_ddl.sql");
     
     StringBuilder sqlStatement = new MySqlExportMyData(jdbcTemplate).exportDataMyData();
 

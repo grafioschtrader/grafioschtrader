@@ -7,7 +7,6 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.validation.annotation.Validated;
 
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Transaction.CashTransaction;
