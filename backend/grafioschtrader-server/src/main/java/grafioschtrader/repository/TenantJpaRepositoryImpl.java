@@ -1,10 +1,13 @@
 package grafioschtrader.repository;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -135,8 +138,6 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     return (tenant.isExcludeDivTax());
   }
 
- 
-
   @Override
   public void deleteMyDataAndUserAccount() throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -190,50 +191,32 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   }
 
   public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
-    Resource resourceDdl = resourceLoader.getResource("classpath:db/migration/gt_ddl.sql");
-    
+    String ddlFileName = "gt_ddl.sql";
+    Resource resourceDdl = resourceLoader.getResource("classpath:db/migration/" + ddlFileName);
+
     StringBuilder sqlStatement = new MySqlExportMyData(jdbcTemplate).exportDataMyData();
-
-    File tempSqlStatement = File.createTempFile("gt_data", ".sql");
-
-    // Delete temp file when program exits.
-    tempSqlStatement.deleteOnExit();
-
-    // Write to temp file
-    try (BufferedWriter out = new BufferedWriter(new FileWriter(tempSqlStatement))) {
-      out.write(sqlStatement.toString());
-
-    } catch (IOException e) {
-      throw e;
-    }
 
     // setting headers
     response.setStatus(HttpServletResponse.SC_OK);
     response.addHeader("Content-Disposition", "attachment; filename=\"gt.zip\"");
 
     ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
-
-    // create a list to add files to be zipped
-    ArrayList<File> files = new ArrayList<>(1);
-    files.add(resourceDdl.getFile());
-    files.add(tempSqlStatement);
-
-    // package files
-    for (File file : files) {
-      // new zip entry and copying inputstream with file to zipOutputStream, after all
-      // closing streams
-      zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
-      FileInputStream fileInputStream = new FileInputStream(file);
-
-      IOUtils.copy(fileInputStream, zipOutputStream);
-
-      fileInputStream.close();
-      zipOutputStream.closeEntry();
-    }
-
+    addZipEntry(zipOutputStream, resourceDdl.getInputStream(), ddlFileName);
+    InputStream dmlInputStream = new ByteArrayInputStream(sqlStatement.toString().getBytes());
+    addZipEntry(zipOutputStream, dmlInputStream, "gt_data.sql");
     zipOutputStream.close();
-    tempSqlStatement.delete();
+
   }
-  
-  
+
+  private void addZipEntry(ZipOutputStream zos, InputStream in, String entryName) throws IOException {
+    byte buffer[] = new byte[16384];
+    zos.putNextEntry(new ZipEntry(entryName));
+    int length;
+    while ((length = in.read(buffer)) >= 0) {
+      zos.write(buffer, 0, length);
+    }
+    in.close();
+    zos.closeEntry();
+  }
+
 }
