@@ -27,7 +27,6 @@ import grafioschtrader.platformimport.FormTemplateCheck;
 import grafioschtrader.repository.ImportTransactionTemplateJpaRepository;
 import grafioschtrader.repository.ImportTransactionTemplateJpaRepositoryCustom.SuccessFailedImportTransactionTemplate;
 import grafioschtrader.repository.TradingPlatformPlanJpaRepository;
-import grafioschtrader.repository.ImportTransactionHeadJpaRepositoryImpl.SuccessFailedDirectImportTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
