@@ -179,7 +179,7 @@ public class TaskDataChange {
   public void setProgressStateType(ProgressStateType progressStateType) {
     this.progressStateType = progressStateType.getValue();
   }
-
+/*
   public String getFailedMessageCode() {
     return failedMessageCode;
   }
@@ -187,7 +187,7 @@ public class TaskDataChange {
   public void setFailedMessageCode(String failedMessageCode) {
     this.failedMessageCode = failedMessageCode;
   }
-
+*/
   public void finishedJob(LocalDateTime startTime, ProgressStateType progressStateType) {
     this.progressStateType = progressStateType.getValue();
     this.execStartTime = startTime;

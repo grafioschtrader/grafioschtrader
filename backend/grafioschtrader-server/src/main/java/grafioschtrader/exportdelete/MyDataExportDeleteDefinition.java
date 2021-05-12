@@ -36,6 +36,7 @@ import grafioschtrader.entities.ProposeRequest;
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityDerivedLink;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
@@ -99,6 +100,8 @@ public class MyDataExportDeleteDefinition {
   private static String SECURITY_SELECT = "s.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency WHERE w.id_tenant = ? UNION SELECT s.* FROM security s WHERE s.id_tenant_private = 7 UNION SELECT DISTINCT s.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency WHERE t.id_tenant = ? UNION SELECT DISTINCT s1.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE w.id_tenant = ? AND sc.dtype = 'S' UNION SELECT s1.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE s.id_tenant_private = ? AND sc.dtype = 'S' UNION SELECT DISTINCT s1.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'S'";
 
   private static String SECURITY_DELETE = "FROM security WHERE id_tenant_private = ?";
+  
+  private static String SECURITY_DERIVED_LINK = "sdl.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN security s ON wsc.id_securitycurrency = s.id_securitycurrency JOIN security_derived_link sdl ON sdl.id_securitycurrency = s.id_securitycurrency WHERE w.id_tenant = ? UNION SELECT sdl.* FROM security s JOIN securitycurrency sc ON s.id_securitycurrency = sc.id_securitycurrency JOIN security_derived_link sdl ON sdl.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?";
 
   private static String SECURITYSPLIT_SELECT = "DISTINCT ss.* FROM securitysplit ss JOIN watchlist_sec_cur ws ON ws.id_securitycurrency = ss.id_securitycurrency JOIN watchlist w ON w.id_watchlist = ws.id_watchlist WHERE w.id_tenant = ? UNION SELECT ss.* FROM securitysplit ss JOIN security s ON ss.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ? UNION SELECT DISTINCT ss.* FROM transaction t JOIN securitysplit ss ON t.id_securitycurrency = ss.id_securitycurrency WHERE t.id_tenant = ?";
 
@@ -168,6 +171,7 @@ public class MyDataExportDeleteDefinition {
           DELETE_USE | CHANGE_USER_ID),
       new ExportDefinition(Security.TABNAME, TENANT_USER.ID_TENANT, SECURITY_DELETE, DELETE_USE),
       new ExportDefinition(Security.TABNAME, TENANT_USER.ID_TENANT, SECURITY_SELECT, EXPORT_USE),
+      new ExportDefinition(SecurityDerivedLink.TABNAME, TENANT_USER.ID_TENANT, SECURITY_DERIVED_LINK, EXPORT_USE),
       new ExportDefinition(Securitysplit.TABNAME, TENANT_USER.ID_TENANT, SECURITYSPLIT_SELECT, EXPORT_USE),
       new ExportDefinition(Securitysplit.TABNAME, TENANT_USER.ID_TENANT, SECURITYSPLIT_DELETE, DELETE_USE),
       new ExportDefinition(Dividend.TABNAME, TENANT_USER.ID_TENANT, DIVIDEND_SELECT, EXPORT_USE),

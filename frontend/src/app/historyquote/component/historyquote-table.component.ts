@@ -81,7 +81,8 @@ import {DialogService} from 'primeng/dynamicdialog';
                                             [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
                               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-calendar #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat" (onSelect)="filter($event)"
-                                            (onInput)="filter(cal.value)" >
+                                            monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
+                                            (onInput)="filter(cal.value)">
                                 </p-calendar>
                               </ng-template>
                             </p-columnFilter>
