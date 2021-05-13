@@ -58,12 +58,13 @@ public class Assetclass extends Auditable implements Serializable {
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT,
             SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
             SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.CFD,
-            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
+            SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.FIXED_INCOME,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT,
             SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
-            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
+            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,  
+            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.MONEY_MARKET,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT,
@@ -72,15 +73,17 @@ public class Assetclass extends Auditable implements Serializable {
     possibleInstrumentsMap.put(AssetclassType.COMMODITIES,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT,
             SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
-            SpecialInvestmentInstruments.CFD, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
+            SpecialInvestmentInstruments.CFD, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,  
+            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.REAL_ESTATE,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
-            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
+            SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
-    possibleInstrumentsMap.put(AssetclassType.MULIT_ASSET,
+    possibleInstrumentsMap.put(AssetclassType.MULTI_ASSET,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
-            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
+            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, 
+            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.CONVERTIBLE_BOND,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT,
@@ -89,10 +92,11 @@ public class Assetclass extends Auditable implements Serializable {
 
     possibleInstrumentsMap.put(AssetclassType.CREDIT_DERIVATIVE,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
-            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
+            SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.CURRENCY_PAIR,
-        new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.FOREX });
+        new SpecialInvestmentInstruments[] {SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, 
+            SpecialInvestmentInstruments.FOREX });
 
   }
 

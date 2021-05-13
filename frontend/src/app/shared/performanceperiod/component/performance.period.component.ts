@@ -93,8 +93,9 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   ngOnInit(): void {
     this.idPortfolio = +this.activatedRoute.snapshot.paramMap.get('id');
     this.createInputFormDefinition();
-
+    this.loading = true;
     this.holdingService.getFirstAndMissingTradingDays(this.idPortfolio).subscribe((famtd: FirstAndMissingTradingDays) => {
+      this.loading = false;
       if (famtd.firstEverTradingDay) {
         this.firstAndMissingTradingDays = famtd;
 

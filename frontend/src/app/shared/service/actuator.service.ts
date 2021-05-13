@@ -18,7 +18,6 @@ export class ActuatorService extends BaseService {
       this.getHeaders());
   }
 
-
   public isServerRunning(): Observable<ActuatorHealth> {
     return <Observable<ActuatorHealth>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.ACTUATOR}/health`,
@@ -31,8 +30,8 @@ export interface ActuatorHealth {
 
 }
 export class Users {
-  allowed: string;
-  active: string;
+  allowed: number;
+  active: number;
 }
 
 

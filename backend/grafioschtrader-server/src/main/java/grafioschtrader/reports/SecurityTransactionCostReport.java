@@ -19,7 +19,6 @@ import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 // import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
-import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 // import grafioschtrader.task.RepTreeWeka;
 import grafioschtrader.types.AssetclassType;

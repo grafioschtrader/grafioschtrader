@@ -32,7 +32,6 @@ import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 import grafioschtrader.reportviews.account.CashaccountPositionSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionCurrenyGroupSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
-import grafioschtrader.repository.CashaccountJpaRepository;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;

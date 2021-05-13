@@ -3,10 +3,16 @@ package grafioschtrader.connector.instrument;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import grafioschtrader.entities.Historyquote;
 
 public class FeedConnectorHelper {
+
+  private static final Logger log = LoggerFactory.getLogger(FeedConnectorHelper.class);
 
   public static Double parseDoubleGE(String item) {
     final String text = item.replace(".", "").replace(",", ".");
@@ -35,6 +41,20 @@ public class FeedConnectorHelper {
       historyquote.setVolume(FeedConnectorHelper.parseLongGE(item[5]));
     }
     return historyquote;
+  }
+
+  public static List<Historyquote> checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(Date fromDate, Date toDate,
+      List<Historyquote> historyquotes, String instrumentName) {
+    for (int i = 0; !historyquotes.isEmpty() && i < historyquotes.size(); i+= historyquotes.size() - 1) {
+      Historyquote historyquote = historyquotes.get(i);
+      if (historyquote.getDate().before(fromDate) || historyquote.getDate().after(toDate)) {
+        log.warn("Removed historyquote with date {} from instrument {}. Date range was {}-{}", historyquote.getDate(),
+            instrumentName, fromDate, toDate);
+        historyquotes.remove(i);
+      }
+    }
+    return historyquotes;
+
   }
 
 }

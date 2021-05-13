@@ -47,11 +47,12 @@ export class LoginService extends BaseAuthService<User> {
   }
 
 
-  aftersuccessfully(token: string, configurationWithLogin: ConfigurationWithLogin): void {
+  aftersuccessfully(token: string, singleUserMode: boolean, configurationWithLogin: ConfigurationWithLogin): void {
     this.gps.clearValues();
     const number = 1000.45;
 
     const responseClaim = this.parseToken(token);
+    sessionStorage.setItem(GlobalSessionNames.SINGLE_USER_MODE, JSON.stringify(singleUserMode));
     sessionStorage.setItem(GlobalSessionNames.ID_TENANT, responseClaim.idTenant);
     sessionStorage.setItem(GlobalSessionNames.ID_USER, responseClaim.idUser);
     sessionStorage.setItem(GlobalSessionNames.LOCALE, responseClaim.localeStr);
@@ -75,6 +76,7 @@ export class LoginService extends BaseAuthService<User> {
     const entityNameWithKeyNameMap = configurationWithLogin.entityNameWithKeyNameList.reduce(
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));
+
   }
 
   logout(): void {

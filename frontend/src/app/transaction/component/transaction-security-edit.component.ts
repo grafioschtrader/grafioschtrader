@@ -319,10 +319,22 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   private setCurrencyPrefixOnFields(currencySecurity: string, currencyCashaccount): void {
     currencySecurity && Object.values(this.flattenFieldConfigObject).filter(fieldConfig => fieldConfig.userDefinedValue === 'S')
-      .map(fc => fc.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(currencySecurity));
+      .map(fc => {
+        fc.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(currencySecurity);
+       /*
+        DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_MAX_INTEGER_DIGITS,
+          this.gps.getCurrencyPrecision(currencySecurity));
+        */
+      });
     currencyCashaccount &&
     Object.values(this.flattenFieldConfigObject).filter(fieldConfig => fieldConfig.userDefinedValue === 'C')
-      .map(fc => fc.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.currencyCashaccount));
+      .map(fc => {
+        fc.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.currencyCashaccount);
+/*
+        DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_MAX_INTEGER_DIGITS,
+          this.gps.getCurrencyPrecision(this.currencyCashaccount));
+*/
+      });
 
   }
 

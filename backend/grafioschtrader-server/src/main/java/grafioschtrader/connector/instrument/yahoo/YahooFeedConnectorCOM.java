@@ -45,6 +45,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
@@ -190,7 +191,12 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws IOException, ParseException, URISyntaxException {
-    return this.getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0);
+    if (currencyPair.getIdSecuritycurrency().equals(3879)) {
+      System.out.println("to date:" + to);
+    }
+
+    return FeedConnectorHelper.checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(from, to,
+        getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0), currencyPair.getName());
   }
 
   @Override
@@ -215,13 +221,11 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     }
     return clear;
   }
-  
+
   @Override
   protected boolean isConnectionOk(HttpURLConnection huc) {
     return !huc.getURL().getPath().contains("lookup");
   }
-    
-  
 
   private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
       final double divider) throws IOException, URISyntaxException {
