@@ -14,6 +14,7 @@ export class User extends Auditable implements BaseID {
   mostPrivilegedRole: string;
   securityBreachCount: number;
   limitRequestExceedCount: number;
+  uiShowMyProperty: boolean;
   userEntityChangeLimitList: UserEntityChangeLimit[];
   userChangePropose: ProposeUserTask;
   userChangeLimitProposeList: ProposeUserTask[];
