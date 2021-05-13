@@ -38,8 +38,8 @@ origin  https://github.com/grafioschtrader/grafioschtrader.git (push)
 | gt6@grafioschtrader.info  | gt6  | English |
 
 <p align="center">
-    <a href="//grafioschtrader.github.io/gt-user-manual/de/gt_depot_report.png" target="_blank">
-        <img src="//grafioschtrader.github.io/gt-user-manual/de/gt_depot_report.png">
+    <a href="https://grafioschtrader.github.io/gt-user-manual/de/gt_depot_report.png" target="_blank">
+        <img src="https://grafioschtrader.github.io/gt-user-manual/de/gt_depot_report.png">
     </a>
 </p>
 
