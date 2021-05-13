@@ -70,8 +70,10 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 
   private loginFormDefinition(): void {
-    this.formConfig = {labelcolumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
-      language: this.translateService.currentLang};
+    this.formConfig = {
+      labelcolumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      language: this.translateService.currentLang
+    };
     console.log('currentlang:', this.translateService.currentLang);
 
     this.applicationInfo.users;
@@ -93,7 +95,8 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   submit(value: { [name: string]: any }): void {
     this.loginService.login(value.email, value.password)
       .subscribe((response: Response) => {
-        this.loginService.aftersuccessfully(response.headers.get('x-auth-token'), (response as any).body);
+        this.loginService.aftersuccessfully(response.headers.get('x-auth-token'),
+          this.applicationInfo.users.allowed === 1, (response as any).body);
         if (this.gps.getIdTenant()) {
           // Navigate to the main view
           this.router.navigate([`/${AppSettings.MAINVIEW_KEY}`]);
@@ -126,8 +129,8 @@ export interface ConfigurationWithLogin {
   useAlgo: boolean;
   entityNameWithKeyNameList: EntityNameWithKeyName[];
   crypotcurrencies: string[];
-  standardPrecision:  {[typename: string]: number};
-  currencyPrecision: {[curreny: string]: number};
+  standardPrecision: { [typename: string]: number };
+  currencyPrecision: { [curreny: string]: number };
 }
 
 export interface EntityNameWithKeyName {

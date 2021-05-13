@@ -188,7 +188,7 @@ export class BusinessHelper {
 
   public static isMarginProduct(security: Security): boolean {
     return security.assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD]
-      || security.assetClass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR];
+      || security.assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.FOREX];
   }
 
 }

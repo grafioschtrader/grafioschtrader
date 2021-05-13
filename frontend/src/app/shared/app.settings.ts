@@ -92,6 +92,8 @@ export class AppSettings {
   // Special key words
   public static readonly PREFIX_ALGO_FIELD = 'ALGO_F_';
 
+  public static readonly OWNER_TEMPLATE = 'owner';
+
   // HELP Support
   public static readonly HELP_DOMAIN = '//grafioschtrader.github.io/gt-user-manual/';
 

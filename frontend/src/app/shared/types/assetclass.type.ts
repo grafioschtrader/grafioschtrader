@@ -4,7 +4,7 @@ export enum AssetclassType {
   MONEY_MARKET = 2,
   COMMODITIES = 3,
   REAL_ESTATE = 4,
-  MULIT_ASSET = 5,
+  MULTI_ASSET = 5,
   CONVERTIBLE_BOND = 6,
   CREDIT_DERIVATIVE = 7,
   CURRENCY_PAIR = 8,

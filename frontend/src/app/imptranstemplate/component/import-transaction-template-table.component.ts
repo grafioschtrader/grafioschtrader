@@ -16,6 +16,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {combineLatest} from 'rxjs';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * This table is controlled by a master data selection view.
@@ -42,7 +43,15 @@ import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.con
             <td *ngIf="field.visible" [style.width.px]="field.width"
                 [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-              {{getValueByPath(el, field)}}
+              <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'owner'">
+                  <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+                   {{getValueByPath(el, field)}}</span>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  {{getValueByPath(el, field)}}
+                </ng-container>
+              </ng-container>
             </td>
           </ng-container>
         </tr>
@@ -81,8 +90,9 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
       translateService, gps,
       usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
 
-    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false);
-    this.addColumnFeqH(DataType.String, 'templateCategory',  true, false,
+    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false,
+      {templateName: AppSettings.OWNER_TEMPLATE});
+    this.addColumnFeqH(DataType.String, 'templateCategory', true, false,
       {translateValues: TranslateValue.NORMAL});
 
     this.addColumn(DataType.String, 'templateFormatType', 'TEMPLATE_FORMAT', true, false,

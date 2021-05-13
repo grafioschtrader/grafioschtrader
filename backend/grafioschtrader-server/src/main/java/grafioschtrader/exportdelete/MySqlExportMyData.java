@@ -63,10 +63,10 @@ public class MySqlExportMyData extends MyDataExportDeleteDefinition {
             }
           });
 
-      if (log.isInfoEnabled()) {
-        log.info(exportDefinition.table);
+      if (log.isDebugEnabled()) {
+        log.debug(exportDefinition.table);
         for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
-          log.info("Name: {}, Type: {}", metaData.getColumnName(columnIndex), metaData.getColumnType(columnIndex));
+          log.debug("Name: {}, Type: {}", metaData.getColumnName(columnIndex), metaData.getColumnType(columnIndex));
         }
       }
       sqlStatement.append(createInsertStatements(exportDefinition, metaData, rows));
