@@ -32,6 +32,9 @@ export class ColumnConfig {
   public translateValues: TranslateValue;
   public translatedValueMap: { [key: string]: string };
   public fieldTranslated: string;
+  /**
+   * Normal used fpr a ngSwitchCase. For example, for the green/red number representation
+   */
   templateName?: string;
   minFractionDigits?: number;
   maxFractionDigits?: number;
@@ -42,10 +45,13 @@ export class ColumnConfig {
   columnGroupConfigs?: ColumnGroupConfig[];
 
   /**
-   *
+   * IFields are displayed grouped visibly for the user
    */
   fieldsetName: String;
 
+  /**
+   * If true this field will be exported when export functionality is available
+   */
   export?: boolean;
 
 

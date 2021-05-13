@@ -16,10 +16,6 @@ import {ConfirmationService, FilterService} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
-import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
-import {Security} from '../../entities/security';
-import {Currencypair} from '../../entities/currencypair';
-import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 
 /**
@@ -49,8 +45,13 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields">
               <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'owner'">
+                  <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+                   {{getValueByPath(el, field)}}</span>
+                </ng-container>
                 <ng-container *ngSwitchCase="'icon'">
-                  <svg-icon [name]="getValueByPath(el, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                  <svg-icon [name]="getValueByPath(el, field)"
+                            [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
                 </ng-container>
                 <ng-container *ngSwitchDefault>
                   {{getValueByPath(el, field)}}
@@ -95,7 +96,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
       changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.String, this.CATEGORY_TYPE, 'ASSETCLASS', true, false,
-      {translateValues: TranslateValue.NORMAL});
+      {translateValues: TranslateValue.NORMAL, templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'assetclassIcon', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getAssetclassIcon.bind(this), templateName: 'icon', width: 25});
     this.addColumn(DataType.String, 'subCategoryNLS.map.en', 'SUB_ASSETCLASS', true, false, {headerSuffix: 'EN'});

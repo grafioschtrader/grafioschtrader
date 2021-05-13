@@ -75,17 +75,11 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   tenantLimits: TenantLimit[];
 
-  // For the component Edit-Menu, it shows the same menu items as the context menu
-
-
   singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[];
   selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>;
-  // It is only used, because of changeDetection. Otherwise a direct control over contextMenu ist not required
-
 
   private routeSubscribe: Subscription;
   private subscriptionWatchlistAdded: Subscription;
-
 
   constructor(public watchlistType: WatchListType,
               protected storeKey: string,
@@ -131,7 +125,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   protected addBaseColumns(): void {
-    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {width: 200});
+    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
+      {width: 200, templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumnFeqH(DataType.String, 'securitycurrency.isin', true, true, {width: 90});
@@ -520,7 +515,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     menuItems.push({separator: true});
     menuItems.push(
       {
-        label: 'CREATE_AND_ADD_CURRENCYPAIR'  + AppSettings.DIALOG_MENU_SUFFIX, command: (e) => this.modifyOrCreateAndAddCurrencypair(null),
+        label: 'CREATE_AND_ADD_CURRENCYPAIR' + AppSettings.DIALOG_MENU_SUFFIX,
+        command: (e) => this.modifyOrCreateAndAddCurrencypair(null),
         disabled: this.reachedWatchlistLimits()
       }
     );
@@ -528,7 +524,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       if (securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist) {
         menuItems.push(
           {
-            label: 'EDIT_RECORD|CURRENCYPAIR'  + AppSettings.DIALOG_MENU_SUFFIX,
+            label: 'EDIT_RECORD|CURRENCYPAIR' + AppSettings.DIALOG_MENU_SUFFIX,
             command: (e) => this.modifyOrCreateAndAddCurrencypair(securitycurrencyPosition.securitycurrency)
           }
         );
@@ -589,7 +585,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 }
 
 export class TimeFrame {
-  constructor(public name: string, public  days: number) {
+  constructor(public name: string, public days: number) {
   }
 }
 

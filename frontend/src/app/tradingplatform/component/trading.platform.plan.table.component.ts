@@ -13,6 +13,7 @@ import {ImportTransactionPlatformService} from '../../imptranstemplate/service/i
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   template: `
@@ -34,12 +35,21 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
         <ng-template pTemplate="body" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields">
-              {{getValueByPath(el, field)}}
+              <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'owner'">
+                  <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+                   {{getValueByPath(el, field)}}</span>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  {{getValueByPath(el, field)}}
+                </ng-container>
+              </ng-container>
             </td>
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
+                     appendTo="body"></p-contextMenu>
     </div>
     <trading-platform-plan-edit *ngIf="visibleDialog"
                                 [visibleDialog]="visibleDialog"
@@ -70,7 +80,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
       usersettingsService);
 
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.en', 'PLATFORM_PLAN_NAME', true, false,
-      {headerSuffix: 'EN'});
+      {headerSuffix: 'EN', templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.de', 'PLATFORM_PLAN_NAME', true, false,
       {headerSuffix: 'DE'});
     this.addColumn(DataType.String, 'transactionFeePlan', 'TRANSACTION_FEE_PLAN', true, false,

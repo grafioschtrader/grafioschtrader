@@ -68,6 +68,9 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return sessionStorage.getItem(GlobalSessionNames.LOCALE) || 'de-CH';
   }
 
+  public isSingleUserMode(): boolean {
+    return sessionStorage.getItem(GlobalSessionNames.SINGLE_USER_MODE) === 'true';
+  }
 
   public hasRole(requiredRole: string) {
     const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
