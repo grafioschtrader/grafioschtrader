@@ -1,5 +1,5 @@
 # Moved repository from hugograf to here
-Please adjust the the GitHub repository when update scripts in use with:
+Please adjust the the GitHub repository when update scripts in use:
 ```
 # As user grafioschtrader
 cd ~/build/grafioschtrader
