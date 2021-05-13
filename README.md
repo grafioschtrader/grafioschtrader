@@ -47,7 +47,11 @@ For questions or suggestions please visit the [forum](//www.grafioschtrader.info
 
 ## Installation and Development
 For installing and for supporting the development go to the [wiki of GT](//github.com/grafioschtrader/grafioschtrader/wiki).
-![Architektur](branding/Komponenten.svg)
+<p align="center">
+    <a href="https://grafioschtrader.github.io/gt-user-manual/de/Komponenten.svg" target="_blank">
+        <img src="https://grafioschtrader.github.io/gt-user-manual/de/Komponenten.svg">
+    </a>
+</p>
 
 ### Email account
 GT requires access to an Email account for user registration. For encrypting you have to proceed according to the description of chapter [application.properties](./backend#applicationproperties).
