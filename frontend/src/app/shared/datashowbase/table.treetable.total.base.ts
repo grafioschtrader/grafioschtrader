@@ -3,6 +3,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {ColumnConfig, ColumnGroupConfig} from './column.config';
 import {AppHelper} from '../helper/app.helper';
+import {Auditable} from '../../entities/auditable';
 
 export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
   protected constructor(translateService: TranslateService,
@@ -59,6 +60,10 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
       }
     }
     return value;
+  }
+
+  public isNotSingleModeAndOwner(columnConfig: ColumnConfig, entity: Auditable): boolean {
+    return !this.gps.isSingleUserMode() && columnConfig.templateName === 'owner' && this.gps.isEntityCreatedByUser(entity);
   }
 
   getTextValueColumnTotal(columnConfig: ColumnConfig, arrIndex: number): string {

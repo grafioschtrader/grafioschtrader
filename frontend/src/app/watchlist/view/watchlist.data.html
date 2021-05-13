@@ -23,7 +23,6 @@
               [style.width.px]="field.width" pResizableColumn>
             {{field.headerTranslated}}
             <p-sortIcon [field]="field.field"></p-sortIcon>
-
           </th>
         </ng-container>
       </tr>
@@ -45,6 +44,10 @@
           <td *ngIf="field.visible" [style.width.px]="field.width"
               [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
             <ng-container [ngSwitch]="field.templateName">
+              <ng-container *ngSwitchCase="'owner'">
+                <span [style]='isNotSingleModeAndOwner(field, spl.securitycurrency)? "font-weight:500": null'
+                      [pTooltip]="getValueByPath(spl, field)" tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
+              </ng-container>
               <ng-container *ngSwitchCase="'greenRed'">
                 <span [style.color]='isValueByPathMinus(spl, field)? "red": "green"'>{{getValueByPath(spl, field)}}</span>
               </ng-container>

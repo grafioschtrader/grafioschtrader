@@ -16,13 +16,15 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+               (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple"
+               [multiSortMeta]="multiSortMeta"
                [dataKey]="entityKeyName" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{entityNameUpper | translate}}</h4>
@@ -30,7 +32,7 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width" >
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -45,6 +47,10 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
             </td>
             <td *ngFor="let field of fields">
               <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'owner'">
+                  <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+                   {{getValueByPath(el, field)}}</span>
+                </ng-container>
                 <ng-container *ngSwitchCase="'check'">
                   <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
                 </ng-container>
@@ -96,7 +102,10 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
     super('Stockexchange', stockexchangeService, confirmationService, messageToastService, activePanelService,
       dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
-    this.addColumnFeqH(DataType.String, 'name', true, false, {width: 180});
+    this.addColumnFeqH(DataType.String, 'name', true, false, {
+      width: 180,
+      templateName: AppSettings.OWNER_TEMPLATE
+    });
     this.addColumnFeqH(DataType.String, 'countryCode', true, false,
       {fieldValueFN: this.getDisplayNameForCounty.bind(this)});
     this.addColumnFeqH(DataType.String, 'symbol', true, false);
@@ -104,8 +113,8 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
       {templateName: 'check'});
     this.addColumnFeqH(DataType.Boolean, 'noMarketValue', true, false,
       {templateName: 'check'});
-    this.addColumnFeqH(DataType.TimeString, 'timeOpen',  true, false);
-    this.addColumnFeqH(DataType.TimeString, 'timeClose',  true, false);
+    this.addColumnFeqH(DataType.TimeString, 'timeOpen', true, false);
+    this.addColumnFeqH(DataType.TimeString, 'timeClose', true, false);
     this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
     this.addColumn(DataType.String, 'nameIndexUpdCalendar', 'ID_INDEX_UPD_CALENDAR', true, false, {width: 180});
     this.multiSortMeta.push({field: 'name', order: 1});
