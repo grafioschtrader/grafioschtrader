@@ -1079,6 +1079,7 @@ CREATE TABLE `task_data_change` (
   `old_value_number` double DEFAULT NULL,
   `progress_state` tinyint(1) NOT NULL,
   `failed_message_code` varchar(30) DEFAULT NULL,
+  `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1264 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1214,11 +1215,12 @@ CREATE TABLE `user` (
   `id_user` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) DEFAULT NULL,
   `nickname` varchar(30) NOT NULL,
-  `email` varchar(30) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `locale` varchar(5) NOT NULL,
   `timezone_offset` int(11) NOT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `ui_show_my_property` tinyint(1) NOT NULL DEFAULT 1,
   `security_breach_count` smallint(6) NOT NULL DEFAULT 0,
   `limit_request_exceed_count` smallint(6) NOT NULL DEFAULT 0,
   `created_by` int(11) NOT NULL,
@@ -1605,4 +1607,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-05-13 10:12:10
+-- Dump completed on 2021-05-13 12:00:30
