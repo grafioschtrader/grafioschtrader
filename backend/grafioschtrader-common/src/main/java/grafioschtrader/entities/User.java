@@ -104,7 +104,12 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Column(name = "limit_request_exceed_count")
   @PropertyAlwaysUpdatable
   private short limitRequestExceedCount;
+  
+  @Column(name = "ui_show_my_property")
+  @PropertyAlwaysUpdatable
+  private boolean uiShowMyProperty;
 
+  
   @Transient
   @PropertyAlwaysUpdatable
   private String mostPrivilegedRole;
@@ -326,6 +331,14 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   public void setLocaleStr(String localeStr) {
     this.localeStr = localeStr;
   }
+  
+  public boolean isUiShowMyProperty() {
+    return uiShowMyProperty;
+  }
+
+  public void setUiShowMyProperty(boolean uiShowMyProperty) {
+    this.uiShowMyProperty = uiShowMyProperty;
+  }
 
   @JsonIgnore
   public void checkAndSetLocaleStr(String localeStr) {
@@ -348,6 +361,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
     return enabled;
   }
 
+  
   @Validated(AdminModify.class)
   public void setEnabled(final boolean enabled) {
     this.enabled = enabled;

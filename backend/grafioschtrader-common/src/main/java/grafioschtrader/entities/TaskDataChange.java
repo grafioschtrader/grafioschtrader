@@ -81,6 +81,9 @@ public class TaskDataChange {
 
   @Column(name = "failed_message_code")
   private String failedMessageCode;
+  
+  @Column(name = "failed_stack_trace")
+  private String failedStackTrace;
 
   public TaskDataChange() {
   }
@@ -179,7 +182,7 @@ public class TaskDataChange {
   public void setProgressStateType(ProgressStateType progressStateType) {
     this.progressStateType = progressStateType.getValue();
   }
-/*
+
   public String getFailedMessageCode() {
     return failedMessageCode;
   }
@@ -187,7 +190,15 @@ public class TaskDataChange {
   public void setFailedMessageCode(String failedMessageCode) {
     this.failedMessageCode = failedMessageCode;
   }
-*/
+  
+  public String getFailedStackTrace() {
+    return failedStackTrace;
+  }
+
+  public void setFailedStackTrace(String failedStackTrace) {
+    this.failedStackTrace = failedStackTrace;
+  }
+
   public void finishedJob(LocalDateTime startTime, ProgressStateType progressStateType) {
     this.progressStateType = progressStateType.getValue();
     this.execStartTime = startTime;
