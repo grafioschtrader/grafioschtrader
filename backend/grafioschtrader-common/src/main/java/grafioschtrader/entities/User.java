@@ -60,7 +60,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   private Integer idUser;
 
   @NotNull
-  @Size(min = 4, max = 30)
+  @Size(min = 4, max = 255)
   @Pattern(regexp = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
   private String email;
 

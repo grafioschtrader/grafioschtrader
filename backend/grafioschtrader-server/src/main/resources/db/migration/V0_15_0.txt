@@ -1,3 +1,5 @@
+ALTER TABLE `user` CHANGE `email` `email` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL; 
+
 ALTER TABLE `task_data_change` DROP COLUMN IF EXISTS `failed_stack_trace`;
 ALTER TABLE `task_data_change` ADD `failed_stack_trace` VARCHAR(4096) NULL AFTER `failed_message_code`; 
 
