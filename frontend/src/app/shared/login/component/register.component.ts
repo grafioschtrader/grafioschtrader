@@ -78,7 +78,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('nickname', 30, true,
         {minLength: 2}),
-      DynamicFieldHelper.createFieldInputStringVSHeqF('email', 30, true, [VALIDATION_SPECIAL.EMail]),
+      DynamicFieldHelper.createFieldInputStringVSHeqF('email', 255, true, [VALIDATION_SPECIAL.EMail]),
       {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
       DynamicFieldHelper.createFieldSelectString('localeStr', 'LOCALE', true,
         {inputWidth: 10}),
