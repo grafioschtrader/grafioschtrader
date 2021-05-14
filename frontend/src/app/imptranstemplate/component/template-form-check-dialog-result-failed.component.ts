@@ -47,10 +47,10 @@ export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBas
   }
 
   ngOnInit(): void {
-    this.addColumn(DataType.String, 'templatePurpose', 'TEMPLATE_PURPOSE', true, false, {width: 250});
-    this.addColumn(DataType.DateString, 'validSince', 'VALID_SINCE', true, false, {width: 70});
-    this.addColumn(DataType.String, 'localeStr', 'LOCALE', true, false, {width: 70});
-    this.addColumn(DataType.String, 'lastMatchingProperty', 'LAST_MATCHING_PROPERTY', true, false, {width: 100});
+    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {width: 250});
+    this.addColumnFeqH(DataType.DateString, 'validSince', true, false, {width: 70});
+    this.addColumnFeqH(DataType.String, 'localeStr',  true, false, {width: 70});
+    this.addColumnFeqH(DataType.String, 'lastMatchingProperty', true, false, {width: 100});
     this.addColumn(DataType.String, 'errorMessage', 'ERROR', true, false);
 
     this.prepareTableAndTranslate();

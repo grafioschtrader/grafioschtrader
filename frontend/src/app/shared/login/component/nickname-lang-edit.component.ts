@@ -43,10 +43,9 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
     this.config = [
-      DynamicFieldHelper.createFieldInputStringHeqF('nickname', 30, true,
-        {minLength: 2}),
-      DynamicFieldHelper.createFieldSelectString('localeStr', 'LOCALE', true,
-        {inputWidth: 10}),
+      DynamicFieldHelper.createFieldInputStringHeqF('nickname', 30, true, {minLength: 2}),
+      DynamicFieldHelper.createFieldSelectStringHeqF('localeStr', true, {inputWidth: 10}),
+      DynamicFieldHelper.createFieldCheckboxHeqF('uiShowMyProperty'),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

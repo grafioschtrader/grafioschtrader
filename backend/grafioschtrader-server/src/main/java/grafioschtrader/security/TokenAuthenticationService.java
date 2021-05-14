@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 
 @Service
@@ -63,7 +64,7 @@ public class TokenAuthenticationService {
     final UserDetails user = authentication.getDetails();
     response.addHeader(AUTH_HEADER_NAME, jwtTokenHandler.createTokenForUser(user));
     PrintWriter out = response.getWriter();
-    jacksonObjectMapper.writeValue(out, getPublicEntitiesAsHtmlSelectOptions());
+    jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(((User) user).isUiShowMyProperty()));
   }
 
   /**
@@ -104,12 +105,10 @@ public class TokenAuthenticationService {
   }
 
   @Transactional
-  public ConfigurationWithLogin getPublicEntitiesAsHtmlSelectOptions() {
+  public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty) {
     Map<String, Integer> standardPrecision = new HashMap<>();
     ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(useWebsockt, useAlgo,
-        globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision);
-   
-    
+        globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision, uiShowMyProperty);
     
     Field[] fields = GlobalConstants.class.getDeclaredFields();
     for (Field f : fields) {
@@ -142,14 +141,16 @@ public class TokenAuthenticationService {
     public static final List<String> crypotcurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
     public final Map<String, Integer> currencyPrecision; 
     public final Map<String, Integer> standardPrecision;
+    public final boolean uiShowMyProperty;
       
 
     public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo, Map<String, Integer> currencyPrecision,
-        Map<String, Integer> standardPrecision) {
+        Map<String, Integer> standardPrecision, boolean uiShowMyProperty) {
       this.useWebsocket = useWebsocket;
       this.useAlgo = useAlgo;
       this.currencyPrecision = currencyPrecision;
       this.standardPrecision = standardPrecision;
+      this.uiShowMyProperty = uiShowMyProperty;
     }
   }
 
