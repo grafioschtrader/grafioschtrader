@@ -14,6 +14,9 @@ import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.compo
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
 import {TranslateHelper} from '../../helper/translate.helper';
 
+/**
+ * Change the password with a dialog.
+ */
 @Component({
   selector: 'password-edit',
   template: `

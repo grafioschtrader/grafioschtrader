@@ -80,7 +80,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
         {minLength: 2}),
       DynamicFieldHelper.createFieldInputStringVSHeqF('email', 255, true, [VALIDATION_SPECIAL.EMail]),
       {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
-      DynamicFieldHelper.createFieldSelectString('localeStr', 'LOCALE', true,
+      DynamicFieldHelper.createFieldSelectStringHeqF('localeStr', true,
         {inputWidth: 10}),
       DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) => this.router.navigate([`/${AppSettings.LOGIN_KEY}`])),
       DynamicFieldHelper.createSubmitButton('REGISTRATION')

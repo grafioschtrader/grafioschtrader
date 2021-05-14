@@ -63,7 +63,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
   }
 
   public isNotSingleModeAndOwner(columnConfig: ColumnConfig, entity: Auditable): boolean {
-    return !this.gps.isSingleUserMode() && columnConfig.templateName === 'owner' && this.gps.isEntityCreatedByUser(entity);
+    return this.gps.isUiShowMyProperty() && columnConfig.templateName === 'owner' && this.gps.isEntityCreatedByUser(entity);
   }
 
   getTextValueColumnTotal(columnConfig: ColumnConfig, arrIndex: number): string {

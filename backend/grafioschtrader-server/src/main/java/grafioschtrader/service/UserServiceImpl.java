@@ -188,6 +188,7 @@ public class UserServiceImpl implements UserService {
 
     user.setNickname(userOwnProjection.nickname);
     user.checkAndSetLocaleStr(userOwnProjection.localeStr);
+    user.setUiShowMyProperty(userOwnProjection.uiShowMyProperty);
     userJpaRepository.save(user);
     return new SuccessfullyChanged(true,
         messages.getMessage("locale.nickname.success", null, user.createAndGetJavaLocale()));

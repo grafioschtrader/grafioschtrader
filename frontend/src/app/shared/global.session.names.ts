@@ -18,7 +18,7 @@ export enum GlobalSessionNames {
   TAB_MENU_TENANT = 'tabMenuTenant',
   TAB_MENU_PORTFOLIO = 'tabMenuPortfolio',
   PERFORMANCE_DATE_FROM = 'performanceDateFrom',
-  STANDARD_PRECISION = 'starndardPrecision',
+  STANDARD_PRECISION = 'standardPrecision',
   CURRENCY_PRECISION = 'currencyPrecision',
-  SINGLE_USER_MODE = 'singleUserMade'
+  UI_SHOW_MY_PROPERTY = 'uiShowMyProperty'
 }

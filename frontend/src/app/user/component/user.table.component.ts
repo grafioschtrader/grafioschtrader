@@ -155,7 +155,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.Boolean, 'enabled', true, false,
       {templateName: 'check'});
-    this.addColumn(DataType.String, 'localeStr', 'LOCALE', true, false);
+    this.addColumnFeqH(DataType.String, 'localeStr', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'timezoneOffset', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'securityBreachCount', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'limitRequestExceedCount', true, false);
