@@ -16,6 +16,7 @@ import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dyna
 import {MailInOutTable} from './mail.in.out.table';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   templateUrl: '../view/mail.in.out.table.html',
@@ -37,7 +38,7 @@ export class MailInboxTableComponent extends MailInOutTable<MailInbox> implement
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(router, 'receivedTime', 'MailInbox', mailInboxService, confirmationService, messageToastService, activePanelService,
+    super(router, 'receivedTime', AppSettings.MAIL_INBOX, mailInboxService, confirmationService, messageToastService, activePanelService,
       dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     this.addColumnFeqH(DataType.String, 'idUserFrom', true, false, {width: 50});

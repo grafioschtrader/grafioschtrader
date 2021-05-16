@@ -23,23 +23,23 @@ export class AlgoStrategyService extends AuthServiceWithLogout<AlgoStrategy> imp
 
   getUnusedStrategiesForManualAdding(idAlgoAssetclassSecurity: number): Observable<AlgoStrategyImplementations[]> {
     return <Observable<AlgoStrategyImplementations[]>>
-      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY}/unusedsrategies/${idAlgoAssetclassSecurity}`,
+      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/unusedsrategies/${idAlgoAssetclassSecurity}`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
 
   getFormDefinitionsByAlgoStrategy(algoStrategyImplementations: AlgoStrategyImplementations): Observable<InputAndShowDefinitionStrategy> {
     return <Observable<InputAndShowDefinitionStrategy>>
-      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY}/form/${algoStrategyImplementations}`,
+      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/form/${algoStrategyImplementations}`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(algoStrategy: AlgoStrategy): Observable<AlgoStrategy> {
-    return this.updateEntity(algoStrategy, algoStrategy.idAlgoRuleStrategy, AppSettings.ALGO_STRATEGY);
+    return this.updateEntity(algoStrategy, algoStrategy.idAlgoRuleStrategy, AppSettings.ALGO_STRATEGY_KEY);
   }
 
   public deleteEntity(idAlgoStrategy: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY}/${idAlgoStrategy}`,
+    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/${idAlgoStrategy}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 }

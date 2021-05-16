@@ -19,31 +19,31 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'securitycurrency-extended-info',
   template: `
-      <div class="fcontainer">
-          <fieldset *ngFor="let fieldSetName of Object.keys(fieldSetGroups)" class="out-border fbox">
-              <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
-              <div *ngFor="let field of fieldSetGroups[fieldSetName]" class="row">
-                  <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel" align="right">
-                      {{field.headerTranslated}}:
-                  </div>
-                  <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap">
-                      <ng-container [ngSwitch]="field.templateName">
-                          <ng-container *ngSwitchCase="'greenRed'">
+    <div class="fcontainer">
+      <fieldset *ngFor="let fieldSetName of Object.keys(fieldSetGroups)" class="out-border fbox">
+        <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
+        <div *ngFor="let field of fieldSetGroups[fieldSetName]" class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel" align="right">
+            {{field.headerTranslated}}:
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap">
+            <ng-container [ngSwitch]="field.templateName">
+              <ng-container *ngSwitchCase="'greenRed'">
                               <span [style.color]='isValueByPathMinus(content, field)? "red": "green"'>
                                   {{getValueByPath(securitycurrency, field)}}
                               </span>
-                          </ng-container>
-                          <ng-container *ngSwitchCase="'check'">
-                              <span><i [ngClass]="{'fa fa-check': getValueByPath(content, field)}" aria-hidden="true"></i></span>
-                          </ng-container>
-                          <ng-container *ngSwitchDefault>
-                              {{getValueByPath(content, field)}}
-                          </ng-container>
-                      </ng-container>
-                  </div>
-              </div>
-          </fieldset>
-      </div>
+              </ng-container>
+              <ng-container *ngSwitchCase="'check'">
+                <span><i [ngClass]="{'fa fa-check': getValueByPath(content, field)}" aria-hidden="true"></i></span>
+              </ng-container>
+              <ng-container *ngSwitchDefault>
+                {{getValueByPath(content, field)}}
+              </ng-container>
+            </ng-container>
+          </div>
+        </div>
+      </fieldset>
+    </div>
   `
 })
 export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBase implements OnInit {
@@ -86,14 +86,15 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
     this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'name',
       {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
 
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.categoryType', 'ASSETCLASS',
+    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(),
       {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT',
       {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.subCategoryNLS.map.'
       + this.gps.getUserLang(),
       'SUB_ASSETCLASS', {fieldsetName: 'BASE_DATA'});
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'stockexchange.name', 'STOCKEXCHANGE', {fieldsetName: 'BASE_DATA'});
+    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'stockexchange.name', AppSettings.STOCKEXCHANGE.toUpperCase(),
+      {fieldsetName: 'BASE_DATA'});
 
     this.addFieldProperty(DataType.Boolean, this.SECURITYCURRENCY + 'isTenantPrivate', 'PRIVATE_SECURITY', {
       fieldsetName: 'BASE_DATA', templateName: 'check'
@@ -113,7 +114,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
       {fieldsetName: 'BASE_DATA'});
     this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'distributionFrequency',
       {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
-    this.addFieldProperty(DataType.Boolean, this.SECURITYCURRENCY + 'shortSecurity', 'SHORT_SECURITY', {
+    this.addFieldPropertyFeqH(DataType.Boolean, this.SECURITYCURRENCY + 'shortSecurity',  {
       fieldsetName: 'BASE_DATA', templateName: 'check'
     });
     this.addNoteField();
@@ -155,7 +156,9 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
           const varName = match[1];
           const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + varName;
           this.addFieldProperty(DataType.String, fieldName, 'ADDITIONAL_INSTRUMENT_NAME', {
-            fieldValueFN: this.getDerivedValues.bind(this), fieldsetName: this.DERIVED_DATA, headerSuffix: `(${varName})`
+            fieldValueFN: this.getDerivedValues.bind(this),
+            fieldsetName: this.DERIVED_DATA,
+            headerSuffix: `(${varName})`
           });
         }
         match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(security.formulaPrices);
@@ -193,15 +196,21 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
   private addHistoricalIntraday(): void {
     this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlHistoryExtend',
       {fieldsetName: 'HISTORY_SETTINGS'});
-    this.addFieldPropertyFeqH(DataType.String, 'historicalUrl',  {fieldsetName: 'HISTORY_SETTINGS'});
-    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlIntraExtend',  {fieldsetName: 'INTRA_SETTINGS'});
-    this.addFieldPropertyFeqH(DataType.String, 'intradayUrl',  {fieldsetName: 'INTRA_SETTINGS'});
-    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'idConnectorDividend',  {fieldsetName: AppSettings
-        .DIVIDEND_SETTINGS});
-    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlDividendExtend',  {fieldsetName: AppSettings
-        .DIVIDEND_SETTINGS});
-    this.addFieldPropertyFeqH(DataType.String, 'dividendUrl',  {fieldsetName: AppSettings
-        .DIVIDEND_SETTINGS});
+    this.addFieldPropertyFeqH(DataType.String, 'historicalUrl', {fieldsetName: 'HISTORY_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlIntraExtend', {fieldsetName: 'INTRA_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, 'intradayUrl', {fieldsetName: 'INTRA_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'idConnectorDividend', {
+      fieldsetName: AppSettings
+        .DIVIDEND_SETTINGS
+    });
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlDividendExtend', {
+      fieldsetName: AppSettings
+        .DIVIDEND_SETTINGS
+    });
+    this.addFieldPropertyFeqH(DataType.String, 'dividendUrl', {
+      fieldsetName: AppSettings
+        .DIVIDEND_SETTINGS
+    });
   }
 
 }

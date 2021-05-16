@@ -156,12 +156,12 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.addColumn(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', true, false, {width: 60});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionType', 'TRANSACTION_TYPE_IMP', true, false,
       {width: 60, translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccount.name', 'ACCOUNT', true, false);
-
+    this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccount.name', AppSettings.CASHACCOUNT.toUpperCase(),
+      true, false);
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyExRate', 'EXCHANGE_RATE', true, true);
     this.addColumnFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'isin', true, true, {width: 100});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'symbolImp', 'SYMBOL', true, true);
-    this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'security.name', 'SECURITY', true, true,
+    this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'security.name', AppSettings.SECURITY.toUpperCase(), true, true,
       {width: 200});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyAccount', 'ACCOUNT_CURRENCY', true, false);
     this.addColumn(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'units', 'QUANTITY', true, false);

@@ -36,6 +36,7 @@ import {SecurityHistoryquotePeriodEditTableComponent} from './security-historyqu
 import {HistoryquotePeriodService} from '../service/historyquote.period.service';
 import {Securitysplit} from '../../entities/dividend.split';
 import {Helper} from '../../helper/helper';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Edit a security with possible security split and history quote period
@@ -218,7 +219,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     const security = this.securityEditSupport.prepareForSave(this, this.proposeChangeEntityWithEntity,
       <Security>this.securityCurrencypairCallParam, this.dynamicForm, value);
     this.securityService.update(security).subscribe(newSecurity => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'SECURITY'});
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
       let savedDepending = false;
       if (this.securityEditSupport.hasMarketValue) {
         if (this.canHaveSplits && this.seetc) {
@@ -348,7 +349,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     const provider: IFeedConnector[] = this.feedPriceConnectors.filter(feedConnector =>
       !!feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]]);
     fieldConfig.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('id', 'readableName', provider, true);
-
   }
 
 }

@@ -85,9 +85,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('transactionType', true),
       FormDefinitionHelper.getTransactionTime(),
-      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', 'ACCOUNT', true,
+      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), true,
         {dataproperty: 'cashaccount.idSecuritycashAccount'}),
-      DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', 'SECURITYACCOUNT', false,
+      DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', AppSettings.SECURITYACCOUNT.toUpperCase(), false,
         {invisible: true}),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
@@ -214,7 +214,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     }
 
     this.transactionService.updateCreateSingleCashTrans(transaction).subscribe(newTransaction => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'TRANSACTION'});
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
+        {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
       this.closeDialog.emit(new ProcessedActionData(transaction.idTransaction ? ProcessedAction.UPDATED
         : ProcessedAction.CREATED, newTransaction));
     }, () => this.configObject.submit.disabled = false);

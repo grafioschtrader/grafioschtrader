@@ -12,6 +12,7 @@ import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Component for editing the portfolio.
@@ -19,7 +20,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 @Component({
   selector: 'portfolio-edit',
   template: `
-    <p-dialog header="{{'PORTFOLIO' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -36,7 +37,7 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               portfolioService: PortfolioService) {
-    super(HelpIds.HELP_PROTFOLIO, 'PORTFOLIO', translateService, gps, messageToastService, portfolioService);
+    super(HelpIds.HELP_PORTFOLIO, AppSettings.PORTFOLIO.toUpperCase(), translateService, gps, messageToastService, portfolioService);
   }
 
   ngOnInit(): void {
@@ -45,7 +46,7 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'PORTFOLIO_NAME', 25, true),
-      DynamicFieldHelper.createFieldSelectString('currency', 'CURRENCY', true),
+      DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

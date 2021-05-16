@@ -16,6 +16,7 @@ import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.ed
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 
 @Component({
@@ -48,7 +49,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectString('assetclass', 'ASSETCLASS', true,
+      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.ASSETCLASS_KEY,  true,
         {dataproperty: 'assetclass.idAssetClass'}),
       ...this.getFieldDefinition()
     ];

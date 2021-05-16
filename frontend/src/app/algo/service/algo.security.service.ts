@@ -20,11 +20,11 @@ export class AlgoSecurityService extends AuthServiceWithLogout<AlgoSecurity> imp
   }
 
   public update(algoSecurity: AlgoSecurity): Observable<AlgoSecurity> {
-    return this.updateEntity(algoSecurity, algoSecurity.idAlgoAssetclassSecurity, AppSettings.ALGO_SECURITY);
+    return this.updateEntity(algoSecurity, algoSecurity.idAlgoAssetclassSecurity, AppSettings.ALGO_SECURITY_KEY);
   }
 
   public deleteEntity(idAlgoAssetclassSecurity: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY}/${idAlgoAssetclassSecurity}`,
+    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/${idAlgoAssetclassSecurity}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

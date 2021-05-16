@@ -19,7 +19,7 @@ export class ProposeChangeTabMenuComponent implements OnInit {
       {label: 'CHANGE_REQUESTS_FOR_YOU', command: (event) => this.navigateToChangeRequest(true)},
       {
         label: 'YOUR_CHANGE_REQUESTS',
-        command: (event) => this.router.navigate([AppSettings.PROPOSE_CHANGE_YOUR_PROPOSALE_KEY],
+        command: (event) => this.router.navigate([AppSettings.PROPOSE_CHANGE_YOUR_PROPOSAL_KEY],
           {relativeTo: this.activatedRoute})
       }
     ];

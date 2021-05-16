@@ -58,12 +58,12 @@ export class SecurityEditSupport {
 
     fc.push(DynamicFieldHelper.createFieldInputStringHeqF('name', 80, true,
       {minLength: 2, fieldsetName: 'BASE_DATA'}));
-    fc.push(DynamicFieldHelper.createFieldSelectNumber('assetClass', 'ASSETCLASS', true,
+    fc.push(DynamicFieldHelper.createFieldSelectNumber('assetClass', AppSettings.ASSETCLASS.toUpperCase(), true,
       {dataproperty: 'assetClass.idAssetClass', fieldsetName: 'BASE_DATA'}));
 
     fc.push(DynamicFieldHelper.createFieldCheckbox('isTenantPrivate', 'PRIVATE_SECURITY', {fieldsetName: 'BASE_DATA'}));
 
-    fc.push(DynamicFieldHelper.createFieldSelectNumberHeqF('stockexchange', true,
+    fc.push(DynamicFieldHelper.createFieldSelectNumberHeqF(AppSettings.STOCKEXCHANGE.toLowerCase(), true,
       {dataproperty: 'stockexchange.idStockexchange', fieldsetName: 'BASE_DATA'}));
 
     if (securityDerived === SecurityDerived.Security) {

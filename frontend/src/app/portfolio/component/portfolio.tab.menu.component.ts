@@ -21,7 +21,7 @@ export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
 
   idActiveItem = 0;
   nameRouteMapping: string[][] = [
-    ['PORTFOLIO', AppSettings.PORTFOLIO_SUMMARY_KEY],
+    [AppSettings.PORTFOLIO.toUpperCase(), AppSettings.PORTFOLIO_SUMMARY_KEY],
     ['PEROIDPERFORMANCE', AppSettings.PERFORMANCE_KEY],
     ['TRANSACTIONS', AppSettings.PORTFOLIO_TRANSACTION_KEY]
   ];

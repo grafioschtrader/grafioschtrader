@@ -99,7 +99,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super('Stockexchange', stockexchangeService, confirmationService, messageToastService, activePanelService,
+    super(AppSettings.STOCKEXCHANGE, stockexchangeService, confirmationService, messageToastService, activePanelService,
       dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {

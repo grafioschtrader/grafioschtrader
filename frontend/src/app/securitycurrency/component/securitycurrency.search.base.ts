@@ -21,6 +21,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SupplementCriteria} from '../model/supplement.criteria';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
+import {AppSettings} from '../../shared/app.settings';
 
 
 /**
@@ -71,14 +72,14 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldTriStateCheckboxHeqF('shortSecurity',
         {userDefinedValue: this.secondGroup}),
-      DynamicFieldHelper.createFieldSelectString('assetclassType', 'ASSETCLASS', false,
+      DynamicFieldHelper.createFieldSelectString('assetclassType', AppSettings.ASSETCLASS.toUpperCase(), false,
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectString('subCategoryNLS', 'SUB_ASSETCLASS', false,
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectString('specialInvestmentInstruments', 'FINANCIAL_INSTRUMENT', false,
         {userDefinedValue: this.secondGroup}),
-      DynamicFieldHelper.createFieldSelectNumber('idStockexchange', 'STOCKEXCHANGE', false, {userDefinedValue: this.secondGroup}),
-      DynamicFieldHelper.createFieldSelectStringHeqF('currency', false,
+      DynamicFieldHelper.createFieldSelectNumber('idStockexchange', AppSettings.STOCKEXCHANGE.toUpperCase(), false,
+        {userDefinedValue: this.secondGroup}), DynamicFieldHelper.createFieldSelectStringHeqF('currency', false,
         {userDefinedValue: this.secondGroup}),
     ];
     if (this.multiplyAddClose) {

@@ -158,7 +158,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         {userDefinedValue: 'S'}),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
-        this.gps.getNumberCurrencyMask(), true,{userDefinedValue: 'S'}),
+        this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S'}),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
@@ -185,10 +185,10 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       FormDefinitionHelper.getTransactionTime(true),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'exDate', false,
         {calendarConfig: {disabledDays: [0, 6]}}),
-      DynamicFieldHelper.createFieldSelectNumber('idSecuritycurrency', 'SECURITY', true,
+      DynamicFieldHelper.createFieldSelectNumber('idSecuritycurrency', AppSettings.SECURITY.toUpperCase(), true,
         {dataproperty: 'security.idSecuritycurrency'}),
-      DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', 'SECURITYACCOUNT', true),
-      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', 'CASHACCOUNT', true,
+      DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', AppSettings.SECURITYACCOUNT.toUpperCase(), true),
+      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), true,
         {dataproperty: 'cashaccount.idSecuritycashAccount'}),
       DynamicFieldHelper.createFieldCheckboxHeqF('taxableInterest', {defaultValue: true}),
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
@@ -321,19 +321,19 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     currencySecurity && Object.values(this.flattenFieldConfigObject).filter(fieldConfig => fieldConfig.userDefinedValue === 'S')
       .map(fc => {
         fc.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(currencySecurity);
-       /*
-        DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_MAX_INTEGER_DIGITS,
-          this.gps.getCurrencyPrecision(currencySecurity));
-        */
+        /*
+         DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_MAX_INTEGER_DIGITS,
+           this.gps.getCurrencyPrecision(currencySecurity));
+         */
       });
     currencyCashaccount &&
     Object.values(this.flattenFieldConfigObject).filter(fieldConfig => fieldConfig.userDefinedValue === 'C')
       .map(fc => {
         fc.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.currencyCashaccount);
-/*
-        DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_MAX_INTEGER_DIGITS,
-          this.gps.getCurrencyPrecision(this.currencyCashaccount));
-*/
+        /*
+                DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_MAX_INTEGER_DIGITS,
+                  this.gps.getCurrencyPrecision(this.currencyCashaccount));
+        */
       });
 
   }
@@ -622,7 +622,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   saveTransaction(transaction: Transaction) {
     this.transactionService.updateCreateSecurityTrans(transaction).subscribe(newTransaction => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'TRANSACTION'});
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
+          {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
         this.closeDialog.emit(new ProcessedActionData(transaction.idTransaction ? ProcessedAction.UPDATED
           : ProcessedAction.CREATED, newTransaction));
       }, () =>

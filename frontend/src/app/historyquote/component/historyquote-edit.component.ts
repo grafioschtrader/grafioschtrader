@@ -15,6 +15,7 @@ import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import * as moment from 'moment';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Edit historical quotes.
@@ -41,7 +42,7 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               historyquoteService: HistoryquoteService) {
-    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, 'HISTORYQUOTES', translateService, gps,
+    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, AppSettings.HISTORYQUOTE_P_KEY.toUpperCase(), translateService, gps,
       messageToastService, historyquoteService);
   }
 

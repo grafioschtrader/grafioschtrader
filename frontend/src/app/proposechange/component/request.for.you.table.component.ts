@@ -38,6 +38,7 @@ import {SecurityPrepareEdit} from './security.prepare.edit';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Shows the requested changes on entities in a table.
@@ -135,15 +136,15 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
 })
 export class RequestForYouTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
 
-  readonly ASSETCLASS = 'Assetclass';
-  readonly STOCKEXCHANGE = 'Stockexchange';
-  readonly IMPORT_TRANSACTION_PLATFORM = 'ImportTransactionPlatform';
-  readonly IMPORT_TRANSACTION_TEMPLATE = 'ImportTransactionTemplate';
-  readonly CURRENCYPAIR = 'Currencypair';
-  readonly SECURITY = 'Security';
+  readonly ASSETCLASS = AppSettings.ASSETCLASS;
+  readonly SECURITY = AppSettings.SECURITY;
+  readonly STOCKEXCHANGE = AppSettings.STOCKEXCHANGE;
+  readonly IMPORT_TRANSACTION_PLATFORM = AppSettings.IMPORT_TRANSACTION_PLATFORM;
+  readonly IMPORT_TRANSACTION_TEMPLATE = AppSettings.IMPORT_TRANSACTION_TEMPLATE;
+  readonly CURRENCYPAIR = AppSettings.CURRENCYPAIR_KEY;
   readonly SECURITY_DERIVED = 'SecurityDerived';
-  readonly TRADING_PLATFORM_PLAN = 'TradingPlatformPlan';
-  readonly HISTORYQUOTE = 'Historyquote';
+  readonly TRADING_PLATFORM_PLAN = AppSettings.TRADING_PLATFORM_PLAN;
+  readonly HISTORYQUOTE = AppSettings.HISTORYQUOTE;
 
   contextMenuItems: MenuItem[] = [];
 
@@ -175,7 +176,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     this.entityMappingArr[this.IMPORT_TRANSACTION_TEMPLATE] =
       new EntityMapping(new ImportTransactionPlatformPrepareEdit(importTransactionPlatformService));
     this.entityMappingArr[this.CURRENCYPAIR] = new EntityMapping(new GeneralEntityPrepareEdit(Currencypair));
-    this.entityMappingArr[this.SECURITY] = new EntityMapping(new SecurityPrepareEdit(this.SECURITY_DERIVED));
+    this.entityMappingArr[AppSettings.SECURITY] = new EntityMapping(new SecurityPrepareEdit(this.SECURITY_DERIVED));
     this.entityMappingArr[this.SECURITY_DERIVED] = new EntityMapping(new GeneralEntityPrepareEdit(Security));
     this.entityMappingArr[this.TRADING_PLATFORM_PLAN] = new EntityMapping(new GeneralEntityPrepareEdit(TradingPlatformPlan));
     this.entityMappingArr[this.HISTORYQUOTE] = new EntityMapping(new HistoryquotePrepareEdit(this.securityService,
@@ -186,7 +187,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.noteRequest', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'proposeChangeEntity.createdBy', true, false);
     this.addColumn(DataType.NumericInteger, 'proposeChangeEntity.idOwnerEntity', 'OWNER_ENTITY', true, false);
-    this.addColumn(DataType.DateString, 'proposeChangeEntity.creationTime', 'DATE', true, false);
+    this.addColumnFeqH(DataType.DateString, 'proposeChangeEntity.creationTime',  true, false);
     this.prepareTableAndTranslate();
   }
 

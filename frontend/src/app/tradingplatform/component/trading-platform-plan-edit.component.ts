@@ -19,6 +19,7 @@ import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propos
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   selector: 'trading-platform-plan-edit',
@@ -43,7 +44,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               tradingPlatformPlanService: TradingPlatformPlanService) {
-    super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN, 'TRADINGPLATFORMPLAN', translateService, gps,
+    super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN, AppSettings.TRADING_PLATFORM_PLAN.toUpperCase(), translateService, gps,
       messageToastService, tradingPlatformPlanService);
   }
 

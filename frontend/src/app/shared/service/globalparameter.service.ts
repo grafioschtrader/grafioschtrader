@@ -72,7 +72,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return sessionStorage.getItem(GlobalSessionNames.UI_SHOW_MY_PROPERTY) === 'true';
   }
 
-
   public hasRole(requiredRole: string) {
     const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
     return roles.split(',').indexOf(requiredRole) >= 0;
@@ -81,7 +80,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   public isEntityCreatedByUser(entity: Auditable): boolean {
     return entity.createdBy === +sessionStorage.getItem(GlobalSessionNames.ID_USER);
   }
-
 
   public getTimeDateFormatForTable(): string {
     if (!this.timeDateFormat) {

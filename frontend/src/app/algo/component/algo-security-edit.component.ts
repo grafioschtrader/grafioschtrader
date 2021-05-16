@@ -15,6 +15,7 @@ import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   selector: 'algo-security-edit',
@@ -45,7 +46,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectString('security', 'SECURITY', true,
+      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.SECURITY.toUpperCase(),  true,
         {dataproperty: 'security.idSecuritycurrency'}),
       ...this.getFieldDefinition()
     ];

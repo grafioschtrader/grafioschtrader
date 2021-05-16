@@ -13,6 +13,7 @@ import {plainToClass} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 
 /**
@@ -64,7 +65,7 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super('ProposeChangeEntity', proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
+    super(AppSettings.PROPOSE_CHANGE_ENTITY, proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
       dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
       [CrudMenuOptions.Allow_Delete]);
 

@@ -138,7 +138,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super('User', userAdminService, confirmationService, messageToastService, activePanelService, dialogService,
+    super(AppSettings.USER, userAdminService, confirmationService, messageToastService, activePanelService, dialogService,
       changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
       [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);

@@ -36,6 +36,7 @@ import {SupplementCriteria} from '../model/supplement.criteria';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {SecurityDerivedLink} from '../../entities/security.derived.link';
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * To create a derived instrument a base instrument is required. Additional a formula can be added. Prices depend on other instrument,
@@ -262,7 +263,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     this.translateFormulaFromUserLanguage(security);
     this.setSecurityDerivedLinks(security);
     this.securityService.update(security).subscribe(newSecurity => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'SECURITY'});
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
       this.closeDialog.emit(new ProcessedActionData(this.securityCallParam ? ProcessedAction.UPDATED
         : ProcessedAction.CREATED, newSecurity));
     }, () => this.configObject.submit.disabled = false);

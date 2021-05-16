@@ -110,7 +110,7 @@ export class SecurityaccountImportTransactionComponent
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.seccurityAccount = JSON.parse(params['securityaccount']);
+      this.seccurityAccount = JSON.parse(params[AppSettings.SECURITYACCOUNT.toLowerCase()]);
       this.callParam = new CallParam(this.seccurityAccount, null);
       this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(
         this.seccurityAccount.tradingPlatformPlan.idTradingPlatformPlan, true).subscribe(

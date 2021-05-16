@@ -5,6 +5,9 @@ import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
+/**
+ * Table menu for internal mail system
+ */
 @Component({
   template: `
     <p-tabMenu [model]="items" [activeItem]="items[0]"></p-tabMenu>
@@ -16,8 +19,8 @@ export class MailInOutTabMenuComponent implements OnInit {
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
     this.items = [
-      {label: 'MAILINBOX', command: (event) => this.navigateToChangeRequest(true)},
-      {label: 'MAILSENDBOX',
+      {label: AppSettings.MAIL_INBOX.toUpperCase(), command: (event) => this.navigateToChangeRequest(true)},
+      {label: AppSettings.MAIL_SENDBOX.toUpperCase(),
         command: (event) => this.router.navigate([AppSettings.MAIL_SENDBOX_KEY],
           {relativeTo: this.activatedRoute})
       }

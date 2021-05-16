@@ -45,7 +45,7 @@ export class SecurityaccountTabMenuComponent implements OnInit, OnDestroy {
 
     this.items = [
       {
-        label: 'SECURITYACCOUNT',
+        label: AppSettings.SECURITYACCOUNT.toUpperCase(),
         command: (event) => this.navigateToRoute(AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY, 0)
       },
       this.platTransImportMenuItem

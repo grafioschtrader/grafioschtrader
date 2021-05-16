@@ -108,7 +108,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossSecuritiesMC', true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecuritiesMC')]}));
 
-    this.columnConfigs.push(this.addColumn(DataType.Numeric, 'valueSecuritiesMC', 'SECURITY', true, false,
+    this.columnConfigs.push(this.addColumn(DataType.Numeric, 'valueSecuritiesMC', AppSettings.SECURITY.toUpperCase(), true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupValueSecuritiesMC')]}));
 
     this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false, {templateName: 'greenRed'});
@@ -123,7 +123,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.portfolio = JSON.parse(params['portfolio']);
+      this.portfolio = JSON.parse(params[AppSettings.PORTFOLIO.toLowerCase()]);
       this.parentChildRegisterService.initRegistry();
       this.readData();
     });
@@ -149,10 +149,10 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
 
   handleDeleteCashaccount(idSecuritycashAccount: number) {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|ACCOUNT', () => {
+      'MSG_CONFIRM_DELETE_RECORD|CASHACCOUNT', () => {
         this.cashaccountService.deleteCashaccount(idSecuritycashAccount).subscribe(response => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: 'ACCOUNT'});
+            'MSG_DELETE_RECORD', {i18nRecord: AppSettings.CASHACCOUNT.toUpperCase()});
           this.tenantLimit = null;
           this.readData();
           this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Cashaccount()));
@@ -164,19 +164,19 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     const menuItems: MenuItem[] = [];
 
     menuItems.push({
-      label: 'NEW|ACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'NEW|CASHACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleNewAccount(this.portfolio)
     });
 
     if (accountPositionSummary) {
       menuItems.push({
-        label: 'EDIT_RECORD|ACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: 'EDIT_RECORD|CASHACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
         command: (e) => (accountPositionSummary) ? this.handleEditAccount(this.portfolio, accountPositionSummary.cashaccount,
           {hasTransaction: accountPositionSummary.hasTransaction}) : null
       });
 
       menuItems.push({
-        label: 'DELETE_RECORD|ACCOUNT',
+        label: 'DELETE_RECORD|CASHACCOUNT',
         command: (e) => (accountPositionSummary) ?
           this.handleDeleteCashaccount(accountPositionSummary.cashaccount.idSecuritycashAccount) : null,
         disabled: accountPositionSummary.hasTransaction

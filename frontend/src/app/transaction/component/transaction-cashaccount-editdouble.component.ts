@@ -113,7 +113,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       */
       DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, 8,
         8, false, {
-          ...this.gps.getNumberCurrencyMask(), allowZero: false}, null, null, true),
+          ...this.gps.getNumberCurrencyMask(), allowZero: false
+        }, null, null, true),
 
       this.getTransactionCostFieldDefinition(),
     ];
@@ -390,7 +391,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   saveTransaction(cashAccountTransfer: CashAccountTransfer) {
     this.transactionService.updateCreateDoubleTransaction(cashAccountTransfer).subscribe((newCashAccountTransfer: CashAccountTransfer) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'TRANSACTION'});
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
+          {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
         this.closeDialog.emit(new ProcessedActionData(cashAccountTransfer.depositTransaction.idTransaction ? ProcessedAction.UPDATED
           : ProcessedAction.CREATED, [newCashAccountTransfer.withdrawalTransaction, newCashAccountTransfer.depositTransaction]));
       }, () => this.configObject.submit.disabled = false

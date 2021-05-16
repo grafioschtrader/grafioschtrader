@@ -25,7 +25,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'securityaccount-edit',
   template: `
-    <p-dialog header="{{'SECURITYACCOUNT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -46,8 +46,9 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               securityaccountService: SecurityaccountService) {
-    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'SECURITYACCOUNT', translateService, gps,
+    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, AppSettings.SECURITYACCOUNT.toUpperCase(), translateService, gps,
       messageToastService, securityaccountService);
+
     this.untilFields = [new UntilField('shareUseUntil', true),
       new UntilField('bondUseUntil', true),
       new UntilField('etfUseUntil', true),
@@ -63,15 +64,15 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'SECURITYACCOUNT_NAME', 25, true),
-      DynamicFieldHelper.createFieldSelectString('tradingPlatformPlan', 'TRADINGPLATFORMPLAN', true,
-        {dataproperty: 'tradingPlatformPlan.idTradingPlatformPlan'}),
+      DynamicFieldHelper.createFieldSelectString('tradingPlatformPlan', AppSettings.TRADING_PLATFORM_PLAN.toUpperCase(),
+        true, {dataproperty: 'tradingPlatformPlan.idTradingPlatformPlan'}),
       ...this.getUntilFieldDefinition(),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('lowestTransactionCost', true,
         3, 2, false,
         {
           ...this.gps.getNumberCurrencyMask(),
           prefix: AppHelper.addSpaceToCurrency((<Portfolio>this.callParam.parentObject).currency)
-        }, true,{inputWidth: 10} ),
+        }, true, {inputWidth: 10}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
