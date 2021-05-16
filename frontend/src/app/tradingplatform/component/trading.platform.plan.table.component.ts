@@ -75,7 +75,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super('TradingPlatformPlan', tradingPlatformPlanService, confirmationService, messageToastService,
+    super(AppSettings.TRADING_PLATFORM_PLAN, tradingPlatformPlanService, confirmationService, messageToastService,
       activePanelService, dialogService, changeDetectionStrategy, filterService, translateService, gps,
       usersettingsService);
 
@@ -83,7 +83,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
       {headerSuffix: 'EN', templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.de', 'PLATFORM_PLAN_NAME', true, false,
       {headerSuffix: 'DE'});
-    this.addColumn(DataType.String, 'transactionFeePlan', 'TRANSACTION_FEE_PLAN', true, false,
+    this.addColumnFeqH(DataType.String, 'transactionFeePlan', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'importTransactionPlatform.name', 'IMPORTTRANSACTIONGROUP', true, false);
 

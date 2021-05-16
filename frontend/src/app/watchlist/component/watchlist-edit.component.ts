@@ -10,12 +10,13 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 
 @Component({
   selector: 'watchlist-edit',
   template: `
-    <p-dialog header="{{'WATCHLIST' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true"  [style]="{width: '350px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -32,7 +33,7 @@ export class WatchlistEditComponent extends SimpleEntityEditBase<Watchlist> impl
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               watchlistService: WatchlistService) {
-    super(HelpIds.HELP_WATCHLIST, 'WATCHLIST', translateService, gps, messageToastService, watchlistService);
+    super(HelpIds.HELP_WATCHLIST, AppSettings.WATCHLIST.toUpperCase(), translateService, gps, messageToastService, watchlistService);
   }
 
   ngOnInit(): void {

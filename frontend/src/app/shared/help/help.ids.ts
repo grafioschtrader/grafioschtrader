@@ -8,7 +8,7 @@ export enum HelpIds {
 
   // Tenant, portfolio, security and cash account
   HELP_CLIENT = 'tenantportfolio/client',
-  HELP_PROTFOLIO = 'tenantportfolio/portfolio',
+  HELP_PORTFOLIO = 'tenantportfolio/portfolio',
   HELP_PORTFOLIO_ACCOUNT = 'tenantportfolio/cashaccount',
   HELP_PORTFOLIO_SECURITYACCOUNT = 'tenantportfolio/securityaccounts',
   HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT = 'tenantportfolio/securityaccounts/transactionimport',

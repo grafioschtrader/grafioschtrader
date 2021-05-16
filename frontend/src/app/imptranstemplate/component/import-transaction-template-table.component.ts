@@ -85,21 +85,17 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super('ImportTransactionTemplate', importTransactionTemplateService, confirmationService,
+    super(AppSettings.IMPORT_TRANSACTION_TEMPLATE, importTransactionTemplateService, confirmationService,
       messageToastService, activePanelService, dialogService, changeDetectionStrategy, filterService,
       translateService, gps,
       usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
 
-    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false,
-      {templateName: AppSettings.OWNER_TEMPLATE});
-    this.addColumnFeqH(DataType.String, 'templateCategory', true, false,
-      {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {templateName: AppSettings.OWNER_TEMPLATE});
+    this.addColumnFeqH(DataType.String, 'templateCategory', true, false, {translateValues: TranslateValue.NORMAL});
 
-    this.addColumn(DataType.String, 'templateFormatType', 'TEMPLATE_FORMAT', true, false,
-      {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.String, 'templateFormatType', true, false, {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.DateString, 'validSince', true, false);
-    this.addColumnFeqH(DataType.String, 'templateLanguage', true, false,
-      {fieldValueFN: this.getDisplayNameForLanguage.bind(this)});
+    this.addColumnFeqH(DataType.String, 'templateLanguage', true, false, {fieldValueFN: this.getDisplayNameForLanguage.bind(this)});
     this.multiSortMeta.push({field: 'templatePurpose', order: 1});
     this.prepareTableAndTranslate();
   }

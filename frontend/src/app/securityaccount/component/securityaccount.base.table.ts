@@ -249,7 +249,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
           {colspan: 99}),
           new ColumnGroupConfig(null, 'GRAND_TOTAL')], width: 170
       });
-    this.addColumn(DataType.String, 'security', AppSettings.INSTRUMENT_HEADER, true, true,
+    this.addColumn(DataType.String, AppSettings.SECURITY.toLowerCase(), AppSettings.INSTRUMENT_HEADER, true, true,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
 
     this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false, {width: 55});
@@ -395,7 +395,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
       if (!BusinessHelper.isMarginProduct(securityPositionSummary.security)) {
         menuItems.push({
-          label: 'DIVIDEND',
+          label: AppSettings.DIVIDEND.toUpperCase(),
           command: (e) => this.handleTransaction(TransactionType.DIVIDEND, securityPositionSummary.security)
         });
       }

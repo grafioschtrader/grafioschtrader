@@ -46,31 +46,31 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
       {fieldsetName: 'IMPORT_VALUE'});
     this.addFieldProperty(DataType.NumericRaw, ImportSettings.IMPORT_TRANSACTION_POS + 'quotation', 'QUOTATION_DIV',
       {fieldsetName: 'IMPORT_VALUE', maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
-    this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'accruedInterest', 'ACCRUED_INTEREST',
+    this.addFieldPropertyFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'accruedInterest',
       {fieldsetName: 'IMPORT_VALUE'});
-    this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'taxCost', 'TAX_COST',
+    this.addFieldPropertyFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'taxCost',
       {fieldsetName: 'IMPORT_VALUE'});
-    this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionCost', 'TRANSACTION_COST',
+    this.addFieldPropertyFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionCost',
       {fieldsetName: 'IMPORT_VALUE'});
 
     this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccountAmount', 'TOTAL_AMOUNT',
       {fieldsetName: 'IMPORT_VALUE'});
 
-    this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'security.name', 'SECURITY',
+    this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'security.name', AppSettings.SECURITY.toUpperCase(),
       {fieldsetName: 'IMPORT_ASSIGN'});
-    this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccount.name', 'ACCOUNT',
-      {fieldsetName: 'IMPORT_ASSIGN'});
+    this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccount.name',
+      AppSettings.CASHACCOUNT.toUpperCase(), {fieldsetName: 'IMPORT_ASSIGN'});
     this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'calcCashaccountAmount', 'CALC_TOTAL_VALUE',
       {fieldsetName: 'IMPORT_ASSIGN'});
 
     this.addFieldProperty(DataType.NumericInteger, ImportSettings.IMPORT_TRANSACTION_POS + 'idFilePart', 'IMPORT_ID_FILE_PART',
-      {fieldsetName: 'IMPORTTRANSACTIONTEMPLATE'});
-    this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'templatePurpose', 'TEMPLATE_PURPOSE',
-      {fieldsetName: 'IMPORTTRANSACTIONTEMPLATE'});
-    this.addFieldProperty(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'validSince', 'VALID_SINCE',
-      {fieldsetName: 'IMPORTTRANSACTIONTEMPLATE'});
+      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
+    this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'templatePurpose',
+      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
+    this.addFieldPropertyFeqH(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'validSince',
+      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
     this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'fileNameOriginal',
-      {fieldsetName: 'IMPORTTRANSACTIONTEMPLATE'});
+      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
 
     this.addFieldPropertyFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'diffCashaccountAmount',
       {fieldsetName: 'IMPORT_STATE'});

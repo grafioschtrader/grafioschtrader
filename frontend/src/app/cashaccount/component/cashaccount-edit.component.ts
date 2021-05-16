@@ -21,11 +21,12 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'cashaccount-edit',
   template: `
-    <p-dialog header="{{'ACCOUNT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px', minWidth: '350px', minHeight:'180px' }"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
                     (submit)="submit($event)">
       </dynamic-form>
     </p-dialog>`
@@ -41,7 +42,8 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               cashaccountSercice: CashaccountService) {
-    super(HelpIds.HELP_PORTFOLIO_ACCOUNT, 'ACCOUNT', translateService, gps, messageToastService, cashaccountSercice);
+    super(HelpIds.HELP_PORTFOLIO_ACCOUNT, AppSettings.CASHACCOUNT.toUpperCase(), translateService, gps,
+      messageToastService, cashaccountSercice);
   }
 
   ngOnInit(): void {
@@ -50,7 +52,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'CASHACCOUNT_NAME', 25, true),
-      DynamicFieldHelper.createFieldSelectString('currency', 'CURRENCY', true,
+      DynamicFieldHelper.createFieldSelectStringHeqF('currency', true,
         {inputWidth: 5, disabled: this.callParam.optParam && this.callParam.optParam.hasTransaction}),
       DynamicFieldHelper.createFieldSelectNumber('connectIdSecurityaccount', 'SECURITYACCOUNT_ASSIGNMENT', false),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
@@ -75,15 +77,6 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
   }
 
   protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Cashaccount {
-    /*
-    const cashaccount: Cashaccount = new Cashaccount();
-    if (this.callParam.thisObject) {
-      Object.assign(cashaccount, this.callParam.thisObject);
-    }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(cashaccount);
-    cashaccount.portfolio = this.portfolio;
-    return cashaccount;
-    */
     const cashaccount: Cashaccount = this.copyFormToPrivateBusinessObject(new Cashaccount(), <Cashaccount>this.callParam.thisObject);
     cashaccount.portfolio = this.portfolio;
     return cashaccount;

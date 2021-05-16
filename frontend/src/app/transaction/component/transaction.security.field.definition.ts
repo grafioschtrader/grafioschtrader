@@ -13,9 +13,9 @@ export class TransactionSecurityFieldDefinition {
     const currencyColumnConfigMC: ColumnConfig[] = [];
     tcm.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false, {width: 100});
     if (idTenant) {
-      tcm.addColumn(DataType.String, 'transaction.cashaccount.name', 'ACCOUNT', true, false);
+      tcm.addColumn(DataType.String, 'transaction.cashaccount.name', AppSettings.CASHACCOUNT.toUpperCase(), true, false);
     }
-    tcm.addColumn(DataType.String, 'transaction.transactionType', 'TRANSACTION_TYPE', true, false,
+    tcm.addColumnFeqH(DataType.String, 'transaction.transactionType', true, false,
       {translateValues: TranslateValue.NORMAL});
     tcm.addColumn(DataType.Numeric, 'transaction.units', 'QUANTITY', true, false);
 
@@ -24,13 +24,13 @@ export class TransactionSecurityFieldDefinition {
     }
     tcm.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false,
       {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
-    tcm.addColumn(DataType.Numeric, 'transaction.taxCost', 'TAX_COST', true, false);
+    tcm.addColumnFeqH(DataType.Numeric, 'transaction.taxCost', true, false);
 
     if (tsop && tsop.indexOf(TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN) >= 0) {
       tcm.addColumnFeqH(DataType.Boolean, 'transaction.taxableInterest', true, false, {templateName: 'check'});
     }
 
-    tcm.addColumn(DataType.Numeric, 'transaction.transactionCost', 'TRANSACTION_COST', true, false);
+    tcm.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false);
     tcm.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false);
     tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false);
     tcm.addColumn(DataType.Numeric, 'transactionGainLossPercentage', 'GAIN_PERCENTAGE', true, false);

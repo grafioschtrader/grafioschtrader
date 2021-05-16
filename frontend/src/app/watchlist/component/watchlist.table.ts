@@ -339,9 +339,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         showMenu: this.getShowMenu(this.selectedSecuritycurrencyPosition),
         editMenu: this.getEditMenu(this.selectedSecuritycurrencyPosition)
       });
-
-      this.watchlist = JSON.parse(params['watchlist']);
-
+      this.watchlist = JSON.parse(params[AppSettings.WATCHLIST.toLowerCase()]);
     });
   }
 
@@ -470,9 +468,9 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       menuItems.push(
         {
           label: 'REMOVE_DELETE_INSTRUMENT',
-          command: (e) => this.removeAndDeleteSecuritycurrency(<Security>securitycurrencyPosition.securitycurrency, 'SECURITY'),
-          disabled: securitycurrencyPosition.isUsedElsewhere || (!AuditHelper.hasHigherPrivileges(this.gps)
-            && (!!(<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate
+          command: (e) => this.removeAndDeleteSecuritycurrency(<Security>securitycurrencyPosition.securitycurrency,
+            AppSettings.SECURITY.toUpperCase()), disabled: securitycurrencyPosition.isUsedElsewhere
+            || (!AuditHelper.hasHigherPrivileges(this.gps) && (!!(<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate
               && (<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate !== this.gps.getIdTenant()))
         }
       );
@@ -504,7 +502,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
         if (!this.isMarginProduct(securitycurrencyPosition)) {
           menuItems.push({
-            label: 'DIVIDEND' + AppSettings.DIALOG_MENU_SUFFIX,
+            label: AppSettings.DIVIDEND.toUpperCase() + AppSettings.DIALOG_MENU_SUFFIX,
             command: (e) => this.handleTransaction(TransactionType.DIVIDEND,
               <Security>securitycurrencyPosition.securitycurrency)
           });
@@ -531,8 +529,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         menuItems.push(
           {
             label: 'REMOVE_DELETE_CURRENCYPAIR',
-            command: (e) => this.removeAndDeleteSecuritycurrency(<Security>securitycurrencyPosition.securitycurrency, 'CURRENCYPAIR'),
-            disabled: securitycurrencyPosition.isUsedElsewhere
+            command: (e) => this.removeAndDeleteSecuritycurrency(<Security>securitycurrencyPosition.securitycurrency,
+              AppSettings.CURRENCYPAIR.toUpperCase()), disabled: securitycurrencyPosition.isUsedElsewhere
           }
         );
       }

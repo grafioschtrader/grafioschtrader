@@ -9,6 +9,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
 import {FilterService} from 'primeng/api';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Base class to show the search result as result in a table
@@ -27,7 +28,7 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.String, 'isin', true, false);
     this.addColumnFeqH(DataType.String, 'tickerSymbol', true, false);
-    this.addColumn(DataType.String, 'assetClass.categoryType', 'ASSETCLASS', true, true,
+    this.addColumn(DataType.String, 'assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
       {translateValues: TranslateValue.NORMAL, width: 60});
     this.addColumnFeqH(DataType.String, 'currency', true, false);
 

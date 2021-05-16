@@ -13,12 +13,13 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
+import {AppSettings} from '../../shared/app.settings';
 
 
 @Component({
   selector: 'securityaccount-import-set-cashaccount',
   template: `
-    <p-dialog header="{{'ACCOUNT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'CASHACCOUNT' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -44,7 +45,7 @@ export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
     this.config = [
-      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', 'ACCOUNT', false,
+      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), false,
         {dataproperty: 'cashaccount.idSecuritycashAccount'}),
       DynamicFieldHelper.createSubmitButton('ASIGN')
     ];

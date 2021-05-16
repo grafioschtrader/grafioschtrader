@@ -142,7 +142,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.portfolioTrees[this.ADMINDATA_INDEX] = {
       label: 'ADMIN_DATA',
       expanded: true, children: [],
-      data: new TypeNodeData(TreeNodeType.AdminDataRoot, this.addMainRoute(AppSettings.USERMESSAGE_KEY),
+      data: new TypeNodeData(TreeNodeType.AdminDataRoot, this.addMainRoute(AppSettings.USER_MESSAGE_KEY),
         null, null)
     };
     this.addAdminData();
@@ -150,7 +150,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.tenantService.getTenantAndPortfolio().subscribe(tenant => {
       this.tenant = tenant;
       this.useAlgo() && this.setLangTrans('ALGO_OVERVIEW', this.portfolioTrees[this.ALGO_INDEX]);
-      this.setLangTrans('WATCHLIST', this.portfolioTrees[this.WATCHLIST_INDEX]);
+      this.setLangTrans(AppSettings.WATCHLIST.toUpperCase(), this.portfolioTrees[this.WATCHLIST_INDEX]);
       this.addAndRefreshPortfolioToTree();
       this.addRefreshAlgoToTree();
       this.addAndRefreshWatchlistToTree();
@@ -243,15 +243,15 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.portfolioTrees[this.BASEDATA_INDEX].children =
       [
         {
-          label: 'ASSETCLASS',
+          label: AppSettings.ASSETCLASS.toUpperCase(),
           data: new TypeNodeData(TreeNodeType.AssetClass, this.addMainRoute(AppSettings.ASSETCLASS_KEY), null, null, null)
         },
         {
-          label: 'STOCKEXCHANGE',
+          label: AppSettings.STOCKEXCHANGE.toUpperCase(),
           data: new TypeNodeData(TreeNodeType.Stockexchange, this.addMainRoute(AppSettings.STOCKEXCHANGE_KEY), null, null, null)
         },
         {
-          label: 'TRADINGPLATFORMPLAN',
+          label: AppSettings.TRADING_PLATFORM_PLAN.toUpperCase(),
           data: new TypeNodeData(TreeNodeType.TradingPlatformPlan, this.addMainRoute(AppSettings.TRADING_PLATFORM_PLAN_KEY),
             null, null, null)
         },
@@ -362,7 +362,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       'MSG_CONFIRM_DELETE_RECORD|PORTFOLIO', () => {
         this.portfolioService.deletePortfolio(idPortfolio).subscribe(response => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: 'PORTFOLIO'});
+            'MSG_DELETE_RECORD', {i18nRecord: AppSettings.PORTFOLIO.toUpperCase()});
           this.navigateRoute(this.getPreviousNode(treeNode).data);
           this.clearSelection();
         });
@@ -374,7 +374,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       'MSG_CONFIRM_DELETE_RECORD|SECURITYACCOUNT', () => {
         this.securityaccountService.deleteSecurityaccount(idSecuritycashaccount).subscribe(response => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: 'SECURITYACCOUNT'});
+            'MSG_DELETE_RECORD', {i18nRecord: AppSettings.SECURITYACCOUNT.toUpperCase()});
           if (portfolio.securityaccountList.length === 1) {
             treeNode.parent.data.route = this.addMainRoute(AppSettings.SECURITYACCOUNT_EMPTY_ROUTE_KEY);
             this.navigateRoute(treeNode.parent.data);
@@ -403,7 +403,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       'MSG_CONFIRM_DELETE_RECORD|WATCHLIST', () => {
         this.watchlistService.delete(idWatchlist).subscribe(response => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: 'WATCHLIST'});
+            'MSG_DELETE_RECORD', {i18nRecord: AppSettings.WATCHLIST.toUpperCase()});
           this.navigateRoute(this.getPreviousNode(treeNode).data);
           this.clearSelection();
         });

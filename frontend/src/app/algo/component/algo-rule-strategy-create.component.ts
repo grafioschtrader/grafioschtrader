@@ -22,6 +22,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Dialog for define a strategy. Asset class can be added dynamically.
@@ -78,7 +79,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
       DynamicFieldHelper.createFieldInputString('name', 'NAME', 32, true),
       DynamicFieldHelper.createFieldMinMaxNumber(DataType.Numeric, 'percentage', 'ALGO_MAXIMUM_INVESTMENT', true,
         2, 100, {fieldSuffix: '%'}),
-      DynamicFieldHelper.createFieldSelectString('idWatchlist', 'WATCHLIST', true),
+      DynamicFieldHelper.createFieldSelectString('idWatchlist', AppSettings.WATCHLIST.toUpperCase(), true),
       DynamicFieldHelper.createFunctionButton('ALGO_ADD_ASSETCLASS', () => this.addAssetclassPercentageRow(false)),
       DynamicFieldHelper.createFunctionButton('ALGO_REMOVE_ASSETCLASS', () => this.removeAssetclassPercentageRow()),
       DynamicFieldHelper.createSubmitButton()
@@ -119,7 +120,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
     this.assetclassCounter++;
     const fieldConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldSelectString(AlgoRuleStrategyCreateComponent.ASSETCLASS_FIELD + this.assetclassCounter,
-        'ASSETCLASS', true, {labelSuffix: '' + this.assetclassCounter, usedLayoutColumns: 8}),
+        AppSettings.ASSETCLASS.toUpperCase(), true, {labelSuffix: '' + this.assetclassCounter, usedLayoutColumns: 8}),
       DynamicFieldHelper.createFieldMinMaxNumber(DataType.Numeric,
         AlgoRuleStrategyCreateComponent.PERCENTAGE_FIELD + this.assetclassCounter, 'ALGO_F_WEIGHTING_PERCENTAGE',
         true, 0.5, 100, {fieldSuffix: '%', usedLayoutColumns: 4}),

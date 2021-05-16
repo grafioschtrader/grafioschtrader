@@ -8,6 +8,7 @@ import {DividendService} from '../service/dividend.service';
 import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Dividend} from '../../entities/dividend.split';
 import {FilterService} from 'primeng/api';
+import {AppSettings} from '../../shared/app.settings';
 
 
 @Component({
@@ -27,7 +28,7 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
               gps: GlobalparameterService,
               iconReg: SvgIconRegistryService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps, iconReg, 'idDividend',
-      WatchlistDividendTableComponent.EX_DATE, 'DIVIDEND');
+      WatchlistDividendTableComponent.EX_DATE, AppSettings.DIVIDEND.toUpperCase());
     this.addColumnFeqH(DataType.DateNumeric, WatchlistDividendTableComponent.EX_DATE, true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});

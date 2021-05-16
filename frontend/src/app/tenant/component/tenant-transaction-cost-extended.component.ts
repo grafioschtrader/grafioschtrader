@@ -18,6 +18,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {Table} from 'primeng/table';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Shows Transaction of a security account, that means there are only transaction with security involved.
@@ -96,7 +97,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
     this.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false);
     this.addColumn(DataType.String, 'transaction.security.name', 'NAME', true, false, {width: 200});
 
-    this.addColumn(DataType.String, 'transaction.security.stockexchange.name', 'STOCKEXCHANGE', true, false);
+    this.addColumn(DataType.String, 'transaction.security.stockexchange.name', AppSettings.STOCKEXCHANGE.toUpperCase(), true, false);
     this.addColumn(DataType.String, 'transaction.transactionType', 'TRANSACTION_TYPE', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'transaction.cashaccount.currency', 'CURRENCY_CASHACCOUNT', true, false);

@@ -54,7 +54,7 @@ export class ImportTransactionEditTemplateComponent extends SimpleEntityEditBase
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('templatePurpose', 50, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('templateCategory', true),
-      DynamicFieldHelper.createFieldSelectString('templateFormatType', 'TEMPLATE_FORMAT', true),
+      DynamicFieldHelper.createFieldSelectStringHeqF('templateFormatType', true),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'validSince', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('templateLanguage', true, {inputWidth: 10}),
       DynamicFieldHelper.createFieldTextareaInputString('templateAsTxt', 'PDF_TEMPLATE_AS_TXT', 4096, true,

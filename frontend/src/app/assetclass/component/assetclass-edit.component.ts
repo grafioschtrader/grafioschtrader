@@ -18,6 +18,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {Subscription} from 'rxjs';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Edit asset classes in a dialog
@@ -25,7 +26,7 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
 @Component({
   selector: 'assetclass-edit',
   template: `
-    <p-dialog header="{{'ASSETCLASS' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -49,7 +50,8 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               assetclassService: AssetclassService) {
-    super(HelpIds.HELP_BASEDATA_ASSETCLASS, 'ASSETCLASS', translateService, gps, messageToastService, assetclassService);
+    super(HelpIds.HELP_BASEDATA_ASSETCLASS, AppSettings.ASSETCLASS.toUpperCase(), translateService, gps,
+      messageToastService, assetclassService);
   }
 
 
@@ -58,7 +60,7 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectString('categoryType', 'ASSETCLASS', true),
+      DynamicFieldHelper.createFieldSelectString('categoryType', AppSettings.ASSETCLASS.toUpperCase(), true),
       DynamicFieldHelper.createFieldSuggestionInputString('en', 'SUB_ASSETCLASS', 64, true,
         {dataproperty: 'subCategoryNLS.map.en', labelSuffix: 'EN', suggestionsFN: this.filterSuggestionsEN.bind(this)}),
       DynamicFieldHelper.createFieldSuggestionInputString('de', 'SUB_ASSETCLASS', 64, true,
@@ -101,7 +103,6 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
         setTimeout(() => this.configObject.categoryType.elementRef.nativeElement.focus());
       }
     });
-
   }
 
   protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Assetclass {

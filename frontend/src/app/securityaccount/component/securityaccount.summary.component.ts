@@ -59,7 +59,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   ngOnInit() {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       this.idSecurityaccount = +params['id'];
-      this.securityAccount = JSON.parse(params['securityaccount']);
+      this.securityAccount = JSON.parse(params[AppSettings.SECURITYACCOUNT.toLowerCase()]);
       this.readData();
     });
   }

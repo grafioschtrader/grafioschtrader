@@ -92,7 +92,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.timeFrames.push(new TimeFrame('YEAR_3', moment(date).diff(moment(date).subtract(3, 'years'), 'days')));
     this.choosenTimeFrame = this.timeFrames[0];
     this.addBaseColumns();
-    this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', 'ASSETCLASS', true, true,
+    this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
       {translateValues: TranslateValue.NORMAL, width: 60});
     this.addColumn(DataType.String, 'securitycurrency.assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', false, true,
       {translateValues: TranslateValue.NORMAL, width: 60});
@@ -105,7 +105,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     });
 
     this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {width: 80});
-    this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+    this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true,
+      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {
       headerSuffix: '%', templateName: 'greenRed'
     });
@@ -127,9 +128,12 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     });
 
     this.addColumnFeqH(DataType.Numeric, 'valueSecurity', true, true);
-    this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE', true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
-    this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
-    this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+    this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE',
+      true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+    this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true,
+      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+    this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true,
+      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
 
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();

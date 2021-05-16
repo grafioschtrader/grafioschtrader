@@ -24,6 +24,7 @@ import {
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * It shows the transactions for a cash account.
@@ -61,17 +62,17 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
 
   ngOnInit(): void {
     this.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false,);
-    this.addColumn(DataType.String, 'transaction.transactionType', 'TRANSACTION_TYPE', true, false,
+    this.addColumnFeqH(DataType.String, 'transaction.transactionType', true, false,
       {width: 100, translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.String, 'transaction.security.name', 'SECURITY', true, false, {width: 150});
+    this.addColumn(DataType.String, 'transaction.security.name', AppSettings.SECURITY.toUpperCase(), true, false, {width: 150});
     this.addColumn(DataType.Numeric, 'transaction.units', 'QUANTITY', true, false);
     this.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false);
     this.addColumn(DataType.String, 'transaction.currencypair.fromCurrency', 'CURRENCY', true, false);
     this.addColumn(DataType.String, 'transaction.currencyExRate', 'EXCHANGE_RATE', true, false);
     this.addColumn(DataType.Numeric, 'transaction.taxCost', 'TAX_COST', true, false);
-    this.addColumn(DataType.Numeric, 'transaction.transactionCost', 'TRANSACTION_COST', true, false);
+    this.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false);
     this.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false);
-    this.addColumn(DataType.Numeric, 'balance', 'BALANCE', true, false);
+    this.addColumnFeqH(DataType.Numeric, 'balance',  true, false);
     this.prepareTableAndTranslate();
     // this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(this.idSecuritycashAccount);
 

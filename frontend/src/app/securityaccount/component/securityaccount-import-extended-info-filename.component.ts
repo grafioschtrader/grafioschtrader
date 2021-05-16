@@ -5,6 +5,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {SingleRecordConfigBase} from '../../shared/datashowbase/single.record.config.base';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
+import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   selector: 'securityaccount-import-extended-info-filename',
@@ -20,7 +21,7 @@ export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRe
 
   ngOnInit(): void {
     this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'fileNameOriginal',
-      {fieldsetName: 'IMPORTTRANSACTIONTEMPLATE'});
+      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
     this.translateHeadersAndColumns();
   }
 }

@@ -209,7 +209,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
               filterService: FilterService,
               gps: GlobalparameterService,
               translateService: TranslateService) {
-    super('Historyquote', historyquoteService, confirmationService, messageToastService, activePanelService,
+    super(AppSettings.HISTORYQUOTE, historyquoteService, confirmationService, messageToastService, activePanelService,
       dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     HistoryquoteTableComponent.registerIcons(this.iconReg);

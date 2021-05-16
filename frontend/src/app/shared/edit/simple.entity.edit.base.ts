@@ -13,7 +13,7 @@ import {ProposeTransientTransfer} from '../../entities/propose.transient.transfe
 import {TransformedError} from '../login/service/transformed.error';
 import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
 import {plainToClass, plainToClassFromExist} from 'class-transformer';
-import { Directive } from "@angular/core";
+import { Directive } from '@angular/core';
 
 /**
  * Base class for simple editing fields of an entity in a dialog. It will call a service for updating the
@@ -23,7 +23,7 @@ import { Directive } from "@angular/core";
 export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
 
   constructor(helpId: HelpIds,
-              private i18nRecord: string,
+              public i18nRecord: string,
               public translateService: TranslateService,
               gps: GlobalparameterService,
               public messageToastService: MessageToastService,

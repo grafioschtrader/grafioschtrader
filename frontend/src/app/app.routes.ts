@@ -148,7 +148,7 @@ const APP_ROUTES: Routes = [
             canActivate: [AuthGuard]
           },
           {
-            path: AppSettings.PROPOSE_CHANGE_YOUR_PROPOSALE_KEY,
+            path: AppSettings.PROPOSE_CHANGE_YOUR_PROPOSAL_KEY,
             component: YourProposalTableComponent,
             canActivate: [AuthGuard]
           },
@@ -211,7 +211,7 @@ const APP_ROUTES: Routes = [
       },
       // Admin data
       {
-        path: AppSettings.USERMESSAGE_KEY, component: MailInOutTabMenuComponent, canActivate: [AuthGuard],
+        path: AppSettings.USER_MESSAGE_KEY, component: MailInOutTabMenuComponent, canActivate: [AuthGuard],
         children: [
           {path: AppSettings.MAIL_INBOX_KEY, component: MailInboxTableComponent, canActivate: [AuthGuard]},
           {path: AppSettings.MAIL_SENDBOX_KEY, component: MailSendboxTableComponent, canActivate: [AuthGuard]}

@@ -32,7 +32,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'stockexchange-edit',
   template: `
-    <p-dialog header="{{'STOCKEXCHANGE' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -52,7 +52,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
               messageToastService: MessageToastService,
               stockexchangeService: StockexchangeService,
               private securityService: SecurityService) {
-    super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, 'STOCKEXCHANGE', translateService, gps,
+    super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, AppSettings.STOCKEXCHANGE.toUpperCase(), translateService, gps,
       messageToastService, stockexchangeService);
   }
 
@@ -62,7 +62,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldInputString('name', 'NAME', 32, true, {minLength: 2}),
+      DynamicFieldHelper.createFieldInputStringHeqF('name',  32, true, {minLength: 2}),
       DynamicFieldHelper.createFieldSelectStringHeqF('countryCode', true),
       DynamicFieldHelper.createFieldInputStringHeqF('symbol', 8, true, {minLength: 3}),
       DynamicFieldHelper.createFieldCheckboxHeqF('secondaryMarket', {defaultValue: true}),

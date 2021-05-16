@@ -16,6 +16,7 @@ import {WeekYear} from '../service/holding.service';
 import {Helper} from '../../../helper/helper';
 import * as moment from 'moment';
 import {AppHelper} from '../../helper/app.helper';
+import {AppSettings} from '../../app.settings';
 
 /**
  * Shows a tree table with periodic windows on the first column, which can be week or year.
@@ -106,7 +107,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
   }
 
   ngOnInit(): void {
-    this.translateService.get(['CASH_BALANCE', 'SECURITY', 'MARGIN_CLOSE_GAIN']).subscribe(translatedTexts =>
+    this.translateService.get(['CASH_BALANCE', AppSettings.SECURITY.toUpperCase(), 'MARGIN_CLOSE_GAIN']).subscribe(translatedTexts =>
       this.translatedTexts = translatedTexts);
     this.addColumnFeqH(DataType.String, 'period', true, false,
       {
@@ -194,7 +195,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
         break;
 
       case this.TOTAL_SECURITIES_MC:
-        colVal = this.translatedTexts['SECURITY'];
+        colVal = this.translatedTexts[AppSettings.SECURITY.toUpperCase()];
         break;
       case this.MARGIN_CLOSE_GAIN_MC:
         colVal = this.translatedTexts['MARGIN_CLOSE_GAIN'];

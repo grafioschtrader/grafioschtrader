@@ -42,7 +42,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
 
     this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false,
       {width: 60, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'cashaccount.name', 'ACCOUNT', true, false, {
+    this.addColumn(DataType.String, 'cashaccount.name', AppSettings.CASHACCOUNT.toUpperCase(), true, false, {
       width: 100,
       filterType: FilterType.withOptions
     });
@@ -50,7 +50,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
       {filterType: FilterType.withOptions});
     this.addColumn(DataType.String, 'transactionType', 'TRANSACTION_TYPE', true, false,
       {width: 100, translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumn(DataType.String, 'security.name', 'SECURITY', true, false,
+    this.addColumn(DataType.String, 'security.name', AppSettings.SECURITY.toUpperCase(), true, false,
       {width: 150, filterType: FilterType.withOptions});
     this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false,
       {filterType: FilterType.likeDataType});

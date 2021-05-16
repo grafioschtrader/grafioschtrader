@@ -66,18 +66,18 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(
       SecurityDerived.Currencypair);
 
-      this.config = [
-        DynamicFieldHelper.createFieldSelectString('fromCurrency', 'CURRENCY_FROM', true,
-          {fieldsetName: 'CURRENCY_BASE_DATA'}),
-        DynamicFieldHelper.createFieldSelectString('toCurrency', 'CURRENCY_TO', true,
-          {fieldsetName: 'CURRENCY_BASE_DATA'}),
-        DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
-          {fieldsetName: 'CURRENCY_BASE_DATA'}),
-        DynamicFieldHelper.createFieldInputStringHeqF('stockexchangeLink',  254, false,
-          {fieldsetName: 'CURRENCY_BASE_DATA'}),
-        ...this.connectorPriceFieldConfig,
-        ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
-      ];
+    this.config = [
+      DynamicFieldHelper.createFieldSelectString('fromCurrency', 'CURRENCY_FROM', true,
+        {fieldsetName: 'CURRENCY_BASE_DATA'}),
+      DynamicFieldHelper.createFieldSelectString('toCurrency', 'CURRENCY_TO', true,
+        {fieldsetName: 'CURRENCY_BASE_DATA'}),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
+        {fieldsetName: 'CURRENCY_BASE_DATA'}),
+      DynamicFieldHelper.createFieldInputStringHeqF('stockexchangeLink', 254, false,
+        {fieldsetName: 'CURRENCY_BASE_DATA'}),
+      ...this.connectorPriceFieldConfig,
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+    ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
@@ -99,7 +99,8 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
 
 
     this.currencypairService.update(currencypair).subscribe(newSecurity => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CURRENCYPAIR'});
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
+        {i18nRecord: AppSettings.CURRENCYPAIR.toUpperCase()});
       this.closeDialog.emit(new ProcessedActionData(this.securityCurrencypairCallParam ? ProcessedAction.UPDATED
         : ProcessedAction.CREATED, newSecurity));
     }, () => this.configObject.submit.disabled = false);
