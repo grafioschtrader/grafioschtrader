@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -30,9 +31,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.common.PropertyChangePassword;
+import grafioschtrader.common.PropertyOnlyCreation;
+import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.config.ExposedResourceBundleMessageSource;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
+import grafioschtrader.dynamic.model.DynamicModelHelper;
+import grafioschtrader.dynamic.model.FieldDescriptorInputAndShow;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
@@ -83,6 +90,12 @@ public class GlobalparametersResource {
   @GetMapping(value = "/tenantlimits", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TenantLimit>> getMaxTenantLimitsByMsgKey(@RequestParam() final List<String> msgKeys) {
     return new ResponseEntity<>(globalparametersJpaRepository.getMaxTenantLimitsByMsgKeys(msgKeys), HttpStatus.OK);
+  }
+
+  @GetMapping(value = "/userformdefinition", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<FieldDescriptorInputAndShow>> getUserFormDefinitions() {
+    return new ResponseEntity<>(DynamicModelHelper.getFormDefinitionOfModelClass(User.class,
+        Set.of(PropertyAlwaysUpdatable.class, PropertyChangePassword.class, PropertyOnlyCreation.class)), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the possible currencies as it can be used in html option", description = "", tags = {

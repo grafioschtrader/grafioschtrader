@@ -56,6 +56,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     http.authorizeRequests()
         // It must be accessible before login
         .antMatchers(HttpMethod.GET, "/api/globalparameters/locales").permitAll()
+        .antMatchers(HttpMethod.GET, "/api/globalparameters/userformdefinition").permitAll()
         .antMatchers(HttpMethod.GET, "/api/globalparameters/properties/*").permitAll().antMatchers("/").permitAll()
         .antMatchers(HttpMethod.GET, "/api/actuator/**").permitAll()
         // Registered user

@@ -6,7 +6,7 @@ import {BaseInputComponent} from '../base.input.component';
   template: `
     <ng-container [formGroup]="group">
       <select #input
-              [ngStyle]="{'width': config.inputWidth+'em'}"
+              [ngStyle]="{'width': (config.inputWidth+1) + 'em'}"
               class="form-control input-sm"
               [class.required-input]="isRequired"
               [id]="config.field"

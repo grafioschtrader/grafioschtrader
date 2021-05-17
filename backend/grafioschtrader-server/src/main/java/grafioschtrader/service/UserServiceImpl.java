@@ -16,7 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import grafioschtrader.dto.ChangePasswortDTO;
+import grafioschtrader.dto.ChangePasswordDTO;
 import grafioschtrader.dto.UserDTO;
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.TaskDataChange;
@@ -195,14 +195,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public SuccessfullyChanged changePassword(final ChangePasswortDTO changePasswortDTO) {
+  public SuccessfullyChanged changePassword(final ChangePasswordDTO changePasswordDTO) {
     final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
     RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
 
-    if (bCryptPasswordEncoder.matches(changePasswortDTO.oldPassword, user.getPassword())) {
-      user.setPassword(bCryptPasswordEncoder.encode(changePasswortDTO.newPassword));
+    if (bCryptPasswordEncoder.matches(changePasswordDTO.passwordOld, user.getPassword())) {
+      user.setPassword(bCryptPasswordEncoder.encode(changePasswordDTO.passwordNew));
       userJpaRepository.save(user);
       return new SuccessfullyChanged(true,
           messages.getMessage("password.changed.success", null, user.createAndGetJavaLocale()));

@@ -140,7 +140,9 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     for (final Locale loc : Locale.getAvailableLocales()) {
       if (GlobalConstants.GT_LANGUAGE_CODES.contains(loc.getLanguage())) {
         final String localeString = loc.toString().replace("_", "-");
-        dropdownValues.add(new ValueKeyHtmlSelectOptions(localeString, localeString));
+        if(localeString.length() <= 5) {
+          dropdownValues.add(new ValueKeyHtmlSelectOptions(localeString, localeString));
+        }
       }
     }
     return dropdownValues.stream().sorted((x, y) -> x.value.compareTo(y.value)).collect(Collectors.toList());

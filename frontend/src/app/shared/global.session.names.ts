@@ -20,5 +20,6 @@ export enum GlobalSessionNames {
   PERFORMANCE_DATE_FROM = 'performanceDateFrom',
   STANDARD_PRECISION = 'standardPrecision',
   CURRENCY_PRECISION = 'currencyPrecision',
-  UI_SHOW_MY_PROPERTY = 'uiShowMyProperty'
+  UI_SHOW_MY_PROPERTY = 'uiShowMyProperty',
+  USER_FORM_DEFINITION = 'userFormDefinition'
 }

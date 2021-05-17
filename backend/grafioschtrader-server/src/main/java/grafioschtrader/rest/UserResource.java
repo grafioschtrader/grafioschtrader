@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,10 +21,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafioschtrader.dto.ChangePasswortDTO;
+import grafioschtrader.common.PropertyChangePassword;
+import grafioschtrader.dto.ChangePasswordDTO;
 import grafioschtrader.dto.UserDTO;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.VerificationToken;
+import grafioschtrader.entities.User.AdminModify;
 import grafioschtrader.entities.projection.SuccessfullyChanged;
 import grafioschtrader.entities.projection.UserOwnProjection;
 import grafioschtrader.repository.UserJpaRepository;
@@ -84,8 +87,9 @@ public class UserResource {
   }
 
   @PutMapping(value = "/password", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<SuccessfullyChanged> changePassword(@RequestBody final ChangePasswortDTO changePasswortDTO) {
-    return ResponseEntity.ok().body(userService.changePassword(changePasswortDTO));
+  public ResponseEntity<SuccessfullyChanged> changePassword(
+      @Validated(PropertyChangePassword.class) @RequestBody final ChangePasswordDTO changePasswordDTO) {
+    return ResponseEntity.ok().body(userService.changePassword(changePasswordDTO));
   }
 
   @GetMapping(value = "/tokenverify/{token}", produces = APPLICATION_JSON_VALUE)

@@ -132,11 +132,19 @@ export class DynamicFieldHelper {
       validationSpecials, fieldOptions);
   }
 
+  public static createFieldDAInputStringVSHeqF(dataType: DataType, fieldName: string, maxLength: number,
+                                               required: boolean, validationSpecials: VALIDATION_SPECIAL[],
+                                               fieldOptions?: FieldOptions): FieldConfig {
+    return DynamicFieldHelper.addValidations(DynamicFieldHelper.createFieldDAInputString(dataType, fieldName,
+      AppHelper.convertPropertyForLabelOrHeaderKey(fieldName), maxLength, required, fieldOptions), validationSpecials);
+  }
+
+
   public static createFieldDAInputStringVS(dataType: DataType, fieldName: string, labelKey: string, maxLength: number,
                                            required: boolean, validationSpecials: VALIDATION_SPECIAL[],
                                            fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.addValidations(DynamicFieldHelper.createFieldInputString(fieldName, labelKey, maxLength, required,
-      fieldOptions), validationSpecials);
+    return DynamicFieldHelper.addValidations(DynamicFieldHelper.createFieldDAInputString(dataType, fieldName,
+      labelKey, maxLength, required, fieldOptions), validationSpecials);
   }
 
 
@@ -457,6 +465,51 @@ export class DynamicFieldHelper {
     return fieldConfig;
   }
 
+  public static ccWithFieldsFromDescriptorHeqF(fieldName: string, fieldDescriptorInputAndShows:
+    FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+    return this.ccWithFieldsFromDescriptor(fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName),
+      fieldDescriptorInputAndShows, fieldOptionsCc);
+  }
+
+
+  public static ccWithFieldsFromDescriptor(fieldName: string, labelKey: string, fieldDescriptorInputAndShows:
+    FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+    let fc: FieldConfig;
+    const fd = fieldDescriptorInputAndShows.filter(fdias => fdias.fieldName === fieldName)[0];
+    const targetField = fieldOptionsCc && fieldOptionsCc.targetField ? fieldOptionsCc.targetField : fieldName;
+    switch (DataType[fd.dataType]) {
+      case DataType.String:
+        const fieldOptions = Object.assign({}, fieldOptionsCc, {minLength: fd.min});
+        if (fd.dynamicFormPropertyHelps) {
+          switch (DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0]]) {
+            case DynamicFormPropertyHelps.EMAIL:
+              fc = DynamicFieldHelper.createFieldDAInputStringVSHeqF(DataType.Email, targetField, fd.max, fd.required,
+                [VALIDATION_SPECIAL.EMail], fieldOptions);
+              break;
+            case DynamicFormPropertyHelps.PASSWORD:
+              fc = DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.Password, targetField, fd.max, fd.required,
+                fieldOptions);
+              break;
+            case DynamicFormPropertyHelps.SELECT_OPTIONS:
+              fieldOptions.inputWidth = fd.max;
+              fc = DynamicFieldHelper.createFieldSelectStringHeqF(targetField, fd.required,
+                fieldOptions);
+              break;
+
+            default:
+
+          }
+        } else {
+          fc = DynamicFieldHelper.createFieldInputStringHeqF(fieldName, fd.max, fd.required,
+            fieldOptions);
+        }
+        break;
+    }
+
+    return fc;
+  }
+
+
   public static createConfigFieldsFromDescriptor(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
                                                  labelPreffix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
     const fieldConfigs: FieldConfig[] = [];
@@ -547,6 +600,10 @@ export interface FieldOptions {
   buttonInForm?: boolean;
   calendarConfig?: CalendarConfig;
   handleChangeFileInputFN?: (fileList: FileList) => void;
+}
+
+export interface FieldOptionsCc extends FieldOptions {
+  targetField?: string;
 }
 
 export interface CurrencyOptions {

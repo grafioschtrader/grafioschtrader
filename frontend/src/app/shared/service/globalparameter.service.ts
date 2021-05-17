@@ -14,6 +14,7 @@ import * as moment from 'moment';
 import {CurrencyMaskConfig, CurrencyMaskInputMode} from 'ngx-currency';
 import {ServiceEntityUpdate} from '../edit/service.entity.update';
 import NumberFormat = Intl.NumberFormat;
+import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
 
 
 @Injectable()
@@ -228,6 +229,13 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return <Observable<TenantLimit[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/tenantlimits`,
       {headers: this.prepareHeaders(), params: httpParams}).pipe(catchError(this.handleError.bind(this)));
+  }
+
+
+  public getUserFormDefinitions(): Observable<FieldDescriptorInputAndShow[]> {
+    return <Observable<FieldDescriptorInputAndShow[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/userformdefinition`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getSupportedLocales(): Observable<ValueKeyHtmlSelectOptions[]> {
