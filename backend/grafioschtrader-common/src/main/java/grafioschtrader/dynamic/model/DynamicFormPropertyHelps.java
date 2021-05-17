@@ -1,5 +1,8 @@
 package grafioschtrader.dynamic.model;
 
 public enum DynamicFormPropertyHelps {
-  PERCENTAGE;
+  PERCENTAGE,
+  PASSWORD,
+  EMAIL,
+  SELECT_OPTIONS;
 }

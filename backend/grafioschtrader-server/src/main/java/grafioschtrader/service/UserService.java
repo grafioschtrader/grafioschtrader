@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-import grafioschtrader.dto.ChangePasswortDTO;
+import grafioschtrader.dto.ChangePasswordDTO;
 import grafioschtrader.dto.UserDTO;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.SuccessfullyChanged;
@@ -26,7 +26,7 @@ public interface UserService extends UserDetailsService {
 
   User createUserForVerification(UserDTO userDTO, String hostName);
 
-  SuccessfullyChanged changePassword(ChangePasswortDTO changePasswortDTO);
+  SuccessfullyChanged changePassword(ChangePasswordDTO changePasswortDTO);
 
   User incrementRightsLimitCount(Integer userId, UserRightLimitCounter userRightLimitCounter);
 

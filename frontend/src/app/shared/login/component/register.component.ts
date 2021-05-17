@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -8,11 +8,14 @@ import {AppSettings} from '../../app.settings';
 import {User} from '../../../entities/user';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {PasswordBaseComponent} from './password.base.component';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
+import {combineLatest} from 'rxjs';
+import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
+import {GlobalSessionNames} from '../../global.session.names';
 
 /**
  * Shows the register form.
@@ -45,7 +48,7 @@ import {HelpIds} from '../../help/help.ids';
     </div>
   `
 })
-export class RegisterComponent extends PasswordBaseComponent implements OnInit, AfterViewInit, OnDestroy {
+export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
   progressValue: number;
   errorLastRegistration: string;
   queryParams: any;
@@ -59,33 +62,34 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
               private router: Router,
               private loginService: LoginService,
               translateService: TranslateService) {
-    super(translateService, false);
+    super(translateService);
   }
 
   ngOnInit(): void {
-    this.actuatorService.applicationInfo().subscribe((applicationInfo: ApplicationInfo) => {
-      this.applicationInfo = applicationInfo;
-      this.loginFormDefinition();
-    });
+    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions()]).subscribe(
+      (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[]]) => {
+        this.applicationInfo = data[0];
+        sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
+        this.loginFormDefinition(data[1]);
+      }, err => this.applicationInfo = null);
   }
 
-  private loginFormDefinition(): void {
+  private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
+    super.init(fdias, false);
     this.formConfig = {
       labelcolumns: 3, helpLinkFN: this.helpLink.bind(this), nonModal: true,
       language: this.translateService.currentLang
     };
 
     this.config = [
-      DynamicFieldHelper.createFieldInputStringHeqF('nickname', 30, true,
-        {minLength: 2}),
-      DynamicFieldHelper.createFieldInputStringVSHeqF('email', 255, true, [VALIDATION_SPECIAL.EMail]),
+      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('nickname', fdias),
+      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('email', fdias),
       {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
-      DynamicFieldHelper.createFieldSelectStringHeqF('localeStr', true,
-        {inputWidth: 10}),
-      DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) => this.router.navigate([`/${AppSettings.LOGIN_KEY}`])),
+      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('localeStr', fdias),
+      DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) =>
+        this.router.navigate([`/${AppSettings.LOGIN_KEY}`])),
       DynamicFieldHelper.createSubmitButton('REGISTRATION')
     ];
-
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.prepareData();
   }
@@ -120,9 +124,6 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
         clearInterval(interval);
       }
     }, 1000);
-  }
-
-  ngAfterViewInit(): void {
   }
 
   ngOnDestroy(): void {

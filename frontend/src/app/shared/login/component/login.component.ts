@@ -14,6 +14,9 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
+import {combineLatest} from 'rxjs';
+import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
+import {GlobalSessionNames} from '../../global.session.names';
 
 /**
  * Shows the login form
@@ -63,26 +66,24 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.actuatorService.applicationInfo().subscribe((applicationInfo: ApplicationInfo) => {
-      this.applicationInfo = applicationInfo;
-      this.loginFormDefinition();
-    }, err => this.applicationInfo = null);
+    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions()]).subscribe(
+      (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[]]) => {
+        this.applicationInfo = data[0];
+        sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
+        this.loginFormDefinition(data[1]);
+      }, err => this.applicationInfo = null);
   }
 
-  private loginFormDefinition(): void {
+  private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
     this.formConfig = {
       labelcolumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
       language: this.translateService.currentLang
     };
-    console.log('currentlang:', this.translateService.currentLang);
-
     this.applicationInfo.users;
-
     this.config = [];
-    this.config.push(DynamicFieldHelper.createFieldDAInputStringVS(DataType.Email, 'email', 'EMAIL', 255, true,
-      [VALIDATION_SPECIAL.EMail]));
-    this.config.push(DynamicFieldHelper.createFieldDAInputString(DataType.Password, 'password', 'PASSWORD', 30,
-      true));
+    this.config.push(DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('email', fdias));
+    this.config.push(DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('password', fdias));
+
     if (this.applicationInfo.users.active < this.applicationInfo.users.allowed) {
       this.config.push(DynamicFieldHelper.createFunctionButton('REGISTRATION',
         (e) => this.router.navigate([`/${AppSettings.REGISTER_KEY}`])));

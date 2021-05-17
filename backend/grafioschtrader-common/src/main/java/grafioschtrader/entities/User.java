@@ -38,7 +38,11 @@ import org.springframework.validation.annotation.Validated;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import grafioschtrader.common.DynamicFormPropertySupport;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.common.PropertyChangePassword;
+import grafioschtrader.common.PropertyOnlyCreation;
+import grafioschtrader.dynamic.model.DynamicFormPropertyHelps;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.types.Language;
 
@@ -61,11 +65,17 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
 
   @NotNull
   @Size(min = 4, max = 255)
+  @PropertyOnlyCreation
+  @DynamicFormPropertySupport(value = { DynamicFormPropertyHelps.EMAIL })
   @Pattern(regexp = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
   private String email;
 
-  // @NotNull
-  @Column(name = "password", length = 70)
+  @NotNull(groups = { PropertyChangePassword.class })
+  @PropertyChangePassword
+  @Column(name = "password")
+  @DynamicFormPropertySupport(value = { DynamicFormPropertyHelps.PASSWORD })
+  @Size(min = 1, max = 70)
+  @NotNull(groups = { PropertyAlwaysUpdatable.class })
   @Null(groups = { AdminModify.class })
   private String password;
 
@@ -91,6 +101,10 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   private boolean enabled;
 
   @Column(name = "locale")
+  @NotNull
+  @Size(min = 2, max = 5)
+  @DynamicFormPropertySupport(value = { DynamicFormPropertyHelps.SELECT_OPTIONS })
+  @PropertyAlwaysUpdatable
   private String localeStr;
 
   @Column(name = "timezone_offset")
