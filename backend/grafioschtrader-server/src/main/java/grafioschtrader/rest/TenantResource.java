@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.TENANT_MAP)
-@Tag(name = RequestMappings.TENANT, description = "Controller for tenant")
+@Tag(name = Tenant.TABNAME, description = "Controller for tenant")
 public class TenantResource extends UpdateCreateResource<Tenant> {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -47,7 +47,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   }
 
   @Operation(summary = "Chance tenants currency and also in its each protfolio", description = "", tags = {
-      RequestMappings.TENANT })
+      Tenant.TABNAME })
   @PatchMapping("/watchlistforperformance/{idWatchlist}")
   public ResponseEntity<Tenant> setWatchlistForPerformance(
       @Parameter(description = "ID of watchlist", required = true) @PathVariable Integer idWatchlist) {
@@ -55,7 +55,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   }
 
   @Operation(summary = "Chance tenants currency and also in its each protfolio", description = "", tags = {
-      RequestMappings.TENANT })
+      Tenant.TABNAME })
   @PatchMapping("{currency}")
   public ResponseEntity<Tenant> changeCurrencyTenantAndPortfolios(
       @Parameter(description = "New currency", required = true) @PathVariable String currency) {
@@ -63,14 +63,14 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   }
 
   @Operation(summary = "Export the data of a client with it private ond public data", description = "The created zip file will cotains two files one with ddl and the 2nd with dml statements", tags = {
-      RequestMappings.TENANT })
+      Tenant.TABNAME })
   @GetMapping(value = "/exportpersonaldataaszip", produces = "application/zip")
   public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
     tenantJpaRepository.getExportPersonalDataAsZip(response);
   }
 
   @Operation(summary = "Delete the private data the main tenant of the user. It als removes the user from this application", description = "", tags = {
-      RequestMappings.TENANT })
+      Tenant.TABNAME })
   @DeleteMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteMyDataAndUserAccount() throws Exception {
     log.debug("Delete all data of a user");

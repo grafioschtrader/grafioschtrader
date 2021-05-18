@@ -13,7 +13,6 @@ import {AssetclassType} from '../../shared/types/assetclass.type';
 import {atLeastOneFieldValidator} from '../../shared/validator/validator';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {Security} from '../../entities/security';
-import {combineLatest} from 'rxjs';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
@@ -22,6 +21,10 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SupplementCriteria} from '../model/supplement.criteria';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {AppSettings} from '../../shared/app.settings';
+import {
+  DataForCurrencySecuritySearch,
+  MultipleRequestToOneService
+} from '../../shared/service/multiple.request.to.one.service';
 
 
 /**
@@ -41,13 +44,9 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig;
 
-
-  // securitySearchCriteria: Security;
-
   constructor(protected multiplyAddClose: boolean,
               protected gps: GlobalparameterService,
-              protected assetclassService: AssetclassService,
-              protected stockexchangeSerice: StockexchangeService,
+              protected multipleRequestToOneService: MultipleRequestToOneService,
               public translateService: TranslateService) {
   }
 
@@ -77,6 +76,10 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       DynamicFieldHelper.createFieldSelectString('subCategoryNLS', 'SUB_ASSETCLASS', false,
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectString('specialInvestmentInstruments', 'FINANCIAL_INSTRUMENT', false,
+        {userDefinedValue: this.secondGroup}),
+      DynamicFieldHelper.createFieldSelectString('idConnectorHistory', 'HISTORY_DATA_PROVIDER', false,
+        {userDefinedValue: this.secondGroup}),
+      DynamicFieldHelper.createFieldSelectString('idConnectorIntra', 'INTRA_DATA_PROVIDER', false,
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectNumber('idStockexchange', AppSettings.STOCKEXCHANGE.toUpperCase(), false,
         {userDefinedValue: this.secondGroup}), DynamicFieldHelper.createFieldSelectStringHeqF('currency', false,
@@ -120,17 +123,21 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
 
     this.childClearList();
     this.valueChangedOnForm();
-    combineLatest([this.gps.getCurrencies(),
-      this.assetclassService.getSubcategoryForLanguage(), this.stockexchangeSerice.getAllStockexchanges(false)]).subscribe(data => {
-      this.configObject.currency.valueKeyHtmlOptions = data[0];
-      this.configObject.currency.valueKeyHtmlOptions.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
-      this.configObject.subCategoryNLS.valueKeyHtmlOptions = data[1];
-      this.configObject.subCategoryNLS.valueKeyHtmlOptions.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
+    this.multipleRequestToOneService.getDataForCurrencySecuritySearch().subscribe((dfcss: DataForCurrencySecuritySearch) => {
+      this.setValueKeyHtmlOptions(this.configObject.currency, dfcss.currencies);
+      this.setValueKeyHtmlOptions(this.configObject.subCategoryNLS, dfcss.assetclasses);
+      this.setValueKeyHtmlOptions(this.configObject.idConnectorHistory, dfcss.feedConnectorsHistory);
+      this.setValueKeyHtmlOptions(this.configObject.idConnectorIntra, dfcss.feedConnectorsIntra);
       this.configObject.idStockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idStockexchange', 'name',
-        data[2], true);
+        dfcss.stockexchanges, true);
       this.dynamicFormComponent.setDefaultValuesAndEnableSubmit();
       this.configObject.isin.elementRef.nativeElement.focus();
     });
+  }
+
+  private setValueKeyHtmlOptions(fieldConfig: FieldConfig, values: ValueKeyHtmlSelectOptions[]): void {
+    fieldConfig.valueKeyHtmlOptions = values;
+    fieldConfig.valueKeyHtmlOptions.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
   }
 
   private valueChangedOnForm(): void {

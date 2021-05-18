@@ -34,7 +34,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.SECURITYACCOUNT_MAP)
-@Tag(name = RequestMappings.SECURITYACCOUNT, description = "Controller for security account")
+@Tag(name = Securityaccount.TABNAME, description = "Controller for security account")
 public class SecurityaccountResource extends UpdateCreateResource<Securityaccount> {
 
   @Autowired

@@ -1,10 +1,25 @@
 package grafioschtrader.rest;
 
+import grafioschtrader.entities.Assetclass;
+import grafioschtrader.entities.Cashaccount;
+import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Dividend;
+import grafioschtrader.entities.Globalparameters;
+import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.Portfolio;
+import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securityaccount;
+import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.entities.Stockexchange;
+import grafioschtrader.entities.Tenant;
+import grafioschtrader.entities.Transaction;
+import grafioschtrader.entities.User;
+import grafioschtrader.entities.Watchlist;
+
 public interface RequestMappings {
   public static final String API = "/api/";
-
-  public static final String ASSETCLASS = "assetclass";
-  public static final String ASSETCLASS_MAP = API + ASSETCLASS;
+  
+  public static final String ASSETCLASS_MAP = API + Assetclass.TABNAME;
 
   public static final String ALGOASSETCLASS = "algoassetclass";
   public static final String ALGOASSETCLASS_MAP = API + ALGOASSETCLASS;
@@ -17,21 +32,16 @@ public interface RequestMappings {
 
   public static final String ALGOSTRATEGY = "algostrategy";
   public static final String ALGOSTRATEGY_MAP = API + ALGOSTRATEGY;
+ 
+  public static final String CASHACCOUNT_MAP = API + Cashaccount.TABNAME;
+  
+  public static final String CURRENCYPAIR_MAP = API + Currencypair.TABNAME;
 
-  public static final String CASHACCOUNT = "cashaccount";
-  public static final String CASHACCOUNT_MAP = API + CASHACCOUNT;
+  public static final String DIVIDEND_MAP = API + Dividend.TABNAME;
+  
+  public static final String GLOBALPARAMETERS_MAP = API + Globalparameters.TABNAME;
 
-  public static final String CURRENCYPAIR = "currencypair";
-  public static final String CURRENCYPAIR_MAP = API + CURRENCYPAIR;
-
-  public static final String DIVIDEND = "dividend";
-  public static final String DIVIDEND_MAP = API + DIVIDEND;
-
-  public static final String GLOBALPARAMETERS = "globalparameters";
-  public static final String GLOBALPARAMETERS_MAP = API + GLOBALPARAMETERS;
-
-  public static final String HISTORYQUOTE = "historyquote";
-  public static final String HISTORYQUOTE_MAP = API + HISTORYQUOTE;
+  public static final String HISTORYQUOTE_MAP = API + Historyquote.TABNAME;
 
   public static final String HISTORYQUOTE_PERIOD = "historyquoteperiod";
   public static final String HISTORYQUOTE_PERDIO_MAP = API + HISTORYQUOTE_PERIOD;
@@ -57,8 +67,10 @@ public interface RequestMappings {
   public static final String MAIL_SENDBOX = "mailsendbox";
   public static final String MAIL_SENDBOX_MAP = API + MAIL_SENDBOX;
 
-  public static final String PORTFOLIO = "portfolio";
-  public static final String PORTFOLIO_MAP = API + PORTFOLIO;
+  public static final String MULTIPLE_REQUEST_TO_ONE = "multiplerequesttoone";
+  public static final String MULTIPLE_REQUEST_TO_ONE_MAP = API + MULTIPLE_REQUEST_TO_ONE;
+  
+  public static final String PORTFOLIO_MAP = API + Portfolio.TABNAME;
 
   public static final String PROPOSECHANGEENTITY = "proposechangeentity";
   public static final String PROPOSECHANGEENTITY_MAP = API + PROPOSECHANGEENTITY;
@@ -66,17 +78,13 @@ public interface RequestMappings {
   public static final String PROPOSEUSER_TASK = "proposeusertask";
   public static final String PROPOSEUSER_TASK_MAP = API + PROPOSEUSER_TASK;
 
-  public static final String SECURITYACCOUNT = "securityaccount";
-  public static final String SECURITYACCOUNT_MAP = API + SECURITYACCOUNT;
+  public static final String SECURITYACCOUNT_MAP = API + Securityaccount.TABNAME;
 
-  public static final String STOCKEXCHANGE = "stockexchange";
-  public static final String STOCKEXCHANGE_MAP = API + STOCKEXCHANGE;
-
-  public static final String SECURITY = "security";
-  public static final String SECURITY_MAP = API + SECURITY;
-
-  public static final String SECURITYSPLIT = "securitysplit";
-  public static final String SECURITYSPLIT_MAP = API + SECURITYSPLIT;
+  public static final String STOCKEXCHANGE_MAP = API + Stockexchange.TABNAME;
+  
+  public static final String SECURITY_MAP = API + Security.TABNAME;
+  
+  public static final String SECURITYSPLIT_MAP = API + Securitysplit.TABNAME;
 
   public static final String TRADINGDAYSMINUS = "tradingdaysminus";
   public static final String TRADINGDAYSMINUS_MAP = API + TRADINGDAYSMINUS;
@@ -84,23 +92,20 @@ public interface RequestMappings {
   public static final String TRADINGDAYSPLUS = "tradingdaysplus";
   public static final String TRADINGDAYSPLUS_MAP = API + TRADINGDAYSPLUS;
 
-  public static final String TRADINGPLATFORMPLAND = "tradingplatformplan";
+  public static final String TRADINGPLATFORMPLAND =  "tradingplatformplan";
   public static final String TRADINGPLATFORMPLAND_MAP = API + TRADINGPLATFORMPLAND;
 
-  public static final String TRANSACTION = "transaction";
-  public static final String TRANSACTION_MAP = API + TRANSACTION;
+  public static final String TRANSACTION_MAP = API + Transaction.TABNAME;
+  
+  public static final String WATCHLIST_MAP = API + Watchlist.TABNAME;
 
-  public static final String WATCHLIST = "watchlist";
-  public static final String WATCHLIST_MAP = API + WATCHLIST;
+  public static final String USER_MAP = API + User.TABNAME;
 
-  public static final String USER = "user";
-  public static final String USER_MAP = API + USER;
-
+  // The is no table for useradmin
   public static final String USERADMIN = "useradmin";
   public static final String USERADMIN_MAP = API + USERADMIN;
 
-  public static final String TENANT = "tenant";
-  public static final String TENANT_MAP = API + TENANT;
+  public static final String TENANT_MAP = API + Tenant.TABNAME;
 
   public static final String USER_ENTITY_CHANGE_LIMIT = "userentitychangelimit";
   public static final String USER_ENTITY_CHANGE_LIMIT_MAP = API + USER_ENTITY_CHANGE_LIMIT;

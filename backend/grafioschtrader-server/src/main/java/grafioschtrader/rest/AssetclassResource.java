@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Assetclass;
+import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.types.AssetclassType;
@@ -30,11 +31,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 @RestController
 @RequestMapping(RequestMappings.ASSETCLASS_MAP)
-@Tag(name = RequestMappings.ALGOASSETCLASS, description = "Controller for asset class")
+@Tag(name = Assetclass.TABNAME, description = "Controller for asset class")
 public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetclass> {
 
   @Autowired
-  AssetclassJpaRepository assetclassJpaRepository;
+  private AssetclassJpaRepository assetclassJpaRepository;
 
   @Operation(summary = "Returns all asset classes sorted", description = "", tags = { RequestMappings.ALGOASSETCLASS })
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
@@ -47,6 +48,8 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
     return new ResponseEntity<>(assetclassJpaRepository.findById(idAssetClass).get(), HttpStatus.OK);
   }
 
+  @Operation(summary = "Returns id of asset class and 1 (has a security) or 0 (no security) ", 
+      description = "", tags = { Assetclass.TABNAME })
   @GetMapping(value = "/hassecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Object[]>> assetclassesHasSecurity() {
     return new ResponseEntity<>(assetclassJpaRepository.assetclassesHasSecurity(), HttpStatus.OK);

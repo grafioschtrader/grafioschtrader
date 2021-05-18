@@ -32,6 +32,7 @@ import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
+import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.User;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteEntityAccess;
@@ -180,6 +181,14 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         .collect(Collectors.toList());
   }
 
+  @Override
+  public List<ValueKeyHtmlSelectOptions> getAllFeedConnectorsAsKeyValue(FeedSupport feedSupport) {
+    return feedConnectorbeans.stream().filter(f ->  f.getSecuritycurrencyFeedSupport().containsKey(feedSupport))
+                  .map(f -> new ValueKeyHtmlSelectOptions(f.getID(), f.getReadableName()))
+                  .collect(Collectors.toList());
+  }
+  
+  
   @Override
   @Transactional
   public S saveOnlyAttributes(final S securitycurrency, S existingEntity,

@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafioschtrader.GlobalConstants;
@@ -35,6 +37,9 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
+  
+  @Autowired
+  private MessageSource messages;
 
   @Override
   public int getMaxValueByKey(String key) {
@@ -134,6 +139,20 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         .collect(Collectors.toList());
   }
 
+  public List<ValueKeyHtmlSelectOptions> getCurrencies() {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final List<ValueKeyHtmlSelectOptions> currencies = Currency.getAvailableCurrencies().stream()
+        .sorted((currency1, currency2) -> currency1.getCurrencyCode().compareTo(currency2.getCurrencyCode()))
+        .map(currency -> new ValueKeyHtmlSelectOptions(currency.getCurrencyCode(), currency.getCurrencyCode()))
+        .collect(Collectors.toList());
+    // Add crypto currency
+    GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.forEach(cc -> currencies.add(new ValueKeyHtmlSelectOptions(cc,
+        cc + "(" + messages.getMessage("cryptocurrency", null, user.createAndGetJavaLocale()) + ")")));
+
+    return currencies;
+  }
+  
+  
   @Override
   public List<ValueKeyHtmlSelectOptions> getSupportedLocales() {
     final List<ValueKeyHtmlSelectOptions> dropdownValues = new ArrayList<>();

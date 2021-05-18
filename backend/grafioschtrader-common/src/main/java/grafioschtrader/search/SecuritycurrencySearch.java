@@ -23,6 +23,10 @@ public class SecuritycurrencySearch implements Serializable {
   boolean onlyTenantPrivate;
   Boolean shortSecurity;
   boolean excludeDerivedSecurity;
+  
+  String idConnectorHistory;
+  
+  String idConnectorIntra;
 
   @DateTimeFormat(pattern = "yyyyMMdd")
   public Date activeDate;
@@ -113,6 +117,22 @@ public class SecuritycurrencySearch implements Serializable {
 
   public void setShortSecurity(Boolean shortSecurity) {
     this.shortSecurity = shortSecurity;
+  }
+  
+  public String getIdConnectorHistory() {
+    return idConnectorHistory;
+  }
+
+  public void setIdConnectorHistory(String idConnectorHistory) {
+    this.idConnectorHistory = idConnectorHistory;
+  }
+
+  public String getIdConnectorIntra() {
+    return idConnectorIntra;
+  }
+
+  public void setIdConnectorIntra(String idConnectorIntra) {
+    this.idConnectorIntra = idConnectorIntra;
   }
 
   public boolean isExcludeDerivedSecurity() {

@@ -237,6 +237,7 @@ import {CardModule} from 'primeng/card';
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
 import {GlobalSettingsEditComponent} from './shared/globalsettings/global.settings-edit.component';
 import {UserChangeOwnerEntitiesComponent} from './user/component/user-change-owner-entities.component';
+import {MultipleRequestToOneService} from './shared/service/multiple.request.to.one.service';
 
 
 export function createTranslateLoader(http: HttpClient) {
@@ -284,7 +285,8 @@ export function createTranslateLoader(http: HttpClient) {
     TransactionSecurityEditComponent, TransactionSecurityTableComponent, TransformPdfToTxtDialogComponent,
     UploadFileDialogComponent, UserEditComponent, UserEntityChangeLimitEditComponent, UserEntityChangeLimitTableComponent,
     MailInboxTableComponent, UserTableComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
-    WatchlistCorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent, SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent,
+    WatchlistCorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent,
+    SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent,
     WatchlistPerformanceComponent, WatchlistTabMenuComponent, WatchlistDividendSplitFeedComponent,
     WatchlistSecuritysplitTableComponent, WatchlistDividendTableComponent, YourProposalTableComponent
   ],
@@ -370,6 +372,7 @@ export function createTranslateLoader(http: HttpClient) {
     HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
     ImportTransactionTemplateService, ImportTransactionPosService, ImportTransactionHeadService, LoginService,
     MainDialogService, MessageToastService, ParentChildRegisterService, MailInboxService, MailSendboxService,
+    MultipleRequestToOneService,
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,
     TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UserAdminService,

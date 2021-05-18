@@ -12,6 +12,7 @@ import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist'
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {HelpIds} from '../../shared/help/help.ids';
+import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 
 /**
  * Dialog for selecting a security or currency by search criterias.
@@ -29,7 +30,6 @@ import {HelpIds} from '../../shared/help/help.ids';
           <br/>
           <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria">
           </securitycurrency-search-and-set-table>
-
       </p-dialog>
   `
 })
@@ -46,10 +46,9 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
   constructor(gps: GlobalparameterService,
-              assetclassService: AssetclassService,
-              stockexchangeService: StockexchangeService,
+              multipleRequestToOneService: MultipleRequestToOneService,
               translateService: TranslateService) {
-    super(false, gps, assetclassService, stockexchangeService, translateService);
+    super(false, gps, multipleRequestToOneService, translateService);
   }
 
   protected initialize(): void {

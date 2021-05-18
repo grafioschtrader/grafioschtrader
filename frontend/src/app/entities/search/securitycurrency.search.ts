@@ -11,5 +11,7 @@ export class SecuritycurrencySearch {
   shortSecurity: boolean = null;
   activeDate = null;
   excludeDerivedSecurity: boolean = null;
+  idConnectorHistory: string  = null;
+  idConnectorIntra: string = null;
 }
 

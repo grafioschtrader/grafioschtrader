@@ -35,17 +35,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 @RestController
 @RequestMapping(RequestMappings.CURRENCYPAIR_MAP)
-@Tag(name = RequestMappings.CURRENCYPAIR, description = "Controller for the currency pair")
+@Tag(name = Currencypair.TABNAME, description = "Controller for the currency pair")
 public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  TransactionJpaRepository transactionJpaRepository;
+  private TransactionJpaRepository transactionJpaRepository;
 
   @GetMapping(value = "/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Currencypair> getCurrencypairByIdSecuritycurrency(
@@ -53,7 +53,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairJpaRepository.findById(idSecuritycurrency).orElse(null), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns all currency pairs", description = "", tags = { RequestMappings.CURRENCYPAIR })
+  @Operation(summary = "Returns all currency pairs", description = "", tags = { Currencypair.TABNAME })
   @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> getAllCurrencypairs() {
     return new ResponseEntity<>(currencypairJpaRepository.findAll(), HttpStatus.OK);
@@ -84,7 +84,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   }
 
   @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = "", tags = {
-      RequestMappings.CURRENCYPAIR })
+      Currencypair.TABNAME })
   @GetMapping(value = "/feedConnectors", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IFeedConnector>> getFeedConnectors() {
     return new ResponseEntity<>(currencypairJpaRepository.getFeedConnectors(true), HttpStatus.OK);
@@ -109,7 +109,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   // User depended Request
   ////////////////////////////////////////////////////////////
   @Operation(summary = "Gel all used currency pairs in transactions. That means currency pairs which werse used in all transactions.", description = "A client could merge transactions with this currencypairs", tags = {
-      RequestMappings.CURRENCYPAIR })
+      Currencypair.TABNAME })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> getCurrencypairInTransactionByTenant() {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
@@ -124,7 +124,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
    * @return
    */
   @Operation(summary = "Returns all transactions for a certain currency pair of a tenant.", description = "", tags = {
-      RequestMappings.CURRENCYPAIR })
+      Currencypair.TABNAME })
   @GetMapping(value = "/tenant/{idCurrencypair}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CurrencypairWithTransaction> findOrCreateCurrencypairByFromAndToCurrency(
       @PathVariable final Integer idCurrencypair) {

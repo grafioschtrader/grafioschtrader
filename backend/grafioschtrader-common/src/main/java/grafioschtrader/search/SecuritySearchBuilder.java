@@ -92,6 +92,18 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
             "%" + securitycurrencySearch.tickerSymbol.toUpperCase() + "%")));
       }
 
+      
+      if (securitycurrencySearch.idConnectorHistory != null) {
+        mainPredicates.add(builder.and(
+            builder.like(securityRoot.get(Security_.idConnectorHistory), securitycurrencySearch.idConnectorHistory)));
+      }
+      
+      if (securitycurrencySearch.idConnectorIntra != null) {
+        mainPredicates.add(builder.and(
+            builder.like(securityRoot.get(Security_.idConnectorIntra), securitycurrencySearch.idConnectorIntra)));
+      }
+      
+      
       if (securitycurrencySearch.currency != null) {
         mainPredicates
             .add(builder.and(builder.equal(securityRoot.get(Security_.currency), securitycurrencySearch.currency)));

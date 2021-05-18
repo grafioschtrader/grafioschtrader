@@ -21,6 +21,7 @@ import grafioschtrader.connector.instrument.alphavantage.AlphaVantageFeedConnect
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.test.start.GTforTest;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)
@@ -46,6 +47,7 @@ class AlphaVantageFeedConnectorTest {
     securities.add(createSecurity("AAPL"));
     securities.add(createSecurity("MSFT"));
     securities.add(createSecurity("DAI.FRK"));
+    // securities.add(createSecurity("NESN.SW"));
     securities.parallelStream().forEach(security -> {
 
       List<Historyquote> historyquote = new ArrayList<>();
@@ -65,6 +67,7 @@ class AlphaVantageFeedConnectorTest {
     securities.add(createSecurity("AAPL"));
     securities.add(createSecurity("MSFT"));
     securities.add(createSecurity("DAI.FRK"));
+    // securities.add(createSecurity("NESN.SW"));
     securities.add(createSecurity("^DJI"));
     securities.parallelStream().forEach(security -> {
       try {

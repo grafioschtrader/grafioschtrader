@@ -1,4 +1,5 @@
 import {GlobalSessionNames} from './global.session.names';
+import {MultipleRequestToOneService} from './service/multiple.request.to.one.service';
 
 export class AppSettings {
 
@@ -61,6 +62,7 @@ export class AppSettings {
   public static readonly TRANSACTION_KEY = AppSettings.TRANSACTION.toLowerCase();
   public static readonly TENANT_KEY = AppSettings.TENANT.toLowerCase();
   public static readonly HOLDING_KEY = 'holding';
+  public static readonly MULTIPLE_REQUEST_TO_ONE_KEY = 'multiplerequesttoone';
   public static readonly STOCKEXCHANGE_KEY = AppSettings.STOCKEXCHANGE.toLowerCase();
   public static readonly SECURITY_KEY = AppSettings.SECURITY.toLowerCase();
   public static readonly SECURITY_SPLIT_KEY = AppSettings.SECURITY_SPLIT.toLowerCase();

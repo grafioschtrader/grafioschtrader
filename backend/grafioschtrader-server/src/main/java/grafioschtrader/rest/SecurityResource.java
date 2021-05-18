@@ -44,23 +44,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.SECURITY_MAP)
-@Tag(name = RequestMappings.SECURITY, description = "Controller for security")
+@Tag(name = Security.TABNAME, description = "Controller for security")
 public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> {
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  SecruityTransactionsReport secruityTransactionsReport;
+  private SecruityTransactionsReport secruityTransactionsReport;
 
   @Autowired
-  HistoryquoteQualityService historyquoteQuality;
+  private HistoryquoteQualityService historyquoteQuality;
 
   @Autowired
-  SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
+  private SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
 
   @Operation(summary = "Returns a security by its Id", description = "Only public securities and the user private security will be returned", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Security> getSecurityByIdSecuritycurrency(@PathVariable final Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -79,7 +79,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Returns the a list of security accounts which holds a certain security. Also the the security is included.", description = "Useful when choosing the security account for transactions on open positions", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/date/{dateString}/{before}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityOpenPositionPerSecurityaccount> getOpenPositionByIdSecuritycurrencyAndIdTenant(
       @Parameter(description = "The ID of security", required = true) @PathVariable final Integer idSecuritycurrency,
@@ -97,7 +97,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Returns all securities of a watchlist which are tradable", description = "", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/watchlist/{idWatchlist}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Security>> getTradableSecuritiesByTenantAndIdWatschlist(
       @PathVariable final Integer idWatchlist) throws ParseException {
@@ -115,7 +115,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
    */
 
   @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = "", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/feedConnectors", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IFeedConnector>> getFeedConnectors() {
     return new ResponseEntity<>(securityJpaRepository.getFeedConnectors(false), HttpStatus.OK);
@@ -134,7 +134,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Returns all transactions for specified security", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/tenantsecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityTransactionSummary> getTransactionsByIdTenantAndIdSecurity(
       @PathVariable final Integer idSecuritycurrency,
@@ -149,7 +149,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Returns the transactions for specified security in specified portfolio", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliosecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityTransactionSummary> getTransactionsByIdPortfolioAndIdSecurity(
       @PathVariable final Integer idPortfolio, @PathVariable final Integer idSecuritycurrency,
@@ -163,7 +163,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Returns the transactions for specified security in specified security account", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "securityaccountsecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityTransactionSummary> getTransactionsByIdSecurityaccountsAndIdSecurity(
       @PathVariable final Integer idSecuritycurrency, @RequestParam() final List<Integer> idsSecurityaccount,
@@ -179,14 +179,14 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Searches securities  by a s search criteria", description = "", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/search", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Security>> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
     return new ResponseEntity<>(securityJpaRepository.searchByCriteria(securitycurrencySearch), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the completeness summary of historical EOD data", description = "Securities are not included", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/historyquotequality", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<HistoryquoteQualityHead> getHistoryquoteQualityHead(
       @Parameter(description = "Data is grouped by stockexchange or connector", required = true) @RequestParam() final HistoryquoteQualityGrouped groupedBy) {
@@ -194,7 +194,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Returns the completeness summary of historical EOD data", description = "", tags = {
-      "security" })
+      Security.TABNAME })
   @GetMapping(value = "/historyquotequalityids", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IHistoryquoteQualityWithSecurityProp>> getHistoryquoteQualityByIds(
       final HistoryquoteQualityIds hqi) {
@@ -203,7 +203,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Some historical quotes of a specified security may missing some days. The missing days are determined using the trading calendar and filled with data.", description = "The gap/s is filled linar", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @PostMapping(value = "/{idSecuritycurreny}/fillgapes", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<HisotryqouteLinearFilledSummary> fillHistoryquoteGapsLinear(
       @PathVariable() Integer idSecuritycurreny,
@@ -213,7 +213,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   }
 
   @Operation(summary = "Returns the base securties with its parameter mapping of the specified derived security", description = "A derived security is based on one or more other securities with a formuala for calculation its prices", tags = {
-      RequestMappings.SECURITY })
+      Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/derivedlinks", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityCurrencypairDerivedLinks> getDerivedInstrumensLinksForSecurity(
       @PathVariable final Integer idSecuritycurrency) {

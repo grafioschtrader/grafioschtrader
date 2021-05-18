@@ -14,8 +14,12 @@ import java.util.Locale;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.connector.instrument.ariva.ArivaFeedConnector;
+import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.Language;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class ArivaFeedConnectorTest {
 
@@ -47,16 +51,22 @@ class ArivaFeedConnectorTest {
 
   private List<Security> getStocks() {
     final List<Security> securities = new ArrayList<>();
-    securities.add(createSecurity("Allianz Aktie", "DE0008404005", "292&boerse_id=6"));
-    securities.add(createSecurity("Software AG", "DE000A2GS401", "121673&boerse_id=6"));
+    securities.add(createSecurity("Allianz Aktie", "DE0008404005", AssetclassType.EQUITIES, "292&boerse_id=6"));
+    securities.add(createSecurity("Software AG", "DE000A2GS401", AssetclassType.EQUITIES, "121673&boerse_id=6"));
+    securities.add(createSecurity("2,375% Daimler AG 13/23", "DE000A1R0691", AssetclassType.FIXED_INCOME,
+        "111198042&boerse_id=1"));
     return securities;
   }
 
-  private Security createSecurity(final String name, final String intraTicker, final String urlQuoteFeedExtend) {
+  private Security createSecurity(final String name, final String intraTicker, AssetclassType assetclassType,
+      final String urlQuoteFeedExtend) {
     final Security security = new Security();
     security.setName(name);
     security.setUrlHistoryExtend(urlQuoteFeedExtend);
     security.setUrlIntraExtend(urlQuoteFeedExtend);
+
+    security.setAssetClass(new Assetclass(assetclassType, "Bond/Aktien Schweiz",
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, Language.GERMAN));
     return security;
   }
 
