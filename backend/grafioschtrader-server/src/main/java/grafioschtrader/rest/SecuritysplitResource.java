@@ -28,16 +28,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.SECURITYSPLIT_MAP)
-@Tag(name = RequestMappings.SECURITYSPLIT, description = "Controller for security split")
+@Tag(name = Securitysplit.TABNAME, description = "Controller for security split")
 public class SecuritysplitResource {
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Operation(summary = "Returns all security splits of a security which is identified by ID", description = "", tags = {
-      RequestMappings.SECURITYSPLIT })
+      Securitysplit.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/security", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Securitysplit>> getSecuritysplitsByIdSecuritycurrency(
       @PathVariable final Integer idSecuritycurrency) {

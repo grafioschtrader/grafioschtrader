@@ -28,9 +28,9 @@ public class ArivaFeedConnector extends BaseFeedConnector {
   /*-
    * Stocks, Bond, ETF:
    * Look https://forum.portfolio-performance.info/t/daten-kurs-fundamental-von-ariva-de-importieren/444
-   * http://www.ariva.de/quote/historic/historic.csv?secu=102519136&boerse_id=6&clean_split=1&clean_payout=0&clean_bezug=1&min_time=14.1.2000&max_time=14.1.2017&trenner=%3B&go=Download
-   * http://www.ariva.de/quote/historic/historic.csv?secu=102519136&boerse_id=12&clean_split=1&clean_payout=0&clean_bezug=1&min_time=14.1.2000&max_time=09.03.2018&trenner=%3B&go=Download
-  
+   * https://www.ariva.de/quote/historic/historic.csv?secu=102519136&boerse_id=6&clean_split=1&clean_payout=0&clean_bezug=1&min_time=14.1.2000&max_time=14.1.2017&trenner=%3B&go=Download
+   * https://www.ariva.de/quote/historic/historic.csv?secu=102519136&boerse_id=12&clean_split=1&clean_payout=0&clean_bezug=1&min_time=14.1.2000&max_time=09.03.2018&trenner=%3B&go=Download
+   * https://www.ariva.de/quote/historic/historic.csv?secu=144454172&boerse_id=144&clean_split=1&clean_payout=&clean_bezug=1&currency=CHF&min_time=18.5.2020&max_time=18.5.2021&trenner=%3B&go=Download
    *
    * Dividend:
    * Dividend data not supported because they are not exactly, and prices may be in EUR instead of the stock currency.

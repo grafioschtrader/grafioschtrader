@@ -339,7 +339,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   public List<Currencypair> watchlistSearchForAdding(final Integer idWatchlist,
       final SecuritycurrencySearch securitycurrencySearch) {
 
-    return (securitycurrencySearch.assetclassType == AssetclassType.CURRENCY_PAIR
+    return (securitycurrencySearch.getIdConnectorHistory() != null
+        || securitycurrencySearch.getIdConnectorIntra() != null
+        || securitycurrencySearch.assetclassType == AssetclassType.CURRENCY_PAIR
         || (securitycurrencySearch.assetclassType == null && securitycurrencySearch.name != null)
             && securitycurrencySearch.isin == null)
                 ? currencypairJpaRepository.findAll(new CurrencySearchBuilder(idWatchlist, securitycurrencySearch))

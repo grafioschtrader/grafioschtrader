@@ -27,17 +27,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.CASHACCOUNT_MAP)
-@Tag(name = RequestMappings.CASHACCOUNT, description = "Controller for the cash account")
+@Tag(name = Cashaccount.TABNAME, description = "Controller for the cash account")
 public class CashaccountResource extends UpdateCreateResource<Cashaccount> {
 
   @Autowired
-  CashaccountJpaRepository cashaccountJpaRepository;
+  private CashaccountJpaRepository cashaccountJpaRepository;
 
   @Autowired
-  AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
+  private AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
 
   @Operation(summary = "Returns the performance report over a portfolio with all its cash accounts, it includes securities as well", description = "", tags = {
-      RequestMappings.CASHACCOUNT })
+      Cashaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliocashaccountsummary", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AccountPositionGroupSummary> getAccountPositionSummaryPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
@@ -48,7 +48,7 @@ public class CashaccountResource extends UpdateCreateResource<Cashaccount> {
   }
 
   @Operation(summary = "Delete a cash account when possible", description = "A used cash account will not be deleted", tags = {
-      RequestMappings.CASHACCOUNT })
+      Cashaccount.TABNAME })
   @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteCashaccount(@PathVariable final Integer idSecuritycashaccount) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

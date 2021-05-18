@@ -25,10 +25,11 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
+import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = WebEnvironment.NONE)
+@SpringBootTest(classes = GTforTest.class)
 class FinnhubConnectorTest {
 
   @Autowired
@@ -42,7 +43,7 @@ class FinnhubConnectorTest {
   
     final List<Security> securities = new ArrayList<>();
     
-    final LocalDate from = LocalDate.parse("03.01.2018", germanFormatter);
+    final LocalDate from = LocalDate.parse("03.01.2010", germanFormatter);
     final LocalDate to = LocalDate.parse("26.03.2020", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());

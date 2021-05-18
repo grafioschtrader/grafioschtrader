@@ -57,7 +57,8 @@ export class SecurityService extends AuthServiceWithLogout<Security> {
   }
 
   getFeedConnectors(): Observable<IFeedConnector[]> {
-    return <Observable<IFeedConnector[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/feedConnectors`,
+    return <Observable<IFeedConnector[]>>this.httpClient.get(`
+    ${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/feedConnectors`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

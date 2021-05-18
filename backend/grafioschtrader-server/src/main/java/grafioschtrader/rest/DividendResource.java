@@ -19,14 +19,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.DIVIDEND_MAP)
-@Tag(name = RequestMappings.DIVIDEND, description = "Controller for security dividend")
+@Tag(name = Dividend.TABNAME, description = "Controller for security dividend")
 public class DividendResource {
 
   @Autowired
   DividendJpaRepository dividendJpaRepository;
 
   @Operation(summary = "Returns all dividends of a security which is identified by ID", description = "", tags = {
-      RequestMappings.DIVIDEND })
+      Dividend.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Dividend>> getDividendsByIdSecuritycurrency(
       @PathVariable final Integer idSecuritycurrency) {

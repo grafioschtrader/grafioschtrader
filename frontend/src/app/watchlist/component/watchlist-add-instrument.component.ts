@@ -12,9 +12,10 @@ import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {HelpIds} from '../../shared/help/help.ids';
+import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 
 /**
- * Dialog for adding security or currency pair to a certain watchlist.
+ * Search dialog for adding an existing security or currency pair to a certain watchlist.
  *
  */
 @Component({
@@ -46,24 +47,19 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
-
   constructor(gps: GlobalparameterService,
-              assetclassService: AssetclassService,
-              stockexchangeService: StockexchangeService,
+              multipleRequestToOneService: MultipleRequestToOneService,
               translateService: TranslateService) {
-    super(true, gps, assetclassService, stockexchangeService, translateService);
+    super(true, gps, multipleRequestToOneService, translateService);
   }
-
 
   onHide(event) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 
-
   closeSearchDialog(event): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
-
 
   childClearList(): void {
     this.waidc.clearList();
