@@ -7,6 +7,7 @@ package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -178,12 +179,14 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     return feedConnectorbeans.stream()
         .filter(
             (fc -> fc.isActivated() && (isCurrency && fc.supportsCurrency() || !isCurrency && fc.supportsSecurity())))
+        .sorted(Comparator.comparing(IFeedConnector::getReadableName, String::compareToIgnoreCase))
         .collect(Collectors.toList());
   }
 
   @Override
   public List<ValueKeyHtmlSelectOptions> getAllFeedConnectorsAsKeyValue(FeedSupport feedSupport) {
     return feedConnectorbeans.stream().filter(f ->  f.getSecuritycurrencyFeedSupport().containsKey(feedSupport))
+                  .sorted(Comparator.comparing(IFeedConnector::getReadableName, String::compareToIgnoreCase))
                   .map(f -> new ValueKeyHtmlSelectOptions(f.getID(), f.getReadableName()))
                   .collect(Collectors.toList());
   }

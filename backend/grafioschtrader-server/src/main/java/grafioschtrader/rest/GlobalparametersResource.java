@@ -5,14 +5,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -30,11 +28,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyChangePassword;
 import grafioschtrader.common.PropertyOnlyCreation;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.config.ExposedResourceBundleMessageSource;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;

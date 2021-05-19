@@ -1,16 +1,10 @@
 package grafioschtrader.repository;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.Optional;
@@ -23,7 +17,6 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
