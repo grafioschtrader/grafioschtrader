@@ -2,8 +2,6 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
-import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.service.MultipleRequestToOneService;
 import grafioschtrader.service.MultipleRequestToOneService.DataForCurrencySecuritySearch;
 import io.swagger.v3.oas.annotations.Operation;

@@ -58,7 +58,7 @@ public class OnVistaFeedConnector extends BaseFeedConnector {
   }
 
   public OnVistaFeedConnector() {
-    super(supportedFeed, "onvista", "Onvista", null);
+    super(supportedFeed, "onvista", "onvista", null);
   }
 
   @Override

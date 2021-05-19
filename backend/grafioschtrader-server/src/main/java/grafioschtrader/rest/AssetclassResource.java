@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.types.AssetclassType;

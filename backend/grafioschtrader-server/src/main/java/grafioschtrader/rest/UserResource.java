@@ -26,8 +26,6 @@ import grafioschtrader.dto.ChangePasswordDTO;
 import grafioschtrader.dto.UserDTO;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.VerificationToken;
-import grafioschtrader.entities.Watchlist;
-import grafioschtrader.entities.User.AdminModify;
 import grafioschtrader.entities.projection.SuccessfullyChanged;
 import grafioschtrader.entities.projection.UserOwnProjection;
 import grafioschtrader.repository.UserJpaRepository;

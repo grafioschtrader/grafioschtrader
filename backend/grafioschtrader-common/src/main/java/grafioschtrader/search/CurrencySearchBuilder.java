@@ -12,7 +12,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Currencypair_;
-import grafioschtrader.entities.Security_;
 
 public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder implements Specification<Currencypair> {
 
