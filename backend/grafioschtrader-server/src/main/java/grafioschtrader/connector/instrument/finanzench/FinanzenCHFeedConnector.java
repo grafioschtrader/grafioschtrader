@@ -89,7 +89,10 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 
     final Document doc = Jsoup.parse(response.body());
-    final Elements elementPrices = doc.select("table.pricebox th");
+    final Elements elementPrices = security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES 
+        && security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
+        ? doc.select("table.drop-up-enabled td")
+        : doc.select("table.pricebox th");
 
     final Iterator<Element> iter = elementPrices.iterator();
 

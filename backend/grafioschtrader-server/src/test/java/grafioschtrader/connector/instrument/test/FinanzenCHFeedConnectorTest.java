@@ -36,10 +36,12 @@ class FinanzenCHFeedConnectorTest {
     final List<Security> securities = new ArrayList<>();
 
     final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
-    securities.add(createSecurityIntra("aktien/swiss_re-aktie"));
-    securities.add(createSecurityIntra("etf/zkb-gold-etf-aa-chf-klasse"));
-    securities.add(createSecurityIntra("index/SLI"));
-
+    securities.add(createSecurityIntra("aktien/swiss_re-aktie", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    securities.add(createSecurityIntra("etf/zkb-gold-etf-aa-chf-klasse", AssetclassType.COMMODITIES,
+        SpecialInvestmentInstruments.ETF));
+    securities.add(createSecurityIntra("index/SLI", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
     securities.parallelStream().forEach(security -> {
       try {
         finanzenCHFeedConnector.updateSecurityLastPrice(security);
@@ -73,7 +75,7 @@ class FinanzenCHFeedConnectorTest {
     securities.add(createSecurity("etf/historisch/ishares-european-property-yield-etf-ie00b0m63284/fse",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "FSE", true, true));
 
-    securities.add(createSecurity("kurse/historisch/UBS/SWL", AssetclassType.EQUITIES,
+    securities.add(createSecurity("kurse/historisch/ubs/swx", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX", true, true));
 
     securities.parallelStream().forEach(security -> {
@@ -87,8 +89,9 @@ class FinanzenCHFeedConnectorTest {
     });
   }
 
-  private Security createSecurityIntra(final String quoteFeedExtend) {
-    return this.createSecurity(quoteFeedExtend, null, null, null, true, false);
+  private Security createSecurityIntra(final String quoteFeedExtend, final AssetclassType assectClass,
+      SpecialInvestmentInstruments specialInvestmentInstruments) {
+    return this.createSecurity(quoteFeedExtend, assectClass, specialInvestmentInstruments, null, true, false);
 
   }
 
@@ -126,7 +129,6 @@ class FinanzenCHFeedConnectorTest {
     currencies.add(createCurrencypair("ETH", "CHF", "devisen/historisch/ethereum-franken-kurs"));
     currencies.add(createCurrencypair("EUR", "USD", "devisen/historisch/euro-us_dollar-kurs"));
     currencies.add(createCurrencypair("EUR", "NOK", "devisen/historisch/euro-norwegische_krone-kurs"));
-
 
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
