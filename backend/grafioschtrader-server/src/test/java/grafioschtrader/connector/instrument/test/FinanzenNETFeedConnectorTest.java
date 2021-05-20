@@ -80,16 +80,15 @@ class FinanzenNETFeedConnectorTest {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
    // final LocalDate from = LocalDate.parse("04.01.2000", germanFormatter);
-    final LocalDate from = LocalDate.parse("24.10.2020", germanFormatter);
-    final LocalDate to = LocalDate.parse("04.01.2021", germanFormatter);
+    final LocalDate from = LocalDate.parse("24.04.2020", germanFormatter);
+    final LocalDate to = LocalDate.parse("04.05.2021", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
     securities.add(createSecurityHistorical("index/ftse_mib/historisch", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "MIL"));
-
-/*    
+    
     securities.add(createSecurityHistorical("historische-kurse/citrix_systems", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NASDAQ"));
   
@@ -111,9 +110,6 @@ class FinanzenNETFeedConnectorTest {
     securities.add(createSecurityHistorical("anleihen/historisch/a19jgw-grande-dixence-anleihe",
         AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
 
-    securities.add(createSecurityHistorical("anleihen/historisch/a18z3v-residual-debt-services-anleihe",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "ZKB"));
-
     securities.add(createSecurityHistorical("etf/kurse/ishares-atx-etf-de000a0d8q23", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.ETF, "FSX"));
 
@@ -125,9 +121,6 @@ class FinanzenNETFeedConnectorTest {
 
     securities.add(createSecurityHistorical("historische-kurse/Bayer", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "FSX"));
-
-    securities.add(createSecurityHistorical("anleihen/historisch/a1zfhq-syngenta-finance-anleihe",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
 
     securities.add(createSecurityHistorical("anleihen/historisch/a19vaz-rallye-anleihe", AssetclassType.FIXED_INCOME,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
@@ -144,8 +137,10 @@ class FinanzenNETFeedConnectorTest {
 
     securities.add(createSecurityHistorical("etf/historisch/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "LSE"));
-*/
-    securities.parallelStream().forEach(security -> {
+
+    // securities.parallelStream().forEach(security -> {
+    
+    securities.forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
         historyquotes = finanzenNETFeedConnector.getEodSecurityHistory(security, fromDate, toDate);

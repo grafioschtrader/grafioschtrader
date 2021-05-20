@@ -38,10 +38,14 @@ class FinanzenCHFeedConnectorTest {
     final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
     securities.add(createSecurityIntra("aktien/swiss_re-aktie", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+
+    securities.add(createSecurityIntra("obligationen/swiss_life_holdingsf-anl_201323-obligation-2023-ch0212184078",
+        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+
     securities.add(createSecurityIntra("etf/zkb-gold-etf-aa-chf-klasse", AssetclassType.COMMODITIES,
         SpecialInvestmentInstruments.ETF));
-    securities.add(createSecurityIntra("index/SLI", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
+    securities.add(
+        createSecurityIntra("index/SLI", AssetclassType.EQUITIES, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
     securities.parallelStream().forEach(security -> {
       try {
         finanzenCHFeedConnector.updateSecurityLastPrice(security);

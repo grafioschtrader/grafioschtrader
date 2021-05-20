@@ -64,7 +64,7 @@ public class SixFeedConnector extends BaseFeedConnector {
   private static final String URL_EXTENDED_REGEX = "^([A-Z]{2})([A-Z0-9]{9})([0-9]{1})[A-Za-z]{3}\\d$";
 
   public SixFeedConnector() {
-    super(supportedFeed, "six", "Swiss Exchange", URL_EXTENDED_REGEX);
+    super(supportedFeed, "six", "Swiss Stock Exchange", URL_EXTENDED_REGEX);
   }
 
   @Override

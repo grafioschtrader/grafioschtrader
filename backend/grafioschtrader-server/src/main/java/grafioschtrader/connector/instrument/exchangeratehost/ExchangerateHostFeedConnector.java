@@ -1,5 +1,6 @@
 package grafioschtrader.connector.instrument.exchangeratehost;
 
+import java.io.IOException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -20,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 
@@ -40,6 +43,7 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
   }
 
   public ExchangerateHostFeedConnector() {
@@ -79,8 +83,8 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
       log.debug("To Date: {}", endDate);
 
       URL url = new URL(getCurrencypairHistoricalDownloadLink(currencyPair, startDate, endDate, dateFormat));
-      HeaderExchange he = objectMapper.readValue(url, HeaderExchange.class);
-      historyquotes.addAll(addDays(he.rates, dateFormat, currencyPair.getToCurrency()));
+      HeaderExchangeHistorical heh = objectMapper.readValue(url, HeaderExchangeHistorical.class);
+      historyquotes.addAll(addDays(heh.rates, dateFormat, currencyPair.getToCurrency()));
       startDate = DateHelper.setTimeToZeroAndAddDay(endDate, 1);
     } while (startDate.before(toDate));
     return historyquotes;
@@ -90,18 +94,47 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
       String toCurrency) throws ParseException {
     final List<Historyquote> historyquotes = new ArrayList<>();
     for (String dateString : rates.keySet()) {
-      Historyquote historyquote = new Historyquote();
+      var historyquote = new Historyquote();
       historyquotes.add(historyquote);
       historyquote.setDate(dateFormat.parse(dateString));
       historyquote.setClose(rates.get(dateString).get(toCurrency));
     }
     return historyquotes;
   }
+  
+  
+  @Override
+  public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
+    return DOMAIN_NAME + "/latest?base=" + currencypair.getFromCurrency() + "&symbols="+currencypair.getToCurrency();
+  }
 
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  static class HeaderExchange {
+  
+  @Override
+  public void updateCurrencyPairLastPrice(final Currencypair currencyPair) throws IOException {
+    URL url = new URL(getCurrencypairIntradayDownloadLink(currencyPair));
+    HeaderExchangeLatest he = objectMapper.readValue(url, HeaderExchangeLatest.class);
+    for (String symbol : he.rates.keySet()) {
+      if(symbol.equals(currencyPair.getToCurrency())) {
+        currencyPair.setSLast(he.rates.get(symbol));
+        currencyPair.setSTimestamp(new Date(System.currentTimeMillis() - 60 * 60 * 1000));
+      }
+    }
+  }
+  
+
+  static abstract class HeaderExchangeBase {
     public boolean success;
     public String base;
+  }
+  
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class HeaderExchangeLatest extends HeaderExchangeBase {
+    public Map<String, Double> rates;
+  }
+
+  
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class HeaderExchangeHistorical extends HeaderExchangeBase {
     public Map<String, Map<String, Double>> rates;
   }
 
