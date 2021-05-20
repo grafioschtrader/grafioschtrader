@@ -4,6 +4,7 @@ export class SecuritycurrencySearch {
   tickerSymbol: string = null;
   currency: string = null;
   idStockexchange: number = null;
+  stockexchangeCounrtyCode: string = null;
   assetclassType: string = null;
   specialInvestmentInstruments: string = null;
   subCategoryNLS: string = null;

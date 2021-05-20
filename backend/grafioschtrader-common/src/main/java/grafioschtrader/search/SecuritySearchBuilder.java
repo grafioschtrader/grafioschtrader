@@ -92,18 +92,16 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
             "%" + securitycurrencySearch.tickerSymbol.toUpperCase() + "%")));
       }
 
-      
       if (securitycurrencySearch.idConnectorHistory != null) {
         mainPredicates.add(builder.and(
             builder.like(securityRoot.get(Security_.idConnectorHistory), securitycurrencySearch.idConnectorHistory)));
       }
-      
+
       if (securitycurrencySearch.idConnectorIntra != null) {
-        mainPredicates.add(builder.and(
-            builder.like(securityRoot.get(Security_.idConnectorIntra), securitycurrencySearch.idConnectorIntra)));
+        mainPredicates.add(builder
+            .and(builder.like(securityRoot.get(Security_.idConnectorIntra), securitycurrencySearch.idConnectorIntra)));
       }
-      
-      
+
       if (securitycurrencySearch.currency != null) {
         mainPredicates
             .add(builder.and(builder.equal(securityRoot.get(Security_.currency), securitycurrencySearch.currency)));
@@ -155,10 +153,16 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
   private void addStockexchangePredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {
-    if (securitycurrencySearch.idStockexchange != null) {
+    if (securitycurrencySearch.idStockexchange != null || securitycurrencySearch.stockexchangeCounrtyCode != null) {
       final Join<Security, Stockexchange> joinStockexchane = securityRoot.join(Security_.stockexchange);
-      mainPredicates.add(
-          builder.equal(joinStockexchane.get(Stockexchange_.idStockexchange), securitycurrencySearch.idStockexchange));
+      if (securitycurrencySearch.idStockexchange != null) {
+        mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.idStockexchange),
+            securitycurrencySearch.idStockexchange));
+      }
+      if (securitycurrencySearch.stockexchangeCounrtyCode != null) {
+        mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.countryCode),
+            securitycurrencySearch.stockexchangeCounrtyCode));
+      }
     }
 
   }
