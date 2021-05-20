@@ -294,7 +294,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public List<Security> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return this.watchlistSearchForAdding(null, securitycurrencySearch, user.getIdTenant());
+    return watchlistSearchForAdding(null, securitycurrencySearch, user.getIdTenant());
   }
 
   @Override

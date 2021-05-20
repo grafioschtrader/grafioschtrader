@@ -105,7 +105,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     securitycurrencySearch.assetclassType = AssetclassType[AssetclassType.EQUITIES];
     securitycurrencySearch.specialInvestmentInstruments = SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES];
     securitycurrencySearch.activeDate = moment().format(AppSettings.FORMAT_DATE_SHORT_US);
-    securitycurrencySearch.idStockexchange = this.callParam.stockexchange.idStockexchange;
+    securitycurrencySearch.stockexchangeCounrtyCode = this.callParam.stockexchange.countryCode;
     return this.securityService.searchByCriteria(securitycurrencySearch);
   }
 
