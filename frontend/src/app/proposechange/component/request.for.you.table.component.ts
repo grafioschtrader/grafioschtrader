@@ -141,7 +141,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
   readonly STOCKEXCHANGE = AppSettings.STOCKEXCHANGE;
   readonly IMPORT_TRANSACTION_PLATFORM = AppSettings.IMPORT_TRANSACTION_PLATFORM;
   readonly IMPORT_TRANSACTION_TEMPLATE = AppSettings.IMPORT_TRANSACTION_TEMPLATE;
-  readonly CURRENCYPAIR = AppSettings.CURRENCYPAIR_KEY;
+  readonly CURRENCYPAIR = AppSettings.CURRENCYPAIR;
   readonly SECURITY_DERIVED = 'SecurityDerived';
   readonly TRADING_PLATFORM_PLAN = AppSettings.TRADING_PLATFORM_PLAN;
   readonly HISTORYQUOTE = AppSettings.HISTORYQUOTE;
@@ -194,7 +194,6 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
   ngOnInit(): void {
     this.readData();
   }
-
 
   readData(): void {
     this.proposeChangeEntityService.getProposeChangeEntityWithEntity().subscribe(proposeChangeEntityWithEntityList => {

@@ -56,7 +56,6 @@ class SixFeedConnectorTest {
     final List<Security> securities = new ArrayList<>();
     final SixFeedConnector swissquoteConnector = new SixFeedConnector();
 
-
     securities.add(createSecurity("SMI PR", "CH0009980894CHF9", true));
     securities.add(createSecurity("1 HOLCIM 15-25", "CH0306179125CHF4", true));
     securities.add(createSecurity("ABB Ltd", "CH0012221716CHF4", true));
