@@ -142,7 +142,7 @@ public class FinanzenNETStockAndBond extends FinanzenBase<Security> {
     postParameters.add(new BasicNameValuePair("inMonat2", "" + (calTo.get(Calendar.MONTH) + 1)));
     postParameters.add(new BasicNameValuePair("inJahr2", "" + calTo.get(Calendar.YEAR)));
     postParameters.add(new BasicNameValuePair("strBoerse",
-        FinanzenHelper.getMappedStockexchangeSymbol(security.getStockexchange().getSymbol())));
+        FinanzenHelper.getNormalMappedStockexchangeSymbol(security.getStockexchange().getSymbol())));
     postParameters.add(new BasicNameValuePair("pkBHTs", pkBHTs));
 
     HttpPost httpPost = new HttpPost(feedConnector.getSecurityHistoricalDownloadLink(security).toLowerCase());

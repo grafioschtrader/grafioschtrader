@@ -1,7 +1,7 @@
 package grafioschtrader.connector.instrument.finanzen;
 
 public class FinanzenHelper {
-  private static final String[][] stockexchangeMapperArray = {
+  private static final String[][] stockexchangeNormalMapperArray = {
       // NASDAQ
       { "NASDAQ", "NAS" },
       // Six Exchange
@@ -19,13 +19,29 @@ public class FinanzenHelper {
       // Zürcher Kantonalbank
       { "ZKB", "ZKK" } };
 
-  public static String getMappedStockexchangeSymbol(String stockexchangeSymbol) {
+  private static final String[][] stockexchangeCertificateMapperArray = {
+      // Stuttgart
+      { "STU", "EUWAX" },
+      // Frankfurt
+      { "FSX", "SCE" }};
+  
+  
+  public static String getNormalMappedStockexchangeSymbol(String stockexchangeSymbol) {
+    return geMappedStockexchangeSymbol(stockexchangeSymbol, stockexchangeNormalMapperArray);
+  }
+  
+  public static String getCertificateMappedStockexchangeSymbol(String stockexchangeSymbol) {
+    return geMappedStockexchangeSymbol(stockexchangeSymbol, stockexchangeCertificateMapperArray);
+  }
+  
+  public static String geMappedStockexchangeSymbol(String stockexchangeSymbol, String[][] searchIn) {
     String symbol = stockexchangeSymbol.toLowerCase();
-    for (String[] mapping : stockexchangeMapperArray) {
+    for (String[] mapping : searchIn) {
       if (mapping[0].equalsIgnoreCase(symbol)) {
         return mapping[1];
       }
     }
     return symbol;
   }
+  
 }

@@ -29,9 +29,8 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.Language;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-
 /**
- * Sometimes Finanzen.NET can not always satisfy every request.   
+ * Sometimes Finanzen.NET can not always satisfy every request.
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)
@@ -41,25 +40,24 @@ class FinanzenNETFeedConnectorTest {
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
     final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
-                                        
-      securities.add(createSecurityIntra("etf/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
-        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "FSX"));
+
+    securities.add(createSecurityIntra("etf/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
+        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, null, "FSX"));
 
     securities.add(createSecurityIntra("index/smi", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "SIX"));
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, "SIX"));
 
     securities.add(createSecurityIntra("aktien/lufthansa-aktie@stBoerse_XETRA", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "FSX"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "FSX"));
 
     securities.add(createSecurityIntra("anleihen/a19jgw-grande-dixence-anleihe", AssetclassType.FIXED_INCOME,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
-    
-   
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "SIX"));
+
     securities.add(createSecurityIntra("aktien/apple-aktie@stBoerse_NAS", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NASDAQ"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "NASDAQ"));
 
     securities.add(createSecurityIntra("/etf/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
-        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.ETF, "FSX"));
+        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.ETF, null, "FSX"));
 
     securities.parallelStream().forEach(security -> {
       try {
@@ -85,62 +83,59 @@ class FinanzenNETFeedConnectorTest {
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
+   
+     
     securities.add(createSecurityHistorical("index/ftse_mib/historisch", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "MIL"));
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", "MIL"));
     
     securities.add(createSecurityHistorical("historische-kurse/citrix_systems", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NASDAQ"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "US1773761002", "NASDAQ"));
   
     securities.add(createSecurityHistorical("anleihen/historisch/a1zfhq-syngenta-finance-anleihe", AssetclassType.FIXED_INCOME,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0240672227", "SIX"));
 
     securities.add(createSecurityHistorical("historische-kurse/unicredit", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "MIL"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "IT0005239360", "MIL"));
    
     securities.add(createSecurityHistorical("historische-kurse/Daimler", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "FSX"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE0007100000", "FSX"));
 
-    securities.add(createSecurityHistorical("anleihen/historisch/a1zfhq-syngenta-finance-anleihe",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
-
+    
     securities.add(createSecurityHistorical("rohstoffe/oelpreis/historisch|oelpreis/USD", AssetclassType.COMMODITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "---"));
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, "---"));
 
     securities.add(createSecurityHistorical("anleihen/historisch/a19jgw-grande-dixence-anleihe",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
+        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0361532952", "SIX"));
 
     securities.add(createSecurityHistorical("etf/kurse/ishares-atx-etf-de000a0d8q23", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.ETF, "FSX"));
+        SpecialInvestmentInstruments.ETF, "DE000A0D8Q23", "FSX"));
 
     securities.add(createSecurityHistorical("rohstoffe/oelpreis/historisch|oelpreis/USD|?type=Brent",
-        AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD, "---"));
+        AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD, null, "---"));
 
     securities.add(createSecurityHistorical("historische-kurse/lufthansa", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "FSX"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE0008232125", "FSX"));
 
     securities.add(createSecurityHistorical("historische-kurse/Bayer", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "FSX"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE000BAY0017", "FSX"));
 
     securities.add(createSecurityHistorical("anleihen/historisch/a19vaz-rallye-anleihe", AssetclassType.FIXED_INCOME,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "SIX"));
 
     securities
         .add(createSecurityHistorical("etf/historisch/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
-            AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "FSX"));
+            AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "CH0398013778", "FSX"));
 
     securities.add(createSecurityHistorical("index/S&P_500/Historisch", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "NYSE"));
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "US78378X1072", "NYSE"));
 
     securities.add(createSecurityHistorical("index/FTSE_MIB/Historisch", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "MTA"));
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", "MTA"));
 
     securities.add(createSecurityHistorical("etf/historisch/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
-        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "LSE"));
+        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
 
-    // securities.parallelStream().forEach(security -> {
-    
-    securities.forEach(security -> {
+    securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
         historyquotes = finanzenNETFeedConnector.getEodSecurityHistory(security, fromDate, toDate);
@@ -155,23 +150,25 @@ class FinanzenNETFeedConnectorTest {
   }
 
   private Security createSecurityIntra(final String historyExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String stockexchangeSymbol) {
-    return createSecurity(historyExtend, assectClass, specialInvestmentInstruments, stockexchangeSymbol, false);
+      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol) {
+    return createSecurity(historyExtend, assectClass, specialInvestmentInstruments, isin, stockexchangeSymbol, false);
   }
 
   private Security createSecurityHistorical(final String historyExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String stockexchangeSymbol) {
-    return createSecurity(historyExtend, assectClass, specialInvestmentInstruments, stockexchangeSymbol, true);
+      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol) {
+    return createSecurity(historyExtend, assectClass, specialInvestmentInstruments, isin, stockexchangeSymbol, true);
   }
 
   private Security createSecurity(final String urlExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String stockexchangeSymbol, boolean historical) {
+      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol,
+      boolean historical) {
     final Security security = new Security();
     if (historical) {
       security.setUrlHistoryExtend(urlExtend);
     } else {
       security.setUrlIntraExtend(urlExtend);
     }
+    security.setIsin(isin);
     security.setAssetClass(
         new Assetclass(assectClass, "Bond/Aktien Schweiz", specialInvestmentInstruments, Language.GERMAN));
     security.setStockexchange(new Stockexchange("XXXX", stockexchangeSymbol, null, null, false, true));
@@ -192,7 +189,6 @@ class FinanzenNETFeedConnectorTest {
 
     currencies.add(createCurrencypair("EUR", "USD", "devisen/dollarkurs/historisch"));
     currencies.add(createCurrencypair("USD", "CAD", "devisen/us_dollar-kanadischer_dollar-kurs/historisch"));
-    
 
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
