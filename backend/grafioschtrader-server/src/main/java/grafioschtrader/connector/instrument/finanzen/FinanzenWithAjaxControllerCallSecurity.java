@@ -87,6 +87,8 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
         "FundController");
     contollerUrlMapping.put(new ControllerUrlMapping(null, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES),
         "IndicesController");
+    contollerUrlMapping.put(new ControllerUrlMapping(null, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT),
+        "DerivativesController");
   }
 
   private UseLastPartUrl useLastPartUrl;
@@ -116,31 +118,41 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
 
     SpecialInvestmentInstruments sii = security.getAssetClass().getSpecialInvestmentInstrument();
     if (possibleTwoPartUrl.length == 1) {
-      String urlExtendedParts[] = security.getUrlHistoryExtend().split("/");
-      String productName = (sii == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES)
-          ? urlExtendedParts[indicesNameUrlPart]
-          : urlExtendedParts[2];
-      productName = (security.getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME)
-          ? productName.replaceAll("\\-anleihe$", "")
-          : productName;
-      String stockExchange = "";
-      if (useLastPartUrl == UseLastPartUrl.AS_STOCKEXCHANGE_SYMBOL
-          && sii != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) {
-        stockExchange = urlExtendedParts[urlExtendedParts.length - 1] + "/";
+      if(sii == SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT) {
+        url = getAjaxController(security, from, to, sii, security.getIsin() + "/" 
+      + FinanzenHelper.getCertificateMappedStockexchangeSymbol(security.getStockexchange().getSymbol()) + "/", "");
       } else {
-        // TODO Not working for Funds
-        stockExchange = (sii != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES)
-            ? (FinanzenHelper.getMappedStockexchangeSymbol(security.getStockexchange().getSymbol()) + "/")
-            : "";
+        url = getOnePartAjaxUrl(security, from, to, sii);
       }
-      String suffix = (sii == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) ? "/false" : "";
-      url = getAjaxController(security, from, to, sii, productName + "/" + stockExchange, suffix);
     } else {
       String suffix = possibleTwoPartUrl.length == 3 ? possibleTwoPartUrl[2] : "";
       url = getAjaxController(security, from, to, sii, possibleTwoPartUrl[1] + "/" + "", suffix);
     }
     log.info("In {} for security {} is URL for Ajax call {}", feedConnector.getID(), security.getName(), url);
     return url;
+  }
+
+  private String getOnePartAjaxUrl(final Security security, final Date from, final Date to,
+      SpecialInvestmentInstruments sii) {
+    String urlExtendedParts[] = security.getUrlHistoryExtend().split("/");
+    String productName = (sii == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES)
+        ? urlExtendedParts[indicesNameUrlPart]
+        : urlExtendedParts[2];
+    productName = (security.getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME)
+        ? productName.replaceAll("\\-anleihe$", "")
+        : productName;
+    String stockExchange = "";
+    if (useLastPartUrl == UseLastPartUrl.AS_STOCKEXCHANGE_SYMBOL
+        && sii != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) {
+      stockExchange = urlExtendedParts[urlExtendedParts.length - 1] + "/";
+    } else {
+      // TODO Not working for Funds
+      stockExchange = (sii != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES)
+          ? (FinanzenHelper.getNormalMappedStockexchangeSymbol(security.getStockexchange().getSymbol()) + "/")
+          : "";
+    }
+    String suffix = (sii == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) ? "/false" : "";
+    return getAjaxController(security, from, to, sii, productName + "/" + stockExchange, suffix);
   }
 
   private String getAjaxController(Security security, final Date from, final Date to, SpecialInvestmentInstruments sii,
