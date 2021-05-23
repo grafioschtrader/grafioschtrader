@@ -83,7 +83,6 @@ public class StockworldFeedConnector extends BaseFeedConnector {
       }
 
       for (int i = 1; i < rows.size() - 2; i++) {
-
         final Element row = rows.get(i);
         final Elements cols = row.select("td");
         date = dateFormat.parse(cols.get(1).text());
@@ -173,12 +172,37 @@ public class StockworldFeedConnector extends BaseFeedConnector {
     final Element table = doc.select("#inhaltALLES div table").get(1);
 
     final Elements rows = table.select("tr");
+    final Elements headerCols = rows.get(1).select("td");
+    if(headerCols.get(1).text().equals("Letzter")) {
+      scanLast(security, numberFormat, rows);
+    } else {
+      scanBidAsk(security, numberFormat, rows);
+    }
+  }
+  
+  private void scanLast(Security security, final NumberFormat numberFormat,
+      final Elements rows) throws ParseException {
     final Elements cols = rows.get(2).select("td");
 
     security.setSLast(parseDouble(numberFormat, 1, cols));
     security.setSChangePercentage(parseDouble(numberFormat, 2, cols));
     security.setSPrevClose(parseDouble(numberFormat, 3, cols));
-    String dateTime = cols.get(4).text();
+    parseDateTime(security, cols.get(4).text());
+  }
+
+  private void scanBidAsk(Security security,
+      final NumberFormat numberFormat,
+      final Elements rows) throws ParseException {
+    final Elements cols = rows.get(2).select("td");
+
+    security.setSLast((parseDouble(numberFormat, 1, cols) + parseDouble(numberFormat, 2, cols)) / 2 );
+    security.setSChangePercentage(parseDouble(numberFormat, 3, cols));
+    security.setSPrevClose(parseDouble(numberFormat, 4, cols));
+    parseDateTime(security, cols.get(5).text());
+  }
+  
+  
+  private void parseDateTime(Security security, String dateTime) throws ParseException {
     if (dateTime.contains(":")) {
       SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
       Date time = timeFormat.parse(dateTime);
@@ -189,7 +213,7 @@ public class StockworldFeedConnector extends BaseFeedConnector {
       SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy");
       security.setSTimestamp(dateFormat.parse(dateTime));
     }
-
   }
-
+  
+  
 }

@@ -40,7 +40,10 @@ class FinanzenNETFeedConnectorTest {
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
     final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
-
+   
+    securities.add(createSecurityIntra("fonds/uniimmo-europa-de0009805515",
+        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND, null, "FSE"));
+  
     securities.add(createSecurityIntra("etf/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, null, "FSX"));
 
@@ -84,7 +87,9 @@ class FinanzenNETFeedConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
    
-     
+    securities.add(createSecurityHistorical("fonds/historisch/uniimmo-europa-de0009805515",
+        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND, null, "FSE"));
+ 
     securities.add(createSecurityHistorical("index/ftse_mib/historisch", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", "MIL"));
     

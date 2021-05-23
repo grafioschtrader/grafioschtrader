@@ -51,6 +51,7 @@ class ArivaFeedConnectorTest {
 
   private List<Security> getStocks() {
     final List<Security> securities = new ArrayList<>();
+    securities.add(createSecurity("ZinsFix Express StepDown 08 18/21 Zertifikat auf BMW St [DZ Bank]", "DE000DGE3N66", AssetclassType.MULTI_ASSET, "136307168&boerse_id=47"));
     securities.add(createSecurity("Allianz Aktie", "DE0008404005", AssetclassType.EQUITIES, "292&boerse_id=6"));
     securities.add(createSecurity("Software AG", "DE000A2GS401", AssetclassType.EQUITIES, "121673&boerse_id=6"));
     securities.add(createSecurity("2,375% Daimler AG 13/23", "DE000A1R0691", AssetclassType.FIXED_INCOME,

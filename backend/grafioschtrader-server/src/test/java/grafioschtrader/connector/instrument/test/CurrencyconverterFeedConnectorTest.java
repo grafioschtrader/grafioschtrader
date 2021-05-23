@@ -26,6 +26,7 @@ class CurrencyconverterFeedConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
+    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "CHF"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "GBP"));
