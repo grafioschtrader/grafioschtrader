@@ -85,6 +85,14 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
         "FundController");
     contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.ETF),
         "FundController");
+    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.EQUITIES, SpecialInvestmentInstruments.MUTUAL_FUND),
+        "FundController");
+    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.MONEY_MARKET, SpecialInvestmentInstruments.MUTUAL_FUND),
+        "FundController");
+    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.MUTUAL_FUND),
+        "FundController");
+    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND),
+        "FundController");
     contollerUrlMapping.put(new ControllerUrlMapping(null, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES),
         "IndicesController");
     contollerUrlMapping.put(new ControllerUrlMapping(null, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT),

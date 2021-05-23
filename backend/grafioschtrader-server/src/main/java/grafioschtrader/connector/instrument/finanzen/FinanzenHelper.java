@@ -20,6 +20,7 @@ public class FinanzenHelper {
       { "ZKB", "ZKK" } };
 
   private static final String[][] stockexchangeCertificateMapperArray = {
+      { "SIX", "QMH"},
       // Stuttgart
       { "STU", "EUWAX" },
       // Frankfurt

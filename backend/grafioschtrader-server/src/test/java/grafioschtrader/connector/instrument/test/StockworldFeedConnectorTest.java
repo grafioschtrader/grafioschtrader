@@ -1,5 +1,6 @@
 package grafioschtrader.connector.instrument.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDate;
@@ -27,7 +28,7 @@ class StockworldFeedConnectorTest {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
     final LocalDate from = LocalDate.parse("10.03.2018", germanFormatter);
-    final LocalDate to = LocalDate.parse("17.03.2021", germanFormatter);
+    final LocalDate to = LocalDate.parse("21.05.2021", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -35,14 +36,14 @@ class StockworldFeedConnectorTest {
     final List<Security> securities = getStocks();
 
     securities.parallelStream().forEach(security -> {
-
       List<Historyquote> historyquote = new ArrayList<>();
       try {
         historyquote = stockworldFeedConnector.getEodSecurityHistory(security, fromDate, toDate);
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      assertTrue(historyquote.size() > 700);
+      System.out.println(security.getName() + " Size: " + historyquote.size());
+      assertThat(historyquote.size()).isEqualTo(security.getDenomination());
     });
   }
 
@@ -72,16 +73,22 @@ class StockworldFeedConnectorTest {
   private List<Security> getStocks() {
     final List<Security> securities = new ArrayList<>();
     securities
-        .add(createSecurity("ComStage STOXXEurope 600 Food & Beverage NR UCITS ETF", "LU0378435803", "149970851"));
-    securities.add(createSecurity("FTSE MIB", "IT0003465736", "289277"));
+        .add(createSecurity("ComStage STOXXEurope 600 Food & Beverage NR UCITS ETF", "LU0378435803", "149970851", 765));
+    securities.add(createSecurity("FTSE MIB", "IT0003465736", "289277", 846));
+    securities.add(createSecurity("BASF", "DE000BASF111", "293", 765));
+    securities.add(createSecurity("DAX/Discount/13500/Call/SOC", "DE000SD2TMC1", "152246874", 87));
+    securities.add(createSecurity("Bayerische Landesbank 2,5% 17/27", "DE000BLB4UP9", "128405128", 763));
+
     return securities;
   }
 
-  private Security createSecurity(final String name, final String intraTicker, final String urlQuoteFeedExtend) {
+  private Security createSecurity(final String name, final String intraTicker, final String urlQuoteFeedExtend,
+      final int expectedRows) {
     final Security security = new Security();
     security.setName(name);
     security.setUrlHistoryExtend(urlQuoteFeedExtend);
     security.setUrlIntraExtend(urlQuoteFeedExtend);
+    security.setDenomination(expectedRows);
     return security;
   }
 

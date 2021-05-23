@@ -89,7 +89,10 @@ public class OnVistaFeedConnector extends BaseFeedConnector {
     return this.getHistoricalData(security.getUrlHistoryExtend(), from, to);
   }
 
-  private List<Historyquote> getHistoricalData(String productUrlPart, final Date from, final Date to) throws Exception {
+  /**
+   * Synchronized is introduced to avoid the reposen 429 (Too many requests)  
+   */
+  private synchronized List<Historyquote> getHistoricalData(String productUrlPart, final Date from, final Date to) throws Exception {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
 

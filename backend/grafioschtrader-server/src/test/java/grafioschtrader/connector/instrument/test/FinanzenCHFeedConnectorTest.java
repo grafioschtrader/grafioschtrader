@@ -37,15 +37,13 @@ class FinanzenCHFeedConnectorTest {
 
     final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
     securities.add(createSecurityIntra("aktien/swiss_re-aktie", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0126881561"));
     securities.add(createSecurityIntra("obligationen/swiss_life_holdingsf-anl_201323-obligation-2023-ch0212184078",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-
+        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0212184078"));
     securities.add(createSecurityIntra("etf/zkb-gold-etf-aa-chf-klasse", AssetclassType.COMMODITIES,
-        SpecialInvestmentInstruments.ETF));
-    securities.add(
-        createSecurityIntra("index/SLI", AssetclassType.EQUITIES, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
+        SpecialInvestmentInstruments.ETF, "CH0139101593"));
+    securities.add(createSecurityIntra("index/SLI", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "CH0030252883"));
     securities.parallelStream().forEach(security -> {
       try {
         finanzenCHFeedConnector.updateSecurityLastPrice(security);
@@ -64,24 +62,23 @@ class FinanzenCHFeedConnectorTest {
 
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("03.12.2018", germanFormatter);
-    final LocalDate to = LocalDate.parse("25.10.2019", germanFormatter);
+    final LocalDate from = LocalDate.parse("01.03.2020", germanFormatter);
+    final LocalDate to = LocalDate.parse("19.05.2021", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
+    securities.add(createSecurity("derivate/historisch/ch0510644484/qmh", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, "CH0510644484", "SIX", true, true));
     securities.add(createSecurity("index/historisch/FTSE_MIB", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "MTA", true, true));
-
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", "MTA", true, true));
     securities.add(createSecurity("obligationen/historisch/impleniasf-anl_201424-obligation-2024-ch0253592767/SWX",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX", true, true));
-
+        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0253592767", "SIX", true,
+        true));
     securities.add(createSecurity("etf/historisch/ishares-european-property-yield-etf-ie00b0m63284/fse",
-        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "FSE", true, true));
-
+        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "IE00B0M63284", "FSE", true, true));
     securities.add(createSecurity("kurse/historisch/ubs/swx", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX", true, true));
-
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0244767585", "SIX", true, true));
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
@@ -94,13 +91,13 @@ class FinanzenCHFeedConnectorTest {
   }
 
   private Security createSecurityIntra(final String quoteFeedExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments) {
-    return this.createSecurity(quoteFeedExtend, assectClass, specialInvestmentInstruments, null, true, false);
+      SpecialInvestmentInstruments specialInvestmentInstruments, String isin) {
+    return this.createSecurity(quoteFeedExtend, assectClass, specialInvestmentInstruments, isin, null, true, false);
 
   }
 
   private Security createSecurity(final String quoteFeedExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String stockexchangeSymbol,
+      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol,
       final boolean securityMarket, final boolean history) {
     final Security security = new Security();
     if (history) {
@@ -113,6 +110,7 @@ class FinanzenCHFeedConnectorTest {
       security.setAssetClass(
           new Assetclass(assectClass, "Bond/Aktien Schweiz", specialInvestmentInstruments, Language.GERMAN));
     }
+    security.setIsin(isin);
     security.setStockexchange(new Stockexchange("XXXX", stockexchangeSymbol, null, null, false, securityMarket));
 
     return security;
@@ -130,9 +128,10 @@ class FinanzenCHFeedConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
+    currencies.add(createCurrencypair("EUR", "NOK", "devisen/historisch/euro-norwegische_krone-kurs"));
     currencies.add(createCurrencypair("ETH", "CHF", "devisen/historisch/ethereum-franken-kurs"));
     currencies.add(createCurrencypair("EUR", "USD", "devisen/historisch/euro-us_dollar-kurs"));
-    currencies.add(createCurrencypair("EUR", "NOK", "devisen/historisch/euro-norwegische_krone-kurs"));
+    
 
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();

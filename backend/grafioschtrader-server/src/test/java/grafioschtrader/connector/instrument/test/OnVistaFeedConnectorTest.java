@@ -29,7 +29,7 @@ class OnVistaFeedConnectorTest {
     currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("EUR", "USD", "8381868"));
     final LocalDate from = LocalDate.parse("01.12.2017", germanFormatter);
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final LocalDate to = LocalDate.parse("25.10.2019", germanFormatter);
+    final LocalDate to = LocalDate.parse("21.05.2021", germanFormatter);
     Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
@@ -38,7 +38,8 @@ class OnVistaFeedConnectorTest {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquote.size()).isEqualByComparingTo(694);
+     
+      assertThat(historyquote.size()).isEqualByComparingTo(1268);
     });
   }
 
@@ -50,14 +51,16 @@ class OnVistaFeedConnectorTest {
 
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("01.01.2000", germanFormatter);
-    final LocalDate to = LocalDate.parse("25.10.2019", germanFormatter);
+    final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
+    final LocalDate to = LocalDate.parse("21.05.2021", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    securities.add(createSecurity("Siemens", "1929749"));
-    securities.add(createSecurity("ISHARES CORE DAX UCITS ETF (DE)", "18355296"));
+    securities.add(createSecurity("Siemens", "1929749", 5428));
+    securities.add(createSecurity("iShares Core DAX", "2027396", 5173));
+    securities.add(createSecurity("green benefit Global Impact Fund I", "125961454", 1565));
+    
 
     securities.parallelStream().forEach(security -> {
 
@@ -67,15 +70,17 @@ class OnVistaFeedConnectorTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquote.size()).isGreaterThan(3900);
+      System.out.println(security.getName() +  " Size: " + historyquote.size());
+      assertThat(historyquote.size()).isEqualTo(security.getDenomination());
     });
   }
 
-  private Security createSecurity(final String name, final String url) {
+  private Security createSecurity(final String name, final String url, final int expectedRows) {
     final Security security = new Security();
     security.setName(name);
     security.setUrlIntraExtend(url);
     security.setUrlHistoryExtend(url);
+    security.setDenomination(expectedRows);
     return security;
   }
 

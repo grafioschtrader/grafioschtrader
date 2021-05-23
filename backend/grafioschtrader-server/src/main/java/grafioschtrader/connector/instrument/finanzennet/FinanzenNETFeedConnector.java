@@ -106,12 +106,15 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   public void updateSecurityLastPrice(final Security security) throws IOException, ParseException {
     final Connection finanzenConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
     final Document doc = finanzenConnection.timeout(20000).get();
-    if (security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF) {
+    var sii = security.getAssetClass().getSpecialInvestmentInstrument();
+    if (sii == SpecialInvestmentInstruments.ETF) {
       updateSecuritycurrency(doc.select("div#SnapshotQuoteData table tr"), security);
     } else {
-      if (security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES && security.getAssetClass()
-          .getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT) {
+      if (security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES && sii == SpecialInvestmentInstruments.DIRECT_INVESTMENT) {
         updateSecuritycurrency(doc.select("#ShareQuotes_1 table tr"), security);
+      }  else if(sii == SpecialInvestmentInstruments.MUTUAL_FUND) {
+        updateSecuritycurrency(doc.select("div.table-responsive:eq(3) table.table-small tr"), security);  
+       
       } else {
         updateSecuritycurrency(doc.select("div.pricebox table tr"), security);
       }
