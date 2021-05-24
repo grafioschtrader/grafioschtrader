@@ -5,6 +5,9 @@ import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
+/**
+ * Showing the tab menu with period performance and missing EOD data
+ */
 @Component({
   template: `
     <p-tabMenu [model]="items" [activeItem]="items[0]"></p-tabMenu>

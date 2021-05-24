@@ -193,7 +193,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     command: (event) => this.deleteCreateTypeQuotes()
   };
 
-
   constructor(private iconReg: SvgIconRegistryService,
               private securitService: SecurityService,
               private currencypairService: CurrencypairService,

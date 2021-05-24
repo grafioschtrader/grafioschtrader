@@ -7,9 +7,11 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp} from '../model/historyquote.quality.group';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {Security} from '../../entities/security';
 import {FilterService} from 'primeng/api';
 
+/**
+ * Shows the securities in a table.
+ */
 @Component({
   selector: 'security-historyquote-quality-table',
   template: `
@@ -82,7 +84,6 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
     if (this.historyquoteQualityIds) {
       this.securityService.getHistoryquoteQualityByIds(this.historyquoteQualityIds).subscribe(historyquoteQualityWithSecurityPropList => {
         this.hqwspList = historyquoteQualityWithSecurityPropList;
-
       });
     }
   }

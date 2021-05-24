@@ -17,11 +17,13 @@ import {Subscription} from 'rxjs';
 import {Router} from '@angular/router';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
-import {Watchlist} from '../../entities/watchlist';
 import {ProcessedAction} from '../../shared/types/processed.action';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {Historyquote} from '../../entities/historyquote';
+import {BusinessHelper} from '../../shared/helper/business.helper';
 
+/**
+ * Displays an annual calendar with a table of missing EOD courses.
+ */
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
@@ -34,8 +36,8 @@ import {Historyquote} from '../../entities/historyquote';
         <p-dropdown id="idYearSelect" [options]="possibleYears" [(ngModel)]="selectedYear"
                     (onChange)="yearChanged($event)">
         </p-dropdown>
-        <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [value]="yearCalendarData"
-                                 (onDaySelect)="onDaySelect($event)"></ng-fullyearcalendar-lib>
+        <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [value]="yearCalendarData">
+        </ng-fullyearcalendar-lib>
         <p-footer>
           <div class="ui-dialog-buttonpane ui-widget-content flexRight">
             <button pButton class="btn" (click)="addMinusYear(-1)" label="{{yearCalendarData.year-1}}"
@@ -130,22 +132,16 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   protected getMenuShowOptions(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     if (this.selectedSecurity) {
-      menuItems.push({separator: true});
       menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(this.selectedSecurity.idSecuritycurrency,
         false));
-      TranslateHelper.translateMenuItems(menuItems, this.translateService);
       this.contextMenuItems = menuItems;
+      menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedSecurity));
+      TranslateHelper.translateMenuItems(menuItems, this.translateService);
     } else {
       this.contextMenuItems = null;
     }
     return super.getMenuShowOptions().concat(menuItems);
   }
-
-  /*
-  protected getOptionalParameters(): { [key: string]: number } {
-    return {idTenant: this.gps.getIdTenant()};
-  }
-*/
 
   /**
    * Callback to unmark a day.
@@ -161,10 +157,6 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       this.selectedDayIdSecurities = [];
       this.addRemoveOnOffDay(day);
     }
-  }
-
-  onDaySelect(day: Date): void {
-    //   this.addRemoveOnOffDay(day);
   }
 
 
@@ -205,10 +197,8 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     this.securityMissingDays = [];
   }
 
-
   getHelpContextId(): HelpIds {
-    // TODO right help id
-    return HelpIds.HELP_PROTFOLIOS;
+    return HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE;
   }
 
   ngOnDestroy(): void {

@@ -15,6 +15,9 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 
+/**
+ * Dialog to fill gaps of history quotes.
+ */
 @Component({
   selector: 'historyquote-quality-fill-gaps',
   template: `
