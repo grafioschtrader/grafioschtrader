@@ -112,7 +112,6 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
     this.translateHeadersAndColumns();
 
     SelectOptionsHelper.createSelectItemForEnum(translateService, HistoryquoteQualityGrouped, this.groups);
-
   }
 
   ngOnInit(): void {

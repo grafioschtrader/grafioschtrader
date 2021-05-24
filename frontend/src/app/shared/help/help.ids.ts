@@ -37,7 +37,7 @@ export enum HelpIds {
   HELP_WATCHLIST_SECURITY = 'watchlistinstrument/instrument/securityderived',
   HELP_WATCHLIST_SEARCHDIALOG = 'watchlistinstrument/instrument/searchdialog',
   HELP_WATCHLIST_DERIVED_INSTRUMENT = 'watchlistinstrument/instrument/security/derivedinstrument',
-  HELP_WATCHLIST_HISTORYQUOTES = 'watchlistinstrument/historyquote/pricedata',
+  HELP_WATCHLIST_HISTORYQUOTES = 'watchlistinstrument/externaldata/historyquote/pricedata',
   HELP_WATCHLIST_HISTORYQUOTES_CHART = 'watchlistinstrument/eodchart',
 
   // Transaction

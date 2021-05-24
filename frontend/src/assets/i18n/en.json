@@ -526,6 +526,7 @@
   "TOTAL_MISSING": "Total missing daily price data",
   "TO_FACTOR": "To quantity",
   "TO_MANY_AS_CALENDAR": "Outside trading calendar",
+  "TO_MANY_AS_CALENDAR_TOOLTIP": "A date has price data although the trading place was closed according to the trading calendar.",
   "TRADINGPLATFORMPLAN": "Trading platform plan",
   "TRADING_CALENDAR_COPY_SUCCESS": "Copying the trading calendar was successful",
   "TRADING_CALENDAR_FROM_OTHER_EXCHANGE_FULL": "Copy entire trading calendar from other exchange",

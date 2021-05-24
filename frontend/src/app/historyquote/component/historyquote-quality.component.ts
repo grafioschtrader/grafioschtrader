@@ -10,15 +10,18 @@ import {SecurityService} from '../../securitycurrency/service/security.service';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 
+/**
+ * Shows some statistical data on the quality of the historical price data
+ */
 @Component({
   selector: 'historyquote-quality',
   template: `
     <div class="gbox">
       <div *ngFor="let field of fields" >
-        <div class="glabel">
+        <div class="glabel" [pTooltip]="field.headerTooltipTranslated">
           {{field.headerTranslated}}
         </div>
-        <div clas="gvalue">
+        <div class="gvalue">
           {{getValueByPath(historyquoteQuality, field)}}
         </div>
       </div>

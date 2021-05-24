@@ -11,6 +11,9 @@ import {IFeedConnector} from '../../securitycurrency/component/ifeed.connector';
 import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
+/**
+ * Shows a table with the missing instruments that do not have a complete price history.
+ */
 @Component({
   selector: 'tenant-performance-eod-missing-table',
   template: `
