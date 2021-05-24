@@ -44,108 +44,111 @@ import {DialogService} from 'primeng/dynamicdialog';
  */
 @Component({
   template: `
-      <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-           [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-          <p-panel>
-              <p-header>
-                  <h4>{{entityNameUpper | translate}} {{nameSecuritycurrency?.getName()}}</h4>
-                  <ng-container *ngIf="security">
-                      {{'TRADING_FROM_TO' | translate }}: {{getDateByFormat(security.activeFromDate)}}
-                      - {{getDateByFormat(security.activeToDate)}}
+    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
+         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+      <p-panel>
+        <p-header>
+          <h4>{{entityNameUpper | translate}} {{nameSecuritycurrency?.getName()}}</h4>
+          <ng-container *ngIf="security">
+            {{'TRADING_FROM_TO' | translate }}: {{getDateByFormat(security.activeFromDate)}}
+            - {{getDateByFormat(security.activeToDate)}}
+          </ng-container>
+        </p-header>
+        <historyquote-quality [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
+                              [securitycurrency]="historyquotesWithMissings?.securitycurrency">
+        </historyquote-quality>
+      </p-panel>
+      <div class="datatable">
+        <p-table #table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
+                 styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
+                 [first]="firstRow" (onPage)="onPage($event)" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+                 [paginator]="true" [rows]="20" [dataKey]="entityKeyName">
+          <ng-template pTemplate="header" let-fields>
+            <tr>
+              <th *ngFor="let field of fields" [pSortableColumn]="field.field"
+                  [style.width.px]="field.width" [pTooltip]="field.headerTooltipTranslated">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            </tr>
+            <tr *ngIf="hasFilter">
+              <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
+                <ng-container *ngSwitchCase="FilterType.likeDataType">
+                  <ng-container [ngSwitch]="field.dataType">
+
+                    <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
+                              ? field.dataType : ''" [field]="field.field" display="menu" [showOperator]="true"
+                                    [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
+                      <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                        <p-calendar #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
+                                    (onSelect)="filter($event)"
+                                    monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
+                                    (onInput)="filter(cal.value)">
+                        </p-calendar>
+                      </ng-template>
+                    </p-columnFilter>
+                    <p-columnFilter *ngSwitchCase="DataType.Numeric" type="numeric" [field]="field.field"
+                                    [locale]="formLocale"
+                                    minFractionDigits="2" display="menu"></p-columnFilter>
                   </ng-container>
-              </p-header>
-              <historyquote-quality [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
-                                    [securitycurrency]="historyquotesWithMissings?.securitycurrency">
-              </historyquote-quality>
-          </p-panel>
-          <div class="datatable">
-              <p-table #table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-                       styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
-                       [first]="firstRow" (onPage)="onPage($event)" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                       [paginator]="true" [rows]="20" [dataKey]="entityKeyName">
-                  <ng-template pTemplate="header" let-fields>
-                      <tr>
-                          <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-                              [style.width.px]="field.width">
-                              {{field.headerTranslated}}
-                              <p-sortIcon [field]="field.field"></p-sortIcon>
-                          </th>
-                      </tr>
-                    <tr *ngIf="hasFilter">
-                      <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
-                        <ng-container *ngSwitchCase="FilterType.likeDataType">
-                          <ng-container [ngSwitch]="field.dataType">
+                </ng-container>
+                <ng-container *ngSwitchCase="FilterType.withOptions">
+                  <p-dropdown [options]="field.filterValues" [style]="{'width':'100%'}"
+                              (onChange)="table.filter($event.value, field.field, 'equals')"></p-dropdown>
+                </ng-container>
+              </th>
+            </tr>
+          </ng-template>
 
-                            <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
-                              ? field.dataType : ''"[field]="field.field" display="menu" [showOperator]="true"
-                                            [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
-                              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                <p-calendar #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat" (onSelect)="filter($event)"
-                                            monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
-                                            (onInput)="filter(cal.value)">
-                                </p-calendar>
-                              </ng-template>
-                            </p-columnFilter>
-                            <p-columnFilter *ngSwitchCase="DataType.Numeric" type="numeric" [field]="field.field" [locale]="formLocale"
-                                            minFractionDigits="2" display="menu"></p-columnFilter>
-                          </ng-container>
-                        </ng-container>
-                        <ng-container *ngSwitchCase="FilterType.withOptions">
-                          <p-dropdown [options]="field.filterValues" [style]="{'width':'100%'}"
-                                      (onChange)="table.filter($event.value, field.field, 'equals')"></p-dropdown>
-                        </ng-container>
-                      </th>
-                    </tr>
-                  </ng-template>
-
-                  <ng-template pTemplate="body" let-el let-columns="fields">
-                      <tr [pSelectableRow]="el">
-                          <ng-container *ngFor="let field of fields">
-                              <td *ngIf="field.visible" [style.width.px]="field.width"
-                                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+          <ng-template pTemplate="body" let-el let-columns="fields">
+            <tr [pSelectableRow]="el">
+              <ng-container *ngFor="let field of fields">
+                <td *ngIf="field.visible" [style.width.px]="field.width"
+                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                                  <ng-container [ngSwitch]="field.templateName">
-                                      <ng-container *ngSwitchCase="'icon'">
-                                          <svg-icon [name]="getValueByPath(el, field)"
-                                                    [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                                      </ng-container>
-                                      <ng-container *ngSwitchDefault>
-                                          {{getValueByPath(el, field)}}
-                                      </ng-container>
-                                  </ng-container>
-                              </td>
-                          </ng-container>
-                      </tr>
-                  </ng-template>
-              </p-table>
-              <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
-          </div>
+                  <ng-container [ngSwitch]="field.templateName">
+                    <ng-container *ngSwitchCase="'icon'">
+                      <svg-icon [name]="getValueByPath(el, field)"
+                                [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                    </ng-container>
+                    <ng-container *ngSwitchDefault>
+                      {{getValueByPath(el, field)}}
+                    </ng-container>
+                  </ng-container>
+                </td>
+              </ng-container>
+            </tr>
+          </ng-template>
+        </p-table>
+        <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
+                       appendTo="body"></p-contextMenu>
       </div>
-      <historyquote-edit *ngIf="visibleDialog"
-                         [visibleDialog]="visibleDialog"
-                         [callParam]="callParam"
-                         (closeDialog)="handleCloseDialog($event)">
-      </historyquote-edit>
+    </div>
+    <historyquote-edit *ngIf="visibleDialog"
+                       [visibleDialog]="visibleDialog"
+                       [callParam]="callParam"
+                       (closeDialog)="handleCloseDialog($event)">
+    </historyquote-edit>
 
-      <upload-file-dialog *ngIf="visibleUploadFileDialog"
-                          [visibleDialog]="visibleUploadFileDialog"
-                          [fileUploadParam]="fileUploadParam"
-                          (closeDialog)="handleCloseDialogAndRead($event)">
-      </upload-file-dialog>
+    <upload-file-dialog *ngIf="visibleUploadFileDialog"
+                        [visibleDialog]="visibleUploadFileDialog"
+                        [fileUploadParam]="fileUploadParam"
+                        (closeDialog)="handleCloseDialogAndRead($event)">
+    </upload-file-dialog>
 
-      <historyquote-quality-fill-gaps *ngIf="visibleFillGapsDialog"
-                                      [visibleDialog]="visibleFillGapsDialog"
-                                      [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
-                                      [securitycurrency]="historyquotesWithMissings?.securitycurrency"
-                                      (closeDialog)="handleCloseDialogAndRead($event)">
-      </historyquote-quality-fill-gaps>
+    <historyquote-quality-fill-gaps *ngIf="visibleFillGapsDialog"
+                                    [visibleDialog]="visibleFillGapsDialog"
+                                    [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
+                                    [securitycurrency]="historyquotesWithMissings?.securitycurrency"
+                                    (closeDialog)="handleCloseDialogAndRead($event)">
+    </historyquote-quality-fill-gaps>
 
-      <historyquote-delete-dialog *ngIf="visibleDeleteHistoryquotes"
-                                  [visibleDialog]="visibleDeleteHistoryquotes"
-                                  [idSecuritycurrency]="historyquotesWithMissings.securitycurrency.idSecuritycurrency"
-                                  [historyquoteQuality]="historyquotesWithMissings.historyquoteQuality"
-                                  (closeDialog)="handleCloseDialogAndRead($event)">
-      </historyquote-delete-dialog>
+    <historyquote-delete-dialog *ngIf="visibleDeleteHistoryquotes"
+                                [visibleDialog]="visibleDeleteHistoryquotes"
+                                [idSecuritycurrency]="historyquotesWithMissings.securitycurrency.idSecuritycurrency"
+                                [historyquoteQuality]="historyquotesWithMissings.historyquoteQuality"
+                                (closeDialog)="handleCloseDialogAndRead($event)">
+    </historyquote-delete-dialog>
   `,
   providers: [DialogService]
 })
@@ -218,7 +221,11 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumnFeqH(DataType.DateTimeNumeric, 'createModifyTime', true, true);
     this.addColumnFeqH(DataType.Numeric, 'volume', true, false, {export: true});
-    this.addColumnFeqH(DataType.Numeric, 'open', true, false, {minFractionDigits: 5, maxFractionDigits: 8, export: true});
+    this.addColumnFeqH(DataType.Numeric, 'open', true, false, {
+      minFractionDigits: 5,
+      maxFractionDigits: 8,
+      export: true
+    });
     this.addColumnFeqH(DataType.Numeric, 'high', true, false, {maxFractionDigits: 8, export: true});
     this.addColumnFeqH(DataType.Numeric, 'low', true, false, {maxFractionDigits: 8, export: true});
     this.addColumnFeqH(DataType.Numeric, 'close', true, false, {
