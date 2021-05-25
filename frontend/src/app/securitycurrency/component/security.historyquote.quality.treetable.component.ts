@@ -168,15 +168,11 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
       this.contextMenuItems = menuItems;
       return menuItems;
     } else {
+      this.contextMenuItems = null;
       return null;
     }
   }
 
-  /*
-  protected getOptionalParameters(): { [key: string]: number } {
-    return {idTenant: this.gps.getIdTenant()};
-  }
-*/
   handleChangedIdSecurity(idSecurity: number): void {
     this.idSecurity = idSecurity;
     this.resetMenu();

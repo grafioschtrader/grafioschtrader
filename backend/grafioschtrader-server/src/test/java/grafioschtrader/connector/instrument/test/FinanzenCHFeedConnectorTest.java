@@ -1,6 +1,7 @@
 package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -115,6 +116,23 @@ class FinanzenCHFeedConnectorTest {
 
     return security;
   }
+  
+  @Test
+  void updateCurrencyPairLastPriceTest() {
+    final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
+    final List<Currencypair> currencies = new ArrayList<>();
+    currencies.add(createCurrencypairIntra("CHF", "EUR", "devisen/schweizer_franken-euro-kurs"));
+    currencies.parallelStream().forEach(currencyPair -> {
+      try {
+        finanzenCHFeedConnector.updateCurrencyPairLastPrice(currencyPair);
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+      assertTrue(currencyPair.getSLast() > 0.0);
+    });
+  }
+
+  
 
   @Test
   void getEodCurrencyHistoryTest() {
@@ -128,9 +146,9 @@ class FinanzenCHFeedConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    currencies.add(createCurrencypair("EUR", "NOK", "devisen/historisch/euro-norwegische_krone-kurs"));
-    currencies.add(createCurrencypair("ETH", "CHF", "devisen/historisch/ethereum-franken-kurs"));
-    currencies.add(createCurrencypair("EUR", "USD", "devisen/historisch/euro-us_dollar-kurs"));
+    currencies.add(createCurrencypairHistory("EUR", "NOK", "devisen/historisch/euro-norwegische_krone-kurs"));
+    currencies.add(createCurrencypairHistory("ETH", "CHF", "devisen/historisch/ethereum-franken-kurs"));
+    currencies.add(createCurrencypairHistory("EUR", "USD", "devisen/historisch/euro-us_dollar-kurs"));
     
 
     currencies.parallelStream().forEach(currencyPair -> {
@@ -146,10 +164,16 @@ class FinanzenCHFeedConnectorTest {
     });
   }
 
-  private Currencypair createCurrencypair(final String fromCurrency, String toCurrency, final String urlHistoryExtend) {
+  private Currencypair createCurrencypairHistory(final String fromCurrency, String toCurrency, final String urlHistoryExtend) {
     Currencypair currencypair = ConnectorTestHelper.createCurrencyPair("USD", "CHF");
     currencypair.setUrlHistoryExtend(urlHistoryExtend);
     return currencypair;
   }
 
+  private Currencypair createCurrencypairIntra(final String fromCurrency, String toCurrency, final String urlIntraExtend) {
+    Currencypair currencypair = ConnectorTestHelper.createCurrencyPair("USD", "CHF");
+    currencypair.setUrlIntraExtend(urlIntraExtend);
+    return currencypair;
+  }
+  
 }

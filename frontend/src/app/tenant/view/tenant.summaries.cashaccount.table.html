@@ -14,7 +14,8 @@
             </h4>
           </div>
           <div class="right-half">
-            <label style="margin-right: 5px; margin-top: 5px;" for="untilDate">{{'UNTIL_DATE' | translate}}</label>
+            <label style="margin-right: 5px; margin-top: 5px;" for="untilDate" [pTooltip]="'UNTIL_DATE_TOOLTIP' | translate">
+              {{'UNTIL_DATE' | translate}}</label>
             <p-calendar #cal appendTo="body"
                         id="untilDate"
                         [(ngModel)]="untilDate"

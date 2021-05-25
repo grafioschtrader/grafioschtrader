@@ -10,7 +10,7 @@ import {HistoryquotePeriodService} from '../service/historyquote.period.service'
 import {FilterService} from 'primeng/api';
 
 /**
- * The split and historyquote period table component.
+ * The split and history quote period table component.
  */
 @Component({
   selector: 'security-historyquote-period-edit-table',
