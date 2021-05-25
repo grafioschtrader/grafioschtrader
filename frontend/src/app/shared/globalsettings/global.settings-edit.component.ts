@@ -40,7 +40,6 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
       gps);
   }
 
-
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));

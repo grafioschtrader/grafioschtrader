@@ -45,7 +45,8 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
-    supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
+    supportedFeed.put(FeedSupport.INTRA,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 
   public FinanzenCHFeedConnector() {
@@ -55,6 +56,11 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     return domain + security.getUrlIntraExtend();
+  }
+
+  @Override
+  public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
+    return domain + currencypair.getUrlIntraExtend();
   }
 
   @Override
@@ -80,18 +86,31 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   }
 
   @Override
+  public void updateCurrencyPairLastPrice(final Currencypair currencyPair) throws Exception {
+    final String url = getCurrencypairIntradayDownloadLink(currencyPair);
+    updateLastPrice(currencyPair, url, false);
+  }
+
+  @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     final String url = getSecurityIntradayDownloadLink(security);
 
+    boolean useStockSelector = security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES
+        && security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
+
+    updateLastPrice(security, url, useStockSelector);
+
+  }
+
+  private <S extends Securitycurrency<S>> void updateLastPrice(Securitycurrency<S> securitycurrency, String url,
+      boolean useStockSelector) throws Exception {
     HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL).build();
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
 
     HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 
     final Document doc = Jsoup.parse(response.body());
-    final Elements elementPrices = security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES 
-        && security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
-        ? doc.select("table.drop-up-enabled td")
+    final Elements elementPrices = useStockSelector ? doc.select("table.drop-up-enabled td")
         : doc.select("table.pricebox th");
 
     final Iterator<Element> iter = elementPrices.iterator();
@@ -103,11 +122,10 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     final double changePercentage = NumberFormat.getNumberInstance(FC_LOCALE)
         .parse(iter.next().text().replaceAll("[ %]", "")).doubleValue();
 
-    security.setSLast(lastPrice);
-    security.setSPrevClose(lastPrice + dalyChange);
-    security.setSChangePercentage(changePercentage);
-    security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
-
+    securitycurrency.setSLast(lastPrice);
+    securitycurrency.setSPrevClose(lastPrice - dalyChange);
+    securitycurrency.setSChangePercentage(changePercentage);
+    securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
 
   @Override
