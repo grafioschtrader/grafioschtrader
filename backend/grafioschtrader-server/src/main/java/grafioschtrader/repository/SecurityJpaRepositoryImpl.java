@@ -98,7 +98,6 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         feedConnectorbeans, this);
     intradayThruCalculation = new IntradayThruCalculation<>(globalparametersJpaRepository, securityJpaRepository,
         securityDerivedLinkJpaRepository);
-
   }
 
   ////////////////////////////////////////////////////////////////
