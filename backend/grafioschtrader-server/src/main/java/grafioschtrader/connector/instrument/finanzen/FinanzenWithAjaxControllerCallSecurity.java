@@ -75,6 +75,9 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
     contollerUrlMapping.put(
         new ControllerUrlMapping(AssetclassType.COMMODITIES, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES),
         "CommodityController");
+    contollerUrlMapping.put(
+        new ControllerUrlMapping(AssetclassType.COMMODITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT),
+        "CommodityController");
     contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD),
         "CommodityController");
     contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF),
@@ -133,6 +136,8 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
         url = getOnePartAjaxUrl(security, from, to, sii);
       }
     } else {
+      // example with 2: "rohstoffe/goldpreis/historisch|goldpreis/CHF"
+      // example with 3: "rohstoffe/oelpreis/historisch|oelpreis/USD|?type=Brent"
       String suffix = possibleTwoPartUrl.length == 3 ? possibleTwoPartUrl[2] : "";
       url = getAjaxController(security, from, to, sii, possibleTwoPartUrl[1] + "/" + "", suffix);
     }

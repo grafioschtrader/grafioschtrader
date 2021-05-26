@@ -92,8 +92,8 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(AppSettings.ASSETCLASS.toUpperCase(), assetclassService, confirmationService, messageToastService, activePanelService, dialogService,
-      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+    super(AppSettings.ASSETCLASS, assetclassService, confirmationService, messageToastService,
+      activePanelService, dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.String, this.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true, false,
       {translateValues: TranslateValue.NORMAL, templateName: AppSettings.OWNER_TEMPLATE});
