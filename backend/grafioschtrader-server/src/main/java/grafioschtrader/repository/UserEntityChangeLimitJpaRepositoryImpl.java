@@ -23,10 +23,10 @@ public class UserEntityChangeLimitJpaRepositoryImpl extends BaseRepositoryImpl<U
     implements UserEntityChangeLimitJpaRepositoryCustom {
 
   @Autowired
-  UserEntityChangeLimitJpaRepository userEntityChangeLimitJpaRepository;
+  private UserEntityChangeLimitJpaRepository userEntityChangeLimitJpaRepository;
 
   @Autowired
-  EntityManager entityManager;
+  private EntityManager entityManager;
 
   @Override
   public UserEntityChangeLimit saveOnlyAttributes(UserEntityChangeLimit userEntityChangeLimit,
