@@ -47,7 +47,7 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
     Date now = new Date();
     if ((security.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
         && security.isActiveForIntradayUpdate(now)
-        && allowDelayedIntradayUpdate(security, scIntradayUpdateTimeout)) {
+        && allowDelayedIntradayUpdate(security, scIntradayUpdateTimeout, now)) {
 
       SecurityCurrencypairDerivedLinks scdl = securityDerivedLinkJpaRepository
           .getDerivedInstrumentsLinksForSecurity(security);
@@ -74,8 +74,8 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
     return security;
   }
 
-  private boolean allowDelayedIntradayUpdate(final Security security, final int scIntradayUpdateTimeout) {
-    final Long lessThenPossible = System.currentTimeMillis() - 1000 * scIntradayUpdateTimeout;
+  private boolean allowDelayedIntradayUpdate(final Security security, final int scIntradayUpdateTimeout, Date now) {
+    final Long lessThenPossible = now.getTime() - 1000 * scIntradayUpdateTimeout;
     return security.getSTimestamp() == null || security.getSTimestamp().getTime() < lessThenPossible;
   }
 

@@ -512,7 +512,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
 
   @JsonIgnore
   public boolean canHaveSplitConnector() {
-    return !((this.assetClass.getCategoryType() == AssetclassType.CONVERTIBLE_BOND
+    return isDerivedInstrument()? false: !((this.assetClass.getCategoryType() == AssetclassType.CONVERTIBLE_BOND
         || this.assetClass.getCategoryType() == AssetclassType.FIXED_INCOME)
         && this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT)
         && (this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF

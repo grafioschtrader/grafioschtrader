@@ -41,6 +41,13 @@ class FinanzenNETFeedConnectorTest {
     final List<Security> securities = new ArrayList<>();
     final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
    
+    securities.add(createSecurityIntra("rohstoffe/goldpreis/chf",
+        AssetclassType.COMMODITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "---"));
+    
+    securities.add(createSecurityIntra("rohstoffe/oelpreis",
+        AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD, null, "---"));
+    
+  
     securities.add(createSecurityIntra("fonds/uniimmo-europa-de0009805515",
         AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND, null, "FSE"));
   
@@ -64,11 +71,11 @@ class FinanzenNETFeedConnectorTest {
 
     securities.parallelStream().forEach(security -> {
       try {
-        System.out.println(security);
         finanzenNETFeedConnector.updateSecurityLastPrice(security);
       } catch (IOException | ParseException e) {
         e.printStackTrace();
       }
+      System.out.println(security);
       assertThat(security.getSLast()).as("Security %s", security.getIdConnectorIntra()).isNotNull().isGreaterThan(0.0);
 
     });
@@ -89,7 +96,7 @@ class FinanzenNETFeedConnectorTest {
    
     securities.add(createSecurityHistorical("rohstoffe/goldpreis/historisch|goldpreis/CHF",
         AssetclassType.COMMODITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "---"));
- /*   
+    
     securities.add(createSecurityHistorical("fonds/historisch/uniimmo-europa-de0009805515",
         AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND, null, "FSE"));
  
@@ -142,7 +149,7 @@ class FinanzenNETFeedConnectorTest {
 
     securities.add(createSecurityHistorical("etf/historisch/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
-*/
+
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {

@@ -78,8 +78,6 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
     return finanzenBase.getHistoryquotes(security, from, to);
   }
 
- 
-  
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
     return domain + currencypair.getUrlHistoryExtend();
@@ -107,18 +105,28 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
     final Connection finanzenConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
     final Document doc = finanzenConnection.timeout(20000).get();
     var sii = security.getAssetClass().getSpecialInvestmentInstrument();
-    if (sii == SpecialInvestmentInstruments.ETF) {
-      updateSecuritycurrency(doc.select("div#SnapshotQuoteData table tr"), security);
-    } else {
-      if (security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES && sii == SpecialInvestmentInstruments.DIRECT_INVESTMENT) {
-        updateSecuritycurrency(doc.select("#ShareQuotes_1 table tr"), security);
-      }  else if(sii == SpecialInvestmentInstruments.MUTUAL_FUND) {
-        updateSecuritycurrency(doc.select("div.table-responsive:eq(3) table.table-small tr"), security);  
-       
-      } else {
-        updateSecuritycurrency(doc.select("div.pricebox table tr"), security);
+    String select = "div.pricebox table tr";
+    var assetClassType = security.getAssetClass().getCategoryType();
+    switch (sii) {
+    case CFD:
+    case DIRECT_INVESTMENT:
+      if (assetClassType == AssetclassType.EQUITIES) {
+        select = "#ShareQuotes_1 table tr";
+      } else if(assetClassType == AssetclassType.COMMODITIES) {
+        select = "div.table-quotes table tr";
       }
+      break;
+
+    case ETF:
+      select = "div#SnapshotQuoteData table tr";
+      break;
+
+    case MUTUAL_FUND:
+      select = "div.table-responsive:eq(3) table.table-small tr";
+      break;
     }
+    updateSecuritycurrency(doc.select(select), security);
+
   }
 
   @Override
