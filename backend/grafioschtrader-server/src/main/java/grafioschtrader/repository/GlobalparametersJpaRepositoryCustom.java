@@ -17,6 +17,8 @@ public interface GlobalparametersJpaRepositoryCustom {
 
   int getPrecisionForCurrency(String currency);
   
+  int getTaskDataDaysPreserve();
+  
   int getSecurityCurrencyIntradayUpdateTimeout();
 
   int getWatchlistIntradayUpdateTimeout();

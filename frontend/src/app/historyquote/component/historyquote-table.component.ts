@@ -75,7 +75,6 @@ import {DialogService} from 'primeng/dynamicdialog';
               <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
                 <ng-container *ngSwitchCase="FilterType.likeDataType">
                   <ng-container [ngSwitch]="field.dataType">
-
                     <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
                               ? field.dataType : ''" [field]="field.field" display="menu" [showOperator]="true"
                                     [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">

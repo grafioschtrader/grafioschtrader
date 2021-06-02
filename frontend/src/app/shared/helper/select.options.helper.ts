@@ -66,10 +66,10 @@ export class SelectOptionsHelper {
     return valueKeyHtmlSelectOption;
   }
 
-  public static createHtmlOptionsFromStringArray(keysAndValues: string[]): ValueKeyHtmlSelectOptions[] {
+  public static createHtmlOptionsFromStringArray(keysAndValues: string[], uppecaseValue = false): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     keysAndValues.forEach(keyAndValue => valueKeyHtmlSelectOptions.push(
-      new ValueKeyHtmlSelectOptions(keyAndValue, keyAndValue)));
+      new ValueKeyHtmlSelectOptions(keyAndValue, uppecaseValue ? keyAndValue.toUpperCase() : keyAndValue)));
     return valueKeyHtmlSelectOptions;
   }
 
@@ -101,9 +101,14 @@ export class SelectOptionsHelper {
     return valueKeyHtmlSelectOptions;
   }
 
+  /**
+   * Translate a existing vaule of ValueKeyHtmlSelectOptions.
+   */
   public static translateExistingValueKeyHtmlSelectOptions(translateService: TranslateService,
-                                                           hSelOpt: ValueKeyHtmlSelectOptions[]): ValueKeyHtmlSelectOptions[] {
-    const newValueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
+                                                           hSelOpt: ValueKeyHtmlSelectOptions[],
+                                                           addEmpty = true): ValueKeyHtmlSelectOptions[] {
+    const newValueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = addEmpty ? [new ValueKeyHtmlSelectOptions('', '')] :
+      [];
     hSelOpt.forEach(h => newValueKeyHtmlSelectOptions.push(
       this.translateValueKeyHtmlSelectOptions(translateService, h.key, h.value)));
 
@@ -151,7 +156,7 @@ export class SelectOptionsHelper {
   private static translateValueKeyHtmlSelectOptions(translateService: TranslateService, key: string | number,
                                                     value: string): ValueKeyHtmlSelectOptions {
     const valueKeyHtmlSelectOptions = new ValueKeyHtmlSelectOptions(key, value);
-    translateService.get(value).subscribe(translated => valueKeyHtmlSelectOptions.value = translated);
+    value !== '' && translateService.get(value).subscribe(translated => valueKeyHtmlSelectOptions.value = translated);
 
     return valueKeyHtmlSelectOptions;
   }

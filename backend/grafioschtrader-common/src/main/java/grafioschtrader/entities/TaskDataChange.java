@@ -1,5 +1,6 @@
 package grafioschtrader.entities;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -10,9 +11,16 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.ProgressStateType;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 
@@ -21,12 +29,10 @@ import grafioschtrader.types.TaskType;
  */
 @Entity
 @Table(name = TaskDataChange.TABNAME)
-public class TaskDataChange {
-  public byte getIdTask() {
-    return idTask;
-  }
-
+@Schema(description = "Entity that contains the information for background processing")
+public class TaskDataChange extends BaseID {
   public static final String TABNAME = "task_data_change";
+  public static final int MAX_SIZE_FAILED_STRACK_TRACE = 4096;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,36 +43,33 @@ public class TaskDataChange {
   @Column(name = "id_task")
   protected byte idTask;
 
+  @Schema(description = "Priority for the execution of this background job")
   @Column(name = "execution_priority")
-  private short executionPriority;
+  private byte executionPriority;
 
-  /**
-   * Name of the entity which has been changed
-   */
+  @Schema(description = "Name of the entity which has been changed")
   @Column(name = "entity")
   private String entity;
 
-  /**
-   * The id of the entity which has been changed
-   */
+  @Schema(description = "The id of the entity which has been changed")
   @Column(name = "id_entity")
   private Integer idEntity;
 
   @Column(name = "creation_time")
+  @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   private LocalDateTime creationTime;
 
   @Column(name = "earliest_start_time")
+  @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   private LocalDateTime earliestStartTime;
 
-  /**
-   * Start time of the execution
-   */
+  @Schema(description = "Start time of the execution")
+  @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   @Column(name = "exec_start_time")
   private LocalDateTime execStartTime;
 
-  /**
-   * End time of the execution
-   */
+  @Schema(description = "End time of the execution")
+  @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   @Column(name = "exec_end_time")
   private LocalDateTime execEndTime;
 
@@ -81,42 +84,68 @@ public class TaskDataChange {
 
   @Column(name = "failed_message_code")
   private String failedMessageCode;
-  
+
+  @Size(max = MAX_SIZE_FAILED_STRACK_TRACE)
   @Column(name = "failed_stack_trace")
   private String failedStackTrace;
 
   public TaskDataChange() {
   }
 
-  public TaskDataChange(TaskType taskType, short executionPriority, LocalDateTime earliestStartTime) {
-    this(taskType, executionPriority, earliestStartTime, null);
+  public TaskDataChange(TaskType taskType, TaskDataExecPriority executionPriority, LocalDateTime earliestStartTime) {
+    this(taskType, executionPriority, earliestStartTime, null, null);
   }
 
-  public TaskDataChange(TaskType taskType, short executionPriority, LocalDateTime earliestStartTime, Integer idEntity) {
-    this(taskType, executionPriority, earliestStartTime, idEntity, null);
-  }
-
-  public TaskDataChange(TaskType taskType, short executionPriority, LocalDateTime earliestStartTime, Integer idEntity,
-      String entity) {
+  public TaskDataChange(TaskType taskType, TaskDataExecPriority executionPriority, LocalDateTime earliestStartTime,
+      Integer idEntity, String entity) {
     this.idTask = taskType.getValue();
-    this.executionPriority = executionPriority;
+    this.executionPriority = executionPriority.getValue();
     this.earliestStartTime = earliestStartTime;
     this.idEntity = idEntity;
     this.creationTime = LocalDateTime.now();
-    this.progressStateType = ProgressStateType.WAITING.getValue();
+    this.progressStateType = ProgressStateType.PROG_WAITING.getValue();
     this.entity = entity;
   }
 
-  public TaskDataChange(TaskType taskType, short executionPriority) {
+  public Integer getIdTaskDataChange() {
+    return idTaskDataChange;
+  }
+
+  public void setIdTaskDataChange(Integer idTaskDataChange) {
+    this.idTaskDataChange = idTaskDataChange;
+  }
+
+  public TaskDataChange(TaskType taskType, TaskDataExecPriority executionPriority) {
     this(taskType, executionPriority, LocalDateTime.now());
   }
 
-  public short getExecutionPriority() {
-    return executionPriority;
+  public TaskDataExecPriority getExecutionPriority() {
+    return TaskDataExecPriority.getTaskDataExecPriorityByValue(executionPriority);
   }
 
-  public TaskType getTaskType() {
+  public void setExecutionPriority(TaskDataExecPriority executionPriority) {
+    this.executionPriority = executionPriority.getValue();
+  }
+  
+  
+  public TaskType getIdTask() {
     return TaskType.getTaskTypeByValue(idTask);
+  }
+
+  public void setIdTask(TaskType idTask) {
+    this.idTask = idTask.getValue();
+  }
+
+  public LocalDateTime getEarliestStartTime() {
+    return earliestStartTime;
+  }
+
+  public void setEarliestStartTime(LocalDateTime earliestStartTime) {
+    this.earliestStartTime = earliestStartTime;
+  }
+
+  public byte getTaskAsId() {
+    return idTask;
   }
 
   public String getEntity() {
@@ -163,6 +192,8 @@ public class TaskDataChange {
     return oldValueString;
   }
 
+  
+
   public void setOldValueString(String oldValueString) {
     this.oldValueString = oldValueString;
   }
@@ -190,13 +221,23 @@ public class TaskDataChange {
   public void setFailedMessageCode(String failedMessageCode) {
     this.failedMessageCode = failedMessageCode;
   }
-  
+
   public String getFailedStackTrace() {
     return failedStackTrace;
   }
 
   public void setFailedStackTrace(String failedStackTrace) {
     this.failedStackTrace = failedStackTrace;
+  }
+
+  @Override
+  public Integer getId() {
+    return idTaskDataChange;
+  }
+
+  public Long getExecutionDurationInSeconds() {
+    return execStartTime != null && execEndTime != null ? Duration.between(execStartTime, execEndTime).toSeconds()
+        : null;
   }
 
   public void finishedJob(LocalDateTime startTime, ProgressStateType progressStateType) {

@@ -42,9 +42,11 @@ public class GlobalConstants {
   public static final int FID_MAX_LETTERS = 1000;
   
 
+  public static final String TIME_ZONE="UTC";
   public static final String SHORT_STANDARD_DATE_FORMAT = "yyyyMMdd";
   public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
   public static final String STANDARD_LOCAL_DATE_TIME = "yyyy-MM-dd HH:mm";
+  public static final String STANDARD_LOCAL_DATE_TIME_SECOND = "yyyy-MM-dd HH:mm:ss";
   public static final String OLDEST_TRADING_DAY = "2000-01-01";
   public static final int OLDEST_TRADING_YEAR = 2000;
   public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2025-12-31";

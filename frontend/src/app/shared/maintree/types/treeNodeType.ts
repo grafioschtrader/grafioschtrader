@@ -14,6 +14,6 @@ export enum TreeNodeType {
   Stockexchange,
   TradingPlatformPlan,
   ImpTransTemplate,
-  UserEntityLimit
+  NO_MENU
 }
 

@@ -18,7 +18,6 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
     super(loginService, httpClient, messageToastService);
   }
 
-
   getFirstAndMissingTradingDays(idPortfolio: number): Observable<FirstAndMissingTradingDays> {
     return <Observable<FirstAndMissingTradingDays>>this.httpClient.get(
       `${AppSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/getdatesforform`,

@@ -44,7 +44,7 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
 
   private assetclassSpezInstMap: { [key in AssetclassType]: SpecialInvestmentInstruments[] };
   private categoryTypeSubscribe: Subscription;
-  private valueKeyHtmlOptionsSpezInvest: ValueKeyHtmlSelectOptions[];
+  private valueKeyHtmlOptionsSpecInvest: ValueKeyHtmlSelectOptions[];
 
   constructor(translateService: TranslateService,
               gps: GlobalparameterService,
@@ -53,7 +53,6 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
     super(HelpIds.HELP_BASEDATA_ASSETCLASS, AppSettings.ASSETCLASS.toUpperCase(), translateService, gps,
       messageToastService, assetclassService);
   }
-
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
@@ -89,9 +88,9 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
       this.form.setDefaultValuesAndEnableSubmit();
       this.configObject.categoryType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         AssetclassType, [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN], true);
-      this.valueKeyHtmlOptionsSpezInvest = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.valueKeyHtmlOptionsSpecInvest = SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService, SpecialInvestmentInstruments);
-      this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpezInvest;
+      this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest;
       this.configObject.en.suggestions = this.callParam.subCategorySuggestionsEN;
       AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
         this.callParam.assetclass, this.form, this.configObject, this.proposeChangeEntityWithEntity);
@@ -120,7 +119,7 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
     this.categoryTypeSubscribe = this.configObject.categoryType
       .formControl.valueChanges.subscribe(categoryType => {
         if (!this.callParam.assetclass && categoryType && categoryType.length > 0) {
-          this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpezInvest.filter(
+          this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest.filter(
             v => this.assetclassSpezInstMap[categoryType].includes(v.key));
           this.configObject.specialInvestmentInstrument.formControl.setValue(
             this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions[0].key);

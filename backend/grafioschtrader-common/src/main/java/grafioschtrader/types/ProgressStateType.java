@@ -4,13 +4,13 @@ import java.util.Arrays;
 
 public enum ProgressStateType {
   // It is waiting to be processed
-  WAITING((byte) 0),
+  PROG_WAITING((byte) 0),
   // Was processed
-  PROCESSED((byte) 1),
+  PROG_PROCESSED((byte) 1),
   // The processing failed
-  FAILED((byte) 2),
+  PROG_FAILED((byte) 2),
   // Task cannot be found
-  TASK_NOT_FOUND((byte) 3);
+  PROG_TASK_NOT_FOUND((byte) 3);
 
   private final Byte value;
 

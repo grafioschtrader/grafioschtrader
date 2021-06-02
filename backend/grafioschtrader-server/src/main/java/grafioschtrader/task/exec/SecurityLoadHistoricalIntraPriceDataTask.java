@@ -1,6 +1,7 @@
 package grafioschtrader.task.exec;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +22,15 @@ public class SecurityLoadHistoricalIntraPriceDataTask implements ITask {
 
   @Override
   public TaskType getTaskType() {
-    return TaskType.SECURITY_LOAD_HISORICAL_INTRA_PRICE_DATA;
+    return TaskType.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA;
   }
-
+  
+ 
+  @Override
+  public List<String> getAllowedEntities() {
+    return Arrays.asList(Security.class.getSimpleName());
+  }
+  
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) {

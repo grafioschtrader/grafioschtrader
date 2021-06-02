@@ -13,7 +13,6 @@ import {ConfirmationService} from 'primeng/api';
 import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
 
 export const enum Comparison { GT, LT, EQ }
 
@@ -111,6 +110,8 @@ export class AppHelper {
           return moment(+dataobject).format(gps.getTimeDateFormatForTable());
         case DataType.DateTimeString:
           return moment(dataobject).format(gps.getTimeDateFormatForTable());
+        case DataType.DateTimeSecondString:
+          return moment(dataobject).format(gps.getTimeSecondDateFormatForTable());
         default:
           return dataobject;
       }
@@ -124,19 +125,19 @@ export class AppHelper {
 
   public static numberFormat(gps: GlobalparameterService, value: number, maxFractionDigits: number,
                              minFractionDigits: number) {
-
-
-    if (maxFractionDigits) {
-
-      const n = Math.log(Math.abs(value)) / Math.LN10;
-      if (n < 1) {
-        // negative number means fractions or less than 0
-        return value.toFixed(Math.min(maxFractionDigits, Math.max(minFractionDigits || 2,
-          Math.max(2, Math.ceil(Math.abs(n)) + ((n < 0) ? 4 : 2)))))
-          .split('.').join(gps.getDecimalSymbol());
+    if (maxFractionDigits != null) {
+      if (maxFractionDigits > 0) {
+        const n = Math.log(Math.abs(value)) / Math.LN10;
+        if (n < 1) {
+          // negative number means fractions or less than 0
+          return value.toFixed(Math.min(maxFractionDigits, Math.max(minFractionDigits || 2,
+            Math.max(2, Math.ceil(Math.abs(n)) + ((n < 0) ? 4 : 2)))))
+            .split('.').join(gps.getDecimalSymbol());
+        }
+      } else {
+        return value.toFixed(0);
       }
     }
-
 
     return gps.getNumberFormat().format(value);
   }
@@ -249,7 +250,6 @@ export class AppHelper {
       }
     }
   }
-
 }
 
 export class TranslateParam {

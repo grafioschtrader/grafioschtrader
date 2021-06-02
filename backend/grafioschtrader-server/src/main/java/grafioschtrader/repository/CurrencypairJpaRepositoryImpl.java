@@ -32,6 +32,7 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.TaskDataChange;
+import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruConnector;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
@@ -41,6 +42,7 @@ import grafioschtrader.reportviews.account.CashaccountPositionSummary;
 import grafioschtrader.search.CurrencySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
@@ -82,6 +84,8 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     Optional<Currencypair> currencypairOpt = currencypairJpaRepository.findById(idSecuritycurrency);
     if (currencypairOpt.isPresent()) {
       fillEmptyCurrencypair(currencypairOpt.get());
+    } else  {
+      throw new IllegalArgumentException("The currency pair with ID " + idSecuritycurrency + " was not found!");
     }
   }
 
@@ -275,8 +279,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   public void createTaskDataChangeOfEmptyHistoryqoute() {
     List<Integer> ids = currencypairJpaRepository.getAllIdOfEmptyHistorqute();
     for (int i = 0; i < ids.size(); i++) {
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES, (short) 42,
-          LocalDateTime.now().plusMinutes(i), ids.get(i), Currencypair.TABNAME));
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskType.LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES, TaskDataExecPriority.PRIO_VERY_LOW,
+              LocalDateTime.now().plusMinutes(i), ids.get(i), Currencypair.class.getSimpleName()));
     }
   }
 

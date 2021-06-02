@@ -51,6 +51,8 @@ import {MailSendboxTableComponent} from './mail/component/mail.sendbox.table.com
 import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
+import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
+
 
 
 const APP_ROUTES: Routes = [
@@ -230,6 +232,11 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.GLOBAL_SETTINGS_KEY,
         component: GlobalSettingsTableComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: AppSettings.TASK_DATA_CHANGE_MONITOR_KEY,
+        component: TaskDataChangeTableComponent,
         canActivate: [AuthGuard]
       },
 

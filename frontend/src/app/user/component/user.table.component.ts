@@ -57,7 +57,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
               </a>
             </td>
 
-            <td *ngFor="let field of fields">
+            <td *ngFor="let field of fields"  [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric  || field.dataType===DataType.NumericInteger)? 'text-right': ''">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'check'">
                   <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
@@ -143,7 +143,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
       [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);
 
-    this.addColumn(DataType.NumericInteger, 'idUser', 'ID', true, false);
+    this.addColumn(DataType.NumericInteger, 'idUser', 'ID', true, false, {width: 60});
     this.addColumnFeqH(DataType.String, 'nickname', true, false);
     this.addColumnFeqH(DataType.String, 'email', true, false, {width: 150});
     this.addColumn(DataType.None, 'userChangePropose', 'U', true, true,

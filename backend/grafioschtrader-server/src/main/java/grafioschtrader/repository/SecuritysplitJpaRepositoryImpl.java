@@ -24,24 +24,25 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.User;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositoryCustom {
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
+  private ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
 
   @Autowired
-  ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
+  private ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Override
   public Map<Integer, List<Securitysplit>> getSecuritysplitMapByIdTenant(final Integer idTenant) {
@@ -116,8 +117,8 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         securitysplitsExisting = new ArrayList<>();
       }
       // Adjust holdings
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, (short) 22,
-          LocalDateTime.now(), security.getIdSecuritycurrency(), Security.TABNAME));
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD,
+          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
 
     } else {
       // User can't change splits directly if another user created the security ->

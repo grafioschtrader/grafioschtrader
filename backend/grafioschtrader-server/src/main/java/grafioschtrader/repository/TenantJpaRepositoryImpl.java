@@ -33,6 +33,7 @@ import grafioschtrader.entities.User;
 import grafioschtrader.exportdelete.MySqlDeleteMyData;
 import grafioschtrader.exportdelete.MySqlExportMyData;
 import grafioschtrader.rest.helper.RestHelper;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 import grafioschtrader.types.TenantKindType;
 
@@ -117,8 +118,8 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     }
     if (currencyChanged) {
       // Holdling tables recreation
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO, (short) 22,
-          LocalDateTime.now(), teantNew.getIdTenant(), Tenant.TABNAME));
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO,
+          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), teantNew.getIdTenant(), Tenant.class.getSimpleName()));
     }
 
     return teantNew;
@@ -169,8 +170,8 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     tenant.setCurrency(currency);
     tenant.getPortfolioList().forEach(p -> p.setCurrency(currency));
     tenantJpaRepository.save(tenant);
-    taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_AND_PORTFOLIO, (short) 22,
-        LocalDateTime.now(), tenant.getIdTenant(), Tenant.TABNAME));
+    taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_AND_PORTFOLIO,
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), tenant.getIdTenant(), Tenant.TABNAME));
     return tenant;
   }
 

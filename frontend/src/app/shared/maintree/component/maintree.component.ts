@@ -217,7 +217,6 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     }
   }
 
-
   addAndRefreshWatchlistToTree(): void {
     combineLatest([this.watchlistService.getWatchlistsByIdTenant(),
       this.watchlistService.watchlistsOfTenantHasSecurity()])
@@ -269,28 +268,33 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
       label: 'TRADING_CALENDAR_GLOBAL',
-      data: new TypeNodeData(TreeNodeType.TradingCalendarGlobal, this.addMainRoute(AppSettings.TRADING_CALENDAR_GLOBAL_KEY),
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.TRADING_CALENDAR_GLOBAL_KEY),
         null, null, null)
     });
 
 
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
       label: 'SECURITY_HISTORY_QUALITY',
-      data: new TypeNodeData(TreeNodeType.TradingCalendarGlobal, this.addMainRoute(AppSettings.SECURITY_HISTORY_QUALITY_KEY),
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.SECURITY_HISTORY_QUALITY_KEY),
         null, null, null)
     });
 
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
       label: 'GLOBAL_SETTINGS',
-      data: new TypeNodeData(TreeNodeType.TradingCalendarGlobal, this.addMainRoute(AppSettings.GLOBAL_SETTINGS_KEY),
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GLOBAL_SETTINGS_KEY),
         null, null, null)
     });
 
+    this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
+      label: 'TASK_DATA_MONITOR',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.TASK_DATA_CHANGE_MONITOR_KEY),
+        null, null, null)
+    });
 
     if (AuditHelper.hasAdminRole(this.globalParamService)) {
       this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
         label: 'USER_SETTINGS',
-        data: new TypeNodeData(TreeNodeType.UserEntityLimit, this.addMainRoute(AppSettings.USER_ENTITY_LIMIT_KEY), null, null, null)
+        data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.USER_ENTITY_LIMIT_KEY), null, null, null)
       });
     }
     this.setLangTransNode(this.portfolioTrees[this.ADMINDATA_INDEX]);
@@ -340,9 +344,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     } else {
       this.handleEdit(dialogVisible, parentObject, data);
     }
-
   }
-
 
   handleEdit(dialogVisible: DialogVisible, parentObject: any, data: Tenant | Portfolio | Cashaccount | Securityaccount
     | AlgoTopCreate = null): void {

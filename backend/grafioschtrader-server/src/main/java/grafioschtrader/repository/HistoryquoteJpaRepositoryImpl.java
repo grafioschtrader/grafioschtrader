@@ -52,6 +52,7 @@ import grafioschtrader.ta.indicator.calc.ExponentialMovingAverage;
 import grafioschtrader.ta.indicator.calc.SimpleMovingAverage;
 import grafioschtrader.ta.indicator.model.ShortMediumLongInputPeriod;
 import grafioschtrader.types.HistoryquoteCreateType;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquote>
@@ -172,7 +173,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       if (securityOpt.isEmpty()) {
         taskDataChangeJpaRepository
             .save(new TaskDataChange(TaskType.REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE,
-                (short) 22, LocalDateTime.now(), historyquote.getIdSecuritycurrency(), null));
+                TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), historyquote.getIdSecuritycurrency(), null));
       }
     }
     return historyquoteSaved;

@@ -111,7 +111,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     }
   }
 
-  readData(): void {
+  private readData(): void {
     this.gps.getAllGlobalparameters().subscribe(globalparametersList => {
       this.globalparametersList = globalparametersList;
       this.prepareTableAndTranslate();

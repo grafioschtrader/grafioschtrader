@@ -67,7 +67,7 @@ export class LoginService extends BaseAuthService<User> {
 
     sessionStorage.setItem(GlobalSessionNames.USE_WEBSOCKET, JSON.stringify(configurationWithLogin.useWebsocket));
     sessionStorage.setItem(GlobalSessionNames.USE_ALGO, JSON.stringify(configurationWithLogin.useAlgo));
-    sessionStorage.setItem(GlobalSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.crypotcurrencies));
+    sessionStorage.setItem(GlobalSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
 
     sessionStorage.setItem(GlobalSessionNames.STANDARD_PRECISION, JSON.stringify(configurationWithLogin.standardPrecision));
     AppSettings.resetInterFractionLimit();

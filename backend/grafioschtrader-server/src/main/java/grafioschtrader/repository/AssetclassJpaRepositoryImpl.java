@@ -22,21 +22,18 @@ public class AssetclassJpaRepositoryImpl extends BaseRepositoryImpl<Assetclass>
     implements AssetclassJpaRepositoryCustom {
 
   @Autowired
-  AssetclassJpaRepository assetclassJpaRepository;
+  private AssetclassJpaRepository assetclassJpaRepository;
 
   @Override
   public Assetclass saveOnlyAttributes(final Assetclass assetclass, final Assetclass existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
 
     SpecialInvestmentInstruments[] siis = Assetclass.possibleInstrumentsMap.get(assetclass.getCategoryType());
-
     if (!Arrays.asList(siis).contains(assetclass.getSpecialInvestmentInstrument())) {
       throw new IllegalArgumentException("The combination of assetcalss and finance instrument is not accepted!");
     }
-
     return RepositoryHelper.saveOnlyAttributes(assetclassJpaRepository, assetclass, existingEntity,
         updatePropertyLevelClasses);
-
   }
 
   @Override

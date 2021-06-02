@@ -138,7 +138,7 @@ public class TokenAuthenticationService {
     public final List<EntityNameWithKeyName> entityNameWithKeyNameList = new ArrayList<>();
     public final boolean useWebsocket;
     public final boolean useAlgo;
-    public static final List<String> crypotcurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
+    public static final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
     public final Map<String, Integer> currencyPrecision; 
     public final Map<String, Integer> standardPrecision;
     public final boolean uiShowMyProperty;

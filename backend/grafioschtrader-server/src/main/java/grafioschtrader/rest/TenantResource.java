@@ -46,7 +46,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
     return tenantJpaRepository;
   }
 
-  @Operation(summary = "Chance tenants currency and also in its each protfolio", description = "", tags = {
+  @Operation(summary = "Change tenants currency and also in its each protfolio", description = "", tags = {
       Tenant.TABNAME })
   @PatchMapping("/watchlistforperformance/{idWatchlist}")
   public ResponseEntity<Tenant> setWatchlistForPerformance(
@@ -54,7 +54,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
     return new ResponseEntity<>(tenantJpaRepository.setWatchlistForPerformance(idWatchlist), HttpStatus.OK);
   }
 
-  @Operation(summary = "Chance tenants currency and also in its each protfolio", description = "", tags = {
+  @Operation(summary = "Change tenants currency and also in its each protfolio", description = "", tags = {
       Tenant.TABNAME })
   @PatchMapping("{currency}")
   public ResponseEntity<Tenant> changeCurrencyTenantAndPortfolios(

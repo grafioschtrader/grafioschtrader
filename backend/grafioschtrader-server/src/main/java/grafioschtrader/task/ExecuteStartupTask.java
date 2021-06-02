@@ -14,6 +14,7 @@ import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
@@ -41,14 +42,14 @@ public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyE
       addDataUpdateTask();
     } else if (taskDataChangeJpaRepository.count() == 0) {
       addDataUpdateTask();
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT, (short) 22,
-          LocalDateTime.now().plusMinutes(10), null, Tenant.TABNAME));
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
+          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(10), null, null));
     }
   }
 
   private void addDataUpdateTask() {
-    TaskDataChange taskDataChange = new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU, (short) 10,
-        LocalDateTime.now().plusMinutes(5), null, null);
+    TaskDataChange taskDataChange = new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU,
+        TaskDataExecPriority.PRIO_HIGH, LocalDateTime.now().plusMinutes(5), null, null);
     taskDataChangeJpaRepository.save(taskDataChange);
   }
 
