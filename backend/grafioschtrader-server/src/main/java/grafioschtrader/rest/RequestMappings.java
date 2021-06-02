@@ -82,10 +82,16 @@ public interface RequestMappings {
 
   public static final String STOCKEXCHANGE_MAP = API + Stockexchange.TABNAME;
   
+    
   public static final String SECURITY_MAP = API + Security.TABNAME;
   
   public static final String SECURITYSPLIT_MAP = API + Securitysplit.TABNAME;
 
+  public static final String TASK_DATA_CHANGE = "taskdatachange";
+  public static final String TASK_DATA_CHANGE_MAP = API + TASK_DATA_CHANGE;
+  
+  
+  
   public static final String TRADINGDAYSMINUS = "tradingdaysminus";
   public static final String TRADINGDAYSMINUS_MAP = API + TRADINGDAYSMINUS;
 

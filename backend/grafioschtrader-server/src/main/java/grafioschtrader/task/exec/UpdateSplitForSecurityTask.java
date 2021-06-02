@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TaskDataChange;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
@@ -27,6 +29,7 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.CreateType;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
@@ -50,7 +53,12 @@ public class UpdateSplitForSecurityTask extends UpdateDividendSplitForSecurity<S
 
   @Override
   public TaskType getTaskType() {
-    return TaskType.SECURTY_SPLIT_UPDATE_FOR_SECURITY;
+    return TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY;
+  }
+
+  @Override
+  public List<String> getAllowedEntities() {
+    return Arrays.asList(Security.class.getSimpleName());
   }
 
   @Override
@@ -107,12 +115,14 @@ public class UpdateSplitForSecurityTask extends UpdateDividendSplitForSecurity<S
         securityJpaRepository.reloadAsyncFullHistoryquote(security);
       }
       if (!createdSplits.isEmpty()) {
-        taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, (short) 22,
-            LocalDateTime.now(), security.getIdSecuritycurrency(), Security.TABNAME));
+        taskDataChangeJpaRepository
+            .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
+                LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
       }
     } else {
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
-          (short) 30, LocalDateTime.now().plusDays(1L), security.getIdSecuritycurrency()));
+      taskDataChangeJpaRepository.save(
+          new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES, TaskDataExecPriority.PRIO_LOW,
+              LocalDateTime.now().plusDays(1L), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
 
   }

@@ -13,6 +13,9 @@ export enum DataType {
    */
   Numeric = 1,
 
+  /**
+   * Show Zero, Input, Table: Decimal
+   */
   NumericShowZero = 2,
 
   /**
@@ -80,5 +83,7 @@ export enum DataType {
    */
   Files = 15,
 
-  DateTimeString = 16
+  DateTimeString = 16,
+
+  DateTimeSecondString = 17
 }

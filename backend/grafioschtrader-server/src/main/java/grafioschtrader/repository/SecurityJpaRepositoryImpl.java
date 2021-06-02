@@ -60,6 +60,7 @@ import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquot
 import grafioschtrader.search.SecuritySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
@@ -420,8 +421,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {
 
     if (historyAccessHasChanged) {
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.SECURITY_LOAD_HISORICAL_INTRA_PRICE_DATA, (short) 15,
-          LocalDateTime.now(), security.getIdSecuritycurrency()));
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskType.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA, TaskDataExecPriority.PRIO_NORMAL,
+              LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
 
     if ((securityBefore != null
@@ -429,8 +431,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
             && StringUtils.equals(security.getUrlSplitExtend(), securityBefore.getUrlSplitExtend())))
         || (securityBefore == null && security.getIdConnectorSplit() != null)) {
       // Split connector has changed
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.SECURTY_SPLIT_UPDATE_FOR_SECURITY, (short) 20,
-          LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency()));
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
+              LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
 
     if ((securityBefore != null
@@ -438,8 +441,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
             && StringUtils.equals(security.getUrlDividendExtend(), securityBefore.getUrlDividendExtend())))
         || (securityBefore == null && security.getIdConnectorDividend() != null)) {
       // Dividend connector has changed
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.SECURTY_DIVIDEND_UPDATE_FOR_SECURITY, (short) 20,
-          LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency()));
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskType.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
+              LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
   }
 

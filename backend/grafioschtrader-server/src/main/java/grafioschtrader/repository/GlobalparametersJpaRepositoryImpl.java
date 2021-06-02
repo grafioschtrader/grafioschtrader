@@ -65,9 +65,18 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return currencyPrecisionMap;
   }
 
+  @Override
   public int getPrecisionForCurrency(String currency) {
     return getCurrencyPrecision().getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
+
+  @Override
+  public int getTaskDataDaysPreserve() {
+    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_TASK_DATA_DAYS_PRESERVE)
+        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_TASK_DATA_DAYS_PRESERVE);
+  }
+
+  
   
   @Override
   public List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys) {

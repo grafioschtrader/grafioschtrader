@@ -30,6 +30,7 @@ import grafioschtrader.repository.StockexchangeJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.types.ProgressStateType;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
@@ -47,25 +48,25 @@ public class SplitCalendarAppender {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
   @Autowired
-  StockexchangeJpaRepository stockexchangeJpaRepository;
+  private StockexchangeJpaRepository stockexchangeJpaRepository;
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired(required = false)
-  List<ICalendarFeedConnector> calendarFeedConnectors = new ArrayList<>();
+  private List<ICalendarFeedConnector> calendarFeedConnectors = new ArrayList<>();
 
   public void appendSecuritySplitsUntilToday() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
@@ -140,11 +141,12 @@ public class SplitCalendarAppender {
       if (securitysplit == null || !(security.getIdSecuritycurrency().equals(securitysplit.getIdSecuritycurrency())
           && tss.securitysplit.getSplitDate().equals(securitysplit.getSplitDate()))) {
         if (taskDataChangeJpaRepository
-            .findByIdTaskAndIdEntityAndProgressStateType(TaskType.SECURTY_SPLIT_UPDATE_FOR_SECURITY.getValue(),
-                security.getIdSecuritycurrency(), ProgressStateType.WAITING.getValue())
+            .findByIdTaskAndIdEntityAndProgressStateType(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY.getValue(),
+                security.getIdSecuritycurrency(), ProgressStateType.PROG_WAITING.getValue())
             .isEmpty()) {
-          taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.SECURTY_SPLIT_UPDATE_FOR_SECURITY, (short) 20,
-              LocalDateTime.now().plusMinutes(2), security.getIdSecuritycurrency()));
+          taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
+              TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(2), security.getIdSecuritycurrency(),
+              Security.class.getSimpleName()));
 
         }
       }

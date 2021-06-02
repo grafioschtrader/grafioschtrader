@@ -1,9 +1,13 @@
 package grafioschtrader.task.exec;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.TaskDataChange;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
@@ -26,6 +30,12 @@ public class RebuildHolingAllTenantTask implements ITask {
   public TaskType getTaskType() {
     return TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT;
   }
+  
+  @Override
+  public List<String> getAllowedEntities() {
+    return Arrays.asList("", Tenant.class.getSimpleName());
+  }
+
 
   @Override
   public void doWork(TaskDataChange taskDataChange) {

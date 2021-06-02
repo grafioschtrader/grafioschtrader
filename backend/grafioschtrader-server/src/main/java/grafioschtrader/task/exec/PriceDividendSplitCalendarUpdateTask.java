@@ -5,6 +5,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.calendar.SplitCalendarAppender;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.CurrencypairJpaRepository;
@@ -13,6 +14,7 @@ import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.task.ITask;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
@@ -44,9 +46,10 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   @Autowired
   private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
-  @Scheduled(cron = "${gt.eod.cron.quotation}", zone = "UTC")
+  @Scheduled(cron = "${gt.eod.cron.quotation}", zone = GlobalConstants.TIME_ZONE)
   public void catchAllUpSecuritycurrencyHistoryquote() {
-    TaskDataChange taskDataChange = new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU, (short) 5);
+    TaskDataChange taskDataChange = new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU,
+        TaskDataExecPriority.PRIO_VERY_HIGH);
     taskDataChangeRepository.save(taskDataChange);
   }
 

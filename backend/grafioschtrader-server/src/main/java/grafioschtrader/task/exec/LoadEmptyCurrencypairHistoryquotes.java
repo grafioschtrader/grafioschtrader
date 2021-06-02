@@ -1,8 +1,13 @@
 package grafioschtrader.task.exec;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.task.ITask;
@@ -17,6 +22,12 @@ public class LoadEmptyCurrencypairHistoryquotes implements ITask {
   @Override
   public TaskType getTaskType() {
     return TaskType.LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES;
+  }
+  
+  
+  @Override
+  public List<String> getAllowedEntities() {
+    return Arrays.asList(Currencypair.class.getSimpleName());
   }
 
   @Override

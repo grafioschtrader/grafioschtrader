@@ -56,7 +56,7 @@ public class GrafioschtraderApplication {
 
   @PostConstruct
   void started() {
-    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    TimeZone.setDefault(TimeZone.getTimeZone(GlobalConstants.TIME_ZONE));
   }
 
 }

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> implements PortfolioJpaRepositoryCustom {
@@ -28,16 +29,16 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
   private EntityManager em;
 
   @Autowired
-  PortfolioJpaRepository portfolioJpaRepository;
+  private PortfolioJpaRepository portfolioJpaRepository;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   // @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired
   public void setCurrencypairJpaRepository(@Lazy final CurrencypairJpaRepository currencypairJpaRepository) {
@@ -83,8 +84,8 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
         updatePropertyLevelClasses);
 
     if (currencyChanged) {
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO, (short) 22,
-          LocalDateTime.now(), portfolioNew.getIdPortfolio(), Portfolio.TABNAME));
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO,
+          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), portfolioNew.getIdPortfolio(), Portfolio.class.getSimpleName()));
     }
 
     return portfolioNew;

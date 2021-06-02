@@ -28,6 +28,7 @@ export class AppSettings {
   public static readonly SECURITY_SPLIT = 'Securitysplit';
   public static readonly SECURITYACCOUNT = 'Securityaccount';
   public static readonly STOCKEXCHANGE = 'Stockexchange';
+  public static readonly TASK_DATE_CHANGE = 'TaskDataChange';
   public static readonly TENANT = 'Tenant';
   public static readonly TRANSACTION = 'Transaction';
   public static readonly TRADING_DAYS_MINUS = 'TradingDaysMinus';
@@ -70,6 +71,8 @@ export class AppSettings {
   public static readonly TRADING_CALENDAR_GLOBAL_KEY = 'tradingcalendarglobal';
   public static readonly SECURITY_HISTORY_QUALITY_KEY = 'historyquotequality';
   public static readonly GLOBAL_SETTINGS_KEY = 'globalsettings';
+  public static readonly TASK_DATA_CHANGE_KEY = 'taskdatachange';
+  public static readonly TASK_DATA_CHANGE_MONITOR_KEY = 'taskdatachangemonitor';
   public static readonly TRADING_DAYS_MINUS_KEY = AppSettings.TRADING_DAYS_MINUS.toLowerCase();
   public static readonly TRADING_DAYS_PLUS_KEY = AppSettings.TRADING_DAYS_PLUS.toLowerCase();
   public static readonly IMPORT_TRANSACTION_HEAD_KEY = AppSettings.IMPORT_TRANSACTION_HEAD.toLowerCase();

@@ -238,6 +238,10 @@ import {GlobalSettingsTableComponent} from './shared/globalsettings/global.setti
 import {GlobalSettingsEditComponent} from './shared/globalsettings/global.settings-edit.component';
 import {UserChangeOwnerEntitiesComponent} from './user/component/user-change-owner-entities.component';
 import {MultipleRequestToOneService} from './shared/service/multiple.request.to.one.service';
+import {TaskDataChangeService} from './shared/taskdatamonitor/service/task.data.change.service';
+import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
+import {TaskDataChangeEditComponent} from './shared/taskdatamonitor/component/task-data-change-edit.component';
+
 
 
 export function createTranslateLoader(http: HttpClient) {
@@ -276,7 +280,7 @@ export function createTranslateLoader(http: HttpClient) {
     TenantDividendAccountSelectionComponent, TenantDividendsComponent, TenantDividendSecurityAccountSelectionDialogComponent,
     TenantDividendsExtendedComponent, TenantEditDialogComponent, TenantEditFullPageComponent, TenantSummariesAssetclassComponent,
     TenantPerformanceTreetableComponent, TradingCalendarOtherExchangeDynamicComponent, TenantPerformanceEodMissingTableComponent,
-    TransactionSecurityMarginTreetableComponent,
+    TransactionSecurityMarginTreetableComponent, TaskDataChangeTableComponent, TaskDataChangeEditComponent,
     TenantSummariesCashaccountComponent, TenantSummariesSecurityaccountComponent, TenantTabMenuComponent,
     TenantTransactionCostComponent, TenantTransactionCostExtendedComponent, TenantTransactionTableComponent,
     TimeSeriesChartComponent, TradingCalendarGlobalComponent, TradingCalendarStockexchangeComponent,
@@ -372,7 +376,7 @@ export function createTranslateLoader(http: HttpClient) {
     HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
     ImportTransactionTemplateService, ImportTransactionPosService, ImportTransactionHeadService, LoginService,
     MainDialogService, MessageToastService, ParentChildRegisterService, MailInboxService, MailSendboxService,
-    MultipleRequestToOneService,
+    MultipleRequestToOneService, TaskDataChangeService,
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,
     TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UserAdminService,

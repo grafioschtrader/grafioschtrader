@@ -192,10 +192,14 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
             || !this.hasRightsForDeleteEntity(entity)
         });
       }
+      this.addCustomMenusToSelectedEntity(entity, menuItems);
     }
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
 
-    return menuItems;
+    return menuItems.length > 0 ? menuItems : null;
+  }
+
+  protected addCustomMenusToSelectedEntity(entity: T, menuItems: MenuItem[]): void {
   }
 
   protected hasRightsForCreateEntity(entity: T): boolean {

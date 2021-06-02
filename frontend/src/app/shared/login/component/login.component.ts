@@ -37,12 +37,12 @@ import {GlobalSessionNames} from '../../global.session.names';
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.16.0</h4>
+          {{'V_0_16_0' | translate}}
           <h4>0.15.0</h4>
           {{'V_0_15_0' | translate}}
           <h4>0.14.0</h4>
           {{'V_0_14_0' | translate}}
-          <h4>0.13.0</h4>
-          {{'V_0_13_0' | translate}}
         </p-card>
       </div>
     </div>
@@ -127,7 +127,7 @@ export interface ConfigurationWithLogin {
   useWebsocket: boolean;
   useAlgo: boolean;
   entityNameWithKeyNameList: EntityNameWithKeyName[];
-  crypotcurrencies: string[];
+  cryptocurrencies: string[];
   standardPrecision: { [typename: string]: number };
   currencyPrecision: { [curreny: string]: number };
   uiShowMyProperty: boolean;

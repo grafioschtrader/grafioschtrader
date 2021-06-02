@@ -3,6 +3,7 @@ package grafioschtrader.task.exec;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TaskDataChange;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.task.ITask;
@@ -38,8 +40,14 @@ public class UpdateDividendForSecurityTask extends UpdateDividendSplitForSecurit
 
   @Override
   public TaskType getTaskType() {
-    return TaskType.SECURTY_DIVIDEND_UPDATE_FOR_SECURITY;
+    return TaskType.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY;
   }
+  
+  @Override
+  public List<String> getAllowedEntities() {
+    return Arrays.asList(Security.class.getSimpleName());
+  }
+
 
   @Override
   @Transactional

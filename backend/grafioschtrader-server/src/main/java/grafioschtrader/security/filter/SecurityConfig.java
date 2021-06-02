@@ -53,23 +53,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     http.exceptionHandling().and().anonymous().and().servletApi().and().headers().cacheControl();
 
-    http.authorizeRequests()
+    http.authorizeRequests().antMatchers("/").permitAll()
         // It must be accessible before login
+        .antMatchers(HttpMethod.GET, "/api/actuator/**").permitAll()
         .antMatchers(HttpMethod.GET, "/api/globalparameters/locales").permitAll()
         .antMatchers(HttpMethod.GET, "/api/globalparameters/userformdefinition").permitAll()
-        .antMatchers(HttpMethod.GET, "/api/globalparameters/properties/*").permitAll().antMatchers("/").permitAll()
-        .antMatchers(HttpMethod.GET, "/api/actuator/**").permitAll()
-        // Registered user
+        .antMatchers(HttpMethod.GET, "/api/globalparameters/properties/*").permitAll()
+        // Register user
         .antMatchers(HttpMethod.POST, RequestMappings.USER_MAP + "/").permitAll()
-        .antMatchers(HttpMethod.GET, "/api/user/tokenverify/*").permitAll().antMatchers(HttpMethod.POST, "/api/login")
-        .permitAll().antMatchers(HttpMethod.PUT, RequestMappings.TRADINGDAYSPLUS_MAP + "/").hasRole(Role.ADMIN)
+        .antMatchers(HttpMethod.GET, "/api/user/tokenverify/*").permitAll()
+        // for login
+        .antMatchers(HttpMethod.POST, "/api/login").permitAll()
+        // Only for Admin
+        .antMatchers(HttpMethod.PUT, RequestMappings.TRADINGDAYSPLUS_MAP + "/").hasRole(Role.ADMIN)
+        .antMatchers(HttpMethod.POST, RequestMappings.TASK_DATA_CHANGE_MAP + "/").hasRole(Role.ADMIN)
+        .antMatchers(HttpMethod.PUT, RequestMappings.TASK_DATA_CHANGE_MAP + "/").hasRole(Role.ADMIN)
+        .antMatchers(HttpMethod.DELETE, RequestMappings.TASK_DATA_CHANGE_MAP + "/*").hasRole(Role.ADMIN)
         .antMatchers(RequestMappings.USER_ENTITY_CHANGE_LIMIT_MAP + "/**").hasRole(Role.ADMIN)
         .antMatchers(RequestMappings.USERADMIN_MAP + "/**").hasRole(Role.ADMIN)
-        .antMatchers(HttpMethod.DELETE, RequestMappings.HISTORYQUOTE_MAP + "/").hasRole(Role.ALL_EDIT)
-        .antMatchers(HttpMethod.GET, "/api/**").hasAnyRole(Role.USER, Role.LIMIT_EDIT)
-        .antMatchers(HttpMethod.POST, "/api/**").hasAnyRole(Role.USER, Role.LIMIT_EDIT)
-        .antMatchers(HttpMethod.PUT, "/api/**").hasAnyRole(Role.USER, Role.LIMIT_EDIT)
-        .antMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole(Role.USER, Role.LIMIT_EDIT);
+        // For all users
+        .antMatchers("/api/**").hasAnyRole(Role.USER, Role.LIMIT_EDIT);
 
     http.addFilterBefore(new StatelessLoginFilter("/api/login", tokenAuthenticationService, userService,
         authenticationManager(), proposeUserTaskJpaRepository, messages), UsernamePasswordAuthenticationFilter.class);

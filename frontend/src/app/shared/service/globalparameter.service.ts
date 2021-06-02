@@ -27,6 +27,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   private thousandsSeparatorSymbol: string;
   private decimalSymbol: string;
   private timeDateFormat: string;
+  private timeSecondDateFormat: string;
   private dateFormat: string;
   private dateFormatCalendar: string;
   private dateFormatCalendarTowNumber: string;
@@ -91,6 +92,17 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     }
     return this.timeDateFormat;
   }
+
+  public getTimeSecondDateFormatForTable(): string {
+    if (!this.timeSecondDateFormat) {
+      moment.locale(this.getLocale());
+      const formatYear = moment.localeData().longDateFormat('L');
+      const formatTime = moment.localeData().longDateFormat('LTS');
+      this.timeSecondDateFormat = formatTime + ' ' + formatYear.replace(/YYYY/g, 'YY');
+    }
+    return this.timeSecondDateFormat;
+  }
+
 
   public getNumberCurrencyMask(): CurrencyMaskConfig {
     return <CurrencyMaskConfig>{

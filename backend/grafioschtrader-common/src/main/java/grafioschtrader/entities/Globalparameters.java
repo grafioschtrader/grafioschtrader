@@ -45,6 +45,8 @@ public class Globalparameters implements Serializable {
   private static final String GT_PREFIX = "gt.";
 
   public static final String GLOB_KEY_CURRENCY_PRECISION = GT_PREFIX + "currency.precision";
+  public static final String GLOB_KEY_TASK_DATA_DAYS_PRESERVE = GT_PREFIX + "task.data.days.preserve";
+  
   
   // Connector settings
   public static final String GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR = GT_PREFIX + "cryptocurrency.history.connector";
@@ -122,6 +124,7 @@ public class Globalparameters implements Serializable {
   }
 
   public static final String DEFAULT_CURRENCY_PRECISION = "BTC=8,ETH=7,JPY=0,ZAR=0";
+  public static final int DEFAULT_TASK_DATA_DAYS_PRESERVE = 10;
   public static final short DEFAULT_INTRA_RETRY = 4;
   public static final short DEFAULT_HISTORY_RETRY = 4;
   public static final int DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS = 300;

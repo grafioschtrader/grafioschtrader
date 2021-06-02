@@ -55,7 +55,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @NamedStoredProcedureQuery(name = "Security.deleteUpdateHistoryQuality", procedureName = "deleteUpdateHistoryQuality ")
 @NamedEntityGraph(name = "graph.security.historyquote", attributeNodes = { @NamedAttributeNode("historyquoteList"),
     @NamedAttributeNode("assetClass"), @NamedAttributeNode("stockexchange") })
-@Schema(description = "Enthält die Eingenschaften eines Wertpapieres welches möglicherweise gehandet werden.")
+@Schema(description = "Contains the characteristics of a security that may be traded")
 public class Security extends Securitycurrency<Security> implements Serializable, IFormulaInSecurity {
 
   public static final String TABNAME = "security";

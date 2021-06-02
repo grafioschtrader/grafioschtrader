@@ -1,6 +1,7 @@
 package grafioschtrader.task.exec;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,7 @@ import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquot
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.task.ITask;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
@@ -43,6 +45,11 @@ public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
   public TaskType getTaskType() {
     return TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES;
   }
+  
+  @Override
+  public List<String> getAllowedEntities() {
+    return Arrays.asList(Security.class.getSimpleName());
+  }
 
   @Override
   @Transactional
@@ -66,7 +73,8 @@ public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
 
         } else {
           taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
-              (short) 30, LocalDateTime.now().plusDays(1L), security.getIdSecuritycurrency()));
+              TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(1L), security.getIdSecuritycurrency(),
+              Security.class.getSimpleName()));
         }
       }
     } catch (final Exception ex) {

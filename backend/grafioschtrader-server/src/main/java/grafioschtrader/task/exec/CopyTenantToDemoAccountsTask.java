@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
@@ -20,6 +21,7 @@ import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
 import grafioschtrader.task.ITask;
+import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 @Component
@@ -57,9 +59,9 @@ public class CopyTenantToDemoAccountsTask implements ITask {
     return TaskType.COPY_DEMO_ACCOUNTS;
   }
 
-  @Scheduled(cron = "${gt.demo.account.tenant.copy}", zone = "UTC")
+  @Scheduled(cron = "${gt.demo.account.tenant.copy}", zone = GlobalConstants.TIME_ZONE)
   public void catchAllUpSecuritycurrencyHistoryquote() {
-    TaskDataChange taskDataChange = new TaskDataChange(TaskType.COPY_DEMO_ACCOUNTS, (short) 35);
+    TaskDataChange taskDataChange = new TaskDataChange(TaskType.COPY_DEMO_ACCOUNTS, TaskDataExecPriority.PRIO_LOW);
     taskDataChangeRepository.save(taskDataChange);
   }
 
@@ -79,8 +81,8 @@ public class CopyTenantToDemoAccountsTask implements ITask {
     if (sourceIdTenantOpt.isPresent()) {
       for (Integer targetIdTenant : demoIdTenants) {
         copyTenantService.copyTenant(sourceIdTenantOpt.get().getPropertyInt(), targetIdTenant);
-        taskDataChangeRepository.save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT, (short) 22,
-            LocalDateTime.now().plusMinutes(1), targetIdTenant, Tenant.TABNAME));
+        taskDataChangeRepository.save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
+            TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), targetIdTenant, Tenant.class.getSimpleName()));
       }
     }
   }

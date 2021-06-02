@@ -20,7 +20,6 @@ public abstract class BaseID {
   @Transient
   @JsonIgnore
   UUID uuid;
-
   public abstract Integer getId();
 
   @Override

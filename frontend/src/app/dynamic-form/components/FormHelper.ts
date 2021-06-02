@@ -31,11 +31,9 @@ export abstract class FormHelper {
       .forEach(fieldConfig => fieldConfig.invisible = invisible);
   }
 
-
   public static hideVisibleFieldConfigs(invisible: boolean, fieldConfigs: FieldConfig[]): void {
     fieldConfigs.forEach(fieldConfig => fieldConfig.invisible = invisible);
   }
-
 
   public static disableEnableFieldConfigs(disable: boolean, fieldConfigs: FieldConfig[]): void {
     fieldConfigs.forEach(fieldConfig => {

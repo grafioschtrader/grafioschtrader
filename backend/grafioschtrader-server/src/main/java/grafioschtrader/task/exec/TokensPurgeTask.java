@@ -5,6 +5,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.repository.UserJpaRepository;
 
 /**
@@ -18,7 +19,7 @@ public class TokensPurgeTask {
   @Autowired
   private UserJpaRepository userJpaRepository;
 
-  @Scheduled(cron = "${gt.purge.cron.expression}", zone = "UTC")
+  @Scheduled(cron = "${gt.purge.cron.expression}", zone = GlobalConstants.TIME_ZONE)
   public void purgeExpired() {
     userJpaRepository.removeWithExpiredVerificationToken();
   }

@@ -14,6 +14,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.yahoo.YahooFeedConnectorCOM;
 import grafioschtrader.entities.Assetclass;
@@ -41,8 +42,8 @@ class YahooFeedConnectorCOMTest {
     final LocalDate from = LocalDate.parse("08.08.2019", germanFormatter);
     final LocalDate to = LocalDate.parse("15.01.2021", germanFormatter);
 
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.of("UTC")).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.of("UTC")).toInstant());
+    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.of(GlobalConstants.TIME_ZONE)).toInstant());
+    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.of(GlobalConstants.TIME_ZONE)).toInstant());
 
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquotes = new ArrayList<>();
@@ -93,8 +94,8 @@ class YahooFeedConnectorCOMTest {
     final LocalDate from = LocalDate.parse("04.08.2016", germanFormatter);
     final LocalDate to = LocalDate.parse("15.01.2021", germanFormatter);
 
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.of("UTC")).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.of("UTC")).toInstant());
+    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.of(GlobalConstants.TIME_ZONE)).toInstant());
+    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.of(GlobalConstants.TIME_ZONE)).toInstant());
 
     securities.add(createSecurity("csco", "NYSE", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.add(createSecurity("^NDX", "NYSE", "USD", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));

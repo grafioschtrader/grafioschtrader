@@ -1,5 +1,7 @@
 package grafioschtrader.task;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,10 +25,10 @@ import grafioschtrader.types.ProgressStateType;
 class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<ApplicationReadyEvent> {
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeRepository;
+  private TaskDataChangeJpaRepository taskDataChangeRepository;
 
   @Autowired(required = false)
-  public List<ITask> tasks = new ArrayList<>();
+  private List<ITask> tasks = new ArrayList<>();
 
   private Thread thread;
   private volatile boolean someCondition;
@@ -47,14 +49,14 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
       try {
         Optional<TaskDataChange> taskDataChangeOpt = taskDataChangeRepository
             .findTopByProgressStateTypeAndEarliestStartTimeLessThanEqualOrderByExecutionPriorityAscCreationTimeAsc(
-                ProgressStateType.WAITING.getValue(), LocalDateTime.now());
+                ProgressStateType.PROG_WAITING.getValue(), LocalDateTime.now());
         if (taskDataChangeOpt.isPresent()) {
           final TaskDataChange taskDataChange = taskDataChangeOpt.get();
           LocalDateTime startTime = LocalDateTime.now();
-          tasks.stream().filter(task -> task.getTaskType() == taskDataChange.getTaskType()).findFirst()
+          tasks.stream().filter(task -> task.getTaskType() == taskDataChange.getIdTask()).findFirst()
               .ifPresentOrElse(task -> {
                 executeJob(task, taskDataChange, startTime);
-              }, () -> finishedJob(taskDataChange, startTime, ProgressStateType.TASK_NOT_FOUND));
+              }, () -> finishedJob(taskDataChange, startTime, ProgressStateType.PROG_TASK_NOT_FOUND));
 
         }
         TimeUnit.SECONDS.sleep(15);
@@ -64,23 +66,26 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
     }
   }
 
-  private void executeJob(ITask task, final TaskDataChange taskDataChange, LocalDateTime startTime) {
+  private void executeJob(final ITask task, final TaskDataChange taskDataChange, LocalDateTime startTime) {
     try {
       task.doWork(cloneTaskDataChange(taskDataChange));
-      finishedJob(taskDataChange, startTime, ProgressStateType.PROCESSED);
+      finishedJob(taskDataChange, startTime, ProgressStateType.PROG_PROCESSED);
       if (task.removeAllOtherJobsOfSameTask()) {
         taskDataChangeRepository.removeByIdTask(task.getTaskType().getValue());
       }
     } catch (TaskBackgroundException tbe) {
-      System.out.println("=================================== - TaskBackgroundException");
       if (tbe.getErrorMsgOfSystem() != null) {
-        tbe.getErrorMsgOfSystem().forEach(System.out::println);
+        StringBuilder failure = new StringBuilder("");
+        tbe.getErrorMsgOfSystem().forEach(m -> failure.append(m.toString()+ "\n"));
+        taskDataChange.setFailedStackTrace(failure.toString());
       }
-      finishedJob(taskDataChange, startTime, ProgressStateType.FAILED);
+      taskDataChange.setFailedMessageCode(tbe.getErrorMessagesKey());
+      finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
     } catch (Exception e) {
-      System.out.println("=================================== - Exception");
-      e.printStackTrace();
-      finishedJob(taskDataChange, startTime, ProgressStateType.FAILED);
+      StringWriter errors = new StringWriter();
+      e.printStackTrace(new PrintWriter(errors));
+      taskDataChange.setFailedStackTrace(errors.toString().substring(0, TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE));
+      finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
     }
   }
 
@@ -91,6 +96,7 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
     return tdcNew;
   }
 
+ 
   private void finishedJob(final TaskDataChange taskDataChange, LocalDateTime startTime,
       ProgressStateType progressStateType) {
     taskDataChange.finishedJob(startTime, progressStateType);
