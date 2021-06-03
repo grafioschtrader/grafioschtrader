@@ -135,11 +135,10 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(AppSettings.TASK_DATE_CHANGE, taskDataChangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
-  /*
+      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
       gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
-*/
+
     this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, false,
       {filterType: FilterType.likeDataType});
     this.addColumnFeqH(DataType.NumericShowZero, 'taskAsId', true, false,
