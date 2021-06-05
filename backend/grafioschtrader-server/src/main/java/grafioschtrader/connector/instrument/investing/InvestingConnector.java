@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -33,10 +35,15 @@ import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.common.ValueFormatConverter;
 import grafioschtrader.connector.IConnectorNames;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /**
  * www.investing.com used manly a single ajax-call to load the data.
@@ -52,17 +59,72 @@ public class InvestingConnector extends BaseFeedConnector {
   private static final String DATE_FORMAT_FORM = "MM/dd/yyyy";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int MAX_ROWS_DELIVERD = 5000;
-  private static final String URL_EXTENDED_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\-\\.]+\\,\\d+\\,\\d+$";
+  private static final String URL_HISTORICAL_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\-\\.]+\\,\\d+\\,\\d+$";
+  private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\-\\.]+$";
   private static final String INVESTING = "investing";
+
+  Map<String, String> cryptoCurrencyMap = Map.of("BTC", "bitcoin", "BNB", "binance-coin", "ETH", "ethereum", "ETC",
+      "ethereum-classic", "LTC", "litecoin", "XPR", "xrp");
 
   static {
     supportedFeed = new HashMap<>();
+    supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
     supportedFeed.put(FeedSupport.HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 
   public InvestingConnector() {
-    super(supportedFeed, INVESTING, "Investing.com", URL_EXTENDED_REGEX);
+    super(supportedFeed, INVESTING, "Investing.com", null);
+  }
+
+  @Override
+  public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
+    return IConnectorNames.DOMAIN_INVESTING
+        + (currencypair.isFromCryptocurrency() ? getCryptoMapping(currencypair) : "currencies") + "/"
+        + currencypair.getFromCurrency().toLowerCase() + "-" + currencypair.getToCurrency().toLowerCase();
+  }
+
+  @Override
+  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
+
+    final Connection investingConnection = Jsoup.connect(getCurrencypairIntradayDownloadLink(currencypair));
+    final Document doc = investingConnection.timeout(10000).get();
+    updateSecuritycurrency(currencypair, doc.select("#last_last").parents().first());
+  }
+
+  private String getCryptoMapping(final Currencypair currencypair) {
+    return "crypto/" + cryptoCurrencyMap.get(currencypair.getFromCurrency());
+  }
+
+  @Override
+  public String getSecurityIntradayDownloadLink(final Security security) {
+    return IConnectorNames.DOMAIN_INVESTING + security.getUrlIntraExtend();
+  }
+
+  @Override
+  public int getIntradayDelayedSeconds() {
+    return 900;
+  }
+
+  @Override
+  public void updateSecurityLastPrice(final Security security) throws Exception {
+    final Connection investingConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
+    final Document doc = investingConnection.timeout(10000).get();
+    Element div = doc.select("#last_last").parents().first();
+    if (div == null) {
+      div = doc.select("div[class^=instrument-price_instrument-price]").first();
+    }
+    updateSecuritycurrency(security, div);
+  }
+
+  private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, Element div) {
+    String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
+        .split(" ");
+    securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0]));
+    securitycurrency
+        .setSOpen(DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1])));
+    securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2]));
+    securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
 
   @Override
@@ -77,6 +139,25 @@ public class InvestingConnector extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> String getHistoricalLink(final Securitycurrency<T> securitycurreny) {
     return IConnectorNames.DOMAIN_INVESTING + securitycurreny.getUrlHistoryExtend().split(URL_EXTENDED_SEPARATOR)[0];
+  }
+
+  @Override
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
+      String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
+      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+
+    boolean clear = super.checkAndClearSecuritycurrencyConnector(feedSupport, urlExtend, errorMsgKey, feedIdentifier,
+        specialInvestmentInstruments, assetclassType);
+    if (feedIdentifier != null) {
+      switch (feedSupport) {
+      case HISTORY:
+        checkUrlExtendsionWithRegex(new String[] { URL_HISTORICAL_REGEX }, urlExtend);
+        break;
+      default:
+        checkUrlExtendsionWithRegex(new String[] { URL_INTRA_REGEX }, urlExtend);
+      }
+    }
+    return clear;
   }
 
   @Override

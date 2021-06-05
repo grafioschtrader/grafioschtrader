@@ -68,9 +68,10 @@ public class GlobalConstants {
   public static final String UNITS = "units";
 
   /**
-   * Contains the supported cryptocurrencies
+   * Contains the supported cryptocurrencies. When a new is added, check references.
+   * Maybe a connector must be extended to this new cryptocurrency.
    */
-  public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of("BTC", "ETH", "ETC", "LTC", "XRP");
+  public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of("BTC", "BNB", "ETH", "ETC", "LTC", "XRP");
 
   /**
    * The Email verification expiration time in minutes

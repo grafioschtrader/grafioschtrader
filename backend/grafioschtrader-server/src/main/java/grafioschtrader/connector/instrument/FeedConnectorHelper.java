@@ -18,6 +18,11 @@ public class FeedConnectorHelper {
     final String text = item.replace(".", "").replace(",", ".");
     return text.trim().length() > 0 ? Double.parseDouble(text) : null;
   }
+  
+  public static Double parseDoubleUS(String item) {
+    final String text = item.replace(",", "");
+    return text.trim().length() > 0 ? Double.parseDouble(text) : null;
+  }
 
   public static Long parseLongGE(String item) {
     final String text = item.replace(".", "");
