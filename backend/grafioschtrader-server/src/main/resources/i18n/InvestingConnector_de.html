@@ -5,3 +5,6 @@ Für die Ermittlung der beiden Werte <b>curr_id</b>, <b>smlID</b> muss das Networ
 Mit der Eingabe eines Datumbereichs wird ein XHR request https://www.investing.com/instruments/HistoricalDataAjax ausgelöst.</br>
 Unter "Form Data" kann <b>curr_id</b> und <b>smlID</b> ausgelesen werden, beispielsweise bspw. curr_id: 166 und smlID: 2030167 für dem S&P 500.</br>
 Nachflogend kann die <b>URL ohne Domain Name</b> des Instruments, <b>curr_id</b> und <b>smlID</b> durch Kommas getrennt eingeben werden, bspw. "indices/us-spx-500,166,2030167 für den S&P 500".
+[intra] 
+Das entsprechende Instrument (Währung, ETF, CFD, usw.) bei <a target="_blank" href="https://www.investing.com/">Investing</a> finden.<br>
+Danach den Teil ohne "https://www.investing.com/" von der URL übernehmen. Beispielsweise wird aus "https://www.investing.com/equities/dropbox-inc" für die Aktie Dropbox Inc (DBX) nur "equities/dropbox-inc" übernommen.

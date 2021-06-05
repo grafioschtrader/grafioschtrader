@@ -21,7 +21,7 @@ import grafioschtrader.test.start.GTforTest;
 class CurrencyconverterFeedConnectorTest {
 
   @Autowired
-  CurrencyconverterFeedConnector currencyconverterFeedConnector;
+  private CurrencyconverterFeedConnector currencyconverterFeedConnector;
 
   @Test
   void updateCurrencyPairLastPriceTest() {

@@ -13,11 +13,11 @@ import grafioschtrader.entities.Security;
 
 class SwissquoteFeedConnectorTest {
 
+  private SwissquoteFeedConnector swissquoteConnector = new SwissquoteFeedConnector();
+  
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-
-    final SwissquoteFeedConnector swissquoteConnector = new SwissquoteFeedConnector();
 
     securities.add(createSecurity("SLI"));
     securities.add(createSecurity("CH0183135976"));
@@ -43,8 +43,6 @@ class SwissquoteFeedConnectorTest {
 
   @Test
   void updateCurrencyPairLastPriceTest() {
-
-    final SwissquoteFeedConnector swissquoteConnector = new SwissquoteFeedConnector();
 
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createCurrencyPair("EUR", "CHF"));

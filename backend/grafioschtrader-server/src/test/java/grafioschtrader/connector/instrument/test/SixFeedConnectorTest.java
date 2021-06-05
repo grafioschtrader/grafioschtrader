@@ -21,16 +21,17 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class SixFeedConnectorTest {
 
+  private SixFeedConnector swissquoteConnector = new SixFeedConnector();
+  
   @Test
   void getEodSecurityHistoryTest() {
 
-    final SixFeedConnector swissquoteConnector = new SixFeedConnector();
     final List<Security> securities = new ArrayList<>();
 
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
     final LocalDate from = LocalDate.parse("03.12.2018", germanFormatter);
-    final LocalDate to = LocalDate.parse("25.10.2019", germanFormatter);
+    final LocalDate to = LocalDate.parse("04.06.2021", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -46,15 +47,13 @@ class SixFeedConnectorTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquote.size()).isEqualTo(223);
-
+      assertThat(historyquote.size()).isEqualTo(624);
     });
   }
 
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-    final SixFeedConnector swissquoteConnector = new SixFeedConnector();
 
     securities.add(createSecurity("SMI PR", "CH0009980894CHF9", true));
     securities.add(createSecurity("1 HOLCIM 15-25", "CH0306179125CHF4", true));

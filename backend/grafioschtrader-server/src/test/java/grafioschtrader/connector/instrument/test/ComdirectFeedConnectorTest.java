@@ -13,11 +13,12 @@ import grafioschtrader.entities.Security;
 
 public class ComdirectFeedConnectorTest {
 
+  private ComdirectFeedConnector  comdirectConnector = new ComdirectFeedConnector();
+  
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-
-    var comdirectConnector = new ComdirectFeedConnector();
+   
     securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40 Index", "indizes/werte/FR0003500008"));
     securities.add(ConnectorTestHelper.createIntraSecurity("WIG INDEX (PLN)", "indizes/PL9999999995"));
     securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core MSCI World UCITS ETF - USD ACC ETF",
@@ -38,7 +39,6 @@ public class ComdirectFeedConnectorTest {
 
   @Test
   void updateCurrencyPairLastPriceTest() {
-    var comdirectConnector = new ComdirectFeedConnector();
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createIntraCurrencyPair("EUR", "CHF", "waehrungen/euro-schweizer_franken-kurs"));
 

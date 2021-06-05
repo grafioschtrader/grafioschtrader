@@ -24,7 +24,7 @@ import grafioschtrader.test.start.GTforTest;
 class CryptoCompareFeedConnectorTest {
   
   @Autowired
-  CryptoCompareFeedConnector cryptoCompareFeedConnector;
+  private CryptoCompareFeedConnector cryptoCompareFeedConnector;
   
   @Test
   void updateCurrencyPairLastPriceTest() {

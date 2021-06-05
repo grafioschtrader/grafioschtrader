@@ -25,6 +25,8 @@ import grafioschtrader.entities.Historyquote;
  */
 class FxUbcFeedConnectorTest {
 
+  private FxUbcFeedConnector fxUbcFeedConnector = new FxUbcFeedConnector();
+  
   @Test
   void getEodCurrencyHistoryLongPeriodTest() {
 
@@ -34,8 +36,7 @@ class FxUbcFeedConnectorTest {
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "JPY"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "USD"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
-
-    final FxUbcFeedConnector fxUbcFeedConnector = new FxUbcFeedConnector();
+  
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
 
@@ -65,7 +66,6 @@ class FxUbcFeedConnectorTest {
     currencies.add(ConnectorTestHelper.createCurrencyPair("EUR", "CHF"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "JPY"));
 
-    final FxUbcFeedConnector fxUbcFeedConnector = new FxUbcFeedConnector();
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
 

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.task.ITask;

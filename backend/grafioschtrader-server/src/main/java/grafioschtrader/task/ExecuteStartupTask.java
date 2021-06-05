@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.types.TaskDataExecPriority;

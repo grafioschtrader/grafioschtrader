@@ -28,10 +28,11 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class YahooFeedConnectorCOMTest {
 
+  private YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
+  
   @Test
   void getEodCurrencyHistoryTest() {
-    final YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
-
+   
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
 
@@ -62,7 +63,6 @@ class YahooFeedConnectorCOMTest {
 
   @Test
   void updateCurrencyPairLastPriceTest() {
-    final YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
 
     final List<Currencypair> currencies = new ArrayList<>();
 
@@ -86,8 +86,6 @@ class YahooFeedConnectorCOMTest {
   @Test
   void getEodSecurityHistoryTest() {
     final List<Security> securities = new ArrayList<>();
-
-    final YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
 
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
@@ -120,7 +118,6 @@ class YahooFeedConnectorCOMTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-    final YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
     securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.add(createSecurity("csco", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.parallelStream().forEach(security -> {
@@ -143,8 +140,6 @@ class YahooFeedConnectorCOMTest {
     final List<Security> securities = new ArrayList<>();
     securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.add(createSecurity("csco", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-
-    final YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
 
     securities.parallelStream().forEach(security -> {
       List<Securitysplit> seucritysplitList = new ArrayList<>();
@@ -169,7 +164,6 @@ class YahooFeedConnectorCOMTest {
     securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.add(createSecurity("AAPL", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
 
-    final YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
     securities.parallelStream().forEach(security -> {
       List<Dividend> dividens = new ArrayList<>();
       try {

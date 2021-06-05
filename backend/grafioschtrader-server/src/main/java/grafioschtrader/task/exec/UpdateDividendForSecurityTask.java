@@ -18,7 +18,6 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.entities.Tenant;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.task.ITask;
