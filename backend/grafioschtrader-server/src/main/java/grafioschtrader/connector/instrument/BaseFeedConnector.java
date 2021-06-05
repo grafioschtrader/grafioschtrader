@@ -206,8 +206,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     switch (feedSupport) {
     case HISTORY:
       if (checkAndClearSecuritycurrencyConnector(feedSupport, securitycurrency.getUrlHistoryExtend(),
-          "gt.connector.historical.url.failure",
-          specInst != null ? FeedIdentifier.SECURITY_URL : FeedIdentifier.CURRENCY_URL, specInst, assetclassType)) {
+          "gt.connector.historical.url.failure", getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null),
+          specInst, assetclassType)) {
         securitycurrency.setUrlHistoryExtend(null);
       } else {
         if (specInst != null) {
@@ -223,8 +223,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       break;
     case INTRA:
       if (checkAndClearSecuritycurrencyConnector(feedSupport, securitycurrency.getUrlIntraExtend(),
-          "gt.connector.intra.url.failure",
-          specInst != null ? FeedIdentifier.SECURITY_URL : FeedIdentifier.CURRENCY_URL, specInst, assetclassType)) {
+          "gt.connector.intra.url.failure", getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null), specInst,
+          assetclassType)) {
         securitycurrency.setUrlIntraExtend(null);
       } else {
         if (specInst != null) {
@@ -252,6 +252,14 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       break;
 
     }
+  }
+
+  private FeedIdentifier getFeedIdentifierWhenUrlRequired(FeedSupport feedSupport, boolean isSecurity) {
+    return isSecurity
+        ? Arrays.asList(supportedFeed.get(feedSupport)).contains(FeedIdentifier.SECURITY) ? null
+            : FeedIdentifier.SECURITY_URL
+        : Arrays.asList(supportedFeed.get(feedSupport)).contains(FeedIdentifier.CURRENCY) ? null
+            : FeedIdentifier.CURRENCY_URL;
   }
 
   protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
@@ -292,12 +300,13 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       if (code != HttpURLConnection.HTTP_OK) {
         throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
       } else {
-        if(!isConnectionOk(huc)) {
+        if (!isConnectionOk(huc)) {
           throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
         }
       }
     } catch (Exception e) {
-      throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
+      //  throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
+      System.out.println(url);
     }
   }
 

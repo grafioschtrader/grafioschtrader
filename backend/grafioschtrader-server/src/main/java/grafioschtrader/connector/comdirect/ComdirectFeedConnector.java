@@ -41,8 +41,7 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
   public String getSecurityIntradayDownloadLink(final Security security) {
     return BASE_URL + security.getUrlIntraExtend();
   }
-  
-  
+
   @Override
   public int getIntradayDelayedSeconds() {
     return 900;
@@ -64,7 +63,7 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
   }
 
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String url)
-      throws IOException, ParseException {
+      throws IOException {
 
     final Connection comdirectConnection = Jsoup.connect(url);
     final Document doc = comdirectConnection.timeout(10000).get();
@@ -76,6 +75,5 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
     securitycurrency
         .setSOpen(DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleGE(numbers[2])));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
-
   }
 }

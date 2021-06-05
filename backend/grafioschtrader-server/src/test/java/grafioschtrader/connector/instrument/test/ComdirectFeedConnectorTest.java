@@ -18,11 +18,13 @@ public class ComdirectFeedConnectorTest {
     final List<Security> securities = new ArrayList<>();
 
     var comdirectConnector = new ComdirectFeedConnector();
-    securities.add(createSecurity("indizes/werte/FR0003500008"));
-    securities.add(createSecurity("indizes/PL9999999995"));
-    securities.add(createSecurity("etfs/IE00B4L5Y983"));
-    securities.add(createSecurity("fonds/detail/uebersicht.html?ID_NOTATION=31345909&ISIN=IE00B4L5Y983"));
-  
+    securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40 Index", "indizes/werte/FR0003500008"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("WIG INDEX (PLN)", "indizes/PL9999999995"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core MSCI World UCITS ETF - USD ACC ETF",
+        "etfs/IE00B4L5Y983"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core MSCI World UCITS ETF - USD ACC ETF",
+        "fonds/detail/uebersicht.html?ID_NOTATION=31345909&ISIN=IE00B4L5Y983"));
+
     securities.parallelStream().forEach(security -> {
       try {
         comdirectConnector.updateSecurityLastPrice(security);
@@ -31,7 +33,6 @@ public class ComdirectFeedConnectorTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-
     });
   }
 
@@ -39,8 +40,7 @@ public class ComdirectFeedConnectorTest {
   void updateCurrencyPairLastPriceTest() {
     var comdirectConnector = new ComdirectFeedConnector();
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("EUR", "CHF",
-        "waehrungen/euro-schweizer_franken-kurs"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("EUR", "CHF", "waehrungen/euro-schweizer_franken-kurs"));
 
     currencies.parallelStream().forEach(currencyPair -> {
       try {
@@ -53,9 +53,4 @@ public class ComdirectFeedConnectorTest {
     });
   }
 
-  private Security createSecurity(final String intraTicker) {
-    final Security security = new Security();
-    security.setUrlIntraExtend(intraTicker);
-    return security;
-  }
 }

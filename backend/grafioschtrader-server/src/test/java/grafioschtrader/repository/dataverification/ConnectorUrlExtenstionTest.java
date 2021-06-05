@@ -16,7 +16,7 @@ import grafioschtrader.test.start.GTforTest;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)
-public class ConnectorUrlExtenstionTest {
+class ConnectorUrlExtenstionTest {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -27,9 +27,7 @@ public class ConnectorUrlExtenstionTest {
     List<Security> securities = securityJpaRepository.findAll();
     for (Security security : securities) {
       securityJpaRepository.checkAndClearSecuritycurrencyConnectors(security);
-      
     }
-    
   }
   
   
