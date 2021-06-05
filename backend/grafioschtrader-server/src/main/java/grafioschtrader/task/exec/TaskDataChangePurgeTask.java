@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
-import grafioschtrader.repository.UserJpaRepository;
 
 @Service
 @Transactional

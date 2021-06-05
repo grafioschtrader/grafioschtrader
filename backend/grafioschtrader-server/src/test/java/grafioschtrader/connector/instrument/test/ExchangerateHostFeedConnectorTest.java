@@ -18,12 +18,10 @@ import grafioschtrader.entities.Historyquote;
 
 class ExchangerateHostFeedConnectorTest {
   
+  private ExchangerateHostFeedConnector exchangerateHostFeedConnector = new ExchangerateHostFeedConnector();
   
   @Test
   void getEodCurrencyHistoryTest() {
-    
-    ExchangerateHostFeedConnector exchangerateHostFeedConnector = new ExchangerateHostFeedConnector();
-    
     final LocalDate from = LocalDate.parse("2000-01-01");
     final LocalDate to = LocalDate.parse("2021-02-12");
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -50,8 +48,6 @@ class ExchangerateHostFeedConnectorTest {
   
   @Test
   void updateCurrencyPairLastPriceTest() {
-    ExchangerateHostFeedConnector exchangerateHostFeedConnector = new ExchangerateHostFeedConnector();
-    
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createCurrencyPair("ETH", "CHF"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));

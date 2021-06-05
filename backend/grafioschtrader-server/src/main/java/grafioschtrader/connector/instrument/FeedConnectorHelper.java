@@ -8,6 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Historyquote;
 
 public class FeedConnectorHelper {
@@ -52,7 +53,8 @@ public class FeedConnectorHelper {
       List<Historyquote> historyquotes, String instrumentName) {
     for (int i = 0; !historyquotes.isEmpty() && i < historyquotes.size(); i+= historyquotes.size() - 1) {
       Historyquote historyquote = historyquotes.get(i);
-      if (historyquote.getDate().before(fromDate) || historyquote.getDate().after(toDate)) {
+      var fromDateCheck =  DateHelper.setTimeToZeroAndAddDay(fromDate, 0);
+      if (historyquote.getDate().before(fromDateCheck) || historyquote.getDate().after(toDate)) {
         log.warn("Removed historyquote with date {} from instrument {}. Date range was {}-{}", historyquote.getDate(),
             instrumentName, fromDate, toDate);
         historyquotes.remove(i);

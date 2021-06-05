@@ -36,8 +36,6 @@ import grafioschtrader.common.ValueFormatConverter;
 import grafioschtrader.connector.IConnectorNames;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;

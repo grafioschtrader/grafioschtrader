@@ -191,10 +191,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws IOException, ParseException, URISyntaxException {
-    if (currencyPair.getIdSecuritycurrency().equals(3879)) {
-      System.out.println("to date:" + to);
-    }
-
+    
     return FeedConnectorHelper.checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(from, to,
         getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0), currencyPair.getName());
   }

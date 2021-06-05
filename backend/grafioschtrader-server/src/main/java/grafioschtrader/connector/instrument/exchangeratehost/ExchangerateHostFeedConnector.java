@@ -21,8 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 

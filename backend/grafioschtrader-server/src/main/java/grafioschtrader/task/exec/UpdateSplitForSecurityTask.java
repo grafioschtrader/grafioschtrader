@@ -21,7 +21,6 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.entities.Tenant;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;

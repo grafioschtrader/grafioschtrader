@@ -32,7 +32,6 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruConnector;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;

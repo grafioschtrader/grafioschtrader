@@ -21,7 +21,6 @@ import grafioschtrader.connector.instrument.alphavantage.AlphaVantageFeedConnect
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.test.start.GTforTest;
-import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)

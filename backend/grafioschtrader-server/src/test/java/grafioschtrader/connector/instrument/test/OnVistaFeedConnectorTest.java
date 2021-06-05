@@ -20,11 +20,13 @@ import grafioschtrader.entities.Security;
 
 class OnVistaFeedConnectorTest {
 
+  private OnVistaFeedConnector onVistaConnector = new OnVistaFeedConnector();
+  
   @Test
   void getEodCurrencyHistoryTest() {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
-    final OnVistaFeedConnector onVistaConnector = new OnVistaFeedConnector();
+   
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("EUR", "USD", "8381868"));
     final LocalDate from = LocalDate.parse("01.12.2017", germanFormatter);
@@ -46,7 +48,6 @@ class OnVistaFeedConnectorTest {
   @Test
   void getEodSecurityHistoryTest() {
 
-    final OnVistaFeedConnector onVistaConnector = new OnVistaFeedConnector();
     final List<Security> securities = new ArrayList<>();
 
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
@@ -61,7 +62,6 @@ class OnVistaFeedConnectorTest {
     securities.add(createSecurity("iShares Core DAX", "2027396", 5173));
     securities.add(createSecurity("green benefit Global Impact Fund I", "125961454", 1565));
     
-
     securities.parallelStream().forEach(security -> {
 
       List<Historyquote> historyquote = new ArrayList<>();
