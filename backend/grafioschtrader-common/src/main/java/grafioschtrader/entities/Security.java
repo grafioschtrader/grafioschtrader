@@ -186,7 +186,11 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @Column(name = "retry_split_load")
   @PropertyAlwaysUpdatable
   private Short retrySplitLoad = 0;
-
+   
+  @Column(name = "div_earliest_next_check")
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date dividendEarliestNextCheck;
+  
   @Transient
   private SecurityDerivedLink securityDerivedLinks[];
 
@@ -464,11 +468,20 @@ public class Security extends Securitycurrency<Security> implements Serializable
     this.retrySplitLoad = retrySplitLoad;
   }
 
+
+  public Date getDividendEarliestNextCheck() {
+    return dividendEarliestNextCheck;
+  }
+
+  public void setDividendEarliestNextCheck(Date dividendEarliestNextCheck) {
+    this.dividendEarliestNextCheck = dividendEarliestNextCheck;
+  }
+
   @Override
   public boolean isActiveForIntradayUpdate(Date now) {
     return !now.after(getActiveToDate());
   }
-
+  
   @JsonIgnore
   public boolean canHaveDividendConnector() {
     boolean canHaveDividend = false;

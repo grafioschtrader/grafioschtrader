@@ -41,6 +41,9 @@ public class Dividend extends DividendSplit implements Serializable {
 
   @Column(name = "amount")
   private Double amount;
+  
+  @Column(name = "amount_adjusted")
+  private Double amountAdjusted;
 
   @Schema(description = "Currency of security, ISO 4217")
   @ValidCurrencyCode
@@ -50,12 +53,13 @@ public class Dividend extends DividendSplit implements Serializable {
   public Dividend() {
   }
 
-  public Dividend(Integer idSecuritycurrency, LocalDate exDate, LocalDate payDate, Double amount, String currency,
-      CreateType createType) {
+  public Dividend(Integer idSecuritycurrency, LocalDate exDate, LocalDate payDate, Double amount, 
+      Double amountAdjusted, String currency, CreateType createType) {
     super(idSecuritycurrency, createType);
     this.exDate = exDate;
     this.payDate = payDate;
     this.amount = amount;
+    this.amountAdjusted = amountAdjusted;
     this.currency = currency;
   }
 
@@ -89,6 +93,14 @@ public class Dividend extends DividendSplit implements Serializable {
 
   public void setAmount(Double amount) {
     this.amount = amount;
+  }
+  
+  public Double getAmountAdjusted() {
+    return amountAdjusted;
+  }
+
+  public void setAmountAdjusted(Double amountAdjusted) {
+    this.amountAdjusted = amountAdjusted;
   }
 
   public String getCurrency() {

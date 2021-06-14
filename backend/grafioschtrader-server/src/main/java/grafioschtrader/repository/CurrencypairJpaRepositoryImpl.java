@@ -83,7 +83,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     Optional<Currencypair> currencypairOpt = currencypairJpaRepository.findById(idSecuritycurrency);
     if (currencypairOpt.isPresent()) {
       fillEmptyCurrencypair(currencypairOpt.get());
-    } else  {
+    } else {
       throw new IllegalArgumentException("The currency pair with ID " + idSecuritycurrency + " was not found!");
     }
   }
@@ -336,11 +336,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Override
   public List<Currencypair> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
-    return watchlistSearchForAdding(null, securitycurrencySearch);
+    return searchBuilderWithExclusion(null, null, securitycurrencySearch);
   }
 
   @Override
-  public List<Currencypair> watchlistSearchForAdding(final Integer idWatchlist,
+  public List<Currencypair> searchBuilderWithExclusion(final Integer idWatchlist, final Integer idCorrelationSet,
       final SecuritycurrencySearch securitycurrencySearch) {
 
     return (securitycurrencySearch.getIdConnectorHistory() != null
@@ -348,7 +348,8 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
         || securitycurrencySearch.assetclassType == AssetclassType.CURRENCY_PAIR
         || (securitycurrencySearch.assetclassType == null && securitycurrencySearch.name != null)
             && securitycurrencySearch.isin == null)
-                ? currencypairJpaRepository.findAll(new CurrencySearchBuilder(idWatchlist, securitycurrencySearch))
+                ? currencypairJpaRepository
+                    .findAll(new CurrencySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch))
                 : Collections.emptyList();
   }
 

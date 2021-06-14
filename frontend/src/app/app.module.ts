@@ -66,7 +66,7 @@ import {ChartDataService} from './shared/chart/service/chart.data.service';
 import {RegistrationTokenVerifyComponent} from './shared/login/component/registration.token.verify.component';
 import {TableModule} from 'primeng/table';
 import {TimeSeriesQuotesService} from './historyquote/service/time.series.quotes.service';
-import {WatchlistCorrelationComponent} from './watchlist/component/watchlist.correlation.component';
+import {CorrelationComponent} from './watchlist/component/correlation.component';
 import {AllEditGuard} from './shared/service/all.edit.guard.service';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TradingPlatformPlanService} from './tradingplatform/service/trading.platform.plan.service';
@@ -88,7 +88,7 @@ import {SecurityEditComponent} from './securitycurrency/component/security-edit.
 import {CurrencypairEditComponent} from './securitycurrency/component/currencypair-edit.component';
 import {WatchlistAddInstrumentComponent} from './watchlist/component/watchlist-add-instrument.component';
 import {WatchlistEditComponent} from './watchlist/component/watchlist-edit.component';
-import {WatchlistAddInstrumentTableComponent} from './watchlist/component/watchlist-add-instrument-table.component';
+import {AddInstrumentTable} from './watchlist/component/add-instrument-table.component';
 import {TradingPlatformPlanEditComponent} from './tradingplatform/component/trading-platform-plan-edit.component';
 import {SecurityaccountEditComponent} from './securityaccount/component/securityaccount-edit.component';
 import {StockexchangeEditComponent} from './stockexchange/component/stockexchange-edit.component';
@@ -241,6 +241,12 @@ import {MultipleRequestToOneService} from './shared/service/multiple.request.to.
 import {TaskDataChangeService} from './shared/taskdatamonitor/service/task.data.change.service';
 import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
 import {TaskDataChangeEditComponent} from './shared/taskdatamonitor/component/task-data-change-edit.component';
+import {CorrelationSetService} from './watchlist/service/correlation.set.service';
+import {CorrelationTableComponent} from './watchlist/component/correlation-table.component';
+import {CorrelationSetEditComponent} from './watchlist/component/correlation-set-edit.component';
+import {WatchlistAddInstrumentTableComponent} from './watchlist/component/watchlist-add-instrument-table.component';
+import {CorrelationSetAddInstrumentTableComponent} from './watchlist/component/correlation-set-add-instrument-table.component';
+import {CorrelationAddInstrumentComponent} from './watchlist/component/correlation-add-instrument.component';
 
 
 
@@ -254,7 +260,7 @@ export function createTranslateLoader(http: HttpClient) {
 @NgModule({
   declarations: [
     AlgoAssetclassEditComponent, AlgoRuleStrategyCreateComponent, AlgoRuleStrategyCreateWizardComponent,
-    AlgoSecurityEditComponent, GlobalSettingsEditComponent,
+    AlgoSecurityEditComponent, GlobalSettingsEditComponent, CorrelationTableComponent,
     AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
@@ -267,10 +273,10 @@ export function createTranslateLoader(http: HttpClient) {
     PasswordEditComponent, PortfolioCashaccountSummaryComponent, PortfolioEditComponent, PortfolioTabMenuComponent,
     PortfolioTransactionTableComponent, ProposeChangeTabMenuComponent, RegisterComponent, RegistrationTokenVerifyComponent,
     ReplacePipe, RequestForYouTableComponent, SecurityaccountEditComponent, SecurityaccountEmptyComponent,
-    SecurityDerivedEditComponent, SecurityHistoryquotePeriodEditTableComponent,
+    SecurityDerivedEditComponent, SecurityHistoryquotePeriodEditTableComponent, CorrelationSetEditComponent,
     SecurityaccountImportExtendedInfoComponent, SecurityaccountImportExtendedInfoFilenameComponent,
-    SecurityaccountImportSetCashaccountComponent, SecuritycurrencySearchAndSetComponent,
-    SecuritycurrencySearchAndSetTableComponent, SecurityaccountImportTransactionComponent,
+    SecurityaccountImportSetCashaccountComponent, SecuritycurrencySearchAndSetComponent, CorrelationSetAddInstrumentTableComponent,
+    SecuritycurrencySearchAndSetTableComponent, SecurityaccountImportTransactionComponent, CorrelationAddInstrumentComponent,
     SecurityaccountImportTransactionEditHeadComponent, SecurityaccountImportTransactionTableComponent,
     SecurityaccountSummariesComponent, SecurityaccountSummaryComponent, SecurityaccountTabMenuComponent, SecurityEditComponent,
     SecuritysplitEditTableComponent, SplitLayoutComponent, StepComponent, StepsComponent, StockexchangeEditComponent,
@@ -289,7 +295,7 @@ export function createTranslateLoader(http: HttpClient) {
     TransactionSecurityEditComponent, TransactionSecurityTableComponent, TransformPdfToTxtDialogComponent,
     UploadFileDialogComponent, UserEditComponent, UserEntityChangeLimitEditComponent, UserEntityChangeLimitTableComponent,
     MailInboxTableComponent, UserTableComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
-    WatchlistCorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent,
+    CorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent,
     SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent,
     WatchlistPerformanceComponent, WatchlistTabMenuComponent, WatchlistDividendSplitFeedComponent,
     WatchlistSecuritysplitTableComponent, WatchlistDividendTableComponent, YourProposalTableComponent
@@ -376,7 +382,7 @@ export function createTranslateLoader(http: HttpClient) {
     HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
     ImportTransactionTemplateService, ImportTransactionPosService, ImportTransactionHeadService, LoginService,
     MainDialogService, MessageToastService, ParentChildRegisterService, MailInboxService, MailSendboxService,
-    MultipleRequestToOneService, TaskDataChangeService,
+    MultipleRequestToOneService, TaskDataChangeService, CorrelationSetService,
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,
     TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UserAdminService,

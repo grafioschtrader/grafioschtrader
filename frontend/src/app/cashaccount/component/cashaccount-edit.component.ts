@@ -61,7 +61,6 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-
   protected initialize(): void {
     this.portfolio = <Portfolio>this.callParam.parentObject;
     this.gps.getCurrencies().subscribe(data => {

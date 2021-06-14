@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import grafioschtrader.dto.SecuritysplitDeleteAndCreateMultiple;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 
 public interface SecuritysplitJpaRepositoryCustom {
@@ -18,4 +19,6 @@ public interface SecuritysplitJpaRepositoryCustom {
 
   List<Securitysplit> deleteAndCreateMultiple(
       SecuritysplitDeleteAndCreateMultiple securitysplitDeleteAndCreateMultiple);
+  
+  List<String> loadAllSplitDataFromConnector(Security security);
 }

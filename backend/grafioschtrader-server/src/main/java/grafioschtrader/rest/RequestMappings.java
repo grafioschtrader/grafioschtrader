@@ -35,6 +35,9 @@ public interface RequestMappings {
  
   public static final String CASHACCOUNT_MAP = API + Cashaccount.TABNAME;
   
+  public static final String CORRELATION_SET = "correlationset";
+  public static final String CORRELATION_SET_MAP = API + CORRELATION_SET;
+  
   public static final String CURRENCYPAIR_MAP = API + Currencypair.TABNAME;
 
   public static final String DIVIDEND_MAP = API + Dividend.TABNAME;
@@ -81,16 +84,14 @@ public interface RequestMappings {
   public static final String SECURITYACCOUNT_MAP = API + Securityaccount.TABNAME;
 
   public static final String STOCKEXCHANGE_MAP = API + Stockexchange.TABNAME;
-  
-    
+      
   public static final String SECURITY_MAP = API + Security.TABNAME;
   
   public static final String SECURITYSPLIT_MAP = API + Securitysplit.TABNAME;
 
   public static final String TASK_DATA_CHANGE = "taskdatachange";
   public static final String TASK_DATA_CHANGE_MAP = API + TASK_DATA_CHANGE;
-  
-  
+    
   
   public static final String TRADINGDAYSMINUS = "tradingdaysminus";
   public static final String TRADINGDAYSMINUS_MAP = API + TRADINGDAYSMINUS;

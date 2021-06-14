@@ -20,6 +20,7 @@ export class Securitycurrency extends Auditable {
   sLow?: number;
   sHigh?: number;
   historyquoteList?: Historyquote[];
+  name: string;
 
   sTimestamp?: number = null;
 

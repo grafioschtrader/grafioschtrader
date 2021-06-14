@@ -44,12 +44,15 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
   private static final long serialVersionUID = 1L;
 
   final Integer idWatchlist;
+  final Integer idCorrelationSet;
   final SecuritycurrencySearch securitycurrencySearch;
   final Integer idTenant;
+  
 
-  public SecuritySearchBuilder(final Integer idWatchlist, final SecuritycurrencySearch securitycurrencySearch,
-      final Integer idTenant) {
+  public SecuritySearchBuilder(final Integer idWatchlist, Integer idCorrelationSet,
+      final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
     this.idWatchlist = idWatchlist;
+    this.idCorrelationSet = idCorrelationSet;
     this.securitycurrencySearch = securitycurrencySearch;
     this.idTenant = idTenant;
   }
@@ -64,6 +67,12 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
           .add(builder.not(builder.exists(subQueryForAddingWatchlist(idWatchlist, securityRoot, query, builder))));
     }
 
+    if (idCorrelationSet != null) {
+      mainPredicates
+      .add(builder.not(builder.exists(subQueryForAddingCorrelationSet(idCorrelationSet, securityRoot, query, builder))));
+    }
+    
+    
     if (securitycurrencySearch.isin != null) {
       mainPredicates.add(builder.and(builder.equal(securityRoot.get(Security_.isin), securitycurrencySearch.isin)));
     } else {

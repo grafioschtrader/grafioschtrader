@@ -5,35 +5,32 @@ import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {AssetclassService} from '../../assetclass/service/assetclass.service';
-import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-table.component';
+import {AddInstrumentTable} from './add-instrument-table.component';
 import {SecuritycurrencySearchBase} from '../../securitycurrency/component/securitycurrency.search.base';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {HelpIds} from '../../shared/help/help.ids';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
+import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-table.component';
 
 /**
  * Search dialog for adding an existing security or currency pair to a certain watchlist.
- *
  */
 @Component({
   selector: 'watchlist-add-instrument',
   template: `
     <p-dialog header="{{'ADD_EXISTING_SECURITY' | translate}}" [(visible)]="visibleAddInstrumentDialog"
-              [responsive]="true"[style]="{width: '720px'}"
+              [responsive]="true" [style]="{width: '720px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #dynamicFormComponent="dynamicForm" (submit)="submit($event)">
       </dynamic-form>
       <br/>
-      <watchlist-add-instrument-table [tenantLimits]="tenantLimits">
-      </watchlist-add-instrument-table>
-    </p-dialog>`
-
+      <add-instrument-table [tenantLimits]="tenantLimits">
+      </add-instrument-table>
+    </p-dialog>
+  `
 })
 export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase {
   // From parent view
@@ -42,7 +39,7 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
   @Input() tenantLimits: TenantLimit[];
 
   // Access child components
-  @ViewChild(WatchlistAddInstrumentTableComponent) waidc: WatchlistAddInstrumentTableComponent;
+  @ViewChild(WatchlistAddInstrumentTableComponent) waitc: WatchlistAddInstrumentTableComponent;
 
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
@@ -62,7 +59,7 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
   }
 
   childClearList(): void {
-    this.waidc.clearList();
+    this.waitc.clearList();
   }
 
   helpLink() {
@@ -70,7 +67,7 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
-    this.waidc.loadData(this.idWatchlist, securitycurrencySearch);
+    this.waitc.loadData(this.idWatchlist, securitycurrencySearch);
   }
 
 }

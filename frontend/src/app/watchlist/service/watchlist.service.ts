@@ -17,9 +17,12 @@ import {AppHelper} from '../../shared/helper/app.helper';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {AddSearchToListService} from '../component/add-instrument-table.component';
+
 
 @Injectable()
-export class WatchlistService extends AuthServiceWithLogout<Watchlist> implements ServiceEntityUpdate<Watchlist> {
+export class WatchlistService extends AuthServiceWithLogout<Watchlist> implements ServiceEntityUpdate<Watchlist>,
+  AddSearchToListService<Watchlist> {
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
@@ -67,7 +70,6 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
       + `${idWatchlist}/dividendsplit`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(idWatchlist: number): Observable<SecuritycurrencyLists> {
     return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/tryuptodatehistoricaldata`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
@@ -77,7 +79,6 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
     return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/tryuptodateintradata`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   update(watchlist: Watchlist) {
     return super.updateEntity(watchlist, watchlist.idWatchlist, AppSettings.WATCHLIST_KEY);
@@ -99,10 +100,10 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   addSecurityToWatchlist(idWatchlist: number, security: Security): Observable<Watchlist> {
     const securitycurrencyLists = new SecuritycurrencyLists();
     securitycurrencyLists.securityList = [security];
-    return this.addSecuritycurrenciesToWatchlist(idWatchlist, securitycurrencyLists);
+    return this.addSecuritycurrenciesToList(idWatchlist, securitycurrencyLists);
   }
 
-  addSecuritycurrenciesToWatchlist(idWatchlist: number, securitycurrencyLists: SecuritycurrencyLists): Observable<Watchlist> {
+  addSecuritycurrenciesToList(idWatchlist: number, securitycurrencyLists: SecuritycurrencyLists): Observable<Watchlist> {
     return <Observable<Watchlist>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`
       + `/addSecuritycurrency`, securitycurrencyLists, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

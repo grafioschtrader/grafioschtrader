@@ -191,7 +191,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws IOException, ParseException, URISyntaxException {
-    
+
     return FeedConnectorHelper.checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(from, to,
         getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0), currencyPair.getName());
   }
@@ -332,6 +332,12 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   @Override
+  public boolean isDividendSplitAdjusted() {
+    return true;
+  }
+  
+  
+  @Override
   public String getDividendHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security.getUrlSplitExtend(),
         LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), DIVDEND_EVENT, null);
@@ -348,10 +354,10 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         }
         String[] values = inputLine.split(",");
         LocalDate exdDate = LocalDate.parse(values[0]);
-        Double amount = Double.parseDouble(values[1]);
-        if (amount > 0.0) {
-          dividends
-              .add(new Dividend(idSecurity, exdDate, null, amount / divider, currency, CreateType.CONNECTOR_CREATED));
+        Double amountAdjusted = Double.parseDouble(values[1]);
+        if (amountAdjusted > 0.0) {
+          dividends.add(new Dividend(idSecurity, exdDate, null, null, amountAdjusted / divider, currency,
+              CreateType.CONNECTOR_CREATED));
         }
       }
     });

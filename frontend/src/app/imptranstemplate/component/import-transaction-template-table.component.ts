@@ -68,7 +68,6 @@ import {AppSettings} from '../../shared/app.settings';
 export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {
   callParam: CallParam;
 
-
   // Parent selected entity
   selectImportTransactionPlatform: ImportTransactionPlatform;
 

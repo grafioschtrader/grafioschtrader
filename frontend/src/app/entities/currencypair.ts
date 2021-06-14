@@ -8,7 +8,7 @@ export class Currencypair extends Securitycurrency implements BaseID {
   public toCurrency: string;
   public isCryptocurrency?: boolean;
 
-  public toStringFN = (): string => this.fromCurrency + '/' + this.toCurrency;
+ // public toStringFN = (): string => this.fromCurrency + '/' + this.toCurrency;
 
   public constructor(fromCurrency?: string, toCurrency?: string) {
     super();

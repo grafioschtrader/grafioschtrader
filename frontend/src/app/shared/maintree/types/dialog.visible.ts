@@ -11,6 +11,7 @@ import {AlgoSecurity} from '../../../entities/algo.security';
 import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
 import {User} from '../../../entities/user';
 import {Globalparameters} from '../../../entities/globalparameters';
+import {CorrelationSet} from '../../../entities/correlation.set';
 
 export enum DialogVisible {
   Tenant,
@@ -20,11 +21,11 @@ export enum DialogVisible {
   AlgoRuleStrategy
 }
 
-
 export class CallParam {
   constructor(public parentObject: Tenant | Portfolio | Securityaccount | ImportTransactionPlatform | AlgoTop | AlgoAssetclass | User,
               public thisObject: Tenant | Portfolio | Cashaccount | Securityaccount | ImportTransactionHead | Globalparameters
-                | ImportTransactionPlatform | ImportTransactionTemplate | AlgoAssetclass | AlgoSecurity | AlgoTopCreate | User,
+                | CorrelationSet | ImportTransactionPlatform | ImportTransactionTemplate | AlgoAssetclass | AlgoSecurity
+                | AlgoTopCreate | User,
               public optParam?: { [key: string]: any }) {
   }
 }

@@ -46,8 +46,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
 
   List<Security> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch);
 
-  List<Security> watchlistSearchForAdding(Integer idWatchlist, SecuritycurrencySearch securitycurrencySearch,
-      Integer idTenant);
+  List<Security> searchBuilderWithExclusion(Integer idWatchlist, Integer idCorrelationSet,
+      SecuritycurrencySearch securitycurrencySearch, Integer idTenant);
 
   /**
    * Process open positions. Calculate gain/loss when this position would be

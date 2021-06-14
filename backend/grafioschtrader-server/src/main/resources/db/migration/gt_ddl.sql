@@ -235,7 +235,7 @@ CREATE TABLE `assetclass` (
   UNIQUE KEY `category_type` (`category_type`,`sub_category_nls`,`spec_invest_instrument`) USING BTREE,
   KEY `FK_Assetklass_Multilinguestring` (`sub_category_nls`),
   CONSTRAINT `FK_Assetclass_Multilinguestring` FOREIGN KEY (`sub_category_nls`) REFERENCES `multilinguestring` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=528 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=530 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,7 +251,44 @@ CREATE TABLE `cashaccount` (
   `connect_id_securityaccount` int(11) DEFAULT NULL,
   PRIMARY KEY (`id_securitycash_account`),
   CONSTRAINT `FK_CashAccount_SecurityCashAccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4581 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5302 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `correlation_instrument`
+--
+
+DROP TABLE IF EXISTS `correlation_instrument`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `correlation_instrument` (
+  `id_correlation_set` int(11) NOT NULL,
+  `id_securitycurrency` int(11) NOT NULL,
+  PRIMARY KEY (`id_correlation_set`,`id_securitycurrency`),
+  KEY `FK_CorrInstrument_SecurityCurrency` (`id_securitycurrency`),
+  CONSTRAINT `FK_CorrInstrument_CorrSet` FOREIGN KEY (`id_correlation_set`) REFERENCES `correlation_set` (`id_correlation_set`),
+  CONSTRAINT `FK_CorrInstrument_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `correlation_set`
+--
+
+DROP TABLE IF EXISTS `correlation_set`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `correlation_set` (
+  `id_correlation_set` int(11) NOT NULL AUTO_INCREMENT,
+  `id_tenant` int(11) NOT NULL,
+  `name` varchar(25) NOT NULL,
+  `note` varchar(1000) DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `sampling_period` tinyint(1) DEFAULT 0,
+  `rolling` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`id_correlation_set`),
+  UNIQUE KEY `Unique_idTenant_name` (`id_tenant`,`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -290,7 +327,7 @@ CREATE TABLE `dividend` (
   PRIMARY KEY (`id_dividend`),
   KEY `FK_Dividend_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Dividend_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=4863 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4866 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -356,7 +393,7 @@ CREATE TABLE `historyquote` (
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`,`create_type`) USING BTREE,
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6036639 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6059052 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -526,7 +563,7 @@ CREATE TABLE `imp_trans_platform` (
   `last_modified_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_trans_imp_platform`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -620,7 +657,7 @@ CREATE TABLE `imp_trans_template` (
   PRIMARY KEY (`id_trans_imp_template`),
   UNIQUE KEY `UNIQUE_imp_template` (`id_trans_imp_platform`,`template_format_type`,`template_category`,`template_language`,`valid_since`),
   CONSTRAINT `FK_TradingImpTemplate_TradingImpPlatform` FOREIGN KEY (`id_trans_imp_platform`) REFERENCES `imp_trans_platform` (`id_trans_imp_platform`)
-) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=85 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -688,7 +725,7 @@ DROP TABLE IF EXISTS `multilinguestring`;
 CREATE TABLE `multilinguestring` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=685 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=687 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -723,7 +760,7 @@ CREATE TABLE `portfolio` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Portfolio_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Portfolio_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=1151 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1331 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -956,7 +993,7 @@ CREATE TABLE `securitycashaccount` (
   UNIQUE KEY `idPortfolio_dType_name` (`id_portfolio`,`dtype`,`name`) USING BTREE,
   KEY `FK_SecurityAccount_Portfolio` (`id_portfolio`),
   CONSTRAINT `FK_SecurityAccount_Portfolio` FOREIGN KEY (`id_portfolio`) REFERENCES `portfolio` (`id_portfolio`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4581 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5302 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -993,7 +1030,7 @@ CREATE TABLE `securitycurrency` (
   `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=3964 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3967 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1014,7 +1051,7 @@ CREATE TABLE `securitysplit` (
   PRIMARY KEY (`id_securitysplit`),
   KEY `FK_Securitysplit_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Securitysplit_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=217 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=220 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1042,7 +1079,7 @@ CREATE TABLE `stockexchange` (
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_stockexchange`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=247 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=248 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1059,7 +1096,7 @@ CREATE TABLE `task_data_change` (
   `entity` varchar(40) DEFAULT NULL,
   `id_entity` int(11) DEFAULT NULL,
   `earliest_start_time` timestamp NOT NULL DEFAULT current_timestamp(),
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `exec_start_time` timestamp NULL DEFAULT NULL,
   `exec_end_time` timestamp NULL DEFAULT NULL,
   `old_value_varchar` varchar(30) DEFAULT NULL,
@@ -1068,7 +1105,7 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=1437 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1553 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1188,7 +1225,7 @@ CREATE TABLE `transaction` (
   CONSTRAINT `c_currency_ex_rate` CHECK (`currency_ex_rate` is not null and `currency_ex_rate` > 0 and `id_currency_pair` is not null or `currency_ex_rate` is null and `id_currency_pair` is null),
   CONSTRAINT `s_units` CHECK (`units` is not null and `units` <> 0 and `id_securitycurrency` is not null or `id_securitycurrency` is null and `units` is null),
   CONSTRAINT `s_quotation` CHECK (`quotation` is not null and (`quotation` > 0 or `quotation` <> 0 and `transaction_type` = 7) and `id_securitycurrency` is not null or `quotation` is null and `id_securitycurrency` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=106449 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=117069 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1317,7 +1354,7 @@ CREATE TABLE `watchlist` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Watchlist_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Watchlist_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=2875 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3357 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1594,4 +1631,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-05-30 18:23:13
+-- Dump completed on 2021-06-10 23:50:06

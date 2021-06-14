@@ -95,11 +95,9 @@
             <watchlist-securitysplit-table [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency">
             </watchlist-securitysplit-table>
           </div>
-
         </td>
       </tr>
     </ng-template>
-
   </p-table>
 
   <p-contextMenu *ngIf="contextMenuItems && isActivated()" #contextMenu [target]="cmDiv" [model]="contextMenuItems"
@@ -107,13 +105,11 @@
 
 </div>
 
-
 <transaction-security-edit *ngIf="visibleSecurityTransactionDialog"
                            [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
                            [transactionCallParam]="transactionCallParam"
                            (closeDialog)="handleCloseTransactionDialog($event)">
 </transaction-security-edit>
-
 
 <watchlist-add-instrument *ngIf="visibleAddInstrumentDialog" [idWatchlist]="idWatchlist"
                           [tenantLimits]="tenantLimits"
@@ -121,13 +117,11 @@
                           (closeDialog)="handleCloseAddInstrumentDialog($event)">
 </watchlist-add-instrument>
 
-
 <currencypair-edit *ngIf="visibleEditCurrencypairDialog"
                    [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog"
                    [securityCurrencypairCallParam]="securityCurrencypairCallParam"
                    (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)">
 </currencypair-edit>
-
 
 <security-edit *ngIf="visibleEditSecurityDialog"
                [visibleEditSecurityDialog]="visibleEditSecurityDialog"
@@ -140,5 +134,4 @@
                        [securityCallParam]="securityCallParam"
                        (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)">
 </security-derived-edit>
-
 

@@ -181,6 +181,9 @@ public interface IFeedConnector {
    */
   void updateCurrencyPairLastPrice(Currencypair currencyPair) throws Exception;
 
+  @JsonIgnore
+  boolean isDividendSplitAdjusted();
+  
   /*
    * Return the url as string for access the historical dividend data. It may also
    * be used in the frontend to check the settings.
@@ -188,11 +191,11 @@ public interface IFeedConnector {
   String getDividendHistoricalDownloadLink(Security security);
 
   /**
-   * Get dividends for a security from a specified date until now
+   * Get dividends for a security from a specified date until now. The list must be sorted in ascending order by date.
    * 
    * @param security
    * @param fromDate
-   * @return
+   * @return Dividends sorted in ascending order by date.
    * @throws Exception
    */
   List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception;

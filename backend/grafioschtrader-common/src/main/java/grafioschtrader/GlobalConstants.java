@@ -59,6 +59,17 @@ public class GlobalConstants {
 
  
   /**
+   * Dividend frequency + days for the next dividend check 
+   */
+  public static final int DIVIDEND_FREQUENCY_PLUS_DAY = 10;
+  
+  /**
+   * Earliest Day for the next dividend check, but the combination of frequency and
+   * this value control the date of next possible check. 
+   */
+  public static final int DIVIDEND_FROM_NOW_FOR_NEXT_CHECK_IN_DAYS = 8; 
+  
+  /**
    * Maximum of weeks in the period performance report
    */
   public static final int PERFORMANCE_MAX_WEEK_LIMIT = 53;

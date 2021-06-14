@@ -11,6 +11,7 @@ export class Dividend extends DividendSplit {
   @Expose()  exDate = null;
   @Expose()  payDate = null;
   @Expose()  amount: number = null;
+  @Expose()  amountAdjusted: number = null;
   @Expose()  currency: string = null;
 }
 

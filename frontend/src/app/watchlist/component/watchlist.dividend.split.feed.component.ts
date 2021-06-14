@@ -71,15 +71,17 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
       activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
       filterService, translateService, gps, usersettingsService, WatchlistTable.MULTIPLE);
     this.addBaseColumns();
-      this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
+    this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
       true, {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorDividend', true,
       true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
     this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retryDividendLoad', true,
       true);
+    this.addColumnFeqH(DataType.DateNumeric, 'securitycurrency.dividendEarliestNextCheck', true, true);
     this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorSplit', true,
       true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
     this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retrySplitLoad', true, true);
+
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
   }

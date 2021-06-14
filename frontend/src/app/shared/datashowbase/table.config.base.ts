@@ -23,7 +23,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
 
   public hasFilter = false;
 
-
   customMatchModeOptions: SelectItem[] = [];
   customSearchNames: string[];
 

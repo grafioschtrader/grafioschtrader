@@ -34,7 +34,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
 
   childEntityList: S[];
   /**
-   * Visibilty of edit dialog
+   * Visibility of edit dialog
    */
   visibleEditDialog: boolean;
   // Data to shown
@@ -46,7 +46,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   /**
    * Avoid looking for changes on the main select box
    */
-  protected ingnoreChangeOnMonitorField: boolean;
+  protected ignoreChangeOnMonitorField: boolean;
   /**
    * The selected entity
    */
@@ -66,7 +66,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
    * @param activePanelService Service for active panel
    * @param translateService Service for translation
    */
-  constructor(private gps: GlobalparameterService,
+  constructor(protected gps: GlobalparameterService,
               private helpId: HelpIds,
               private mainFieldId: string,
               private entityName: string,
@@ -88,7 +88,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
 
   valueChangedMainField(): void {
     this.changeOnMainFieldSub = this.configObject[this.mainFieldId].formControl.valueChanges.subscribe((key: number) => {
-      if (!this.ingnoreChangeOnMonitorField) {
+      if (!this.ignoreChangeOnMonitorField) {
         this.selectedEntity = this.entityList.find(entity => entity[this.mainFieldId] === +key);
         this.setFieldValues();
       }
@@ -114,7 +114,6 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
     return menuItems;
   }
 
-
   handleEditEntityOpenDialog(entity: T): void {
     this.prepareCallParm(entity);
     this.visibleEditDialog = true;
@@ -131,8 +130,8 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   handleDeleteEntity(entity: T) {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + this.entityName, () => {
-        entity = this.beforeDelete(entity);
-        this.deleteService.deleteEntity(entity.getId()).subscribe(response => {
+    //    entity = this.beforeDelete(entity);
+        this.deleteService.deleteEntity(entity[this.mainFieldId]).subscribe(response => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
             'MSG_DELETE_RECORD', {i18nRecord: this.entityName});
           this.selectedEntity = null;
@@ -173,23 +172,25 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
    */
   protected abstract prepareCallParm(entity: T): void;
 
+  /*
   protected beforeDelete(entity: T): T {
     return entity;
   }
+*/
 
   protected setFieldValues() {
-    this.ingnoreChangeOnMonitorField = true;
+    this.ignoreChangeOnMonitorField = true;
     if (this.selectedEntity) {
       this.form.transferBusinessObjectToForm(this.selectedEntity);
     } else {
       this.form.setDefaultValues();
     }
     this.setChildData(this.selectedEntity);
-    this.ingnoreChangeOnMonitorField = false;
+    this.ignoreChangeOnMonitorField = false;
   }
 
   /**
-   * Can be overwriten to have a show menu
+   * Can be overwritten to have a show menu
    */
   protected prepareShowMenu(): MenuItem[] {
     return null;

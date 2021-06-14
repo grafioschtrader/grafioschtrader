@@ -33,6 +33,7 @@ export class Security extends Securitycurrency implements BaseID {
   idConnectorSplit?: string = null;
   urlSplitExtend?: string = null;
   retrySplitLoad?: number = null;
+  dividendEarliestNextCheck: number;
 
   calculatedPrice: boolean;
   securityDerivedLinks: SecurityDerivedLink[];

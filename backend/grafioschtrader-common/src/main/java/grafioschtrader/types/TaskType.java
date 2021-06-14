@@ -36,6 +36,7 @@ public enum TaskType {
   // Creates the calendar for stock exchanged by a mayor index
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX((byte) 12),
   
+  PERIODICALLY_DIVIDEND_UPDATE_CHECK((byte) 13),
   
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////

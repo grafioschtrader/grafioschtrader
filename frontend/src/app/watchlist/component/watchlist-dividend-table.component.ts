@@ -34,6 +34,7 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumnFeqH(DataType.DateNumeric, 'payDate', true, false);
     this.addColumnFeqH(DataType.NumericRaw, 'amount', true, false);
+    this.addColumnFeqH(DataType.NumericRaw, 'amountAdjusted', true, false);
     this.addColumnFeqH(DataType.String, 'currency', true, false);
     this.prepareTableAndTranslate();
   }

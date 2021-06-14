@@ -11,9 +11,9 @@ export class CurrencypairWatchlist extends Currencypair {
     this.assetClass = new Assetclass();
     this.assetClass.categoryType = AssetclassType[AssetclassType.CURRENCY_PAIR];
   }
-
+/*
   public get name(): string {
     return this.toStringFN();
   }
-
+*/
 }

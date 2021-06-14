@@ -294,15 +294,15 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public List<Security> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return watchlistSearchForAdding(null, securitycurrencySearch, user.getIdTenant());
+    return searchBuilderWithExclusion(null, null, securitycurrencySearch, user.getIdTenant());
   }
 
   @Override
-  public List<Security> watchlistSearchForAdding(final Integer idWatchlist,
-      final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
+  public List<Security> searchBuilderWithExclusion(final Integer idWatchlist,
+      Integer idCorrelationSet, final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
 
     return (securitycurrencySearch.assetclassType != AssetclassType.CURRENCY_PAIR)
-        ? this.securityJpaRepository.findAll(new SecuritySearchBuilder(idWatchlist, securitycurrencySearch, idTenant))
+        ? this.securityJpaRepository.findAll(new SecuritySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch, idTenant))
         : Collections.emptyList();
   }
 
