@@ -20,7 +20,10 @@ import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
 
-
+/**
+ * Report for correlation report
+ *
+ */
 public class CorrelationReport {
 
   private final JdbcTemplate jdbcTemplate;
