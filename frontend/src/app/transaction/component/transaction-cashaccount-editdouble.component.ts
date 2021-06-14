@@ -309,7 +309,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         this.configObject.currencyExRate.formControl.setValue(1);
         this.diableCurrencyExRateState();
       } else {
-        this.configObject.currencyExRate.labelSuffix = this.currencypair.toStringFN();
+        // this.configObject.currencyExRate.labelSuffix = this.currencypair.toStringFN();
+        this.configObject.currencyExRate.labelSuffix = this.currencypair.name;
         this.configObject.currencyExRate.formControl.enable();
         this.getCurrencypair();
       }

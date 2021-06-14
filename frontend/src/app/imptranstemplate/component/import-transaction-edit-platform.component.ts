@@ -48,7 +48,6 @@ export class ImportTransactionEditPlatformComponent extends SimpleEntityEditBase
       messageToastService, importTransactionPlatformService);
   }
 
-
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));

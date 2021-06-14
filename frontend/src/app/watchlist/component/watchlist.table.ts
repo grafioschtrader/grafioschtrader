@@ -162,7 +162,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     // this.changeDetectionStrategy.markForCheck();
   }
 
-  removeSecurity(securityCurrency: Security | Currencypair) {
+  removeInstrument(securityCurrency: Security | Currencypair) {
     this.watchlistService.removeSecuritycurrenciesFromWatchlist(this.idWatchlist, securityCurrency).subscribe(watchlist => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST',
         {count: 1});
@@ -203,7 +203,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       this.modifyOrCreateAndAddSecurity(security);
     }
   }
-
 
   modifyOrCreateAndAddSecurity(security: Security): void {
     this.securityCurrencypairCallParam = security;
@@ -437,7 +436,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       menuItems.push(
         {
           label: 'REMOVE_INSTRUMENT',
-          command: (e) => this.removeSecurity(securitycurrencyPosition.securitycurrency)
+          command: (e) => this.removeInstrument(securitycurrencyPosition.securitycurrency)
         }
       );
       menuItems.push(

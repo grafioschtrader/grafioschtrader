@@ -26,7 +26,8 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
         <ng-template #withFieldset>
           <fieldset [ngClass]="fieldsetConfig.fieldsetName? 'out-border': ''"
                     *ngFor="let fieldsetConfig of fieldsetConfigs;">
-            <legend [ngClass]="fieldsetConfig.fieldsetName? 'out-border-legend': ''">{{fieldsetConfig.fieldsetName | translate}}
+            <legend
+              [ngClass]="fieldsetConfig.fieldsetName? 'out-border-legend': ''">{{fieldsetConfig.fieldsetName | translate}}
             </legend>
             <ng-container *ngFor="let field of fieldsetConfig.fieldConfig;">
               <dynamic-form-layout
@@ -215,6 +216,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
         }
         value = valueKeyHtmlOption.value;
       }
+
       config.formControl.setValue(value);
 
     });

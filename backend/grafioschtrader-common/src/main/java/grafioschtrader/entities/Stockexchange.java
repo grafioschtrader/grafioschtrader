@@ -29,12 +29,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Stockexchange
  *
  * @author Hugo Graf
  */
+@Schema(description = "Contains a stock exchange")
 @Entity
 @Table(name = Stockexchange.TABNAME)
 @Cacheable
@@ -85,6 +87,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private LocalTime timeClose;
 
+  @Schema(description = "Symbol of the stock exchange")
   @Basic(optional = false)
   @NotNull
   @Column(name = "symbol")

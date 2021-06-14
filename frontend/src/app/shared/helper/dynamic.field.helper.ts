@@ -125,7 +125,6 @@ export class DynamicFieldHelper {
       validationSpecials, fieldOptions);
   }
 
-
   public static createFieldInputStringVS(fieldName: string, labelKey: string, maxLength: number, required: boolean,
                                          validationSpecials: VALIDATION_SPECIAL[], fieldOptions?: FieldOptions): FieldConfig {
     return DynamicFieldHelper.createFieldDAInputStringVS(DataType.String, fieldName, labelKey, maxLength, required,
@@ -139,14 +138,12 @@ export class DynamicFieldHelper {
       AppHelper.convertPropertyForLabelOrHeaderKey(fieldName), maxLength, required, fieldOptions), validationSpecials);
   }
 
-
   public static createFieldDAInputStringVS(dataType: DataType, fieldName: string, labelKey: string, maxLength: number,
                                            required: boolean, validationSpecials: VALIDATION_SPECIAL[],
                                            fieldOptions?: FieldOptions): FieldConfig {
     return DynamicFieldHelper.addValidations(DynamicFieldHelper.createFieldDAInputString(dataType, fieldName,
       labelKey, maxLength, required, fieldOptions), validationSpecials);
   }
-
 
   private static addValidations(fieldConfig: FieldConfig, validationSpecials: VALIDATION_SPECIAL[]): FieldConfig {
     for (const validationSpecial of validationSpecials) {
@@ -244,7 +241,6 @@ export class DynamicFieldHelper {
 
     return fieldConfig;
   }
-
 
   public static createFieldSelectStringHeqF(fieldName: string, required: boolean,
                                             fieldOptions?: FieldOptions): FieldConfig {

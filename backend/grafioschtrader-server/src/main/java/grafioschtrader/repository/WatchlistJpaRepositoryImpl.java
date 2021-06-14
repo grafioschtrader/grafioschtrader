@@ -26,22 +26,22 @@ import grafioschtrader.search.SecuritycurrencySearch;
 public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> implements WatchlistJapRepositoryCustom {
 
   @Autowired
-  WatchlistJpaRepository watchlistJpaRepository;
+  private WatchlistJpaRepository watchlistJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Override
   @Transactional
@@ -90,8 +90,8 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     }
 
     return new SecuritycurrencyLists(
-        securityJpaRepository.watchlistSearchForAdding(idWatchlist, securitycurrencySearch, user.getIdTenant()),
-        currencypairJpaRepository.watchlistSearchForAdding(idWatchlist, securitycurrencySearch));
+        securityJpaRepository.searchBuilderWithExclusion(idWatchlist, null, securitycurrencySearch, user.getIdTenant()),
+        currencypairJpaRepository.searchBuilderWithExclusion(idWatchlist, null, securitycurrencySearch));
   }
 
   @Override
@@ -127,16 +127,16 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   @Override
   public Watchlist removeSecurityFromWatchlist(final Integer idWatchlist, final Integer idSecuritycurrency) {
     final Security security = securityJpaRepository.findById(idSecuritycurrency).orElse(null);
-    return removeSecuritycurrencyFormWatchlist(idWatchlist, security);
+    return removeInstrumentFromWatchlist(idWatchlist, security);
   }
 
   @Override
   public Watchlist removeCurrencypairFromWatchlist(final Integer idWatchlist, final Integer idSecuritycurrency) {
     final Currencypair currencypair = currencypairJpaRepository.findById(idSecuritycurrency).orElse(null);
-    return removeSecuritycurrencyFormWatchlist(idWatchlist, currencypair);
+    return removeInstrumentFromWatchlist(idWatchlist, currencypair);
   }
 
-  private Watchlist removeSecuritycurrencyFormWatchlist(final Integer idWatchlist,
+  private Watchlist removeInstrumentFromWatchlist(final Integer idWatchlist,
       final Securitycurrency<?> securitycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
@@ -170,7 +170,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
       final Integer idWatchlist, final Integer idSecuritycurrency,
       final JpaRepository<T, Integer> securityCurrencypairJpaRepository) {
     final T securitycurrencypair = securityCurrencypairJpaRepository.findById(idSecuritycurrency).orElse(null);
-    final Watchlist watchlist = removeSecuritycurrencyFormWatchlist(idWatchlist, securitycurrencypair);
+    final Watchlist watchlist = removeInstrumentFromWatchlist(idWatchlist, securitycurrencypair);
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
     if (UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, securitycurrencypair)) {

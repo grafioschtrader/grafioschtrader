@@ -32,7 +32,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.MaxDefaultDBValue;
 import grafioschtrader.dto.MaxDefaultDBValueWithKey;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Contains a global setting configuration")
 @Entity
 @Table(name = Globalparameters.TABNAME)
 @XmlRootElement
@@ -74,7 +76,9 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_MAX_SECURITIES_CURRENCIES = GT_PREFIX + MAX + "securities.currencies";
   public static final String GLOB_KEY_MAX_WATCHTLIST = GT_PREFIX + MAX + "watchlist";
   public static final String GLOB_KEY_MAX_WATCHLIST_LENGTH = GT_PREFIX + MAX + "watchlist.length";
-
+  public static final String GLOB_KEY_MAX_CORRELATION_SET = GT_PREFIX + MAX + "correlation.set";
+  public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GT_PREFIX + MAX + "correlation.instruments";
+    
   // User day entity limits
   public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
 
@@ -108,6 +112,8 @@ public class Globalparameters implements Serializable {
     defaultLimitMap.put(GLOB_KEY_MAX_SECURITIES_CURRENCIES, new MaxDefaultDBValue(2000));
     defaultLimitMap.put(GLOB_KEY_MAX_WATCHTLIST, new MaxDefaultDBValue(30));
     defaultLimitMap.put(GLOB_KEY_MAX_WATCHLIST_LENGTH, new MaxDefaultDBValue(200));
+    defaultLimitMap.put(GLOB_KEY_MAX_CORRELATION_SET, new MaxDefaultDBValue(10));
+    defaultLimitMap.put(GLOB_KEY_MAX_CORRELATION_INSTRUMENTS, new MaxDefaultDBValue(20));
 
     // Set tenant regulations violations, with daily limits on shared entries
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_ASSETCLASS, new MaxDefaultDBValue(10));
@@ -162,6 +168,7 @@ public class Globalparameters implements Serializable {
   @Column(name = "property_blob")
   private byte[] propertyBlob;
 
+  @Schema(description = "This property will be changed by the system")
   @Column(name = "changed_by_system")
   private boolean changedBySystem = false;
 

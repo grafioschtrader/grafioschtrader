@@ -127,7 +127,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
           SelectOptionsHelper.createValueKeyHtmlSelectOptions('idTransactionImportPlatform',
             'name', importTransactionPlatforms,
             true);
-        this.setFieldValues();
+        setTimeout(() => this.setFieldValues());
       }
     );
   }
@@ -197,12 +197,12 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
   ngOnDestroy(): void {
     super.destroy();
   }
-
+/*
   protected beforeDelete(entity: ImportTransactionPlatform): ImportTransactionPlatform {
     const importTransactionPlatform = new ImportTransactionPlatform();
     return Object.assign(importTransactionPlatform, entity);
   }
-
+*/
   protected prepareCallParm(entity: ImportTransactionPlatform): void {
     this.callParam = new CallParam(null, entity);
   }

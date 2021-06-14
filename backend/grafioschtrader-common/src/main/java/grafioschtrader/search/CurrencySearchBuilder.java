@@ -17,11 +17,13 @@ public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
   private static final long serialVersionUID = 1L;
   final Integer idWatchlist;
+  final Integer idCorrelationSet;
   final SecuritycurrencySearch securitycurrencySearch;
 
-  public CurrencySearchBuilder(Integer idWatchlist, SecuritycurrencySearch securitycurrencySearch) {
+  public CurrencySearchBuilder(Integer idWatchlist, Integer idCorrelationSet, SecuritycurrencySearch securitycurrencySearch) {
     super();
     this.idWatchlist = idWatchlist;
+    this.idCorrelationSet = idCorrelationSet;
     this.securitycurrencySearch = securitycurrencySearch;
   }
 
@@ -33,6 +35,11 @@ public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder impleme
     if (idWatchlist != null) {
       mainPredicates
           .add(builder.not(builder.exists(subQueryForAddingWatchlist(idWatchlist, currencypair, query, builder))));
+    }
+    
+    if (idCorrelationSet != null) {
+      mainPredicates
+          .add(builder.not(builder.exists(subQueryForAddingCorrelationSet(idCorrelationSet, currencypair, query, builder))));
     }
 
     query.distinct(true);

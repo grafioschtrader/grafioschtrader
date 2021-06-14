@@ -21,7 +21,6 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
     return this.getValueColumnTotal(columnConfig, arrIndex, data, mapKey).startsWith('-');
   }
 
-
   getValueColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any) {
     let value = '';
     if (columnConfig.columnGroupConfigs && arrIndex < columnConfig.columnGroupConfigs.length) {

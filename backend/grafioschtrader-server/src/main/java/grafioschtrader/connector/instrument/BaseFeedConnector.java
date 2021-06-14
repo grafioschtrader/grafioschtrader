@@ -348,6 +348,11 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   @Override
+  public boolean isDividendSplitAdjusted() {
+    return false;
+  }
+  
+  @Override
   public String getDividendHistoricalDownloadLink(Security security) {
     throw new UnsupportedOperationException("Not supported yet.");
   }

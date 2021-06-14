@@ -77,7 +77,7 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
       if (tbe.getErrorMsgOfSystem() != null) {
         StringBuilder failure = new StringBuilder("");
         tbe.getErrorMsgOfSystem().forEach(m -> failure.append(m.toString()+ "\n"));
-        taskDataChange.setFailedStackTrace(failure.toString());
+        taskDataChange.setFailedStackTrace(failure.toString().substring(0, TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE));
       }
       taskDataChange.setFailedMessageCode(tbe.getErrorMessagesKey());
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);

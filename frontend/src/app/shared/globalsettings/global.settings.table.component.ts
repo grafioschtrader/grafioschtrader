@@ -68,6 +68,9 @@ import {TranslateHelper} from '../helper/translate.helper';
   `
 })
 export class GlobalSettingsTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
+
+  private readonly PROPERTY_NAME = 'propertyName';
+
   contextMenuItems: MenuItem[] = [];
   editMenu: MenuItem;
   globalparametersList: Globalparameters[];
@@ -83,14 +86,14 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
               usersettingsService: UserSettingsService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
 
-    this.addColumn(DataType.String, 'propertyName', 'PROPERTY_NAME_DESC', true, false,
+    this.addColumn(DataType.String, this.PROPERTY_NAME, 'PROPERTY_NAME_DESC', true, false,
       {translateValues: TranslateValue.NORMAL, width: 450});
     this.addColumnFeqH(DataType.String, 'propertyValue', true, false,
       {fieldValueFN: this.getProperty.bind(this)});
     this.addColumnFeqH(DataType.Boolean, 'changedBySystem', true, false,
       {templateName: 'check'});
-    this.addColumnFeqH(DataType.String, 'propertyName', true, false,
-      {width: 200});
+    this.addColumn(DataType.String, this.PROPERTY_NAME + '1', this.PROPERTY_NAME, true, false,
+      {width: 200,  fieldValueFN: this.getPropertyName1.bind(this)});
     this.editMenu = { label: 'EDIT_RECORD|GLOBAL_SETTINGS' + AppSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleEditEntity(this.selectedEntity),
       disabled: !AuditHelper.hasAdminRole(this.gps)};
@@ -109,6 +112,13 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     } else {
       return entity.propertyString;
     }
+  }
+
+  /**
+   * Is needed for the difference to the translated property name, otherwise sorting is not working
+   */
+  getPropertyName1(dataobject: any, field: ColumnConfig, valueField: any): any {
+    return dataobject[this.PROPERTY_NAME];
   }
 
   private readData(): void {

@@ -29,6 +29,7 @@ export enum HelpIds {
 
   // Watchlist
   HELP_WATCHLIST = 'watchlistinstrument',
+  HELP_WATCHLIST_CORRELATION = 'watchlistinstrument/correlation',
   HELP_WATCHLIST_WATCHLIST = 'watchlistinstrument/watchlist',
   HELP_WATCHLIST_PERFORMANCE = 'watchlistinstrument/watchlist/performance',
   HELP_WATCHLIST_PRICE_FEED = 'watchlistinstrument/watchlist/pricefeed',
@@ -52,7 +53,7 @@ export enum HelpIds {
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE = 'basedata/imptranstemplate',
 
   // Admin data
-  HELP_MESSAGE_SYSTEM = 'masseage',
+  HELP_MESSAGE_SYSTEM = 'admindata',
   HELP_TRADING_CALENDAR = 'admindata/tradingcalendar',
   HELP_HISTORYQUOTE_QUALITY = 'admindata/historyquotequality/',
   HELP_GLOBAL_SETTINGS = 'admindata/tradingcalendar',

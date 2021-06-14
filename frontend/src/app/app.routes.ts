@@ -16,7 +16,7 @@ import {WatchlistPerformanceComponent} from './watchlist/component/watchlist.per
 import {TimeSeriesChartComponent} from './historyquote/component/time.series.chart.component';
 import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.general.purpose.component';
 import {RegistrationTokenVerifyComponent} from './shared/login/component/registration.token.verify.component';
-import {WatchlistCorrelationComponent} from './watchlist/component/watchlist.correlation.component';
+import {CorrelationComponent} from './watchlist/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
 import {TenantTransactionCostComponent} from './tenant/component/tenant.transaction.cost.component';
@@ -176,7 +176,7 @@ const APP_ROUTES: Routes = [
       },
       {path: AppSettings.STRATEGY_OVERVIEW_KEY, component: StrategyOverviewComponent, canActivate: [AuthGuard]},
       {path: AppSettings.ALGO_TOP_KEY + '/:id', component: AlgoTopDataViewComponent, canActivate: [AuthGuard]},
-      {path: AppSettings.WATCHLIST_KEY + '/:id', component: WatchlistCorrelationComponent, canActivate: [AuthGuard]},
+      {path: AppSettings.WATCHLIST_KEY + '/:id', component: CorrelationComponent, canActivate: [AuthGuard]},
       {
         path: AppSettings.WATCHLIST_TAB_MENU_KEY + '/:id',
         component: WatchlistTabMenuComponent,

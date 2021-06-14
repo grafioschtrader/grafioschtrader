@@ -160,5 +160,4 @@ export abstract class ShowRecordConfigBase {
     });
   }
 
-
 }

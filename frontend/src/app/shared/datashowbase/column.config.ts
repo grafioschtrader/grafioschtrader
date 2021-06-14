@@ -54,6 +54,10 @@ export class ColumnConfig {
    */
   export?: boolean;
 
+  /**
+   * Any value
+   */
+  userValue: any;
 
   constructor(dataType: DataType, field: string, headerKey: string, visible: boolean,
               changeVisibility: boolean, optionalsParams?: OptionalParams) {
@@ -78,6 +82,7 @@ export class ColumnConfig {
       this.filterValues = optionalsParams.filterValues;
       this.headerTranslated = optionalsParams.headerTranslated;
       this.export = optionalsParams.export;
+      this.userValue = optionalsParams.userValue;
 
       this.fieldsetName = optionalsParams.fieldsetName;
     }
@@ -102,6 +107,7 @@ export interface OptionalParams {
   fieldsetName?: string;
   headerTranslated?: string;
   export?: boolean;
+  userValue?: any;
 }
 
 /**

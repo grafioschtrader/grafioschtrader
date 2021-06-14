@@ -79,7 +79,7 @@ export class SecurityaccountImportTransactionComponent
   importTransactionTemplates: ImportTransactionTemplate[];
   successFailedDirectImportTransaction: SuccessFailedDirectImportTransaction;
 
-  seccurityAccount: Securityaccount;
+  securityAccount: Securityaccount;
 
   private routeSubscribe: Subscription;
 
@@ -110,10 +110,10 @@ export class SecurityaccountImportTransactionComponent
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.seccurityAccount = JSON.parse(params[AppSettings.SECURITYACCOUNT.toLowerCase()]);
-      this.callParam = new CallParam(this.seccurityAccount, null);
+      this.securityAccount = JSON.parse(params[AppSettings.SECURITYACCOUNT.toLowerCase()]);
+      this.callParam = new CallParam(this.securityAccount, null);
       this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(
-        this.seccurityAccount.tradingPlatformPlan.idTradingPlatformPlan, true).subscribe(
+        this.securityAccount.tradingPlatformPlan.idTradingPlatformPlan, true).subscribe(
         (importTransactionTemplates: ImportTransactionTemplate[]) => {
           this.importTransactionTemplates = importTransactionTemplates;
           if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
@@ -129,7 +129,7 @@ export class SecurityaccountImportTransactionComponent
   }
 
   readData(): void {
-    this.importTransactionHeadService.getImportTransactionHeadBySecurityaccount(this.seccurityAccount.idSecuritycashAccount).subscribe(
+    this.importTransactionHeadService.getImportTransactionHeadBySecurityaccount(this.securityAccount.idSecuritycashAccount).subscribe(
       (importTransactionHeads: ImportTransactionHead[]) => {
         this.entityList = plainToClass(ImportTransactionHead, importTransactionHeads);
         this.configObject.idTransactionHead.valueKeyHtmlOptions =
@@ -146,7 +146,6 @@ export class SecurityaccountImportTransactionComponent
   setChildData(selectedEntity: ImportTransactionHead): void {
     this.sitdc.parentSelectionChanged(this.selectedEntity, this, this.importTransactionTemplates);
   }
-
 
   prepareEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = this.getBaseEditMenu('IMPORT_SET');

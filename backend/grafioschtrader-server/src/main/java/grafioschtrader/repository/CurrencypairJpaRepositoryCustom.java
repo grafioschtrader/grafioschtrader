@@ -61,7 +61,7 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   List<Currencypair> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch);
 
-  List<Currencypair> watchlistSearchForAdding(Integer idWatchlist, SecuritycurrencySearch securitycurrencySearch);
+  List<Currencypair> searchBuilderWithExclusion(Integer idWatchlist, Integer idCorrelationSet, SecuritycurrencySearch securitycurrencySearch);
 
   double getCurrencyExchangeRate(String fromCurrency, String toCurrency, Map<String, Currencypair> currencypairMap);
 

@@ -45,7 +45,9 @@ import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.dynamic.model.DynamicFormPropertyHelps;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.types.Language;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Contains a user of this GT instances")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Entity
 @Table(name = User.TABNAME, uniqueConstraints = @UniqueConstraint(columnNames = { "email" }))
@@ -119,6 +121,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @PropertyAlwaysUpdatable
   private short limitRequestExceedCount;
   
+  @Schema(description = "Show if an entity was created by my in the user interface")
   @Column(name = "ui_show_my_property")
   @PropertyAlwaysUpdatable
   private boolean uiShowMyProperty;

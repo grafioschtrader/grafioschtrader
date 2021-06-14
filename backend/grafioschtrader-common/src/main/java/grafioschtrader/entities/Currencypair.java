@@ -88,7 +88,6 @@ public class Currencypair extends Securitycurrency<Currencypair> implements Seri
   }
   
   @Override
-  @JsonIgnore
   public String getName() {
     return fromCurrency + "/" + toCurrency;
   }

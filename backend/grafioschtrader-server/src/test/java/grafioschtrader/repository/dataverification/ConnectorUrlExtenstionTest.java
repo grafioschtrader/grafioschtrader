@@ -1,6 +1,5 @@
 package grafioschtrader.repository.dataverification;
 
-
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -12,7 +11,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import grafioschtrader.entities.Security;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.test.start.GTforTest;
-
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)

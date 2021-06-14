@@ -106,7 +106,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         watchlistJpaRepository.tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(idWatchlist), HttpStatus.OK);
   }
 
-  @Operation(summary = "Return the two limits for securities in watchlist/s", description = "One limits the number of securities and currency pairs in a wachtlist "
+  @Operation(summary = "Return the two limits for instruments in watchlist/s", description = "One limits the number of securities and currency pairs in a wachtlist "
       + "and the other how many securities or currency pairs can watched all together", tags = {
           Watchlist.TABNAME })
   @GetMapping(value = "{idWatchlist}/limitsecuritiescurrencies", produces = APPLICATION_JSON_VALUE)
