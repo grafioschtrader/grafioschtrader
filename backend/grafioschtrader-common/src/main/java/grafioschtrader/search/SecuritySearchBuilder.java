@@ -47,7 +47,6 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
   final Integer idCorrelationSet;
   final SecuritycurrencySearch securitycurrencySearch;
   final Integer idTenant;
-  
 
   public SecuritySearchBuilder(final Integer idWatchlist, Integer idCorrelationSet,
       final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
@@ -68,11 +67,10 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
     }
 
     if (idCorrelationSet != null) {
-      mainPredicates
-      .add(builder.not(builder.exists(subQueryForAddingCorrelationSet(idCorrelationSet, securityRoot, query, builder))));
+      mainPredicates.add(
+          builder.not(builder.exists(subQueryForAddingCorrelationSet(idCorrelationSet, securityRoot, query, builder))));
     }
-    
-    
+
     if (securitycurrencySearch.isin != null) {
       mainPredicates.add(builder.and(builder.equal(securityRoot.get(Security_.isin), securitycurrencySearch.isin)));
     } else {
@@ -92,8 +90,8 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
       }
 
       if (securitycurrencySearch.name != null) {
-        mainPredicates.add(builder.and(
-            builder.like(securityRoot.get(Security_.name), "%" + securitycurrencySearch.name.toLowerCase() + "%")));
+        mainPredicates.add(builder.and(builder.like(builder.lower(securityRoot.get(Security_.name)),
+            "%" + securitycurrencySearch.name.toLowerCase() + "%")));
       }
 
       if (securitycurrencySearch.tickerSymbol != null) {
@@ -103,12 +101,12 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
       if (securitycurrencySearch.idConnectorHistory != null) {
         mainPredicates.add(builder.and(
-            builder.like(securityRoot.get(Security_.idConnectorHistory), securitycurrencySearch.idConnectorHistory)));
+            builder.equal(securityRoot.get(Security_.idConnectorHistory), securitycurrencySearch.idConnectorHistory)));
       }
 
       if (securitycurrencySearch.idConnectorIntra != null) {
         mainPredicates.add(builder
-            .and(builder.like(securityRoot.get(Security_.idConnectorIntra), securitycurrencySearch.idConnectorIntra)));
+            .and(builder.equal(securityRoot.get(Security_.idConnectorIntra), securitycurrencySearch.idConnectorIntra)));
       }
 
       if (securitycurrencySearch.currency != null) {
