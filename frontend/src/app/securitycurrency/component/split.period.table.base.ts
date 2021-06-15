@@ -61,7 +61,8 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
         return;
       }
     } else {
-      this._dataList.splice(replacePos, 1, rowData);
+      // this._dataList.splice(replacePos, 1, rowData);
+      this._dataList = Object.assign([], this._dataList, {[replacePos]: rowData});
     }
 
     this.dataChanged = true;
