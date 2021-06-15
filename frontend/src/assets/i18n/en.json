@@ -462,6 +462,7 @@
   "SAVE": "Save",
   "SAVE_CHANGE_REQUEST": "Save data change request",
   "SEARCH": "Search",
+  "SEARCH_DIALOG_HELP": "ISIN will be searched exactly. Name and ticker are case-insensitive and are searched with the character string, i.e. the name or ticker must contain the desired character string.",
   "SECONDARY_MARKET": "Secondary Market",
   "SECURITIES": "Securities",
   "SECURITIES_AND_MARGIN_GAIN": "Securities incl. margin position gain",

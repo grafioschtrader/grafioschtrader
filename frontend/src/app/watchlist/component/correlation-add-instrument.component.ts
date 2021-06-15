@@ -22,7 +22,7 @@ import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-i
     <p-dialog header="{{'ADD_EXISTING_SECURITY' | translate}}" [(visible)]="visibleAddInstrumentDialog"
               [responsive]="true" [style]="{width: '720px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
+      <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #dynamicFormComponent="dynamicForm" (submit)="submit($event)">
       </dynamic-form>
@@ -60,10 +60,6 @@ export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBas
 
   childClearList(): void {
     this.csaitc.clearList();
-  }
-
-  helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST);
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {

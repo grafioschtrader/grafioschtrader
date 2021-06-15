@@ -23,7 +23,7 @@ import {MultipleRequestToOneService} from '../../shared/service/multiple.request
       <p-dialog header="{{'SET_SECURITY' | translate}}" [(visible)]="visibleDialog" appendTo="body"
                 [responsive]="true" [style]="{width: '720px'}" [resizable]="false"
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
+          <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                         (submit)="submit($event)">
           </dynamic-form>
@@ -71,10 +71,6 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
 
   childClearList(): void {
     this.sissdc.clearList();
-  }
-
-  helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST);
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
