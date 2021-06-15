@@ -463,6 +463,7 @@
   "SAVE": "Speichern",
   "SAVE_CHANGE_REQUEST": "Datenänderungsantrag speichern",
   "SEARCH": "Suchen",
+  "SEARCH_DIALOG_HELP": "ISIN wird exakt gesucht werden. Bei Name und Ticker wird Gross- und Kleinschreibung ignoriert, zudem wird bei diesen beiden mit der Zeichenfolge gesucht, d.h. der Name bzw. Ticker muss die gewünschte Zeichenfolge enthalten",
   "SECONDARY_MARKET": "Sekundär Markt",
   "SECURITIES": "Wertpapiere",
   "SECURITIES_AND_MARGIN_GAIN": "Wertpapiere + inkl. Gewinn Margin Pos.",

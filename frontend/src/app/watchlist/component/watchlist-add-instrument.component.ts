@@ -22,7 +22,7 @@ import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-t
     <p-dialog header="{{'ADD_EXISTING_SECURITY' | translate}}" [(visible)]="visibleAddInstrumentDialog"
               [responsive]="true" [style]="{width: '720px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
+      <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #dynamicFormComponent="dynamicForm" (submit)="submit($event)">
       </dynamic-form>
@@ -60,10 +60,6 @@ export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase 
 
   childClearList(): void {
     this.waitc.clearList();
-  }
-
-  helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_WATCHLIST);
   }
 
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
