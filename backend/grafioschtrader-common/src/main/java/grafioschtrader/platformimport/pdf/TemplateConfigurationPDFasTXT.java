@@ -53,8 +53,11 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
   /**
    * Matches a property like {transType|P|N}
    */
-  private static final Pattern templatePropertyMatcher = Pattern.compile("(\\{[^\\{\\}]*\\})");
-
+  // private static final Pattern templatePropertyMatcher = Pattern.compile("(\\{[^\\{\\}]*\\})");
+  private static final Pattern templatePropertyMatcher = Pattern.compile("(\\{[A-Z,a-z]{2}\\w*[\\|A-Za-z]*\\})");
+  
+  
+  
   /**
    * Can be everything but space
    */
@@ -208,7 +211,7 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
       // Property is at the beginning of the line
       return "^";
     } else {
-      if (rowSplitSpace[propertyColum - 1].startsWith("(?:") && rowSplitSpace[propertyColum - 1].endsWith(")")) {
+      if (isNonCaptureGroup(rowSplitSpace, propertyColum, -1)) {
         return rowSplitSpace[propertyColum - 1] + "\\s+";
       } else {
         return Pattern.quote(rowSplitSpace[propertyColum - 1]) + "\\s+";
@@ -221,8 +224,16 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
       // Property is at the of the line
       return "$";
     } else {
-      return "\\s+" + Pattern.quote(rowSplitSpace[propertyColum + 1]);
+      if (isNonCaptureGroup(rowSplitSpace, propertyColum, 1)) {
+        return "\\s+" + rowSplitSpace[propertyColum + 1];
+      } else {
+        return "\\s+" + Pattern.quote(rowSplitSpace[propertyColum + 1]);
+      }
     }
+  }
+  
+  private boolean isNonCaptureGroup(String[] rowSplitSpace, int propertyColum, int addValue) {
+    return rowSplitSpace[propertyColum + addValue].startsWith("(?:") && rowSplitSpace[propertyColum + addValue].endsWith(")");
   }
 
   private String addBraces(String regex) {
