@@ -93,7 +93,10 @@ class FinanzenNETFeedConnectorTest {
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-   
+  
+    securities.add(createSecurityHistorical("etf/kurse/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
+ 
     securities.add(createSecurityHistorical("rohstoffe/goldpreis/historisch|goldpreis/CHF",
         AssetclassType.COMMODITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "---"));
     
