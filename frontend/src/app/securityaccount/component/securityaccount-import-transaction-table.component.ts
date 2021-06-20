@@ -234,7 +234,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     });
   }
 
-
   prepareCallParm(entity: CombineTemplateAndImpTransPos) {
   }
 
@@ -269,14 +268,12 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       command: (event) => this.adjustExchangeRateOrQuotation(),
     });
 
-
     menuItems.push({
       label: 'SET_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntities || this.selectedEntities.length === 0
         || !this.selectedEntities.every(ctaitPos => Transaction.isSecurityTransaction(ctaitPos.importTransactionPos.transactionType)),
       command: (event) => this.visibleSetSecurityDialog = true
     });
-
 
     menuItems.push({
       label: 'SET_CASHACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
@@ -286,17 +283,16 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     menuItems.push({separator: true});
     menuItems.push({
       label: 'IMPORT_CREATE_TRANSACTION', command: (event) => this.handleCreateTransactions(),
-      disabled: !this.selectedEntities || this.selectedEntities.length === 0,
+      disabled: !this.selectedEntities || this.selectedEntities.length === 0
+        || !this.selectedEntities.every(ctaitp => ctaitp.importTransactionPos.readyForTransaction),
     });
     return menuItems;
   }
-
 
   adjustExchangeRateOrQuotation(): void {
     this.importTransactionPosService.adjustCurrencyExRateOrQuotation(this.selectedEntities.map((ctaitp: CombineTemplateAndImpTransPos) =>
       ctaitp.importTransactionPos.idTransactionPos)).subscribe(importTransactionPosList =>
       this.showMessageAndReadData('MSG_ACCEPTED_ADJUST_MULTIPLICATION', importTransactionPosList.length));
-
   }
 
   acceptTotalDiff(): void {

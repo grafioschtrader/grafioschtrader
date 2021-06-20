@@ -20,6 +20,7 @@ export class ImportTransactionPos implements BaseID {
   security: Security;
   units: number;
   quotation: number;
+  readyForTransaction: boolean;
   taxCost: number;
   transactionCost: number;
   cashaccountAmount: number;
