@@ -140,6 +140,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
             this.configObject.taxCost.invisible = true;
             break;
           case TransactionType.INTEREST_CASHACCOUNT:
+            this.configObject.idSecurityaccount.invisible = true;
             this.setAmountValidator(true, gteWithMaskIncludeNegative(this.minAmount), 'gteWithMaskIncludeNegative');
             this.configObject.taxCost.invisible = false;
             break;
