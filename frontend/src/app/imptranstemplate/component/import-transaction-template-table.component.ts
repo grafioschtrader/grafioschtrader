@@ -134,6 +134,10 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     this.callParam = new CallParam(this.selectImportTransactionPlatform, entity);
   }
 
+  protected isDeleteDisabled(entity: ImportTransactionTemplate): boolean {
+    return !super.hasRightsForDeleteEntity(entity);
+  }
+
   public prepareEditMenu(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     menuItems.push({separator: true});

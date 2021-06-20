@@ -37,7 +37,7 @@ export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase
               private importTransactionPosService: ImportTransactionPosService,
               public translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, gps);
+    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT, gps);
   }
 
 

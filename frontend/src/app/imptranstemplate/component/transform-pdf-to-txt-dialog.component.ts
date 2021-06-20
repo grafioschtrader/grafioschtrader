@@ -30,7 +30,7 @@ export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements 
   constructor(private importTransactionPlatformService: ImportTransactionPlatformService,
               public translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, gps);
+    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, gps);
   }
 
   ngOnInit(): void {

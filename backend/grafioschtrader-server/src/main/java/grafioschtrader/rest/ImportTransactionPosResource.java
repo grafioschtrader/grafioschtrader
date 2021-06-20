@@ -33,7 +33,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ImportTransactionPosResource {
 
   @Autowired
-  ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
+  private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
 
   @GetMapping(value = "/importtransactionhead/{idTransactionHead}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<CombineTemplateAndImpTransPos>> getCombineTemplateAndImpTransPosListByTransactionHead(

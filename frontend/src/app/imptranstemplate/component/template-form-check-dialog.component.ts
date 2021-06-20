@@ -44,7 +44,7 @@ export class TemplateFormCheckDialogComponent extends SimpleEditBase implements 
   constructor(private importTransactionTemplateService: ImportTransactionTemplateService,
               public translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, gps);
+    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, gps);
   }
 
 
