@@ -35,7 +35,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantResource<ImportTransactionHead> {
 
   @Autowired
-  ImportTransactionHeadJpaRepository importTransactionHeadJpaRepository;
+  private ImportTransactionHeadJpaRepository importTransactionHeadJpaRepository;
 
   public ImportTransactionHeadResource() {
     super(ImportTransactionHead.class);
@@ -52,7 +52,7 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Upload one or more PDF/CSV/Txt files, each for a single transaction.", description = "", tags = {
+  @Operation(summary = "Upload one or more PDF files, each for a single transaction.", description = "", tags = {
       RequestMappings.IMPORTTRANSACTIONHEAD })
   @PostMapping(value = "/{idSecuritycashaccount}/uploadpdftransactions", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessFailedDirectImportTransaction> uploadPdfTransactions(
@@ -63,7 +63,7 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Upload of different kind of transaction files with a existing transaction head record.", description = "", tags = {
+  @Operation(summary = "Upload different kind of transaction files with a existing transaction head record.", description = "", tags = {
       RequestMappings.IMPORTTRANSACTIONHEAD })
   @PostMapping(value = "/{idTransactionHead}/uploadtransaction", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> uploadCsvFileSecurityAccountTransactions(@PathVariable() Integer idTransactionHead,

@@ -259,7 +259,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
     menuItems.push({separator: true});
     menuItems.push({
-      label: 'ACCEPT_TOTAL_DIFF', disabled: !this.selectedEntities || this.selectedEntities.length === 0,
+      label: '_ACCEPT_TOTAL_DIFF', disabled: !this.selectedEntities || this.selectedEntities.length === 0,
       command: (event) => this.acceptTotalDiff()
     });
 

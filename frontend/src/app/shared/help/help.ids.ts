@@ -50,7 +50,9 @@ export enum HelpIds {
   HELP_BASEDATA_ASSETCLASS = 'basedata/instrumentbased/assetclass',
   HELP_BASEDATA_STOCKEXCHANGE = 'basedata/instrumentbased/stockexchange',
   HELP_BASEDATA_TRADING_PLATFORM_PLAN = 'basedata/tradingplatformplan',
-  HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE = 'basedata/imptranstemplate',
+  HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP = 'basedata/imptranstemplate',
+  HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE = 'basedata/imptranstemplate/createimptranstemplate',
+
 
   // Admin data
   HELP_MESSAGE_SYSTEM = 'admindata',

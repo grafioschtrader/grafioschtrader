@@ -181,7 +181,7 @@ export class SecurityaccountImportTransactionComponent
   }
 
   handleUploadFiles(importTransactionHead: ImportTransactionHead, titleUpload: string, acceptFileType: string, multiple: boolean) {
-    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE,
+    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
       acceptFileType, titleUpload, multiple, this.importTransactionHeadService,
       importTransactionHead.idTransactionHead);
     this.visibleUploadFileDialog = true;

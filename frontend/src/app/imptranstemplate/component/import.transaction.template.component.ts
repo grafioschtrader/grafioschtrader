@@ -91,7 +91,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               translateService: TranslateService) {
-    super(gps, HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, ImportTransactionTemplateComponent.MAIN_FIELD,
+    super(gps, HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, ImportTransactionTemplateComponent.MAIN_FIELD,
       'IMPORTTRANSACTIONGROUP', importTransactionPlatformService,
       confirmationService, messageToastService, activePanelService, translateService);
 

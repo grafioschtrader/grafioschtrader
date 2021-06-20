@@ -44,7 +44,7 @@ export class ImportTransactionEditPlatformComponent extends SimpleEntityEditBase
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               importTransactionPlatformService: ImportTransactionPlatformService) {
-    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE, 'IMPORTTRANSACTIONGROUP', translateService, gps,
+    super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, 'IMPORTTRANSACTIONGROUP', translateService, gps,
       messageToastService, importTransactionPlatformService);
   }
 

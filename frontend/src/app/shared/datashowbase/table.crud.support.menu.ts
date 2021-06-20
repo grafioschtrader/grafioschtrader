@@ -188,8 +188,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
         menuItems.push({
           label: 'DELETE_RECORD|' + this.entityNameUpper,
           command: (event) => this.handleDeleteEntity(entity),
-          disabled: Object.keys(this.hasSecurityObject).length > 0 && this.hasSecurityObject[this.getId(entity)] !== 0
-            || !this.hasRightsForDeleteEntity(entity)
+          disabled: this.isDeleteDisabled(entity)
         });
       }
       this.addCustomMenusToSelectedEntity(entity, menuItems);
@@ -208,6 +207,11 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
 
   protected hasRightsForUpdateEntity(entity: T): boolean {
     return true;
+  }
+
+  protected isDeleteDisabled(entity: T): boolean {
+    return Object.keys(this.hasSecurityObject).length > 0 && this.hasSecurityObject[this.getId(entity)] !== 0
+      || !this.hasRightsForDeleteEntity(entity);
   }
 
   protected hasRightsForDeleteEntity(entity: T): boolean {
