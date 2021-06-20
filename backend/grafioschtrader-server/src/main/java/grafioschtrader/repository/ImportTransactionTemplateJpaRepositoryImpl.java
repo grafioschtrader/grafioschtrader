@@ -196,7 +196,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
             itt.getValidSince(), itt.getTemplateLanguage());
     if (ittExistingOpt.isPresent()) {
       ittExisting = ittExistingOpt.get();
-      if (UserAccessHelper.hasRightsForEditingOrDeleteOnEntity(user, ittExisting)) {
+      if (UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, ittExisting)) {
         DataHelper.updateEntityWithUpdatable(itt, ittExisting,
             Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class));
         itt = ittExisting;
