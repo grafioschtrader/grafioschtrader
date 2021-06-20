@@ -509,6 +509,48 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return exchangeRateToMC;
   }
 
+  public void clearCurrencypairExRate() {
+    if (idCurrencypair == null) {
+      currencyExRate = null;;
+    } else if (currencyExRate == null) {
+      idCurrencypair = null;
+    }
+  }
+  
+  /**
+   * We do not throw an error if we get data which should not be set because of the transaction.
+   * Clear the fields may be better.
+   */
+  public void clearAccountTransaction() {
+    switch(this.getTransactionType()) {
+    case FEE:
+      connectedIdTransaction = null;
+      idCurrencypair = null;
+      taxCost = null;
+      transactionCost = null;
+      break;
+    case DEPOSIT:
+      idSecurityaccount = null;
+      taxCost = null;
+      transactionCost = null;
+      break;
+    case INTEREST_CASHACCOUNT:
+      connectedIdTransaction = null;
+      idCurrencypair = null;
+      idSecurityaccount = null;
+      transactionCost = null;
+      break;
+     default:
+       // Withdrawal
+       idSecurityaccount = null;
+       taxCost = null;
+       transactionCost = null;
+    }
+    this.clearCurrencypairExRate();
+  }
+  
+
+  
   public double calcCostTaxMaybeBasePrice(String mc, SecurityCostPosition securityCostPosition,
       DateTransactionCurrencypairMap dateTransactionCurrencyMap, boolean calcBasePrice) {
 

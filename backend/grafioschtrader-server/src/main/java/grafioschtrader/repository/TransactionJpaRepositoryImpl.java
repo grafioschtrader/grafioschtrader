@@ -109,7 +109,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     checkCurrencypair(cashAccountTransfer.getWithdrawalTransaction(),
         cashAccountTransfer.getWithdrawalTransaction().getCashaccount().getCurrency(),
         cashAccountTransfer.getDepositTransaction().getCashaccount().getCurrency());
-    clearCurrencypairExRate(cashAccountTransfer.getDepositTransaction());
+    cashAccountTransfer.getDepositTransaction().clearCurrencypairExRate();
 
     cashAccountTransfer.setToMinus();
 
@@ -198,12 +198,11 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       this.checkCurrencypair(transaction, transaction.getSecurity().getCurrency(),
           transaction.getCashaccount().getCurrency());
     }
-
   }
 
   private void checkCurrencypair(final Transaction transaction, final String sourceCurrency,
       final String targetCurrency) {
-    clearCurrencypairExRate(transaction);
+    transaction.clearCurrencypairExRate();
 
     if (transaction.getIdCurrencypair() != null) {
       Currencypair currencypairRequried = DataHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency, targetCurrency);
@@ -221,15 +220,6 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
               new Object[] { transaction.getCurrencyExRate(), DataHelper.round(diff), expectedExchangeRate });
         }
       }
-
-    }
-  }
-
-  private void clearCurrencypairExRate(final Transaction transaction) {
-    if (transaction.getIdCurrencypair() == null) {
-      transaction.setCurrencyExRate(null);
-    } else if (transaction.getCurrencyExRate() == null) {
-      transaction.setIdCurrencypair(null);
     }
   }
 
@@ -270,6 +260,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     case WITHDRAWAL:
     case DEPOSIT:
     case INTEREST_CASHACCOUNT:
+      transaction.clearAccountTransaction();
       transaction.validateCashaccountAmount(null, currencyFraction);
       newTransaction = saveTransactionAndCorrectCashaccountBalance(transaction, existingEntity, adjustHoldings,
           isCashAccountTransfer);
@@ -345,7 +336,6 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
                 && targetTransaction.getTransactionType() != TransactionType.FINANCE_COST)
             .collect(Collectors.toList());
       }
-
     }
     return transactionsMargin;
   }
@@ -360,7 +350,6 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
               : securityaccount,
           transaction);
     }
-
   }
 
   private Transaction saveTransactionAndCorrectCashaccountBalance(Transaction transaction, Transaction existingEntity,
@@ -411,7 +400,6 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     checkUnitsIntegrity(OperationType.DELETE, transactions, transaction, transaction.getSecurity());
     removeTransaction(transaction);
     adjustSecurityaccountHoldings(transaction, null);
-
   }
 
   private void checkUnitsIntegrity(final OperationType operationyType, final List<Transaction> transactions,
