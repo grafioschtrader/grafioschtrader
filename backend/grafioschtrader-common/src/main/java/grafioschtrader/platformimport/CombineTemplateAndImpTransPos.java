@@ -15,7 +15,9 @@ public class CombineTemplateAndImpTransPos {
   }
 
   public String getFileType() {
-    return ImportTransactionHelper.isCsvEnding(importTransactionPos.getFileNameOriginal()) ? "C" : "P";
+    return ImportTransactionHelper.isCsvEnding(importTransactionPos.getFileNameOriginal()) ? "C" : 
+      ImportTransactionHelper.isPdfEnding(importTransactionPos.getFileNameOriginal()) 
+          && importTransactionPos.getIdFilePart() == null ? "P": "T";
   }
 
   public boolean isFullPath() {

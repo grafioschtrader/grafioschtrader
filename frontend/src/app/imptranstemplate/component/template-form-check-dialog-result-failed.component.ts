@@ -7,6 +7,10 @@ import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {FilterService} from 'primeng/api';
 
+/**
+ * Display if the import template was not completely recognized. The last successfully recognized field per import
+ * template is displayed.
+ */
 @Component({
   selector: 'template-form-check-dialog-result-failed',
   template: `
@@ -16,7 +20,8 @@ import {FilterService} from 'primeng/api';
                [responsive]="true" sortField="security.name">
         <ng-template pTemplate="header" let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field"
+                [pTooltip]="field.headerTooltipTranslated" [style.width.px]="field.width">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -49,7 +54,7 @@ export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBas
   ngOnInit(): void {
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {width: 250});
     this.addColumnFeqH(DataType.DateString, 'validSince', true, false, {width: 70});
-    this.addColumnFeqH(DataType.String, 'localeStr',  true, false, {width: 70});
+    this.addColumnFeqH(DataType.String, 'localeStr', true, false, {width: 70});
     this.addColumnFeqH(DataType.String, 'lastMatchingProperty', true, false, {width: 100});
     this.addColumn(DataType.String, 'errorMessage', 'ERROR', true, false);
 
