@@ -63,7 +63,7 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
     this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'calcCashaccountAmount', 'CALC_TOTAL_VALUE',
       {fieldsetName: 'IMPORT_ASSIGN'});
 
-    this.addFieldProperty(DataType.NumericInteger, ImportSettings.IMPORT_TRANSACTION_POS + 'idFilePart', 'IMPORT_ID_FILE_PART',
+    this.addFieldPropertyFeqH(DataType.NumericInteger, ImportSettings.IMPORT_TRANSACTION_POS + 'idFilePart',
       {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
     this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'templatePurpose',
       {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});

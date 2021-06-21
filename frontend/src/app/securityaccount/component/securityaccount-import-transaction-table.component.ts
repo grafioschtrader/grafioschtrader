@@ -26,7 +26,8 @@ import {
   CallBackSetSecurityWithAfter
 } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {SvgIconRegistryService} from 'angular-svg-icon';
 
 
 /**
@@ -35,7 +36,6 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
 @Component({
   selector: 'securityaccount-import-transaction-table',
   template: `
-
     <div class="datatable">
       <p-table [columns]="fields" [value]="entityList" [(selection)]="selectedEntities"
                dataKey="importTransactionPos.idTransactionPos" [paginator]="true" [rows]="50"
@@ -50,7 +50,8 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
               <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
             <ng-container *ngFor="let field of fields">
-              <th *ngIf="field.visible" [pSortableColumn]="field.field" [style.width.px]="field.width">
+              <th *ngIf="field.visible" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
+                  [style.width.px]="field.width">
                 {{field.headerTranslated}}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
@@ -76,6 +77,10 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
                   <ng-container *ngSwitchCase="'check'">
                                       <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
                                                aria-hidden="true"></i></span>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'icon'">
+                    <svg-icon [name]="getValueByPath(el, field)"
+                              [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
                   </ng-container>
                   <ng-container *ngSwitchDefault>
                     {{getValueByPath(el, field)}}
@@ -104,9 +109,7 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
 
         <ng-template pTemplate="paginatorleft" let-state>
           {{selectedEntities.length}} {{'SELECTED_FROM' | translate}} {{entityList.length}}
-
         </ng-template>
-
       </p-table>
     </div>
     <securitycurrency-search-and-set *ngIf="visibleSetSecurityDialog"
@@ -119,19 +122,28 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
     <securityaccount-import-set-cashaccount *ngIf="visibleSetCashaccountDialog"
                                             [visibleDialog]="visibleSetCashaccountDialog"
                                             [combineTemplateAndImpTransPos]="selectedEntities"
-                                            [idSecuritycashAccount]="seclectImportTransactionHead.securityaccount.idSecuritycashAccount"
+                                            [idSecuritycashAccount]="selectImportTransactionHead.securityaccount.idSecuritycashAccount"
                                             (closeDialog)="handleOnCloseSetDialog($event)">
     </securityaccount-import-set-cashaccount>
   `
 })
 export class SecurityaccountImportTransactionTableComponent extends TableConfigBase
   implements OnDestroy, CallBackSetSecurityWithAfter {
+
+  private static SVG = '.svg';
+  private static createTypeIconMap: { [key: string]: string } = {
+    ['T']: 'pdfastxt',
+    ['P']: 'pdf',
+    ['C']: 'csv'
+  };
+
+  private static iconLoadDone = false;
   private readonly ITP = 'IMPORT_TRANSACTION_POS';
 
   supplementCriteria: SupplementCriteria;
   entityList: CombineTemplateAndImpTransPos[] = [];
   selectedEntities: CombineTemplateAndImpTransPos[] = [];
-  seclectImportTransactionHead: ImportTransactionHead;
+  selectImportTransactionHead: ImportTransactionHead;
   importTransactionTemplates: ImportTransactionTemplate[];
   failedParsedTemplateStateList: FailedParsedTemplateState[];
 
@@ -143,16 +155,21 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   constructor(private importTransactionPosService: ImportTransactionPosService,
               private confirmationService: ConfirmationService,
               private messageToastService: MessageToastService,
+              private iconReg: SvgIconRegistryService,
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
-    this.supplementCriteria = new SupplementCriteria(true, false);
 
-    this.addColumn(DataType.NumericInteger, ImportSettings.IMPORT_TRANSACTION_POS + 'idFilePart', 'IMPORT_ID_FILE_PART', true, false);
-    this.addColumn(DataType.String, 'fileType', 'FILE_TYPE', true, false);
+    this.supplementCriteria = new SupplementCriteria(true, false);
+    SecurityaccountImportTransactionTableComponent.registerIcons(this.iconReg);
+
+    this.addColumnFeqH(DataType.NumericInteger, ImportSettings.IMPORT_TRANSACTION_POS + 'idFilePart', true, false);
+
+    this.addColumn(DataType.String, 'fileTypeIcon', AppSettings.INSTRUMENT_HEADER, true, false,
+      {fieldValueFN: this.getFileTypeIcon.bind(this), templateName: 'icon', width: 25});
     this.addColumn(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', true, false, {width: 60});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionType', 'TRANSACTION_TYPE_IMP', true, false,
       {width: 60, translateValues: TranslateValue.NORMAL});
@@ -160,7 +177,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       true, false);
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyExRate', 'EXCHANGE_RATE', true, true);
     this.addColumnFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'isin', true, true, {width: 100});
-    this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'symbolImp', 'SYMBOL', true, true);
+    this.addColumnFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'symbolImp', true, true);
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'security.name', AppSettings.SECURITY.toUpperCase(), true, true,
       {width: 200});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyAccount', 'ACCOUNT_CURRENCY', true, false);
@@ -184,19 +201,28 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.readTableDefinition(AppSettings.IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE);
   }
 
+  private static registerIcons(iconReg: SvgIconRegistryService): void {
+    if (!SecurityaccountImportTransactionTableComponent.iconLoadDone) {
+      for (const [key, iconName] of Object.entries(SecurityaccountImportTransactionTableComponent.createTypeIconMap)) {
+        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + SecurityaccountImportTransactionTableComponent.SVG, iconName);
+      }
+      SecurityaccountImportTransactionTableComponent.iconLoadDone = false;
+    }
+  }
+
   parentSelectionChanged(seclectImportTransactionHead: ImportTransactionHead,
                          parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>,
                          importTransactionTemplates: ImportTransactionTemplate[]) {
-    this.seclectImportTransactionHead = seclectImportTransactionHead;
+    this.selectImportTransactionHead = seclectImportTransactionHead;
     this.parentChildRowSelection = parentChildRowSelection;
     this.importTransactionTemplates = importTransactionTemplates;
     this.readData();
   }
 
   readData(): void {
-    if (this.seclectImportTransactionHead) {
+    if (this.selectImportTransactionHead) {
       this.importTransactionPosService.getCombineTemplateAndImpTransPosListByTransactionHead(
-        this.seclectImportTransactionHead.idTransactionHead).subscribe((combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos[]) => {
+        this.selectImportTransactionHead.idTransactionHead).subscribe((combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos[]) => {
         this.createTranslatedValueStoreAndFilterField(combineTemplateAndImpTransPos);
         this.entityList = combineTemplateAndImpTransPos;
         this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, null);
@@ -332,6 +358,11 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
+  }
+
+  getFileTypeIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
+                  valueField: any): string {
+    return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.fileType];
   }
 
   ngOnDestroy(): void {
