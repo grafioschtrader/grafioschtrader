@@ -15,6 +15,7 @@ import {Subscription} from 'rxjs';
 import {FormHelper} from '../../../dynamic-form/components/FormHelper';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import * as moment from 'moment';
+import {Validators} from '@angular/forms';
 
 @Component({
   selector: 'task-data-change-edit',
@@ -35,6 +36,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   @Input() tdcFormConstraints: TaskDataChangeFormConstraints;
 
   private idTaskSubscribe: Subscription;
+  private entitySubscribe: Subscription;
 
   constructor(translateService: TranslateService,
               gps: GlobalparameterService,
@@ -63,11 +65,11 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-
   }
 
   protected initialize(): void {
     this.valueChangedOnIdTask();
+    this.valueChangedOnEntity();
     this.configObject.idTask.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService, TaskType, Object.keys(TaskType).filter(
         key => TaskType[key] <= this.tdcFormConstraints.maxUserCreateTask).map(key => TaskType[key]));
@@ -80,7 +82,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
 
   protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {
     const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
-    taskDataChange.earliestStartTime = moment( taskDataChange.earliestStartTime).add(moment().utcOffset() * -1, 'm').format('yyyy-MM-DD HH:mm:ss');
+    taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).add(moment().utcOffset() * -1, 'm').format('yyyy-MM-DD HH:mm:ss');
     return taskDataChange;
   }
 
@@ -92,11 +94,21 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
             this.tdcFormConstraints.taskTypeConfig[idTask], true), false) : null;
       FormHelper.disableEnableFieldConfigs(!this.configObject.entity.valueKeyHtmlOptions, [this.configObject.entity,
         this.configObject.idEntity]);
+      const allowEmpty = this.tdcFormConstraints.taskTypeConfig[idTask] && this.tdcFormConstraints.taskTypeConfig[idTask].includes;
+      DynamicFieldHelper.resetValidator(this.configObject.entity, allowEmpty ? null : [Validators.required],
+        allowEmpty ? null : [DynamicFieldHelper.RULE_REQUIRED_DIRTY]);
+    });
+  }
+
+  valueChangedOnEntity(): void {
+    this.entitySubscribe = this.configObject.entity.formControl.valueChanges.subscribe(entity => {
+      FormHelper.disableEnableFieldConfigs(!entity || entity.length === 0, [this.configObject.idEntity]);
     });
   }
 
   onHide(event): void {
     this.idTaskSubscribe && this.idTaskSubscribe.unsubscribe();
+    this.entitySubscribe && this.entitySubscribe.unsubscribe();
     super.onHide(event);
   }
 }
