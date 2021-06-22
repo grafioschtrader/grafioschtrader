@@ -4,7 +4,6 @@ import {InputType} from '../models/input.type';
 
 export abstract class FormHelper {
 
-
   public static flattenConfigMap(fieldFormGroups: FieldFormGroup[]): FieldConfig[] {
     return fieldFormGroups.reduce((explored, toExplore) =>
       explored.concat((FormHelper.isFieldConfig(toExplore)) ? toExplore :
