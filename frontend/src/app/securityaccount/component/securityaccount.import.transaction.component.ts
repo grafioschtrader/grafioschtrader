@@ -100,8 +100,8 @@ export class SecurityaccountImportTransactionComponent
     this.formConfig = {labelcolumns: 2, nonModal: true};
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectNumber(SecurityaccountImportTransactionComponent.MAIN_FIELD, 'IMPORT_SET_NAME', false,
-        {usedLayoutColumns: 6}),
+      DynamicFieldHelper.createFieldSelectNumber(SecurityaccountImportTransactionComponent.MAIN_FIELD,
+        'IMPORT_TRANSACTION_NAME', false, {usedLayoutColumns: 6}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
         {usedLayoutColumns: 6, disabled: true}),
     ];

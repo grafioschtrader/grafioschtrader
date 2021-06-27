@@ -10,6 +10,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.SecurityCostPosition;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * For each year and security combination there is one of this Object.
@@ -20,16 +21,13 @@ import grafioschtrader.reportviews.SecurityCostPosition;
 public class SecurityDividendsPosition {
 
   public Integer idSecuritycurrency;
-  /**
-   * For Bond when it is bought, some interest has to be paid to the previous
-   * holder.
-   */
+
+  @Schema(description = "For Bond when it is bought, some interest has to be paid to the previous holder")
   public double realReceivedDivInterestMC = 0.0;
-  /**
-   * For some Interest or Dividends there can be a tax, which is taken
-   * automatically
-   */
+  
+  @Schema(description = "For some Interest or Dividends there can be a tax, which is taken automatically")
   public double autoPaidTax = 0.0;
+
   public double autoPaidTaxMC = 0.0;
   public double taxableAmount = 0.0;
 
@@ -83,11 +81,7 @@ public class SecurityDividendsPosition {
 
   public void updateDividendPosition(Transaction transaction, DateTransactionCurrencypairMap dateCurrencyMap) {
     this.unitsAtEndOfYear = transaction.getUnits();
-
-    if (transaction.getIdTransaction().equals(39727)) {
-      System.out.println(transaction);
-    }
-
+   
     Double exchangeRate = DataHelper.getCurrencyExchangeRateToMainCurreny(transaction, dateCurrencyMap);
 
     exchangeRate = exchangeRate == null
@@ -96,7 +90,6 @@ public class SecurityDividendsPosition {
                 : exchangeRate;
 
     realReceivedDivInterestMC += transaction.getCashaccountAmount() * exchangeRate;
-
     if (transaction.getTaxCost() != null) {
       autoPaidTax += transaction.getTaxCost();
       autoPaidTaxMC += transaction.getTaxCost() * exchangeRate;

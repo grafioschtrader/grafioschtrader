@@ -94,7 +94,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         AppSettings.FID_MAX_FRACTION_DIGITS, false, this.gps.getNumberCurrencyMask(),
         null, null, false, {usedLayoutColumns: 8}),
 
-      DynamicFieldHelper.createFunctionButtonFieldName('oneOverX', '1/x',
+      DynamicFieldHelper.createFunctionButton('ONE_OVER_X',
         (e) => this.oneOverX(e), {
           buttonInForm: true, usedLayoutColumns: 1,
         }),

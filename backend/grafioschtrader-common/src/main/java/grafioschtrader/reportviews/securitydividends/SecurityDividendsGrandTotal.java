@@ -71,6 +71,10 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   public Integer getNumberOfCashAccounts() {
     return portfolioList.stream().map(portfolio -> portfolio.getCashaccountList()).mapToInt(List::size).sum();
   }
+  
+  public double getGrandFeeMC() {
+    return DataHelper.round(grandFeeMC, precisionMC);
+  }
 
   public double getGrandInterestMC() {
     return DataHelper.round(grandInterestMC, precisionMC);

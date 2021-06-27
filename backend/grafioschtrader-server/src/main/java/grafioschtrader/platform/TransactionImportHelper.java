@@ -29,7 +29,7 @@ public abstract class TransactionImportHelper {
         if (securities.size() == 1) {
           // When there is only one
           importTransactionPos.setSecurity(securities.get(0));
-          importTransactionPos.addKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISSMATCH);
+          importTransactionPos.addKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH);
         }
       }
     } else if (importTransactionPos.getSymbolImp() != null) {

@@ -31,7 +31,7 @@ export class SecurityaccountTabMenuComponent implements OnInit, OnDestroy {
   private routeParamSubscribe: Subscription;
   private queryParamSubscribe: Subscription;
   private securityaccount: Securityaccount;
-  private platTransImportMenuItem: MenuItem;
+  readonly platTransImportMenuItem: MenuItem;
   private lastRouteKey = AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY;
 
   constructor(private router: Router,
@@ -39,7 +39,7 @@ export class SecurityaccountTabMenuComponent implements OnInit, OnDestroy {
               public translateService: TranslateService) {
 
     this.platTransImportMenuItem = {
-      label: 'PLATFORM_TRANSACTION_IMPORT',
+      label: 'IMPORT_TRANSACTION',
       command: (event) => this.navigateToRoute(AppSettings.SECURITYACCOUNT_IMPORT_KEY, 1)
     };
 
@@ -97,8 +97,6 @@ export class SecurityaccountTabMenuComponent implements OnInit, OnDestroy {
     this.router.navigate([
       `${AppSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}/${this.securityaccount.idSecuritycashAccount}/${routeKey}`,
       this.securityaccount.idSecuritycashAccount, data]);
-
-
   }
 }
 

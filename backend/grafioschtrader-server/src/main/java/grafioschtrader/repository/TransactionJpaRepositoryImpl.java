@@ -51,13 +51,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
-
-  // @Autowired
-  private CashaccountJpaRepository cashaccountJpaRepository;
-
-  // @Autowired
-  private CurrencypairJpaRepository currencypairJpaRepository;
-
+  
   @Autowired
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
@@ -70,6 +64,16 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   @Autowired
   private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
+  @Autowired
+  private CurrencypairJpaRepository currencypairJpaRepository;
+  
+  // Circular Dependency -> Lazy
+  private CashaccountJpaRepository cashaccountJpaRepository;
+ 
+  
+  // Circular Dependency -> Lazy
+  private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
+  
   ///////////////////////////////////////////////////////////////////////////////
   // Methods with general Transaction
   //////////////////////////////////////////////////////////////////////////////
@@ -79,8 +83,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   @Autowired
-  public void setCurrencypairJpaRepository(@Lazy final CurrencypairJpaRepository currencypairJpaRepository) {
-    this.currencypairJpaRepository = currencypairJpaRepository;
+  public void setImportTransactionPosJpaRepository(@Lazy final ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
+    this.importTransactionPosJpaRepository = importTransactionPosJpaRepository;
   }
 
   @Override
@@ -418,6 +422,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   //////////////////////////////////////////////////////////////////////////////
 
   private void removeTransaction(final Transaction transaction) {
+    importTransactionPosJpaRepository.setTrasactionIdToNullWhenExists(transaction.getIdTransaction());
     transactionJpaRepository.delete(transaction);
     holdCashaccountBalanceJpaRepository.adjustCashaccountBalanceByIdCashaccountAndFromDate(transaction);
   }

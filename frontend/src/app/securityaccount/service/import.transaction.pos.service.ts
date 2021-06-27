@@ -25,12 +25,10 @@ export class ImportTransactionPosService extends AuthServiceWithLogout<ImportTra
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   public deleteEntity(idTransactionImportPos: number): Observable<any> {
     return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/${idTransactionImportPos}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   public adjustQuotation(idTransactionPosList: number[]): Observable<any> {
     return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/adjustquotation`,
@@ -41,7 +39,6 @@ export class ImportTransactionPosService extends AuthServiceWithLogout<ImportTra
     return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/adjustcurrencyexrateorquotation`,
       idTransactionPosList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   public acceptTotalDiff(idTransactionPosList: number[]): Observable<any> {
     return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/accepttotaldiff`,
@@ -58,23 +55,29 @@ export class ImportTransactionPosService extends AuthServiceWithLogout<ImportTra
       idTransactionPosList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   update(importTransactionPos: ImportTransactionPos): Observable<ImportTransactionPos> {
     return this.updateEntity(importTransactionPos, importTransactionPos.idTransactionPos,
       AppSettings.IMPORT_TRANSACTION_POS_KEY);
   }
 
-  setSecurity(idSecuritycurrency: number, idTransactionPosList: number[]) {
+  setSecurity(idSecuritycurrency: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
     return <Observable<ImportTransactionPos[]>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setsecurity`,
       {idSecuritycurrency, idTransactionPosList},
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
-  setCashAccount(idSecuritycashAccount: number, idTransactionPosList: number[]) {
+  setCashAccount(idSecuritycashAccount: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
     return <Observable<ImportTransactionPos[]>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setcashaccount`,
       {idSecuritycashAccount, idTransactionPosList},
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  setIdTransactionMayBe(idTransactionMayBe: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
+    return <Observable<ImportTransactionPos[]>>this.httpClient.patch(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setidtransactionmaybe`,
+      {idTransactionMayBe, idTransactionPosList},
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 

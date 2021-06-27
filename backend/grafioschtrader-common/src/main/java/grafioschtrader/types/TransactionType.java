@@ -58,7 +58,6 @@ public enum TransactionType {
 
   public static TransactionType getTransactionTypeByName(String name) {
     return TransactionType.valueOf(name.toUpperCase());
-
   }
 
   public static TransactionType getTransactionTypeByValue(byte value) {

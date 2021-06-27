@@ -28,6 +28,7 @@ import {
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {SvgIconRegistryService} from 'angular-svg-icon';
+import {ImportTransactionPos} from '../../entities/import.transaction.pos';
 
 
 /**
@@ -134,7 +135,10 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   private static createTypeIconMap: { [key: string]: string } = {
     ['T']: 'pdfastxt',
     ['P']: 'pdf',
-    ['C']: 'csv'
+    ['C']: 'csv',
+    // user for possible has transaction
+    ['A']: 'check',
+    ['B']: 'checkcrossedout'
   };
 
   private static iconLoadDone = false;
@@ -191,6 +195,10 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'idTransaction', 'IMPORT_HAS_TRANSACTION', true, true, {
       templateName: 'check'
     });
+
+    this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'idTransactionMaybe',
+      'IMPORT_HAS_MAYBE_TRANSACTION', true, true,
+      {fieldValueFN: this.getMayBeHasTransactionIcon, templateName: 'icon'});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'templatePurpose', 'TEMPLATE_PURPOSE', false, true,
       {width: 150});
     this.addColumn(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'validSince', 'VALID_SINCE', false, true,
@@ -248,18 +256,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     }
   }
 
-  /**
-   * Save for one or more the selected security to the importtransactionpos.
-   * @param security Chosen security
-   */
-  setSecurity(security: Security, afterSetSecurity: AfterSetSecurity): void {
-    this.importTransactionPosService.setSecurity(security.idSecuritycurrency,
-      this.selectedEntities.map(combineTemplateAndImpTransPos =>
-        combineTemplateAndImpTransPos.importTransactionPos.idTransactionPos)).subscribe(rcImportTransactionPosList => {
-      afterSetSecurity.afterSetSecurity();
-    });
-  }
-
   prepareCallParm(entity: CombineTemplateAndImpTransPos) {
   }
 
@@ -284,35 +280,62 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
     menuItems.push({separator: true});
     menuItems.push({
-      label: '_ACCEPT_TOTAL_DIFF', disabled: !this.selectedEntities || this.selectedEntities.length === 0,
+      label: '_ACCEPT_TOTAL_DIFF',
+      disabled: !this.selectedEntities || this.selectedEntities.length === 0
+        || this.selectedEntities.some(ctaitp => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
       command: (event) => this.acceptTotalDiff()
     });
 
     menuItems.push({
-      label: 'IMPORT_ADJUST_MULTIPLICATION', disabled: !this.selectedEntities || this.selectedEntities.length === 0
-        || !this.selectedEntities.every(ctaitp => !!ctaitp.importTransactionPos.calcCashaccountAmount),
+      label: 'IMPORT_ADJUST_MULTIPLICATION',
+      disabled: !this.selectedEntities || this.selectedEntities.length === 0
+        || !this.selectedEntities.every(ctaitp => !!ctaitp.importTransactionPos.calcCashaccountAmount)
+        || this.selectedEntities.some(ctaitp => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
       command: (event) => this.adjustExchangeRateOrQuotation(),
     });
 
     menuItems.push({
       label: 'SET_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntities || this.selectedEntities.length === 0
-        || !this.selectedEntities.every(ctaitPos => Transaction.isSecurityTransaction(ctaitPos.importTransactionPos.transactionType)),
+        || !this.selectedEntities.every(ctaitp => Transaction.isSecurityTransaction(ctaitp.importTransactionPos.transactionType))
+        || this.selectedEntities.some(ctaitp => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
       command: (event) => this.visibleSetSecurityDialog = true
     });
 
     menuItems.push({
       label: 'SET_CASHACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
-      disabled: !this.selectedEntities || this.selectedEntities.length === 0,
+      disabled: !this.selectedEntities || this.selectedEntities.length === 0 ||
+        this.selectedEntities.some(ctaitp => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
       command: (event) => this.visibleSetCashaccountDialog = true
     });
     menuItems.push({separator: true});
     menuItems.push({
+      label: '_IGNORE_MAYBE_TRANSACTION' + AppSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.selectedEntities || this.selectedEntities.length === 0 ||
+        this.selectedEntities.some(ctaitp => ctaitp.importTransactionPos.idTransactionMaybe === null
+          || ctaitp.importTransactionPos.idTransactionMaybe === 0),
+      command: (event) => this.removeMayBeTransaction(0)
+    });
+
+    menuItems.push({
+      label: '_IGNORE_MAYBE_TRANSACTION_UNDO' + AppSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.selectedEntities || this.selectedEntities.length === 0 ||
+        this.selectedEntities.some(ctaitp => ctaitp.importTransactionPos.idTransactionMaybe !== 0),
+      command: (event) => this.removeMayBeTransaction(null)
+    });
+
+    menuItems.push({separator: true});
+    menuItems.push({
       label: 'IMPORT_CREATE_TRANSACTION', command: (event) => this.handleCreateTransactions(),
       disabled: !this.selectedEntities || this.selectedEntities.length === 0
-        || !this.selectedEntities.every(ctaitp => ctaitp.importTransactionPos.readyForTransaction),
+        || !this.selectedEntities.every(ctaitp => ctaitp.importTransactionPos.readyForTransaction)
+        || this.selectedEntities.some(ctaitp => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
     });
     return menuItems;
+  }
+
+  private hasTransactionOrMaybe(itp: ImportTransactionPos): boolean {
+    return itp.idTransaction != null || itp.idTransactionMaybe != null && itp.idTransactionMaybe > 0;
   }
 
   adjustExchangeRateOrQuotation(): void {
@@ -327,12 +350,28 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       this.showMessageAndReadData('MSG_ACCEPTED_TOTAL_DIFF', importTransactionPosList.length));
   }
 
+  /**
+   * Save for one or more the selected security to the importtransactionpos.
+   * @param security Chosen security
+   */
+  setSecurity(security: Security, afterSetSecurity: AfterSetSecurity): void {
+    this.importTransactionPosService.setSecurity(security.idSecuritycurrency,
+      this.selectedEntities.map(combineTemplateAndImpTransPos =>
+        combineTemplateAndImpTransPos.importTransactionPos.idTransactionPos)).subscribe(rcImportTransactionPosList => {
+      afterSetSecurity.afterSetSecurity();
+    });
+  }
+
+  removeMayBeTransaction(idTransactionMayBe: number): void {
+    this.importTransactionPosService.setIdTransactionMayBe(idTransactionMayBe, this.selectedEntities.map(combineTemplateAndImpTransPos =>
+      combineTemplateAndImpTransPos.importTransactionPos.idTransactionPos)).subscribe(rcImportTransactionPosList => this.readData());
+  }
+
   showMessageAndReadData(messageKey: string, noRecord: number): void {
     this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
       messageKey, {noRecord: noRecord});
     this.readData();
   }
-
 
   handleDeleteEntities(): void {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
@@ -363,6 +402,12 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   getFileTypeIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
                   valueField: any): string {
     return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.fileType];
+  }
+
+  getMayBeHasTransactionIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
+                             valueField: any): string {
+    return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.importTransactionPos.idTransactionMaybe == null
+      ? null : entity.importTransactionPos.idTransactionMaybe > 0 ? 'A' : 'B'];
   }
 
   ngOnDestroy(): void {

@@ -21,6 +21,8 @@ public interface ImportTransactionPosJpaRepositoryCustom {
 
   void deleteMultiple(List<Integer> idTransactionPosList);
 
+  List<ImportTransactionPos> setIdTransactionMayBe(Integer idTransactionMaybe, List<Integer> idTransactionPosList);
+  
   void setCheckReadyForSingleTransaction(ImportTransactionPos importTransactionPos);
 
   List<ImportTransactionPos> createAndSaveTransactionsByIds(List<Integer> idTransactionPosList);
@@ -28,4 +30,5 @@ public interface ImportTransactionPosJpaRepositoryCustom {
   List<SavedImpPosAndTransaction> createAndSaveTransactionsImpPos(List<ImportTransactionPos> importTransactionPosList,
       Map<Integer, ImportTransactionPos> idItpMap);
 
+  void setTrasactionIdToNullWhenExists(Integer idTransaction);
 }
