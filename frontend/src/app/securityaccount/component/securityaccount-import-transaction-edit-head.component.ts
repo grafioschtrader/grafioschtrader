@@ -17,7 +17,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'securityaccount-import-transaction-edit-head',
   template: `
-    <p-dialog header="{{'PLATFORM_TRANSACTION_IMPORT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'IMPORT_SET' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
@@ -43,7 +43,7 @@ export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEnt
       6, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldInputString('name', 'IMPORT_SET_NAME', 40, true),
+      DynamicFieldHelper.createFieldInputString('name', 'IMPORT_TRANSACTION_NAME', 40, true),
       DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];

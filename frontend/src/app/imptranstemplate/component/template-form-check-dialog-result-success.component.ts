@@ -13,6 +13,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'template-form-check-dialog-result-success',
   template: `
+    <h4>{{'IMPORT_POS_CHECK_SUCCESS' | translate}}</h4>
     <div *ngFor="let field of fields" class="row">
       <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel" align="right">
         {{field.headerTranslated}}:

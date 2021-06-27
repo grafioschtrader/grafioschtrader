@@ -30,6 +30,7 @@ import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 import grafioschtrader.validation.ValidISIN;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Transactions from csv or pdf file are imported in this table. Normally a csv
@@ -137,9 +138,15 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "ready_for_transaction")
   private boolean readyForTransaction;
 
+  @Schema(description = "The idTransaction of the new create transaction")
   @Column(name = "id_transaction")
   private Integer idTransaction;
 
+  @Schema(description = "The import position is maybe reflectin an existing transaction. It is the id of this transaction")
+  @Column(name = "id_transaction_maybe")
+  private Integer idTransactionMaybe;
+ 
+  
   @Column(name = "id_trans_imp_template")
   private Integer idTransactionImportTemplate;
 
@@ -153,6 +160,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   private List<ImportTransactionPosFailed> importTransactionPosFailedList;
 
+  @Schema(description = "The idTransaction of a conneted transaction")
   @Column(name = "con_id_trans_pos")
   private Integer connectedIdTransactionPos;
 
@@ -418,6 +426,14 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   public void setIdTransaction(Integer idTransaction) {
     this.idTransaction = idTransaction;
   }
+  
+  public Integer getIdTransactionMaybe() {
+    return idTransactionMaybe;
+  }
+
+  public void setIdTransactionMaybe(Integer idTransactionMaybe) {
+    this.idTransactionMaybe = idTransactionMaybe;
+  }
 
   public Integer getIdTransactionImportTemplate() {
     return idTransactionImportTemplate;
@@ -441,7 +457,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   public void setSecurityRemoveFromFlag(Security security) {
     this.security = security;
-    removeKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISSMATCH);
+    removeKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH);
   }
 
   public void setIdFilePart(Integer idFilePart) {
@@ -631,12 +647,12 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   private void correctQuotationForDividend() {
     if (security != null && getTransactionType() == TransactionType.DIVIDEND
-        && getKnownOtherFlags().contains(ImportKnownOtherFlags.CAN_BOND_QUATION_CORRECTION)
-        && !getKnownOtherFlags().contains(ImportKnownOtherFlags.USED_BOND_QUATION_CORRECTION)) {
+        && getKnownOtherFlags().contains(ImportKnownOtherFlags.CAN_BOND_QUOTATION_CORRECTION)
+        && !getKnownOtherFlags().contains(ImportKnownOtherFlags.USED_BOND_QUOTATION_CORRECTION)) {
       Double df = security.getSecurityTransImportDistributionFrequency();
       if (df != null) {
         quotation /= df;
-        addKnowOtherFlags(ImportKnownOtherFlags.USED_BOND_QUATION_CORRECTION);
+        addKnowOtherFlags(ImportKnownOtherFlags.USED_BOND_QUOTATION_CORRECTION);
       }
     }
   }

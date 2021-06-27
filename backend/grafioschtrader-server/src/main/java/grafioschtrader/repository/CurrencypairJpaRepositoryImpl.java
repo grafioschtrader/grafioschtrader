@@ -54,10 +54,10 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   ////////////////////////////////////////////////////////////////
   // Historical prices

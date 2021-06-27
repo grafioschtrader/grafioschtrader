@@ -29,12 +29,13 @@ export class ImportTransactionPos implements BaseID {
   importTransactionPosFailedList: ImportTransactionPosFailed[];
   calcCashaccountAmount: number;
   fileNameOriginal: string;
+  idTransaction: number;
+  idTransactionMaybe: number;
 
   public getId(): number {
     return this.idTransactionPos;
   }
 
-
-
-  // idTransaction: number;
 }
+
+

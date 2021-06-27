@@ -18,6 +18,9 @@ import {FilterService} from 'primeng/api';
       <p-table [columns]="fields" [value]="failedParsedTemplateStateList" selectionMode="single"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
                [responsive]="true" sortField="security.name">
+        <ng-template pTemplate="caption">
+          <h4>{{'IMPORT_POS_CHECK_FAILED' | translate}}</h4>
+        </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field"
