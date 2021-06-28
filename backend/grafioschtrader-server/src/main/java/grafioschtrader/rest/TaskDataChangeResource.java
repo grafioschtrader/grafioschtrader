@@ -25,26 +25,22 @@ public class TaskDataChangeResource extends UpdateCreateDeleteAuditResource<Task
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
-  
-  
+
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TaskDataChange>> getAllTaskDataChange() {
-    return new ResponseEntity<>(taskDataChangeJpaRepository.findAll(),
-        HttpStatus.OK);
+    return new ResponseEntity<>(taskDataChangeJpaRepository.findAll(), HttpStatus.OK);
   }
 
   @GetMapping(value = "/taskdatachangeconstraints", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TaskDataChangeFormConstraints> getFormConstraints() {
-    return new ResponseEntity<>(taskDataChangeJpaRepository.getFormConstraints(),
-        HttpStatus.OK);
+    return new ResponseEntity<>(taskDataChangeJpaRepository.getFormConstraints(), HttpStatus.OK);
   }
-  
+
   @DeleteMapping(value = "/{idTaskDataChange}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteResource(@PathVariable final Integer idTaskDataChange) {
     taskDataChangeJpaRepository.deleteById(idTaskDataChange);
     return ResponseEntity.noContent().build();
   }
-  
 
   @Override
   protected UpdateCreateJpaRepository<TaskDataChange> getUpdateCreateJpaRepository() {

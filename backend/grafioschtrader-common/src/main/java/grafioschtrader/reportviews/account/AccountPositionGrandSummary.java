@@ -31,9 +31,8 @@ public class AccountPositionGrandSummary {
   public double grandAccountFeesMC = 0.0;
   public double grandAccountInterestMC = 0.0;
 
-
   public double grandAccountInterestLastCloseMC = 0.0;
-  
+
   private int precisionMC;
 
   public List<AccountPositionGroupSummary> accountPositionGroupSummaryList = new ArrayList<>();
@@ -59,8 +58,6 @@ public class AccountPositionGrandSummary {
       grandAccountInterestLastCloseMC += accountPositionGroupSummary.groupAccountInterestLastCloseMC;
     }
   }
-
- 
 
   public double getGrandCashAccountTransactionFeeMC() {
     return DataHelper.round(grandCashAccountTransactionFeeMC, precisionMC);
@@ -133,5 +130,4 @@ public class AccountPositionGrandSummary {
         + grandAccountInterestMC + ", grandAccountInterestLastCloseMC=" + grandAccountInterestLastCloseMC + "]";
   }
 
-  
 }

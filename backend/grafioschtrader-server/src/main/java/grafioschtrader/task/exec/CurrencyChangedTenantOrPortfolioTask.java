@@ -46,11 +46,10 @@ public class CurrencyChangedTenantOrPortfolioTask implements ITask {
   public TaskType getTaskType() {
     return TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO;
   }
-  
+
   public List<String> getAllowedEntities() {
     return Arrays.asList(Portfolio.class.getSimpleName(), Tenant.class.getSimpleName());
   }
-
 
   @Override
   @Transactional

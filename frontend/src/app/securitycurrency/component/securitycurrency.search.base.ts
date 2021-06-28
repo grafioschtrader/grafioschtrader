@@ -61,6 +61,8 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
     this.config = [
       DynamicFieldHelper.createFieldInputStringVSHeqF('isin', 12, false,
         [VALIDATION_SPECIAL.ISIN], {userDefinedValue: this.firstGroup}),
+      DynamicFieldHelper.createFieldTriStateCheckboxHeqF('withHoldings',
+        {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldInputStringHeqF('name', 80, false,
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldInputStringHeqF('tickerSymbol', 6, false,

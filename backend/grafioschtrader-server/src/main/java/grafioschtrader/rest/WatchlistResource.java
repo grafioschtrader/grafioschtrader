@@ -107,8 +107,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   }
 
   @Operation(summary = "Return the two limits for instruments in watchlist/s", description = "One limits the number of securities and currency pairs in a wachtlist "
-      + "and the other how many securities or currency pairs can watched all together", tags = {
-          Watchlist.TABNAME })
+      + "and the other how many securities or currency pairs can watched all together", tags = { Watchlist.TABNAME })
   @GetMapping(value = "{idWatchlist}/limitsecuritiescurrencies", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TenantLimit[]> getSecuritiesCurrenciesWatchlistLimits(@PathVariable final Integer idWatchlist) {
     return new ResponseEntity<>(watchlistJpaRepository.getSecuritiesCurrenciesWachlistLimits(idWatchlist),
@@ -150,8 +149,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.removeCurrencypairFromWatchlistAndDelete(idWatchlist, idSecuritycurrency));
   }
 
-  @Operation(summary = "Remove a security from specified watchlist", description = "", tags = {
-      Watchlist.TABNAME })
+  @Operation(summary = "Remove a security from specified watchlist", description = "", tags = { Watchlist.TABNAME })
   @DeleteMapping(value = "{idWatchlist}/removeSecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Watchlist> removeSecurityFromWatchlist(@PathVariable final Integer idWatchlist,
       @PathVariable final Integer idSecuritycurrency) {
@@ -200,8 +198,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   }
 
   @Operation(summary = "Returns the content of a watchlist with the setting of youngest date of history quote. "
-      + "This should help to detect non working historical data feeds.", description = "", tags = {
-          Watchlist.TABNAME })
+      + "This should help to detect non working historical data feeds.", description = "", tags = { Watchlist.TABNAME })
   @GetMapping(value = "/{idWatchlist}/maxhistoryquote", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyGroup> getWatchlistWithoutUpdateAndMaxHistoryquote(
       @PathVariable final Integer idWatchlist) throws InterruptedException, ExecutionException {

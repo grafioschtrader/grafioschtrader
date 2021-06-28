@@ -81,7 +81,7 @@ public class CashAccountTransfer {
   }
 
   public void validateWithdrawalCashaccountAmount(Integer withdrawalCurrencyFraction) {
-    
+
     double transCost = withdrawalTransaction.getTransactionCost() != null ? withdrawalTransaction.getTransactionCost()
         : 0.0;
     double currencyExRate = withdrawalTransaction.getCurrencyExRate() != null
@@ -95,7 +95,8 @@ public class CashAccountTransfer {
 
     calcWithCashaccountAmount = DataHelper.round(calcWithCashaccountAmount, withdrawalCurrencyFraction);
 
-    double withCashaccountAmount = DataHelper.round(withdrawalTransaction.getCashaccountAmount(), withdrawalCurrencyFraction);
+    double withCashaccountAmount = DataHelper.round(withdrawalTransaction.getCashaccountAmount(),
+        withdrawalCurrencyFraction);
 
     if (withCashaccountAmount == calcWithCashaccountAmount) {
       withdrawalTransaction.setCashaccountAmount(calcWithCashaccountAmount);

@@ -112,7 +112,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
     case DIRECT_INVESTMENT:
       if (assetClassType == AssetclassType.EQUITIES) {
         select = "#ShareQuotes_1 table tr";
-      } else if(assetClassType == AssetclassType.COMMODITIES) {
+      } else if (assetClassType == AssetclassType.COMMODITIES) {
         select = "div.table-quotes table tr";
       }
       break;

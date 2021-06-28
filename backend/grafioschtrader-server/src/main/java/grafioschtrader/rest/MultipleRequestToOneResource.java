@@ -14,7 +14,6 @@ import grafioschtrader.service.MultipleRequestToOneService.DataForCurrencySecuri
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-
 @RestController
 @RequestMapping(RequestMappings.MULTIPLE_REQUEST_TO_ONE_MAP)
 @Tag(name = RequestMappings.MULTIPLE_REQUEST_TO_ONE, description = "Controller for multiple request to one")
@@ -22,7 +21,6 @@ public class MultipleRequestToOneResource {
 
   @Autowired
   private MultipleRequestToOneService multipleRequestToOneService;
-  
 
   @Operation(summary = "Returns the base data for a currency and security search", description = "", tags = {
       RequestMappings.MULTIPLE_REQUEST_TO_ONE })
@@ -30,5 +28,5 @@ public class MultipleRequestToOneResource {
   public ResponseEntity<DataForCurrencySecuritySearch> getDataForCurrencySecuritySearch() {
     return new ResponseEntity<>(multipleRequestToOneService.getDataForCurrencySecuritySearch(), HttpStatus.OK);
   }
-  
+
 }

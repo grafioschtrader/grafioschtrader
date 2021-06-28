@@ -169,8 +169,8 @@ public class UserServiceImpl implements UserService {
       // It is not possible to give this user the id 1 when @GeneratedValue(strategy =
       // GenerationType.IDENTITY) is used
       // But we move all existing entities to this user
-      TaskDataChange tdc = new TaskDataChange(TaskType.MOVE_CREATED_BY_USER_TO_OTHER_USER, TaskDataExecPriority.PRIO_NORMAL,
-          LocalDateTime.now().plusMinutes(5), user.getIdUser(), User.TABNAME);
+      TaskDataChange tdc = new TaskDataChange(TaskType.MOVE_CREATED_BY_USER_TO_OTHER_USER,
+          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(5), user.getIdUser(), User.TABNAME);
       tdc.setOldValueNumber(1.0);
       taskDataChangeJpaRepository.save(tdc);
     }

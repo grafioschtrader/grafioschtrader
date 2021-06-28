@@ -5,7 +5,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.SecurityCostPosition;
 
 public class TransactionCostPosition extends SecurityCostPosition {
- 
+
   public Transaction transaction;
   public double basePriceForTransactionCostMC;
 
@@ -13,7 +13,7 @@ public class TransactionCostPosition extends SecurityCostPosition {
     super(precisionMC);
     this.transaction = transaction;
   }
-  
+
   public double getBasePriceForTransactionCostMC() {
     return DataHelper.round(basePriceForTransactionCostMC, precisionMC);
   }

@@ -12,13 +12,13 @@ import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
 
 public interface GlobalparametersJpaRepositoryCustom {
-  
+
   Map<String, Integer> getCurrencyPrecision();
 
   int getPrecisionForCurrency(String currency);
-  
+
   int getTaskDataDaysPreserve();
-  
+
   int getSecurityCurrencyIntradayUpdateTimeout();
 
   int getWatchlistIntradayUpdateTimeout();
@@ -60,5 +60,5 @@ public interface GlobalparametersJpaRepositoryCustom {
   Globalparameters saveOnlyAttributes(Globalparameters globalparameters);
 
   List<ValueKeyHtmlSelectOptions> getCurrencies();
-  
+
 }

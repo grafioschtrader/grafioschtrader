@@ -53,11 +53,10 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
   /**
    * Matches a property like {transType|P|N}
    */
-  // private static final Pattern templatePropertyMatcher = Pattern.compile("(\\{[^\\{\\}]*\\})");
+  // private static final Pattern templatePropertyMatcher =
+  // Pattern.compile("(\\{[^\\{\\}]*\\})");
   private static final Pattern templatePropertyMatcher = Pattern.compile("(\\{[A-Z,a-z]{2}\\w*[\\|A-Za-z]*\\})");
-  
-  
-  
+
   /**
    * Can be everything but space
    */
@@ -231,9 +230,10 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
       }
     }
   }
-  
+
   private boolean isNonCaptureGroup(String[] rowSplitSpace, int propertyColum, int addValue) {
-    return rowSplitSpace[propertyColum + addValue].startsWith("(?:") && rowSplitSpace[propertyColum + addValue].endsWith(")");
+    return rowSplitSpace[propertyColum + addValue].startsWith("(?:")
+        && rowSplitSpace[propertyColum + addValue].endsWith(")");
   }
 
   private String addBraces(String regex) {

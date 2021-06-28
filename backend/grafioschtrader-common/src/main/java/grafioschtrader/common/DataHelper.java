@@ -104,9 +104,6 @@ public abstract class DataHelper {
     }
     return amount;
   }
-  
-  
-  
 
   /**
    * Copy properties from the source to the target object.
@@ -261,7 +258,7 @@ public abstract class DataHelper {
       Map<FromToCurrency, Currencypair> currencypairFromToCurrencyMap) {
     CashaccountTransfer ct = new CashaccountTransfer();
     // Transaction cost only WITHDRAWAL expected
-     
+
     double transactionCost = transaction.getTransactionCost() == null ? 0.0 : transaction.getTransactionCost();
     if (transaction.getIdCurrencypair() == null) {
       if (mainCurrency.equals(transaction.getCashaccount().getCurrency())) {

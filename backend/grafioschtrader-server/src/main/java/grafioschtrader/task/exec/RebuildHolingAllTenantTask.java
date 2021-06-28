@@ -30,12 +30,11 @@ public class RebuildHolingAllTenantTask implements ITask {
   public TaskType getTaskType() {
     return TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT;
   }
-  
+
   @Override
   public List<String> getAllowedEntities() {
     return Arrays.asList("", Tenant.class.getSimpleName());
   }
-
 
   @Override
   public void doWork(TaskDataChange taskDataChange) {

@@ -23,7 +23,6 @@ public class AccountPositionGroupSummary {
   public double groupCashTransferMC = 0.0;
   public double groupCashAccountTransactionFeeMC = 0.0;
 
-
   @Schema(description = "Total value in the main currency of a groupe including securities")
   public double groupValueMC = 0.0;
 
@@ -37,10 +36,9 @@ public class AccountPositionGroupSummary {
   public String currency;
   public List<CashaccountPositionSummary> accountPositionSummaryList = new ArrayList<>();
 
-  
   private Map<String, Integer> currencyPrecisionMap;
   private int precisionMC;
-  
+
   public AccountPositionGroupSummary(String groupName, String currency) {
     this.groupName = groupName;
     this.currency = currency;
@@ -48,11 +46,11 @@ public class AccountPositionGroupSummary {
 
   public void calcTotals(final DateTransactionCurrencypairMap dateTransactionCurrencypairMap) {
     for (CashaccountPositionSummary accountPositionSummary : accountPositionSummaryList) {
-      if(currencyPrecisionMap == null) {
+      if (currencyPrecisionMap == null) {
         currencyPrecisionMap = accountPositionSummary.currencyPrecisionMap;
         precisionMC = accountPositionSummary.precisionMC;
       }
-      
+
       if (accountPositionSummary.securitycurrency != null
           && !dateTransactionCurrencypairMap.isUntilDateEqualNowOrAfterOrInActualWeekend()) {
         accountPositionSummary.closePrice = dateTransactionCurrencypairMap.getExactDateAndFromCurrency(
@@ -80,8 +78,6 @@ public class AccountPositionGroupSummary {
       groupGainLossSecuritiesMC += accountPositionSummary.gainLossSecuritiesMC;
     }
   }
-   
-
 
   public double getGroupAccountFeesMC() {
     return DataHelper.round(groupAccountFeesMC, precisionMC);
@@ -94,7 +90,7 @@ public class AccountPositionGroupSummary {
   public double getGroupAccountInterestLastCloseMC() {
     return DataHelper.round(groupAccountInterestLastCloseMC, precisionMC);
   }
-    
+
   public double getGroupCashAccountTransactionFeeMC() {
     return DataHelper.round(groupCashAccountTransactionFeeMC, precisionMC);
   }
@@ -140,5 +136,4 @@ public class AccountPositionGroupSummary {
         + currencyPrecisionMap + "]";
   }
 
- 
 }

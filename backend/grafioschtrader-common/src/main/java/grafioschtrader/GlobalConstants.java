@@ -26,23 +26,22 @@ public class GlobalConstants {
    */
   public static final int FID_STANDARD_FRACTION_DIGITS = 2;
   public static final int FID_STANDARD_INTEGER_DIGITS = 9;
-  
+
   public static final int FID_SMALL_INTEGER_LIMIT = 6;
-   
+
   /**
    * Number maybe rounded to this precision
    */
   public static final int FID_MAX_FRACTION_DIGITS = 8;
-  public static final int FID_MAX_INTEGER_DIGITS = 11; 
-  
+  public static final int FID_MAX_INTEGER_DIGITS = 11;
+
   public static final int FID_MAX_DIGITS = 16;
   /**
    * The standard note text size
    */
   public static final int FID_MAX_LETTERS = 1000;
-  
 
-  public static final String TIME_ZONE="UTC";
+  public static final String TIME_ZONE = "UTC";
   public static final String SHORT_STANDARD_DATE_FORMAT = "yyyyMMdd";
   public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
   public static final String STANDARD_LOCAL_DATE_TIME = "yyyy-MM-dd HH:mm";
@@ -57,18 +56,17 @@ public class GlobalConstants {
    */
   public static final int SUSPEND_IP_ADDRESS_TIME = 60 * 60 * 24 * 1000;
 
- 
   /**
-   * Dividend frequency + days for the next dividend check 
+   * Dividend frequency + days for the next dividend check
    */
   public static final int DIVIDEND_FREQUENCY_PLUS_DAY = 10;
-  
+
   /**
-   * Earliest Day for the next dividend check, but the combination of frequency and
-   * this value control the date of next possible check. 
+   * Earliest Day for the next dividend check, but the combination of frequency
+   * and this value control the date of next possible check.
    */
-  public static final int DIVIDEND_FROM_NOW_FOR_NEXT_CHECK_IN_DAYS = 8; 
-  
+  public static final int DIVIDEND_FROM_NOW_FOR_NEXT_CHECK_IN_DAYS = 8;
+
   /**
    * Maximum of weeks in the period performance report
    */
@@ -79,8 +77,8 @@ public class GlobalConstants {
   public static final String UNITS = "units";
 
   /**
-   * Contains the supported cryptocurrencies. When a new is added, check references.
-   * Maybe a connector must be extended to this new cryptocurrency.
+   * Contains the supported cryptocurrencies. When a new is added, check
+   * references. Maybe a connector must be extended to this new cryptocurrency.
    */
   public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of("BTC", "BNB", "ETH", "ETC", "LTC", "XRP");
 

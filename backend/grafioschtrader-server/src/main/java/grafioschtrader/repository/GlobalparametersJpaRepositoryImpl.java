@@ -37,7 +37,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
-  
+
   @Autowired
   private MessageSource messages;
 
@@ -53,12 +53,12 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Override
   public Map<String, Integer> getCurrencyPrecision() {
-    Map<String, Integer> currencyPrecisionMap = new HashMap<>();   
+    Map<String, Integer> currencyPrecisionMap = new HashMap<>();
     String curPrecision = globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_CURRENCY_PRECISION)
-    .map(Globalparameters::getPropertyString).orElse(Globalparameters.DEFAULT_CURRENCY_PRECISION);
+        .map(Globalparameters::getPropertyString).orElse(Globalparameters.DEFAULT_CURRENCY_PRECISION);
     String[] curSinglePre = curPrecision.split(",");
-    
-    for(int i = 0; i < curSinglePre.length; i++ ) {
+
+    for (int i = 0; i < curSinglePre.length; i++) {
       String[] pair = curSinglePre[i].split("=");
       currencyPrecisionMap.put(pair[0], Integer.parseInt(pair[1]));
     }
@@ -76,8 +76,6 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_TASK_DATA_DAYS_PRESERVE);
   }
 
-  
-  
   @Override
   public List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys) {
     return TenantLimitsHelper.getMaxTenantLimitsByMsgKeys(globalparametersJpaRepository, msgKeys);
@@ -160,15 +158,14 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
     return currencies;
   }
-  
-  
+
   @Override
   public List<ValueKeyHtmlSelectOptions> getSupportedLocales() {
     final List<ValueKeyHtmlSelectOptions> dropdownValues = new ArrayList<>();
     for (final Locale loc : Locale.getAvailableLocales()) {
       if (GlobalConstants.GT_LANGUAGE_CODES.contains(loc.getLanguage())) {
         final String localeString = loc.toString().replace("_", "-");
-        if(localeString.length() <= 5) {
+        if (localeString.length() <= 5) {
           dropdownValues.add(new ValueKeyHtmlSelectOptions(localeString, localeString));
         }
       }

@@ -40,7 +40,7 @@ import grafioschtrader.types.TaskType;
 public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositoryCustom {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
-  
+
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
@@ -55,7 +55,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
-  
+
   @Autowired(required = false)
   private List<IFeedConnector> feedConnectors = new ArrayList<>();
 
@@ -132,8 +132,9 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         securitysplitsExisting = new ArrayList<>();
       }
       // Adjust holdings
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD,
-          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
+              LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
 
     } else {
       // User can't change splits directly if another user created the security ->
@@ -152,7 +153,6 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         .collect(Collectors.groupingBy(Securitysplit::getIdSecuritycurrency, Collectors.toList()));
   }
 
-  
   public List<String> loadAllSplitDataFromConnector(Security security) {
     List<String> errorMessages = new ArrayList<>();
     short retrySplitLoad = security.getRetrySplitLoad();
@@ -181,8 +181,8 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         CreateType.CONNECTOR_CREATED.getValue());
     List<Securitysplit> existingSplits = securitysplitJpaRepository
         .findByIdSecuritycurrencyOrderBySplitDateAsc(security.getIdSecuritycurrency());
-    List<Securitysplit> createdSplits = DividendSplitsHelper.updateDividendSplitData(security, securitysplitsRead, existingSplits,
-        this.securitysplitJpaRepository);
+    List<Securitysplit> createdSplits = DividendSplitsHelper.updateDividendSplitData(security, securitysplitsRead,
+        existingSplits, this.securitysplitJpaRepository);
     Optional<Date> maxSplitDate = createdSplits.stream().map(Securitysplit::getSplitDate).max(Date::compareTo);
 
     if (securityJpaRepository.isYoungestSplitHistoryquotePossibleAdjusted(security, securitysplitsRead,
@@ -204,5 +204,4 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
   }
 
-  
 }

@@ -24,13 +24,12 @@ public class SecurityLoadHistoricalIntraPriceDataTask implements ITask {
   public TaskType getTaskType() {
     return TaskType.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA;
   }
-  
- 
+
   @Override
   public List<String> getAllowedEntities() {
     return Arrays.asList(Security.class.getSimpleName());
   }
-  
+
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) {

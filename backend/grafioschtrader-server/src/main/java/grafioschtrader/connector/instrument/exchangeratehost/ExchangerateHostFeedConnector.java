@@ -99,38 +99,34 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
     }
     return historyquotes;
   }
-  
-  
+
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return DOMAIN_NAME + "/latest?base=" + currencypair.getFromCurrency() + "&symbols="+currencypair.getToCurrency();
+    return DOMAIN_NAME + "/latest?base=" + currencypair.getFromCurrency() + "&symbols=" + currencypair.getToCurrency();
   }
 
-  
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencyPair) throws IOException {
     URL url = new URL(getCurrencypairIntradayDownloadLink(currencyPair));
     HeaderExchangeLatest he = objectMapper.readValue(url, HeaderExchangeLatest.class);
     for (String symbol : he.rates.keySet()) {
-      if(symbol.equals(currencyPair.getToCurrency())) {
+      if (symbol.equals(currencyPair.getToCurrency())) {
         currencyPair.setSLast(he.rates.get(symbol));
         currencyPair.setSTimestamp(new Date(System.currentTimeMillis() - 60 * 60 * 1000));
       }
     }
   }
-  
 
   static abstract class HeaderExchangeBase {
     public boolean success;
     public String base;
   }
-  
+
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class HeaderExchangeLatest extends HeaderExchangeBase {
     public Map<String, Double> rates;
   }
 
-  
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class HeaderExchangeHistorical extends HeaderExchangeBase {
     public Map<String, Map<String, Double>> rates;

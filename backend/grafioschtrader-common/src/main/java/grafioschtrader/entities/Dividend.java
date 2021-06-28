@@ -41,7 +41,7 @@ public class Dividend extends DividendSplit implements Serializable {
 
   @Column(name = "amount")
   private Double amount;
-  
+
   @Column(name = "amount_adjusted")
   private Double amountAdjusted;
 
@@ -53,8 +53,8 @@ public class Dividend extends DividendSplit implements Serializable {
   public Dividend() {
   }
 
-  public Dividend(Integer idSecuritycurrency, LocalDate exDate, LocalDate payDate, Double amount, 
-      Double amountAdjusted, String currency, CreateType createType) {
+  public Dividend(Integer idSecuritycurrency, LocalDate exDate, LocalDate payDate, Double amount, Double amountAdjusted,
+      String currency, CreateType createType) {
     super(idSecuritycurrency, createType);
     this.exDate = exDate;
     this.payDate = payDate;
@@ -94,7 +94,7 @@ public class Dividend extends DividendSplit implements Serializable {
   public void setAmount(Double amount) {
     this.amount = amount;
   }
-  
+
   public Double getAmountAdjusted() {
     return amountAdjusted;
   }

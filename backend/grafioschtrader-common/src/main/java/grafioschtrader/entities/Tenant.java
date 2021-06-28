@@ -37,9 +37,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Entity
 @Table(name = Tenant.TABNAME)
 @NamedEntityGraph(name = "graph.tenant.portfolios", attributeNodes = @NamedAttributeNode("portfolioList"))
-@Schema(title ="Tenant is the main access point",
-    description = "GT defines a tenant from the aggregation of all portfolios and watchlists."
-+ "Additionally, it contains the information regarding the evaluation over all portfolios.")
+@Schema(title = "Tenant is the main access point", description = "GT defines a tenant from the aggregation of all portfolios and watchlists."
+    + "Additionally, it contains the information regarding the evaluation over all portfolios.")
 public class Tenant extends TenantBaseID implements Serializable {
 
   public static final String TABNAME = "tenant";

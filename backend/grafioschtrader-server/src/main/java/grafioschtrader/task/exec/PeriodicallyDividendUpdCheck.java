@@ -21,22 +21,22 @@ public class PeriodicallyDividendUpdCheck implements ITask {
 
   @Autowired
   private DividendJpaRepository dividendJpaRepository;
-  
+
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
-  
+
   @Scheduled(cron = "${gt.dividend.update.data}", zone = GlobalConstants.TIME_ZONE)
   public void catchAllUpSecuritycurrencyHistoryquote() {
     TaskDataChange taskDataChange = new TaskDataChange(TaskType.PERIODICALLY_DIVIDEND_UPDATE_CHECK,
         TaskDataExecPriority.PRIO_VERY_LOW);
     taskDataChangeRepository.save(taskDataChange);
   }
-  
+
   @Override
   public TaskType getTaskType() {
     return TaskType.PERIODICALLY_DIVIDEND_UPDATE_CHECK;
   }
-  
+
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) {

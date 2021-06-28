@@ -45,7 +45,7 @@ public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
   public TaskType getTaskType() {
     return TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES;
   }
-  
+
   @Override
   public List<String> getAllowedEntities() {
     return Arrays.asList(Security.class.getSimpleName());

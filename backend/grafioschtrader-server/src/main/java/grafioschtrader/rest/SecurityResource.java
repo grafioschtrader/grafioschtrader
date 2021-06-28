@@ -178,8 +178,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Searches securities  by a s search criteria", description = "", tags = {
-      Security.TABNAME })
+  @Operation(summary = "Searches securities  by a s search criteria", description = "", tags = { Security.TABNAME })
   @GetMapping(value = "/search", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Security>> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
     return new ResponseEntity<>(securityJpaRepository.searchByCriteria(securitycurrencySearch), HttpStatus.OK);

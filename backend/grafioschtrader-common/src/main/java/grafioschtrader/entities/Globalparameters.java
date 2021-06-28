@@ -48,8 +48,7 @@ public class Globalparameters implements Serializable {
 
   public static final String GLOB_KEY_CURRENCY_PRECISION = GT_PREFIX + "currency.precision";
   public static final String GLOB_KEY_TASK_DATA_DAYS_PRESERVE = GT_PREFIX + "task.data.days.preserve";
-  
-  
+
   // Connector settings
   public static final String GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR = GT_PREFIX + "cryptocurrency.history.connector";
   public static final String GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR = GT_PREFIX + "cryptocurrency.intra.connector";
@@ -78,7 +77,7 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_MAX_WATCHLIST_LENGTH = GT_PREFIX + MAX + "watchlist.length";
   public static final String GLOB_KEY_MAX_CORRELATION_SET = GT_PREFIX + MAX + "correlation.set";
   public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GT_PREFIX + MAX + "correlation.instruments";
-    
+
   // User day entity limits
   public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
 

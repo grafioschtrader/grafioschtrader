@@ -90,9 +90,10 @@ public class OnVistaFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Synchronized is introduced to avoid the reposen 429 (Too many requests)  
+   * Synchronized is introduced to avoid the reposen 429 (Too many requests)
    */
-  private synchronized List<Historyquote> getHistoricalData(String productUrlPart, final Date from, final Date to) throws Exception {
+  private synchronized List<Historyquote> getHistoricalData(String productUrlPart, final Date from, final Date to)
+      throws Exception {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
 

@@ -23,7 +23,7 @@ public class TransactionCostGrandSummary extends SecurityCostGrand<Integer, Tran
 
   @Override
   protected TransactionCostGroupSummary createInstance(Integer idSecurityaccount) {
-    return new TransactionCostGroupSummary(idSecurityaccount, 
+    return new TransactionCostGroupSummary(idSecurityaccount,
         currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
   }
 

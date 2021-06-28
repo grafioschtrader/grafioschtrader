@@ -22,8 +22,7 @@ public class LoadEmptyCurrencypairHistoryquotes implements ITask {
   public TaskType getTaskType() {
     return TaskType.LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES;
   }
-  
-  
+
   @Override
   public List<String> getAllowedEntities() {
     return Arrays.asList(Currencypair.class.getSimpleName());

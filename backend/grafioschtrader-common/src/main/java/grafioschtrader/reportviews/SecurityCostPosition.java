@@ -8,7 +8,7 @@ public class SecurityCostPosition {
   public double taxCostMC;
 
   protected int precisionMC;
-  
+
   public SecurityCostPosition(int precisionMC) {
     this.precisionMC = precisionMC;
   }
@@ -20,5 +20,5 @@ public class SecurityCostPosition {
   public double getTaxCostMC() {
     return DataHelper.round(taxCostMC, precisionMC);
   }
-  
+
 }

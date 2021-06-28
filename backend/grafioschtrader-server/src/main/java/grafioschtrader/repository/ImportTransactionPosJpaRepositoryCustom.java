@@ -22,7 +22,7 @@ public interface ImportTransactionPosJpaRepositoryCustom {
   void deleteMultiple(List<Integer> idTransactionPosList);
 
   List<ImportTransactionPos> setIdTransactionMayBe(Integer idTransactionMaybe, List<Integer> idTransactionPosList);
-  
+
   void setCheckReadyForSingleTransaction(ImportTransactionPos importTransactionPos);
 
   List<ImportTransactionPos> createAndSaveTransactionsByIds(List<Integer> idTransactionPosList);

@@ -45,8 +45,7 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
   public Security updateLastPriceSecurityCurrency(Security security, short maxIntraRetry, int scIntradayUpdateTimeout) {
 
     Date now = new Date();
-    if ((security.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
-        && security.isActiveForIntradayUpdate(now)
+    if ((security.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1) && security.isActiveForIntradayUpdate(now)
         && allowDelayedIntradayUpdate(security, scIntradayUpdateTimeout, now)) {
 
       SecurityCurrencypairDerivedLinks scdl = securityDerivedLinkJpaRepository

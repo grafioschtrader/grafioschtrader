@@ -26,6 +26,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -88,6 +89,15 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Autowired
   private MessageSource messages;
+
+  // Circular Dependency -> Lazy
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
+
+  @Autowired
+  public void setHoldSecurityaccountSecurityRepository(
+      @Lazy final HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository) {
+    this.holdSecurityaccountSecurityRepository = holdSecurityaccountSecurityRepository;
+  }
 
   @PostConstruct
   private void postConstruct() {
@@ -298,12 +308,19 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  public List<Security> searchBuilderWithExclusion(final Integer idWatchlist,
-      Integer idCorrelationSet, final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
+  public List<Security> searchBuilderWithExclusion(final Integer idWatchlist, Integer idCorrelationSet,
+      final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
 
-    return (securitycurrencySearch.assetclassType != AssetclassType.CURRENCY_PAIR)
-        ? this.securityJpaRepository.findAll(new SecuritySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch, idTenant))
-        : Collections.emptyList();
+    if (securitycurrencySearch.getAssetclassType() == AssetclassType.CURRENCY_PAIR) {
+      return Collections.emptyList();
+    } else {
+      List<Integer> idSecurityList = null;
+      if (securitycurrencySearch.getWithHoldings()) {
+        idSecurityList = this.holdSecurityaccountSecurityRepository.getIdSecurityByIdTenantWithHoldings(idTenant);
+      }
+      return this.securityJpaRepository.findAll(
+          new SecuritySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch, idTenant, idSecurityList));
+    }
   }
 
   @Override

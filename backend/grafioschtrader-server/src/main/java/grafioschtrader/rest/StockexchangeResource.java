@@ -28,8 +28,7 @@ public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stock
   @Autowired
   private StockexchangeJpaRepository stockexchangeJpaRepository;
 
-  @Operation(summary = "Returns all stock exchanges sorted by name", description = "", tags = {
-      Stockexchange.TABNAME })
+  @Operation(summary = "Returns all stock exchanges sorted by name", description = "", tags = { Stockexchange.TABNAME })
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Stockexchange>> getAllStockexchanges(
       @Parameter(description = "Get name of the index which is used for calenadar update", required = true) @RequestParam() final boolean includeNameOfCalendarIndex) {

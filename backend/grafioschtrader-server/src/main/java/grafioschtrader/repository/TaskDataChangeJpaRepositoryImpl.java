@@ -42,13 +42,13 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
         .forEach(t -> taskDataChangeConfig.taskTypeConfig.put(t.getTaskType(), t.getAllowedEntities()));
     return taskDataChangeConfig;
   }
-  
+
   private void checkTaskDataChange(final TaskDataChange taskDataChange, final TaskDataChangeFormConstraints tdcfc) {
-    if(taskDataChange.getIdTask().getValue() > tdcfc.maxUserCreateTask 
+    if (taskDataChange.getIdTask().getValue() > tdcfc.maxUserCreateTask
         && taskDataChange.getEarliestStartTime().minusDays(tdcfc.maxDaysInFuture).isAfter(LocalDateTime.now())) {
       throw new GeneralNotTranslatedWithArgumentsException("gt.taskdatachange.user.definition", null);
     }
-    
+
   }
 
 }

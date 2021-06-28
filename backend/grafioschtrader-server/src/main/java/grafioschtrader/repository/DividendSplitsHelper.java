@@ -12,7 +12,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.types.CreateType;
 
 public abstract class DividendSplitsHelper {
-  
+
   public static <S extends DividendSplit> List<S> updateDividendSplitData(Security security, List<S> dividendSplitsRead,
       List<S> existingDividendsSplits, JpaRepository<S, Integer> jpaRepository) {
 

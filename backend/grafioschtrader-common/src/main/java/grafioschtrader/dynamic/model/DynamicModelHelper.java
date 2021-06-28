@@ -28,7 +28,7 @@ public abstract class DynamicModelHelper {
     if (modelClass != null) {
       for (Field field : modelClass.getDeclaredFields()) {
         Annotation[] annotations = field.getDeclaredAnnotations();
-        if (possibleAnnotationSet.isEmpty() 
+        if (possibleAnnotationSet.isEmpty()
             || Arrays.stream(annotations).anyMatch(a -> possibleAnnotationSet.contains(a.annotationType()))) {
           FieldDescriptorInputAndShow fieldDescriptorInputAndShow = new FieldDescriptorInputAndShow(field.getName(),
               field.getType());

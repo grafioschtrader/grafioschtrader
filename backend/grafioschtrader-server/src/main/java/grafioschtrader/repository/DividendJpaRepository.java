@@ -12,16 +12,18 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
   Long deleteByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
 
   List<Dividend> findByIdSecuritycurrencyInOrderByIdSecuritycurrencyAscExDateAsc(List<Integer> securityIds);
+
   List<Dividend> findByIdSecuritycurrencyOrderByExDateAsc(Integer idSecuritycurrency);
 
   @Query(nativeQuery = true)
   List<DivdendForHoldings> getDivdendForSecurityHoldingByIdTenant(Integer idTenant);
-  
+
   @Query(nativeQuery = true)
   List<Integer> getIdSecurityForPeriodicallyUpdate(Integer daysAdded);
-  
+
   @Query(nativeQuery = true)
-  List<Integer> getIdSecuritySplitAfterDividendWhenAdjusted(List<String> idsConnectorDividend, List<Integer> idsSecurity);
+  List<Integer> getIdSecuritySplitAfterDividendWhenAdjusted(List<String> idsConnectorDividend,
+      List<Integer> idsSecurity);
 
   interface DivdendForHoldings {
     int getIdPortfolio();

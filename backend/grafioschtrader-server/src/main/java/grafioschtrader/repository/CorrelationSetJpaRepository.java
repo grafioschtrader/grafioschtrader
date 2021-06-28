@@ -15,13 +15,13 @@ public interface CorrelationSetJpaRepository extends JpaRepository<CorrelationSe
     CorrelationSetJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<CorrelationSet> {
 
   List<CorrelationSet> findByIdTenantOrderByName(Integer idTenant);
-  
+
   Optional<CorrelationSet> findByIdTenantAndIdCorrelationSet(Integer idTenant, Integer idCorrelationSet);
 
   Long countByIdTenant(Integer idTenant);
-  
+
   @Query(value = "SELECT count(s) FROM CorrelationSet c JOIN c.securitycurrencyList s WHERE c.idTenant = ?1 AND c.idCorrelationSet= ?2")
   Long countInstrumentsInCorrelationSet(Integer idTenant, Integer idCorrelationSet);
-  
+
   int deleteByIdCorrelationSetAndIdTenant(Integer idCorrelationSet, Integer idTenant);
 }

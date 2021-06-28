@@ -335,8 +335,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   public boolean isDividendSplitAdjusted() {
     return true;
   }
-  
-  
+
   @Override
   public String getDividendHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security.getUrlSplitExtend(),

@@ -47,7 +47,7 @@ public abstract class SecurityPositionSummaryReport {
 
   @Autowired
   protected GlobalparametersJpaRepository globalparametersJpaRepository;
-  
+
   @Autowired
   protected SecurityCalcService securityCalcService;
 

@@ -145,8 +145,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Schema(description = "The import position is maybe reflectin an existing transaction. It is the id of this transaction")
   @Column(name = "id_transaction_maybe")
   private Integer idTransactionMaybe;
- 
-  
+
   @Column(name = "id_trans_imp_template")
   private Integer idTransactionImportTemplate;
 
@@ -426,7 +425,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   public void setIdTransaction(Integer idTransaction) {
     this.idTransaction = idTransaction;
   }
-  
+
   public Integer getIdTransactionMaybe() {
     return idTransactionMaybe;
   }

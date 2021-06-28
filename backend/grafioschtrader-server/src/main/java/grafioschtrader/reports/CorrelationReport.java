@@ -27,11 +27,11 @@ import grafioschtrader.entities.Securitycurrency;
 public class CorrelationReport {
 
   private final JdbcTemplate jdbcTemplate;
-  
+
   public CorrelationReport(JdbcTemplate jdbcTemplate) {
-    this.jdbcTemplate = jdbcTemplate; 
+    this.jdbcTemplate = jdbcTemplate;
   }
- 
+
   public CorrelationResult calcCorrelation(CorrelationSet correlationSet) {
     TreeMap<LocalDate, double[]> closeValuesMap = loadCloseData(correlationSet);
     RealMatrix realMatrix = transFormToPercentageChange(closeValuesMap,
@@ -47,7 +47,7 @@ public class CorrelationReport {
           corr.getRow(i));
     }
     calcMultivariateSummary(realMatrix, ci);
-    
+
     return cr;
   }
 
@@ -101,7 +101,7 @@ public class CorrelationReport {
     }
 
     String query = qSelect.append(qFrom).append(qWhere).append(" ORDER BY h1.date").toString();
-  //  System.out.println(query);
+    // System.out.println(query);
     return jdbcTemplate.query(query, new ResultSetExtractor<TreeMap<LocalDate, double[]>>() {
       @Override
       public TreeMap<LocalDate, double[]> extractData(ResultSet rs) throws SQLException, DataAccessException {

@@ -9,7 +9,6 @@ import grafioschtrader.common.EnumHelper;
  *
  */
 public enum ImportKnownOtherFlags {
-  
 
   /**
    * Bonds may pay interest two or more times in a year. But the platform shows
@@ -36,7 +35,7 @@ public enum ImportKnownOtherFlags {
    * currency and adjust the dividend per unity accordingly.
    */
   CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE;
-  
+
   public static int encode(EnumSet<ImportKnownOtherFlags> importKnownOtherFlagsSet) {
     return EnumHelper.encode(importKnownOtherFlagsSet);
   }

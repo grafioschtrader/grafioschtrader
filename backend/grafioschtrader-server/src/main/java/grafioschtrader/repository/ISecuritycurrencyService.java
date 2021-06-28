@@ -26,7 +26,7 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
    * @return
    */
   List<IFeedConnector> getFeedConnectors(boolean isCurrency);
-  
+
   List<ValueKeyHtmlSelectOptions> getAllFeedConnectorsAsKeyValue(FeedSupport feedSupport);
 
 }

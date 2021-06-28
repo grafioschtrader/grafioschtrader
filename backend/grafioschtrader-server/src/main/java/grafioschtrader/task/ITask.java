@@ -14,7 +14,7 @@ public interface ITask {
   default boolean removeAllOtherJobsOfSameTask() {
     return false;
   }
-  
+
   default List<String> getAllowedEntities() {
     return null;
   }

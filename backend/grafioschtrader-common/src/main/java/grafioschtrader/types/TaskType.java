@@ -29,15 +29,15 @@ public enum TaskType {
   // Rebuild Holdings for all tenants, normally one one when the database was
   // created from export
   REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT((byte) 9),
-  // Load EOD data of an empty currency pair 
+  // Load EOD data of an empty currency pair
   LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES((byte) 10),
   // Copy the source tenant to the demo accounts
   COPY_DEMO_ACCOUNTS((byte) 11),
   // Creates the calendar for stock exchanged by a mayor index
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX((byte) 12),
-  
+
   PERIODICALLY_DIVIDEND_UPDATE_CHECK((byte) 13),
-  
+
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////
   // Moves shared entities from one user to another user by changing field

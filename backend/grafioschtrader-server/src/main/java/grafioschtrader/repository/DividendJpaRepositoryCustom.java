@@ -7,6 +7,6 @@ import grafioschtrader.entities.Security;
 public interface DividendJpaRepositoryCustom {
 
   List<String> periodicallyUpdate();
-  
+
   List<String> loadAllDividendDataFromConnector(Security security);
 }

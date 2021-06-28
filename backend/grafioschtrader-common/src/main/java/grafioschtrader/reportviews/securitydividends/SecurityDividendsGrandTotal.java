@@ -33,8 +33,9 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
 
   @Override
   protected SecurityDividendsYearGroup createInstance(Integer key) {
-    return new SecurityDividendsYearGroup(key, 
-        currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS), currencyPrecisionMap);
+    return new SecurityDividendsYearGroup(key,
+        currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS),
+        currencyPrecisionMap);
   }
 
   public void calcDivInterest() {
@@ -71,7 +72,7 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   public Integer getNumberOfCashAccounts() {
     return portfolioList.stream().map(portfolio -> portfolio.getCashaccountList()).mapToInt(List::size).sum();
   }
-  
+
   public double getGrandFeeMC() {
     return DataHelper.round(grandFeeMC, precisionMC);
   }

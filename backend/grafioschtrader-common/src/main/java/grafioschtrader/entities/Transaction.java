@@ -511,18 +511,19 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   public void clearCurrencypairExRate() {
     if (idCurrencypair == null) {
-      currencyExRate = null;;
+      currencyExRate = null;
+      ;
     } else if (currencyExRate == null) {
       idCurrencypair = null;
     }
   }
-  
+
   /**
-   * We do not throw an error if we get data which should not be set because of the transaction.
-   * Clear the fields may be better.
+   * We do not throw an error if we get data which should not be set because of
+   * the transaction. Clear the fields may be better.
    */
   public void clearAccountTransaction() {
-    switch(this.getTransactionType()) {
+    switch (this.getTransactionType()) {
     case FEE:
       connectedIdTransaction = null;
       idCurrencypair = null;
@@ -540,17 +541,15 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       idSecurityaccount = null;
       transactionCost = null;
       break;
-     default:
-       // Withdrawal
-       idSecurityaccount = null;
-       taxCost = null;
-       transactionCost = null;
+    default:
+      // Withdrawal
+      idSecurityaccount = null;
+      taxCost = null;
+      transactionCost = null;
     }
     this.clearCurrencypairExRate();
   }
-  
 
-  
   public double calcCostTaxMaybeBasePrice(String mc, SecurityCostPosition securityCostPosition,
       DateTransactionCurrencypairMap dateTransactionCurrencyMap, boolean calcBasePrice) {
 

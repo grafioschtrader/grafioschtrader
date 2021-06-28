@@ -15,11 +15,12 @@ public interface ImportTransactionTemplateJpaRepositoryCustom extends BaseReposi
   FormTemplateCheck checkFormAgainstTemplate(FormTemplateCheck formTemplateCheck, Locale userLocale) throws Exception;
 
   List<ValueKeyHtmlSelectOptions> getPossibleLanguagesForTemplate();
-  
-  void getTemplatesByPlatformPlanAsZip(Integer idTransactionImportPlatform,  HttpServletResponse response);
-  
-  SuccessFailedImportTransactionTemplate uploadImportTemplateFiles(Integer idTransactionImportPlatform, MultipartFile[] uploadFiles)  throws Exception;
-  
+
+  void getTemplatesByPlatformPlanAsZip(Integer idTransactionImportPlatform, HttpServletResponse response);
+
+  SuccessFailedImportTransactionTemplate uploadImportTemplateFiles(Integer idTransactionImportPlatform,
+      MultipartFile[] uploadFiles) throws Exception;
+
   public static class SuccessFailedImportTransactionTemplate {
     public int successNew;
     public int successUpdated;

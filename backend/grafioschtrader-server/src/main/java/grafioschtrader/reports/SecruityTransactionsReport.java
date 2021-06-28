@@ -136,7 +136,7 @@ public class SecruityTransactionsReport {
    * Get transactions for a security over single security account until a certain
    * date.
    * 
-   * @param idSecuritycashAccount
+   * @param data.idSecuritycashAccount
    * @param idSecuritycurrency
    * @param untilDate
    * @param secruityTransactionsReportOptions

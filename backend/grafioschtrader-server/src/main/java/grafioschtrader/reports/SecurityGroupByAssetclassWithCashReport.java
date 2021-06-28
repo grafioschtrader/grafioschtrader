@@ -37,8 +37,7 @@ public class SecurityGroupByAssetclassWithCashReport extends SecurityGroupByBase
 
     return super.createGroupsAndCalcGrandTotal(tenant, securityPositionSummaryList, dateCurrencyMap);
   }
-  
-  
+
   private void addCashaccountAsASecurity(final Tenant tenant, List<SecurityPositionSummary> securityPositionSummaryList,
       DateTransactionCurrencypairMap dateCurrencyMap) {
     Assetclass assetclassMainCurrency = new Assetclass();

@@ -11,26 +11,28 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 public class SecuritycurrencySearch implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  public String isin;
-  public AssetclassType assetclassType;
-  public String name;
-  Integer idStockexchange;
-  String stockexchangeCounrtyCode;
-  String tickerSymbol;
-  String currency;
+  private String isin;
+  private AssetclassType assetclassType;
+  private String name;
+  private Integer idStockexchange;
+  private String stockexchangeCounrtyCode;
+  private String tickerSymbol;
+  private String currency;
 
-  SpecialInvestmentInstruments specialInvestmentInstruments;
-  String subCategoryNLS;
-  boolean onlyTenantPrivate;
-  Boolean shortSecurity;
-  boolean excludeDerivedSecurity;
-  
-  String idConnectorHistory;
-  
-  String idConnectorIntra;
+  private SpecialInvestmentInstruments specialInvestmentInstruments;
+  private String subCategoryNLS;
+  private boolean onlyTenantPrivate;
+  private Boolean shortSecurity;
+  private boolean excludeDerivedSecurity;
+
+  private String idConnectorHistory;
+
+  private String idConnectorIntra;
 
   @DateTimeFormat(pattern = "yyyyMMdd")
-  public Date activeDate;
+  private Date activeDate;
+ 
+  private boolean withHoldings;
 
   public String getIsin() {
     return isin;
@@ -63,7 +65,7 @@ public class SecuritycurrencySearch implements Serializable {
   public void setIdStockexchange(Integer idStockexchange) {
     this.idStockexchange = idStockexchange;
   }
-  
+
   public String getStockexchangeCounrtyCode() {
     return stockexchangeCounrtyCode;
   }
@@ -127,7 +129,7 @@ public class SecuritycurrencySearch implements Serializable {
   public void setShortSecurity(Boolean shortSecurity) {
     this.shortSecurity = shortSecurity;
   }
-  
+
   public String getIdConnectorHistory() {
     return idConnectorHistory;
   }
@@ -150,6 +152,14 @@ public class SecuritycurrencySearch implements Serializable {
 
   public void setExcludeDerivedSecurity(boolean excludeDerivedSecurity) {
     this.excludeDerivedSecurity = excludeDerivedSecurity;
+  }
+
+  public boolean getWithHoldings() {
+    return withHoldings;
+  }
+
+  public void setWithHoldings(boolean withHoldings) {
+    this.withHoldings = withHoldings;
   }
 
   @Override

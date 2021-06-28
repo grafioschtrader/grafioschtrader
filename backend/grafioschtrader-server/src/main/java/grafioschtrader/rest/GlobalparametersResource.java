@@ -54,7 +54,6 @@ public class GlobalparametersResource {
 
   @Autowired
   private MessageSource messageSource;
- 
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
@@ -88,8 +87,10 @@ public class GlobalparametersResource {
 
   @GetMapping(value = "/userformdefinition", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<FieldDescriptorInputAndShow>> getUserFormDefinitions() {
-    return new ResponseEntity<>(DynamicModelHelper.getFormDefinitionOfModelClass(User.class,
-        Set.of(PropertyAlwaysUpdatable.class, PropertyChangePassword.class, PropertyOnlyCreation.class)), HttpStatus.OK);
+    return new ResponseEntity<>(
+        DynamicModelHelper.getFormDefinitionOfModelClass(User.class,
+            Set.of(PropertyAlwaysUpdatable.class, PropertyChangePassword.class, PropertyOnlyCreation.class)),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the possible currencies as it can be used in html option", description = "", tags = {

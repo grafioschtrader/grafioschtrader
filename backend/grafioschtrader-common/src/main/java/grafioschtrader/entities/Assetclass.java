@@ -63,7 +63,7 @@ public class Assetclass extends Auditable implements Serializable {
     possibleInstrumentsMap.put(AssetclassType.FIXED_INCOME,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT,
             SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
-            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,  
+            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
             SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.MONEY_MARKET,
@@ -73,7 +73,7 @@ public class Assetclass extends Auditable implements Serializable {
     possibleInstrumentsMap.put(AssetclassType.COMMODITIES,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT,
             SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
-            SpecialInvestmentInstruments.CFD, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,  
+            SpecialInvestmentInstruments.CFD, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
             SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.REAL_ESTATE,
@@ -82,7 +82,7 @@ public class Assetclass extends Auditable implements Serializable {
 
     possibleInstrumentsMap.put(AssetclassType.MULTI_ASSET,
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
-            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, 
+            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
             SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.CONVERTIBLE_BOND,
@@ -94,9 +94,8 @@ public class Assetclass extends Auditable implements Serializable {
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
             SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
-    possibleInstrumentsMap.put(AssetclassType.CURRENCY_PAIR,
-        new SpecialInvestmentInstruments[] {SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, 
-            SpecialInvestmentInstruments.FOREX });
+    possibleInstrumentsMap.put(AssetclassType.CURRENCY_PAIR, new SpecialInvestmentInstruments[] {
+        SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.FOREX });
 
   }
 
