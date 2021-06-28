@@ -34,7 +34,6 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
- 
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Tenant> getTenantAndPortfolio() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

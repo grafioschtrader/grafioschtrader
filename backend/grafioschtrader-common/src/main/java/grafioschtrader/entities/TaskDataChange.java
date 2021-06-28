@@ -125,8 +125,7 @@ public class TaskDataChange extends BaseID {
   public void setExecutionPriority(TaskDataExecPriority executionPriority) {
     this.executionPriority = executionPriority.getValue();
   }
-  
-  
+
   public TaskType getIdTask() {
     return TaskType.getTaskTypeByValue(idTask);
   }
@@ -190,8 +189,6 @@ public class TaskDataChange extends BaseID {
   public String getOldValueString() {
     return oldValueString;
   }
-
-  
 
   public void setOldValueString(String oldValueString) {
     this.oldValueString = oldValueString;

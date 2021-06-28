@@ -28,17 +28,16 @@ public class UpdateDividendForSecurityTask implements ITask {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
-    
+
   @Override
   public TaskType getTaskType() {
     return TaskType.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY;
   }
-  
+
   @Override
   public List<String> getAllowedEntities() {
     return Arrays.asList(Security.class.getSimpleName());
   }
-
 
   @Override
   @Transactional
@@ -53,7 +52,5 @@ public class UpdateDividendForSecurityTask implements ITask {
       throw new TaskBackgroundException("gt.dividend.connector.notfound");
     }
   }
-
-  
 
 }

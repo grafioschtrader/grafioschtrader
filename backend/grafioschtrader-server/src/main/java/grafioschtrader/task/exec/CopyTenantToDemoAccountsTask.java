@@ -81,8 +81,9 @@ public class CopyTenantToDemoAccountsTask implements ITask {
     if (sourceIdTenantOpt.isPresent()) {
       for (Integer targetIdTenant : demoIdTenants) {
         copyTenantService.copyTenant(sourceIdTenantOpt.get().getPropertyInt(), targetIdTenant);
-        taskDataChangeRepository.save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
-            TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), targetIdTenant, Tenant.class.getSimpleName()));
+        taskDataChangeRepository
+            .save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT, TaskDataExecPriority.PRIO_NORMAL,
+                LocalDateTime.now().plusMinutes(1), targetIdTenant, Tenant.class.getSimpleName()));
       }
     }
   }

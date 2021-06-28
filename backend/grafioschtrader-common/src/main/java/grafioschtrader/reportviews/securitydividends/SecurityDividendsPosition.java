@@ -24,7 +24,7 @@ public class SecurityDividendsPosition {
 
   @Schema(description = "For Bond when it is bought, some interest has to be paid to the previous holder")
   public double realReceivedDivInterestMC = 0.0;
-  
+
   @Schema(description = "For some Interest or Dividends there can be a tax, which is taken automatically")
   public double autoPaidTax = 0.0;
 
@@ -81,7 +81,7 @@ public class SecurityDividendsPosition {
 
   public void updateDividendPosition(Transaction transaction, DateTransactionCurrencypairMap dateCurrencyMap) {
     this.unitsAtEndOfYear = transaction.getUnits();
-   
+
     Double exchangeRate = DataHelper.getCurrencyExchangeRateToMainCurreny(transaction, dateCurrencyMap);
 
     exchangeRate = exchangeRate == null

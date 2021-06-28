@@ -32,5 +32,5 @@ public class SecurityPositionDynamicGrandSummary<S extends SecurityPositionGroup
   public double getGrandSecurityRiskMC() {
     return DataHelper.round(grandSecurityRiskMC, precision);
   }
-  
+
 }

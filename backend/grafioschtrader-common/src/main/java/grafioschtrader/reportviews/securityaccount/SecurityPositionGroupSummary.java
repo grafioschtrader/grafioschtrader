@@ -19,13 +19,12 @@ public abstract class SecurityPositionGroupSummary {
 
   public double groupValueSecurityShort;
   public double groupSecurityRiskMC;
-  
+
   public List<SecurityPositionSummary> securityPositionSummaryList = new ArrayList<>();
 
   private int precision;
   private int precisionMC;
 
-  
   public void addToGroupSummaryAndCalcGroupTotals(SecurityPositionSummary securityPositionSummary) {
     precision = securityPositionSummary.precision;
     precisionMC = securityPositionSummary.precisionMC;
@@ -55,7 +54,5 @@ public abstract class SecurityPositionGroupSummary {
   public double getGroupSecurityRiskMC() {
     return DataHelper.round(groupSecurityRiskMC, precisionMC);
   }
-  
-  
 
 }

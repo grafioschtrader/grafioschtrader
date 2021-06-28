@@ -481,8 +481,8 @@ public class WatchlistReport {
             securitysplitMap);
       }
       final double historyCloseAdjusted = histroyClose / splitFactorAfterBefore.fromToDateFactor;
-      securitycurrencyPosition.ytdChangePercentage = DataHelper.roundStandard((securitycurrencyPosition.securitycurrency.getSLast()
-          - historyCloseAdjusted) / historyCloseAdjusted * 100);
+      securitycurrencyPosition.ytdChangePercentage = DataHelper.roundStandard(
+          (securitycurrencyPosition.securitycurrency.getSLast() - historyCloseAdjusted) / historyCloseAdjusted * 100);
     }
   }
 

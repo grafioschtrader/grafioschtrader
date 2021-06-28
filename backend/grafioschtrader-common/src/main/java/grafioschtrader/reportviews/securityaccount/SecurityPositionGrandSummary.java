@@ -22,7 +22,7 @@ public class SecurityPositionGrandSummary {
   public double grandGainLossSecurityMC = 0.0;
 
   public double grandTaxCostMC = 0.0;
-  
+
   protected int precision;
 
   // public double grandTransactionCostMC = 0.0;
@@ -76,7 +76,4 @@ public class SecurityPositionGrandSummary {
     return DataHelper.round(grandTaxCostMC, precision);
   }
 
-  
-  
-  
 }

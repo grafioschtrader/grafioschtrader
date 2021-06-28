@@ -78,8 +78,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     return new ResponseEntity<>(transaction, HttpStatus.OK);
   }
 
-  @Operation(summary = "Get a single transaction by transactions Id", description = "", tags = {
-      Transaction.TABNAME })
+  @Operation(summary = "Get a single transaction by transactions Id", description = "", tags = { Transaction.TABNAME })
   @GetMapping(value = "/{idTransaction}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Transaction> getTransactionByIdTransaction(
       @Parameter(description = "Id of transaction", required = true) @PathVariable final Integer idTransaction) {
@@ -111,8 +110,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     return createEntity(entity);
   }
 
-  @Operation(summary = "Update transaction with security involved", description = "", tags = {
-      Transaction.TABNAME })
+  @Operation(summary = "Update transaction with security involved", description = "", tags = { Transaction.TABNAME })
   @PutMapping(value = "/securitytrans", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Transaction> updateTransaction(
       @Validated(SecurityTransaction.class) @RequestBody Transaction entity) throws Exception {

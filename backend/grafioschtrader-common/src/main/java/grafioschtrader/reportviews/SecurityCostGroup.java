@@ -7,13 +7,13 @@ public class SecurityCostGroup {
   public double groupTotalTaxCostMC;
   public double groupTotalAverageTransactionCostMC;
   public int groupCountPaidTransaction;
-  
+
   protected int precisionMC;
-  
+
   public SecurityCostGroup(int precisionMC) {
     this.precisionMC = precisionMC;
   }
-  
+
   public void sumPositionToGroupTotal(SecurityCostPosition securityCostPosition) {
     groupTotalTransactionCostMC += securityCostPosition.transactionCostMC;
     groupTotalTaxCostMC += securityCostPosition.taxCostMC;
@@ -45,6 +45,5 @@ public class SecurityCostGroup {
   public double getGroupTotalAverageTransactionCostMC() {
     return DataHelper.round(groupTotalAverageTransactionCostMC, precisionMC);
   }
-    
 
 }

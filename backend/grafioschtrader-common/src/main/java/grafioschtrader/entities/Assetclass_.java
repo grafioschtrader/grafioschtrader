@@ -6,7 +6,7 @@ import javax.persistence.metamodel.StaticMetamodel;
 
 @Generated(value = "org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor")
 @StaticMetamodel(Assetclass.class)
-public abstract class Assetclass_ {
+public abstract class Assetclass_ extends grafioschtrader.entities.Auditable_ {
 
   public static volatile SingularAttribute<Assetclass, Byte> categoryType;
   public static volatile SingularAttribute<Assetclass, MultilanguageString> subCategoryNLS;

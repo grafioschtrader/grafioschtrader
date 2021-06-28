@@ -173,15 +173,14 @@ public class StockworldFeedConnector extends BaseFeedConnector {
 
     final Elements rows = table.select("tr");
     final Elements headerCols = rows.get(1).select("td");
-    if(headerCols.get(1).text().equals("Letzter")) {
+    if (headerCols.get(1).text().equals("Letzter")) {
       scanLast(security, numberFormat, rows);
     } else {
       scanBidAsk(security, numberFormat, rows);
     }
   }
-  
-  private void scanLast(Security security, final NumberFormat numberFormat,
-      final Elements rows) throws ParseException {
+
+  private void scanLast(Security security, final NumberFormat numberFormat, final Elements rows) throws ParseException {
     final Elements cols = rows.get(2).select("td");
 
     security.setSLast(parseDouble(numberFormat, 1, cols));
@@ -190,18 +189,16 @@ public class StockworldFeedConnector extends BaseFeedConnector {
     parseDateTime(security, cols.get(4).text());
   }
 
-  private void scanBidAsk(Security security,
-      final NumberFormat numberFormat,
-      final Elements rows) throws ParseException {
+  private void scanBidAsk(Security security, final NumberFormat numberFormat, final Elements rows)
+      throws ParseException {
     final Elements cols = rows.get(2).select("td");
 
-    security.setSLast((parseDouble(numberFormat, 1, cols) + parseDouble(numberFormat, 2, cols)) / 2 );
+    security.setSLast((parseDouble(numberFormat, 1, cols) + parseDouble(numberFormat, 2, cols)) / 2);
     security.setSChangePercentage(parseDouble(numberFormat, 3, cols));
     security.setSPrevClose(parseDouble(numberFormat, 4, cols));
     parseDateTime(security, cols.get(5).text());
   }
-  
-  
+
   private void parseDateTime(Security security, String dateTime) throws ParseException {
     if (dateTime.contains(":")) {
       SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
@@ -214,6 +211,5 @@ public class StockworldFeedConnector extends BaseFeedConnector {
       security.setSTimestamp(dateFormat.parse(dateTime));
     }
   }
-  
-  
+
 }

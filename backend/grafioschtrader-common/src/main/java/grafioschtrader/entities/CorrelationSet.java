@@ -152,7 +152,6 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
     return securitycurrencyList;
   }
 
-  
   public void setSecuritycurrencyList(List<Securitycurrency<?>> securitycurrencyList) {
     this.securitycurrencyList = securitycurrencyList;
   }
@@ -174,7 +173,7 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
 
   public void removeInstrument(Integer idSecuritycurrency) {
     securitycurrencyList.removeIf(s -> s.idSecuritycurrency.equals(idSecuritycurrency));
-    
+
   }
 
 }

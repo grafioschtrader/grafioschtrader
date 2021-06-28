@@ -125,8 +125,8 @@ public class PerformancePeriod {
             if (phIndex > 0) {
               IPeriodHolding pHDayBefore = periodHoldings.get(lastIndex);
               periodWindow.addPeriodStep(weekYear, weekDay,
-                  DataHelper
-                      .roundStandard(periodHolding.getExternalCashTransferMC() - pHDayBefore.getExternalCashTransferMC()),
+                  DataHelper.roundStandard(
+                      periodHolding.getExternalCashTransferMC() - pHDayBefore.getExternalCashTransferMC()),
                   DataHelper.roundStandard(periodHolding.getGainMC() - pHDayBefore.getGainMC()),
                   DataHelper.roundStandard(periodHolding.getMarginCloseGainMC() - pHDayBefore.getMarginCloseGainMC()),
                   DataHelper.roundStandard(periodHolding.getCashBalanceMC() - pHDayBefore.getCashBalanceMC()),

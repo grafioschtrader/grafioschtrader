@@ -28,12 +28,11 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
   public double yearTaxableAmountMC;
   public int yearCountPaidTransactions;
   public double yearRealReceivedDivInterestMC;
-  public SecurityCostGroup securityCostGroup; 
+  public SecurityCostGroup securityCostGroup;
 
- 
   protected int precisionMC;
   private Map<String, Integer> currencyPrecisionMap;
-  
+
   public SecurityDividendsYearGroup(Integer year, int precisionMC, Map<String, Integer> currencyPrecisionMap) {
     super(new HashMap<>());
     this.year = year;
@@ -119,16 +118,15 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   public double getYearAutoPaidTaxMC() {
     return DataHelper.round(yearAutoPaidTaxMC, precisionMC);
-  
+
   }
- 
+
   public double getYearTaxableAmountMC() {
     return DataHelper.round(yearTaxableAmountMC, precisionMC);
   }
- 
 
   public double getYearRealReceivedDivInterestMC() {
     return DataHelper.round(yearRealReceivedDivInterestMC, precisionMC);
   }
-  
+
 }

@@ -20,8 +20,6 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -113,8 +111,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Security security = securityJpaRepository
         .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency, user.getIdTenant());
-    return setImportTransactionPosValue(user.getIdTenant(), idTransactionPosList, security,
-        true, ImportTransactionPos::setSecurityRemoveFromFlag);
+    return setImportTransactionPosValue(user.getIdTenant(), idTransactionPosList, security, true,
+        ImportTransactionPos::setSecurityRemoveFromFlag);
   }
 
   @Override
@@ -122,21 +120,21 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Cashaccount cashaccount = cashaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(idSecuritycashAccount,
         user.getIdTenant());
-    return setImportTransactionPosValue(user.getIdTenant(), idTransactionPosList, cashaccount,
-        true, ImportTransactionPos::setCashaccount);
+    return setImportTransactionPosValue(user.getIdTenant(), idTransactionPosList, cashaccount, true,
+        ImportTransactionPos::setCashaccount);
   }
 
   public List<ImportTransactionPos> setIdTransactionMayBe(Integer idTransactionMaybe,
       List<Integer> idTransactionPosList) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return setImportTransactionPosValue(user.getIdTenant(), idTransactionPosList, idTransactionMaybe,
-        false, ImportTransactionPos::setIdTransactionMaybe);
+    return setImportTransactionPosValue(user.getIdTenant(), idTransactionPosList, idTransactionMaybe, false,
+        ImportTransactionPos::setIdTransactionMaybe);
   }
 
   private <V> List<ImportTransactionPos> setImportTransactionPosValue(Integer idTenant,
       List<Integer> idTransactionPosList, V value, boolean requireValue, BiConsumer<ImportTransactionPos, V> setter) {
     List<ImportTransactionPos> setImportTransactionPosList = new ArrayList<>();
-    if(value == null && requireValue) {
+    if (value == null && requireValue) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
     idTransactionPosList.forEach(idTransactionPos -> {

@@ -46,9 +46,9 @@ public class TokenAuthenticationService {
 
   @Autowired
   private ObjectMapper jacksonObjectMapper;
-  
+
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;   
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -109,20 +109,19 @@ public class TokenAuthenticationService {
     Map<String, Integer> standardPrecision = new HashMap<>();
     ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(useWebsockt, useAlgo,
         globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision, uiShowMyProperty);
-    
+
     Field[] fields = GlobalConstants.class.getDeclaredFields();
     for (Field f : fields) {
-        if (Modifier.isStatic(f.getModifiers()) && f.getName().startsWith("FID")) {
-          try {
-            standardPrecision.put(f.getName(), f.getInt(null));
-          } catch (IllegalArgumentException | IllegalAccessException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-        } 
+      if (Modifier.isStatic(f.getModifiers()) && f.getName().startsWith("FID")) {
+        try {
+          standardPrecision.put(f.getName(), f.getInt(null));
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
     }
-    
-    
+
     final Set<EntityType<?>> entityTypeList = entityManager.getMetamodel().getEntities();
     for (EntityType<?> entity : entityTypeList) {
       Class<?> clazz = entity.getBindableJavaType();
@@ -139,10 +138,9 @@ public class TokenAuthenticationService {
     public final boolean useWebsocket;
     public final boolean useAlgo;
     public static final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
-    public final Map<String, Integer> currencyPrecision; 
+    public final Map<String, Integer> currencyPrecision;
     public final Map<String, Integer> standardPrecision;
     public final boolean uiShowMyProperty;
-      
 
     public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo, Map<String, Integer> currencyPrecision,
         Map<String, Integer> standardPrecision, boolean uiShowMyProperty) {
@@ -163,7 +161,5 @@ public class TokenAuthenticationService {
       this.keyName = keyName;
     }
   }
-  
- 
 
 }

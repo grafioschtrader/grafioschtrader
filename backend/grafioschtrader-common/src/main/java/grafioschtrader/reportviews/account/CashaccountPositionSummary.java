@@ -100,14 +100,12 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   public double valueMC;
 
   private Cashaccount cashaccount;
-  
+
   @JsonIgnore
   public Map<String, Integer> currencyPrecisionMap;
   @JsonIgnore
   public int precisionMC;
   private int precision;
-
-  
 
   public CashaccountPositionSummary(Map<String, Integer> currencyPrecisionMap) {
     this.currencyPrecisionMap = currencyPrecisionMap;
@@ -124,7 +122,7 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   public double getAccountInterestLastCloseMC() {
     return DataHelper.round(accountInterestLastCloseMC, precisionMC);
   }
-  
+
   public double getCashAccountTransactionFeeMC() {
     return DataHelper.round(cashAccountTransactionFeeMC, precisionMC);
   }
@@ -164,8 +162,7 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   public double getValueMC() {
     return DataHelper.round(valueMC, precisionMC);
   }
-  
-  
+
   public double getCashBalance() {
     return DataHelper.round(cashBalance, precision);
   }
@@ -175,9 +172,9 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   }
 
   public void setCashaccount(Cashaccount cashaccount) {
-    this.precision = this.currencyPrecisionMap.getOrDefault(cashaccount.getCurrency(), 
+    this.precision = this.currencyPrecisionMap.getOrDefault(cashaccount.getCurrency(),
         GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
-    this.precisionMC = this.currencyPrecisionMap.getOrDefault(cashaccount.getPortfolio().getCurrency(), 
+    this.precisionMC = this.currencyPrecisionMap.getOrDefault(cashaccount.getPortfolio().getCurrency(),
         GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
 
     this.cashaccount = cashaccount;

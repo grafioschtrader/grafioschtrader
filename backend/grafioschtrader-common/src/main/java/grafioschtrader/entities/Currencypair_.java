@@ -11,4 +11,7 @@ public abstract class Currencypair_ extends grafioschtrader.entities.Securitycur
   public static volatile SingularAttribute<Currencypair, String> toCurrency;
   public static volatile SingularAttribute<Currencypair, String> fromCurrency;
 
+  public static final String TO_CURRENCY = "toCurrency";
+  public static final String FROM_CURRENCY = "fromCurrency";
+
 }

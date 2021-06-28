@@ -78,15 +78,14 @@ public class Currencypair extends Securitycurrency<Currencypair> implements Seri
   }
 
   public boolean getIsCryptocurrency() {
-    return isFromCryptocurrency()
-        || GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(toCurrency);
+    return isFromCryptocurrency() || GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(toCurrency);
   }
 
   @JsonIgnore
   public boolean isFromCryptocurrency() {
     return GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(fromCurrency);
   }
-  
+
   @Override
   public String getName() {
     return fromCurrency + "/" + toCurrency;

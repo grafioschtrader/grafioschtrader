@@ -10,4 +10,6 @@ public abstract class AbstractMultilanguageString_ {
 
   public static volatile SingularAttribute<AbstractMultilanguageString, Integer> id;
 
+  public static final String ID = "id";
+
 }

@@ -19,22 +19,20 @@ public class FinanzenHelper {
       // Zürcher Kantonalbank
       { "ZKB", "ZKK" } };
 
-  private static final String[][] stockexchangeCertificateMapperArray = {
-      { "SIX", "QMH"},
+  private static final String[][] stockexchangeCertificateMapperArray = { { "SIX", "QMH" },
       // Stuttgart
       { "STU", "EUWAX" },
       // Frankfurt
-      { "FSX", "SCE" }};
-  
-  
+      { "FSX", "SCE" } };
+
   public static String getNormalMappedStockexchangeSymbol(String stockexchangeSymbol) {
     return geMappedStockexchangeSymbol(stockexchangeSymbol, stockexchangeNormalMapperArray);
   }
-  
+
   public static String getCertificateMappedStockexchangeSymbol(String stockexchangeSymbol) {
     return geMappedStockexchangeSymbol(stockexchangeSymbol, stockexchangeCertificateMapperArray);
   }
-  
+
   public static String geMappedStockexchangeSymbol(String stockexchangeSymbol, String[][] searchIn) {
     String symbol = stockexchangeSymbol.toLowerCase();
     for (String[] mapping : searchIn) {
@@ -44,5 +42,5 @@ public class FinanzenHelper {
     }
     return symbol;
   }
-  
+
 }

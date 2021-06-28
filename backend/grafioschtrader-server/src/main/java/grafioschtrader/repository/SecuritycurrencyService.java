@@ -59,10 +59,10 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   protected SecurityServiceAsyncExectuion<S, U> securityServiceAsyncExectuion;
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  protected GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  protected HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @PersistenceContext
   protected EntityManager entityManager;
@@ -185,13 +185,11 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   @Override
   public List<ValueKeyHtmlSelectOptions> getAllFeedConnectorsAsKeyValue(FeedSupport feedSupport) {
-    return feedConnectorbeans.stream().filter(f ->  f.getSecuritycurrencyFeedSupport().containsKey(feedSupport))
-                  .sorted(Comparator.comparing(IFeedConnector::getReadableName, String::compareToIgnoreCase))
-                  .map(f -> new ValueKeyHtmlSelectOptions(f.getID(), f.getReadableName()))
-                  .collect(Collectors.toList());
+    return feedConnectorbeans.stream().filter(f -> f.getSecuritycurrencyFeedSupport().containsKey(feedSupport))
+        .sorted(Comparator.comparing(IFeedConnector::getReadableName, String::compareToIgnoreCase))
+        .map(f -> new ValueKeyHtmlSelectOptions(f.getID(), f.getReadableName())).collect(Collectors.toList());
   }
-  
-  
+
   @Override
   @Transactional
   public S saveOnlyAttributes(final S securitycurrency, S existingEntity,

@@ -107,7 +107,7 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
       HttpServletResponse response) throws Exception {
     importTransactionTemplateJpaRepository.getTemplatesByPlatformPlanAsZip(idTransactionImportPlatform, response);
   }
-  
+
   @Operation(summary = "Upload one or more Template files, each Import transaction template", description = "", tags = {
       RequestMappings.IMPORTTRANSACTIONTEMPLATE })
   @PostMapping(value = "uploadtemplatefiles/{idTransactionImportPlatform}", produces = APPLICATION_JSON_VALUE)

@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import grafioschtrader.entities.HoldSecurityaccountSecurity;
-import grafioschtrader.entities.HoldSecurityaccountSecurity.HoldSecurityaccountSecurityKey;
+import grafioschtrader.entities.HoldSecurityaccountSecurityKey;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
 
 public interface HoldSecurityaccountSecurityJpaRepository
@@ -93,6 +93,10 @@ public interface HoldSecurityaccountSecurityJpaRepository
       + "FROM HoldSecurityaccountSecurity hss WHERE hss.idPortfolio = ?1")
   LocalDate findByIdPortfolioMinFromHoldDate(Integer idTenant);
 
+  @Query(nativeQuery = true)
+  List<Integer> getIdSecurityByIdTenantWithHoldings(Integer idTenant);
+  
+  
   /**
    * A stored procedure is used so that only transactions affected by the split
    * are selected with the splits in chronological order.

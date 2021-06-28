@@ -345,9 +345,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
     return (securitycurrencySearch.getIdConnectorHistory() != null
         || securitycurrencySearch.getIdConnectorIntra() != null
-        || securitycurrencySearch.assetclassType == AssetclassType.CURRENCY_PAIR
-        || (securitycurrencySearch.assetclassType == null && securitycurrencySearch.name != null)
-            && securitycurrencySearch.isin == null)
+        || securitycurrencySearch.getAssetclassType() == AssetclassType.CURRENCY_PAIR
+        || (securitycurrencySearch.getAssetclassType() == null && securitycurrencySearch.getName() != null)
+            && securitycurrencySearch.getIsin() == null)
                 ? currencypairJpaRepository
                     .findAll(new CurrencySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch))
                 : Collections.emptyList();

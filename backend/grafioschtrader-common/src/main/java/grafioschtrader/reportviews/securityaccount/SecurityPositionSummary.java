@@ -88,7 +88,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
   @JsonIgnore
   public double adjustedCostBase;
-  
+
   @JsonIgnore
   public double adjustedCostBaseMC;
 

@@ -62,22 +62,22 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
-  HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  TransactionJpaRepository transactionJpaRepository;
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Override
   @Transactional

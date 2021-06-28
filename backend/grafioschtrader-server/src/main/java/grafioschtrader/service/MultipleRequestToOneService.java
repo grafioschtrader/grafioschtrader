@@ -16,7 +16,6 @@ import grafioschtrader.repository.StockexchangeJpaRepository;
 @Service
 public class MultipleRequestToOneService {
 
-  
   @Autowired
   private AssetclassJpaRepository assetclassJpaRepository;
 
@@ -25,13 +24,13 @@ public class MultipleRequestToOneService {
 
   @Autowired
   private StockexchangeJpaRepository stockexchangeJpaRepository;
-  
+
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
   public DataForCurrencySecuritySearch getDataForCurrencySecuritySearch() {
     return new DataForCurrencySecuritySearch(globalparametersJpaRepository.getCurrencies(),
-        assetclassJpaRepository.getSubcategoryForLanguage(), 
+        assetclassJpaRepository.getSubcategoryForLanguage(),
         securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.HISTORY),
         securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.INTRA),
         stockexchangeJpaRepository.getAllStockExchanges(false));
@@ -43,6 +42,7 @@ public class MultipleRequestToOneService {
     public final List<ValueKeyHtmlSelectOptions> feedConnectorsHistory;
     public final List<ValueKeyHtmlSelectOptions> feedConnectorsIntra;
     public final List<Stockexchange> stockexchanges;
+
     public DataForCurrencySecuritySearch(List<ValueKeyHtmlSelectOptions> currencies,
         List<ValueKeyHtmlSelectOptions> assetclasses, List<ValueKeyHtmlSelectOptions> feedConnectorsHistory,
         List<ValueKeyHtmlSelectOptions> feedConnectorsIntra, List<Stockexchange> stockexchanges) {

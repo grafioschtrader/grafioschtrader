@@ -34,10 +34,10 @@ public class SecuritycurrencySearchBuilder {
 
     return watchlistSub;
   }
-  
-  
-  protected <T extends Securitycurrency<?>> Subquery<CorrelationSet> subQueryForAddingCorrelationSet(final Integer idCorrelationSet,
-      final Root<T> security, final CriteriaQuery<?> query, final CriteriaBuilder builder) {
+
+  protected <T extends Securitycurrency<?>> Subquery<CorrelationSet> subQueryForAddingCorrelationSet(
+      final Integer idCorrelationSet, final Root<T> security, final CriteriaQuery<?> query,
+      final CriteriaBuilder builder) {
     final Subquery<CorrelationSet> correlationSetSub = query.subquery(CorrelationSet.class);
     final Root<CorrelationSet> correlationSet = correlationSetSub.from(CorrelationSet.class);
     correlationSetSub.select(correlationSet);

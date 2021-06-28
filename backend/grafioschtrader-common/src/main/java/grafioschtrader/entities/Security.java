@@ -186,11 +186,11 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @Column(name = "retry_split_load")
   @PropertyAlwaysUpdatable
   private Short retrySplitLoad = 0;
-   
+
   @Column(name = "div_earliest_next_check")
   @Temporal(TemporalType.TIMESTAMP)
   private Date dividendEarliestNextCheck;
-  
+
   @Transient
   private SecurityDerivedLink securityDerivedLinks[];
 
@@ -468,7 +468,6 @@ public class Security extends Securitycurrency<Security> implements Serializable
     this.retrySplitLoad = retrySplitLoad;
   }
 
-
   public Date getDividendEarliestNextCheck() {
     return dividendEarliestNextCheck;
   }
@@ -481,7 +480,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   public boolean isActiveForIntradayUpdate(Date now) {
     return !now.after(getActiveToDate());
   }
-  
+
   @JsonIgnore
   public boolean canHaveDividendConnector() {
     boolean canHaveDividend = false;
@@ -526,14 +525,15 @@ public class Security extends Securitycurrency<Security> implements Serializable
 
   @JsonIgnore
   public boolean canHaveSplitConnector() {
-    return isDerivedInstrument()? false: !((this.assetClass.getCategoryType() == AssetclassType.CONVERTIBLE_BOND
-        || this.assetClass.getCategoryType() == AssetclassType.FIXED_INCOME)
-        && this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT)
-        && (this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF
-            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.PENSION_FUNDS
-            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.MUTUAL_FUND
-            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.CFD
-            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT);
+    return isDerivedInstrument() ? false
+        : !((this.assetClass.getCategoryType() == AssetclassType.CONVERTIBLE_BOND
+            || this.assetClass.getCategoryType() == AssetclassType.FIXED_INCOME)
+            && this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT)
+            && (this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF
+                || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.PENSION_FUNDS
+                || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.MUTUAL_FUND
+                || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.CFD
+                || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT);
   }
 
   @JsonIgnore

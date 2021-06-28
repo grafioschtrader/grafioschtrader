@@ -20,7 +20,8 @@ public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder impleme
   final Integer idCorrelationSet;
   final SecuritycurrencySearch securitycurrencySearch;
 
-  public CurrencySearchBuilder(Integer idWatchlist, Integer idCorrelationSet, SecuritycurrencySearch securitycurrencySearch) {
+  public CurrencySearchBuilder(Integer idWatchlist, Integer idCorrelationSet,
+      SecuritycurrencySearch securitycurrencySearch) {
     super();
     this.idWatchlist = idWatchlist;
     this.idCorrelationSet = idCorrelationSet;
@@ -36,36 +37,35 @@ public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder impleme
       mainPredicates
           .add(builder.not(builder.exists(subQueryForAddingWatchlist(idWatchlist, currencypair, query, builder))));
     }
-    
+
     if (idCorrelationSet != null) {
-      mainPredicates
-          .add(builder.not(builder.exists(subQueryForAddingCorrelationSet(idCorrelationSet, currencypair, query, builder))));
+      mainPredicates.add(
+          builder.not(builder.exists(subQueryForAddingCorrelationSet(idCorrelationSet, currencypair, query, builder))));
     }
 
     query.distinct(true);
-    if (securitycurrencySearch.currency != null) {
+    if (securitycurrencySearch.getCurrency() != null) {
       final Predicate pFrom = builder.equal(currencypair.get(Currencypair_.fromCurrency),
-          securitycurrencySearch.currency);
-      final Predicate pTo = builder.equal(currencypair.get(Currencypair_.toCurrency), securitycurrencySearch.currency);
+          securitycurrencySearch.getCurrency());
+      final Predicate pTo = builder.equal(currencypair.get(Currencypair_.toCurrency), securitycurrencySearch.getCurrency());
       mainPredicates.add(builder.or(pFrom, pTo));
-    } else if (securitycurrencySearch.name != null) {
+    } else if (securitycurrencySearch.getName() != null) {
       final Predicate pFrom = builder.like(currencypair.get(Currencypair_.fromCurrency),
-          "%" + securitycurrencySearch.name.toUpperCase() + "%");
+          "%" + securitycurrencySearch.getName().toUpperCase() + "%");
       final Predicate pTo = builder.like(currencypair.get(Currencypair_.toCurrency),
-          "%" + securitycurrencySearch.name.toUpperCase() + "%");
+          "%" + securitycurrencySearch.getName().toUpperCase() + "%");
       mainPredicates.add(builder.or(pFrom, pTo));
     }
-    
-    if (securitycurrencySearch.idConnectorHistory != null) {
+
+    if (securitycurrencySearch.getIdConnectorHistory() != null) {
       mainPredicates.add(builder.and(
-          builder.like(currencypair.get(Currencypair_.idConnectorHistory), securitycurrencySearch.idConnectorHistory)));
+          builder.like(currencypair.get(Currencypair_.idConnectorHistory), securitycurrencySearch.getIdConnectorHistory())));
     }
-    
-    if (securitycurrencySearch.idConnectorIntra != null) {
+
+    if (securitycurrencySearch.getIdConnectorIntra() != null) {
       mainPredicates.add(builder.and(
-          builder.like(currencypair.get(Currencypair_.idConnectorIntra), securitycurrencySearch.idConnectorIntra)));
+          builder.like(currencypair.get(Currencypair_.idConnectorIntra), securitycurrencySearch.getIdConnectorIntra())));
     }
-    
 
     final Predicate[] predicatesArray = new Predicate[mainPredicates.size()];
     return builder.and(mainPredicates.toArray(predicatesArray));

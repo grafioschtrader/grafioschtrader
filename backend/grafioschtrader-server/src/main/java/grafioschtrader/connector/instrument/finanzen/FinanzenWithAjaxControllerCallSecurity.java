@@ -90,11 +90,14 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
         "FundController");
     contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.EQUITIES, SpecialInvestmentInstruments.MUTUAL_FUND),
         "FundController");
-    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.MONEY_MARKET, SpecialInvestmentInstruments.MUTUAL_FUND),
+    contollerUrlMapping.put(
+        new ControllerUrlMapping(AssetclassType.MONEY_MARKET, SpecialInvestmentInstruments.MUTUAL_FUND),
         "FundController");
-    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.MUTUAL_FUND),
+    contollerUrlMapping.put(
+        new ControllerUrlMapping(AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.MUTUAL_FUND),
         "FundController");
-    contollerUrlMapping.put(new ControllerUrlMapping(AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND),
+    contollerUrlMapping.put(
+        new ControllerUrlMapping(AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND),
         "FundController");
     contollerUrlMapping.put(new ControllerUrlMapping(null, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES),
         "IndicesController");
@@ -129,9 +132,11 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
 
     SpecialInvestmentInstruments sii = security.getAssetClass().getSpecialInvestmentInstrument();
     if (possibleTwoPartUrl.length == 1) {
-      if(sii == SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT) {
-        url = getAjaxController(security, from, to, sii, security.getIsin() + "/" 
-      + FinanzenHelper.getCertificateMappedStockexchangeSymbol(security.getStockexchange().getSymbol()) + "/", "");
+      if (sii == SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT) {
+        url = getAjaxController(security, from, to, sii,
+            security.getIsin() + "/"
+                + FinanzenHelper.getCertificateMappedStockexchangeSymbol(security.getStockexchange().getSymbol()) + "/",
+            "");
       } else {
         url = getOnePartAjaxUrl(security, from, to, sii);
       }

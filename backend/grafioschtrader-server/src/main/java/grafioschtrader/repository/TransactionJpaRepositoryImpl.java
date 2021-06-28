@@ -51,7 +51,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
-  
+
   @Autowired
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
@@ -66,14 +66,13 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
-  
+
   // Circular Dependency -> Lazy
   private CashaccountJpaRepository cashaccountJpaRepository;
- 
-  
+
   // Circular Dependency -> Lazy
   private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
-  
+
   ///////////////////////////////////////////////////////////////////////////////
   // Methods with general Transaction
   //////////////////////////////////////////////////////////////////////////////
@@ -83,7 +82,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   @Autowired
-  public void setImportTransactionPosJpaRepository(@Lazy final ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
+  public void setImportTransactionPosJpaRepository(
+      @Lazy final ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
     this.importTransactionPosJpaRepository = importTransactionPosJpaRepository;
   }
 

@@ -23,6 +23,6 @@ public interface TenantJpaRepositoryCustom extends BaseRepositoryCustom<Tenant> 
   Tenant changeCurrencyTenantAndPortfolios(String currency);
 
   Tenant setWatchlistForPerformance(Integer idWatchlist);
-  
+
   void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception;
 }

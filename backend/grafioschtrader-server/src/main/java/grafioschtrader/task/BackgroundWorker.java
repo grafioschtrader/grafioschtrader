@@ -76,8 +76,9 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
     } catch (TaskBackgroundException tbe) {
       if (tbe.getErrorMsgOfSystem() != null) {
         StringBuilder failure = new StringBuilder("");
-        tbe.getErrorMsgOfSystem().forEach(m -> failure.append(m.toString()+ "\n"));
-        taskDataChange.setFailedStackTrace(failure.toString().substring(0, TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE));
+        tbe.getErrorMsgOfSystem().forEach(m -> failure.append(m.toString() + "\n"));
+        taskDataChange
+            .setFailedStackTrace(failure.toString().substring(0, TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE));
       }
       taskDataChange.setFailedMessageCode(tbe.getErrorMessagesKey());
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
@@ -96,7 +97,6 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
     return tdcNew;
   }
 
- 
   private void finishedJob(final TaskDataChange taskDataChange, LocalDateTime startTime,
       ProgressStateType progressStateType) {
     taskDataChange.finishedJob(startTime, progressStateType);

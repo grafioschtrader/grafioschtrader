@@ -10,4 +10,6 @@ public abstract class MultilanguageString_ extends grafioschtrader.entities.Abst
 
   public static volatile MapAttribute<MultilanguageString, String, String> map;
 
+  public static final String MAP = "map";
+
 }

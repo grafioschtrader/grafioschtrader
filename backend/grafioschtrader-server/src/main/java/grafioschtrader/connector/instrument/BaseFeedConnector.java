@@ -305,7 +305,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         }
       }
     } catch (Exception e) {
-      //  throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
+      // throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new
+      // Object[] { url });
       System.out.println(url);
     }
   }
@@ -351,7 +352,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   public boolean isDividendSplitAdjusted() {
     return false;
   }
-  
+
   @Override
   public String getDividendHistoricalDownloadLink(Security security) {
     throw new UnsupportedOperationException("Not supported yet.");

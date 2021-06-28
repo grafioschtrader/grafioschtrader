@@ -31,7 +31,6 @@ public abstract class AccountGroupMap<K> {
     return accountPositionGrandSummary;
   }
 
-  
   public List<CashaccountPositionSummary> getAllForeignCurrency() {
     return mapAccountGrandSummary.values().stream().map(value -> value.accountPositionSummaryList)
         .flatMap(values -> values.stream())
