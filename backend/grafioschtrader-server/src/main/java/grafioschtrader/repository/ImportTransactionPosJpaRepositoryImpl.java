@@ -416,7 +416,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       ImportTransactionPos itp, User user, Integer idCurrencypair) {
 
     return transactionTemplate.execute(status -> {
-
       try {
         Transaction transaction = new Transaction(importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
             itp.getCashaccount(), itp.getSecurity(), itp.getCalcCashaccountAmount(), itp.getUnits(), itp.getQuotation(),
@@ -440,7 +439,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
           itp.setIdTransactionMaybe(null);
           return Optional
               .of(new SavedImpPosAndTransaction(savedTransaction, importTransactionPosJpaRepository.save(itp)));
-
         }
       } catch (Exception ex) {
         status.setRollbackOnly();

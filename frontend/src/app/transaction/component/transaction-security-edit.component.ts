@@ -9,7 +9,6 @@ import {Security} from '../../entities/security';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {SecurityService} from '../../securitycurrency/service/security.service';
-import {Currencypair} from '../../entities/currencypair';
 import {Transaction} from '../../entities/transaction';
 import {TransactionService} from '../service/transaction.service';
 import {SecurityOpenPositionPerSecurityaccount} from '../../entities/view/security.open.position.per.securityaccount';
@@ -93,7 +92,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   config: FieldFormGroup[] = [];
   isOpenMarginInstrument: boolean;
   formConfig: FormConfig;
-  flattenFieldConfigObject: { [name: string]: FieldConfig };
+  // configObject: { [name: string]: FieldConfig };
   // Transaction depentable
   transactionEditType: ITransactionEditType;
   // Data from Server
@@ -101,7 +100,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private portfolios: Portfolio[];
   private securityOpenPositionPerSecurityaccount: SecurityOpenPositionPerSecurityaccount;
   // Form content variables
-  private currencypair?: Currencypair;
+
   private selectedSecurity: Security;
   private isAccumaulteOrReduce;
   private volumei18n: string = null;
@@ -127,12 +126,12 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
               private portfolioService: PortfolioService,
               private securityService: SecurityService,
               private currencypairService: CurrencypairService,
-              private historyquoteService: HistoryquoteService,
               private activeRoute: ActivatedRoute,
-              private messageToastService: MessageToastService,
+              messageToastService: MessageToastService,
+              historyquoteService: HistoryquoteService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(translateService, gps);
+    super(messageToastService, historyquoteService, translateService, gps);
   }
 
   ngOnInit(): void {
@@ -150,7 +149,10 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     const calcGroupConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldCurrencyNumber('currencyExRate', 'EXCHANGE_RATE', true,
         7, AppSettings.FID_MAX_FRACTION_DIGITS, false,
-        this.gps.getNumberCurrencyMask(), false),
+        this.gps.getNumberCurrencyMask(), false, {usedLayoutColumns: 8}),
+
+      ...this.createExRateButtons(),
+
       this.createQuotationField(),
       DynamicFieldHelper.createFieldCurrencyNumber('quotation', 'QUOTATION_DIV', true,
         AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
@@ -158,16 +160,22 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         {userDefinedValue: 'S'}),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
-        this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S'}),
+        this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
+
+      DynamicFieldHelper.createFieldCurrencyNumber('taxCostCA', null, false,
+        9, 2, false, this.gps.getNumberCurrencyMask(),
+        true, {userDefinedValue: 'C', usedLayoutColumns: 4}),
+
+
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
 
-      /*
-    DynamicFieldHelper.createFieldCurrencyNumber('transactionCostCA', null, false,
-      9, 2, false, this.gps.getNumberCurrencyMask(),
-      {userDefinedValue: 'C', usedLayoutColumns: 4}),
-*/
+
+      DynamicFieldHelper.createFieldCurrencyNumber('transactionCostCA', null, false,
+        9, 2, false, this.gps.getNumberCurrencyMask(),
+        true, {userDefinedValue: 'C', usedLayoutColumns: 4}),
+
       // Used for accrued interest and daily finance cost for margin instrument
       DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue1', 'ACCRUED_INTEREST',
         false, AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_FRACTION_DIGITS - 3,
@@ -178,7 +186,6 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         false, AppSettings.FID_STANDARD_INTEGER_DIGITS - 3, 0, true,
         this.gps.getNumberCurrencyMask(), true)
     ];
-
 
     this.config = [
       DynamicFieldHelper.createFieldSelectNumberHeqF('transactionType', true),
@@ -204,7 +211,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       DynamicFieldHelper.createSubmitButton()
     ];
 
-    this.flattenFieldConfigObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.translateService.get('VOLUME').subscribe(text => this.volumei18n = text);
     this.setCurrencyPrefixOnFields(null, this.transactionCallParam.transaction?.cashaccount.currency);
   }
@@ -227,7 +234,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
 
   valueChangedOnCalcFields(): void {
-    this.valueChangedOnValueCalcFieldsSub = this.flattenFieldConfigObject.calcGroup.formControl.valueChanges.subscribe(data => {
+    this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges.subscribe(data => {
       this.calcPosTotalOnChanges(data);
     });
   }
@@ -235,17 +242,17 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private calcPosTotalOnChanges(data: any): void {
     if (data.units && data.quotation) {
 
-      if (!this.flattenFieldConfigObject.securityRisk.invisible) {
-        this.setValueToControl(this.flattenFieldConfigObject.securityRisk, (this.calcPosTotal(data, true) * -1));
+      if (!this.configObject.securityRisk.invisible) {
+        this.setValueToControl(this.configObject.securityRisk, (this.calcPosTotal(data, true) * -1));
       }
 
-      this.setValueToControl(this.flattenFieldConfigObject.cashaccountAmount,
+      this.setValueToControl(this.configObject.cashaccountAmount,
         this.calcPosTotal(data, false));
     }
   }
 
   private calcPosTotal(data: any, calcSecurityRisk): number {
-    const currencyExRate = (!this.flattenFieldConfigObject.currencyExRate.formControl.disabled
+    const currencyExRate = (!this.configObject.currencyExRate.formControl.disabled
       && Helper.hasValue(data.currencyExRate)) ? data.currencyExRate : 1.0;
     const units = data.units;
 
@@ -264,7 +271,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
     const taxCost = data.taxCost ? data.taxCost : 0;
     const transactionCost = data.transactionCost ? data.transactionCost : 0;
-    const accruedInterest = (!this.flattenFieldConfigObject.assetInvestmentValue1.invisible
+    const accruedInterest = (!this.configObject.assetInvestmentValue1.invisible
       && !this.isMarginInstrument && data.assetInvestmentValue1) ? data.assetInvestmentValue1 : 0;
 
     let valuePerPoint = 1.0;
@@ -284,26 +291,26 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
    */
   valueChangedOnCashaccountOrSecurity(): void {
     this.clearCurrencyExRate();
-    const obs1 = this.flattenFieldConfigObject.idCashaccount.formControl.valueChanges.pipe(map(v => ({
-      control: this.flattenFieldConfigObject.idCashaccount.formControl,
+    const obs1 = this.configObject.idCashaccount.formControl.valueChanges.pipe(map(v => ({
+      control: this.configObject.idCashaccount.formControl,
       value: v
     })));
 
-    const obs2 = (this.flattenFieldConfigObject.idSecuritycurrency.formControl.valueChanges.pipe(map(v => ({
-      control: this.flattenFieldConfigObject.idSecuritycurrency.formControl,
+    const obs2 = (this.configObject.idSecuritycurrency.formControl.valueChanges.pipe(map(v => ({
+      control: this.configObject.idSecuritycurrency.formControl,
       value: v
     }))));
 
     this.cashaccountSecuritySub = merge(obs1, obs2).subscribe(
       (controlValue) => {
-        if (this.flattenFieldConfigObject.idSecuritycurrency.formControl.value != null) {
-          this.selectedSecurity = this.getSecurityById(+this.flattenFieldConfigObject.idSecuritycurrency.formControl.value);
+        if (this.configObject.idSecuritycurrency.formControl.value != null) {
+          this.selectedSecurity = this.getSecurityById(+this.configObject.idSecuritycurrency.formControl.value);
           if (this.selectedSecurity) {
             this.transactionCallParam.idSecuritycurrency = this.selectedSecurity.idSecuritycurrency;
             if (!this.transactionCallParam.transaction && this.transactionCallParam.transactionType !== TransactionType.DIVIDEND) {
               this.getAndSetQuotationSecurity(this.selectedSecurity);
             }
-            if (controlValue.control === this.flattenFieldConfigObject.idSecuritycurrency.formControl) {
+            if (controlValue.control === this.configObject.idSecuritycurrency.formControl) {
               this.readSecurityaccountAndHoldings();
             }
             this.setCurrencyOnSecurityAndCashaccount(this.selectedSecurity);
@@ -318,7 +325,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setCurrencyPrefixOnFields(currencySecurity: string, currencyCashaccount): void {
-    currencySecurity && Object.values(this.flattenFieldConfigObject).filter(fieldConfig => fieldConfig.userDefinedValue === 'S')
+    currencySecurity && Object.values(this.configObject).filter(fieldConfig => fieldConfig.userDefinedValue === 'S')
       .map(fc => {
         fc.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(currencySecurity);
         /*
@@ -327,7 +334,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
          */
       });
     currencyCashaccount &&
-    Object.values(this.flattenFieldConfigObject).filter(fieldConfig => fieldConfig.userDefinedValue === 'C')
+    Object.values(this.configObject).filter(fieldConfig => fieldConfig.userDefinedValue === 'C')
       .map(fc => {
         fc.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.currencyCashaccount);
         /*
@@ -339,46 +346,45 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setVisibilityOnFields(): void {
-    this.flattenFieldConfigObject.assetInvestmentValue1.invisible = !(this.transactionCallParam.transactionType
+    this.configObject.assetInvestmentValue1.invisible = !(this.transactionCallParam.transactionType
       === TransactionType.REDUCE || this.transactionCallParam.transactionType === TransactionType.ACCUMULATE) ||
       !(((this.selectedSecurity.assetClass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME]
         || this.selectedSecurity.assetClass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND])
         && this.selectedSecurity.assetClass.specialInvestmentInstrument
         === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT]) || this.isOpenMarginInstrument);
-    if (!this.flattenFieldConfigObject.assetInvestmentValue1.invisible) {
-      this.flattenFieldConfigObject.assetInvestmentValue1.labelKey = this.isOpenMarginInstrument ? 'DAILY_CFD_HOLDING_COST'
+    if (!this.configObject.assetInvestmentValue1.invisible) {
+      this.configObject.assetInvestmentValue1.labelKey = this.isOpenMarginInstrument ? 'DAILY_CFD_HOLDING_COST'
         : 'ACCRUED_INTEREST';
-      this.flattenFieldConfigObject.assetInvestmentValue1.currencyMaskConfig.allowNegative = this.isOpenMarginInstrument;
-      this.flattenFieldConfigObject.assetInvestmentValue1.currencyMaskConfig.precision = this.isOpenMarginInstrument ? 5 : 2;
+      this.configObject.assetInvestmentValue1.currencyMaskConfig.allowNegative = this.isOpenMarginInstrument;
+      this.configObject.assetInvestmentValue1.currencyMaskConfig.precision = this.isOpenMarginInstrument ? 5 : 2;
     }
-    this.flattenFieldConfigObject.exDate.invisible = this.transactionCallParam.transactionType !== TransactionType.DIVIDEND;
-    this.flattenFieldConfigObject.securityRisk.invisible = !this.isMarginInstrument;
+    this.configObject.exDate.invisible = this.transactionCallParam.transactionType !== TransactionType.DIVIDEND;
+    this.configObject.securityRisk.invisible = !this.isMarginInstrument;
     FormHelper.disableEnableFieldConfigsWhenAlreadySet(!this.isOpenMarginInstrument,
-      [this.flattenFieldConfigObject.assetInvestmentValue2]);
-    this.flattenFieldConfigObject.assetInvestmentValue2.invisible = !this.isMarginInstrument;
-    this.flattenFieldConfigObject.taxCost.invisible = this.transactionCallParam.transactionType === TransactionType.FINANCE_COST;
-    this.flattenFieldConfigObject.transactionCost.invisible =
+      [this.configObject.assetInvestmentValue2]);
+    this.configObject.assetInvestmentValue2.invisible = !this.isMarginInstrument;
+    this.configObject.taxCost.invisible = this.transactionCallParam.transactionType === TransactionType.FINANCE_COST;
+    this.configObject.transactionCost.invisible =
       this.transactionCallParam.transactionType === TransactionType.FINANCE_COST;
 
     if (this.isMarginInstrument) {
-      if (!this.flattenFieldConfigObject.assetInvestmentValue2.formControl.value) {
-        this.setValueToControl(this.flattenFieldConfigObject.assetInvestmentValue2, 1);
+      if (!this.configObject.assetInvestmentValue2.formControl.value) {
+        this.setValueToControl(this.configObject.assetInvestmentValue2, 1);
       }
     }
   }
-
 
   /**
    * When transaction time changes, possible the available securities and possible holdings need a update.
    */
   valueChangedOnTransactionTimeAndExDate(): void {
-    this.timeChangedSubscribe(this.valueChangedOnTransactionTimeSub, this.flattenFieldConfigObject.transactionTime.formControl, false);
-    this.timeChangedSubscribe(this.valueChangedOnExDateSub, this.flattenFieldConfigObject.exDate.formControl, true);
+    this.timeChangedSubscribe(this.valueChangedOnTransactionTimeSub, this.configObject.transactionTime.formControl, false);
+    this.timeChangedSubscribe(this.valueChangedOnExDateSub, this.configObject.exDate.formControl, true);
   }
 
   private timeChangedSubscribe(subscript: Subscription, control: AbstractControl, hasPriority: boolean): void {
     subscript = control.valueChanges.subscribe(value => {
-      if (!this.flattenFieldConfigObject.exDate.formControl.value || hasPriority) {
+      if (!this.configObject.exDate.formControl.value || hasPriority) {
         if (value != null && !moment(value).isBefore(DynamicFieldHelper.minDateCalendar)) {
           if (this.transactionCallParam.security == null) {
             this.prepareAsyncActiveSecurityOptions();
@@ -404,21 +410,21 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   valueChangedOnSecurityaccount(): void {
-    this.valueChangedOnidSecurityaccountSub = this.flattenFieldConfigObject.idSecurityaccount.formControl.valueChanges.subscribe(value => {
+    this.valueChangedOnidSecurityaccountSub = this.configObject.idSecurityaccount.formControl.valueChanges.subscribe(value => {
       // Change cashaccount when securityaccount was changed
       const portfolio = this.getPortfolioByIdSecurityaccount(+value);
       if (portfolio != null) {
-        this.flattenFieldConfigObject.idCashaccount.valueKeyHtmlOptions = this.createHtmlSelectKeyValue(portfolio.name,
+        this.configObject.idCashaccount.valueKeyHtmlOptions = this.createHtmlSelectKeyValue(portfolio.name,
           portfolio.cashaccountList);
 
-        this.selectedSecurity = this.getSecurityById(this.flattenFieldConfigObject.idSecuritycurrency.formControl.value);
+        this.selectedSecurity = this.getSecurityById(this.configObject.idSecuritycurrency.formControl.value);
 
         if (this.selectedSecurity && !this.transactionCallParam.transaction) {
           // select default cashaccount depending on selected currency of the security
           const cashaccounts: Cashaccount[] = portfolio.cashaccountList.filter(cashaccount =>
             cashaccount.currency === this.selectedSecurity.currency);
           if (cashaccounts.length > 0) {
-            this.setValueToControl(this.flattenFieldConfigObject.idCashaccount, cashaccounts[0].idSecuritycashAccount);
+            this.setValueToControl(this.configObject.idCashaccount, cashaccounts[0].idSecuritycashAccount);
             this.currencyCashaccount = this.selectedSecurity.currency;
             this.setCurrencyPrefixOnFields(null, this.currencyCashaccount);
           }
@@ -443,14 +449,13 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     }
   }
 
-
   /**
    * Prepare all security accounts and its position holdings per security. When the security changes, this
    * method should be called.
    */
   readSecurityaccountAndHoldings(): void {
     if (this.portfolios) {
-      let checkTime: number = +this.flattenFieldConfigObject.transactionTime.formControl.value;
+      let checkTime: number = +this.configObject.transactionTime.formControl.value;
       if (this.isCloseMarginInstrument) {
         this.setHoldingsForTime(checkTime);
         // this.createSecurityaccountHtmlSelect();
@@ -491,15 +496,15 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       securityaccountsHtmlSelect = securityaccountsHtmlSelect.concat(this.createHtmlSelectKeyValue(portfolio.name,
         portfolio.securityaccountList, this.getUnitsForSecurityAccountAsString.bind(this)));
     });
-    this.flattenFieldConfigObject.idSecurityaccount.valueKeyHtmlOptions = securityaccountsHtmlSelect;
+    this.configObject.idSecurityaccount.valueKeyHtmlOptions = securityaccountsHtmlSelect;
     // if there is only one security account, select it
     if (securityaccountsHtmlSelect.length === 1) {
-      this.flattenFieldConfigObject.idSecurityaccount.formControl.disable();
-      this.setValueToControl(this.flattenFieldConfigObject.idSecurityaccount, securityaccountsHtmlSelect[0].key);
+      this.configObject.idSecurityaccount.formControl.disable();
+      this.setValueToControl(this.configObject.idSecurityaccount, securityaccountsHtmlSelect[0].key);
     } else {
       // For Edge a empty Option is needed, otherwise the first Account would be selected
       securityaccountsHtmlSelect.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
-      this.flattenFieldConfigObject.idSecurityaccount.formControl.enable();
+      this.configObject.idSecurityaccount.formControl.enable();
       this.selectAccumulteSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
     }
     this.transactionCallParam.transaction && this.setCurrencyOnSecurityAndCashaccount(this.transactionCallParam.transaction.security);
@@ -515,7 +520,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
           + ' / ' + this.transactionCallParam.security.currency));
       this.transactionCallParam.idSecuritycurrency = this.transactionCallParam.security.idSecuritycurrency;
       this.securities.push(this.transactionCallParam.security);
-      this.flattenFieldConfigObject.idSecuritycurrency.valueKeyHtmlOptions = securitiesHtmlSelect;
+      this.configObject.idSecuritycurrency.valueKeyHtmlOptions = securitiesHtmlSelect;
       this.selectSecurity();
     } else {
       this.prepareAsyncActiveSecurityOptions();
@@ -527,23 +532,23 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
    * Load securities of the watchlist which were active at transaction time
    */
   private prepareAsyncActiveSecurityOptions(): void {
-    if (this.flattenFieldConfigObject.transactionTime.formControl.value) {
-      const transactionTime: number = +this.flattenFieldConfigObject.transactionTime.formControl.value;
+    if (this.configObject.transactionTime.formControl.value) {
+      const transactionTime: number = +this.configObject.transactionTime.formControl.value;
       const timeValue: number = this.getExDate() || transactionTime;
       if (this.securities.length === 0) {
         this.loadSecuritiesOnce(timeValue);
       } else {
         // Only disable or enable securities
         SelectOptionsHelper.securitiesEnableDisableOptionsByActivDate(this.securities,
-          this.flattenFieldConfigObject.idSecuritycurrency, timeValue);
+          this.configObject.idSecuritycurrency, timeValue);
       }
     }
   }
 
   private getExDate(): number {
     return this.transactionCallParam.transactionType === TransactionType.DIVIDEND
-    && this.flattenFieldConfigObject.exDate.formControl.value ?
-      +this.flattenFieldConfigObject.exDate.formControl.value : null;
+    && this.configObject.exDate.formControl.value ?
+      +this.configObject.exDate.formControl.value : null;
   }
 
   private loadSecuritiesOnce(timeValue: number): void {
@@ -554,21 +559,21 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         const securitiesF = this.securities.filter(security =>
           security.idSecuritycurrency === this.transactionCallParam.idSecuritycurrency ||
           !this.transactionEditType.securityOnlyParentSelected());
-        SelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(securitiesF, this.flattenFieldConfigObject.idSecuritycurrency);
+        SelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(securitiesF, this.configObject.idSecuritycurrency);
         SelectOptionsHelper.securitiesEnableDisableOptionsByActivDate(this.securities,
-          this.flattenFieldConfigObject.idSecuritycurrency, timeValue);
+          this.configObject.idSecuritycurrency, timeValue);
         this.selectSecurity();
       });
   }
 
   selectSecurity(): void {
-    this.setValueToControl(this.flattenFieldConfigObject.idSecuritycurrency, this.transactionCallParam.idSecuritycurrency);
-    this.selectedSecurity = this.getSecurityById(this.flattenFieldConfigObject.idSecuritycurrency.formControl.value);
+    this.setValueToControl(this.configObject.idSecuritycurrency, this.transactionCallParam.idSecuritycurrency);
+    this.selectedSecurity = this.getSecurityById(this.configObject.idSecuritycurrency.formControl.value);
     this.setMarginFlags();
-    if (this.flattenFieldConfigObject.idSecuritycurrency.valueKeyHtmlOptions.length === 1) {
-      this.flattenFieldConfigObject.idSecuritycurrency.formControl.disable();
+    if (this.configObject.idSecuritycurrency.valueKeyHtmlOptions.length === 1) {
+      this.configObject.idSecuritycurrency.formControl.disable();
     } else {
-      this.flattenFieldConfigObject.idSecuritycurrency.formControl.enable();
+      this.configObject.idSecuritycurrency.formControl.enable();
     }
   }
 
@@ -627,7 +632,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         this.closeDialog.emit(new ProcessedActionData(transaction.idTransaction ? ProcessedAction.UPDATED
           : ProcessedAction.CREATED, newTransaction));
       }, () =>
-        this.flattenFieldConfigObject.submit.disabled = false
+        this.configObject.submit.disabled = false
     );
   }
 
@@ -660,8 +665,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       ? new Date(this.transactionCallParam.security.activeToDate) : this.transactionCallParam.defaultTransactionTime;
     this.maxTransactionDate = this.maxTransactionDate || new Date();
 
-    this.setValueToControl(this.flattenFieldConfigObject.transactionTime, this.maxTransactionDate);
-    this.flattenFieldConfigObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+    this.setValueToControl(this.configObject.transactionTime, this.maxTransactionDate);
+    this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService, TransactionType,
       [TransactionType.ACCUMULATE, TransactionType.REDUCE,
         TransactionType.DIVIDEND, TransactionType.FINANCE_COST]);
@@ -683,16 +688,16 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.transactionService.getConnectedMarginPositionByIdTransaction(this.transactionCallParam.transaction.idTransaction)
         .subscribe(cmp => {
           this.closedMarginPosition = cmp;
-          cmp.hasPosition && this.flattenFieldConfigObject.idSecurityaccount.formControl.disable();
+          cmp.hasPosition && this.configObject.idSecurityaccount.formControl.disable();
         });
     }
   }
 
 
   private setTransactionValue() {
-    this.setValueToControl(this.flattenFieldConfigObject.transactionType, TransactionType[this.transactionCallParam.transactionType]);
-    this.flattenFieldConfigObject.transactionType.formControl.disable();
-    this.flattenFieldConfigObject.taxableInterest.invisible = this.transactionCallParam.transactionType !== TransactionType.DIVIDEND;
+    this.setValueToControl(this.configObject.transactionType, TransactionType[this.transactionCallParam.transactionType]);
+    this.configObject.transactionType.formControl.disable();
+    this.configObject.taxableInterest.invisible = this.transactionCallParam.transactionType !== TransactionType.DIVIDEND;
     this.transactionCallParam.transaction && this.form.transferBusinessObjectToForm(this.transactionCallParam.transaction);
   }
 
@@ -704,15 +709,15 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     if (this.transactionCallParam.transactionType === TransactionType.ACCUMULATE ||
       this.transactionCallParam.transactionType === TransactionType.REDUCE) {
 
-      const transactionTime: number = +this.flattenFieldConfigObject.transactionTime.formControl.value;
+      const transactionTime: number = +this.configObject.transactionTime.formControl.value;
       if (transactionTime > security.sTimestamp || moment(transactionTime).isSame(new Date(), 'day')) {
         if (security.sLast) {
-          this.setValueToControl(this.flattenFieldConfigObject.quotation, security.sLast);
+          this.setValueToControl(this.configObject.quotation, security.sLast);
         }
       } else {
         if (this.historyquoteCheck.hasChanged(security.idSecuritycurrency, transactionTime)) {
           BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService, this.gps,
-            transactionTime, security.idSecuritycurrency, true, this.flattenFieldConfigObject.quotation.formControl);
+            transactionTime, security.idSecuritycurrency, true, this.configObject.quotation.formControl);
         }
       }
     }
@@ -742,21 +747,21 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     if (this.transactionCallParam.portfolio) {
       const securityaccount = this.transactionCallParam.portfolio.securityaccountList.filter(
         sa => this.getUnitsForSecurityAccount(sa))[0];
-      securityaccount && this.setValueToControl(this.flattenFieldConfigObject.idSecurityaccount, securityaccount.idSecuritycashAccount);
+      securityaccount && this.setValueToControl(this.configObject.idSecurityaccount, securityaccount.idSecuritycashAccount);
     }
   }
 
   private setCurrencyOnSecurityAndCashaccount(security: Security) {
-    if (this.flattenFieldConfigObject.idCashaccount.formControl.value && this.portfolios) {
+    if (this.configObject.idCashaccount.formControl.value && this.portfolios) {
       const cashaccountPortfolio = this.getCashaccountByIdCashaccountFormPortfolios(this.portfolios,
-        +this.flattenFieldConfigObject.idCashaccount.formControl.value);
+        +this.configObject.idCashaccount.formControl.value);
       this.currencyCashaccount = cashaccountPortfolio.cashaccount.currency;
       this.setCurrencyPrefixOnFields(null, this.currencyCashaccount);
       this.currencypair = BusinessHelper.getCurrencypairWithSetOfFromAndTo(cashaccountPortfolio.cashaccount.currency,
         security.currency);
       if (this.currencypair) {
-        this.flattenFieldConfigObject.currencyExRate.formControl.enable();
-        this.flattenFieldConfigObject.currencyExRate.labelSuffix = this.currencypair.fromCurrency + '/' + this.currencypair.toCurrency;
+        this.enableDisableCurrencyExRate(true);
+        this.configObject.currencyExRate.labelSuffix = this.currencypair.fromCurrency + '/' + this.currencypair.toCurrency;
         this.updateCurrencyExchangeRate();
       } else {
         this.clearCurrencyExRate();
@@ -764,25 +769,33 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     }
   }
 
+  private enableDisableCurrencyExRate(enalbe: boolean): void {
+    if (enalbe) {
+      this.configObject.currencyExRate.formControl.enable();
+    } else {
+      this.configObject.currencyExRate.formControl.disable();
+    }
+    this.disableEnableExchangeRateButtons();
+  }
+
   private updateCurrencyExchangeRate(): void {
     if (this.currencypair && this.hasChangedOnExistingTransaction()) {
       BusinessHelper.getAndSetQuoationCurrencypair(this.currencypairService, this.currencypair,
-        +this.flattenFieldConfigObject.transactionTime.formControl.value, this.flattenFieldConfigObject.currencyExRate.formControl);
+        +this.configObject.transactionTime.formControl.value, this.configObject.currencyExRate.formControl);
     }
   }
 
-
   private clearCurrencyExRate() {
-    this.flattenFieldConfigObject.currencyExRate.labelSuffix = '';
-    this.setValueToControl(this.flattenFieldConfigObject.currencyExRate, 1);
-    this.flattenFieldConfigObject.currencyExRate.formControl.disable();
+    this.configObject.currencyExRate.labelSuffix = '';
+    this.setValueToControl(this.configObject.currencyExRate, 1);
+    this.enableDisableCurrencyExRate(false);
   }
 
   private hasChangedOnExistingTransaction(): boolean {
     const t = this.transactionCallParam.transaction;
     return t === null || t !== null && (t.cashaccount.idSecuritycashAccount
-      !== this.flattenFieldConfigObject.idCashaccount.formControl.value
-      || t.security.idSecuritycurrency !== this.flattenFieldConfigObject.idSecuritycurrency.formControl.value);
+      !== this.configObject.idCashaccount.formControl.value
+      || t.security.idSecuritycurrency !== this.configObject.idSecuritycurrency.formControl.value);
   }
 
   private createHtmlSelectKeyValue(portfolioName: string, securitycashaccounts: any[],
@@ -818,7 +831,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       if (this.transactionCallParam?.transaction.idTransaction) {
         existingUnits = Math.min(existingUnits, this.transactionCallParam?.transaction.units);
       }
-      this.flattenFieldConfigObject.units.formControl.setValue(existingUnits);
+      this.configObject.units.formControl.setValue(existingUnits);
     }
     return units ? ' / ' + this.volumei18n + ': ' + units : '';
   }

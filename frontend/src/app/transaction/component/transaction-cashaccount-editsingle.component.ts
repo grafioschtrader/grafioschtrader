@@ -61,10 +61,10 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
 
   constructor(private portfolioService: PortfolioService,
               private transactionService: TransactionService,
-              private messageToastService: MessageToastService,
+              messageToastService: MessageToastService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(translateService, gps);
+    super(messageToastService, null, translateService, gps);
   }
 
 

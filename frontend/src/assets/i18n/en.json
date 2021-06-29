@@ -591,6 +591,7 @@
   "TRANSACTION_IMPLEMENTATION_TOOLTIP": "There is a special implementation for importing transactions, mostly for CSV",
   "TRANSACTION_TAX_COST": "Tax cost transaction",
   "TRANSACTION_TIME": "Transaction time",
+  "TRANSACTION_TIME_TOOLTIP": "The exact time of this date is not important, but the whole date is used for the order in processing",
   "TRANSACTION_TYPE": "Transaction type",
   "TRANSACTION_TYPE_IMP": "Transaktions typ import",
   "TRANSFORM_PDF_TO_TXT": "Transform PDF to text",

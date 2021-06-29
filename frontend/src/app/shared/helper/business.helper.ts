@@ -87,6 +87,7 @@ export class BusinessHelper {
     currencypairService.getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(currencypair,
       moment(transactionTime).format('YYYYMMDD')).subscribe((cWh: CurrencypairWithHistoryquote) => {
       if (cWh.currencypair) {
+        currencypair.idSecuritycurrency = cWh.currencypair.idSecuritycurrency;
         if (transactionTime > cWh.currencypair.sTimestamp || moment(transactionTime).isSame(new Date(), 'day')) {
           currencyExRateFormControl.setValue(cWh.currencypair.sLast);
         } else {
