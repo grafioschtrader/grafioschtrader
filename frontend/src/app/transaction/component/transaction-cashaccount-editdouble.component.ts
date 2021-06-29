@@ -66,21 +66,21 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   debitCashaccount: Cashaccount;
   creditCashaccount: Cashaccount;
-  currencypair: Currencypair;
-
+  // currencypair: Currencypair;
 
   // Obeserver subscribe
   private transactionTimeChangeSub: Subscription;
   private debitChashaccountChangedSub: Subscription;
   private creditChashaccountChangedSub: Subscription;
 
-  constructor(private historyquoteService: HistoryquoteService,
-              private portfolioService: PortfolioService,
+  constructor(private portfolioService: PortfolioService,
               private currencypairService: CurrencypairService,
               private transactionService: TransactionService,
-              private messageToastService: MessageToastService,
-              translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+              messageToastService: MessageToastService,
+              historyquoteService: HistoryquoteService,
+              translateService: TranslateService,
+              gps: GlobalparameterService) {
+    super(messageToastService, historyquoteService, translateService, gps);
   }
 
   ngOnInit(): void {
@@ -94,16 +94,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         AppSettings.FID_MAX_FRACTION_DIGITS, false, this.gps.getNumberCurrencyMask(),
         null, null, false, {usedLayoutColumns: 8}),
 
-      DynamicFieldHelper.createFunctionButton('ONE_OVER_X',
-        (e) => this.oneOverX(e), {
-          buttonInForm: true, usedLayoutColumns: 1,
-        }),
-
-      DynamicFieldHelper.createFunctionButtonFieldName('exRateButton', 'TIME_DEPENDING_EXCHANGE_RATE_',
-        (e) => this.getTimeDependingExchangeRate(e), {
-          icon: AppSettings.PATH_ASSET_ICONS + 'refresh.svg',
-          buttonInForm: true, usedLayoutColumns: 1
-        }),
+      ...this.createExRateButtons(),
       /*
             DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, 8,
               8, false, {
@@ -184,12 +175,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       fromCurrencyFraction);
   }
 
-  getTimeDependingExchangeRate(event): void {
-    const transactionTime: number = +this.configObject.transactionTime.formControl.value;
-    BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService,
-      this.gps,
-      transactionTime, this.currencypair.idSecuritycurrency, false, this.configObject.currencyExRate.formControl);
-  }
 
   private getCurrencypair() {
     this.currencypairService.findOrCreateCurrencypairByFromAndToCurrency(this.currencypair.fromCurrency,
@@ -202,13 +187,11 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     });
   }
 
-  oneOverX(event): void {
-    this.configObject.currencyExRate.formControl.setValue(1 / this.configObject.currencyExRate.formControl.value);
-  }
+
 
   valueChangedOnTransactionTime() {
     this.transactionTimeChangeSub = this.configObject.transactionTime.formControl.valueChanges.subscribe(() =>
-      this.disableEnableExchangeRateButton());
+      this.disableEnableExchangeRateButtons());
   }
 
   valueChangedOnDebitCashaccount(): void {
@@ -319,7 +302,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
       this.adjustNumberInputFractions();
     }
-    this.disableEnableExchangeRateButton();
+    this.disableEnableExchangeRateButtons();
   }
 
   private setCurrencypair(): void {
@@ -333,13 +316,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     }
   }
 
-
-  private disableEnableExchangeRateButton() {
-    this.configObject.exRateButton.disabled = this.configObject.currencyExRate.formControl.disabled ||
-      !this.configObject.transactionTime.formControl.valid;
-    this.configObject.oneOverX.disabled = this.configObject.currencyExRate.formControl.disabled;
-
-  }
 
   /**
    * Return true when exchange rate can be adjusted
