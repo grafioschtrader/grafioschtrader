@@ -19,7 +19,7 @@ import {FormConfig} from '../../models/form.config';
 
     <div [ngClass]="'small-padding col-md-' + (config.usedLayoutColumns? config.usedLayoutColumns: 12)">
       <div class="form-group form-group-sm row" [hidden]="config.invisible">
-        <label *ngIf="config.labelKey && !config.buttonInForm"
+        <label *ngIf="config.labelKey && !config.buttonInForm && !config.labelKey.startsWith('_')"
                [title]="config.labelTitle !== undefined? config.labelTitle: ''"
                [style.color]='config.labelTitle !== undefined? "red": null'
                [for]="config.field"

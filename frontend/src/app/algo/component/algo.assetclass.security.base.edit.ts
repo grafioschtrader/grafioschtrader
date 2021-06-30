@@ -59,7 +59,6 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
                                                            idSecurityaccount: string): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions('', ''));
-    console.log('idSecurityaccount|' + idSecurityaccount + '|');
     if (idSecurityaccount) {
       portfolios.forEach(portfolio => {
         portfolio.securityaccountList.forEach(securityaccount => {

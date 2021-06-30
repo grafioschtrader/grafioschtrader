@@ -378,7 +378,6 @@ export class DynamicFieldHelper {
       ...fieldConfig.currencyMaskConfig,
       ...{min: fieldConfig.min, max: fieldConfig.max}
     };
-    console.log(newMask);
     fieldConfig.currencyMaskConfig = newMask;
   }
 

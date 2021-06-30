@@ -15,6 +15,7 @@ import {ProcessedAction} from '../../shared/types/processed.action';
 import {AppSettings} from '../../shared/app.settings';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
+import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 
 /**
  * Cash account operations that are shared between different input forms.
@@ -37,9 +38,12 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
 
   protected valueChangedOnValueCalcFieldsSub: Subscription;
 
-  constructor( messageToastService: MessageToastService,
-               historyquoteService: HistoryquoteService, translateService: TranslateService, gps: GlobalparameterService, ) {
-    super(messageToastService, historyquoteService, translateService, gps);
+  constructor(messageToastService: MessageToastService,
+              currencypairService: CurrencypairService,
+              historyquoteService: HistoryquoteService,
+              translateService: TranslateService,
+              gps: GlobalparameterService,) {
+    super(messageToastService, currencypairService, historyquoteService, translateService, gps);
   }
 
   preInitialize(): void {

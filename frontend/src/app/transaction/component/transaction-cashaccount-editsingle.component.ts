@@ -64,9 +64,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
               messageToastService: MessageToastService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(messageToastService, null, translateService, gps);
+    super(messageToastService, null, null, translateService, gps);
   }
-
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,

@@ -6,6 +6,7 @@
   "ACCOUNT_RELEVANT": "Konto relevant",
   "ACCOUNT_TRANSFER": "Kontoübertrag",
   "ACCRUED_INTEREST": "Aufgelaufene Zinse",
+  "ACCRUED_INTEREST_TOOLTIP": "Zinssumme seit der letzten Zinszahlung, die an den vorhergehenden Besitzer entrichtet werden",
   "ACCUMULATE": "Kaufen",
   "ACCUMULATE_REDUCE": "Saldo Kauf/Verkauf Wertpapiere",
   "ACTIVE_DATE": "Aktiv am",
@@ -703,5 +704,6 @@
   "selectionrequried": "Minimal eine Selektion ist verlangt!",
   "transactionDayLimit": "Das tägliche Limit von {{limit}} Transaktionen an '{{i18nEntity}}' wurde schon vor dieser Transaktion erreicht.",
   "validISIN": "Fehlerhafte ISIN!",
-  "webUrl": "Falsches Format des Hyperlinks!"
+  "webUrl": "Falsches Format des Hyperlinks!",
+  "_CA_TOOLTIP": "Falls der Betrag in der Währung des Bankkontos vorliegt"
 }

@@ -74,13 +74,13 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private creditChashaccountChangedSub: Subscription;
 
   constructor(private portfolioService: PortfolioService,
-              private currencypairService: CurrencypairService,
               private transactionService: TransactionService,
               messageToastService: MessageToastService,
+              currencypairService: CurrencypairService,
               historyquoteService: HistoryquoteService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(messageToastService, historyquoteService, translateService, gps);
+    super(messageToastService, currencypairService, historyquoteService, translateService, gps);
   }
 
   ngOnInit(): void {
@@ -175,19 +175,16 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       fromCurrencyFraction);
   }
 
-
   private getCurrencypair() {
     this.currencypairService.findOrCreateCurrencypairByFromAndToCurrency(this.currencypair.fromCurrency,
       this.currencypair.toCurrency).subscribe(currencypair => {
       this.currencypair = currencypair;
       if (this.hasChangedOnExistingTransaction()) {
-        BusinessHelper.getAndSetQuoationCurrencypair(this.currencypairService, this.currencypair,
+        BusinessHelper.getAndSetQuotationCurrencypair(this.currencypairService, this.currencypair,
           +this.configObject.transactionTime.formControl.value, this.configObject.currencyExRate.formControl);
       }
     });
   }
-
-
 
   valueChangedOnTransactionTime() {
     this.transactionTimeChangeSub = this.configObject.transactionTime.formControl.valueChanges.subscribe(() =>

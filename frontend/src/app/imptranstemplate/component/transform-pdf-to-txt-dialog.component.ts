@@ -51,7 +51,7 @@ export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements 
 
   copyToClipboard(event) {
     this.configObject.templateAsTxt.elementRef.nativeElement.select();
-    console.log(document.execCommand('copy'));
+    document.execCommand('copy');
   }
 
   handleFileInput(files: FileList) {

@@ -56,7 +56,6 @@ export class PlotlyHelper {
     filter(f => f[LABEL] = f[LABEL].toUpperCase()).map(match =>
       translateService.get(Helper.getValueByPath(match, LABEL)).subscribe(trans => {
         Helper.setValueByPath(match, LABEL, trans);
-        console.log(match);
       })));
   }
 
