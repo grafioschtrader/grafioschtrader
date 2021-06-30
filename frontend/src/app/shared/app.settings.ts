@@ -203,7 +203,6 @@ export class AppSettings {
         const value = standardPrecisionMap[key.toString()];
         AppSettings[key] = value;
       });
-      console.log(this.FID_MAX_DIGITS);
     }
   }
 

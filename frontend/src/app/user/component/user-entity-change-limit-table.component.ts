@@ -224,7 +224,6 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
     this.visibleDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.REJECT_DATA_CHANGE) {
-        console.log(this.selectedUserEntityChangeLimit);
         this.proposeUserTaskService.rejectUserTask(this.proposeChangeEntityWithEntity.proposeChangeEntity.idProposeRequest,
           processedActionData.data).subscribe(stringResponse => this.messageToastService.showMessage(InfoLevelType.SUCCESS,
           stringResponse.response));

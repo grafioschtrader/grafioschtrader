@@ -82,8 +82,8 @@ export class BusinessHelper {
   /**
    * Sets the quotation depending of a certain date for a currency pair to a FormControl.
    */
-  public static getAndSetQuoationCurrencypair(currencypairService: CurrencypairService, currencypair: Currencypair,
-                                              transactionTime: number, currencyExRateFormControl: AbstractControl) {
+  public static getAndSetQuotationCurrencypair(currencypairService: CurrencypairService, currencypair: Currencypair,
+                                               transactionTime: number, currencyExRateFormControl: AbstractControl) {
     currencypairService.getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(currencypair,
       moment(transactionTime).format('YYYYMMDD')).subscribe((cWh: CurrencypairWithHistoryquote) => {
       if (cWh.currencypair) {

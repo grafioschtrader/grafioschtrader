@@ -9,14 +9,18 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 
 export abstract class TransactionBaseOperations {
 
   configObject: { [name: string]: FieldConfig };
   protected currencypair?: Currencypair;
 
-  constructor(public messageToastService: MessageToastService, public historyquoteService: HistoryquoteService,
-              public translateService: TranslateService, protected gps: GlobalparameterService) {
+  constructor(public messageToastService: MessageToastService,
+              public currencypairService: CurrencypairService,
+              public historyquoteService: HistoryquoteService,
+              public translateService: TranslateService,
+              protected gps: GlobalparameterService) {
   }
 
   abstract isVisibleDialog(): boolean;
@@ -81,9 +85,14 @@ export abstract class TransactionBaseOperations {
 
   getTimeDependingExchangeRate(event): void {
     const transactionTime: number = +this.configObject.transactionTime.formControl.value;
-    BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService,
-      this.gps,
-      transactionTime, this.currencypair.idSecuritycurrency, false, this.configObject.currencyExRate.formControl);
+    if (this.currencypair.idSecuritycurrency) {
+      BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService,
+        this.gps,
+        transactionTime, this.currencypair.idSecuritycurrency, false, this.configObject.currencyExRate.formControl);
+    } else {
+      BusinessHelper.getAndSetQuotationCurrencypair(this.currencypairService, this.currencypair,
+        transactionTime, this.configObject.currencyExRate.formControl);
+    }
   }
 
   protected disableEnableExchangeRateButtons() {

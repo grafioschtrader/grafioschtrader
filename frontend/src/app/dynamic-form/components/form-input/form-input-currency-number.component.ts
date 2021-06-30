@@ -11,7 +11,7 @@ import {Component} from '@angular/core';
              [class.required-input]="isRequired && !config.readonly"
              [class.negativ-number]="input.value.startsWith('-')"
              [readonly]="config.readonly"
-             [ngStyle]="{'width': (config.inputWidth) * 11 +'px'}"
+             [ngStyle]="{'width': (config.inputWidth) * 9 +'px'}"
              pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
              class="form-control"
              autocomplete="off"

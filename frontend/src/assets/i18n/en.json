@@ -6,6 +6,7 @@
   "ACCOUNT_RELEVANT": "Account relevant",
   "ACCOUNT_TRANSFER": "Account transfer",
   "ACCRUED_INTEREST": "Accrued interest",
+  "ACCRUED_INTEREST_TOOLTIP": "Interest amount since the last interest payment paid to the previous owner",
   "ACCUMULATE": "Buy",
   "ACCUMULATE_REDUCE": "Balance buy/sell Securities",
   "ACTIVE_DATE": "Activ at",
@@ -702,5 +703,6 @@
   "selectionrequried": "At least one selection is required!",
   "transactionDayLimit": "The daily limit of {{limit}} transactions on the '{{i18nEntity}}' was already reached before this transaction.",
   "validISIN": "Not valid ISIN!",
-  "webUrl": "Wrong format of the hyperlink!"
+  "webUrl": "Wrong format of the hyperlink!",
+  "_TAX_COST_CA_TOOLTIP": "If the amount is in the currency of the bank account"
 }

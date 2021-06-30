@@ -194,7 +194,6 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       if (config.dataproperty) {
         // field can not used to access the input value
         value = Helper.getValueByPath(sourceObject, config.dataproperty);
-        console.log(config.field, 'value:', value);
       } else if (sourceObject.hasOwnProperty(config.field)) {
         if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateTimeNumeric
           || config.dataType === DataType.DateString) {
