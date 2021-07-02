@@ -105,8 +105,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private volumei18n: string = null;
   private currencyCashaccount: string;
   private maxTransactionDate = new Date();
+  private oldCurrencyExChange: number;
   // Subscribe
-
   private subObj: { [key: string]: Subscription } = {};
 
   private readonly cashaccountSecurity = 'A';
@@ -246,6 +246,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private calcPosTotalOnChanges(data: any): void {
+    this.currencyExRateHasChanged();
     if (data.units && data.quotation) {
       if (!this.configObject.securityRisk.invisible) {
         this.setValueToControl(this.configObject.securityRisk, (this.calcPosTotal(data, true) * -1));
@@ -350,17 +351,15 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private setVisibilityOnFields(): void {
     this.configObject.assetInvestmentValue1.invisible = !(this.transactionCallParam.transactionType
       === TransactionType.REDUCE || this.transactionCallParam.transactionType === TransactionType.ACCUMULATE) ||
-      !(((this.selectedSecurity.assetClass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME]
-        || this.selectedSecurity.assetClass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND])
-        && this.selectedSecurity.assetClass.specialInvestmentInstrument
-        === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT]) || this.isOpenMarginInstrument);
+      !(this.isBondOrConvertibleBondAndDirectInvestment || this.isOpenMarginInstrument);
     if (!this.configObject.assetInvestmentValue1.invisible) {
       this.configObject.assetInvestmentValue1.labelKey = this.isOpenMarginInstrument ? 'DAILY_CFD_HOLDING_COST'
         : 'ACCRUED_INTEREST';
       this.configObject.assetInvestmentValue1.currencyMaskConfig.allowNegative = this.isOpenMarginInstrument;
       this.configObject.assetInvestmentValue1.currencyMaskConfig.precision = this.isOpenMarginInstrument ? 5 : 2;
     }
-    this.configObject.exDate.invisible = this.transactionCallParam.transactionType !== TransactionType.DIVIDEND;
+    this.configObject.exDate.invisible = this.transactionCallParam.transactionType !== TransactionType.DIVIDEND
+      || this.isBondOrConvertibleBondAndDirectInvestment();
     this.configObject.securityRisk.invisible = !this.isMarginInstrument;
     FormHelper.disableEnableFieldConfigsWhenAlreadySet(!this.isOpenMarginInstrument,
       [this.configObject.assetInvestmentValue2]);
@@ -374,6 +373,13 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         this.setValueToControl(this.configObject.assetInvestmentValue2, 1);
       }
     }
+  }
+
+  private isBondOrConvertibleBondAndDirectInvestment(): boolean {
+    return (this.selectedSecurity.assetClass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME]
+      || this.selectedSecurity.assetClass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND])
+      && this.selectedSecurity.assetClass.specialInvestmentInstrument
+      === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT];
   }
 
   /**
@@ -525,7 +531,6 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.prepareAsyncActiveSecurityOptions();
     }
   }
-
 
   /**
    * Load securities of the watchlist which were active at transaction time
@@ -773,6 +778,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         this.configObject.transactionCost);
       this.valueChangedOnCA(this.valueChangedOnTaxCostCA, this.configObject.taxCostCA, this.configObject.taxCost);
     } else {
+      this.oldCurrencyExChange = null;
       this.configObject.currencyExRate.formControl.disable();
       this.unSubscribeCA(this.valueChangedOnquotationCA, this.configObject.quotationCA);
       this.unSubscribeCA(this.valueChangedOnTransactionCostCA, this.configObject.transactionCostCA);
@@ -784,11 +790,24 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private valueChangedOnCA(propertySub: string, sourceField: FieldConfig, targetField: FieldConfig): void {
     sourceField.invisible = false;
     if (!this.subObj[propertySub]) {
-      this.subObj[propertySub] = sourceField.formControl.valueChanges.subscribe(value => {
-        if (value && this.configObject.currencyExRate.formControl.value) {
-          targetField.formControl.setValue(value / this.configObject.currencyExRate.formControl.value);
-        }
-      });
+      this.subObj[propertySub] = sourceField.formControl.valueChanges.subscribe(value =>
+        this.calculateBaseValueFromCurrencyValue(sourceField, targetField));
+    }
+  }
+
+  private currencyExRateHasChanged(): void {
+    if (!this.configObject.currencyExRate.formControl.disabled
+      && this.oldCurrencyExChange !== this.configObject.currencyExRate.formControl.value) {
+      this.oldCurrencyExChange = this.configObject.currencyExRate.formControl.value;
+      this.calculateBaseValueFromCurrencyValue(this.configObject.quotationCA, this.configObject.quotation);
+      this.calculateBaseValueFromCurrencyValue(this.configObject.transactionCostCA, this.configObject.transactionCost);
+      this.calculateBaseValueFromCurrencyValue(this.configObject.taxCostCA, this.configObject.taxCost);
+    }
+  }
+
+  private calculateBaseValueFromCurrencyValue(sourceField: FieldConfig, targetField: FieldConfig): void {
+    if (sourceField.formControl.value && this.configObject.currencyExRate.formControl.value) {
+      targetField.formControl.setValue(sourceField.formControl.value / this.configObject.currencyExRate.formControl.value);
     }
   }
 
