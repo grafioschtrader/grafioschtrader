@@ -60,8 +60,6 @@ import {AppSettings} from '../../shared/app.settings';
                                        [callBackSetSecurityWithAfter]="this"
                                        (closeDialog)="handleOnCloseSetDialog($event)">
       </securitycurrency-search-and-set>
-
-
     </p-dialog>
   `
 })
@@ -151,7 +149,6 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
         fieldConfig => fieldConfig.formControl.disable());
     }
   }
-
 
   valueChangedOnFormula(): void {
     this.formulaSubscribe = this.configObject[this.FORMULA_PRICES].formControl.valueChanges.subscribe((formulaPrices: string) => {

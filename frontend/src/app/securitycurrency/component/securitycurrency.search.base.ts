@@ -4,7 +4,6 @@ import {FormConfig} from '../../dynamic-form/models/form.config';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {HelpIds} from '../../shared/help/help.ids';
@@ -19,7 +18,6 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SupplementCriteria} from '../model/supplement.criteria';
-import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {AppSettings} from '../../shared/app.settings';
 import {
   DataForCurrencySecuritySearch,
@@ -43,6 +41,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   config: FieldConfig[] = [];
   configObject: { [name: string]: FieldConfig };
   formConfig: FormConfig;
+  private monitor: boolean;
 
   constructor(protected multiplyAddClose: boolean,
               protected gps: GlobalparameterService,
@@ -95,7 +94,6 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-
   onShow(event) {
     setTimeout(() => this.initialize());
   }
@@ -124,7 +122,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       this.translateService, SpecialInvestmentInstruments);
 
     this.childClearList();
-    this.valueChangedOnForm();
+
     this.multipleRequestToOneService.getDataForCurrencySecuritySearch().subscribe((dfcss: DataForCurrencySecuritySearch) => {
       this.setValueKeyHtmlOptions(this.configObject.currency, dfcss.currencies);
       this.setValueKeyHtmlOptions(this.configObject.subCategoryNLS, dfcss.assetclasses);
@@ -133,6 +131,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       this.configObject.idStockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idStockexchange', 'name',
         dfcss.stockexchanges, true);
       this.dynamicFormComponent.setDefaultValuesAndEnableSubmit();
+      this.valueChangedOnForm();
       this.configObject.isin.elementRef.nativeElement.focus();
     });
   }
@@ -144,22 +143,25 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
 
   private valueChangedOnForm(): void {
     this.dynamicFormComponent.form.valueChanges.subscribe((security: Security) => {
+      if (!this.monitor) {
+        this.monitor = true;
+        this.dynamicFormComponent.controls.filter(fieldConfig => fieldConfig.userDefinedValue === this.secondGroup)
+          .forEach(fieldConfig => AppHelper.invisibleAndHide(fieldConfig, security.isin && security.isin !== ''));
 
-      this.dynamicFormComponent.controls.filter(fieldConfig => fieldConfig.userDefinedValue === this.secondGroup)
-        .forEach(fieldConfig => fieldConfig.invisible = (security.isin && security.isin !== ''));
-
-      if (!security.isin || security.isin === '') {
-        const secondGroupIsEmpty = this.isSecondGroupEmpty();
-        this.dynamicFormComponent.controls.filter(fieldConfig => fieldConfig.userDefinedValue === this.firstGroup)
-          .forEach(fieldConfig => fieldConfig.invisible = !secondGroupIsEmpty);
-        this.configObject.name.invisible = this.configObject.name.invisible || this.isExactCurrecny();
-        this.configObject.tickerSymbol.invisible = this.isCurrency();
-        this.configObject.onlyTenantPrivate.invisible = this.isCurrency();
-        this.configObject.shortSecurity.invisible = this.isCurrency();
-        this.configObject.activeDate.invisible = this.isCurrency();
-        this.configObject.idStockexchange.invisible = this.isCurrency();
-        this.configObject.specialInvestmentInstruments.invisible = this.isCurrency();
-        this.configObject.subCategoryNLS.invisible = this.isCurrency();
+        if (!security.isin || security.isin === '') {
+          const secondGroupIsEmpty = this.isSecondGroupEmpty();
+          this.dynamicFormComponent.controls.filter(fieldConfig => fieldConfig.userDefinedValue === this.firstGroup)
+            .forEach(fieldConfig => AppHelper.invisibleAndHide(fieldConfig, !secondGroupIsEmpty));
+          AppHelper.invisibleAndHide(this.configObject.name, this.configObject.name.invisible || this.isExactCurrecny());
+          AppHelper.invisibleAndHide(this.configObject.tickerSymbol, this.isCurrency());
+          AppHelper.invisibleAndHide(this.configObject.onlyTenantPrivate, this.isCurrency());
+          AppHelper.invisibleAndHide(this.configObject.shortSecurity, this.isCurrency());
+          AppHelper.invisibleAndHide(this.configObject.activeDate, this.isCurrency());
+          AppHelper.invisibleAndHide(this.configObject.idStockexchange, this.isCurrency());
+          AppHelper.invisibleAndHide(this.configObject.specialInvestmentInstruments, this.isCurrency());
+          AppHelper.invisibleAndHide(this.configObject.subCategoryNLS, this.isCurrency());
+        }
+        this.monitor = false;
       }
     });
   }

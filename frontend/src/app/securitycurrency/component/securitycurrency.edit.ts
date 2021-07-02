@@ -16,6 +16,7 @@ import {Securitycurrency} from '../../entities/securitycurrency';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {AppHelper} from '../../shared/helper/app.helper';
 
 
 @Directive()
@@ -93,7 +94,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
             }
           } else {
             // No connector is chosen
-            urlExtends[i].invisible = true;
+            AppHelper.disableAndHideInput(urlExtends[i]);
           }
           if (urlExtends[i].labelShowText) {
             urlExtends[i].labelShowText = urlExtends[i].labelHelpText;
@@ -129,7 +130,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   }
 
   protected disableEnableFeedUrlExtended(urlExtended: FieldConfig, feedIdentifiers: string[], feedIdentifier: FeedIdentifier): void {
-    urlExtended.invisible = feedIdentifiers.indexOf(FeedIdentifier[feedIdentifier]) >= 0;
+    AppHelper.invisibleAndHide(urlExtended, feedIdentifiers.indexOf(FeedIdentifier[feedIdentifier]) >= 0);
 
     DynamicFieldHelper.resetValidator(urlExtended, (urlExtended.invisible) ? null : [Validators.required],
       (urlExtended.invisible) ? null : [DynamicFieldHelper.RULE_REQUIRED_TOUCHED]);

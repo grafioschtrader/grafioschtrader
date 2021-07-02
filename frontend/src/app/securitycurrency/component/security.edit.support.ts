@@ -21,6 +21,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ValidatorFn} from '@angular/forms';
 import {ErrorMessageRules} from '../../dynamic-form/error/error.message.rules';
 import {AppSettings} from '../../shared/app.settings';
+import {AppHelper} from '../../shared/helper/app.helper';
 
 /**
  * Some definition of fields are shared between the different edit components of instruments. Those aee
@@ -258,7 +259,7 @@ export class SecurityEditSupport {
                                     hasMarkedPrice: boolean): void {
     if (configObject.denomination) {
       const hsd = BusinessHelper.hasSecurityDenomination(assetClass, hasMarkedPrice);
-      configObject.denomination.invisible = !hsd;
+      AppHelper.invisibleAndHide(configObject.denomination, !hsd);
       DynamicFieldHelper.resetValidator(configObject.denomination, hsd ? SecurityEditSupport.denominationValidation : null,
         hsd ? SecurityEditSupport.denominationErrors : null);
     }
