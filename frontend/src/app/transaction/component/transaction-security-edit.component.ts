@@ -349,24 +349,25 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setVisibilityOnFields(): void {
-    this.configObject.assetInvestmentValue1.invisible = !(this.transactionCallParam.transactionType
+    AppHelper.invisibleAndHide(this.configObject.assetInvestmentValue1, !(this.transactionCallParam.transactionType
       === TransactionType.REDUCE || this.transactionCallParam.transactionType === TransactionType.ACCUMULATE) ||
-      !(this.isBondOrConvertibleBondAndDirectInvestment || this.isOpenMarginInstrument);
+      !(this.isBondOrConvertibleBondAndDirectInvestment || this.isOpenMarginInstrument));
     if (!this.configObject.assetInvestmentValue1.invisible) {
       this.configObject.assetInvestmentValue1.labelKey = this.isOpenMarginInstrument ? 'DAILY_CFD_HOLDING_COST'
         : 'ACCRUED_INTEREST';
       this.configObject.assetInvestmentValue1.currencyMaskConfig.allowNegative = this.isOpenMarginInstrument;
       this.configObject.assetInvestmentValue1.currencyMaskConfig.precision = this.isOpenMarginInstrument ? 5 : 2;
     }
-    this.configObject.exDate.invisible = this.transactionCallParam.transactionType !== TransactionType.DIVIDEND
-      || this.isBondOrConvertibleBondAndDirectInvestment();
-    this.configObject.securityRisk.invisible = !this.isMarginInstrument;
+    AppHelper.invisibleAndHide(this.configObject.exDate, this.transactionCallParam.transactionType !== TransactionType.DIVIDEND
+      || this.isBondOrConvertibleBondAndDirectInvestment());
+    AppHelper.invisibleAndHide(this.configObject.securityRisk, !this.isMarginInstrument);
     FormHelper.disableEnableFieldConfigsWhenAlreadySet(!this.isOpenMarginInstrument,
       [this.configObject.assetInvestmentValue2]);
-    this.configObject.assetInvestmentValue2.invisible = !this.isMarginInstrument;
-    this.configObject.taxCost.invisible = this.transactionCallParam.transactionType === TransactionType.FINANCE_COST;
-    this.configObject.transactionCost.invisible =
-      this.transactionCallParam.transactionType === TransactionType.FINANCE_COST;
+    AppHelper.invisibleAndHide(this.configObject.assetInvestmentValue2, !this.isMarginInstrument);
+    AppHelper.invisibleAndHide(this.configObject.taxCost, this.transactionCallParam.transactionType
+      === TransactionType.FINANCE_COST);
+    AppHelper.invisibleAndHide(this.configObject.transactionCost,
+      this.transactionCallParam.transactionType === TransactionType.FINANCE_COST);
 
     if (this.isMarginInstrument) {
       if (!this.configObject.assetInvestmentValue2.formControl.value) {
@@ -696,7 +697,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private setTransactionValue() {
     this.setValueToControl(this.configObject.transactionType, TransactionType[this.transactionCallParam.transactionType]);
     this.configObject.transactionType.formControl.disable();
-    this.configObject.taxableInterest.invisible = this.transactionCallParam.transactionType !== TransactionType.DIVIDEND;
+    AppHelper.invisibleAndHide(this.configObject.taxableInterest, this.transactionCallParam.transactionType !== TransactionType.DIVIDEND);
     this.transactionCallParam.transaction && this.form.transferBusinessObjectToForm(this.transactionCallParam.transaction);
   }
 
@@ -788,7 +789,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private valueChangedOnCA(propertySub: string, sourceField: FieldConfig, targetField: FieldConfig): void {
-    sourceField.invisible = false;
+    AppHelper.enableAndVisibleInput(sourceField);
     if (!this.subObj[propertySub]) {
       this.subObj[propertySub] = sourceField.formControl.valueChanges.subscribe(value =>
         this.calculateBaseValueFromCurrencyValue(sourceField, targetField));
@@ -815,7 +816,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     this.subObj[propertySub] && this.subObj[propertySub].unsubscribe();
     this.subObj[propertySub] = null;
     fieldConfig.formControl.setValue(null);
-    fieldConfig.invisible = true;
+    AppHelper.disableAndHideInput(fieldConfig);
   }
 
 
@@ -842,14 +843,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private createHtmlSelectKeyValue(portfolioName: string, securitycashaccounts: any[],
                                    callBackFn?: (securityaccount: Securityaccount) => string): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelect: ValueKeyHtmlSelectOptions[] = [];
-    /*
-    const securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[] = this.isCloseMarginInstrument ?
-      [new SecurityaccountOpenPositionUnits(this.transactionCallParam.closeMarginPosition.idSecurityaccount,
-        this.transactionCallParam.closeMarginPosition.closeMaxMarginUnits)]
-      : this.securityOpenPositionPerSecurityaccount.securityaccountOpenPositionUnitsList;
-*/
     const securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[] =
-      this.securityOpenPositionPerSecurityaccount.securityaccountOpenPositionUnitsList;
+      this.securityOpenPositionPerSecurityaccount?.securityaccountOpenPositionUnitsList || [];
 
     securitycashaccounts.forEach((securityaccount: Securityaccount | Cashaccount) => {
         if (this.transactionEditType.acceptSecurityaccount(securityaccount, securityaccountOpenPositionUnits,
@@ -898,4 +893,3 @@ class ChangedIdSecurityAndTime {
     return false;
   }
 }
-

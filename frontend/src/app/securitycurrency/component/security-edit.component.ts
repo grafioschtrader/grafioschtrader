@@ -114,7 +114,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     super(translateService, gps);
   }
 
-
   ngOnInit(): void {
     this.securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, this);
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
@@ -127,7 +126,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.config.push(...this.connectorPriceFieldConfig, ...this.securityEditSupport.connectorDividendConfig,
       ...this.securityEditSupport.connectorSplitConfig);
     this.config.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this));
-
 
     this.configSplit = [
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'splitDate', true),
@@ -152,7 +150,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.configObject.distributionFrequency.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
       DistributionFrequency);
   }
-
 
   /**
    * Connector field are hidden if stock exchange does not support quotes
@@ -200,7 +197,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           stockexchange.idStockexchange === +idStockexchange).noMarketValue;
   }
 
-
   addSplit(value: { [name: string]: any }): void {
     const securitysplit = new Securitysplit();
     this.dynamicSplitForm.cleanMaskAndTransferValuesToBusinessObject(securitysplit);
@@ -240,7 +236,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     }, () => this.configObject.submit.disabled = false);
   }
 
-
   onDependingDialogSave(saveSecuritySuccess: SaveSecuritySuccess): void {
     if (saveSecuritySuccess.success) {
       this.closeDialog.emit(new ProcessedActionData((this.securityCurrencypairCallParam) ? ProcessedAction.UPDATED
@@ -249,7 +244,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       this.configObject.submit.disabled = false;
     }
   }
-
 
   onSelectedSecuritysplit(securitysplit: Securitysplit) {
     this.dynamicSplitForm.transferBusinessObjectToForm(securitysplit);
@@ -333,7 +327,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         this.dataLoaded = true;
       });
   }
-
 
   private disableEnableInputForExisting(disable: boolean): void {
     FormHelper.disableEnableFieldConfigsWhenAlreadySet(disable, [this.configObject.isin, this.configObject.currency]);

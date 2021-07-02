@@ -156,7 +156,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     return values.currencyExRate;
   }
 
-
   calcDebitAmount(values: any): number {
     return BusinessHelper.divideMultiplyExchangeRate(values.creditAmount, values.currencyExRate,
       this.debitCashaccount.currency, this.currencypair) + ((values.transactionCost) ? values.transactionCost : 0);
@@ -165,7 +164,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private adjustNumberInputFractions(): void {
     const fromCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ?
       this.currencypair.fromCurrency : this.creditCashaccount.currency);
-    const toCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency:
+    const toCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency :
       this.debitCashaccount.currency);
     DynamicFieldHelper.adjustNumberFraction(this.configObject.creditAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
       toCurrencyFraction);

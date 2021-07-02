@@ -13,6 +13,7 @@ import {ConfirmationService} from 'primeng/api';
 import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
 
 export const enum Comparison { GT, LT, EQ }
 
@@ -79,6 +80,24 @@ export class AppHelper {
     return this.convertPropertyNameToUppercase(upperLower.replace(this.fieldToLabelRegex, ''));
   }
 
+  public static invisibleAndHide(fieldConfig: FieldConfig, hide: boolean): void {
+    if (hide) {
+      AppHelper.disableAndHideInput(fieldConfig);
+    } else {
+      AppHelper.enableAndVisibleInput(fieldConfig);
+    }
+  }
+
+  public static enableAndVisibleInput(fieldConfig: FieldConfig): void {
+    fieldConfig.invisible = false;
+    fieldConfig.formControl.enable();
+  }
+
+  public static disableAndHideInput(fieldConfig: FieldConfig): void {
+    fieldConfig.formControl.disable();
+    fieldConfig.invisible = true;
+  }
+
   public static truncateString(str: string, length: number, useWordBoundary: boolean): string {
     if (str.length <= length) {
       return str;
@@ -138,7 +157,6 @@ export class AppHelper {
         return value.toFixed(0);
       }
     }
-
     return gps.getNumberFormat().format(value);
   }
 

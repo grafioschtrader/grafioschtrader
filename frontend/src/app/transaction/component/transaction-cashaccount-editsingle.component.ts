@@ -129,32 +129,32 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.transactionTypeChangedSub = this.configObject.transactionType.formControl.valueChanges.subscribe((data: string) => {
         switch (TransactionType[data]) {
           case TransactionType.FEE:
-            this.configObject.idSecurityaccount.invisible = false;
+            AppHelper.enableAndVisibleInput(this.configObject.idSecurityaccount);
             if (this.configObject.idCashaccount.formControl.value) {
               const cp: { cashaccount: Cashaccount, portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
                 this.portfolios, +this.configObject.idCashaccount.formControl.value);
               this.prepareSecurityaccount(cp.portfolio);
             }
             this.setAmountValidator(true, gteWithMaskIncludeNegative(this.minAmount), 'gteWithMaskIncludeNegative');
-            this.configObject.taxCost.invisible = true;
+            AppHelper.disableAndHideInput(this.configObject.taxCost);
             break;
           case TransactionType.INTEREST_CASHACCOUNT:
-            this.configObject.idSecurityaccount.invisible = true;
+            AppHelper.disableAndHideInput(this.configObject.idSecurityaccount);
             this.setAmountValidator(true, gteWithMaskIncludeNegative(this.minAmount), 'gteWithMaskIncludeNegative');
-            this.configObject.taxCost.invisible = false;
+            AppHelper.enableAndVisibleInput(this.configObject.taxCost);
             break;
           default:
             // Deposit and withdrawal
-            this.configObject.idSecurityaccount.invisible = true;
-            this.configObject.taxCost.invisible = true;
+            AppHelper.disableAndHideInput(this.configObject.idSecurityaccount);
+            AppHelper.disableAndHideInput(this.configObject.taxCost);
             this.setAmountValidator(false, gteWithMask(this.minAmount), 'gte');
         }
 
         this.configObject.cashaccountAmount.labelKey = this.configObject.transactionType.valueKeyHtmlOptions
           .find(vkho => vkho.key === data).value;
         const invisibleWithdrawal = TransactionType[data] !== TransactionType.WITHDRAWAL;
-        this.configObject.debitAmount.invisible = invisibleWithdrawal;
-        this.configObject.transactionCost.invisible = invisibleWithdrawal;
+        AppHelper.invisibleAndHide(this.configObject.debitAmount, invisibleWithdrawal);
+        AppHelper.invisibleAndHide(this.configObject.transactionCost, invisibleWithdrawal);
       }
     );
   }
@@ -193,7 +193,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     });
   }
 
-
   onHide(event) {
     this.transactionTypeChangedSub && this.transactionTypeChangedSub.unsubscribe();
     this.chashaccountChangedSub && this.chashaccountChangedSub.unsubscribe();
@@ -224,7 +223,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   helpLink() {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
-
 
   private setValueChanged(): void {
     this.valueChangedOnCashaccount();
