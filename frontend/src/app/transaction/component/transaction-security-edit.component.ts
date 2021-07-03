@@ -349,14 +349,15 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setVisibilityOnFields(): void {
-    AppHelper.invisibleAndHide(this.configObject.assetInvestmentValue1, !(this.transactionCallParam.transactionType
-      === TransactionType.REDUCE || this.transactionCallParam.transactionType === TransactionType.ACCUMULATE) ||
-      !(this.isBondOrConvertibleBondAndDirectInvestment || this.isOpenMarginInstrument));
+    AppHelper.invisibleAndHide(this.configObject.assetInvestmentValue1, !((this.transactionCallParam.transactionType
+      === TransactionType.REDUCE || this.transactionCallParam.transactionType === TransactionType.ACCUMULATE) &&
+      (this.isBondOrConvertibleBondAndDirectInvestment() || this.isOpenMarginInstrument)));
     if (!this.configObject.assetInvestmentValue1.invisible) {
       this.configObject.assetInvestmentValue1.labelKey = this.isOpenMarginInstrument ? 'DAILY_CFD_HOLDING_COST'
         : 'ACCRUED_INTEREST';
       this.configObject.assetInvestmentValue1.currencyMaskConfig.allowNegative = this.isOpenMarginInstrument;
-      this.configObject.assetInvestmentValue1.currencyMaskConfig.precision = this.isOpenMarginInstrument ? 5 : 2;
+      this.configObject.assetInvestmentValue1.currencyMaskConfig.precision = this.isOpenMarginInstrument
+        ? AppSettings.FID_MAX_FRACTION_DIGITS : AppSettings.FID_STANDARD_FRACTION_DIGITS;
     }
     AppHelper.invisibleAndHide(this.configObject.exDate, this.transactionCallParam.transactionType !== TransactionType.DIVIDEND
       || this.isBondOrConvertibleBondAndDirectInvestment());
@@ -408,6 +409,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setMarginFlags(): void {
+    console.log("security", this.selectedSecurity);
     this.isMarginInstrument = BusinessHelper.isMarginProduct(this.selectedSecurity)
       && this.transactionCallParam.transactionType !== TransactionType.FINANCE_COST;
     this.isCloseMarginInstrument = this.isMarginInstrument && ((!!this.transactionCallParam.transaction

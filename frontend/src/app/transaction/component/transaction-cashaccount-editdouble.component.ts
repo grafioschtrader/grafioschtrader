@@ -312,7 +312,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     }
   }
 
-
   /**
    * Return true when exchange rate can be adjusted
    */
