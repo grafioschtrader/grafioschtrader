@@ -117,6 +117,8 @@ export class MenubarComponent implements OnInit, OnDestroy {
         // Show first steps
         BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_INTRO);
       }
+    } else {
+      BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_INTRO);
     }
   }
 

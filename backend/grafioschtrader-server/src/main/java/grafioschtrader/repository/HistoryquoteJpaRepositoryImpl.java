@@ -59,16 +59,16 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     implements HistoryquoteJpaRepositoryCustom {
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
   private SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
@@ -80,12 +80,17 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
-  TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Override
   public ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
       final Integer idSecuritycurrency, final String dateString, final boolean asTraded) throws ParseException {
     final Date date = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).parse(dateString);
+    return getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idSecuritycurrency, date, asTraded);
+  }
+
+  public ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
+      final Integer idSecuritycurrency, final Date date, final boolean asTraded) {
     final List<Integer> securitycurrencies = new ArrayList<>();
     securitycurrencies.add(idSecuritycurrency);
     final List<ISecuritycurrencyIdDateClose> securitycurrencyIdDateCloseList = historyquoteJpaRepository
@@ -118,7 +123,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     }
     return null;
   }
-
+  
   @Override
   public UserAuditable getUserAndCheckSecurityAccess(Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

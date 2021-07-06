@@ -90,6 +90,7 @@ public class ImportProperties {
    */
   private Double cex;
 
+  
   /**
    * Transaction cost 1
    */

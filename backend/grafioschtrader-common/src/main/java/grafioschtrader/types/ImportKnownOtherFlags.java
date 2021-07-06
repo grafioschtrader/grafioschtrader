@@ -5,13 +5,13 @@ import java.util.EnumSet;
 import grafioschtrader.common.EnumHelper;
 
 /**
- * Attention: The order must not be changed.
+ * Attention: The order must not be changed. Flags that start with "CAN" can be set be the user, others are set by the system.
  *
  */
 public enum ImportKnownOtherFlags {
 
   /**
-   * Bonds may pay interest two or more times in a year. But the platform shows
+   * Bonds may pay interest two or more times in a year. But the document shows
    * only the predetermined interest rate. In this case the system may correct
    * this interest rate for the frequency.
    */
@@ -34,7 +34,13 @@ public enum ImportKnownOtherFlags {
    * currency but there is no exchange rate. System will involve the required
    * currency and adjust the dividend per unity accordingly.
    */
-  CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE;
+  CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE,
+  
+  
+  /**
+   * Maybe the base currency for exchange rate is not the one of the instrument. It could be the one of the cash account 
+   */
+  CAN_BASE_CURRENCY_MAYBE_INVERSE;
 
   public static int encode(EnumSet<ImportKnownOtherFlags> importKnownOtherFlagsSet) {
     return EnumHelper.encode(importKnownOtherFlagsSet);

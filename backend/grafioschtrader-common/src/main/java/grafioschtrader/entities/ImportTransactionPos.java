@@ -614,7 +614,6 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   }
 
   public void calcCashaccountAmount() {
-
     switch (getTransactionType()) {
     case ACCUMULATE:
     case REDUCE:
@@ -656,14 +655,29 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     }
   }
 
-  public void calcDiffCashaccountAmount() {
+  public void calcDiffCashaccountAmountWhenPossible() {
     if ((importTransactionPosFailedList == null || importTransactionPosFailedList.isEmpty())
         && cashaccountAmount != null) {
-      calcCashaccountAmount();
-      diffCashaccountAmount = calcCashaccountAmount
-          - DataHelper.round(cashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+      if (calcDiffCashaccountAmount() != 0.0
+          && getKnownOtherFlags().contains(ImportKnownOtherFlags.CAN_BASE_CURRENCY_MAYBE_INVERSE)
+          && currencyExRate != null) {
+        double oldCurrencyExRate = currencyExRate;
+        currencyExRate = 1 / currencyExRate;
+        if(calcDiffCashaccountAmount() != 0.0) {
+          currencyExRate = oldCurrencyExRate;
+          calcDiffCashaccountAmount();
+        }
+      }
     }
   }
+  
+  private double calcDiffCashaccountAmount() {
+    calcCashaccountAmount();
+    diffCashaccountAmount = calcCashaccountAmount
+        - DataHelper.round(cashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+    return diffCashaccountAmount;
+  }
+  
 
   public double getCalcCashaccountAmount() {
     return calcCashaccountAmount;

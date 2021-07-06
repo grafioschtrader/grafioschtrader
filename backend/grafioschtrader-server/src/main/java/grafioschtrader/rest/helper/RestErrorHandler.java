@@ -194,7 +194,9 @@ public class RestErrorHandler {
     for (final DataViolation dataViolation : ex.getDataViolation()) {
       final String localizedErrorMessage = messageSource.getMessage(dataViolation.getMessageKey(),
           dataViolation.getData(), locale);
-      final String field = messageSource.getMessage(dataViolation.getField(), null, locale);
+      final String field = dataViolation.isTranslateFieldName()
+          ? messageSource.getMessage(dataViolation.getField(), null, locale)
+          : dataViolation.getField();
       validationErrorDTO.addFieldError(field, localizedErrorMessage);
     }
 

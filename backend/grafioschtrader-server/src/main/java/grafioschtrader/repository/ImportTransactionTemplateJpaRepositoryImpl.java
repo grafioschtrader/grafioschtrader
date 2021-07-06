@@ -71,7 +71,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
     } else {
       importTemplate = new TemplateConfigurationAndStateCsv(importTransactionTemplate, user.createAndGetJavaLocale());
     }
-    importTemplate.parseTemplate();
+    importTemplate.parseTemplate(true);
 
     return importTransactionTemplateJpaRepository.save(importTransactionTemplate);
   }
@@ -95,7 +95,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
       ImportTransactionPos importTransactionPos = ImportTransactionPos
           .createFromImportPropertiesSecurity(importPropertiesList);
       TransactionImportHelper.setSecurityToImportWhenPossible(importTransactionPos, securityJpaRepository);
-      importTransactionPos.calcDiffCashaccountAmount();
+      importTransactionPos.calcDiffCashaccountAmountWhenPossible();
       formTemplateCheck.setImportTransactionPos(importTransactionPos);
       ImportTransactionTemplate importTransactionTemplate = parseInputPDFasTXT.getSuccessTemplate(importPropertiesList);
       formTemplateCheck.setSuccessParsedTemplateState(new ParsedTemplateState(

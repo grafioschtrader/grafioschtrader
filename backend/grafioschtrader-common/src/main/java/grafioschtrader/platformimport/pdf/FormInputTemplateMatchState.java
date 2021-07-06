@@ -33,17 +33,11 @@ public class FormInputTemplateMatchState {
     importPropertiesPrimary = new ImportProperties(templateConfigurationPDFasTXT.getTransactionTypesMap(),
         templateConfigurationPDFasTXT.getImportKnownOtherFlagsSet(), fileNumber);
     importPropertiesList.add(importPropertiesPrimary);
-    /*
-     * valueFormatConverter = new
-     * ValueFormatConverter(templateConfigurationPDFasTXT.getLocale(),
-     * templateConfigurationPDFasTXT.getDateFormat(),
-     * templateConfigurationPDFasTXT.getThousandSeparatorsPattern(),
-     * templateConfigurationPDFasTXT.getTimeFormat());
-     */
+    
     valueFormatConverter = new ValueFormatConverter(templateConfigurationPDFasTXT.getDateFormat(),
         templateConfigurationPDFasTXT.getTimeFormat(), templateConfigurationPDFasTXT.getThousandSeparators(),
         templateConfigurationPDFasTXT.getThousandSeparatorsPattern(),
-        templateConfigurationPDFasTXT.getDecimalSeparator());
+        templateConfigurationPDFasTXT.getDecimalSeparator(), templateConfigurationPDFasTXT.getLocale());
 
     properties = templateConfigurationPDFasTXT.getPropertyWithOptionsConfiguration();
     setNextActProperty(0);
@@ -69,7 +63,6 @@ public class FormInputTemplateMatchState {
             valueFormatConverter);
       }
     }
-
   }
 
   public List<ImportProperties> getImportPropertiesList() {
