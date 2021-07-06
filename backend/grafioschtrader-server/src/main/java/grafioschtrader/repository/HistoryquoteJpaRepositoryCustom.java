@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -23,6 +24,10 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
   ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(Integer idSecuritycurrency,
       String dateString, boolean asTraded) throws ParseException;
 
+  
+  ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
+      final Integer idSecuritycurrency, final Date date, final boolean asTraded);
+  
   /**
    * Create history quotes for weekend and public holidays
    * 

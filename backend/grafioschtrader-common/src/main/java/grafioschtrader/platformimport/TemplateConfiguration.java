@@ -1,6 +1,7 @@
 package grafioschtrader.platformimport;
 
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Locale;
@@ -23,13 +24,6 @@ import grafioschtrader.types.TransactionType;
  *
  */
 public abstract class TemplateConfiguration {
-
-  /**
-   * Bonds may pay interest two or more times in a year. But the platform shows
-   * only the predetermined interest rate. In this case the system may correct
-   * this interest rate for the frequency.
-   */
-  public static final String FO_BOND_QUATION_CORRECTION = "bondQuationCorrection";
 
   public static final String SECTION_END = "[END]";
   private static final String CONF_TRANSACTION_TYPE = "transType";
@@ -83,7 +77,7 @@ public abstract class TemplateConfiguration {
     this.userLocale = userLocale;
   }
 
-  public void parseTemplate() {
+  public void parseTemplate(boolean forSaving) {
 
     final DataViolationException dataViolationException = new DataViolationException();
 
@@ -95,6 +89,10 @@ public abstract class TemplateConfiguration {
     decimalSeparator = decimalFormatSymbols.getDecimalSeparator();
     numberTypeRegex = createNumberRegexByLocale();
     readTemplateProperties(templateLines, startRowConfig, dataViolationException);
+
+    if (forSaving) {
+      validateTemplate(dataViolationException);
+    }
 
     if (dataViolationException.hasErrors()) {
       throw dataViolationException;
@@ -128,7 +126,7 @@ public abstract class TemplateConfiguration {
         case CONF_DATE_FORMAT:
           dateFormat = splitEqual[1];
           dateTypeRegex = dateFormat.replaceAll("\\-", "\\\\-").replaceAll("\\.", "\\\\.")
-              .replaceFirst("yyyy", "\\\\d{4}").replaceFirst("MMM", "\\\\w{3}").replaceFirst("hh", "\\\\d{1,2}")
+              .replaceFirst("yyyy", "\\\\d{4}").replaceFirst("MMM", "\\\\w{3}").replaceFirst("hh|HH", "\\\\d{1,2}")
               .replaceAll("dd|MM|yy|mm|ss", "\\\\d{2}").replaceFirst("a", "[AaPp][Mm]");
           break;
         case CONF_TIME_FORMAT:
@@ -165,7 +163,7 @@ public abstract class TemplateConfiguration {
   }
 
   /**
-   * All< '|.> oder de-CH<'|.>de-DE<,|.>
+   * All< '|.> or de-CH<'|.>de-DE<,|.>
    * 
    * @param separators
    */
@@ -227,7 +225,22 @@ public abstract class TemplateConfiguration {
   }
 
   protected void addionalConfigurations(String[] splitEqual) {
+  }
 
+  public void validateTemplate(final DataViolationException dataViolationException) {
+    if (dateFormat == null) {
+      dataViolationException.addDataViolation(CONF_DATE_FORMAT, "gt.imptemplate.date", null, false);
+    } else {
+      try {
+        new SimpleDateFormat(dateFormat);
+      } catch (IllegalArgumentException iae) {
+        dataViolationException.addDataViolation(CONF_DATE_FORMAT, "gt.imptemplate.date", null, false);
+      }
+    }
+    if(transactionTypesMap.isEmpty()) {
+      dataViolationException.addDataViolation(CONF_TRANSACTION_TYPE, "gt.imptemplate.missing.transactiontype", null, false);
+    }
+   
   }
 
   /**
@@ -288,6 +301,5 @@ public abstract class TemplateConfiguration {
     public Separators(String thousandSeparators) {
       this.thousandSeparators = thousandSeparators;
     }
-
   }
 }

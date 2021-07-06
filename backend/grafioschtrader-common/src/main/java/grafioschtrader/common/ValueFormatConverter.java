@@ -24,6 +24,7 @@ public class ValueFormatConverter {
   private DateTimeFormatter localTimeFormater;
   private DateTimeFormatter localDateFormatter;
   private String thousandSeparatorsPattern;
+  private Locale userLocale;
 
   public ValueFormatConverter() {
     this.numberFormat = NumberFormat.getInstance(Locale.getDefault());
@@ -33,7 +34,7 @@ public class ValueFormatConverter {
   }
 
   public ValueFormatConverter(String dateFormat, String localTimeFormat, char thousandSeparators,
-      String thousandSeparatorsPattern, char decimalSeparator) {
+      String thousandSeparatorsPattern, char decimalSeparator, Locale userLocale) {
     if (localTimeFormat == null) {
       simpleDateFormat = new SimpleDateFormat(dateFormat);
     } else {
@@ -42,11 +43,12 @@ public class ValueFormatConverter {
     }
     this.setSeparators(decimalSeparator, thousandSeparators);
     this.thousandSeparatorsPattern = thousandSeparatorsPattern;
+    this.userLocale = userLocale;
   }
 
   public ValueFormatConverter(char decimalSeparator, String dateFormat, char thousandSeparators) {
     this(decimalSeparator, thousandSeparators);
-    simpleDateFormat = new SimpleDateFormat(dateFormat);
+    simpleDateFormat = userLocale == null? new SimpleDateFormat(dateFormat): new SimpleDateFormat(dateFormat, userLocale);
 
   }
 

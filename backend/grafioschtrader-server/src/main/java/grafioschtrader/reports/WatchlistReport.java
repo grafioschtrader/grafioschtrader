@@ -65,31 +65,31 @@ public class WatchlistReport {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  WatchlistJpaRepository watchlistJpaRepository;
+  private WatchlistJpaRepository watchlistJpaRepository;
 
   @Autowired
-  TransactionJpaRepository transactionJpaRepository;
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Autowired
-  SecurityCalcService securityCalcService;
+  private SecurityCalcService securityCalcService;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  SecuritysplitJpaRepository securitysplitJpaRepository;
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   /**
    * Returns the watchlist with the youngest date of history quote. This should

@@ -15,7 +15,7 @@ public abstract class ImportTransactionHelperCsv {
     for (ImportTransactionTemplate itt : importTransactionTemplateList) {
       TemplateConfigurationAndStateCsv templateConfigurationCsv = new TemplateConfigurationAndStateCsv(itt, userLocale);
       templateScannedMap.put(templateConfigurationCsv, itt);
-      templateConfigurationCsv.parseTemplate();
+      templateConfigurationCsv.parseTemplate(false);
     }
     return templateScannedMap;
   }

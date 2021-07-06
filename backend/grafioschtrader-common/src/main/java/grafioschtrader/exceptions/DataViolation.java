@@ -2,14 +2,16 @@ package grafioschtrader.exceptions;
 
 public class DataViolation {
 
-  String field;
-  String messageKey;
-  Object[] data;
+  private final String field;
+  private final String messageKey;
+  private final Object[] data;
+  private final boolean translateFieldName;
 
-  public DataViolation(final String field, final String messageKey, final Object[] data) {
+  public DataViolation(final String field, final String messageKey, final Object[] data, boolean translateFieldName) {
     this.field = field;
     this.messageKey = messageKey;
     this.data = data;
+    this.translateFieldName = translateFieldName;
   }
 
   /**
@@ -19,8 +21,8 @@ public class DataViolation {
    * @param id         Meaningful identification which helps the user by selecting
    *                   the wrong data record.
    */
-  public DataViolation(final String field, final String messageKey, final Object singleData) {
-    this(field, messageKey, new Object[] { singleData });
+  public DataViolation(final String field, final String messageKey, final Object singleData, boolean translateFieldName) {
+    this(field, messageKey, new Object[] { singleData }, translateFieldName);
   }
 
   public Object[] getData() {
@@ -34,5 +36,11 @@ public class DataViolation {
   public String getField() {
     return field;
   }
+
+  public boolean isTranslateFieldName() {
+    return translateFieldName;
+  }
+  
+  
 
 }
