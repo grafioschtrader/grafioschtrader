@@ -26,10 +26,10 @@ import grafioschtrader.entities.Security;
 
 /*-
  * Stock, Bond, ETF:
- *  
- * 
- * Dividend: Not Supported 
- * Splits: Not Supported 
+ *
+ *
+ * Dividend: Not Supported
+ * Splits: Not Supported
  *
  *
  */

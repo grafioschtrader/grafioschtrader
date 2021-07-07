@@ -31,7 +31,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * A security split hat not been mapped to security because of performance
  * reason.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -135,17 +135,17 @@ public class Securitysplit extends DividendSplit implements Serializable {
 
   /**
    * Returns the factor for a security split, that happened after toDate.
-   * 
+   *
    * @param security         The security
    * @param toDate           The transaction time
    * @param securitysplitMap This map may contain the a list of splits for
    *                         different securities.
-   * 
+   *
    * @return In a case of a split it returns a value greater > 1, for example a
    *         split of 2 returns 2. Normally the transaction units must be
    *         multiplied by this factor when the transaction time happened before
    *         the split date.
-   * 
+   *
    */
 
   public static double calcSplitFatorForFromDate(Integer idSecuritycurrency, Date toDate,
@@ -166,7 +166,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
 
   /**
    * Returns the factor for a security split, that happened after toDate.
-   * 
+   *
    * @param idSecuritycurrency
    * @param fromDate
    * @param toDate
@@ -175,7 +175,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
    *         split of 2 returns 2. Normally the transaction units must be
    *         multiplied by this factor when the transaction time happened before
    *         the split date.
-   * 
+   *
    */
   public static SplitFactorAfterBefore calcSplitFatorForFromDateAndToDate(Integer idSecuritycurrency, Date fromDate,
       Date toDate, Map<Integer, List<Securitysplit>> securitysplitMap) {

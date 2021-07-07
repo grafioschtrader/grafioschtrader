@@ -11,7 +11,7 @@ import grafioschtrader.reportviews.SecurityCostGroup;
 
 /**
  * Grand total of transaction cost report
- * 
+ *
  * @author Hugo Graf
  *
  */

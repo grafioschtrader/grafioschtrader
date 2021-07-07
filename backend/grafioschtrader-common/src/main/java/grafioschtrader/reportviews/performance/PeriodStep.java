@@ -8,7 +8,7 @@ import grafioschtrader.GlobalConstants;
 
 /**
  * Normally used for a single month or day
- * 
+ *
  * @author Hugo Graf
  *
  */

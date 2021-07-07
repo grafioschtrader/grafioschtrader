@@ -20,7 +20,7 @@ import grafioschtrader.types.TaskType;
  * Execute Job PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU when it was not executed
  * the day before or there is no existing
  * {@link grafioschtrader.entities.TaskDataChange}.
- * 
+ *
  * @author Hugo Graf
  *
  */

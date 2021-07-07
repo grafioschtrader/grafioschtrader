@@ -35,8 +35,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Transactions from csv or pdf file are imported in this table. Normally a csv
  * will creates many and a pdf may create only one.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */
@@ -670,14 +670,14 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
       }
     }
   }
-  
+
   private double calcDiffCashaccountAmount() {
     calcCashaccountAmount();
     diffCashaccountAmount = calcCashaccountAmount
         - DataHelper.round(cashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
     return diffCashaccountAmount;
   }
-  
+
 
   public double getCalcCashaccountAmount() {
     return calcCashaccountAmount;

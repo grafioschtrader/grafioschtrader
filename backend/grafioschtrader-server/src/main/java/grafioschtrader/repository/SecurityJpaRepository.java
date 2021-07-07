@@ -78,7 +78,7 @@ public interface SecurityJpaRepository extends JpaRepository<Security, Integer>,
   /**
    * With or without this clause "ORDER BY s.idSecuritycurrency" we get more rows
    * than without it. Why?
-   * 
+   *
    * @param maxHistoryRetry
    * @return
    */

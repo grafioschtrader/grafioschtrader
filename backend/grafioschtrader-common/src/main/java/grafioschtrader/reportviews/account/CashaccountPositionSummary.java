@@ -13,7 +13,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionCurrenyGroupS
 
 /**
  * Total per cash account
- * 
+ *
  * @author Hugo Graf
  *
  */

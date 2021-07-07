@@ -62,7 +62,7 @@ public abstract class FinanzenWithAjaxControllerCall<T extends Securitycurrency<
 
   /**
    * This call is used to collect some attributes in the cookies.
-   * 
+   *
    * @param httpclient
    * @param securityCurrency
    * @throws ClientProtocolException

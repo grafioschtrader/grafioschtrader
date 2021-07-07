@@ -21,7 +21,7 @@ public class ExposedResourceBundleMessageSource extends ReloadableResourceBundle
 
   /**
    * Gets all messages for presented Locale.
-   * 
+   *
    * @param locale user request's locale
    * @return all messages
    */

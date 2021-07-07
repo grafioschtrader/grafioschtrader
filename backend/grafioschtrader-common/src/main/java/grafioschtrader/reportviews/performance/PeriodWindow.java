@@ -12,7 +12,7 @@ import grafioschtrader.GlobalConstants;
 
 /**
  * Normally used for period of single year or week.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -25,7 +25,7 @@ public class PeriodWindow {
   public List<PeriodStepMissingHoliday> periodStepList;
 
   public PeriodWindow(WeekYear weekYear, LocalDate startDate, LocalDate endDate) {
-    periodStepList = new ArrayList<PeriodStepMissingHoliday>(Collections.nCopies(
+    periodStepList = new ArrayList<>(Collections.nCopies(
         weekYear == WeekYear.WM_WEEK ? PerformancePeriod.PERIOD_WEEK : PerformancePeriod.PERIOD_YEAR,
         new PeriodStepMissingHoliday(HolidayMissing.HM_NONE)));
 

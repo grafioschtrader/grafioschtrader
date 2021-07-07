@@ -39,7 +39,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 /**
  * Update or load historical prices thru the connector for securities or
  * currency pair.
- * 
+ *
  *
  * @param <S>
  */
@@ -111,7 +111,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    * Try to fill prices with all security or currencies without any history quote
    * until now. Security or currency pair must have a connector. Data is also
    * persisted.
-   * 
+   *
    * @param type
    * @return
    */
@@ -145,7 +145,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   /**
    * Some data provider cause an error, if there is no match between the two
    * dates. For this reason, some days are subtract form the older Date.
-   * 
+   *
    * @param fromDate
    * @param toDate
    * @return

@@ -20,8 +20,8 @@ import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.types.HistoryquoteCreateType;
 
 /*-
- *  A derived product always has one or more underlying instruments, and may also contain a calculation formula for the price data. 
- *  Only through a derived instrument does a currency pair become tradable, in this case the instrument has no formula.   
+ *  A derived product always has one or more underlying instruments, and may also contain a calculation formula for the price data.
+ *  Only through a derived instrument does a currency pair become tradable, in this case the instrument has no formula.
  *
  */
 public interface ThruCalculationHelper {

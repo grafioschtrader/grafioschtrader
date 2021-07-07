@@ -50,8 +50,8 @@ public class CopyTenantService {
   private void deleteData(Integer targetIdTenant) {
     String[] tables = new String[] { Transaction.TABNAME, Watchlist.TABNAME, Securitycashaccount.TABNAME,
         Portfolio.TABNAME };
-    for (int i = 0; i < tables.length; i++) {
-      String deleteSQL = "DELETE FROM " + tables[i] + " WHERE id_tenant=?";
+    for (String table : tables) {
+      String deleteSQL = "DELETE FROM " + table + " WHERE id_tenant=?";
       jdbcTemplate.update(deleteSQL, targetIdTenant);
     }
 

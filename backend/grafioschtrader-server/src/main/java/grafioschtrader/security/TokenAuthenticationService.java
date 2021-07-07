@@ -69,7 +69,7 @@ public class TokenAuthenticationService {
 
   /**
    * Get the token from header with every request.
-   * 
+   *
    * @param request
    * @return
    */
@@ -84,7 +84,7 @@ public class TokenAuthenticationService {
 
   /**
    * Used to connect with Websocket.
-   * 
+   *
    * @param message
    * @param accessor
    * @return

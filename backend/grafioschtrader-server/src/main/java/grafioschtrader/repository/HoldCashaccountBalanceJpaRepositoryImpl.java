@@ -25,7 +25,7 @@ import grafioschtrader.repository.helper.HoldingsHelper;
 
 /**
  * It changes with every new or updated transaction.
- * 
+ *
  *
  */
 public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountBalanceJpaRepositoryCustom {

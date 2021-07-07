@@ -8,7 +8,7 @@ import grafioschtrader.GlobalConstants;
 
 /**
  * Single data point for the chart
- * 
+ *
  * @author Hugo Graf
  *
  */

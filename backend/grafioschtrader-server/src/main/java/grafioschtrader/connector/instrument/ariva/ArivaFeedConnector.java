@@ -36,7 +36,7 @@ public class ArivaFeedConnector extends BaseFeedConnector {
    * Dividend data not supported because they are not exactly, and prices may be in EUR instead of the stock currency.
    *
    * Splits:
-   * Splits are mixed with dividends, please refere to https://www.ariva.de/apple-aktie/historische_ereignisse 
+   * Splits are mixed with dividends, please refere to https://www.ariva.de/apple-aktie/historische_ereignisse
    */
   private static final String DATE_FORMAT_GE = "dd.MM.yyyy";
   private static final int TIMEOUT = 15000;

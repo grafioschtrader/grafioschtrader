@@ -8,7 +8,7 @@ import grafioschtrader.entities.Securitycurrency;
 
 /**
  * Contains the close price of a currency pair or security.
- * 
+ *
  * @author Hugo Graf
  *
  * @param <T>

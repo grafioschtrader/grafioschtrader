@@ -17,7 +17,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 /**
  * User which export his data will get the role with most power.
- * 
+ *
  * @author Hugo Graf
  *
  */

@@ -22,7 +22,7 @@ import grafioschtrader.types.TaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * 
+ *
  * @author Hugo Graf
  *
  */

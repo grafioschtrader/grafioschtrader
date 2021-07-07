@@ -32,9 +32,9 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 /*-
  * Stocks, Bond, ETF:<br>
  * It difficult to check the url extension with a regex pattern
- * 
+ *
  * Dividend: Value are summarized, can not be used in this application.
- * Splits: Not supported 
+ * Splits: Not supported
  */
 @Component
 public class FinanzenNETFeedConnector extends BaseFeedConnector {
@@ -136,8 +136,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
 
   private void updateSecuritycurrency(Elements rows, Security security) throws IOException, ParseException {
 
-    for (int i = 0; i < rows.size(); i++) {
-      final Element row = rows.get(i);
+    for (final Element row : rows) {
       final Elements cols = row.select("td,th");
       String value = cols.get(1).text().strip();
       switch (cols.get(0).text().strip()) {

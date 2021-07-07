@@ -20,7 +20,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
  * Update calculation of derived security.
- * 
+ *
  * @author Hugo Graf
  *
  */

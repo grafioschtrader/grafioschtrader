@@ -589,7 +589,7 @@
   "TRANSACTION_AVERAGE_PAID": "Durchschnitt Transaktionskosten",
   "TRANSACTION_COST": "Transaktionskosten",
   "TRANSACTION_FEE_PLAN": "Transaktionsgebührenplan",
-  "TRANSACTION_IMPLEMENTATION": "Transaktion Implementierung",
+  "TRANSACTION_IMPLEMENTATION": "Transaktionsimport Implementierung",
   "TRANSACTION_IMPLEMENTATION_TOOLTIP": "Es gibt eine spezielle Implementierung für den Import von Transaktionen, mesitens für CSV",
   "TRANSACTION_TAX_COST": "Steuer Transaktion",
   "TRANSACTION_TIME": "Transaktionszeit",

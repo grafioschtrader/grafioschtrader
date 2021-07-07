@@ -11,7 +11,7 @@ public abstract class TransactionImportHelper {
 
   /**
    * Try to get the security be the ISIN or Symbol with the expected currency.
-   * 
+   *
    * @param importTransactionPos
    * @param securityJpaRepository
    */

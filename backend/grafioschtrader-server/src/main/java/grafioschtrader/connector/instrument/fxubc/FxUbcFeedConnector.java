@@ -34,7 +34,7 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 
 /**
- * 
+ *
  * This provider can only deliver historical rates for 4 years in one request.
  * Therefore 3 requests are needed for the period from 2000 to 2019. It is also
  * possible that the provider does not supply any data for one or all of these

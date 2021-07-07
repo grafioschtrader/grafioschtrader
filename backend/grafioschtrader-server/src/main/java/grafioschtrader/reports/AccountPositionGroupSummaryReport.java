@@ -45,8 +45,8 @@ import grafioschtrader.types.TransactionType;
 /**
  * Creates a report that combines the summary of cash account and security
  * account.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */
@@ -78,7 +78,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Creates a total for all portfolios for a certain group like currencies.
-   * 
+   *
    * @param idTenant
    * @param grouping
    * @return
@@ -104,7 +104,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Calculates the cash- and security account for a single portfolio.
-   * 
+   *
    * @param idPortfolio
    * @return
    */
@@ -143,7 +143,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Collects the transaction data for every asked cash account.
-   * 
+   *
    * @param cashaccountList
    * @param accountGroupMap
    * @param mainCurrency
@@ -235,7 +235,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Calculate the Security transactions.
-   * 
+   *
    * @param everyKindOfTransactionsUntilDate
    * @param securitysplitMap
    * @param excludeDivTaxcost
@@ -258,10 +258,10 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   /**
    * Processes transaction which has a different currency than main currency.
    * Mainly it prepares the calculation for the gain/loss on currencies.
-   * 
-   * 
+   *
+   *
    * A dividend
-   * 
+   *
    * @param acps
    * @param accountPositionSummary
    * @param mainCurrency
@@ -329,7 +329,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   /**
    * Transaction that happened between two different currencies but none of them
    * is the main currency.
-   * 
+   *
    * @param currencypair
    * @param acps
    * @param accountPositionSummary
@@ -376,11 +376,6 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
       securityACPS.balanceCurrencyTransaction -= transaction.getCashaccountAmount() / transaction.getCurrencyExRate();
       securityACPS.balanceCurrencyTransactionMC -= transaction.getCashaccountAmount() * exchangeRate;
-
-      if (securityACPS.balanceCurrencyTransactionMC < -500_000.00) {
-        System.out.println(securityACPS);
-      }
-
     }
   }
 
@@ -404,8 +399,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Groups every security to its required group.
-   * 
-   * 
+   *
+   *
    * @param securityPositionSummaryMap
    * @param mainCurrency
    * @param currencypairByFromCurrencyMap
@@ -435,7 +430,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Combine the result of Cashaccounts and Securityaccounts for all portfolios.
-   * 
+   *
    * @param portfolio
    * @param accountGroupMap
    * @param cashaccountPositionSummaryByCashaccountMap
@@ -482,7 +477,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 }
 
 /**
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -507,7 +502,6 @@ class AccessCashaccountPositionSummary {
   public void preparteForNewPortfolio() {
     cashaccountPositionSummaryByCashaccountMap = new HashMap<>();
     cashaccountPositionSummaryByCurrencyMap = new HashMap<>();
-
   }
 
   public CashaccountPositionSummary createAndAddCashaccountPositionSummary(final Cashaccount cashaccount,
@@ -529,7 +523,7 @@ class AccessCashaccountPositionSummary {
    * Create and initialize CashaccountPositionSummary. It gets the currency
    * exchange rate in case when main currency differs from the cash account
    * currency.
-   * 
+   *
    * @param mainCurrency
    * @param cashaccount
    * @return
@@ -544,8 +538,6 @@ class AccessCashaccountPositionSummary {
     }
     accountPositionSummary.cashBalance = 0.0;
     accountPositionSummary.externalCashTransferMC = 0.0;
-    // accountPositionSummary.externalTransferMC =
-    // accountPositionSummary.balanceCalculated;
     accountPositionSummary.setCashaccount(cashaccount);
     accountPositionSummary.hasTransaction = cashaccount.getTransactionList() != null
         && cashaccount.getTransactionList().size() > 0;

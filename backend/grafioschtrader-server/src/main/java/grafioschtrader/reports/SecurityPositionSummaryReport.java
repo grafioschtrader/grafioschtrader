@@ -39,7 +39,7 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 
 /**
  * There may be only one instance of this class, to not use any class members.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -194,7 +194,7 @@ public abstract class SecurityPositionSummaryReport {
   /**
    * Creates a SecurityPositionSummary for a certain security account. The same
    * security in different security accounts will be merged to a single result.
-   * 
+   *
    * @param securityaccount    Security account which transactions are processed
    * @param summarySecurityMap
    * @param excludeDivTaxcost

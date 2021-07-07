@@ -61,7 +61,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
   /**
    * For all securities and currencies it fills their history quote from the
    * youngest entry date until now.
-   * 
+   *
    * @return
    */
   private List<S> particialFillHistoryquote() {

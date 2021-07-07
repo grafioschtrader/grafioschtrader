@@ -11,7 +11,7 @@ import grafioschtrader.platformimport.ImportProperties;
 /**
  * Contains the state of a single form/template parsing. First the non optional
  * properties are parsed. Afterwards the optional properties are parsed.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -33,7 +33,7 @@ public class FormInputTemplateMatchState {
     importPropertiesPrimary = new ImportProperties(templateConfigurationPDFasTXT.getTransactionTypesMap(),
         templateConfigurationPDFasTXT.getImportKnownOtherFlagsSet(), fileNumber);
     importPropertiesList.add(importPropertiesPrimary);
-    
+
     valueFormatConverter = new ValueFormatConverter(templateConfigurationPDFasTXT.getDateFormat(),
         templateConfigurationPDFasTXT.getTimeFormat(), templateConfigurationPDFasTXT.getThousandSeparators(),
         templateConfigurationPDFasTXT.getThousandSeparatorsPattern(),
@@ -75,7 +75,7 @@ public class FormInputTemplateMatchState {
 
   /**
    * Maybe there are more then only one property on a single line
-   * 
+   *
    * @param formInputLines
    * @param row
    * @throws Exception
@@ -85,12 +85,9 @@ public class FormInputTemplateMatchState {
     boolean matches = false;
     while (!formMatches && actProperty.getLineNo() == templateLineNo && (matches = actProperty
         .matchePropertyAndSetValue(formInputLines, row, importPropertiesPrimary, valueFormatConverter))) {
-      // System.out.println(formInputLines[row] + " PROPETY:" +
-      // actProperty.getFieldName() + " Matches:" + matches);
       if (matches) {
         lastMatchingProperty = actProperty.getFieldName();
       }
-
       setNextActProperty(row);
     }
     return row;
@@ -125,12 +122,11 @@ public class FormInputTemplateMatchState {
 
   private void formMatches() {
     this.formMatches = true;
-    // System.out.println("--------------Form Matches---------------");
   }
 
   /**
    * Matches a repeating lines
-   * 
+   *
    * @param formInputLines
    * @param row
    * @return
@@ -143,9 +139,6 @@ public class FormInputTemplateMatchState {
       // PropertyWithOptionsConfiguration lastColumnProperty =
       // properties.get(lastColumnIndex);
       int columsInRowTemplate = templateConfigurationPDFasTXT.getColumnNoOnProperty(actProperty);
-      // System.out.println("lastColumnProperty: " + lastColumnProperty + " columns in
-      // row: " + columsInRowTemplate);
-      // System.out.println("Line:" + formInputLines[row]);
       Pattern[] tableRowPatterns = getTableRowPattern(lastColumnIndex);
       int requiredColumns = lastColumnIndex - propertyIndex + 1;
       boolean successRowRead = false;
@@ -165,7 +158,6 @@ public class FormInputTemplateMatchState {
             importPropertiesList.add(ipRepeated);
           }
           for (int proertyCounter = propertyIndex, i = 1; i <= matcher.groupCount(); proertyCounter++, i++) {
-            // System.out.println(matcher.group(i));
             PropertyWithOptionsConfiguration pwoc = properties.get(proertyCounter);
             if (optionalIndex == 1 && pwoc.isOptional()) {
               pwoc = properties.get(++proertyCounter);
@@ -201,7 +193,7 @@ public class FormInputTemplateMatchState {
 
   /**
    * Creates the pattern for a table row.
-   * 
+   *
    * @param lastColumnIndex The number of columns in a row (separated by spaces)
    * @return
    */
@@ -234,7 +226,6 @@ public class FormInputTemplateMatchState {
         }
 
       }
-      // System.out.println("Row Pattern:" + regex);
       if (optinalIndex == 0) {
         patterns = new Pattern[hasOptional ? 2 : 1];
       }

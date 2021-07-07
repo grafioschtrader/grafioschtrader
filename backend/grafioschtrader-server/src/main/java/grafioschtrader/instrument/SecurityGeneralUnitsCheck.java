@@ -18,8 +18,8 @@ import grafioschtrader.types.TransactionType;
  * For stocks, bond, ETF a check for units is executed. In this way it is not
  * possible does units gets less than zero or dividend is paid for non existing
  * units.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */
@@ -110,8 +110,7 @@ public class SecurityGeneralUnitsCheck {
     final Date transactionExDate = (transaction.getExDate() != null) ? transaction.getExDate()
         : transaction.getTransactionTime();
 
-    for (int i = 0; i < transactionTimeUnits.size(); i++) {
-      final TransactionTimeUnits ttU = transactionTimeUnits.get(i);
+    for (final TransactionTimeUnits ttU : transactionTimeUnits) {
       // At dividend time there are enough units or they at least they has been sold
       // less than a month before dividend time
       if (ttU.units >= requiredUnits || ttU.transaction.getTransactionType() == TransactionType.REDUCE

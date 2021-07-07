@@ -12,8 +12,6 @@ public abstract class ReportHelper {
 
   public static void loadUntilDateHistoryquotes(final HistoryquoteJpaRepository historyquoteJpaRepository,
       DateTransactionCurrencypairMap dateCurrencyMap) {
-    // System.out.println("x------------------- Required currency - Date:" +
-    // dateCurrencyMap.getUntilDate());
     if (!dateCurrencyMap.isUntilDateEqualNowOrAfter() && !dateCurrencyMap.isUntilDateDataLoaded()) {
       final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
       loadUntilDateHistoryquotesWithoutCheck(user.getIdTenant(), historyquoteJpaRepository, dateCurrencyMap);
@@ -22,8 +20,6 @@ public abstract class ReportHelper {
 
   public static void loadUntilDateHistoryquotes(final Integer idTenant,
       final HistoryquoteJpaRepository historyquoteJpaRepository, DateTransactionCurrencypairMap dateCurrencyMap) {
-    // System.out.println("x------------------- Required currency - Date:" +
-    // dateCurrencyMap.getUntilDate());
     if (!dateCurrencyMap.isUntilDateEqualNowOrAfter() && !dateCurrencyMap.isUntilDateDataLoaded()) {
       loadUntilDateHistoryquotesWithoutCheck(idTenant, historyquoteJpaRepository, dateCurrencyMap);
     }

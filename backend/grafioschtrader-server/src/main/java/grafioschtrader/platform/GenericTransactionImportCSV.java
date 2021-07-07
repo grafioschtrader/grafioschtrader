@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,11 +38,13 @@ import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
  * Import a single csv file, which can produce one or more import transactions.
- * 
+ *
  * @author Hugo Graf
  *
  */
 public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfBase {
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   public static final String ORDER_NOTHING = "0";
   private MultipartFile uploadFile;
@@ -90,7 +94,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
           case 2:
             // Header line
             template = checkAndGetTemplate(templateScannedMap, line, templateId);
-           
+
             valueFormatConverter = new ValueFormatConverter(template.getDateFormat(), template.getTimeFormat(),
                 template.getThousandSeparators(), template.getThousandSeparatorsPattern(),
                 template.getDecimalSeparator(), template.getLocale());
@@ -165,7 +169,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
                 TemplateConfiguration.getPropertyDataTypeMap().get(propertyName));
 
           } catch (Exception ex) {
-            System.out.println("Line:" + lineNumber + " Field:" + propertyName);
+            log.error("Line: {}  Field: {}", lineNumber, propertyName);
 
             Throwable cause = ex.getCause();
             return new ParseLineSuccessError(null, lastSuccessProperty, cause.getMessage());

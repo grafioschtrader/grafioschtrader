@@ -55,7 +55,7 @@ import grafioschtrader.repository.WatchlistJpaRepository;
 
 /**
  * Prepares the Data for every kind of Watchlists.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -94,7 +94,7 @@ public class WatchlistReport {
   /**
    * Returns the watchlist with the youngest date of history quote. This should
    * help to detect non working historical data feeds.
-   * 
+   *
    * @param idWatchlist
    * @return
    * @throws InterruptedException
@@ -430,7 +430,7 @@ public class WatchlistReport {
       final List<S> securitycurrencyList) {
     final List<SecuritycurrencyPosition<S>> securityPositionList = new ArrayList<>();
     securitycurrencyList.stream().forEach(securitycurrency -> {
-      final SecuritycurrencyPosition<S> securitycurrencyPosition = new SecuritycurrencyPosition<S>(securitycurrency);
+      final SecuritycurrencyPosition<S> securitycurrencyPosition = new SecuritycurrencyPosition<>(securitycurrency);
       if (securitycurrency instanceof Security) {
         this.securityJpaRepository
             .setSecuritycurrencyHistoricalDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
@@ -495,7 +495,7 @@ public class WatchlistReport {
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
       final double histroyClose = historyquote.getClose();
       SplitFactorAfterBefore splitFactorAfterBefore = new SplitFactorAfterBefore();
-      ;
+
 
       if (securitycurrencyPosition.securitycurrency instanceof Security) {
         splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(

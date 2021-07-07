@@ -73,8 +73,7 @@ public class InvestingCalendar implements ICalendarFeedConnector {
     List<ValueKeyHtmlSelectOptions> countries = new ArrayList<>();
     List<String> countyNames = getCountryNameInEnglishFromCountryCodes(countryCodes);
 
-    for (int i = 0; i < liElements.size(); i++) {
-      Element li = liElements.get(i);
+    for (Element li : liElements) {
       if (Collections.binarySearch(countyNames, li.text()) >= 0) {
         countries.add(new ValueKeyHtmlSelectOptions(li.select("input").get(0).attr("value"), li.text()));
       }
@@ -126,8 +125,7 @@ public class InvestingCalendar implements ICalendarFeedConnector {
     Pattern namePattern = Pattern.compile("(.*)\\((.*)\\)$");
     FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
     Elements rows = doc.select("tr");
-    for (int r = 0; r < rows.size(); r++) {
-      Element row = rows.get(r);
+    for (Element row : rows) {
       Elements cols = row.select("td");
 
       if (cols.size() == 3) {

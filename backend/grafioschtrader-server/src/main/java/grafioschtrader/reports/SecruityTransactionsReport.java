@@ -46,8 +46,8 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Creates a Report for a single Security with all its Transactions.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */
@@ -100,7 +100,7 @@ public class SecruityTransactionsReport {
 
   /**
    * Get transactions for a security over all portfolios until a certain date.
-   * 
+   *
    * @param idTenant
    * @param idSecuritycurrency
    * @param untilDate
@@ -117,7 +117,7 @@ public class SecruityTransactionsReport {
 
   /**
    * Get transactions for a security over a single portfolio until a certain date.
-   * 
+   *
    * @param idPortfolio
    * @param idSecuritycurrency
    * @param untilDate
@@ -135,7 +135,7 @@ public class SecruityTransactionsReport {
   /**
    * Get transactions for a security over single security account until a certain
    * date.
-   * 
+   *
    * @param data.idSecuritycashAccount
    * @param idSecuritycurrency
    * @param untilDate
@@ -159,7 +159,7 @@ public class SecruityTransactionsReport {
   /**
    * Returns security accounts with open positions for the required security. Not
    * usable for margin products!
-   * 
+   *
    * @param idTenant
    * @param idSecuritycurrency
    * @param dateString

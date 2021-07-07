@@ -55,13 +55,13 @@ import grafioschtrader.entities.Watchlist;
 /**
  * Delete the user's data from this database and export his data for later
  * import into his personal database.</br>
- * 
+ *
  * <ul>
  * <li>hold_* tables are not exported they should rebuild with import</li>
  * <li>mail* tables are not exported, they have a relation to others users</li>
  * <li>{@link grafioschtrader.entities.TaskDataChange} is not exported
  * </ul>
- * 
+ *
  * @author Hugo Graf
  *
  */

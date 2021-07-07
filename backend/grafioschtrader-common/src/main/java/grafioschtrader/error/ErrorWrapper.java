@@ -2,7 +2,7 @@ package grafioschtrader.error;
 
 /**
  * Errors are mapped into this class.
- * 
+ *
  * @author Hugo Graf
  *
  */

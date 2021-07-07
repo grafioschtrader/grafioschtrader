@@ -72,7 +72,7 @@ public interface IFeedConnector {
   /**
    * Returns true if this connector supports currency data regardless of
    * historical or last price.
-   * 
+   *
    * @return
    */
   boolean supportsCurrency();
@@ -80,14 +80,14 @@ public interface IFeedConnector {
   /**
    * Returns true if this connector supports security data regardless of
    * historical or last price.
-   * 
+   *
    * @return
    */
   boolean supportsSecurity();
 
   /**
    * Get the historical download link for a security
-   * 
+   *
    * @param security
    * @return
    */
@@ -100,7 +100,7 @@ public interface IFeedConnector {
 
   /**
    * Get the intraday download link for a security.
-   * 
+   *
    * @param security
    * @return
    */
@@ -109,7 +109,7 @@ public interface IFeedConnector {
   /**
    * Return the url as string for access the historical currency price data. It
    * may also be used in the front end to check the settings.
-   * 
+   *
    * @param currencypair
    * @return
    */
@@ -118,7 +118,7 @@ public interface IFeedConnector {
   /**
    * Return the url as string for access the historical security price data. It
    * may also be used in the frontend to check the settings.
-   * 
+   *
    * @param currencypair
    * @return
    */
@@ -127,7 +127,7 @@ public interface IFeedConnector {
   /**
    * Returns the Ticker, ISIN or WKN when one of this support the load of the
    * data.
-   * 
+   *
    * @param feedSupport
    * @return
    */
@@ -135,7 +135,7 @@ public interface IFeedConnector {
 
   /**
    * Return the security quotes for a specified period
-   * 
+   *
    * @param identifier
    * @param from
    * @param to
@@ -147,7 +147,7 @@ public interface IFeedConnector {
 
   /**
    * Update the security with last price, volume and so on
-   * 
+   *
    * @param security
    * @throws Exception
    * @throws HttpException
@@ -156,14 +156,14 @@ public interface IFeedConnector {
 
   /**
    * Delays in seconds of data provider for intraday data
-   * 
+   *
    * @return
    */
   int getIntradayDelayedSeconds();
 
   /**
    * Return the currency pair quotes for a specified period
-   * 
+   *
    * @param currency
    * @param from
    * @param to
@@ -174,7 +174,7 @@ public interface IFeedConnector {
 
   /**
    * Updates the last price of a currency pair
-   * 
+   *
    * @param currencyPair
    * @throws IOException
    * @throws ParseException
@@ -193,7 +193,7 @@ public interface IFeedConnector {
   /**
    * Get dividends for a security from a specified date until now. The list must
    * be sorted in ascending order by date.
-   * 
+   *
    * @param security
    * @param fromDate
    * @return Dividends sorted in ascending order by date.
@@ -203,7 +203,7 @@ public interface IFeedConnector {
 
   /**
    * The link to get Split data for a security
-   * 
+   *
    * @param security
    * @return
    */
@@ -211,7 +211,7 @@ public interface IFeedConnector {
 
   /**
    * Get split data for a security from a specified day until now.
-   * 
+   *
    * @param security
    * @param fromDate
    * @return

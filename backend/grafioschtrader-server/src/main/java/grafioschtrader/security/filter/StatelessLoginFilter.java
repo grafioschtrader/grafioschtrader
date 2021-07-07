@@ -41,7 +41,7 @@ import grafioschtrader.usertask.UserTaskType;
 
 /**
  * Servlet filter which is used at the login process.
- * 
+ *
  */
 public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -121,7 +121,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
   /**
    * User has send note
-   * 
+   *
    * @param authenticatedUser
    * @param response
    * @param lee
@@ -143,7 +143,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
   /**
    * Ask user for a note to possibly unlock him.
-   * 
+   *
    * @param authenticatedUser
    * @param response
    * @param lee

@@ -15,7 +15,7 @@ public class ConnectorHelper {
    * (feedConnector.getID().equals(securitycurrency.getIdConnectorIntra()) &&
    * feedConnector.getSecuritycurrencyFeedSupport(feedSupport) != null) { return
    * feedConnector; } } return null; }
-   * 
+   *
    */
   public static IFeedConnector getConnectorByConnectorId(final List<IFeedConnector> feedConnectors,
       final String idConnector, FeedSupport feedSupport) {

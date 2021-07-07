@@ -26,7 +26,7 @@ import grafioschtrader.entities.Historyquote;
 
 /**
  * User for historical currency pair prices.
- * 
+ *
  */
 @Component
 public class ExchangerateHostFeedConnector extends BaseFeedConnector {

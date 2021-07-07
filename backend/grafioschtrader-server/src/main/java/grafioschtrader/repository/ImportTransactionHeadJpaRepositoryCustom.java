@@ -10,7 +10,7 @@ public interface ImportTransactionHeadJpaRepositoryCustom extends BaseRepository
   /**
    * Upload of different kind of transaction files with a existing transaction
    * head record.
-   * 
+   *
    * @param idTransactionHead
    * @param uploadFiles
    * @throws Exception
@@ -20,7 +20,7 @@ public interface ImportTransactionHeadJpaRepositoryCustom extends BaseRepository
 
   /**
    * Upload one or more PDF/CSV/Txt files, each for a single transaction.
-   * 
+   *
    * @param idSecuritycasshaccount
    * @param uploadFiles
    * @return

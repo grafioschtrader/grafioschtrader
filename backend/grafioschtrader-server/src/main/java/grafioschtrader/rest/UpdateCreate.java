@@ -90,7 +90,7 @@ public abstract class UpdateCreate<T extends BaseID> {
 
   /**
    * Create entity
-   * 
+   *
    * @param entity
    * @return
    * @throws Exception
@@ -137,7 +137,7 @@ public abstract class UpdateCreate<T extends BaseID> {
   /**
    * There is a limit of changes for a user on own public data. This limit is
    * checked here. Only limit user is checked against limit violations.
-   * 
+   *
    * @param entity
    * @param user
    */
@@ -160,7 +160,7 @@ public abstract class UpdateCreate<T extends BaseID> {
 
   /**
    * Update entity
-   * 
+   *
    * @param entity
    * @return
    * @throws Exception
@@ -272,7 +272,7 @@ public abstract class UpdateCreate<T extends BaseID> {
   /**
    * User can't change entity if another user created it -> create a proposal
    * change
-   * 
+   *
    * @param entity
    * @param existingEntity
    * @param parentEntity
@@ -305,7 +305,7 @@ public abstract class UpdateCreate<T extends BaseID> {
   /**
    * Override this too over rule the standard rights on writing entities without
    * proposals change.
-   * 
+   *
    * @param user
    * @param existingEntity
    * @param parentEntity
@@ -319,7 +319,7 @@ public abstract class UpdateCreate<T extends BaseID> {
    * Only for entities with a tenant id, that means private data. It checks that
    * the entity has the right tenant or no tenant set. For an existing entity it
    * will be loaded, checked and returned.
-   * 
+   *
    * @param entity
    * @param user
    * @return

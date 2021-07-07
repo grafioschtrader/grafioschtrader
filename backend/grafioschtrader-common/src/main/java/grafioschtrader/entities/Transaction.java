@@ -512,7 +512,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   public void clearCurrencypairExRate() {
     if (idCurrencypair == null) {
       currencyExRate = null;
-      ;
+
     } else if (currencyExRate == null) {
       idCurrencypair = null;
     }
@@ -578,7 +578,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * (GBPCHF(MC)</br>
    * When Cashaccount -> GBP, Security -> USD, MC = CHF then / exchange Rate (T) *
    * exchange Rate (GBPCHF(MC))</br>
-   * 
+   *
    * @param mainCurency
    * @param value
    * @param exchangeRateToMC

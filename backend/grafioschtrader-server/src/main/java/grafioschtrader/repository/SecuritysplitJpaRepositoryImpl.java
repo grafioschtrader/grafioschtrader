@@ -123,7 +123,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
       securitysplitJpaRepository.deleteByIdSecuritycurrency(sdacm.idSecuritycurrency);
       if (security.canHaveSplitConnector()) {
         securitysplitsExisting = securitysplitJpaRepository
-            .saveAll(new ArrayList<Securitysplit>(Arrays.asList(sdacm.getSecuritysplits())));
+            .saveAll(new ArrayList<>(Arrays.asList(sdacm.getSecuritysplits())));
 
         if (reloadHistoricalData) {
           securityJpaRepository.reloadAsyncFullHistoryquote(security);
@@ -153,6 +153,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         .collect(Collectors.groupingBy(Securitysplit::getIdSecuritycurrency, Collectors.toList()));
   }
 
+  @Override
   public List<String> loadAllSplitDataFromConnector(Security security) {
     List<String> errorMessages = new ArrayList<>();
     short retrySplitLoad = security.getRetrySplitLoad();

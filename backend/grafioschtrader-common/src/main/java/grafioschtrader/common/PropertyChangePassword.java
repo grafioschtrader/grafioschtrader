@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * Used for changing password only
- * 
+ *
  * @author Hugo Graf
  *
  */

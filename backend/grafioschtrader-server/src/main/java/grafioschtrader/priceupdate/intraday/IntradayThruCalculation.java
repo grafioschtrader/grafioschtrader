@@ -22,7 +22,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * Prices depend on other prices of securities or currency pairs, those are not
  * updated with this class. Because of that this calculation of prices should be
  * called after intraday update of securities and currencies.
- * 
+ *
  * @author Hugo Graf
  *
  * @param <S>
@@ -74,7 +74,7 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
   }
 
   private boolean allowDelayedIntradayUpdate(final Security security, final int scIntradayUpdateTimeout, Date now) {
-    final Long lessThenPossible = now.getTime() - 1000 * scIntradayUpdateTimeout;
+    final long lessThenPossible = now.getTime() - 1000 * scIntradayUpdateTimeout;
     return security.getSTimestamp() == null || security.getSTimestamp().getTime() < lessThenPossible;
   }
 

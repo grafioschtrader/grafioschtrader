@@ -220,8 +220,7 @@ public class InvestingConnector extends BaseFeedConnector {
     final List<Historyquote> historyquotes = new ArrayList<>();
     Elements rows = getHtmlTablePart(doc, "tbody", "tr");
 
-    for (int r = 0; r < rows.size(); r++) {
-      Element row = rows.get(r);
+    for (Element row : rows) {
       Elements cols = row.select("td");
       Historyquote historyquote = new Historyquote();
       for (int c = 0; c < cols.size(); c++) {
@@ -265,10 +264,10 @@ public class InvestingConnector extends BaseFeedConnector {
 
   /**
    * Mappging between histroy quote and html import data.
-   * 
+   *
    * String literal is the property name of the "data-col-name"</br>
    * Enum is upper case of history quote property</br>
-   * 
+   *
    * @author Hugo Graf
    *
    */

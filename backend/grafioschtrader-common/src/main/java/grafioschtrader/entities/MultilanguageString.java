@@ -32,7 +32,7 @@ public class MultilanguageString extends AbstractMultilanguageString {
   @CollectionTable(name = MULTILINGUESTRINGS, joinColumns = @JoinColumn(name = "id_string"))
   @MapKeyColumn(name = "language", nullable = false, length = 2)
   @Column(name = "text", nullable = false, length = 64)
-  private Map<String, String> map = new HashMap<String, String>();
+  private Map<String, String> map = new HashMap<>();
 
   public MultilanguageString() {
     super();

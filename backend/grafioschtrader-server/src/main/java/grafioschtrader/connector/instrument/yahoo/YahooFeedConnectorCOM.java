@@ -58,10 +58,10 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /*-
  * Stock, Bond, ETF:
- * 
+ *
  * Dividend:
  * Dividend data may not include all payments, see IEBB.SW for example.
- * 
+ *
  * Split:
  *
  */
@@ -426,7 +426,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   /**
    * Yahoo creates sometimes more than only one quote for the same day.
-   * 
+   *
    * @param historyquotes
    * @param historyquote
    * @return

@@ -287,7 +287,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   /*
    * public Integer getCreateUserId() { return createUserId; }
-   * 
+   *
    * public void setCreateUserId(Integer createUserId) { this.createUserId =
    * createUserId; }
    */

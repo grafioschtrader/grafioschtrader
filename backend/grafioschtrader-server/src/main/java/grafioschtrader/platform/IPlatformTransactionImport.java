@@ -37,7 +37,7 @@ public interface IPlatformTransactionImport {
 
   /**
    * Import a text file which was produced by Grafioschtrader Transform.
-   * 
+   *
    * @param importTransactionHead
    * @param uploadFile
    * @param importTransactionTemplateList

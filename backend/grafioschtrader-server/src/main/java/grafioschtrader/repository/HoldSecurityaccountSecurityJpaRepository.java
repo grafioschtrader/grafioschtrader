@@ -62,7 +62,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * Trading days which can't used for calculation of tenants portfolio
    * performance, because historical data for one or more security holding are not
    * available.
-   * 
+   *
    * @param idTenant
    * @return
    */
@@ -75,7 +75,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   /**
    * Returns the holidays of stock exchanges which depends on the tenants
    * holdings.
-   * 
+   *
    * @param idTenant
    * @return
    */
@@ -95,12 +95,12 @@ public interface HoldSecurityaccountSecurityJpaRepository
 
   @Query(nativeQuery = true)
   List<Integer> getIdSecurityByIdTenantWithHoldings(Integer idTenant);
-  
-  
+
+
   /**
    * A stored procedure is used so that only transactions affected by the split
    * are selected with the splits in chronological order.
-   * 
+   *
    * @param idSecurity
    * @return
    */
@@ -121,7 +121,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
      * When transaction: Units or with margin instrument units multiply by value per
      * point.</br>
      * When split: Split factor
-     * 
+     *
      * @return
      */
     public Double getFactorUnits();
@@ -147,7 +147,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
      * When transaction: Units or with margin instrument units multiply by value per
      * point.</br>
      * When split: Spit factor
-     * 
+     *
      * @return
      */
     private Double factorUnits;

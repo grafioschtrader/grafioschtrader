@@ -14,7 +14,7 @@ import javax.persistence.Table;
  * type. That means for every day with one or more transaction produces a new
  * period. The number of records in this is less than the number of records in
  * transaction because multiple transaction on one day produce a single record.
- * 
+ *
  * @author Hugo Graf
  *
  */

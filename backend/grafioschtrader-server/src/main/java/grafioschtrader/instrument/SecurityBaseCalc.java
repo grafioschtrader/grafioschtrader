@@ -113,7 +113,7 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Contain the calculation for a single transaction
-   * 
+   *
    * @author Hugo Graf
    *
    */

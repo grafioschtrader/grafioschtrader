@@ -41,7 +41,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
    * Contains the csv column to property mapping
    */
   private Map<Integer, String> columnPropertyMapping;
-  private int templateId;
+  private Integer templateId;
   private String delimiterField;
   private String bondProperty;
   private String bondIndicator;
@@ -96,6 +96,16 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
     return columnPropertyMapping.size() == columnHeaderNamePropertyMap.size();
   }
 
+  protected void validateTemplate(final DataViolationException dataViolationException) {
+    if (delimiterField == null) {
+      dataViolationException.addDataViolation(CONF_DELIMITER_FIELD, "gt.imptemplate.missing.delimiter", null, false);
+    } 
+    if (templateId == null) {
+      dataViolationException.addDataViolation(CONF_TEMPLATE_ID, "gtimptemplate.missing.csv.id", null, false);
+    } 
+    super.validateTemplate(dataViolationException);
+  }
+  
   public boolean isOrderSupport() {
     return orderSupport;
   }

@@ -15,7 +15,7 @@ public class DataViolation {
   }
 
   /**
-   * 
+   *
    * @param field
    * @param messageKey
    * @param id         Meaningful identification which helps the user by selecting
@@ -40,7 +40,7 @@ public class DataViolation {
   public boolean isTranslateFieldName() {
     return translateFieldName;
   }
-  
-  
+
+
 
 }

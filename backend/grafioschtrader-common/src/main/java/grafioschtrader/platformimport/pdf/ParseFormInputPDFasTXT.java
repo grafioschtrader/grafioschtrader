@@ -14,7 +14,7 @@ import grafioschtrader.platformimport.ImportProperties;
 
 /**
  * Parse a text form with different templates at once.
- * 
+ *
  * @author Hugo Graf
  *
  */

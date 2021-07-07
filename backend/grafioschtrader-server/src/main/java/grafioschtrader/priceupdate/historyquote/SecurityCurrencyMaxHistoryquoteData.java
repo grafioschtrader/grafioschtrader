@@ -7,7 +7,7 @@ public interface SecurityCurrencyMaxHistoryquoteData<S> {
 
   /**
    * Date of youngest history quote
-   * 
+   *
    * @return
    */
   Date getDate();

@@ -23,8 +23,8 @@ import grafioschtrader.validation.ValidMultilanguage;
 
 /**
  * It contains the information for the trading platform.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */

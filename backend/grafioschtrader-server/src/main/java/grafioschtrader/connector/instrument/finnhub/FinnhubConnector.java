@@ -27,11 +27,11 @@ import grafioschtrader.types.CreateType;
 
 /**
  * Finnhub connector
- * 
+ *
  * Stock, Bond, ETF:</br>
  * Splits were once free but anymore. The implementation was not removed.
- * 
- * 
+ *
+ *
  */
 @Component
 public class FinnhubConnector extends BaseFeedConnector {
@@ -142,8 +142,7 @@ public class FinnhubConnector extends BaseFeedConnector {
     URL url = new URL(getSplitHistoricalDownloadLink(security, fromDate));
     final List<Securitysplit> securitysplits = new ArrayList<>();
     final Split[] splits = objectMapper.readValue(url, Split[].class);
-    for (int i = 0; i < splits.length; i++) {
-      Split split = splits[i];
+    for (Split split : splits) {
       Securitysplit securitysplit = new Securitysplit(security.getIdSecuritycurrency(), split.date, split.fromFactor,
           split.toFactor, CreateType.CONNECTOR_CREATED);
       securitysplits.add(securitysplit);

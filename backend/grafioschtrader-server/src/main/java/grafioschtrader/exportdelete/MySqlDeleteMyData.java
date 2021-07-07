@@ -9,7 +9,7 @@ import grafioschtrader.GlobalConstants;
 /**
  * Deletes the private data of the main tenant of a user in the application
  * context.
- * 
+ *
  * @author Hugo Graf
  *
  */

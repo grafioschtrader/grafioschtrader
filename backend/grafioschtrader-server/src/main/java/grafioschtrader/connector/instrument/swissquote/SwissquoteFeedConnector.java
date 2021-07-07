@@ -25,7 +25,7 @@ import grafioschtrader.entities.Securitycurrency;
 /**
  * Stock, Bond, ETF: https://www.swissquote.ch/mobile/public/wc/h.a?l=en
  * Swissquote connector supports only last prices for securities and currencies.
- * 
+ *
  * Dividend: Not Supported Splits: Not Supported
  *
  */

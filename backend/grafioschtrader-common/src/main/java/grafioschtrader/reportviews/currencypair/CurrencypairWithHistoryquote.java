@@ -6,7 +6,7 @@ import grafioschtrader.entities.Currencypair;
 /**
  * It may be used to return the quotation for a Currencypair with a certain
  * Date.
- * 
+ *
  * @author Hugo Graf
  *
  */

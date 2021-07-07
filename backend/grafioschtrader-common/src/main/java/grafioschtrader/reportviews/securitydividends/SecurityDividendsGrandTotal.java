@@ -15,7 +15,7 @@ import grafioschtrader.reportviews.SecurityCostGroup;
 
 /**
  * One single object for the whole dividends report.
- * 
+ *
  * @author Hugo Graf
  *
  */

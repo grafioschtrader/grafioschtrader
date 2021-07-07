@@ -17,8 +17,8 @@ import grafioschtrader.GrafioschtraderApplication;
 /**
  * With tests use a different application context without a tomcat
  * reconfiguration.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */

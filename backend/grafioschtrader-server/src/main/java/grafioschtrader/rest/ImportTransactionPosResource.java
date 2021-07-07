@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Rest service for one or more import transactions.
- * 
+ *
  * @author Hugo Graf
  *
  */

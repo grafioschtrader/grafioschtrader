@@ -4,7 +4,7 @@ import grafioschtrader.entities.Transaction;
 
 /**
  * It is a transaction position with the balance of the account.
- * 
+ *
  * @author Hugo Graf
  *
  */

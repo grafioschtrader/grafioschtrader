@@ -35,10 +35,10 @@ public enum ImportKnownOtherFlags {
    * currency and adjust the dividend per unity accordingly.
    */
   CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE,
-  
-  
+
+
   /**
-   * Maybe the base currency for exchange rate is not the one of the instrument. It could be the one of the cash account 
+   * Maybe the base currency for exchange rate is not the one of the instrument. It could be the one of the cash account
    */
   CAN_BASE_CURRENCY_MAYBE_INVERSE;
 

@@ -18,7 +18,7 @@ import grafioschtrader.types.AssetclassType;
 /**
  * Report which is grouped by asset class type. It also includes every single
  * cash account.
- * 
+ *
  * @author Hugo Graf
  *
  */

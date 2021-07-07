@@ -8,7 +8,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 /**
  * Contains the gain/loss of a single transaction. For every Transaction one
  * instance of this class.
- * 
+ *
  * @author Hugo Graf
  *
  */

@@ -36,7 +36,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Every user can access and edit some of its user data.
- * 
+ *
  * @author Hugo Graf
  *
  */

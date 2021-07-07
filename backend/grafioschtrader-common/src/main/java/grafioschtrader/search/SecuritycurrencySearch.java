@@ -31,7 +31,7 @@ public class SecuritycurrencySearch implements Serializable {
 
   @DateTimeFormat(pattern = "yyyyMMdd")
   private Date activeDate;
- 
+
   private boolean withHoldings;
 
   public String getIsin() {

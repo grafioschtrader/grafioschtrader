@@ -15,9 +15,7 @@ public class FromToCurrencyWithDate extends FromToCurrency {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if (o == null || getClass() != o.getClass())
-      return false;
-    if (!super.equals(o))
+    if (o == null || getClass() != o.getClass() || !super.equals(o))
       return false;
     FromToCurrencyWithDate that = (FromToCurrencyWithDate) o;
     return Objects.equals(date, that.date);

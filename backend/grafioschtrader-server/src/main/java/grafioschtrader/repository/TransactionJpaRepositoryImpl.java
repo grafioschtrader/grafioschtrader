@@ -174,7 +174,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Checks a transaction uses the cash and/or security accounts which belongs to
    * the right tenant.
-   * 
+   *
    * @param transaction
    * @return
    */
@@ -229,8 +229,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   /**
    * Every create/update on transaction must call this method!
-   * 
-   * 
+   *
+   *
    * @param transaction
    * @param existingEntity
    *

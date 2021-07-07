@@ -2,7 +2,7 @@ package grafioschtrader.error;
 
 /**
  * Used when an user attempt to misuse tenant id.
- * 
+ *
  * @author Hugo Graf
  *
  */

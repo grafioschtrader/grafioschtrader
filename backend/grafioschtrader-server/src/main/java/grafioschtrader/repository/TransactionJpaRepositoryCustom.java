@@ -19,7 +19,7 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
   /**
    * This may be used when a lot of transaction must be processed, e.g import
    * transactions.
-   * 
+   *
    * @param transaction
    * @param existingEntity
    * @return

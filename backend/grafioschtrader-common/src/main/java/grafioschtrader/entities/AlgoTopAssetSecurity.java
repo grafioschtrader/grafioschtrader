@@ -26,7 +26,7 @@ import grafioschtrader.algo.rule.BuySell;
 /**
  * Entity which is the base class for all levels assignment (tenant portfolio,
  * asset class, security)
- * 
+ *
  * @author Hugo Graf
  *
  */

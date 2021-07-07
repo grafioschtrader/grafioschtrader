@@ -38,9 +38,9 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public abstract class BaseFeedConnector implements IFeedConnector {
 
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
-
   private static final String ID_PREFIX = "gt.datafeed.";
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
   protected ResourceLoader resourceLoader;
@@ -166,6 +166,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     return false;
   }
 
+  @Override
   public boolean hasFeedIndentifier(FeedIdentifier feedIdentifier) {
     for (final FeedIdentifier[] feedIdentifiers : supportedFeed.values()) {
       if (Arrays.asList(feedIdentifiers).contains(feedIdentifier)) {
@@ -178,13 +179,13 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   protected void checkUrlExtendsionWithRegex(String[] patterns, String urlExtend) {
     boolean oneMatches = false;
     String notMatchingPattern = null;
-    for (int i = 0; i < patterns.length; i++) {
-      Pattern p = Pattern.compile(patterns[i]);
+    for (String pattern : patterns) {
+      Pattern p = Pattern.compile(pattern);
       Matcher m = p.matcher(urlExtend);
       if (m.matches()) {
         oneMatches = true;
       } else {
-        notMatchingPattern = patterns[i];
+        notMatchingPattern = pattern;
       }
     }
     if (!oneMatches) {
@@ -305,9 +306,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         }
       }
     } catch (Exception e) {
-      // throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new
-      // Object[] { url });
-      System.out.println(url);
+      log.error("URL: {}", url );
     }
   }
 

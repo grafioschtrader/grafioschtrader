@@ -116,6 +116,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
         .sorted((x, y) -> x.value.compareTo(y.value)).collect(Collectors.toList());
   }
 
+  @Override
   public void getTemplatesByPlatformPlanAsZip(Integer idTransactionImportPlatform, HttpServletResponse response) {
     Optional<ImportTransactionPlatform> itpOpt = importTransactionPlatformJpaRepository
         .findById(idTransactionImportPlatform);
@@ -154,8 +155,8 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final DateFormat dateFormat = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT);
     SuccessFailedImportTransactionTemplate sfitt = new SuccessFailedImportTransactionTemplate();
-    for (int i = 0; i < uploadFiles.length; i++) {
-      String fileName = uploadFiles[i].getOriginalFilename().replaceFirst("\\.tmpl$", "");
+    for (MultipartFile uploadFile : uploadFiles) {
+      String fileName = uploadFile.getOriginalFilename().replaceFirst("\\.tmpl$", "");
       String[] fileNameParts = fileName.split("-");
       ImportTransactionTemplate itt = new ImportTransactionTemplate(
           TemplateCategory.valueOf(fileNameParts[0].toUpperCase()),
@@ -171,7 +172,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
         continue;
       }
       try {
-        itt.setTemplateAsTxt(getTemplateAsText(uploadFiles[i]));
+        itt.setTemplateAsTxt(getTemplateAsText(uploadFile));
         if (!itt.copyPurposeInTextToFieldPurpose()) {
           sfitt.contentError++;
           continue;

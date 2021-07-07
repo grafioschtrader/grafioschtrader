@@ -193,13 +193,13 @@ public class FinanzenNet {
 
     if (headers != null) {
       // cookieStore.clear();
-      for (int i = 0; i < headers.length; i++) {
+      for (Header header : headers) {
 
-        String cookie = headers[i].getValue();
+        String cookie = header.getValue();
         String[] cookievalues = cookie.split(";");
 
-        for (int j = 0; j < cookievalues.length; j++) {
-          String[] keyPair = cookievalues[j].split("=", 2);
+        for (String cookievalue : cookievalues) {
+          String[] keyPair = cookievalue.split("=", 2);
           String key = keyPair[0].trim();
 
           String value = keyPair.length > 1 ? keyPair[1].trim() : "";

@@ -45,21 +45,21 @@ import grafioschtrader.entities.Security;
 /*-
 *
 *
-* Stock (DE0007100000, Daimler): 
+* Stock (DE0007100000, Daimler):
 * https://www.finanzen.net/aktien/Daimler-Aktie
 * https://www.finanzen.net/historische-kurse/Daimler Link: historische-kurse/Daimler use form data and cookie
-* 
-* Obligation (CH0398013778): 
-* https://www.finanzen.net/anleihen/a19vaz-rallye-anleihe-historisch 
+*
+* Obligation (CH0398013778):
+* https://www.finanzen.net/anleihen/a19vaz-rallye-anleihe-historisch
 * Link: anleihen/a19vaz-rallye-anleihe-historisch use form data and cookie
 *
-* ETF (LU0489337690): 
+* ETF (LU0489337690):
 * https://www.finanzen.net/etf/xtrackers_ftse_developed_europe_real_estate_ucits_etf_1c
 * https://www.finanzen.net/etf/historisch/xtrackers_ftse_developed_europe_real_estate_ucits_etf_1c
 * https://www.finanzen.net/ajax/FundController_HistoricPriceList/xtrackers_ftse_developed_europe_real_estate_ucits_etf_1c/FSE/1.9.2015_8.10.2018
 * Link: etf/historisch/xtrackers_ftse_developed_europe_real_estate_ucits_etf_1c use: __atcrv, __ath, __atts
-* 
-* 
+*
+*
 * @author Hugo Graf
 *
 */
@@ -99,7 +99,7 @@ public class FinanzenNETStockAndBond extends FinanzenBase<Security> {
 
   /**
    * It works better when this dummy connection is used
-   * 
+   *
    * @param httpclient
    * @param security
    * @param cookieStore
@@ -168,13 +168,13 @@ public class FinanzenNETStockAndBond extends FinanzenBase<Security> {
 
     if (headers != null) {
       // cookieStore.clear();
-      for (int i = 0; i < headers.length; i++) {
+      for (Header header : headers) {
 
-        String cookie = headers[i].getValue();
+        String cookie = header.getValue();
         String[] cookievalues = cookie.split(";");
 
-        for (int j = 0; j < cookievalues.length; j++) {
-          String[] keyPair = cookievalues[j].split("=", 2);
+        for (String cookievalue : cookievalues) {
+          String[] keyPair = cookievalue.split("=", 2);
           String key = keyPair[0].trim();
           if (key.startsWith("CAP")) {
             String value = keyPair.length > 1 ? keyPair[1].trim() : "";

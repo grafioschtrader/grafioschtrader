@@ -20,7 +20,7 @@ import grafioschtrader.types.TaskType;
 
 /**
  * Creation of currencies and possible recreation of holing tables
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -47,6 +47,7 @@ public class CurrencyChangedTenantOrPortfolioTask implements ITask {
     return TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO;
   }
 
+  @Override
   public List<String> getAllowedEntities() {
     return Arrays.asList(Portfolio.class.getSimpleName(), Tenant.class.getSimpleName());
   }

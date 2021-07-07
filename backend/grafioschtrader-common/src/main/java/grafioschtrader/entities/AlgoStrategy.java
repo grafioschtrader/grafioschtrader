@@ -11,7 +11,7 @@ import grafioschtrader.algo.strategy.model.AlgoStrategyImplementations;
 /**
  * A tenant portfolios, asset class or security may have none or more strategy,
  * this class contains a single strategy.
- * 
+ *
  * @author Hugo Graf
  *
  */

@@ -58,7 +58,7 @@ public class DateHelper {
    * <p>
    * Checks if a date is today.
    * </p>
-   * 
+   *
    * @param date the date, not altered, not null.
    * @return true if the date is today.
    * @throws IllegalArgumentException if the date is <code>null</code>
@@ -75,7 +75,7 @@ public class DateHelper {
   /**
    * Return true when date is today or after today or a last weekend day (only
    * true when today is Monday after last weekend)
-   * 
+   *
    * @param date
    * @return
    */
@@ -93,7 +93,7 @@ public class DateHelper {
    * <p>
    * Checks if two calendars represent the same day ignoring time.
    * </p>
-   * 
+   *
    * @param cal1 the first calendar, not altered, not null
    * @param cal2 the second calendar, not altered, not null
    * @return true if they represent the same day
@@ -111,7 +111,7 @@ public class DateHelper {
    * <p>
    * Checks if two dates are on the same day ignoring time.
    * </p>
-   * 
+   *
    * @param date1 the first date, not altered, not null
    * @param date2 the second date, not altered, not null
    * @return true if they represent the same day

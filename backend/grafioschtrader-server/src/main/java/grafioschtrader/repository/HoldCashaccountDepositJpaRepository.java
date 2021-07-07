@@ -18,7 +18,7 @@ public interface HoldCashaccountDepositJpaRepository extends
    * Returns the currency exchanges on deposit and withdrawal transactions. It
    * combines the currency exchange for the tenant main currency and the portfolio
    * currency as well.
-   * 
+   *
    * @param idTenant
    * @return
    */

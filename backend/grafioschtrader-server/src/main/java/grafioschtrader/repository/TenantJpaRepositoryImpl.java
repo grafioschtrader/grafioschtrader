@@ -184,6 +184,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     return tenant;
   }
 
+  @Override
   public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
     String ddlFileName = "gt_ddl.sql";
     Resource resourceDdl = resourceLoader.getResource("classpath:db/migration/" + ddlFileName);

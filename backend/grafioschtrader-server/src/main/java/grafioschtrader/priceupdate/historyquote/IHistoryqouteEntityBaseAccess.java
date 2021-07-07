@@ -9,7 +9,7 @@ public interface IHistoryqouteEntityBaseAccess<S extends Securitycurrency<S>> {
 
   /**
    * Get
-   * 
+   *
    * @param maxHistoryRetry
    * @return
    */
@@ -19,7 +19,7 @@ public interface IHistoryqouteEntityBaseAccess<S extends Securitycurrency<S>> {
   /**
    * Load security or currency pair with its history quotes and call method for
    * loading additional prices.
-   * 
+   *
    * @param securitycurrency
    * @param fromDate
    * @param toDate

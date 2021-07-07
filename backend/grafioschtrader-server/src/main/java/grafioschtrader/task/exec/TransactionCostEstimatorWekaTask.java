@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,14 +28,15 @@ import weka.core.Utils;
 /**
  * Train a model to forecast the transaction cost for the for the different
  * trading platform, it does not include other cost like taxes.
- * 
+ *
  * TODO Integrate it for the estimation of transaction costs
  */
 @Component
 public class TransactionCostEstimatorWekaTask {
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
-  SecurityaccountJpaRepository securityaccountJpaRepository;
+  private SecurityaccountJpaRepository securityaccountJpaRepository;
 
   @Transactional
   public void createEstimatorForSecurityaccountsByIdTenant(Integer idTenant) throws Exception {
@@ -116,7 +119,7 @@ public class TransactionCostEstimatorWekaTask {
 
   /**
    * Can be used to check a real transaction cost to the estimated.
-   * 
+   *
    * @param securityaccount
    * @throws Exception
    */
@@ -131,8 +134,9 @@ public class TransactionCostEstimatorWekaTask {
       int i = 0;
       for (Instance instance : data) {
         double[] fDistribution = useModel.distributionForInstance(instance);
-        System.out.println("Security account: " + securityaccount.getName() + " Real:"
-            + transactionCosts.get(i).getTransactionCost() + " forcast:" + fDistribution[0]);
+
+        log.info("Security account: {}  Real: {}  forcast: {}", securityaccount.getName(),
+            transactionCosts.get(i).getTransactionCost(), fDistribution[0]);
         i++;
       }
     }

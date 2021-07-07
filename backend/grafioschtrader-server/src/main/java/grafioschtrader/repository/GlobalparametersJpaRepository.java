@@ -11,7 +11,7 @@ public interface GlobalparametersJpaRepository
 
   /*
    * @Override
-   * 
+   *
    * @Cacheable(value = "globalparameters") Globalparameters getOne(String id);
    */
 

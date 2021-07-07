@@ -8,7 +8,7 @@ public interface PortfolioJpaRepositoryCustom extends BaseRepositoryCustom<Portf
 
   /**
    * Remove all cash accounts of this Portfolio
-   * 
+   *
    * @param idPortfolio
    * @return
    */
@@ -16,7 +16,7 @@ public interface PortfolioJpaRepositoryCustom extends BaseRepositoryCustom<Portf
 
   /**
    * Remove all security accounts of this portfolio
-   * 
+   *
    * @param idPortfolio
    * @return
    */

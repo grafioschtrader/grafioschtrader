@@ -87,7 +87,7 @@ public class SecurityTransactionCostReport {
 
   /**
    *
-   * 
+   *
    * @param mainCurrency
    * @param transaction
    * @param transactionCostGrandSummary

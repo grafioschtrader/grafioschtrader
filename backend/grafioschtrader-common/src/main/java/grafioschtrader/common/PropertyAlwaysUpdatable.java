@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * User can update this property. Some properties can only changed by the system
  * and other properties depend on the state of its entity. Normally it is used,
  * when it can changed always.
- * 
+ *
  * @author Hugo Graf
  *
  */

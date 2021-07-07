@@ -19,7 +19,7 @@ public interface TradingDaysPlusJpaRepository
 
   /**
    * Returns possible trading days which includes the fromDate and toDate.
-   * 
+   *
    * @param fromDate
    * @param toDate
    * @return
@@ -31,7 +31,7 @@ public interface TradingDaysPlusJpaRepository
   /**
    * Get global holidays from 2001-01-01 until now. Normally first of first of
    * january and December 25 for each year.
-   * 
+   *
    * @return
    */
   @Query(nativeQuery = true)

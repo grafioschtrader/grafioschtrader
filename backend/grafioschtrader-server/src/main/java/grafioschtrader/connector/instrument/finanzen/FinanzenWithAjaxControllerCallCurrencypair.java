@@ -15,22 +15,22 @@ import grafioschtrader.entities.Currencypair;
  * https://www.finanzen.ch/devisen/historisch/euro-us_dollar-kurs
  * https://www.finanzen.ch/ajax/ExchangeRateController_HistoricPriceList/euro-us_dollar-kurs/27.2.2018_27.11.2018
  * Link: devisen/historisch/euro-us_dollar-kurs
- * 
+ *
  * https://www.finanzen.ch/devisen/bitcoin-franken-kurs/historisch
  * https://www.finanzen.ch/ajax/ExchangeRateController_HistoricPriceList/bitcoin-franken-kurs/26.1.2018_26.11.2018
  *
  * https://www.finanzen.net/devisen/dollarkurs/historisch
  * https://www.finanzen.net/Ajax/ExchangeRateController_HistoricPriceList/dollarkurs/26.1.2014_26.11.2018
- * 
+ *
  * Finanzen.net
  * https://www.finanzen.net/devisen/dollarkurs/historisch
  * https://www.finanzen.net/Ajax/ExchangeRateController_HistoricPriceList/dollarkurs/8.1.2018_27.11.2018
  * Link: devisen/dollarkurs/historisch
- * 
+ *
  * https://www.finanzen.net/devisen/bitcoin-franken-kurs/historisch
  * https://www.finanzen.net/Ajax/ExchangeRateController_HistoricPriceList/bitcoin-franken-kurs/27.5.2018_27.11.2018
  * Link: devisen/bitcoin-franken-kurs/historisch
- * 
+ *
  */
 public class FinanzenWithAjaxControllerCallCurrencypair extends FinanzenWithAjaxControllerCall<Currencypair> {
   private final Logger log = LoggerFactory.getLogger(this.getClass());

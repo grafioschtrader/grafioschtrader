@@ -41,7 +41,7 @@ public class SecurityCalcService {
 
   /**
    * Calculate all transactions of a security. An open position is not closed.
-   * 
+   *
    * @param excludeDivTaxcost
    * @param securityTransactionSummary
    * @param securitySplitMap
@@ -91,7 +91,7 @@ public class SecurityCalcService {
   /**
    * One or more open position of security are closed. Margin product may have
    * more than one open position.
-   * 
+   *
    * @param securityPositionSummary
    * @param lastPrice
    * @param securitysplitMap

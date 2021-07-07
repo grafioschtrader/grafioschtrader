@@ -242,7 +242,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   }
 
   /**
-   * 
+   *
    * @param currencyExchangeRate Normally the latest currency exchange rate to
    *                             calculate some fields to the main currency
    */
@@ -353,8 +353,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     private double shortFactor = 1.0;
 
     /**
-     * 
-     * 
+     *
+     *
      * @param openTransaction Transaction which opened a position
      * @param openUnits
      */
@@ -382,7 +382,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
     /**
      * Calculate gain or loss over a single open position
-     * 
+     *
      * @param price
      * @param transactionCost
      * @param unitsSplited      A positiv number is expected

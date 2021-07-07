@@ -14,8 +14,8 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 
 /**
  * Algorithmic tranding top level. It does not include the depending children.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */

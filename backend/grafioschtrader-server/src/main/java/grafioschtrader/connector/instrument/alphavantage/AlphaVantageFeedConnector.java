@@ -26,14 +26,14 @@ import grafioschtrader.entities.Security;
 
 /*-
  * Only 5 API request per minutes and 500 per day.
- * 
- * 
+ *
+ *
  * Stock, Bond, ETF:
  *  https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=MSFT&outputsize=full&apikey=DEMO&datatype=csv
- * 
- * Dividend: Not Supported 
+ *
+ * Dividend: Not Supported
  * Splits: Not Supported
- *        
+ *
  */
 @Component
 public class AlphaVantageFeedConnector extends BaseFeedConnector {
