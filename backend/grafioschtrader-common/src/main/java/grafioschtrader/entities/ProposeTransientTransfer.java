@@ -5,7 +5,7 @@ import javax.persistence.Transient;
 /**
  * An entity which stands for public data can not directly edited by everybody.
  * In this case a proposal is used and referenced by this class.
- * 
+ *
  * @author Hugo Graf
  *
  */

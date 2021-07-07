@@ -10,7 +10,7 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 
 /**
  * Base class for a strategy on asset class or security.
- * 
+ *
  * @author Hugo Graf
  *
  */

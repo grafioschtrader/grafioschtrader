@@ -4,7 +4,7 @@ import java.util.Date;
 
 /**
  * Contains a part of the ImportTransactionTemplate
- * 
+ *
  * @author Hugo Graf
  *
  */

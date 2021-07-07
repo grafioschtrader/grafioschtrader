@@ -19,7 +19,7 @@ import javax.validation.constraints.Size;
  * Base class for mailing system. Mail also supports M2M on Grafioschtraders.
  * Attention the ID's of the role must be the same on all Grafioschtrader
  * systems.
- * 
+ *
  * @author Hugo Graf
  *
  */

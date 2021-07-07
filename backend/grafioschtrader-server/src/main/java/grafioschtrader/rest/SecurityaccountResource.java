@@ -53,7 +53,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
   /**
    * Delete security account
-   * 
+   *
    * @param idSecuritycashaccount
    * @return
    */
@@ -155,7 +155,7 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySpecInvestInstAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
-    return new ResponseEntity<SecurityPositionGrandSummary>(
+    return new ResponseEntity<>(
         getDynamicGroupReport(SpecialInvestmentInstruments.class,
             SecurityGroupByBaseReport.ASSETCLASS_SPEC_INVEST_INST_FIELD_NAME)
                 .getSecurityPositionGrandSummaryIdPortfolio(idPortfolio, includeClosedPosition, untilDate),

@@ -37,7 +37,7 @@ public class SecurityPositionGrandSummary {
 
   /**
    * Add the group total to the grand total, it should be called for each group.
-   * 
+   *
    * @param securityPositionGroupSummary
    */
   public void calcGrandTotal(SecurityPositionGroupSummary securityPositionGroupSummary) {

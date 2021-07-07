@@ -22,7 +22,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 @EnableScheduling
 @EntityScan(basePackages = { "grafioschtrader.entities" })
-// Spring ehcache is not working, 
+// Spring ehcache is not working,
 // @EnableCaching
 public class GrafioschtraderApplication {
 

@@ -94,18 +94,18 @@ public class Upd_V_0_11_0 implements ITask {
         { "BMFBOVES", "BRIBOVINDM18", "BVSP", "BRL" }, { "TSX", "XC0009693034", "OSPTX", "CAD" },
         { "NZE", null, "NZ50", "NZD" }, { "ASX", "XC0009693018", "XAO", "AUD" } };
 
-    for (int i = 0; i < cv.length; i++) {
-      Optional<Stockexchange> stockexchangeOpt = stockexchangeJpaRepository.findBySymbol(cv[i][0]);
+    for (String[] element : cv) {
+      Optional<Stockexchange> stockexchangeOpt = stockexchangeJpaRepository.findBySymbol(element[0]);
       if (stockexchangeOpt.isPresent() && stockexchangeOpt.get().getIdIndexUpdCalendar() == null) {
         Security security = null;
-        if (cv[i][1] != null) {
-          List<Security> securities = securityJpaRepository.findByIsin(cv[i][1]);
+        if (element[1] != null) {
+          List<Security> securities = securityJpaRepository.findByIsin(element[1]);
           if (securities.size() == 1 && securities.get(0).getAssetClass()
               .getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) {
             security = securities.get(0);
           }
         } else {
-          security = securityJpaRepository.findByTickerSymbolAndCurrency(cv[i][2], cv[i][3]);
+          security = securityJpaRepository.findByTickerSymbolAndCurrency(element[2], element[3]);
         }
         if (security != null) {
           Stockexchange stockexchange = stockexchangeOpt.get();

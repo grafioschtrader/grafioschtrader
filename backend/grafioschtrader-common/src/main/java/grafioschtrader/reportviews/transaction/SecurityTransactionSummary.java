@@ -39,7 +39,7 @@ public class SecurityTransactionSummary {
   /**
    * Margin trade handle opening a position as a parent of all other transactions
    * like close or finance cost. Child position is inserted at the right position.
-   * 
+   *
    * @param transaction
    */
   private void insertMarginChild(Transaction transaction) {

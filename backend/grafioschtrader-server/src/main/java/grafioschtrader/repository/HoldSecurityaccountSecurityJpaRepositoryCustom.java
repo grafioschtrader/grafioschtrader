@@ -12,14 +12,14 @@ public interface HoldSecurityaccountSecurityJpaRepositoryCustom {
 
   /**
    * Security holdings are completely rebuild for a tenant.
-   * 
+   *
    * @param idTenant
    */
   void createSecurityHoldingsEntireByTenant(Integer idTenant);
 
   /**
    * Adjust security holding for a single transaction.
-   * 
+   *
    * @param securityaccount
    * @param transaction
    */

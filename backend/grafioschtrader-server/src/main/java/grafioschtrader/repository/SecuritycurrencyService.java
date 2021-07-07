@@ -45,7 +45,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 
 /**
- * 
+ *
  * @author Hugo Graf
  *
  * @param <S>
@@ -79,7 +79,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   /**
    * Checks if the data provider was changed by the user and the EOD must be
    * reloaded.
-   * 
+   *
    * @param securityCurrencyChanged
    * @param securitycurreny2
    * @return

@@ -9,7 +9,7 @@ public interface ICalendarFeedConnector {
 
   /**
    * Get split data for a certain day with all securities
-   * 
+   *
    * @param forDate
    * @param countyCodes
    * @return
@@ -20,7 +20,7 @@ public interface ICalendarFeedConnector {
 
   /**
    * Priority of the data provider, first means lower number
-   * 
+   *
    * @return
    */
   int getPriority();

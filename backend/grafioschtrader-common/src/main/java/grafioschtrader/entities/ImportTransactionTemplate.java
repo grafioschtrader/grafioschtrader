@@ -30,7 +30,7 @@ import grafioschtrader.types.TemplateFormatType;
 /**
  * It contains the pdf or csv template as text, which will be used for import
  * transactions.
- * 
+ *
  * @author Hugo Graf
  *
  */

@@ -34,7 +34,7 @@ import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
- * 
+ *
  * Checks the split calendar daily and creates a TaskDataChange for the
  * corresponding securities. A direct insertion into the split table is not
  * performed, because the security may have been identified incorrectly. For the

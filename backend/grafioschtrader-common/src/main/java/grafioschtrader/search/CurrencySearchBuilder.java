@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Currencypair_;
+import grafioschtrader.entities.Securitycurrency_;
 
 public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder implements Specification<Currencypair> {
 
@@ -59,12 +60,12 @@ public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
     if (securitycurrencySearch.getIdConnectorHistory() != null) {
       mainPredicates.add(builder.and(
-          builder.like(currencypair.get(Currencypair_.idConnectorHistory), securitycurrencySearch.getIdConnectorHistory())));
+          builder.like(currencypair.get(Securitycurrency_.idConnectorHistory), securitycurrencySearch.getIdConnectorHistory())));
     }
 
     if (securitycurrencySearch.getIdConnectorIntra() != null) {
       mainPredicates.add(builder.and(
-          builder.like(currencypair.get(Currencypair_.idConnectorIntra), securitycurrencySearch.getIdConnectorIntra())));
+          builder.like(currencypair.get(Securitycurrency_.idConnectorIntra), securitycurrencySearch.getIdConnectorIntra())));
     }
 
     final Predicate[] predicatesArray = new Predicate[mainPredicates.size()];

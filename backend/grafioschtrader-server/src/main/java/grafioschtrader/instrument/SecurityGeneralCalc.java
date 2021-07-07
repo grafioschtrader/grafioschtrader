@@ -17,7 +17,7 @@ import grafioschtrader.types.TransactionType;
 /**
  * Calculate a the security risk and gain/loss of standard investing products
  * like bond, stock, etc.
- * 
+ *
  * @author Hugo Graf
  *
  */

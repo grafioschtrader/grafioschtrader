@@ -149,6 +149,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     }
   }
 
+  @Override
   public int removeMultipleFromWatchlist(Integer idWatchlist, final List<Integer> idsSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return watchlistJpaRepository.deleteByIdTenantAndWatchlistAndIds(user.getIdTenant(), idWatchlist,

@@ -40,11 +40,11 @@ import grafioschtrader.entities.Security;
 /*-
  * Stock, Bond, ETF:
  *
- * Dividend: TODO Implement Dividend 
+ * Dividend: TODO Implement Dividend
  * https://www.six-group.com/sheldon/share_details/v1/CH0244767585/share/dividend.json
- * 
- * Splits: Not Supported 
- * 
+ *
+ * Splits: Not Supported
+ *
  */
 @Component
 public class SixFeedConnector extends BaseFeedConnector {
@@ -100,31 +100,31 @@ public class SixFeedConnector extends BaseFeedConnector {
 
   private void parseJsonData(final Security security, final String jsonData) throws JSONException, ParseException {
     /*-
-     * 0: ValorSymbol 
-     * 1: MarketDate, 
-     * 2: Currency, 
-     * 3: ClosingPrice, 
-     * 4: ClosingPerformance, 
-     * 5: WeekAgoPerformance, 
-     * 6: MonthAgoPerformance, 
-     * 7: YearAgoPerformance, 
-     * 8: YearToDatePerformance 
-     * 9: LatestTradeVolume, 
-     * 10:TotalVolume, 
-     * 11:PreviousClosingPrice", 
-     * 12: BidPrice, 
-     * 13:AskPrice, 
-     * 14:BidVolume, 
-     * 15:AskVolume, 
-     * 16:DailyLowPrice, 
+     * 0: ValorSymbol
+     * 1: MarketDate,
+     * 2: Currency,
+     * 3: ClosingPrice,
+     * 4: ClosingPerformance,
+     * 5: WeekAgoPerformance,
+     * 6: MonthAgoPerformance,
+     * 7: YearAgoPerformance,
+     * 8: YearToDatePerformance
+     * 9: LatestTradeVolume,
+     * 10:TotalVolume,
+     * 11:PreviousClosingPrice",
+     * 12: BidPrice,
+     * 13:AskPrice,
+     * 14:BidVolume,
+     * 15:AskVolume,
+     * 16:DailyLowPrice,
      * 17:DailyLowTime,
-     * 18:DailyHighPrice, 
-     * 19:DailyHighTime, 
-     * 20:YearlyLowPrice, 
-     * 21:YearlyLowDate, 
-     * 22:YearlyHighPrice, 
+     * 18:DailyHighPrice,
+     * 19:DailyHighTime,
+     * 20:YearlyLowPrice,
+     * 21:YearlyLowDate,
+     * 22:YearlyHighPrice,
      * 23:YearlyHighDate
-     * 
+     *
      * ["SMICHA",20170802,"CHF",93.56,0.56,1.35,2.01,13.86,12.13,7300,36145,93.04,93.63,93.68,15000,15000,93.27,92935.84
      * ,93.84,150552.39,76.9,20161104,93.85,20170626]
      */

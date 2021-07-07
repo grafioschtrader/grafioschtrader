@@ -39,11 +39,11 @@ import grafioschtrader.types.TransactionType;
  * Creates the objects for a "report" which is grouped by year. It includes all
  * transaction but withdrawal and deposit. The main purpose is the sum off
  * dividends and interest by year.
- * 
- * 
+ *
+ *
  * Attention: This class shoud not have a member variable, because there exist
  * only one instance.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -236,7 +236,7 @@ public class SecurityDividendsReport {
 
   /**
    * Calculate grand totals
-   * 
+   *
    * @param idTenant
    * @param securityDividendsGrandTotal
    * @param historyquoteYearIdMap

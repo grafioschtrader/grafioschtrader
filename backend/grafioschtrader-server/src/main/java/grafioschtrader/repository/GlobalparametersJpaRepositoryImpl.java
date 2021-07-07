@@ -58,8 +58,8 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         .map(Globalparameters::getPropertyString).orElse(Globalparameters.DEFAULT_CURRENCY_PRECISION);
     String[] curSinglePre = curPrecision.split(",");
 
-    for (int i = 0; i < curSinglePre.length; i++) {
-      String[] pair = curSinglePre[i].split("=");
+    for (String element : curSinglePre) {
+      String[] pair = element.split("=");
       currencyPrecisionMap.put(pair[0], Integer.parseInt(pair[1]));
     }
     return currencyPrecisionMap;
@@ -146,6 +146,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         .collect(Collectors.toList());
   }
 
+  @Override
   public List<ValueKeyHtmlSelectOptions> getCurrencies() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final List<ValueKeyHtmlSelectOptions> currencies = Currency.getAvailableCurrencies().stream()

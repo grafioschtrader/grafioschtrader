@@ -37,8 +37,8 @@ import grafioschtrader.validation.ValidMultilanguage;
 
 /**
  *
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  * @rights Every property can be updated by authorized user.
  */

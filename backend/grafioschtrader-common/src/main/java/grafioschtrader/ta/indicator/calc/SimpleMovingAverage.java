@@ -9,7 +9,7 @@ import grafioschtrader.ta.TaIndicatorData;
 public class SimpleMovingAverage implements CalcAccessIndicator {
   // queue used to store list so that we get the average
   private final TaIndicatorData[] taIndicatorData;
-  private final Queue<Double> dataset = new LinkedList<Double>();
+  private final Queue<Double> dataset = new LinkedList<>();
   private final int period;
   private double sum;
   private int dataIndex = 0;

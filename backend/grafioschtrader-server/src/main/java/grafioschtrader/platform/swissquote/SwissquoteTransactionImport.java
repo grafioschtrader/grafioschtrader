@@ -15,9 +15,9 @@ import grafioschtrader.repository.ImportTransactionPosJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
- * 
+ *
  * The is no special implementation, i is intended as an example.
- * 
+ *
  * @author Hugo Graf
  *
  */

@@ -206,6 +206,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     return !isEqual;
   }
 
+  @Override
   public void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition) {
     if (securitycurrencyPosition.securitycurrency.getIdConnectorDividend() != null) {
       IFeedConnector iFeedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,

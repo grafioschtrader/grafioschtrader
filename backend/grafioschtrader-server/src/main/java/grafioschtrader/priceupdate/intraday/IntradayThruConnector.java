@@ -16,7 +16,7 @@ import grafioschtrader.repository.GlobalparametersJpaRepository;
 
 /**
  * Update intraday prices thru the connector for securities or currency pair.
- * 
+ *
  * @author Hugo Graf
  *
  * @param <S>
@@ -43,7 +43,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
       final int scIntradayUpdateTimeout) {
     final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.INTRA);
-    ;
+
     Date now = new Date();
     if (feedConnector != null && (securitycurrency.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
         && securitycurrency.isActiveForIntradayUpdate(now)
@@ -75,7 +75,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
 
   private boolean allowDelayedIntradayUpdate(final S securitycurrency, final IFeedConnector feedConnector,
       final int scIntradayUpdateTimeout) {
-    final Long lessThenPossible = System.currentTimeMillis() - 1000 * scIntradayUpdateTimeout;
+    final long lessThenPossible = System.currentTimeMillis() - 1000 * scIntradayUpdateTimeout;
     return securitycurrency.getSLast() == null || securitycurrency.getSTimestamp().getTime()
         + feedConnector.getIntradayDelayedSeconds() * 1000 < lessThenPossible;
   }

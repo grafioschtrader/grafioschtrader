@@ -12,7 +12,7 @@ public interface IHistoryquoteEntityAccess<S extends Securitycurrency<S>> extend
   /**
    * Gets the new prices and creates history quotes for adding to the security or
    * currency pair.
-   * 
+   *
    * @param securitycurrency
    * @param fromDate
    * @param toDate

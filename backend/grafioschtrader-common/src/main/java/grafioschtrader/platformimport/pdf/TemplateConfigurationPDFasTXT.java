@@ -8,6 +8,9 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.platformimport.TemplateConfiguration;
@@ -21,23 +24,23 @@ An instance should only contain the configuration of a template.
 
 Compare on the same line to anchor the FIELD
 --------------------------------------------
-P   = compare previous word, also the beginning of line 
-Pc = a character or word is prefixed with the FIELD 
+P   = compare previous word, also the beginning of line
+Pc = a character or word is prefixed with the FIELD
 N   = compare next word, also the end of the line
-Nc = a character or word is suffixed with the FIELD 
-SL = compare first word start of the same line  
+Nc = a character or word is suffixed with the FIELD
+SL = compare first word start of the same line
 
 Use previous and next line to anchor the FIELD
 If no other selector is available for this FIELD, the number of words or numbers is counted.
----------------------------------------------- 
-PL = compare first word of previous line 
+----------------------------------------------
+PL = compare first word of previous line
 NL = compare first word of next line
 
 Table: First column property of a table must contain a R.
 It counts the word which are separated by a space
 A table may contain one optional property per row
 -----------------------------------------------------
-R = First column of a table (repeated property) 
+R = First column of a table (repeated property)
 
 Optional
 --------
@@ -49,6 +52,8 @@ O = This attribute is optional, may be used for currency
 
 */
 public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   /**
    * Matches a property like {transType|P|N}
@@ -73,6 +78,8 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
   @Override
   protected void readTemplateProperties(String[] templateLines, int startRowConfig,
       DataViolationException dataViolationException) {
+
+    log.info("Import template: {}", this.importTransactionTemplate.getTemplatePurpose());
     this.templateLines = templateLines;
     for (int i = 0; i <= startRowConfig - 1; i++) {
       createRowPropertiesPattern(i, startRowConfig - 1, dataViolationException);
@@ -81,7 +88,7 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
 
   /**
    * For each Line
-   * 
+   *
    * @param startRow
    */
   private void createRowPropertiesPattern(int startRow, int lastLine, DataViolationException dataViolationException) {
@@ -128,7 +135,7 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
             propertyWithOptions.startPL = setFirstWord(rowSplitSpacePL, propertyWithOptionsAndBraces,
                 dataViolationException, propertyOptionsSplit[i], 1);
           } else {
-            dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.pl.row", "PL");
+            dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.pl.row", null, false);
           }
           break;
         case "SL":
@@ -141,7 +148,7 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
             propertyWithOptions.startNL = setFirstWord(rowSplitSpaceNL, propertyWithOptionsAndBraces,
                 dataViolationException, propertyOptionsSplit[i], 1);
           } else {
-            dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.pl.row", "NL");
+            dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.nl.row", null, false);
           }
           break;
         case "R":
@@ -150,10 +157,11 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
         case "O":
           propertyWithOptions.optional = true;
           break;
+        default:
+          dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.anchor.config", propertyOptionsSplit[i], false);
         }
       }
       propertyWithOptions.createRegex();
-
     }
   }
 
@@ -163,7 +171,7 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
       return rowSplitSpace[0];
     } else {
       dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.line.beginning",
-          propertyOption);
+          propertyOption, false);
     }
     return null;
   }

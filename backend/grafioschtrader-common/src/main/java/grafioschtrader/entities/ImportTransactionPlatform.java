@@ -20,7 +20,7 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 
 /**
  * It contains the header information of the transaction import templates.
- * 
+ *
  * @author Hugo Graf
  *
  */

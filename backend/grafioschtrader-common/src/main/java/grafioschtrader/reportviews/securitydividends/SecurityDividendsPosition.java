@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * For each year and security combination there is one of this Object.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -108,7 +108,7 @@ public class SecurityDividendsPosition {
 
   /**
    * Calculate the value of a security at the end of year.
-   * 
+   *
    * @param historyquoteIdMap
    * @param dateCurrencyMap
    */

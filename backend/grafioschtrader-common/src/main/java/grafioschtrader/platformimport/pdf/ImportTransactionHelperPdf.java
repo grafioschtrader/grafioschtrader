@@ -17,7 +17,7 @@ public abstract class ImportTransactionHelperPdf {
 
   /**
    * Transform a input stream of PDF to text string.
-   * 
+   *
    * @param is
    * @return
    * @throws IOException
@@ -32,7 +32,7 @@ public abstract class ImportTransactionHelperPdf {
 
   /**
    * Parse the existing Templates. The result can be used to scan forms.
-   * 
+   *
    * @return
    * @throws DataViolationException
    */

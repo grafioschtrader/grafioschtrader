@@ -89,6 +89,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     return getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idSecuritycurrency, date, asTraded);
   }
 
+  @Override
   public ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
       final Integer idSecuritycurrency, final Date date, final boolean asTraded) {
     final List<Integer> securitycurrencies = new ArrayList<>();
@@ -123,7 +124,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     }
     return null;
   }
-  
+
   @Override
   public UserAuditable getUserAndCheckSecurityAccess(Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -216,7 +217,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   /**
    * Update linked history quotes in derived instrument.
-   * 
+   *
    * @param savedHistoryquote
    */
   private void updateCalculationByChangedHistoryquote(Historyquote savedHistoryquote) {
@@ -246,7 +247,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   /**
    * Some no trading days are filled with history quote, especially currencies
    * quotes. Those days must be adjusted when a history quote is edited manually.
-   * 
+   *
    * @param historyquoteBefore
    */
   private void updateHolidaysWeekendHistoryquotes(final Historyquote historyquoteBefore) {
@@ -377,7 +378,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   /**
    * Check if user can get this history quotes
-   * 
+   *
    * @param idSecuritycurrency
    */
   private UserAccess checkUserAccess(Integer idSecuritycurrency) {
@@ -437,29 +438,29 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   /*
    * @Override
-   * 
+   *
    * @Transactional // TODO not yet used. public
    * HistoryQuoteForChartWithEmptyTrace
    * getHistoryQuoteForChartWithEmptyTrace(final Integer idSecuritycurrency) {
    * HistoryQuoteForChartWithEmptyTrace historyQuoteForChartWithEmptyTrace = new
    * HistoryQuoteForChartWithEmptyTrace();
-   * 
+   *
    * List<IDateAndClose> dateAndClose =
    * historyquoteJpaRepository.getClosedAndMissingHistoryquoteByIdSecurity(
    * idSecuritycurrency); dateAndClose.forEach(dac ->
    * historyQuoteForChartWithEmptyTrace.add(dac.getDate(), dac.getClose()));
    * historyQuoteForChartWithEmptyTrace.completeFirstAndLastMisssing();
-   * 
+   *
    * return historyQuoteForChartWithEmptyTrace; }
-   * 
-   * 
+   *
+   *
    * public static class HistoryQuoteForChartWithEmptyTrace { public final
    * List<HistoryquoteDateClose> minimalChartDataWithData = new ArrayList<>();
    * public final List<HistoryquoteDateClose> minimalChartDataMissingData = new
    * ArrayList<>(); private HistoryquoteDateClose lastExistingMinimalChartData =
    * null; private HistoryquoteDateClose lastMissingStartMinimalChartData = null;
    * private boolean lastIsEmpty; private LocalDate lastEmptyDate;
-   * 
+   *
    * public void add(LocalDate date, Double close) { if (close == null) { if
    * (!lastIsEmpty) { // Open missing scope lastMissingStartMinimalChartData = new
    * HistoryquoteDateClose(date, lastExistingMinimalChartData != null ?
@@ -475,9 +476,9 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * minimalChartDataMissingData.add(new HistoryquoteDateClose(lastEmptyDate,
    * close)); } } lastIsEmpty = false; lastExistingMinimalChartData = new
    * HistoryquoteDateClose(date, close);
-   * 
+   *
    * } minimalChartDataWithData.add(new HistoryquoteDateClose(date, close)); }
-   * 
+   *
    * public void completeFirstAndLastMisssing() { if
    * (!minimalChartDataMissingData.isEmpty() &&
    * !minimalChartDataWithData.isEmpty()) { if
@@ -490,7 +491,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * minimalChartDataWithData.get(dIndex).date)) {
    * minimalChartDataMissingData.get(mIndex).close =
    * minimalChartDataWithData.get(dIndex).close; } } } }
-   * 
+   *
    */
 
 }

@@ -22,7 +22,7 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   /**
    * Update last price of a certain currency pair
-   * 
+   *
    * @param currencypair
    * @return
    */
@@ -30,7 +30,7 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   /**
    * Update last price of specified currency pairs.
-   * 
+   *
    * @param currencypairs
    * @return
    */
@@ -44,7 +44,7 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   /**
    * Find a currency by the currency pair, if not then it will be created
-   * 
+   *
    * @param fromCurrency
    * @param toCurrency
    * @return

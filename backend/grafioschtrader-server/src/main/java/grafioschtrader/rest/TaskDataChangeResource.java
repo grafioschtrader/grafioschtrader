@@ -36,6 +36,7 @@ public class TaskDataChangeResource extends UpdateCreateDeleteAuditResource<Task
     return new ResponseEntity<>(taskDataChangeJpaRepository.getFormConstraints(), HttpStatus.OK);
   }
 
+  @Override
   @DeleteMapping(value = "/{idTaskDataChange}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteResource(@PathVariable final Integer idTaskDataChange) {
     taskDataChangeJpaRepository.deleteById(idTaskDataChange);

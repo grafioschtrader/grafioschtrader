@@ -14,7 +14,7 @@ import grafioschtrader.validation.ISINValidator;
 
 /**
  * Is filled with the data of a import form.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -90,7 +90,7 @@ public class ImportProperties {
    */
   private Double cex;
 
-  
+
   /**
    * Transaction cost 1
    */
@@ -338,10 +338,10 @@ public class ImportProperties {
     this.sf1 = sf1;
   }
 
-  public String getPer() {
+    public String getPer() {
     return per;
   }
-
+  
   public void setPer(String per) {
     this.per = per;
   }

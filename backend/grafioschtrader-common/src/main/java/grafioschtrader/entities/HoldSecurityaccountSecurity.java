@@ -11,7 +11,7 @@ import javax.persistence.Table;
  * It tracks the holdings of securities, which depends accumulation and
  * reduction transactions. This entity delivers information over the holding
  * periods for securities.
- * 
+ *
  * @author Hugo Graf
  *
  */

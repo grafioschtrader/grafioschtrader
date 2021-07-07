@@ -21,24 +21,25 @@ import grafioschtrader.entities.MultilanguageString;
 import grafioschtrader.entities.MultilanguageString_;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Security_;
+import grafioschtrader.entities.Securitycurrency_;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.Stockexchange_;
 import grafioschtrader.entities.User;
 import grafioschtrader.types.Language;
 
 /*
- * 
- * 
+ *
+ *
  * SELECT s.name FROM security s where s.name LIKE "%Gold%" AND s.id_securitycurrency NOT IN (Select
  * w.id_securitycurrency FROM watchlist_sec_cur w where w.id_watchlist = 7)
- * 
+ *
  * SELECT s.name FROM security s where s.name LIKE "%Gold%" AND NOT EXISTS (Select null FROM watchlist_sec_cur w
  * where w.id_watchlist = 7 AND s.id_securitycurrency = w.id_securitycurrency)
- * 
- * 
+ *
+ *
  * https://stackoverflow.com/questions/13859780/building-a-query-using-not-exists-in-jpa-criteria-api
- * 
- * 
+ *
+ *
  */
 public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder implements Specification<Security> {
 
@@ -75,10 +76,10 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
     }
 
     if(idSecurityList != null) {
-      Expression<Integer> exp = securityRoot.get(Security_.idSecuritycurrency);
+      Expression<Integer> exp = securityRoot.get(Securitycurrency_.idSecuritycurrency);
       mainPredicates.add(builder.and(exp.in(idSecurityList)));
     }
-    
+
     if (securitycurrencySearch.getIsin() != null) {
       mainPredicates.add(builder.and(builder.equal(securityRoot.get(Security_.isin), securitycurrencySearch.getIsin())));
     } else {
@@ -109,12 +110,12 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
       if (securitycurrencySearch.getIdConnectorHistory() != null) {
         mainPredicates.add(builder.and(
-            builder.equal(securityRoot.get(Security_.idConnectorHistory), securitycurrencySearch.getIdConnectorHistory())));
+            builder.equal(securityRoot.get(Securitycurrency_.idConnectorHistory), securitycurrencySearch.getIdConnectorHistory())));
       }
 
       if (securitycurrencySearch.getIdConnectorIntra() != null) {
         mainPredicates.add(builder
-            .and(builder.equal(securityRoot.get(Security_.idConnectorIntra), securitycurrencySearch.getIdConnectorIntra())));
+            .and(builder.equal(securityRoot.get(Securitycurrency_.idConnectorIntra), securitycurrencySearch.getIdConnectorIntra())));
       }
 
       if (securitycurrencySearch.getCurrency() != null) {

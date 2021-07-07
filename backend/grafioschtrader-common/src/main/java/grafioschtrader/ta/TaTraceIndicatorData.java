@@ -3,7 +3,7 @@ package grafioschtrader.ta;
 /**
  * Single trace for a chart. Some technical indicators may create one or more
  * instances of this class.
- * 
+ *
  * @author Hugo Graf
  *
  */

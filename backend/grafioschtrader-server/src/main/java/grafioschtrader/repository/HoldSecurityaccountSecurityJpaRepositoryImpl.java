@@ -47,12 +47,12 @@ import grafioschtrader.types.TransactionType;
  * HoldSecurityaccountSecurity is affected:<b> When a tenant buys or sells a
  * security.<b> When a tenants global main currency or a portfolio currency
  * changes. For every tenant when security splits changes.<b>
- * 
+ *
  * Margin transaction are handled differently, every single transaction is
  * processed, while for other transactions the database query delivers a
  * combined result of all transaction for a single day, in respect of security
  * and security account.
- * 
+ *
  * Open and close a position in a day will not produce a record in holdings of
  * securities.
  *
@@ -222,7 +222,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Create holdings for a security account of a portfolio and tenant.
-   * 
+   *
    * @param idTenant
    * @param idPortfolio
    * @param idSecuritycashAccount

@@ -45,7 +45,7 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
 
   /**
    * Only currencies without a single historyquote are ingnored by this query.
-   * 
+   *
    * @param idTenant
    * @param idWatchlist
    * @return
@@ -59,7 +59,7 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
   /**
    * Gel all used currency pairs in transactions. That means currency pairs
    * between security cash accounts.
-   * 
+   *
    * @param idTenant
    * @return
    */
@@ -78,7 +78,7 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
   /**
    * For a tenant gets all used existing currency pairs of all accounts,
    * securities and transaction.
-   * 
+   *
    * @param idTenant
    * @return
    */
@@ -92,9 +92,9 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
    * For a tenant it gets all used currency pairs of all accounts and securities,
    * without the currency pairs used in transactions. The main currency is taken
    * from the tenant.
-   * 
+   *
    * TODO it does not work correctly for HoldCashaccountBalanceJpaRepositoryImpl
-   * 
+   *
    * @param idTenant
    * @return
    */

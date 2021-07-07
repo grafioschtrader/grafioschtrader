@@ -34,7 +34,7 @@ public abstract class FinanzenBase<T extends Securitycurrency<T>> {
   }
 
   /**
-   * 
+   *
    * @param table
    * @param historyquotes
    * @param headerColMapping Header in the first row is expected when

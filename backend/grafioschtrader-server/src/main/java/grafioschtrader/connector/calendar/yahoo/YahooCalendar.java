@@ -56,8 +56,7 @@ public class YahooCalendar implements ICalendarFeedConnector {
     Map<String, TickerSecuritysplit> splitTickerMap = new HashMap<>();
     Elements rows = doc.select("#cal-res-table table tbody tr");
     FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
-    for (int r = 0; r < rows.size(); r++) {
-      Element row = rows.get(r);
+    for (Element row : rows) {
       Elements cols = row.select("td");
       if (cols.get(4).text().trim().length() >= 3) {
         String yahooTicker = cols.get(0).text();

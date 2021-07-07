@@ -30,9 +30,9 @@ import grafioschtrader.entities.Security;
  * Supports history quotes for securities. Unfortunately, quotes are only
  * exported with an accuracy of two decimal places. Currency is disabled because
  * for currency it is not useful.
- * 
+ *
  * It produces Server returned HTTP response code: 429 (Too many requests)
- * 
+ *
  * @author Hugo Graf
  *
  */

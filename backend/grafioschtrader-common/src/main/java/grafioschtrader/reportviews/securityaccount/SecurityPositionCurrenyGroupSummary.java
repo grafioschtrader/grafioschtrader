@@ -3,7 +3,7 @@ package grafioschtrader.reportviews.securityaccount;
 /**
  * Summary of securities grouped by currency. A single security account may
  * produce one or more instance of this class.
- * 
+ *
  * @author Hugo Graf
  *
  */

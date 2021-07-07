@@ -2,7 +2,7 @@ package grafioschtrader.error;
 
 /**
  * Error which supports a field name with message.
- * 
+ *
  * @author Hugo Graf
  *
  */

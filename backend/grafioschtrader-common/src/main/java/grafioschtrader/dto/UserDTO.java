@@ -18,8 +18,8 @@ import grafioschtrader.entities.User;
 
 /**
  * Never send this DTO back to the client, because it contains the password.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */
@@ -36,7 +36,7 @@ public final class UserDTO {
 
   /**
    * It may be used for the login process.
-   * 
+   *
    * @param email
    * @param password
    * @param nickname

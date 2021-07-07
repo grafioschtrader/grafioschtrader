@@ -19,7 +19,7 @@ import grafioschtrader.types.OperationType;
 /**
  * Delete for shared resources, depends on the rights of the user for removing
  * an entity.
- * 
+ *
  * @author Hugo Graf
  *
  * @param <T>

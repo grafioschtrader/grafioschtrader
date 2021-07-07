@@ -17,7 +17,7 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Base class for import different data types like csv, txt of pdf.
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -39,7 +39,6 @@ public abstract class GenericTransactionImportCsvPdfBase {
     if (preferedCashaccount != null) {
       importTransactionPos.setCashaccount(preferedCashaccount);
     }
-
   }
 
   protected void checkAndSaveSuccessImportTransaction(ImportTransactionTemplate importTransactionTemplate,
@@ -76,8 +75,8 @@ public abstract class GenericTransactionImportCsvPdfBase {
 
   /**
    * Cash transfer from one cash account to another of the the same portfolio
-   * 
-   * 
+   *
+   *
    * @param importTransactionTemplate
    * @param cashaccountList
    * @param importPropertiesList

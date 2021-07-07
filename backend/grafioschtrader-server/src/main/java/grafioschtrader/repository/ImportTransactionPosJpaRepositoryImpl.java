@@ -79,8 +79,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
   @PersistenceContext
   private EntityManager entityManager;
-  
-  
+
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Override
@@ -133,6 +133,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         ImportTransactionPos::setCashaccount);
   }
 
+  @Override
   public List<ImportTransactionPos> setIdTransactionMayBe(Integer idTransactionMaybe,
       List<Integer> idTransactionPosList) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -321,7 +322,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
               && itp.getCashaccount().getIdTenant().equals(user.getIdTenant())) {
             itp.calcCashaccountAmount();
             idCurrencypair = setPossibleMissingCurrencyExRate(itp);
-           
+
             if (idCurrencypair == null) {
               idCurrencypair = getPossibleCurrencypairAndLoadCurrencypairs(itp, idItpMap, currencypairs,
                   importTransactionPosList.size() > 1);

@@ -10,7 +10,7 @@ import grafioschtrader.reportviews.SecurityCostGroup;
 
 /**
  * Group summary of transaction cost report. It is grouped by security account.
- * 
+ *
  * @author Hugo Graf
  *
  */

@@ -31,8 +31,8 @@ import grafioschtrader.repository.SecurityJpaRepository;
 /**
  * It is a generic importer CSV and PDF importer. It can be used for the most
  * online broker.
- * 
- * 
+ *
+ *
  * @author Hugo Graf
  *
  */
@@ -50,8 +50,8 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
     Map<TemplateConfigurationPDFasTXT, ImportTransactionTemplate> templateScannedMap = ImportTransactionHelperPdf
         .readTemplates(importTransactionTemplateList, userLocale);
 
-    for (int i = 0; i < uploadFiles.length; i++) {
-      this.parseSinglePdfForm(templateScannedMap, uploadFiles[i], importTransactionPosJpaRepository,
+    for (MultipartFile uploadFile : uploadFiles) {
+      this.parseSinglePdfForm(templateScannedMap, uploadFile, importTransactionPosJpaRepository,
           securityJpaRepository, importTransactionPosFailedJpaRepository);
     }
   }
@@ -96,7 +96,7 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
   /**
    * Override this if the PDF as text needs some cleaning after reading as text
    * before it is processed
-   * 
+   *
    * @param readPDFAsText
    * @return
    */
@@ -160,7 +160,7 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
 
   /**
    * Every PDF form is saved in a transaction.
-   * 
+   *
    * @param cashaccountList
    * @param templateScannedMap
    * @param singleFormSB

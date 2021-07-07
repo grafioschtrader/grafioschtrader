@@ -3,17 +3,21 @@ package grafioschtrader.platformimport.pdf;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import grafioschtrader.common.ValueFormatConverter;
 import grafioschtrader.platformimport.ImportProperties;
 
 /**
  * For each property to parse a instance of this class exists.
- * 
- * 
+ *
  * @author Hugo Graf
  *
  */
 public class PropertyWithOptionsConfiguration {
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   public String fieldName;
   public Class<?> dataType;
@@ -67,13 +71,13 @@ public class PropertyWithOptionsConfiguration {
 
   /**
    * At the end of regex setting, this method must be called for every property.
-   * 
+   *
    */
   public void createRegex() {
     String regex = valueTypeRegex;
     regex = this.createPrevNextConcatenatedRegex(regex);
     regex = this.createPrevNextRegex(regex);
-    System.out.println(fieldName + " PL:" + startPL + " SL:" + startSL + " NL:" + startNL + " Regex:" + regex);
+    log.info("{} PL: {}  SL: {}  NL: {}  Regex: {}", fieldName, startPL, startSL, startNL, regex);
     regexPattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
   }
 

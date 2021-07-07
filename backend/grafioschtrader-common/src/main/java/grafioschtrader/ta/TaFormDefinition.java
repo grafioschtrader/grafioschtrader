@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Contains a single form definition that can be used in the client.
- * 
+ *
  * @author Hugo Graf
  *
  */

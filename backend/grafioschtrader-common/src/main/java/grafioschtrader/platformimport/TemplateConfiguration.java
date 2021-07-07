@@ -17,9 +17,9 @@ import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 
 /**
- * 
+ *
  * Base configuration for parsing templates as pdf(txt) or csv(txt).
- * 
+ *
  * @author Hugo Graf
  *
  */
@@ -101,7 +101,7 @@ public abstract class TemplateConfiguration {
 
   /**
    * Reads the END section.
-   * 
+   *
    * @param templateLines
    * @return
    */
@@ -118,8 +118,8 @@ public abstract class TemplateConfiguration {
         case CONF_TRANSACTION_TYPE:
           String transTypeSplit[] = splitEqual[1].split(Pattern.quote("|"));
           String transTypeWordsSplit[] = transTypeSplit[1].split(",");
-          for (int k = 0; k < transTypeWordsSplit.length; k++) {
-            transactionTypesMap.put(transTypeWordsSplit[k].trim(),
+          for (String element : transTypeWordsSplit) {
+            transactionTypesMap.put(element.trim(),
                 TransactionType.getTransactionTypeByName((transTypeSplit[0])));
           }
           break;
@@ -147,14 +147,13 @@ public abstract class TemplateConfiguration {
     }
 
     createSeparatorPattern(separators);
-
     return startRowConfig;
   }
 
   private void processOtherFlagOptions(String flagOptionsStr) {
     String[] flagOptions = flagOptionsStr.split(Pattern.quote("|"));
-    for (int i = 0; i < flagOptions.length; i++) {
-      String option = "CAN_" + flagOptions[i];
+    for (String flagOption : flagOptions) {
+      String option = "CAN_" + flagOption;
       ImportKnownOtherFlags okof = EnumHelper.enumContainsNameAsString(option, ImportKnownOtherFlags.class);
       if (okof != null) {
         importKnownOtherFlagsSet.add(okof);
@@ -164,7 +163,7 @@ public abstract class TemplateConfiguration {
 
   /**
    * All< '|.> or de-CH<'|.>de-DE<,|.>
-   * 
+   *
    * @param separators
    */
 
@@ -227,7 +226,7 @@ public abstract class TemplateConfiguration {
   protected void addionalConfigurations(String[] splitEqual) {
   }
 
-  public void validateTemplate(final DataViolationException dataViolationException) {
+  protected void validateTemplate(final DataViolationException dataViolationException) {
     if (dateFormat == null) {
       dataViolationException.addDataViolation(CONF_DATE_FORMAT, "gt.imptemplate.date", null, false);
     } else {
@@ -240,12 +239,12 @@ public abstract class TemplateConfiguration {
     if(transactionTypesMap.isEmpty()) {
       dataViolationException.addDataViolation(CONF_TRANSACTION_TYPE, "gt.imptemplate.missing.transactiontype", null, false);
     }
-   
+
   }
 
   /**
    * Creates the number format with or without thousand and decimal separator.
-   * 
+   *
    * @param locale
    * @return
    */

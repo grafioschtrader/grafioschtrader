@@ -71,8 +71,8 @@ public class ValueFormatConverter {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param bean      The Objects which property is changed
    * @param fieldName The name of the property
    * @param value
@@ -123,8 +123,8 @@ public class ValueFormatConverter {
   public static Map<String, Class<?>> getDataTypeOfPropertiesByBean(Object bean) {
     Map<String, Class<?>> propertyDataTypeMap = new HashMap<>();
     PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(bean);
-    for (int i = 0; i < propertyDescriptors.length; i++) {
-      propertyDataTypeMap.put(propertyDescriptors[i].getName(), propertyDescriptors[i].getPropertyType());
+    for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+      propertyDataTypeMap.put(propertyDescriptor.getName(), propertyDescriptor.getPropertyType());
     }
     return propertyDataTypeMap;
   }

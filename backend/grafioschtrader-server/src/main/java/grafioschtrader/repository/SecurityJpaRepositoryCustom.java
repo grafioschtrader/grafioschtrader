@@ -20,7 +20,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   /**
    * Complete the history for all security or currency pairs until yesterday's
    * date.
-   * 
+   *
    * @return
    */
   List<Security> catchAllUpSecurityHistoryquote();
@@ -52,7 +52,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   /**
    * Process open positions. Calculate gain/loss when this position would be
    * closed.
-   * 
+   *
    * @param summarySecurityMap
    */
   List<SecurityPositionSummary> processOpenPositionsWithActualPrice(Date untilDate,
@@ -77,7 +77,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   /**
    * Some cases the historical prices must be reloaded completely. For example
    * when a split is added.
-   * 
+   *
    * @param security
    * @return
    */
@@ -86,7 +86,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   /**
    * It tries to detect if the historical price data after the latest split has
    * been adjusted.
-   * 
+   *
    * @param security
    * @param securitysplits
    * @return

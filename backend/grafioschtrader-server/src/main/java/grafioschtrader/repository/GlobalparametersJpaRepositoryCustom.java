@@ -32,7 +32,7 @@ public interface GlobalparametersJpaRepositoryCustom {
   /**
    * Return the maximum attempts. This value is determined by the global
    * parameters.
-   * 
+   *
    * @return
    */
   short getMaxHistoryRetry();
@@ -40,7 +40,7 @@ public interface GlobalparametersJpaRepositoryCustom {
   /**
    * Return the maximum attempts. This value is determined by the global
    * parameters.
-   * 
+   *
    * @return
    */
   short getMaxIntraRetry();

@@ -18,7 +18,7 @@ public abstract class EnumHelper {
   public static <E extends Enum<E>> EnumSet<E> decode(int encoded, Class<E> enumKlazz) {
     // First populate a look-up map of ordinal to Enum value.
     // This is fairly disgusting: Anyone know of a better approach?
-    Map<Integer, E> ordinalMap = new HashMap<Integer, E>();
+    Map<Integer, E> ordinalMap = new HashMap<>();
     for (E val : EnumSet.allOf(enumKlazz)) {
       ordinalMap.put(val.ordinal(), val);
     }

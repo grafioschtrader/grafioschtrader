@@ -27,7 +27,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   /**
    * Complete the history for all security or currency pairs until yesterday's
    * date.
-   * 
+   *
    * @return
    */
   List<S> catchAllUpSecuritycurrencyHistoryquote();
@@ -51,7 +51,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   /**
    * Update history quotes from the list of currency pairs and securities. There
    * is no check for retry, that means it is ignored.
-   * 
+   *
    * @param historySecurityCurrencyList
    * @param currentCalendar
    * @return
@@ -71,7 +71,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
 
   /**
    * Gets the download link for historical data string.
-   * 
+   *
    * @param securitycurrency
    * @return
    */

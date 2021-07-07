@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Grand summary of all cash and security accounts.
- * 
+ *
  * @author Hugo Graf
  *
  */

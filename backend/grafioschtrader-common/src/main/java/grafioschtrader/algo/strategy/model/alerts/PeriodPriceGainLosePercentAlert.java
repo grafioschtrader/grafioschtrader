@@ -8,7 +8,7 @@ import javax.validation.constraints.Min;
  * period.</br>
  * Only securities of users watch list on top and asset class level are
  * supervised.</br>
- * 
+ *
  * @author Hugo Graf
  *
  */

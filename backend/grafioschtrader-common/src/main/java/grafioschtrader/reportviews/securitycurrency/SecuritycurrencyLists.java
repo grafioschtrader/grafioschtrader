@@ -14,7 +14,7 @@ public class SecuritycurrencyLists implements Serializable {
   public List<Currencypair> currencypairList;
 
   public SecuritycurrencyLists() {
-  };
+  }
 
   public SecuritycurrencyLists(List<Security> securityList, List<Currencypair> currencypairList) {
     super();

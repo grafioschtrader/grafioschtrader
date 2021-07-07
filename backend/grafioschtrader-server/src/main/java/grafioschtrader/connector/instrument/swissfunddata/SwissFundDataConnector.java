@@ -27,8 +27,8 @@ import grafioschtrader.entities.Security;
  * Stock, Bond, ETF:
  * Migros Bank (CH) Fonds 45 V (CH0023406561)
  * https://www.swissfunddata.ch/sfdpub/de/funds/excelData/79260
- * 
- * Dividend: Not Supported 
+ *
+ * Dividend: Not Supported
  * Splits: Not Supported
  *
  */

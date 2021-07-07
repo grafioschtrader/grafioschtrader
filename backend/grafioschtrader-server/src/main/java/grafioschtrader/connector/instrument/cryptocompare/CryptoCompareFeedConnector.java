@@ -67,7 +67,7 @@ public class CryptoCompareFeedConnector extends BaseFeedConnector {
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException {
-    TypeReference<Map<String, Double>> typeRef = new TypeReference<Map<String, Double>>() {
+    TypeReference<Map<String, Double>> typeRef = new TypeReference<>() {
     };
     final URL url = new URL(getCurrencypairIntradayDownloadLink(currencypair));
 

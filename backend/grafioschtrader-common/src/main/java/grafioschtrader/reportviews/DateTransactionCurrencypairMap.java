@@ -16,7 +16,7 @@ import grafioschtrader.exceptions.DataViolationException;
 /**
  * Die instance is filled with the currency data. Reports which calculate in the
  * main currency use this class to access the history of currency conversion.
- * 
+ *
  */
 public class DateTransactionCurrencypairMap {
 
@@ -43,7 +43,7 @@ public class DateTransactionCurrencypairMap {
   }
 
   /**
-   * 
+   *
    * @param mainCurrency                  Main currency of the tenant or porfolio
    * @param untilDate                     Latest day which is included in the
    *                                      report
@@ -107,7 +107,7 @@ public class DateTransactionCurrencypairMap {
   /**
    * Search a target currency to the main currency for a certain date and returns
    * the exchange rate.
-   * 
+   *
    * @param date
    * @param fromCurrency
    * @return
@@ -143,7 +143,7 @@ public class DateTransactionCurrencypairMap {
   /**
    * Sometimes prices near the actual date are missing, because there were no
    * recently updates. In this case take the actual price from currency pair.
-   * 
+   *
    * @param fromCurrency
    * @return
    */

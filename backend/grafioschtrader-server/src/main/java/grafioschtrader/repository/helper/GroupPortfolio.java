@@ -6,7 +6,7 @@ import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 
 /**
  * Create a group per Portfolio.
- * 
+ *
  * @author Hugo Graf
  *
  */

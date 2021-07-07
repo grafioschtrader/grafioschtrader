@@ -29,6 +29,7 @@ public class SecurityPositionDynamicGrandSummary<S extends SecurityPositionGroup
     return DataHelper.round(grandValueSecurityShort, precision);
   }
 
+  @Override
   public double getGrandSecurityRiskMC() {
     return DataHelper.round(grandSecurityRiskMC, precision);
   }

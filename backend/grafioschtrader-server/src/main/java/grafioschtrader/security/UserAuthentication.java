@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class UserAuthentication implements Authentication {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 

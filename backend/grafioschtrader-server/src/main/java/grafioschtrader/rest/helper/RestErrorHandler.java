@@ -75,7 +75,7 @@ public class RestErrorHandler {
 
   /**
    * A database produced exception.
-   * 
+   *
    * @param ex
    * @return
    */
@@ -112,7 +112,7 @@ public class RestErrorHandler {
 
   /**
    * Optimistic locking error.
-   * 
+   *
    * @param ex
    * @return
    */
@@ -136,7 +136,7 @@ public class RestErrorHandler {
 
   /**
    * Spring Rest @valid
-   * 
+   *
    * @param ex
    * @return
    */
@@ -179,7 +179,7 @@ public class RestErrorHandler {
 
   /**
    * From the application produced errors
-   * 
+   *
    * @param ex
    * @return
    */

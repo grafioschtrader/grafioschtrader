@@ -2,7 +2,7 @@ package grafioschtrader.error;
 
 /**
  * Most single message error should transformed in this class for a response.
- * 
+ *
  * @author Hugo Graf
  *
  */

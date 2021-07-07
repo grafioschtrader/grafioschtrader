@@ -9,7 +9,7 @@ import grafioschtrader.GlobalConstants;
 /**
  * Group by connector, stock exchange, asset class (equities, bond, ...),
  * special investment like (ETF, Direct investment, ...)
- * 
+ *
  * @author Hugo Graf
  */
 public class HistoryquoteQualityHead extends HistoryquoteQualityGroup {

@@ -65,7 +65,7 @@ public abstract class DataHelper {
 
   /**
    * Properties with empty string of an object are set to null.
-   * 
+   *
    * @param object Object which empty strings are set to null.
    * @throws IllegalAccessException
    * @throws InvocationTargetException
@@ -107,7 +107,7 @@ public abstract class DataHelper {
 
   /**
    * Copy properties from the source to the target object.
-   * 
+   *
    * @param source
    * @param target
    * @throws IllegalAccessException
@@ -123,17 +123,17 @@ public abstract class DataHelper {
   public static <T extends Annotation> void updateEntityWithUpdatable(Object source, Object targets[],
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-    for (int i = 0; i < targets.length; i++) {
-      List<Field> fields = FieldUtils.getAllFieldsList(targets[i].getClass());
+    for (Object target : targets) {
+      List<Field> fields = FieldUtils.getAllFieldsList(target.getClass());
       for (Field field : fields) {
         if (fieldContainsAnnotation(field, updatePropertyLevelClasses)) {
           if (fieldContainsAnnotation(field, Set.of(PropertySelectiveUpdatableOrWhenNull.class))
-              && PropertyUtils.getProperty(targets[i], field.getName()) != null) {
+              && PropertyUtils.getProperty(target, field.getName()) != null) {
             // copy value to target when value was not set in target
             continue;
           }
           Object sourceValue = PropertyUtils.getProperty(source, field.getName());
-          PropertyUtils.setProperty(targets[i], field.getName(), sourceValue);
+          PropertyUtils.setProperty(target, field.getName(), sourceValue);
         }
       }
     }
@@ -142,7 +142,7 @@ public abstract class DataHelper {
   /**
    * Compare the value of field of two objects of the same class. It is not a deep
    * comparison and only certain fields are compared.
-   * 
+   *
    * @param newEntity
    * @param existingEntity
    * @param updatePropertyLevelClasses
@@ -192,7 +192,7 @@ public abstract class DataHelper {
   /**
    * Gets the exchange rate for a transaction, which depends on the transaction
    * time or the the transactions exchange rate.
-   * 
+   *
    * @param transaction
    * @param dateCurrencyMap
    * @return
@@ -242,7 +242,7 @@ public abstract class DataHelper {
   /**
    * Returns for DEPOSIT/WITHDRAWAL transaction the amount in the expected
    * currency.
-   * 
+   *
    * @param transaction                         DEPOSIT/WITHDRAWAL transaction
    * @param fromToCurrencyWithDateMap
    * @param mainCurrency                        The from currency / main currency
@@ -318,7 +318,7 @@ public abstract class DataHelper {
   /**
    * Gets the currency pair depending on the main currency and source and target
    * currency.
-   * 
+   *
    * @param sourceCurrency Normally the currency of the cash account
    * @param targetCurrency Normally the currency of the security
    * @return

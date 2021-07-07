@@ -19,7 +19,7 @@ public abstract class AccountGroupMap<K> {
   public abstract AccountPositionGroupSummary getAccountPositionGroupSummary(Cashaccount cashaccount);
 
   public List<AccountPositionGroupSummary> getGroupSummaryList() {
-    return new ArrayList<AccountPositionGroupSummary>(mapAccountGrandSummary.values());
+    return new ArrayList<>(mapAccountGrandSummary.values());
   }
 
   public AccountPositionGrandSummary getGrandGroupSummary(

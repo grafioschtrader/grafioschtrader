@@ -9,9 +9,9 @@ import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.platform.GenericTransactionImportCSV;
 
 /**
- * 
+ *
  * The is no special implementation, i is intended as an example.
- * 
+ *
  * @author Hugo Graf
  *
  */

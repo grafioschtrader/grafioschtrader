@@ -16,7 +16,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 
 /**
  * Creates a Report which can be grouped by single field.
- * 
+ *
  * @author Hugo Graf
  *
  * @param <T>
@@ -51,7 +51,7 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
 
       T groupValue = getGroupValue(security);
       SecurityPositionDynamicGroupSummary<T> securityPositionDynamicGroupSummary = groupMap.computeIfAbsent(groupValue,
-          gv -> new SecurityPositionDynamicGroupSummary<T>(gv));
+          gv -> new SecurityPositionDynamicGroupSummary<>(gv));
       securityPositionSummary.calcMainCurrency(currencyExchangeRate);
       securityPositionDynamicGroupSummary.addToGroupSummaryAndCalcGroupTotals(securityPositionSummary);
     }

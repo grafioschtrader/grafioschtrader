@@ -28,7 +28,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Get close or finance cost of a margin position
-   * 
+   *
    * @param idTenant
    * @param connectedIdTransaction
    * @return
@@ -69,7 +69,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Return all margin transactions for a certain security account
-   * 
+   *
    * @param idSecurityaccount
    * @return
    */
@@ -79,7 +79,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Return all margin transactions for a certain security account and security
-   * 
+   *
    * @param idSecurityaccount
    * @return
    */
@@ -90,7 +90,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Return all margin transactions for a certain security
-   * 
+   *
    * @param idSecurityaccount
    * @return
    */
@@ -131,7 +131,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * It works only for security transactions.
-   * 
+   *
    * @param idTenant
    * @param transactonMaxType
    * @return

@@ -14,7 +14,7 @@ import grafioschtrader.reportviews.SecurityCostGroup;
 
 /**
  * Represent a year of the dividends report.
- * 
+ *
  * @author Hugo Graf
  *
  */

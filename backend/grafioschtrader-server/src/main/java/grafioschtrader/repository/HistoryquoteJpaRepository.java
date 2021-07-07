@@ -38,7 +38,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   /**
    * For user interface, do not show history quotes which fills day holes.
-   * 
+   *
    * @param idSecuritycurrency
    * @return
    */
@@ -89,7 +89,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   /**
    * Return of historical prices based on the trading calendar of the security.
    * That means a closed price can be null.
-   * 
+   *
    * @param idSecuritycurrency
    * @return
    */
@@ -118,7 +118,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Return exchange rate for dividend transactions depending on tenant and main
    * currency. This include all exchange rates from history quotes with
    * transactions on foreign cash account.
-   * 
+   *
    * @param idTenant
    * @param mainCurrency
    * @return
@@ -130,7 +130,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Return exchange rate for buy/sell transactions depending on tenant and main
    * currency. This include all exchange rates from history quotes with
    * transactions on foreign cash account.
-   * 
+   *
    * @param idTenant
    * @param mainCurrency
    * @return
@@ -142,7 +142,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Return exchange rate for buy/sell/dividend transactions depending on tenant
    * and main currency. This include all exchange rates from history quotes with
    * transactions on foreign cash account.
-   * 
+   *
    * @param idTenant
    * @param mainCurrency
    * @return
@@ -155,7 +155,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * For every transaction of a tenant gets the corresponding exchange rate to the
    * main currency. It includes all transactions, that means transaction with
    * security or no security involved.
-   * 
+   *
    * @param idTenant
    * @return
    */
@@ -171,7 +171,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   /**
    * For every transaction of a certain Tenant and Security combination gets the
    * corresponding exchange rate to the main currency.
-   * 
+   *
    * @param idTenant
    * @param idSecuritycurrency
    * @return

@@ -76,7 +76,7 @@ public class Role extends BaseID implements Serializable {
 
   /*
    * public Set<User> getUserRoles() { return userRoles; }
-   * 
+   *
    * public void setUserRoles(Set<User> userRoles) { this.userRoles = userRoles; }
    */
   @Override

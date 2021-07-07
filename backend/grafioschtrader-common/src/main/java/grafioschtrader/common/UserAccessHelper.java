@@ -11,7 +11,7 @@ public class UserAccessHelper {
 
   /**
    * Return true when user has ROLE_ADMIN or is the owner of the entity.
-   * 
+   *
    * @param user
    * @param entity
    * @return
@@ -23,7 +23,7 @@ public class UserAccessHelper {
   /**
    * Return true when user has ROLE_ADMIN, ROLE_ALL_EDIT or is the owner of the
    * entity.
-   * 
+   *
    * @param user
    * @param entity
    * @return
@@ -34,7 +34,7 @@ public class UserAccessHelper {
 
   /**
    * Return true when the user is the owner of the entity.
-   * 
+   *
    * @param user
    * @param entity
    * @return

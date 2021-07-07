@@ -171,8 +171,8 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
 
   /**
    * Creates HoldCashaccountDeposit from transactions for a single cash account.
-   * 
-   * 
+   *
+   *
    * @param transactionCaAcList         All deposit and withdrawal transaction of
    *                                    a portfolios cash accounts sorted by
    *                                    transaction time (ASC)
