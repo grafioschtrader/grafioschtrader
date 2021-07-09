@@ -21,7 +21,6 @@ import {TransactionSecurityFieldDefinition} from './transaction.security.field.d
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 import {HelpIds} from '../../shared/help/help.ids';
 
-
 /**
  * Shows the transactions for a single security.
  * It is used as a nested table.
@@ -36,7 +35,6 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   @Input() idPortfolio: number;
   @Input() idTenant: number;
   @Input() transactionSecurityOptionalParam: TransactionSecurityOptionalParam[];
-
 
   currencyColumnConfigMC: ColumnConfig[] = [];
   // Data to be shown
@@ -76,8 +74,6 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
         cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
         this.setFieldHeaderTranslation(cc);
       });
-
-    //  this.changeDetectionStrategy.markForCheck();
     });
   }
 

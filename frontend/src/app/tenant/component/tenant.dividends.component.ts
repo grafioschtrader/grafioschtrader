@@ -34,7 +34,6 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   visibleSecurityaccountDialog: boolean;
   idsAccounts: IdsAccounts;
 
-
   private columnConfigs: ColumnConfig[] = [];
 
   constructor(private portfolioService: PortfolioService,
@@ -47,7 +46,6 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
               usersettingsService: UserSettingsService) {
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
   }
-
 
   ngOnInit(): void {
     // use string to avoid number format
@@ -69,11 +67,8 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'yearFeeMC', 'FEE', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('grandFeeMC')]}));
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'yearAutoPaidTaxMC', true, false));
-
-
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'yearTaxableAmountMC', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('grandTaxableAmountMC')]}));
-
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'yearRealReceivedDivInterestMC', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('grandRealReceivedDivInterestMC')]}));
 
@@ -86,7 +81,6 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     this.multiSortMeta.push({field: 'year', order: 1});
     this.onComponentClick(null);
   }
-
 
   private readData(): void {
     this.portfolioService.getSecurityDividendsGrandTotalByTenant(this.idsAccounts.idsSecurityaccount,
@@ -126,7 +120,6 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       ? this.securityDividendsGrandTotal.numberOfCashAccounts : this.idsAccounts.idsCashaccount.length;
   }
 
-
   get totalSecurityAccounts(): number {
     return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfSecurityAccounts : 0;
   }
@@ -134,7 +127,6 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   get totalCashAccounts(): number {
     return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfCashAccounts : 0;
   }
-
 
   ngOnDestroy(): void {
     this.activePanelService.destroyPanel(this);
@@ -162,4 +154,9 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     }
   }
 
+  transactionDataChanged(processedActionData: ProcessedActionData) {
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
+  }
 }

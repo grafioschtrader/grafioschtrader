@@ -61,7 +61,8 @@
             <tenant-dividends-extended
               [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
               [securityDividendsPositions]="sDYG.securityDividendsPositions"
-              [securityDividendsGrandTotal]="securityDividendsGrandTotal">
+              [securityDividendsGrandTotal]="securityDividendsGrandTotal"
+              (dateChanged)="transactionDataChanged($event)">
             </tenant-dividends-extended>
           </td>
         </tr>

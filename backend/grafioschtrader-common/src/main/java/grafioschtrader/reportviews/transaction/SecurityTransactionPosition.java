@@ -21,6 +21,8 @@ public class SecurityTransactionPosition {
   public Double transactionCurrencyGainLossMC;
   public Double quotationSplitCorrection;
 
+  private int precisionMC;
+
   public SecurityTransactionPosition(Transaction transaction, SecurityPositionSummary securityPositionSummary) {
     this.transaction = transaction;
     this.transactionGainLoss = (securityPositionSummary.transactionGainLoss == null) ? null
@@ -31,11 +33,19 @@ public class SecurityTransactionPosition {
     this.transactionExchangeRate = securityPositionSummary.transactionExchangeRate;
     this.transactionGainLossMC = securityPositionSummary.transactionGainLossMC;
     this.transactionCurrencyGainLossMC = securityPositionSummary.transactionCurrencyGainLossMC;
-
+    this.precisionMC = securityPositionSummary.precisionMC;
   }
 
   public void setSecurityInTransactionToNull() {
     this.transaction.setSecuritycurrency(null);
+  }
+
+  public Double getTransactionCurrencyGainLossMC() {
+    return transactionCurrencyGainLossMC == null ? null : DataHelper.round(transactionCurrencyGainLossMC, precisionMC);
+  }
+
+  public Double getTransactionGainLossMC() {
+    return transactionGainLossMC == null ? null : DataHelper.round(transactionGainLossMC, precisionMC);
   }
 
 }

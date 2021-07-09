@@ -116,7 +116,6 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
       });
   }
 
-
   handleConnectDebitCreditTransaction(transaction: Transaction): void {
     this.visibleConnectDebitCreditDialog = true;
   }
@@ -125,7 +124,6 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
     this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED,
       this.getSecurity(transaction)));
   }
-
 
   ////////////////////////////////////////////////
   // Event handler
@@ -173,7 +171,6 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   public getHelpContextId(): HelpIds {
     return null;
   }
-
 
   destroy(): void {
     this.activePanelService.destroyPanel(this);

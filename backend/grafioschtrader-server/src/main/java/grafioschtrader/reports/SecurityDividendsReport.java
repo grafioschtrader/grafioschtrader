@@ -49,9 +49,7 @@ import grafioschtrader.types.TransactionType;
  */
 @Component
 public class SecurityDividendsReport {
-
-  private SecurityDividendsGrandTotal securityDividendsGrandTotal;
-
+ 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
@@ -64,18 +62,15 @@ public class SecurityDividendsReport {
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
+  @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
 
-  @Autowired
-  public void setCurrencypairJpaRepository(@Lazy final CurrencypairJpaRepository currencypairJpaRepository) {
-    this.currencypairJpaRepository = currencypairJpaRepository;
-  }
-
+  
   public SecurityDividendsGrandTotal getSecurityDividendsGrandTotalByTenant(final Integer idTenant,
       final List<Integer> idsSecurityaccount, final List<Integer> idsCashaccount) {
 
     final Tenant tenant = tenantJpaRepository.getOne(idTenant);
-    securityDividendsGrandTotal = new SecurityDividendsGrandTotal(tenant.getCurrency(),
+    SecurityDividendsGrandTotal securityDividendsGrandTotal = new SecurityDividendsGrandTotal(tenant.getCurrency(),
         globalparametersJpaRepository.getCurrencyPrecision());
 
     final DateTransactionCurrencypairMap dateCurrencyMap = getHistoryquoteAndCurrencypairs(tenant);
@@ -166,7 +161,7 @@ public class SecurityDividendsReport {
         // add this securities
         if (yearChangeWatcher != 0) {
           for (; yearChangeWatcher < year; yearChangeWatcher++) {
-            adjustUnits(yearChangeWatcher, unitsCounterBySecurityMap);
+            adjustUnits(securityDividendsGrandTotal, yearChangeWatcher, unitsCounterBySecurityMap);
           }
         }
         yearChangeWatcher = year;
@@ -184,7 +179,7 @@ public class SecurityDividendsReport {
       }
     }
     if (year != 0) {
-      adjustUnits(year, unitsCounterBySecurityMap);
+      adjustUnits(securityDividendsGrandTotal, year, unitsCounterBySecurityMap);
     }
 
     return securityDividendsGrandTotal;
@@ -249,7 +244,7 @@ public class SecurityDividendsReport {
     securityDividendsGrandTotal.calcDivInterest();
   }
 
-  private void adjustUnits(final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap) {
+  private void adjustUnits(final SecurityDividendsGrandTotal securityDividendsGrandTotal, final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap) {
     final SecurityDividendsYearGroup securityDividendsYearGroupLast = securityDividendsGrandTotal
         .getOrCreateGroup(year);
     securityDividendsYearGroupLast.adjustUnits(unitsCounterBySecurityMap);

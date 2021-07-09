@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {SecurityDividendsPosition} from '../../entities/view/securitydividends/security.dividends.position';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
@@ -11,6 +11,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {TransactionSecurityOptionalParam} from '../../transaction/model/transaction.security.optional.param';
 import {FilterService} from 'primeng/api';
+import {ProcessedAction} from '../../shared/types/processed.action';
 
 /**
  * Shows the dividends an other information of securities for one year in a table. One row per security.
@@ -53,7 +54,8 @@ import {FilterService} from 'primeng/api';
                                           [idTenant]="idTenant"
                                           [idSecuritycurrency]="sdp.idSecuritycurrency"
                                           [idsSecurityaccount]="idsSecurityaccount"
-                                          [transactionSecurityOptionalParam]="tsop">
+                                          [transactionSecurityOptionalParam]="tsop"
+                                          (dateChanged)="transactionDataChanged($event)">
               </transaction-security-table>
 
               <transaction-security-margin-treetable
@@ -61,7 +63,8 @@ import {FilterService} from 'primeng/api';
                 [idTenant]="idTenant"
                 [idSecuritycurrency]="sdp.idSecuritycurrency"
                 [idsSecurityaccount]="idsSecurityaccount"
-                [transactionSecurityOptionalParam]="tsop">
+                [transactionSecurityOptionalParam]="tsop"
+                (dateChanged)="transactionDataChanged($event)">
               </transaction-security-margin-treetable>
             </td>
           </tr>
@@ -77,6 +80,9 @@ export class TenantDividendsExtendedComponent extends TableConfigBase implements
   idTenant: number;
   tsop = [TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN];
 
+  // Output
+  @Output() dateChanged = new EventEmitter<ProcessedActionData>();
+
   constructor(changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
@@ -85,7 +91,6 @@ export class TenantDividendsExtendedComponent extends TableConfigBase implements
     super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
     this.idTenant = this.gps.getIdTenant();
   }
-
 
   ngOnInit(): void {
     this.addColumn(DataType.String, 'security.name', 'NAME', true, false, {width: 200});
@@ -114,7 +119,7 @@ export class TenantDividendsExtendedComponent extends TableConfigBase implements
   }
 
   transactionDataChanged(event: ProcessedActionData) {
-    // TODO data changed
+    this.dateChanged.emit(event);
   }
 
 }
