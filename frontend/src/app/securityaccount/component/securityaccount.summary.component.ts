@@ -93,7 +93,6 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     return {idSecurityaccount: this.idSecurityaccount};
   }
 
-
   public dropped(files: NgxFileDropEntry[]): void {
     AppHelper.processDroppedFiles(files, this.messageToastService, 'pdf', this.uploadTransactionFiles.bind(this));
   }

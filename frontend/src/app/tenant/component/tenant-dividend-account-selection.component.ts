@@ -35,7 +35,6 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
             <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
             <p-treeTableCheckbox [value]="rowNode" *ngIf="i == 0"></p-treeTableCheckbox>
             {{getValueByPath(rowData, field)}}
-
           </td>
         </tr>
       </ng-template>

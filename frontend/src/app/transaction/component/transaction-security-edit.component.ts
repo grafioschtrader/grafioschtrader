@@ -409,7 +409,6 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private setMarginFlags(): void {
-    console.log("security", this.selectedSecurity);
     this.isMarginInstrument = BusinessHelper.isMarginProduct(this.selectedSecurity)
       && this.transactionCallParam.transactionType !== TransactionType.FINANCE_COST;
     this.isCloseMarginInstrument = this.isMarginInstrument && ((!!this.transactionCallParam.transaction
