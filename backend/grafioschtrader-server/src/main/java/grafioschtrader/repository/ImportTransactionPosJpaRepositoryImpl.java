@@ -320,13 +320,16 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
           if (itp.isReadyForTransaction()
               && itp.getIdTransactionHead().equals(importTransactionHead.getIdTransactionHead())
               && itp.getCashaccount().getIdTenant().equals(user.getIdTenant())) {
-            itp.calcCashaccountAmount();
+        
+            correctSecurityCurrencyMissmatch(importTransactionHead, itp);
             idCurrencypair = setPossibleMissingCurrencyExRate(itp);
 
             if (idCurrencypair == null) {
               idCurrencypair = getPossibleCurrencypairAndLoadCurrencypairs(itp, idItpMap, currencypairs,
                   importTransactionPosList.size() > 1);
             }
+            itp.calcCashaccountAmount();
+          
           }
           if (idItpMap != null && itp.getConnectedIdTransactionPos() != null
               && idItpMap.containsKey(itp.getIdTransactionPos())) {
@@ -340,7 +343,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
             // Other transaction
             saveSingleTransaction(importTransactionHead, itp, user, idCurrencypair)
                 .ifPresent(savedImpPosAndTransactions::add);
-
           }
         }
       }
@@ -350,11 +352,31 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     return savedImpPosAndTransactions;
   }
 
+  private void correctSecurityCurrencyMissmatch(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
+    if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH)) {
+      Date exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime();
+      Stream<HoldSecurityaccountSecurity> hssStream = holdSecurityaccountSecurityJpaRepository
+          .getByISINAndSecurityAccountAndDate(itp.getIsin(), importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
+              exDateOrTransactionDate).stream();
+
+      Optional<HoldSecurityaccountSecurity> hssMatching = hssStream
+          .filter(hss -> itp.getUnits().equals(hss.getHodlings())).findFirst().map(Optional::of)
+          .orElseGet(() -> hssStream.findFirst());
+      if (hssMatching.isPresent()) {
+        itp.removeKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH);
+        Security security = securityJpaRepository.getOne(hssMatching.get().getHssk().getIdSecuritycurrency());
+        itp.setSecurity(security);
+      }
+    }
+  }
+  
+  
   private Integer setPossibleMissingCurrencyExRate(ImportTransactionPos itp) {
     if (itp.getCurrencyExRate() == null
         && itp.getKnownOtherFlags()
             .contains(ImportKnownOtherFlags.CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE)
-        && itp.getCashaccount().getCurrency() != null && itp.getCurrencySecurity() != null) {
+        && itp.getCashaccount().getCurrency() != null && itp.getSecurity().getCurrency() != null
+        && !itp.getCashaccount().getCurrency().equals(itp.getSecurity().getCurrency())) {
       Currencypair currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(itp.getCurrencySecurity(),
           itp.getCashaccount().getCurrency());
       // It is as currency
@@ -364,7 +386,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       ISecuritycurrencyIdDateClose idc = historyquoteJpaRepository
           .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime(), false);
       itp.setCurrencyExRate(idc.getClose());
-      itp.setCashaccountAmount(itp.getCashaccountAmount() * idc.getClose());
+     // itp.setCashaccountAmount(itp.getCashaccountAmount() * idc.getClose());
       itp.setQuotation(itp.getQuotation() / idc.getClose());
       return idCurrencypair;
     }
@@ -467,7 +489,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
         if (itp.getIdTransaction() == null || itp.getIdTransaction() != null && existingEntity != null) {
           // New or existing transaction can be created or updated
-          correctSecurityCurrencyMissmatch(itp, transaction);
           transaction.setIdTenant(user.getIdTenant());
           Transaction savedTransaction = transactionJpaRepository.saveOnlyAttributesWithoutCheck(transaction,
               existingEntity);
@@ -485,24 +506,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
   }
 
-  private void correctSecurityCurrencyMissmatch(ImportTransactionPos itp, Transaction transaction) {
-    if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH)) {
-      Date exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime();
-      Stream<HoldSecurityaccountSecurity> hssStream = holdSecurityaccountSecurityJpaRepository
-          .getByISINAndSecurityAccountAndDate(itp.getIsin(), transaction.getIdSecurityaccount(),
-              exDateOrTransactionDate);
-
-      Optional<HoldSecurityaccountSecurity> hssMatching = hssStream
-          .filter(hss -> transaction.getUnits().equals(hss.getHodlings())).findFirst().map(Optional::of)
-          .orElseGet(() -> hssStream.findFirst());
-      if (hssMatching.isPresent()) {
-        itp.removeKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH);
-        Security security = securityJpaRepository.getOne(hssMatching.get().getHssk().getIdSecuritycurrency());
-        itp.setSecurity(security);
-        transaction.setSecuritycurrency(security);
-      }
-    }
-  }
+ 
 
   public static class SavedImpPosAndTransaction {
     public Transaction transaction;

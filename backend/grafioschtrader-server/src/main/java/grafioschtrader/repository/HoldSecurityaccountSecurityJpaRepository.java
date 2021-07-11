@@ -55,7 +55,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
       LocalDate dateTo);
 
   @Query(nativeQuery = true)
-  Stream<HoldSecurityaccountSecurity> getByISINAndSecurityAccountAndDate(String isin, Integer idSecurityaccount,
+  List<HoldSecurityaccountSecurity> getByISINAndSecurityAccountAndDate(String isin, Integer idSecurityaccount,
       Date transactinDate);
 
   /**

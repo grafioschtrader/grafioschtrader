@@ -324,7 +324,6 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   }
 
   public void adjustCurrencyExRateOrQuotation() {
-
     if (currencyExRate != null && currencyExRate != 1.0) {
       currencyExRate = cashaccountAmount / ((cashaccountAmount - diffCashaccountAmount) / currencyExRate);
     } else {
@@ -580,9 +579,11 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         units += transUnits;
         posTotal += transUnits * ip.getQuotation();
         if (i > 0) {
+ /*         
           if (ip.getTa() != null) {
             importTransactionPos.setCashaccountAmount(importTransactionPos.getCashaccountAmount() + ip.getTa());
           }
+ */         
           importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), true);
           importTransactionPos.setTaxCost(ip.getTt1(), ip.getTt2(), true);
         }
@@ -634,7 +635,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
           calcCashaccountAmount -= taxCostC + transactionCostC - accruedInterestC;
           cashaccountAmount = cashaccountAmount != null ? Math.abs(cashaccountAmount) : null;
         }
-        calcCashaccountAmount /= (currencyExRate != null ? this.currencyExRate : 1.0);
+        calcCashaccountAmount *= (currencyExRate != null ? this.currencyExRate : 1.0);
         calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
       }
       break;

@@ -21,8 +21,7 @@ export class CurrencypairWithTransaction implements NameSecuritycurrency {
   }
 
   getName(): string {
-    return name;
-//    return this.currencypair.toStringFN();
+      return this.currencypair.fromCurrency + '/' + this.currencypair.toCurrency;
   }
 
   getSecuritycurrency(): Securitycurrency {
