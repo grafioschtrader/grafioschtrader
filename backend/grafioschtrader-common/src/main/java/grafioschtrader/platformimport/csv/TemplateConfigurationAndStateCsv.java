@@ -3,6 +3,7 @@ package grafioschtrader.platformimport.csv;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,14 +34,23 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
    */
   private static final String CONF_BOND_FIELD_INDICATOR = "bond";
 
+  
+  private static final String CONF_IGNORE_LINE_BY_FIELD_VALUE = "ignoreLineByFieldValue";
+  
   /**
    * Contains the header to property mapping of a template
    */
   private Map<String, String> columnHeaderNamePropertyMap = new HashMap<>();
   /**
-   * Contains the csv column to property mapping
+   * Contains the csv column number to property mapping. It starts with 0.
    */
   private Map<Integer, String> columnPropertyMapping;
+  
+  /**
+   * Contains the internal property name to column mapping. It starts with 0.
+   */
+  private Map<String, Integer> propertyColumnMapping;
+  private Map<String, String> ignoreLineByFieldValueMap = new HashMap<>();
   private Integer templateId;
   private String delimiterField;
   private String bondProperty;
@@ -70,9 +80,13 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
       delimiterField = splitEqual[1];
       break;
     case CONF_BOND_FIELD_INDICATOR:
-      String[] propertyIndicator = splitEqual[1].split("|");
+      String[] propertyIndicator = splitEqual[1].split(Pattern.quote("|"));
       bondProperty = propertyIndicator[0];
       bondIndicator = propertyIndicator[1];
+      break;
+    case CONF_IGNORE_LINE_BY_FIELD_VALUE:
+      String ignoreField[] = splitEqual[1].split(Pattern.quote("||"));
+      ignoreLineByFieldValueMap.put(ignoreField[0], ignoreField[1]);
       break;
     }
   }
@@ -84,10 +98,12 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   public boolean isValidTemplateForForm(String headerLine) {
     String[] headerFields = StringUtils.splitByWholeSeparatorPreserveAllTokens(headerLine, delimiterField);
     columnPropertyMapping = new HashMap<>();
+    propertyColumnMapping = new HashMap<>();
     for (int i = 0; i < headerFields.length; i++) {
       String property = columnHeaderNamePropertyMap.get(headerFields[i]);
       if (property != null) {
         columnPropertyMapping.put(i, property);
+        propertyColumnMapping.put(property, i);
         if (property.equals(ImportProperties.ORDER)) {
           this.orderSupport = true;
         }
@@ -125,5 +141,14 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   public Map<Integer, String> getColumnPropertyMapping() {
     return columnPropertyMapping;
   }
+
+  public Map<String, String> getIgnoreLineByFieldValueMap() {
+    return ignoreLineByFieldValueMap;
+  }
+
+  public Map<String, Integer> getPropertyColumnMapping() {
+    return propertyColumnMapping;
+  }
+    
 
 }
