@@ -654,6 +654,7 @@ CREATE TABLE `imp_trans_pos` (
   `file_name_original` varchar(255) DEFAULT NULL,
   `con_id_trans_pos` int(11) DEFAULT NULL,
   `known_other_flags` int(11) DEFAULT NULL,
+  `transaction_error` varchar(1024) DEFAULT NULL,
   PRIMARY KEY (`id_trans_pos`),
   UNIQUE KEY `Unique_idTransaction` (`id_transaction`),
   KEY `FK_ImpTransPos_ImpTransHead` (`id_trans_head`),
@@ -1682,4 +1683,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-07-12 18:58:48
+-- Dump completed on 2021-07-12 20:58:31
