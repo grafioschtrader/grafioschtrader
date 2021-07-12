@@ -8,7 +8,6 @@ public class DataViolationException extends RuntimeException {
   private static final long serialVersionUID = 1L;
   private String localeStr;
 
-
   List<DataViolation> dataViolation = new ArrayList<>();
 
   public DataViolationException() {
@@ -42,7 +41,6 @@ public class DataViolationException extends RuntimeException {
   public void addDataViolation(final String field, final String messageKey, final Object[] data) {
     dataViolation.add(new DataViolation(field, messageKey, data, true));
   }
-
 
 
   public String getLocaleStr() {

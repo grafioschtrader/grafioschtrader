@@ -24,9 +24,9 @@ public class DegiroTransactionImportCSV extends GenericTransactionImportCSV {
   }
 
   @Override
-  protected ParseLineSuccessError parseDataLine(Integer lineNumber, String line,
+  protected ParseLineSuccessError parseDataLine(Integer lineNumber, String values[],
       TemplateConfigurationAndStateCsv template, ValueFormatConverter valueFormatConverter) {
-    ParseLineSuccessError pl = super.parseDataLine(lineNumber, line, template, valueFormatConverter);
+    ParseLineSuccessError pl = super.parseDataLine(lineNumber, values, template, valueFormatConverter);
     if (template.getTemplateId() == 1) {
       pl.importProperties.setTransType(pl.importProperties.getUnits() < 0 ? "Sell" : "Buy");
       if (pl.importProperties.getOrder() == null) {
@@ -35,7 +35,6 @@ public class DegiroTransactionImportCSV extends GenericTransactionImportCSV {
       if (pl.importProperties.getCex() != null) {
         pl.importProperties.setCex(pl.importProperties.getCex() * autoFXTranderCostFactorOnExchangeRate);
       }
-
     }
     return pl;
   }

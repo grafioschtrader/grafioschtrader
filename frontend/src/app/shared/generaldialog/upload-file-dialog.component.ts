@@ -67,7 +67,6 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
   }
 
   submit(value: { [name: string]: any }): void {
-
     const files: FileList = this.configObject.fileToUpload.elementRef.nativeElement.files;
     const formData = new FormData();
 

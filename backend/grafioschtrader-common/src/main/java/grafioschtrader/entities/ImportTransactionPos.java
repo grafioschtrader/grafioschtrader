@@ -166,6 +166,9 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "known_other_flags")
   private Integer knownOtherFlags;
 
+  @Column(name = "transaction_error")
+  private Integer transactionError;
+  
   @Transient
   private double calcCashaccountAmount;
 
@@ -321,6 +324,14 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   public void setQuotation(Double quotation) {
     this.quotation = quotation;
+  }
+  
+  public Integer getTransactionError() {
+    return transactionError;
+  }
+
+  public void setTransactionError(Integer transactionError) {
+    this.transactionError = transactionError;
   }
 
   public void adjustCurrencyExRateOrQuotation() {

@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.Modifying;
@@ -36,6 +37,7 @@ import grafioschtrader.repository.ImportTransactionPosFailedJpaRepository;
 import grafioschtrader.repository.ImportTransactionPosJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
+
 /**
  * Import a single csv file, which can produce one or more import transactions.
  *
@@ -47,12 +49,14 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   public static final String ORDER_NOTHING = "0";
-  private MultipartFile uploadFile;
+  private final MultipartFile uploadFile;
+  private String encoding;
 
   public GenericTransactionImportCSV(final ImportTransactionHead importTransactionHead, MultipartFile uploadFile,
       List<ImportTransactionTemplate> importTransactionTemplateList) {
     super(importTransactionHead, importTransactionTemplateList);
     this.uploadFile = uploadFile;
+    detectEncodingOfFile();
   }
 
   public void importCSV(ImportTransactionPosJpaRepository importTransactionPosJpaRepository,
@@ -64,7 +68,6 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
         .readTemplates(importTransactionTemplateList, userLocale);
     parseCsv(templateScannedMap, importTransactionPosJpaRepository, securityJpaRepository,
         importTransactionPosFailedJpaRepository);
-
   }
 
   private void parseCsv(Map<TemplateConfigurationAndStateCsv, ImportTransactionTemplate> templateScannedMap,
@@ -82,7 +85,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       int templateId = -1;
 
       try (InputStream is = uploadFile.getInputStream();
-          BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+          BufferedReader reader = new BufferedReader(new InputStreamReader(is, encoding))) {
         while (reader.ready()) {
           String line = reader.readLine();
           lineCounter++;
@@ -125,33 +128,62 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository) {
 
     // Data lines
-    ParseLineSuccessError parseLineSuccessError = parseDataLine(lineCounter, line, template, valueFormatConverter);
 
-    if (parseLineSuccessError.hasSuccess()) {
-      if (!importPropertiesDuringDay.isEmpty() && !DateHelper.isSameDay(importPropertiesDuringDay.get(0).getDatetime(),
-          parseLineSuccessError.importProperties.getDatetime())) {
-        // Day of transaction has changed
+    String[] values = StringUtils.splitByWholeSeparatorPreserveAllTokens(line, template.getDelimiterField());
 
-        transferToImportTransactionPosForOneDay(importPropertiesDuringDay, uploadFile.getOriginalFilename(),
-            templateScannedMap.get(template), template, securityJpaRepository, cashaccountList,
-            importTransactionPosJpaRepository);
-        importPropertiesDuringDay.clear();
-      }
-      importPropertiesDuringDay.add(parseLineSuccessError.importProperties);
+    if (!ignoreLineByFieldValueCheck(values, template)) {
+      ParseLineSuccessError parseLineSuccessError = parseDataLine(lineCounter, values, template, valueFormatConverter);
 
-    } else {
-      if (!parseLineSuccessError.isEmpty()) {
-        failedReadLine(importTransactionPosFailedJpaRepository, importTransactionPosJpaRepository,
-            parseLineSuccessError, template.getImportTransactionTemplate().getIdTransactionImportTemplate(),
-            uploadFile.getOriginalFilename(), lineCounter);
+      if (parseLineSuccessError.hasSuccess()) {
+        if (!importPropertiesDuringDay.isEmpty()
+            && !DateHelper.isSameDay(importPropertiesDuringDay.get(0).getDatetime(),
+                parseLineSuccessError.importProperties.getDatetime())) {
+          // Day of transaction has changed
+
+          transferToImportTransactionPosForOneDay(importPropertiesDuringDay, uploadFile.getOriginalFilename(),
+              templateScannedMap.get(template), template, securityJpaRepository, cashaccountList,
+              importTransactionPosJpaRepository);
+          importPropertiesDuringDay.clear();
+        }
+        importPropertiesDuringDay.add(parseLineSuccessError.importProperties);
+
+      } else {
+        if (!parseLineSuccessError.isEmpty()) {
+          failedReadLine(importTransactionPosFailedJpaRepository, importTransactionPosJpaRepository,
+              parseLineSuccessError, template.getImportTransactionTemplate().getIdTransactionImportTemplate(),
+              uploadFile.getOriginalFilename(), lineCounter);
+        }
       }
     }
-
   }
 
-  protected ParseLineSuccessError parseDataLine(Integer lineNumber, String line,
+  private boolean ignoreLineByFieldValueCheck(String[] values, TemplateConfigurationAndStateCsv template) {
+    if (!template.getIgnoreLineByFieldValueMap().isEmpty()) {
+      for (Map.Entry<String, String> entry : template.getIgnoreLineByFieldValueMap().entrySet()) {
+        int column = template.getPropertyColumnMapping().get(entry.getKey());
+        if (values[column].matches(entry.getValue())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  private void detectEncodingOfFile() {
+    try {
+      encoding = UniversalDetector.detectCharset(uploadFile.getInputStream());
+      log.info("Encoding for file {} was detected as {}",  uploadFile.getOriginalFilename(), encoding);
+    } catch (IOException e) {
+      log.error("Encoding of file {} could not detected", uploadFile.getOriginalFilename());
+    }
+    if(encoding == null) {
+      encoding = StandardCharsets.UTF_8.toString();
+    }
+  }
+
+  protected ParseLineSuccessError parseDataLine(Integer lineNumber, String[] values,
       TemplateConfigurationAndStateCsv template, ValueFormatConverter valueFormatConverter) {
-    String[] values = StringUtils.splitByWholeSeparatorPreserveAllTokens(line, template.getDelimiterField());
+
     String lastSuccessProperty = null;
     ImportProperties importProperties = new ImportProperties(template.getTransactionTypesMap(),
         template.getImportKnownOtherFlagsSet(), lineNumber);
@@ -215,7 +247,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       ImportTransactionTemplate importTransactionTemplate, SecurityJpaRepository securityJpaRepository,
       List<Cashaccount> cashaccountList, ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
 
-    this.checkAndSaveSuccessImportTransaction(importTransactionTemplate, cashaccountList, importPropertiesList,
+    checkAndSaveSuccessImportTransaction(importTransactionTemplate, cashaccountList, importPropertiesList,
         fileName, importTransactionPosJpaRepository, securityJpaRepository);
 
   }
@@ -248,13 +280,10 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
         // Template does not have required columns
         throw new GeneralNotTranslatedWithArgumentsException("gt.import.column.missmatch", null);
       }
-
     } else {
       // Template with id not found
       throw new GeneralNotTranslatedWithArgumentsException("gt.import.csv.id", new Object[] { requiredTempalteId });
-
     }
-
     return templateOpt.get();
   }
 
@@ -280,7 +309,6 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
     public boolean isEmpty() {
       return importProperties != null && lastSuccessProperty == null;
     }
-
   }
 
 }

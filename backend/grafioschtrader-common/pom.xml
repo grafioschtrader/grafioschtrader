@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.18.0</version>
+		<version>0.19.0</version>
 	</parent>
 
 
