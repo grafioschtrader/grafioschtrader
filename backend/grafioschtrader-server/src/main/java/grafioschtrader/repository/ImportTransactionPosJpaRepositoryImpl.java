@@ -15,7 +15,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -23,6 +22,7 @@ import javax.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,8 +41,11 @@ import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.User;
+import grafioschtrader.error.ValidationError;
+import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
+import grafioschtrader.rest.helper.RestHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
 
 public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionPosJpaRepositoryCustom {
@@ -77,9 +80,12 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
 
+  @Autowired
+  private MessageSource messageSource;
+  
   @PersistenceContext
   private EntityManager entityManager;
-
+ 
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -157,7 +163,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
       }
     });
-
     return saveAndCheckReady(setImportTransactionPosList);
   }
 
@@ -169,7 +174,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     List<ImportTransactionPos> iTPDeleteList = importTransactionPosList.stream()
         .filter(importTransactionPos -> importTransactionPos.getIdTenant().equals(user.getIdTenant()))
         .collect(Collectors.toList());
-    importTransactionPosJpaRepository.deleteInBatch(iTPDeleteList);
+    importTransactionPosJpaRepository.deleteAllInBatch(iTPDeleteList);
   }
 
   @Override
@@ -197,7 +202,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         }
       }
     });
-
     return saveAndCheckReady(changedImportTransactionPosList);
   }
 
@@ -216,7 +220,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
           itpList.add(itp);
         }
       }
-
     });
     importTransactionPosJpaRepository.saveAll(itpList);
   }
@@ -329,7 +332,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
                   importTransactionPosList.size() > 1);
             }
             itp.calcCashaccountAmount();
-          
           }
           if (idItpMap != null && itp.getConnectedIdTransactionPos() != null
               && idItpMap.containsKey(itp.getIdTransactionPos())) {
@@ -338,7 +340,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
             savedImpPosAndTransactions.addAll(saveCashAccountTransferTransaction(importTransactionHead,
                 new ImportTransactionPos[] { itp, otherItp }, user, idCurrencypair));
             doneCashaccountTranssferId.add(otherItp.getIdTransactionPos());
-
           } else {
             // Other transaction
             saveSingleTransaction(importTransactionHead, itp, user, idCurrencypair)
@@ -355,16 +356,16 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   private void correctSecurityCurrencyMissmatch(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
     if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH)) {
       Date exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime();
-      Stream<HoldSecurityaccountSecurity> hssStream = holdSecurityaccountSecurityJpaRepository
+      List<HoldSecurityaccountSecurity> hssList = holdSecurityaccountSecurityJpaRepository
           .getByISINAndSecurityAccountAndDate(itp.getIsin(), importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
-              exDateOrTransactionDate).stream();
+              exDateOrTransactionDate);
 
-      Optional<HoldSecurityaccountSecurity> hssMatching = hssStream
+      Optional<HoldSecurityaccountSecurity> hssMatching = hssList.stream()
           .filter(hss -> itp.getUnits().equals(hss.getHodlings())).findFirst().map(Optional::of)
-          .orElseGet(() -> hssStream.findFirst());
+          .orElseGet(() -> hssList.stream().findFirst());
       if (hssMatching.isPresent()) {
         itp.removeKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH);
-        Security security = securityJpaRepository.getOne(hssMatching.get().getHssk().getIdSecuritycurrency());
+        Security security = securityJpaRepository.getById(hssMatching.get().getHssk().getIdSecuritycurrency());
         itp.setSecurity(security);
       }
     }
@@ -391,7 +392,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       return idCurrencypair;
     }
     return null;
-
   }
 
   private Integer getPossibleCurrencypairAndLoadCurrencypairs(ImportTransactionPos itp,
@@ -490,23 +490,33 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         if (itp.getIdTransaction() == null || itp.getIdTransaction() != null && existingEntity != null) {
           // New or existing transaction can be created or updated
           transaction.setIdTenant(user.getIdTenant());
-          Transaction savedTransaction = transactionJpaRepository.saveOnlyAttributesWithoutCheck(transaction,
+          Transaction savedTransaction = transactionJpaRepository.saveOnlyAttributesFormImport(transaction,
               existingEntity);
           itp.setIdTransaction(savedTransaction.getIdTransaction());
           itp.setIdTransactionMaybe(null);
           return Optional
               .of(new SavedImpPosAndTransaction(savedTransaction, importTransactionPosJpaRepository.save(itp)));
-        }
+        } 
+      } catch (DataViolationException dvex) {
+    //    status.setRollbackOnly();
+        saveTransactionErrors(itp, dvex);
       } catch (Exception ex) {
         log.error(ex.getMessage(), ex);
         status.setRollbackOnly();
       }
       return Optional.empty();
     });
-
   }
 
- 
+
+  private void saveTransactionErrors(ImportTransactionPos itp, DataViolationException dvex) {
+    final StringBuilder errorStringBuilder = new StringBuilder();
+    ValidationError validationError =RestHelper.createValidationError(dvex, messageSource);
+    validationError.getFieldErrors().forEach(fe -> errorStringBuilder.append(fe.getField() + ": " +  fe.getMessage() + "\n"));
+    itp.setTransactionError(errorStringBuilder.toString());
+    importTransactionPosJpaRepository.save(itp);
+  }
+  
 
   public static class SavedImpPosAndTransaction {
     public Transaction transaction;

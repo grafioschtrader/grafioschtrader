@@ -83,7 +83,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   public ResponseEntity<Transaction> getTransactionByIdTransaction(
       @Parameter(description = "Id of transaction", required = true) @PathVariable final Integer idTransaction) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    Transaction transaction = transactionJpaRepository.getOne(idTransaction);
+    Transaction transaction = transactionJpaRepository.getById(idTransaction);
     if (!user.getIdTenant().equals(transaction.getIdTenant())) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }

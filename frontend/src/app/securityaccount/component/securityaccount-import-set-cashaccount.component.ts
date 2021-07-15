@@ -15,7 +15,9 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {AppSettings} from '../../shared/app.settings';
 
-
+/**
+ * Dialog to assign a cash account to a imported transaction position.
+ */
 @Component({
   selector: 'securityaccount-import-set-cashaccount',
   template: `
@@ -29,7 +31,6 @@ import {AppSettings} from '../../shared/app.settings';
     </p-dialog>`
 })
 export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase implements OnInit {
-
   @Input() idSecuritycashAccount: number;
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos[];
 
@@ -39,7 +40,6 @@ export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase
               gps: GlobalparameterService) {
     super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT, gps);
   }
-
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,

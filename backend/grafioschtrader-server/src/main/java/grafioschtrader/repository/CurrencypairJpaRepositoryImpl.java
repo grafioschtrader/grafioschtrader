@@ -244,14 +244,14 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
     if (currencypairNew.getIsCryptocurrency()) {
       currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
-          .getOne(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
+          .getById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
-          .getOne(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR).getPropertyString());
+          .getById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR).getPropertyString());
     } else {
       currencypairNew.setIdConnectorIntra(
-          globalparametersJpaRepository.getOne(Globalparameters.GLOB_KEY_CURRENCY_INTRA_CONNECTOR).getPropertyString());
+          globalparametersJpaRepository.getById(Globalparameters.GLOB_KEY_CURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
-          .getOne(Globalparameters.GLOB_KEY_CURRENCY_HISTORY_CONNECTOR).getPropertyString());
+          .getById(Globalparameters.GLOB_KEY_CURRENCY_HISTORY_CONNECTOR).getPropertyString());
     }
     Currencypair currencypair = currencypairJpaRepository.save(currencypairNew);
     log.info("Create non existing currencypair from {}, to {}", fromCurrency, toCurrency);

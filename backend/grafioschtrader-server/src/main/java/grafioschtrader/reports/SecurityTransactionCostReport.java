@@ -44,7 +44,7 @@ public class SecurityTransactionCostReport {
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   public TransactionCostGrandSummary getTransactionCostGrandSummary(final Integer idTenant) {
-    final Tenant tenant = tenantJpaRepository.getOne(idTenant);
+    final Tenant tenant = tenantJpaRepository.getById(idTenant);
 
     final CompletableFuture<List<Transaction>> cfTransactionJpaRepository = CompletableFuture
         .supplyAsync(() -> transactionJpaRepository.getSecurityAccountTransactionsByTenant(idTenant,

@@ -70,7 +70,7 @@ public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepos
       untilYesterday = null;
       numberOfTradingDaysYesterdayNowMap.clear();
       tradingDaysPlusJpaRepository.saveAll(createTradingDaysPlusList);
-      tradingDaysPlusJpaRepository.deleteInBatch(deleteTradingDaysPlusList);
+      tradingDaysPlusJpaRepository.deleteAllInBatch(deleteTradingDaysPlusList);
       return getTradingDaysByYear(saveTradingDays.year);
     } else {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);

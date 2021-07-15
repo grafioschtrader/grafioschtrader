@@ -42,7 +42,7 @@ public class UpdateSplitForSecurityTask implements ITask {
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) {
-    Security security = securityJpaRepository.getOne(taskDataChange.getIdEntity());
+    Security security = securityJpaRepository.getById(taskDataChange.getIdEntity());
     if (security.getIdConnectorSplit() != null) {
       List<String> errorMessages = securitysplitJpaRepository.loadAllSplitDataFromConnector(security);
       if (!errorMessages.isEmpty()) {

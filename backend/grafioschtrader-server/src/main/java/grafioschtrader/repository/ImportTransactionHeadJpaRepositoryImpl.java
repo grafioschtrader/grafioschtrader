@@ -92,12 +92,20 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
         // Every pdf import is ready for transaction
         List<SavedImpPosAndTransaction> savedImpPosAndTransactions = importTransactionPosJpaRepository
             .createAndSaveTransactionsImpPos(importTransactionPosList, null);
-        importTransactionPosJpaRepository.deleteAll(
-            savedImpPosAndTransactions.stream().map(spat -> spat.importTransactionPos).collect(Collectors.toList()));
-        importTransactionHeadJpaRepository.delete(importTransactionHead);
-        int noOfDifferentSecurities = (int) savedImpPosAndTransactions.stream()
-            .map(spat -> spat.transaction.getSecurity().getIdSecuritycurrency()).distinct().count();
-        return new SuccessFailedDirectImportTransaction(savedImpPosAndTransactions.size(), noOfDifferentSecurities);
+        Optional<ImportTransactionPos> itpErrorOpt = importTransactionPosList.stream()
+            .filter(itp -> itp.getTransactionError() != null).findFirst();
+        if (itpErrorOpt.isPresent()) {
+          // Failed to create a transaction
+          return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead());
+        } else {
+          // Every transaction was created
+          importTransactionPosJpaRepository.deleteAll(
+              savedImpPosAndTransactions.stream().map(spat -> spat.importTransactionPos).collect(Collectors.toList()));
+          importTransactionHeadJpaRepository.delete(importTransactionHead);
+          int noOfDifferentSecurities = (int) savedImpPosAndTransactions.stream()
+              .map(spat -> spat.transaction.getSecurity().getIdSecuritycurrency()).distinct().count();
+          return new SuccessFailedDirectImportTransaction(savedImpPosAndTransactions.size(), noOfDifferentSecurities);
+        }
       }
 
     } else {
@@ -109,7 +117,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   public void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles)
       throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository.getOne(idTransactionHead);
+    ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository.getById(idTransactionHead);
     if (user.getIdTenant().equals(importTransactionHead.getIdTenant())) {
       this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles);
     } else {

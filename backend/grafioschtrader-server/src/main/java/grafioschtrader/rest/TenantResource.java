@@ -37,7 +37,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Tenant> getTenantAndPortfolio() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(tenantJpaRepository.getOne(user.getIdTenant()), HttpStatus.OK);
+    return new ResponseEntity<>(tenantJpaRepository.getById(user.getIdTenant()), HttpStatus.OK);
   }
 
   @Override

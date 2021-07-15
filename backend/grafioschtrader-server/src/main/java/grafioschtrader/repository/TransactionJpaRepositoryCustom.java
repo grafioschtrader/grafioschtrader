@@ -24,7 +24,7 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
    * @param existingEntity
    * @return
    */
-  Transaction saveOnlyAttributesWithoutCheck(final Transaction transaction, Transaction existingEntity);
+  Transaction saveOnlyAttributesFormImport(final Transaction transaction, Transaction existingEntity);
 
   CashAccountTransfer updateCreateCashaccountTransfer(CashAccountTransfer cashAccountTransfer,
       CashAccountTransfer cashAccountTransferExisting);

@@ -60,7 +60,7 @@ public class TradingDaysMinusJpaRepositoryImpl implements TradingDaysMinusJpaRep
       }
     }
     tradingDaysMinusJpaRepository.saveAll(createTradingDaysMinusList);
-    tradingDaysMinusJpaRepository.deleteInBatch(deleteTradingDaysMinusList);
+    tradingDaysMinusJpaRepository.deleteAllInBatch(deleteTradingDaysMinusList);
 
     return getTradingDaysByIdStockexchangeAndYear(idStockexchange, saveTradingDays.year);
   }

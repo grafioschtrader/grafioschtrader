@@ -65,7 +65,7 @@ public class TransferDividendToTransactionTest implements ITask {
     holdSecurityaccountSecurityJpaRepository.createSecurityHoldingsEntireByTenant(idTenant);
 
     for (Integer idPortfolio : dividendMap.keySet()) {
-      Portfolio portfolio = portfolioJpaRepository.getOne(idPortfolio);
+      Portfolio portfolio = portfolioJpaRepository.getById(idPortfolio);
       Map<Integer, List<DivdendForHoldings>> securityaccountsMap = dividendMap.get(idPortfolio);
       for (Integer idSecurityaccount : securityaccountsMap.keySet()) {
         List<DivdendForHoldings> dividendsForHoldingsList = securityaccountsMap.get(idSecurityaccount);
@@ -81,7 +81,7 @@ public class TransferDividendToTransactionTest implements ITask {
     Security security = null;
     for (DivdendForHoldings dfh : dfhList) {
       if (lastIdSecurity == null || !lastIdSecurity.equals(dfh.getIdSecuritycurrency())) {
-        security = securityJpaRepository.getOne(dfh.getIdSecuritycurrency());
+        security = securityJpaRepository.getById(dfh.getIdSecuritycurrency());
         lastIdSecurity = dfh.getIdSecuritycurrency();
       }
       Cashaccount cashaccount = portfolio.getCashaccountList().stream()

@@ -7,6 +7,9 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
 import {AppSettings} from '../../shared/app.settings';
 
+/**
+ * Show the file name of an imported transaction file.
+ */
 @Component({
   selector: 'securityaccount-import-extended-info-filename',
   templateUrl: '../view/securityaccount.import.extended.info.html'

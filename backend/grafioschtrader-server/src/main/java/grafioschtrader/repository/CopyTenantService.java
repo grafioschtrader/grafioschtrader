@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -54,13 +55,13 @@ public class CopyTenantService {
       String deleteSQL = "DELETE FROM " + table + " WHERE id_tenant=?";
       jdbcTemplate.update(deleteSQL, targetIdTenant);
     }
-
   }
 
   private Map<Integer, Portfolio> copyPortfolio(Integer sourceIdTenant, Integer targetIdTenant) {
     Map<Integer, Portfolio> portfolioMap = new HashMap<>();
-    List<Portfolio> portfolios = em.createQuery("SELECT p from Portfolio p where p.idTenant = ?1")
-        .setParameter(1, sourceIdTenant).getResultList();
+    TypedQuery<Portfolio> q = em.createQuery("SELECT p from Portfolio p where p.idTenant = ?1",
+        Portfolio.class);
+    List<Portfolio> portfolios = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Portfolio portfolio : portfolios) {
       Integer idPortfolio = portfolio.getId();
@@ -77,8 +78,9 @@ public class CopyTenantService {
   private Map<Integer, Securityaccount> copySecurityAccount(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Portfolio> portfolioMap) {
     Map<Integer, Securityaccount> securityAccountMap = new HashMap<>();
-    List<Securityaccount> securityaccounts = em.createQuery("SELECT c from Securityaccount c where c.idTenant = ?1")
-        .setParameter(1, sourceIdTenant).getResultList();
+    TypedQuery<Securityaccount> q = em.createQuery("SELECT c from Securityaccount c where c.idTenant = ?1",
+        Securityaccount.class);
+    List<Securityaccount> securityaccounts = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Securityaccount securityaccount : securityaccounts) {
       Integer idSecurityaccount = securityaccount.getId();
@@ -96,8 +98,8 @@ public class CopyTenantService {
   private Map<Integer, Cashaccount> copyCashaccount(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Portfolio> portfolioMap, Map<Integer, Securityaccount> securityaccountMap) {
     Map<Integer, Cashaccount> cashaccountMap = new HashMap<>();
-    List<Cashaccount> cashaccounts = em.createQuery("SELECT c from Cashaccount c where c.idTenant = ?1")
-        .setParameter(1, sourceIdTenant).getResultList();
+    TypedQuery<Cashaccount> q = em.createQuery("SELECT c from Cashaccount c where c.idTenant = ?1", Cashaccount.class);
+    List<Cashaccount> cashaccounts = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Cashaccount cashaccount : cashaccounts) {
       Integer idCashaccount = cashaccount.getId();
@@ -118,9 +120,8 @@ public class CopyTenantService {
 
   private Map<Integer, Watchlist> copyWatchlist(Integer sourceIdTenant, Integer targetIdTenant) {
     Map<Integer, Watchlist> watchlistMap = new HashMap<>();
-
-    List<Watchlist> watchlists = em.createQuery("SELECT c from Watchlist c where c.idTenant = ?1")
-        .setParameter(1, sourceIdTenant).getResultList();
+    TypedQuery<Watchlist> q = em.createQuery("SELECT c from Watchlist c where c.idTenant = ?1", Watchlist.class);
+    List<Watchlist> watchlists = q.setParameter(1, sourceIdTenant).getResultList();
     for (Watchlist watchlist : watchlists) {
       Integer id = watchlist.getId();
       Watchlist watchlistNew = new Watchlist(targetIdTenant, watchlist.getName());
@@ -138,11 +139,10 @@ public class CopyTenantService {
       Map<Integer, Securityaccount> securityaccountMap, Map<Integer, Cashaccount> cashaccoutMap) {
     Map<Integer, Transaction> transactionMap = new HashMap<>();
     Map<Integer, Transaction> newNotFinishedMap = new HashMap<>();
-    List<Transaction> transactionList = em.createQuery("SELECT t from Transaction t where t.idTenant = ?1")
-        .setParameter(1, sourceIdTenant).getResultList();
+    TypedQuery<Transaction> q = em.createQuery("SELECT t from Transaction t where t.idTenant = ?1", Transaction.class);
+    List<Transaction> transactionList = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Transaction transaction : transactionList) {
-
       Integer id = transaction.getId();
       transaction.setIdTenant(targetIdTenant);
       transaction.setIdTransaction(null);
