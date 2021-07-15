@@ -148,7 +148,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       // Parent is a security
       return securityOpt.get();
     } else {
-      return currencypairJpaRepository.getOne(idSecuritycurrency);
+      return currencypairJpaRepository.getById(idSecuritycurrency);
     }
   }
 

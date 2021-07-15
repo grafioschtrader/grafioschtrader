@@ -131,16 +131,18 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
 export class SecurityaccountImportTransactionTableComponent extends TableConfigBase
   implements OnDestroy, CallBackSetSecurityWithAfter {
 
-  private static SVG = '.svg';
-  private static createTypeIconMap: { [key: string]: string } = {
+  public static CHECK_OK = 'A';
+  public static TRANSACTION_ERROR = 'E';
+  public static createTypeIconMap: { [key: string]: string } = {
     ['T']: 'pdfastxt',
     ['P']: 'pdf',
     ['C']: 'csv',
     // user for possible has transaction
-    ['A']: 'check',
-    ['B']: 'checkcrossedout'
+    [SecurityaccountImportTransactionTableComponent.CHECK_OK]: 'check',
+    ['B']: 'checkcrossedout',
+    [SecurityaccountImportTransactionTableComponent.TRANSACTION_ERROR]: 'transerror'
   };
-
+  private static SVG = '.svg';
   private static iconLoadDone = false;
   private readonly ITP = 'IMPORT_TRANSACTION_POS';
 
@@ -192,10 +194,8 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'readyForTransaction', 'IMPORT_TRANSACTIONAL', true, true, {
       templateName: 'check'
     });
-    this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'idTransaction', 'IMPORT_HAS_TRANSACTION', true, true, {
-      templateName: 'check'
-    });
-
+    this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'idTransaction', 'IMPORT_HAS_TRANSACTION', true, true,
+      {fieldValueFN: SecurityaccountImportTransactionTableComponent.hasTransaction, templateName: 'icon'});
     this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'idTransactionMaybe',
       'IMPORT_HAS_MAYBE_TRANSACTION', true, true,
       {fieldValueFN: this.getMayBeHasTransactionIcon, templateName: 'icon'});
@@ -207,6 +207,13 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.multiSortMeta.push({field: 'transactionTime', order: 1});
     this.prepareTableAndTranslate();
     this.readTableDefinition(AppSettings.IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE);
+  }
+
+  public static hasTransaction(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
+                               valueField: any): string {
+    return SecurityaccountImportTransactionTableComponent.createTypeIconMap[
+      entity.importTransactionPos.idTransaction ? SecurityaccountImportTransactionTableComponent.CHECK_OK
+        : entity.importTransactionPos.transactionError ? SecurityaccountImportTransactionTableComponent.TRANSACTION_ERROR : null];
   }
 
   private static registerIcons(iconReg: SvgIconRegistryService): void {
@@ -404,10 +411,12 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.fileType];
   }
 
+
+
   getMayBeHasTransactionIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
                              valueField: any): string {
     return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.importTransactionPos.idTransactionMaybe == null
-      ? null : entity.importTransactionPos.idTransactionMaybe > 0 ? 'A' : 'B'];
+      ? null : entity.importTransactionPos.idTransactionMaybe > 0 ? SecurityaccountImportTransactionTableComponent.CHECK_OK : 'B'];
   }
 
   ngOnDestroy(): void {

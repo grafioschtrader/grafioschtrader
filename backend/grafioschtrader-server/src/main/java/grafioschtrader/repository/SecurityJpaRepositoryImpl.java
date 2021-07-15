@@ -130,7 +130,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public void reloadAsyncFullHistoryquoteExternal(Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final Security security = securityJpaRepository.getOne(idSecuritycurrency);
+    final Security security = securityJpaRepository.getById(idSecuritycurrency);
     if (!UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, security)) {
       throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
     }

@@ -14,9 +14,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.connector.comdirect.ComdirectFeedConnector;
 import grafioschtrader.connector.instrument.investing.InvestingConnector;
-import grafioschtrader.connector.instrument.yahoo.YahooFeedConnectorCOM;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;

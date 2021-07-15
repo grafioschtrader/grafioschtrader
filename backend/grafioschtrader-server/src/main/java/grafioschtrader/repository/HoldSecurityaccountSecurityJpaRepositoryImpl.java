@@ -92,7 +92,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   @Override
   public void createSecurityHoldingsEntireByTenant(Integer idTenant) {
     long startTime = System.currentTimeMillis();
-    Tenant tenant = tenantJpaRepository.getOne(idTenant);
+    Tenant tenant = tenantJpaRepository.getById(idTenant);
     createSecurityHoldingsEntireByTenant(tenant);
     log.debug("End - HoldSecurityaccountSecurity: {}", System.currentTimeMillis() - startTime);
   }
@@ -106,7 +106,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   public void adjustSecurityHoldingForSecurityaccountAndSecurity(Securityaccount securityaccount,
       Transaction transaction) {
     long startTime = System.currentTimeMillis();
-    Tenant tenant = tenantJpaRepository.getOne(securityaccount.getIdTenant());
+    Tenant tenant = tenantJpaRepository.getById(securityaccount.getIdTenant());
     loadForSecurityHoldingsBySecurityaccountAndSecurity(securityaccount, transaction, tenant.getCurrency(),
         securityaccount.getPortfolio().getCurrency(), loadCurrencypairSecuritySplit(securityaccount.getIdTenant()));
     log.debug("End - HoldSecurityaccountSecurity: {}", System.currentTimeMillis() - startTime);

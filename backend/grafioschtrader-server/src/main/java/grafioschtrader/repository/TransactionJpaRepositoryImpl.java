@@ -95,7 +95,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Override
   public List<Transaction> getTransactionsByIdPortfolio(Integer idPortfolio, Integer idTenant) {
-    Portfolio portfolio = portfolioJpaRepository.getOne(idPortfolio);
+    Portfolio portfolio = portfolioJpaRepository.getById(idPortfolio);
     if (!idTenant.equals(portfolio.getIdTenant())) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
@@ -138,7 +138,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   @Override
 //  @Transactional
 //  @Modifying
-  public Transaction saveOnlyAttributesWithoutCheck(final Transaction transaction, Transaction existingEntity) {
+  public Transaction saveOnlyAttributesFormImport(final Transaction transaction, Transaction existingEntity) {
     // return processAndSaveTransaction(transaction, existingEntity, null, false,
     // false);
     return saveOnly(transaction, existingEntity, null);
@@ -439,7 +439,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   public CurrencypairWithTransaction getTransactionForCurrencyPair(final Integer idTenant,
       final Integer idCurrencypair) {
 
-    final Currencypair currencypair = currencypairJpaRepository.getOne(idCurrencypair);
+    final Currencypair currencypair = currencypairJpaRepository.getById(idCurrencypair);
     currencypairJpaRepository.updateLastPrice(currencypair);
 
     List<Transaction> transactionList = this.transactionJpaRepository.findByCurrencypair(idTenant, idCurrencypair);

@@ -35,7 +35,6 @@ import grafioschtrader.error.ErrorWrapper;
 import grafioschtrader.error.SecurityBreachError;
 import grafioschtrader.error.SingleNativeMsgError;
 import grafioschtrader.error.ValidationError;
-import grafioschtrader.exceptions.DataViolation;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.exceptions.LimitEntityTransactionException;
@@ -185,22 +184,8 @@ public class RestErrorHandler {
    */
   @ExceptionHandler(value = { DataViolationException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorWrapper processDataViolationException(final DataViolationException ex) {
-    Object user = SecurityContextHolder.getContext().getAuthentication().getDetails();
-    Locale locale = user instanceof User ? ((User) user).createAndGetJavaLocale()
-        : ex.getLocaleStr() != null ? Locale.forLanguageTag(ex.getLocaleStr()) : Locale.ENGLISH;
-    final ValidationError validationErrorDTO = new ValidationError();
-
-    for (final DataViolation dataViolation : ex.getDataViolation()) {
-      final String localizedErrorMessage = messageSource.getMessage(dataViolation.getMessageKey(),
-          dataViolation.getData(), locale);
-      final String field = dataViolation.isTranslateFieldName()
-          ? messageSource.getMessage(dataViolation.getField(), null, locale)
-          : dataViolation.getField();
-      validationErrorDTO.addFieldError(field, localizedErrorMessage);
-    }
-
-    return new ErrorWrapper(validationErrorDTO);
+  public ErrorWrapper processDataViolationException(final DataViolationException dvex) {
+    return new ErrorWrapper(RestHelper.createValidationError(dvex, messageSource));
   }
 
   public static void createErrorResponseForServlet(HttpServletResponse httpResponse, HttpStatus status, Object error)

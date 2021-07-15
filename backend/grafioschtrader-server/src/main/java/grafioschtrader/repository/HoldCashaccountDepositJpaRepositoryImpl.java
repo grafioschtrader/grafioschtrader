@@ -61,7 +61,7 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
   @Override
   public void createCashaccountDepositTimeFrameByTenant(Integer idTenant) {
     long startTime = System.currentTimeMillis();
-    createCashaccountDepositTimeFrameByTenant(tenantJpaRepository.getOne(idTenant));
+    createCashaccountDepositTimeFrameByTenant(tenantJpaRepository.getById(idTenant));
     log.debug("End - HoldCashaccountDeposit: {}", System.currentTimeMillis() - startTime);
   }
 
@@ -243,7 +243,7 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
     }
 
     public void setTenant(Integer idTenant, TenantJpaRepository tenantJpaRepository) {
-      tenant = tenantJpaRepository.getOne(idTenant);
+      tenant = tenantJpaRepository.getById(idTenant);
       exchangeRateConnectedTransactionMap = new HashMap<>();
     }
 

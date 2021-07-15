@@ -74,7 +74,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   @Transactional
   @Modifying
   public Watchlist removeAllSecurityCurrency(final Integer idWatchlist) {
-    final Watchlist watchlist = watchlistJpaRepository.getOne(idWatchlist);
+    final Watchlist watchlist = watchlistJpaRepository.getById(idWatchlist);
     watchlist.setSecuritycurrencyList(null);
     return watchlistJpaRepository.save(watchlist);
   }
@@ -108,7 +108,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   private void setPossiblePerformanceWatchlist(final Watchlist watchlist, Watchlist existingWatchlist) {
     if (existingWatchlist == null) {
       final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-      Tenant tenant = tenantJpaRepository.getOne(user.getIdTenant());
+      Tenant tenant = tenantJpaRepository.getById(user.getIdTenant());
       if (tenant.getIdWatchlistPerformance() == null) {
         tenant.setIdWatchlistPerformance(watchlist.getIdWatchlist());
         tenantJpaRepository.save(tenant);
@@ -117,7 +117,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   }
 
   private void removePossiblePerformanceWatchlist(final Integer idWatchlist, Integer idTenant) {
-    Tenant tenant = tenantJpaRepository.getOne(idTenant);
+    Tenant tenant = tenantJpaRepository.getById(idTenant);
     if (idWatchlist.equals(tenant.getIdWatchlistPerformance())) {
       tenant.setIdWatchlistPerformance(null);
       tenantJpaRepository.save(tenant);
