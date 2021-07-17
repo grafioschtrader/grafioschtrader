@@ -68,7 +68,6 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
     List<Dividend> existingDividends = dividendJpaRepository
         .findByIdSecuritycurrencyOrderByExDateAsc(security.getIdSecuritycurrency());
     List<String> errorMessages = loadAllDividendDataFromConnectorAndUpdate(security, existingDividends, true);
-
     return errorMessages;
   }
 

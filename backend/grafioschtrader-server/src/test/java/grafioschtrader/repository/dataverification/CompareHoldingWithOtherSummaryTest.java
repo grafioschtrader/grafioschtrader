@@ -22,7 +22,6 @@ import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
 import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
-import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.helper.GroupPortfolio;
 
@@ -46,9 +45,7 @@ class CompareHoldingWithOtherSummaryTest {
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
-  @Autowired
-  private TenantJpaRepository tenantJpaRepository;
-
+ 
   @Test
   @Disabled
   void tenantCompareSummaryTest() {

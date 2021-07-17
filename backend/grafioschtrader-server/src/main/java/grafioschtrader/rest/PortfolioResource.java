@@ -25,7 +25,6 @@ import grafioschtrader.reports.SecurityTransactionCostReport;
 import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsGrandTotal;
 import grafioschtrader.reportviews.transactioncost.TransactionCostGrandSummary;
-import grafioschtrader.repository.CashaccountJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.helper.GroupCurrency;
 import grafioschtrader.repository.helper.GroupPortfolio;
@@ -40,9 +39,6 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
 
   @Autowired
   private PortfolioJpaRepository portfolioJpaRepository;
-
-  @Autowired
-  private CashaccountJpaRepository cashaccountJpaRepository;
 
   @Autowired
   private SecurityDividendsReport securityDividendsReport;

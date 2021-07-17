@@ -72,11 +72,6 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
   }
 
   private static class DividendHead {
-    public String name;
-    public String symbol;
-    public String isin;
-    public String wkn;
-    public String exchange;
     public List<DividendDetail> dividends;
   }
 

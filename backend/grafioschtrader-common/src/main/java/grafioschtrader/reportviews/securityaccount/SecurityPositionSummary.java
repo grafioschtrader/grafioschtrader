@@ -134,8 +134,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public Double transactionCurrencyGainLossMC;
 
-  private Map<String, Integer> currencyPrecisionMap;
-
+  
   @JsonIgnore
   public int precision;
   @JsonIgnore
@@ -153,7 +152,6 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public SecurityPositionSummary(String mainCurrency, Security security, Map<String, Integer> currencyPrecisionMap) {
     this(mainCurrency, currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
     this.securitycurrency = security;
-    this.currencyPrecisionMap = currencyPrecisionMap;
     this.precision = currencyPrecisionMap.getOrDefault(security.getCurrency(),
         GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }

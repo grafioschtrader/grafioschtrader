@@ -27,7 +27,7 @@ import grafioschtrader.test.start.GTforTest;
 class AlphaVantageFeedConnectorTest {
 
   @Autowired
-  AlphaVantageFeedConnector alphaVantageConnector;
+  private AlphaVantageFeedConnector alphaVantageConnector;
 
   @Test
   void getEodSecurityHistoryTest() {

@@ -18,8 +18,6 @@
 	<description>Manage multiple investment portfolios</description>
 	<packaging>jar</packaging>
 
-
-
 	<properties>
 		<start-class>grafioschtrader.GrafioschtraderApplication</start-class>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -71,8 +69,6 @@
 		</dependency>
 
 
-
-
 		<!-- Spring boot -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -100,13 +96,10 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
-
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-cache</artifactId>
 		</dependency>
-
 
 		<!-- Hibernate Jcache -->
 		<dependency>
@@ -284,6 +277,12 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+ 		
+		<dependency>
+   			 <groupId>org.springframework.boot</groupId>
+   			 <artifactId>spring-boot-configuration-processor</artifactId>
+    		 <optional>true</optional>
+		</dependency>
 
 
 	</dependencies>
@@ -295,10 +294,6 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<mainClass>grafioschtrader.GrafioschtraderApplication</mainClass>
-					<downloadSources>true</downloadSources>
-					<downloadJavadocs>true</downloadJavadocs>
-					<source>11</source>
-					<target>11</target>
 				</configuration>
 			</plugin>
 			<plugin>

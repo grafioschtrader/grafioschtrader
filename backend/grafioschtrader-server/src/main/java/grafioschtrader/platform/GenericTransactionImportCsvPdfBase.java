@@ -89,9 +89,7 @@ public abstract class GenericTransactionImportCsvPdfBase {
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
 
     List<ImportTransactionPos> importTransactionPosList = new ArrayList<>();
-    // Account Transfer in the same portfolio
-    String mainCurrency = cashaccountList.get(0).getPortfolio().getCurrency();
-
+ 
     int lineNumberIndex = 0;
     if (importPropertiesList.get(0).getTransactionType() == TransactionType.WITHDRAWAL) {
       lineNumberIndex = 1;

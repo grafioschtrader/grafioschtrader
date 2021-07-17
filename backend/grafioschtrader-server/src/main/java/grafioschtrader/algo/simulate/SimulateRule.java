@@ -46,4 +46,13 @@ public class SimulateRule {
     this.algoTop = algoTop;
   }
 
+  @Override
+  public String toString() {
+    return "SimulateRule [startDate=" + startDate + ", endDate=" + endDate + ", algoTop=" + algoTop
+        + ", algoAssetclassJpaRepository=" + algoAssetclassJpaRepository + ", watchlistJpaRepository="
+        + watchlistJpaRepository + ", historyquoteJpaRepository=" + historyquoteJpaRepository
+        + ", securityJpaRepository=" + securityJpaRepository + ", transactionJpaRepository=" + transactionJpaRepository
+        + "]";
+  }
+
 }

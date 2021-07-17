@@ -17,18 +17,11 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
   public CashaccountJpaRepository cashaccountJpaRepository;
 
   // @Autowired
-  private TransactionJpaRepository transactionJpaRepository;
-
-  // @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
   GlobalparametersJpaRepository globalparametersJpaRepository;
 
-  @Autowired
-  public void setTransactionJpaRepository(@Lazy final TransactionJpaRepository transactionJpaRepository) {
-    this.transactionJpaRepository = transactionJpaRepository;
-  }
 
   @Autowired
   public void setCurrencypairJpaRepository(@Lazy final CurrencypairJpaRepository currencypairJpaRepository) {
@@ -50,7 +43,6 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
       currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(
           createEditCashaccount.getPortfolio().getCurrency(), cashaccount.getCurrency());
     }
-
     return cashaccountJpaRepository.save(createEditCashaccount);
   }
 

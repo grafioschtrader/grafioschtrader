@@ -495,13 +495,11 @@ public class WatchlistReport {
       final double histroyClose = historyquote.getClose();
       SplitFactorAfterBefore splitFactorAfterBefore = new SplitFactorAfterBefore();
 
-
       if (securitycurrencyPosition.securitycurrency instanceof Security) {
         splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
             securitycurrencyPosition.securitycurrency.getIdSecuritycurrency(), historyquote.getDate(), new Date(),
             securitysplitMap);
       }
-
       final int years = daysTimeFrame / 365;
       final double historyCloseAdjusted = histroyClose / splitFactorAfterBefore.fromToDateFactor;
       securitycurrencyPosition.timeFrameChangePercentage = DataHelper.roundStandard(

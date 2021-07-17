@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +34,7 @@ import grafioschtrader.types.CreateType;
 @Component
 public class FinnhubConnector extends BaseFeedConnector {
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
+
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
 

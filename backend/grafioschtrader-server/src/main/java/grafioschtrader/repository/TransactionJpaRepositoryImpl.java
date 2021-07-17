@@ -154,7 +154,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   private Transaction saveOnly(final Transaction transaction, Transaction existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
-    Securityaccount securityaccount = checkTransactionSecurityAndCashaccountBeforSave(transaction).securityaccount;
+    Securityaccount securityaccount = checkTransactionSecurityAndCashaccountBeforSave(transaction);
     checkCurrencypair(transaction);
     return processAndSaveTransaction(transaction, existingEntity, securityaccount, true, false);
   }
@@ -178,7 +178,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
    * @param transaction
    * @return
    */
-  private CashSecurityAccount checkTransactionSecurityAndCashaccountBeforSave(Transaction transaction) {
+  private Securityaccount checkTransactionSecurityAndCashaccountBeforSave(Transaction transaction) {
     Securityaccount securityaccount = null;
     if (transaction.getIdSecurityaccount() != null) {
       securityaccount = securityaccountJpaRepository
@@ -194,7 +194,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     } else {
       transaction.setCashaccount(cashaccount);
     }
-    return new CashSecurityAccount(cashaccount, securityaccount);
+    return securityaccount;
   }
 
   private void checkCurrencypair(final Transaction transaction) {
@@ -465,7 +465,6 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       cwt.gainFrom = cwt.gainTo / currencypair.getSLast();
     }
     return cwt;
-
   }
 
   @Override
@@ -490,15 +489,5 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
     return cashaccountTransactionPositions;
   }
-
-  private static class CashSecurityAccount {
-    public Cashaccount cashaccount;
-    public Securityaccount securityaccount;
-
-    public CashSecurityAccount(Cashaccount cashaccount, Securityaccount securityaccount) {
-      this.cashaccount = cashaccount;
-      this.securityaccount = securityaccount;
-    }
-
-  }
+ 
 }
