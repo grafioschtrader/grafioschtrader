@@ -15,9 +15,6 @@ import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.CopyTenantService;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
-import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
-import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
-import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
 import grafioschtrader.task.ITask;
@@ -38,15 +35,6 @@ public class CopyTenantToDemoAccountsTask implements ITask {
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
-
-  @Autowired
-  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
-
-  @Autowired
-  private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
-
-  @Autowired
-  private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
   @Value("${gt.demo.account.pattern.de}")
   private String demoAccountPatternDE;

@@ -116,14 +116,14 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
         select = "div.table-quotes table tr";
       }
       break;
-
     case ETF:
       select = "div#SnapshotQuoteData table tr";
       break;
-
     case MUTUAL_FUND:
       select = "div.table-responsive:eq(3) table.table-small tr";
       break;
+    default:
+      // Do nothing
     }
     updateSecuritycurrency(doc.select(select), security);
 

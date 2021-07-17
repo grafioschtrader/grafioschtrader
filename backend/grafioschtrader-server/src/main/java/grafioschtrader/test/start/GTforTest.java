@@ -7,6 +7,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -27,7 +28,7 @@ import grafioschtrader.GrafioschtraderApplication;
 @EntityScan(basePackages = { "grafioschtrader.entities" })
 @ComponentScan(basePackages = { "grafioschtrader" }, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class) })
-
+@EnableConfigurationProperties
 public class GTforTest {
 
   public static void main(final String[] args) {

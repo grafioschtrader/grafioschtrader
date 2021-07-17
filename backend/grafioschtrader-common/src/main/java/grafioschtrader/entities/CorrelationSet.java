@@ -32,6 +32,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Entity
 @Table(name = CorrelationSet.TABNAME)
 public class CorrelationSet extends TenantBaseID implements Serializable {
+  
+  private static final long serialVersionUID = 1L;
 
   public static final String TABNAME = "correlation_set";
   public static final String TABNAME_CORRELATION_INSTRUMENT = "correlation_instrument";

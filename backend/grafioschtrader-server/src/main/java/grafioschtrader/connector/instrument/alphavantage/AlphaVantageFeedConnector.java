@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
@@ -36,6 +36,7 @@ import grafioschtrader.entities.Security;
  *
  */
 @Component
+@ConfigurationProperties(prefix = "gt.connector.alphavantage")
 public class AlphaVantageFeedConnector extends BaseFeedConnector {
 
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
@@ -62,8 +63,8 @@ public class AlphaVantageFeedConnector extends BaseFeedConnector {
   public AlphaVantageFeedConnector() {
     super(supportedFeed, "alphavantage", "Alpha Vantage", URL_NORMAL_REGEX);
   }
-
-  @Value("${gt.connector.alphavantage.apikey}")
+  
+  
   public void setApiKey(String apiKey) {
     this.apiKey = apiKey;
   }

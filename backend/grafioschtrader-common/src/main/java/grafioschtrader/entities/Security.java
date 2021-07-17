@@ -501,6 +501,9 @@ public class Security extends Securitycurrency<Security> implements Serializable
       case CURRENCY_PAIR:
         canHaveDividend = false;
         break;
+      default:
+        // Do nothing
+        break;
       }
     }
     return canHaveDividend;

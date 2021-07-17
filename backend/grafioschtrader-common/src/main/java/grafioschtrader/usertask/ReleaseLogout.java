@@ -3,11 +3,11 @@ package grafioschtrader.usertask;
 import java.io.Serializable;
 
 public class ReleaseLogout implements Serializable {
+  private static final long serialVersionUID = 1L;
   private short securityBreachCount;
   private short limitRequestExceedCount;
 
   public ReleaseLogout() {
-
   }
 
   public short getSecurityBreachCount() {

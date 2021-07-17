@@ -12,7 +12,7 @@ import org.apache.coyote.ajp.AbstractAjpProtocol;
 import org.apache.coyote.ajp.AjpNioProtocol;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -21,7 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication()
 @EnableAsync
 @EnableScheduling
-@EntityScan(basePackages = { "grafioschtrader.entities" })
+@EnableConfigurationProperties
 // Spring ehcache is not working,
 // @EnableCaching
 public class GrafioschtraderApplication {
@@ -38,6 +38,7 @@ public class GrafioschtraderApplication {
     return tomcat;
   }
 
+  @SuppressWarnings("rawtypes")
   private Connector addTomcatConnector(Integer port) throws UnknownHostException {
     final Connector ajpConnector = new Connector("AJP/1.3");
     ajpConnector.setPort(port);

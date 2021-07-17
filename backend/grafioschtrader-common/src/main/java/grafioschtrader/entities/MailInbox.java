@@ -25,6 +25,8 @@ import grafioschtrader.GlobalConstants;
 @DiscriminatorValue("I")
 public class MailInbox extends MailInOut implements Serializable {
 
+  private static final long serialVersionUID = 1L;
+
   public static final String TABNAME = "mail_inbox";
 
   @Size(min = 2, max = 64)

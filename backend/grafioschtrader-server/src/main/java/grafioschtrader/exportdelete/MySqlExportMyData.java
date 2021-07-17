@@ -1,19 +1,15 @@
 package grafioschtrader.exportdelete;
 
-import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 
 /**
  * User which export his data will get the role with most power.
@@ -47,23 +43,14 @@ public class MySqlExportMyData extends MyDataExportDeleteDefinition {
     String query = getQuery(exportDefinition);
 
     Object[] idArray = getParamArrayOfWhereForIdTenant(exportDefinition, query);
-    Integer[] idTenat0Array = new Integer[idArray.length];
-    Arrays.fill(idTenat0Array, 0);
-
+   
     log.debug("Execute: query={}, param={}", query, idArray);
     final List<Map<String, Object>> rows = jdbcTemplate.queryForList(query, idArray);
     if (!rows.isEmpty()) {
-
-      ResultSetMetaData metaData = (ResultSetMetaData) jdbcTemplate.query(query, idTenat0Array,
-          new ResultSetExtractor<Object>() {
-            @Override
-            public ResultSetMetaData extractData(ResultSet rs) throws SQLException, DataAccessException {
-              ResultSetMetaData rsmd = rs.getMetaData();
-              return rsmd;
-            }
-          });
-
-      if (log.isDebugEnabled()) {
+      query = query + " LIMIT 1";
+      ResultSetMetaData metaData = ((List<ResultSetMetaData>) jdbcTemplate.query(query, 
+          (resultSet, rowNum) -> resultSet.getMetaData(), idArray)).get(0);
+        if (log.isDebugEnabled()) {
         log.debug(exportDefinition.table);
         for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
           log.debug("Name: {}, Type: {}", metaData.getColumnName(columnIndex), metaData.getColumnType(columnIndex));

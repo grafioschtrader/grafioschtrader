@@ -48,10 +48,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
-
-  @Autowired
-  private PortfolioJpaRepository portfolioJpaRepository;
-
+ 
   @Autowired(required = false)
   public List<IPlatformTransactionImport> platformTransactionImportList = new ArrayList<>();
 
@@ -216,7 +213,6 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       this.singleFile = singleFile;
       this.gtTransformed = gtTransformed;
     }
-
   }
 
   @Override

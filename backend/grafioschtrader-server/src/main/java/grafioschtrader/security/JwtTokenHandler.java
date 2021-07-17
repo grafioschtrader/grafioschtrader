@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -20,16 +20,20 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
+@ConfigurationProperties(prefix="gt.jwt")
 public final class JwtTokenHandler {
 
   private static final String ID_USER = "idUser";
-  private final String secret;
-  private final UserService userService;
-
+  /**
+   * HS256 is used, the secret should at least be 32 characters long
+   */
+  private String secret;
+  
   @Autowired
-  public JwtTokenHandler(@Value("${gt.jwt.secret}") final String secret, final UserService userService) {
+  private UserService userService;
+ 
+  public void setSecret(String secret) {
     this.secret = secret;
-    this.userService = userService;
   }
 
   Optional<UserDetails> parseUserFromToken(final String token) {

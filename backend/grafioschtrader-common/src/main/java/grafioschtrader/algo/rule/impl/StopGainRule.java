@@ -12,4 +12,11 @@ public class StopGainRule {
     // TODO
     return true;
   }
+
+  @Override
+  public String toString() {
+    return "StopGainRule [gainPercentage=" + gainPercentage + "]";
+  }
+  
+  
 }

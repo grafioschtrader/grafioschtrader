@@ -11,8 +11,8 @@
     <groupId>grafioschtrader</groupId>
     <artifactId>grafioschtrader</artifactId>
 	<packaging>pom</packaging>
-	
 	<version>0.19.1</version>
+	
 	
 	<parent>
 		<groupId>org.springframework.boot</groupId>
