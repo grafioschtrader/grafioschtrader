@@ -42,9 +42,20 @@ public enum ImportKnownOtherFlags {
    */
   CAN_BASE_CURRENCY_MAYBE_INVERSE,
   
-  CAN_BOND_ADJUST_UNITS_AND_QUOTATION_WHEN_UNITS_EQUAL_ONE;
+  /**
+   * Certain trading platforms show the value 1 in the units field of the CSV document for interest transaction 
+   * for bonds. GT wants the correct number as specified at purchase. This configuration allows GT to adjust 
+   * the number and interest using the units and quotation fields. This adjustment is not made until 
+   * the transaction is created.
+   */
+  CAN_BOND_ADJUST_UNITS_AND_QUOTATION_WHEN_UNITS_EQUAL_ONE,
   
-
+  /**
+   * In the transaction, the Subject to tax property is not set with this configuration for dividend or interest, 
+   * i.e. the amount is tax free. Otherwise, Subject to Tax is set.   
+   */
+  CAN_NO_TAX_ON_DIVIDEND_INTEREST;
+  
   public static int encode(EnumSet<ImportKnownOtherFlags> importKnownOtherFlagsSet) {
     return EnumHelper.encode(importKnownOtherFlagsSet);
   }

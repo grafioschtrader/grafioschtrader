@@ -168,7 +168,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   @Column(name = "transaction_error")
   private String transactionError;
-  
+
   @Transient
   private double calcCashaccountAmount;
 
@@ -325,7 +325,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   public void setQuotation(Double quotation) {
     this.quotation = quotation;
   }
-  
+
   public String getTransactionError() {
     return transactionError;
   }
@@ -481,6 +481,11 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     this.fileNameOriginal = fileNameOriginal;
   }
 
+  public Boolean getTaxableInterest() {
+    return getTransactionType() != TransactionType.DIVIDEND ? null
+        : getKnownOtherFlags().contains(ImportKnownOtherFlags.CAN_NO_TAX_ON_DIVIDEND_INTEREST) ? false : true;
+  }
+
   @Override
   public Integer getId() {
     return idTransactionPos;
@@ -590,11 +595,11 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         units += transUnits;
         posTotal += transUnits * ip.getQuotation();
         if (i > 0) {
- /*         
-          if (ip.getTa() != null) {
-            importTransactionPos.setCashaccountAmount(importTransactionPos.getCashaccountAmount() + ip.getTa());
-          }
- */         
+          /*
+           * if (ip.getTa() != null) {
+           * importTransactionPos.setCashaccountAmount(importTransactionPos.
+           * getCashaccountAmount() + ip.getTa()); }
+           */
           importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), true);
           importTransactionPos.setTaxCost(ip.getTt1(), ip.getTt2(), true);
         }
@@ -675,7 +680,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
           && currencyExRate != null) {
         double oldCurrencyExRate = currencyExRate;
         currencyExRate = 1 / currencyExRate;
-        if(calcDiffCashaccountAmount() != 0.0) {
+        if (calcDiffCashaccountAmount() != 0.0) {
           currencyExRate = oldCurrencyExRate;
           calcDiffCashaccountAmount();
         }
@@ -689,7 +694,6 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         - DataHelper.round(cashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
     return diffCashaccountAmount;
   }
-
 
   public double getCalcCashaccountAmount() {
     return calcCashaccountAmount;
