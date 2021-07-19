@@ -35,12 +35,15 @@ public enum ImportKnownOtherFlags {
    * currency and adjust the dividend per unity accordingly.
    */
   CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE,
-
-
+  
+  
   /**
    * Maybe the base currency for exchange rate is not the one of the instrument. It could be the one of the cash account
    */
-  CAN_BASE_CURRENCY_MAYBE_INVERSE;
+  CAN_BASE_CURRENCY_MAYBE_INVERSE,
+  
+  CAN_BOND_ADJUST_UNITS_AND_QUOTATION_WHEN_UNITS_EQUAL_ONE;
+  
 
   public static int encode(EnumSet<ImportKnownOtherFlags> importKnownOtherFlagsSet) {
     return EnumHelper.encode(importKnownOtherFlagsSet);

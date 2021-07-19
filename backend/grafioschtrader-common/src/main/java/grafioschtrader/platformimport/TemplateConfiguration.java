@@ -239,7 +239,6 @@ public abstract class TemplateConfiguration {
     if(transactionTypesMap.isEmpty()) {
       dataViolationException.addDataViolation(CONF_TRANSACTION_TYPE, "gt.imptemplate.missing.transactiontype", null, false);
     }
-
   }
 
   /**
