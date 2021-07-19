@@ -196,12 +196,13 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       Double quotation, TransactionType transactionType, Double taxCost, Double transactionCost, Double accruedInterest,
       Date transactionTime, Double currencyExRate) {
     this(idSecurityaccount, cashAccount, security, null, units, quotation, transactionType, taxCost, transactionCost,
-        accruedInterest, transactionTime, currencyExRate, null, null);
+        accruedInterest, transactionTime, currencyExRate, null, null, null);
   }
 
   public Transaction(Integer idSecurityaccount, Cashaccount cashAccount, Security security, Double cashaccountAmount,
       Double units, Double quotation, TransactionType transactionType, Double taxCost, Double transactionCost,
-      Double assetInvestmentValue1, Date transactionTime, Double currencyExRate, Integer idCurrencypair, Date exDate) {
+      Double assetInvestmentValue1, Date transactionTime, Double currencyExRate, Integer idCurrencypair, Date exDate,
+      Boolean taxableInterest) {
     this(cashAccount, cashaccountAmount, transactionType, transactionTime);
     this.idSecurityaccount = idSecurityaccount;
     this.units = units;
@@ -213,6 +214,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     this.currencyExRate = currencyExRate;
     this.idCurrencypair = idCurrencypair;
     this.exDate = exDate;
+    this.taxableInterest = taxableInterest;
   }
 
   @PrePersist

@@ -47,6 +47,7 @@ import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
 import grafioschtrader.rest.helper.RestHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
+import grafioschtrader.types.TransactionType;
 
 public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionPosJpaRepositoryCustom {
 
@@ -82,10 +83,9 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
   @Autowired
   private MessageSource messageSource;
-  
+
   @PersistenceContext
   private EntityManager entityManager;
- 
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -352,10 +352,10 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     }
     return savedImpPosAndTransactions;
   }
-  
+
   private void adjustBondUnitsAndQuotation(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
-    if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.CAN_BOND_ADJUST_UNITS_AND_QUOTATION_WHEN_UNITS_EQUAL_ONE)
-        && itp.getUnits().equals(1.0)) {
+    if (itp.getKnownOtherFlags().contains(
+        ImportKnownOtherFlags.CAN_BOND_ADJUST_UNITS_AND_QUOTATION_WHEN_UNITS_EQUAL_ONE) && itp.getUnits().equals(1.0)) {
       Optional<HoldSecurityaccountSecurity> hssMatching = getHoldings(importTransactionHead, itp, false);
       if (hssMatching.isPresent()) {
         HoldSecurityaccountSecurity hss = hssMatching.get();
@@ -364,7 +364,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       }
     }
   }
-  
 
   private void correctSecurityCurrencyMissmatch(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
     if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH)) {
@@ -376,21 +375,18 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       }
     }
   }
-  
-  private Optional<HoldSecurityaccountSecurity> getHoldings(ImportTransactionHead importTransactionHead, ImportTransactionPos itp,
-      boolean unitsMustMatch) {
+
+  private Optional<HoldSecurityaccountSecurity> getHoldings(ImportTransactionHead importTransactionHead,
+      ImportTransactionPos itp, boolean unitsMustMatch) {
     Date exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime();
     List<HoldSecurityaccountSecurity> hssList = holdSecurityaccountSecurityJpaRepository
-        .getByISINAndSecurityAccountAndDate(itp.getIsin(), importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
-            exDateOrTransactionDate);
+        .getByISINAndSecurityAccountAndDate(itp.getIsin(),
+            importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(), exDateOrTransactionDate);
 
-    return hssList.stream()
-        .filter(hss -> !unitsMustMatch || itp.getUnits().equals(hss.getHodlings()) && unitsMustMatch).findFirst().map(Optional::of)
-        .orElseGet(() -> hssList.stream().findFirst());
+    return hssList.stream().filter(hss -> !unitsMustMatch || itp.getUnits().equals(hss.getHodlings()) && unitsMustMatch)
+        .findFirst().map(Optional::of).orElseGet(() -> hssList.stream().findFirst());
   }
-  
-  
-  
+
   private Integer setPossibleMissingCurrencyExRate(ImportTransactionPos itp) {
     if (itp.getCurrencyExRate() == null
         && itp.getKnownOtherFlags()
@@ -406,7 +402,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       ISecuritycurrencyIdDateClose idc = historyquoteJpaRepository
           .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime(), false);
       itp.setCurrencyExRate(idc.getClose());
-     // itp.setCashaccountAmount(itp.getCashaccountAmount() * idc.getClose());
+      // itp.setCashaccountAmount(itp.getCashaccountAmount() * idc.getClose());
       itp.setQuotation(itp.getQuotation() / idc.getClose());
       return idCurrencypair;
     }
@@ -497,7 +493,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         Transaction transaction = new Transaction(importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
             itp.getCashaccount(), itp.getSecurity(), itp.getCalcCashaccountAmount(), itp.getUnits(), itp.getQuotation(),
             itp.getTransactionType(), itp.getTaxCost(), itp.getTransactionCost(), itp.getAccruedInterest(),
-            itp.getTransactionTime(), itp.getCurrencyExRate(), idCurrencypair, itp.getExDate());
+            itp.getTransactionTime(), itp.getCurrencyExRate(), idCurrencypair, itp.getExDate(),
+            itp.getTaxableInterest());
 
         Transaction existingEntity = null;
         if (itp.getIdTransaction() != null) {
@@ -515,9 +512,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
           itp.setIdTransactionMaybe(null);
           return Optional
               .of(new SavedImpPosAndTransaction(savedTransaction, importTransactionPosJpaRepository.save(itp)));
-        } 
+        }
       } catch (DataViolationException dvex) {
-    //    status.setRollbackOnly();
         saveTransactionErrors(itp, dvex);
       } catch (Exception ex) {
         log.error(ex.getMessage(), ex);
@@ -527,15 +523,14 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     });
   }
 
-
   private void saveTransactionErrors(ImportTransactionPos itp, DataViolationException dvex) {
     final StringBuilder errorStringBuilder = new StringBuilder();
-    ValidationError validationError =RestHelper.createValidationError(dvex, messageSource);
-    validationError.getFieldErrors().forEach(fe -> errorStringBuilder.append(fe.getField() + ": " +  fe.getMessage() + "\n"));
+    ValidationError validationError = RestHelper.createValidationError(dvex, messageSource);
+    validationError.getFieldErrors()
+        .forEach(fe -> errorStringBuilder.append(fe.getField() + ": " + fe.getMessage() + "\n"));
     itp.setTransactionError(errorStringBuilder.toString());
     importTransactionPosJpaRepository.save(itp);
   }
-  
 
   public static class SavedImpPosAndTransaction {
     public Transaction transaction;

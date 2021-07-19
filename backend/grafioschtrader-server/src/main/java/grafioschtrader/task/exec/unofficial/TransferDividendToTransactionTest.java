@@ -96,7 +96,7 @@ public class TransferDividendToTransactionTest implements ITask {
 
       Transaction transaction = new Transaction(idSecurityaccount, cashaccount, security, cashaccountAmount,
           dfh.getHoldings(), dfh.getAmount(), TransactionType.DIVIDEND, taxCost, null, null, transactionTime, null,
-          null, new Date(dfh.getExDate().getTime()));
+          null, new Date(dfh.getExDate().getTime()), true);
       transaction.setNote("System-Created");
       transaction.setTaxableInterest(true);
       transaction.setIdTenant(idTenant);
