@@ -64,7 +64,7 @@ public class FormInputTemplateMatchState {
       }
     }
   }
-
+    
   public List<ImportProperties> getImportPropertiesList() {
     return importPropertiesList;
   }

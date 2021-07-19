@@ -36,6 +36,10 @@ import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 
+/**
+ * Creates the report for period performance. 
+ *
+ */
 @Component
 public class PerformanceReport {
   private static final String DATE_FROM_FIELD_MSG = "date.from";
@@ -43,13 +47,13 @@ public class PerformanceReport {
   private static final String PERIOD_SPLIT = "period.split";
 
   @Autowired
-  HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
   @Autowired
-  TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
   @Autowired
-  PortfolioJpaRepository portfolioJpaRepository;
+  private PortfolioJpaRepository portfolioJpaRepository;
 
   PassiveExpiringMap<PortfolioOrTenantKey, FirstAndMissingTradingDays> firstAndMissingTradingDaysMap = new PassiveExpiringMap<>(
       120_000);
@@ -163,7 +167,6 @@ public class PerformanceReport {
         lastTradingDayOfLastYearOpt.isEmpty() ? null : lastTradingDayOfLastYearOpt.get().getTradingDate(),
         leatestPossibleTradingDay, latestTradingDay, secondLatestTradingDay, combinedHolidayOfHoldings,
         missingQuoteDays);
-
   }
 
   private LocalDate getLatestTradingDayBeforeDate(Set<Date> missingQuoteDays, LocalDate beforeDate,
@@ -223,7 +226,6 @@ public class PerformanceReport {
 
   private PerformancePeriod getPeriodPerformance(FirstAndMissingTradingDays firstAndMissingTradingDays,
       List<IPeriodHolding> periodHoldings, WeekYear periodSplit) throws Exception {
-
     PeriodHoldingAndDiff firstDayTotals = new PeriodHoldingAndDiff();
     PeriodHoldingAndDiff lastDayTotals = new PeriodHoldingAndDiff();
     if (!periodHoldings.isEmpty()) {

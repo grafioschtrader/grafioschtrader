@@ -476,11 +476,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
 }
 
-/**
- *
- * @author Hugo Graf
- *
- */
+
 class AccessCashaccountPositionSummary {
 
   /**

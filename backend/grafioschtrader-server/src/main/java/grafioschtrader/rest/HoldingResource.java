@@ -31,10 +31,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class HoldingResource {
 
   @Autowired
-  HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
   @Autowired
-  PerformanceReport performanceReport;
+  private PerformanceReport performanceReport;
 
   @GetMapping(value = "/getdatesforform", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<FirstAndMissingTradingDays> getFirstAndMissingTradingDays(
@@ -45,7 +45,6 @@ public class HoldingResource {
     } else {
       return new ResponseEntity<>(performanceReport.getFirstAndMissingTradingDaysByTenant(), HttpStatus.OK);
     }
-
   }
 
   @GetMapping(value = "/{dateFrom}/{dateTo}/{periodSplit}", produces = APPLICATION_JSON_VALUE)

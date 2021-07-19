@@ -323,7 +323,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
           if (itp.isReadyForTransaction()
               && itp.getIdTransactionHead().equals(importTransactionHead.getIdTransactionHead())
               && itp.getCashaccount().getIdTenant().equals(user.getIdTenant())) {
-        
+            adjustBondUnitsAndQuotation(importTransactionHead, itp);
             correctSecurityCurrencyMissmatch(importTransactionHead, itp);
             idCurrencypair = setPossibleMissingCurrencyExRate(itp);
 
@@ -352,17 +352,23 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     }
     return savedImpPosAndTransactions;
   }
+  
+  private void adjustBondUnitsAndQuotation(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
+    if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.CAN_BOND_ADJUST_UNITS_AND_QUOTATION_WHEN_UNITS_EQUAL_ONE)
+        && itp.getUnits().equals(1.0)) {
+      Optional<HoldSecurityaccountSecurity> hssMatching = getHoldings(importTransactionHead, itp, false);
+      if (hssMatching.isPresent()) {
+        HoldSecurityaccountSecurity hss = hssMatching.get();
+        itp.setUnits(hss.getHodlings());
+        itp.setQuotation(itp.getQuotation() / itp.getUnits());
+      }
+    }
+  }
+  
 
   private void correctSecurityCurrencyMissmatch(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
     if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH)) {
-      Date exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime();
-      List<HoldSecurityaccountSecurity> hssList = holdSecurityaccountSecurityJpaRepository
-          .getByISINAndSecurityAccountAndDate(itp.getIsin(), importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
-              exDateOrTransactionDate);
-
-      Optional<HoldSecurityaccountSecurity> hssMatching = hssList.stream()
-          .filter(hss -> itp.getUnits().equals(hss.getHodlings())).findFirst().map(Optional::of)
-          .orElseGet(() -> hssList.stream().findFirst());
+      Optional<HoldSecurityaccountSecurity> hssMatching = getHoldings(importTransactionHead, itp, true);
       if (hssMatching.isPresent()) {
         itp.removeKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH);
         Security security = securityJpaRepository.getById(hssMatching.get().getHssk().getIdSecuritycurrency());
@@ -370,6 +376,19 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       }
     }
   }
+  
+  private Optional<HoldSecurityaccountSecurity> getHoldings(ImportTransactionHead importTransactionHead, ImportTransactionPos itp,
+      boolean unitsMustMatch) {
+    Date exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime();
+    List<HoldSecurityaccountSecurity> hssList = holdSecurityaccountSecurityJpaRepository
+        .getByISINAndSecurityAccountAndDate(itp.getIsin(), importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
+            exDateOrTransactionDate);
+
+    return hssList.stream()
+        .filter(hss -> !unitsMustMatch || itp.getUnits().equals(hss.getHodlings()) && unitsMustMatch).findFirst().map(Optional::of)
+        .orElseGet(() -> hssList.stream().findFirst());
+  }
+  
   
   
   private Integer setPossibleMissingCurrencyExRate(ImportTransactionPos itp) {
