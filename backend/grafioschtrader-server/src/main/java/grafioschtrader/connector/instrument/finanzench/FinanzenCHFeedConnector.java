@@ -141,13 +141,13 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
         FinanzenWithAjaxControllerCallSecurity.HISTORICAL_PRICE_LIST, this, FC_LOCALE,
         UseLastPartUrl.AS_STOCKEXCHANGE_SYMBOL, 2);
     int[] headerColMapping = null;
-
+/*
     if (security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
         && (security.getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME
             || security.getAssetClass().getCategoryType() == AssetclassType.CONVERTIBLE_BOND)) {
       headerColMapping = new int[] { 0, 1, 2, -1, -1, -1 };
     }
-
+*/
     return finanzenBase.getHistoryquotes(security, from, to, headerColMapping);
   }
 
