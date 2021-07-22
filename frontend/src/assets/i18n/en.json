@@ -369,6 +369,8 @@
   "MSG_RECORD_SAVED": "{{i18nRecord}} was saved",
   "NAME": "Name",
   "NAME_ID_RIGHTS": "Name, ID, highest authorization",
+  "NAME_SECURITY": "Name",
+  "NAME_SECURITY_TOOLTIP": "Bei Aktien und ETF den Namen ohne Zusatz verwenden - wird für die Split-Erkennung genutzt",
   "NETTO_VALUE_TRANSACTION": "Net price",
   "NEW": "New {{i18nRecord}}",
   "NICKNAME": "Nickname",

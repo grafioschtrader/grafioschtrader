@@ -57,7 +57,7 @@ export class SecurityEditSupport {
   static getSecurityBaseFieldDefinition(securityDerived: SecurityDerived): FieldConfig[] {
     const fc: FieldConfig[] = [];
 
-    fc.push(DynamicFieldHelper.createFieldInputStringHeqF('name', 80, true,
+    fc.push(DynamicFieldHelper.createFieldInputString('name', 'NAME_SECURITY', 80, true,
       {minLength: 2, fieldsetName: 'BASE_DATA'}));
     fc.push(DynamicFieldHelper.createFieldSelectNumber('assetClass', AppSettings.ASSETCLASS.toUpperCase(), true,
       {dataproperty: 'assetClass.idAssetClass', fieldsetName: 'BASE_DATA'}));
