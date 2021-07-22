@@ -68,6 +68,8 @@ public class SplitCalendarAppender {
   @Autowired(required = false)
   private List<ICalendarFeedConnector> calendarFeedConnectors = new ArrayList<>();
 
+  private static String removeFromNameRegex = " (corp|corp\\.|corporation|inc\\.|inc|llc)$";
+  
   public void appendSecuritySplitsUntilToday() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
         .findById(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE);
@@ -106,7 +108,14 @@ public class SplitCalendarAppender {
       List<Security> securities, SimilarityScore<Double> similarityAlgo) {
     securities.removeIf(s -> {
       TickerSecuritysplit tss = splitTickerMap.get(s.getTickerSymbol());
-      Double similarity = similarityAlgo.apply(s.getName().toLowerCase(), tss.companyName.toLowerCase());
+      
+      String name1 = s.getName().toLowerCase();
+      String name2 = tss.companyName.toLowerCase();
+      if(s.isStockAndDirectInvestment()) {
+        name1 = name1.replaceFirst(removeFromNameRegex, "").strip();
+        name2 = name2.replaceFirst(removeFromNameRegex, "").strip();
+      }
+      Double similarity = similarityAlgo.apply(name1, name2);
       boolean matchName = s.isStockAndDirectInvestment() && similarity > 0.88 || similarity > 0.95;
       if (log.isInfoEnabled() && !matchName) {
         log.info(
@@ -117,6 +126,8 @@ public class SplitCalendarAppender {
     });
   }
 
+  
+  
   private void proposeSecuritsplitOverTaskDataChange(Map<String, TickerSecuritysplit> splitTickerMap,
       List<Security> securities) {
     int ssi = 0;
