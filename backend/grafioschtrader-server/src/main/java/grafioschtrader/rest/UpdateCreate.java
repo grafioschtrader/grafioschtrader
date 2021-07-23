@@ -2,6 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
@@ -12,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.validation.Valid;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,7 @@ import grafioschtrader.entities.UserEntityChangeLimit;
 import grafioschtrader.entities.projection.UserCountLimit;
 import grafioschtrader.error.LimitEntityTransactionError;
 import grafioschtrader.exceptions.LimitEntityTransactionException;
+import grafioschtrader.reportviews.performance.PeriodHoldingAndDiff;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.ProposeChangeEntityJpaRepository;
 import grafioschtrader.repository.ProposeChangeFieldJpaRepository;
@@ -56,16 +59,16 @@ public abstract class UpdateCreate<T extends BaseID> {
   private EntityManager entityManager;
 
   @Autowired
-  GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
+  private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
 
   @Autowired
-  ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
+  private ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
 
   @Autowired
-  ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
+  protected ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -97,7 +100,7 @@ public abstract class UpdateCreate<T extends BaseID> {
    */
   protected ResponseEntity<T> createEntity(T entity) throws Exception {
     log.debug("Create Entity : {}", entity);
-    DataHelper.setEmptyStringToNull(entity);
+    DataHelper.setEmptyStringToNullOrRemoveTraillingSpaces(entity);
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     if (entity.getId() != null) {
       return ResponseEntity.badRequest().header("Failure", "Cannot create Entity with existing ID").body(null);
@@ -119,7 +122,6 @@ public abstract class UpdateCreate<T extends BaseID> {
     } else {
       checkDailyLimitAuditable(entity, user);
     }
-
     final T result = getUpdateCreateJpaRepository().saveOnlyAttributes(entity, null,
         Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class));
 
@@ -130,7 +132,6 @@ public abstract class UpdateCreate<T extends BaseID> {
       // user which caused it, product only a proposal on no entity
       updateEntity(entity);
     }
-
     return ResponseEntity.ok().body(result);
   }
 
@@ -167,7 +168,7 @@ public abstract class UpdateCreate<T extends BaseID> {
    */
   protected ResponseEntity<T> updateEntity(final T entity) throws Exception {
     log.debug("Update Entity : {}", entity);
-    DataHelper.setEmptyStringToNull(entity);
+    DataHelper.setEmptyStringToNullOrRemoveTraillingSpaces(entity);
     T existingEntity = null;
     ResponseEntity<T> resultEntity = null;
 
@@ -269,6 +270,7 @@ public abstract class UpdateCreate<T extends BaseID> {
     return result;
   }
 
+  
   /**
    * User can't change entity if another user created it -> create a proposal
    * change
@@ -350,7 +352,6 @@ public abstract class UpdateCreate<T extends BaseID> {
       // New Entity with Tenant
       return entity;
     }
-
     return existingEntity;
   }
 

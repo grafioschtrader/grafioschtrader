@@ -12,14 +12,12 @@ export class FileUploadParam {
                      public supportedCSVFormats?: SupportedCSVFormats,
                      public persistenceCSVKey?: string
   ) {
-
   }
 }
 
 export interface UploadServiceFunction {
   uploadFiles(idTransactionHead: number, formData: FormData): Observable<any>;
 }
-
 
 export class SupportedCSVFormat {
   decimalSeparator: string = null;

@@ -269,7 +269,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
-
   getCreateTypeIcon(historyquote: Historyquote, field: ColumnConfig): string {
     return HistoryquoteTableComponent.createTypeIconMap[HistoryquoteCreateType[historyquote.createType]];
   }
@@ -279,14 +278,11 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency.getSecuritycurrency());
   }
 
-
   protected getId(entity: Historyquote): number {
     return entity.idHistoryQuote;
   }
 
   protected beforeDelete(entity: Historyquote): Historyquote {
-    // const historyquote = new Historyquote();
-    // return Object.assign(historyquote, entity);
     return plainToClass(Historyquote, entity);
   }
 
@@ -333,7 +329,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
       this.nameSecuritycurrency.getSecuritycurrency());
   }
 
-
   /**
    * The deletion of a history quote depends on the right on the security or currency
    */
@@ -341,7 +336,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
       this.nameSecuritycurrency.getSecuritycurrency());
   }
-
 
   uploadImportQuotes(): void {
     this.fileUploadParam = new FileUploadParam(HelpIds.HELP_WATCHLIST_HISTORYQUOTES,
@@ -355,7 +349,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   handleCloseDialog(processedActionData: ProcessedActionData): void {
     super.handleCloseDialog(processedActionData);
   }
-
 
   handleCloseDialogAndRead(processedActionData: ProcessedActionData): void {
     this.visibleUploadFileDialog = false;
@@ -396,7 +389,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     }
     this.activePanelService.activatePanel(this, {editMenu: this.contextMenuItems});
   }
-
 
   getDateByFormat(date: string): string {
     return AppHelper.getDateByFormat(this.gps, date);
