@@ -27,7 +27,6 @@ export abstract class BaseService {
     return new HttpHeaders(header);
   }
 
-
   protected addToken(header) {
     if (sessionStorage.getItem('jwt')) {
       header['x-auth-token'] = sessionStorage.getItem('jwt');

@@ -71,15 +71,20 @@ public abstract class DataHelper {
    * @throws InvocationTargetException
    * @throws NoSuchMethodException
    */
-  public static void setEmptyStringToNull(Object object)
+  public static void setEmptyStringToNullOrRemoveTraillingSpaces(Object object)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 
     PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(object);
     for (PropertyDescriptor property : propertyDescriptors) {
       if (property.getPropertyType() == String.class) {
-        Object sourceValue = PropertyUtils.getProperty(object, property.getName());
-        if (sourceValue != null && ((String) sourceValue).trim().isEmpty()) {
-          PropertyUtils.setProperty(object, property.getName(), null);
+        String valueStr = (String) PropertyUtils.getProperty(object, property.getName());
+        if (valueStr != null) {
+          valueStr = valueStr.trim();
+          if (valueStr.isEmpty()) {
+            PropertyUtils.setProperty(object, property.getName(), null);
+          } else {
+            PropertyUtils.setProperty(object, property.getName(), valueStr);
+          }
         }
       }
     }

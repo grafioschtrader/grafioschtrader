@@ -114,7 +114,6 @@ public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> 
     case EMA:
       ShortMediumLongInputPeriod shortMediumLongInputPeriod = jacksonObjectMapper.readValue(dynamicModel,
           ShortMediumLongInputPeriod.class);
-
       taTraceIndicatorData = historyquoteJpaRepository.getTaWithShortMediumLongInputPeriod(idSecuritycurrency,
           taIndicator, shortMediumLongInputPeriod);
       break;
