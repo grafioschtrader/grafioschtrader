@@ -10,12 +10,11 @@ import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
 import {TranslateHelper} from '../helper/translate.helper';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../helper/select.options.helper';
-import {Observable, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
 import {UserSettingsService} from '../service/user.settings.service';
 import {AppSettings} from '../app.settings';
-import {HelpIds} from '../help/help.ids';
 import {FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess} from './model/file.upload.param';
 
 /**
@@ -27,7 +26,8 @@ import {FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess} from '.
     <p-dialog header="{{fileUploadParam.title | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
                     (submit)="submit($event)">
       </dynamic-form>
     </p-dialog>`
@@ -54,6 +54,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     this.helpId = this.fileUploadParam.helpId;
 
     this.config = [
+      ...this.fileUploadParam.additionalFieldConfig ? this.fileUploadParam.additionalFieldConfig.fieldConfig : [],
       ...this.getCSVFormatsFields(),
       DynamicFieldHelper.createFileUpload(this.fileUploadParam.multiple ? DataType.Files : DataType.File, 'fileToUpload',
         this.fileUploadParam.multiple ? 'FILES' : 'FILE', this.fileUploadParam.acceptFileType, true),
@@ -80,6 +81,9 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       this.userSettingsService.saveObject(AppSettings.HIST_SUPPORTED_CSV_FORMAT, supportedCSVFormat);
       Object.keys(supportedCSVFormat).forEach(e => formData.append(e, supportedCSVFormat[e]));
     }
+
+    this.fileUploadParam.additionalFieldConfig && this.fileUploadParam.additionalFieldConfig.submitPrepareFN(value, formData,
+      this.fileUploadParam.additionalFieldConfig.fieldConfig);
 
     this.fileUploadParam.uploadService.uploadFiles(this.fileUploadParam.entityId, formData).subscribe(
       response => {
@@ -110,7 +114,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     if (this.fileUploadParam.supportedCSVFormats) {
       this.configObject.decimalSeparator.valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.decimalSeparators);
-     this.configObject.dateFormat.valueKeyHtmlOptions =
+      this.configObject.dateFormat.valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.dateFormats);
 
       const supportedCSVFormat: SupportedCSVFormat = this.userSettingsService.retrieveObject(this.fileUploadParam.persistenceCSVKey);

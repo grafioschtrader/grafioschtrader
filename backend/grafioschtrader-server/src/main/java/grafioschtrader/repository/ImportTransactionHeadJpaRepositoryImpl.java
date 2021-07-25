@@ -77,7 +77,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       ImportTransactionHead importTransactionHead = new ImportTransactionHead(user.getIdTenant(), securityaccount,
           LocalDateTime.now().toString(), "Computer generated");
       importTransactionHead = importTransactionHeadJpaRepository.save(importTransactionHead);
-      this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles);
+      this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles, null);
 
       List<ImportTransactionPos> importTransactionPosList = importTransactionPosJpaRepository
           .findByIdTransactionHeadAndIdTenant(importTransactionHead.getIdTransactionHead(), user.getIdTenant());
@@ -111,12 +111,13 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   }
 
   @Override
-  public void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles)
+  public void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles,
+      Integer idTransactionImportTemplate)
       throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository.getById(idTransactionHead);
     if (user.getIdTenant().equals(importTransactionHead.getIdTenant())) {
-      this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles);
+      this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles, idTransactionImportTemplate);
     } else {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
@@ -124,7 +125,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   }
 
   private void getTemplateReadFilesAndSaveAsImport(ImportTransactionHead importTransactionHead,
-      MultipartFile[] uploadFiles) throws Exception {
+      MultipartFile[] uploadFiles, Integer idTransactionImportTemplate) throws Exception {
     SingleMultiTemplateFormatType singleMultiTemplateFormatType = getTemplateFormatTypeOfUpload(uploadFiles);
 
     if (singleMultiTemplateFormatType != null) {
@@ -143,12 +144,12 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
       if (pti.isPresent()) {
         readUploadedFilesAndSaveAsImport(importTransactionHead, importTransactionTemplateList, pti.get(), uploadFiles,
-            singleMultiTemplateFormatType);
+            singleMultiTemplateFormatType, idTransactionImportTemplate);
       } else {
         // Use Generic
         IPlatformTransactionImport ptiGeneric = new GenericTransactionImport();
         readUploadedFilesAndSaveAsImport(importTransactionHead, importTransactionTemplateList, ptiGeneric, uploadFiles,
-            singleMultiTemplateFormatType);
+            singleMultiTemplateFormatType, idTransactionImportTemplate);
       }
     }
   }
@@ -158,7 +159,6 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       String ending = uploadFiles[0].getOriginalFilename().toLowerCase();
       if (ending.endsWith(ImportTransactionHelper.CSV_FILE_NAME_ENDING)) {
         return new SingleMultiTemplateFormatType(TemplateFormatType.CSV, uploadFiles.length == 1, false);
-
       } else if (ending.endsWith(ImportTransactionHelper.TXT_FILE_NAME_ENDING)
           || ending.endsWith(ImportTransactionHelper.PDF_FILE_NAME_ENDING)) {
         return new SingleMultiTemplateFormatType(TemplateFormatType.PDF, uploadFiles.length == 1,
@@ -170,7 +170,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
   private void readUploadedFilesAndSaveAsImport(ImportTransactionHead importTransactionHead,
       List<ImportTransactionTemplate> importTransactionTemplateList, IPlatformTransactionImport pti,
-      MultipartFile[] uploadFiles, SingleMultiTemplateFormatType singleMultiTemplateFormatType) throws Exception {
+      MultipartFile[] uploadFiles, SingleMultiTemplateFormatType singleMultiTemplateFormatType, Integer idTransactionImportTemplate) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     if (singleMultiTemplateFormatType.singleFile) {
       if (singleMultiTemplateFormatType.gtTransformed) {
@@ -182,7 +182,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
         // Import a csv file with many transaction
         pti.importCSV(importTransactionHead, uploadFiles[0], importTransactionTemplateList,
             importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository,
-            user.createAndGetJavaLocale());
+            user.createAndGetJavaLocale(), idTransactionImportTemplate);
       } else {
         // import single pdf
         pti.importSinglePdfAsPdf(importTransactionHead, uploadFiles[0], importTransactionTemplateList,

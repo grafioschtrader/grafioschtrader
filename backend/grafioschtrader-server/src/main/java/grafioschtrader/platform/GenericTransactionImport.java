@@ -54,11 +54,11 @@ public class GenericTransactionImport extends BaseTransactionImport implements I
   public void importCSV(ImportTransactionHead importTransactionHead, MultipartFile uploadFile,
       List<ImportTransactionTemplate> importTransactionTemplateList,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
-      throws IOException {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale,
+      Integer idTransactionImportTemplate) throws IOException {
     GenericTransactionImportCSV gti = getCSVImporter(importTransactionHead, uploadFile, importTransactionTemplateList);
     gti.importCSV(importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository,
-        userLocale);
+        userLocale, idTransactionImportTemplate);
 
   }
 

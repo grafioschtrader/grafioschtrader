@@ -616,7 +616,7 @@
   "UPLOAD_HISTORYQUOTE_SUCCESS": "Erfolgreich importiert: {{success}}<br>Nicht überschrieben: {{notOverridden}}<br>Ungültige Werte: {{validationErrors}}<br>Doppelte in Importdatei: {{duplicatedInImport}}<br>Ausserhalb der Datumsgrenzen: {{outOfDateRange}}",
   "UPLOAD_TEMPLATES_SUCCESS": "Erfolgreich erstellt: {{successNew}}<br>Erfolgreich aktualisiert: {{successUpdated}}<br>Nicht Besitzer daher Speicherung: {{notOwner}}<br>Fehler in Dateinamen: {{fileNameError}}<br>Fehler im Inhalt: {{contentError}}",
   "UPLOAD_PDFS": "Hochladen PDF Dateien",
-  "UPLOAD_TXT_FROM_GT_TRANSFROM": "Hochladen von GT Transform",
+  "UPLOAD_TXT_FROM_GT_TRANSFORM": "Hochladen von GT Transform",
   "URL_DIVIDEND_EXTEND": "URL-Erweiterung Dividenden Daten",
   "URL_HISTORY_EXTEND": "URL-Erweiterung historische Daten",
   "URL_INTRA_EXTEND": "URL-Erweiterung Innertag Daten",

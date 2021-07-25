@@ -47,7 +47,6 @@ import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
 import grafioschtrader.rest.helper.RestHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
-import grafioschtrader.types.TransactionType;
 
 public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionPosJpaRepositoryCustom {
 

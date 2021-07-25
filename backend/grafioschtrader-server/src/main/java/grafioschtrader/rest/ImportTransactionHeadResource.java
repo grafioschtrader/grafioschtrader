@@ -67,8 +67,10 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
       RequestMappings.IMPORTTRANSACTIONHEAD })
   @PostMapping(value = "/{idTransactionHead}/uploadtransaction", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> uploadCsvFileSecurityAccountTransactions(@PathVariable() Integer idTransactionHead,
-      @RequestParam("file") MultipartFile[] uploadFiles) throws Exception {
-    importTransactionHeadJpaRepository.uploadCsvPdfTxtFileSecurityAccountTransactions(idTransactionHead, uploadFiles);
+      @RequestParam("file") MultipartFile[] uploadFiles,
+      @RequestParam(required = false) Integer idTransactionImportTemplate) throws Exception {
+    importTransactionHeadJpaRepository.uploadCsvPdfTxtFileSecurityAccountTransactions(idTransactionHead, uploadFiles,
+        idTransactionImportTemplate);
     return ResponseEntity.noContent().build();
   }
 

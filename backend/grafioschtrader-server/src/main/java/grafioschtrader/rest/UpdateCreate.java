@@ -2,7 +2,6 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
@@ -13,7 +12,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.validation.Valid;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +42,6 @@ import grafioschtrader.entities.UserEntityChangeLimit;
 import grafioschtrader.entities.projection.UserCountLimit;
 import grafioschtrader.error.LimitEntityTransactionError;
 import grafioschtrader.exceptions.LimitEntityTransactionException;
-import grafioschtrader.reportviews.performance.PeriodHoldingAndDiff;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.ProposeChangeEntityJpaRepository;
 import grafioschtrader.repository.ProposeChangeFieldJpaRepository;
