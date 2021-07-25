@@ -38,13 +38,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class SecurityaccountResource extends UpdateCreateResource<Securityaccount> {
 
   @Autowired
-  SecurityaccountJpaRepository securityaccountJpaRepository;
+  private SecurityaccountJpaRepository securityaccountJpaRepository;
 
   @Autowired
-  SecurityPositionByCurrencyGrandSummaryReport securityPositionGrandSummaryReport;
+  private SecurityPositionByCurrencyGrandSummaryReport securityPositionGrandSummaryReport;
 
   @Autowired
-  SecurityGroupByAssetclassWithCashReport securityGroupByAssetclassWithCashReport;
+  private SecurityGroupByAssetclassWithCashReport securityGroupByAssetclassWithCashReport;
 
   @Autowired
   private AutowireCapableBeanFactory beanFactory;

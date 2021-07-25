@@ -1,8 +1,10 @@
 package grafioschtrader.platformimport.csv;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,9 +36,8 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
    */
   private static final String CONF_BOND_FIELD_INDICATOR = "bond";
 
-  
   private static final String CONF_IGNORE_LINE_BY_FIELD_VALUE = "ignoreLineByFieldValue";
-  
+
   /**
    * Contains the header to property mapping of a template
    */
@@ -45,7 +46,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
    * Contains the csv column number to property mapping. It starts with 0.
    */
   private Map<Integer, String> columnPropertyMapping;
-  
+
   /**
    * Contains the internal property name to column mapping. It starts with 0.
    */
@@ -56,9 +57,12 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   private String bondProperty;
   private String bondIndicator;
   private boolean orderSupport;
+  private List<TemplateIdPurposeCsv> templateIdPurposeCsvList;
 
-  public TemplateConfigurationAndStateCsv(ImportTransactionTemplate importTransactionTemplate, Locale userLocale) {
+  public TemplateConfigurationAndStateCsv(ImportTransactionTemplate importTransactionTemplate, Locale userLocale,
+      List<TemplateIdPurposeCsv> templateIdPurposeCsvList) {
     super(importTransactionTemplate, userLocale);
+    this.templateIdPurposeCsvList = templateIdPurposeCsvList;
   }
 
   @Override
@@ -115,13 +119,24 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   protected void validateTemplate(final DataViolationException dataViolationException) {
     if (delimiterField == null) {
       dataViolationException.addDataViolation(CONF_DELIMITER_FIELD, "gt.imptemplate.missing.delimiter", null, false);
-    } 
+    }
     if (templateId == null) {
-      dataViolationException.addDataViolation(CONF_TEMPLATE_ID, "gtimptemplate.missing.csv.id", null, false);
-    } 
+      dataViolationException.addDataViolation(CONF_TEMPLATE_ID, "gt.imptemplate.missing.csv.id", null, false);
+    } else {
+      Optional<TemplateIdPurposeCsv> templateIdPurposeCsvOpt = templateIdPurposeCsvList.stream()
+          .filter(tp -> tp.getTemplateId().equals(templateId)
+              && (importTransactionTemplate.getIdTransactionImportTemplate() == null || !importTransactionTemplate
+                  .getIdTransactionImportTemplate().equals(tp.getIdTransactionImportTemplate())))
+          .findFirst();
+      if(templateIdPurposeCsvOpt.isPresent()) {
+        dataViolationException.addDataViolation(CONF_TEMPLATE_ID, "gt.imptemplate.notunique.csv.id",
+            templateIdPurposeCsvOpt.get().getTemplatePurpose(), false);
+      }
+    }
+
     super.validateTemplate(dataViolationException);
   }
-  
+
   public boolean isOrderSupport() {
     return orderSupport;
   }
@@ -149,6 +164,5 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   public Map<String, Integer> getPropertyColumnMapping() {
     return propertyColumnMapping;
   }
-    
 
 }

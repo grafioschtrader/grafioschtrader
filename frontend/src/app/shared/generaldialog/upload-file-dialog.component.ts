@@ -110,10 +110,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     if (this.fileUploadParam.supportedCSVFormats) {
       this.configObject.decimalSeparator.valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.decimalSeparators);
-
-      // SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.thousandSeparators);
-
-      this.configObject.dateFormat.valueKeyHtmlOptions =
+     this.configObject.dateFormat.valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.dateFormats);
 
       const supportedCSVFormat: SupportedCSVFormat = this.userSettingsService.retrieveObject(this.fileUploadParam.persistenceCSVKey);

@@ -77,10 +77,16 @@ public abstract class TemplateConfiguration {
     this.userLocale = userLocale;
   }
 
-  public void parseTemplate(boolean forSaving) {
-
+  public void parseTemplateAndThrowError(boolean forSaving) {
+    final DataViolationException dataViolationException = parseTemplat(forSaving);
+    if (dataViolationException.hasErrors()) {
+      throw dataViolationException;
+    }
+  }
+  
+  
+  protected DataViolationException parseTemplat(boolean forSaving) {
     final DataViolationException dataViolationException = new DataViolationException();
-
     template = importTransactionTemplate.getTemplateAsTxt().replaceAll("(?m)^\\s*$[\n\r]{1,}", "")
         .replaceAll("\r\n|\r|\n", System.lineSeparator()).replaceAll(" +", " ").trim();
     String[] templateLines = template.split(System.lineSeparator());
@@ -93,11 +99,9 @@ public abstract class TemplateConfiguration {
     if (forSaving) {
       validateTemplate(dataViolationException);
     }
-
-    if (dataViolationException.hasErrors()) {
-      throw dataViolationException;
-    }
+    return dataViolationException;
   }
+  
 
   /**
    * Reads the END section.

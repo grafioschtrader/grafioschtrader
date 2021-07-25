@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +42,7 @@ import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.platformimport.ParsedTemplateState;
 import grafioschtrader.platformimport.TemplateConfiguration;
 import grafioschtrader.platformimport.csv.TemplateConfigurationAndStateCsv;
+import grafioschtrader.platformimport.csv.TemplateIdPurposeCsv;
 import grafioschtrader.platformimport.pdf.ImportTransactionHelperPdf;
 import grafioschtrader.platformimport.pdf.ParseFormInputPDFasTXT;
 import grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT;
@@ -69,9 +71,12 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
     if (importTransactionTemplate.getTemplateFormatType() == TemplateFormatType.PDF) {
       importTemplate = new TemplateConfigurationPDFasTXT(importTransactionTemplate, user.createAndGetJavaLocale());
     } else {
-      importTemplate = new TemplateConfigurationAndStateCsv(importTransactionTemplate, user.createAndGetJavaLocale());
+      List<TemplateIdPurposeCsv> templateIdPurposeCsvList = importTransactionTemplateJpaRepository
+          .getTemplateIdPurposeCsv(importTransactionTemplate.getIdTransactionImportPlatform());
+      importTemplate = new TemplateConfigurationAndStateCsv(importTransactionTemplate, user.createAndGetJavaLocale(),
+          templateIdPurposeCsvList);
     }
-    importTemplate.parseTemplate(true);
+    importTemplate.parseTemplateAndThrowError(true);
 
     return importTransactionTemplateJpaRepository.save(importTransactionTemplate);
   }
@@ -114,6 +119,17 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
     return Arrays.stream(Locale.getAvailableLocales()).filter(DataHelper.distinctByKey(Locale::getLanguage))
         .map(loc -> new ValueKeyHtmlSelectOptions(loc.getLanguage(), loc.getDisplayLanguage(userLocale)))
         .sorted((x, y) -> x.value.compareTo(y.value)).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<ValueKeyHtmlSelectOptions> getCSVTemplateIdsAsValueKeyHtmlSelectOptions(
+      Integer idTransactionImportPlatform) {
+    List<TemplateIdPurposeCsv> tpcList = importTransactionTemplateJpaRepository
+        .getTemplateIdPurposeCsv(idTransactionImportPlatform);
+    List<ValueKeyHtmlSelectOptions> vkhsoList = new ArrayList<>();
+    tpcList.forEach(tpc -> vkhsoList.add(new ValueKeyHtmlSelectOptions(tpc.getIdTransactionImportTemplate().toString(),
+        tpc.getTemplateId() + " - " + tpc.getTemplatePurpose())));
+    return vkhsoList;
   }
 
   @Override
