@@ -20,8 +20,8 @@ public interface IPlatformTransactionImport {
   void importCSV(ImportTransactionHead importTransactionHead, MultipartFile uploadFile,
       List<ImportTransactionTemplate> importTransactionTemplateList,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
-      throws Exception;
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale,
+      Integer idTransactionImportTemplate) throws Exception;
 
   void importSinglePdfAsPdf(ImportTransactionHead importTransactionHead, MultipartFile uploadFile,
       List<ImportTransactionTemplate> importTransactionTemplateList,

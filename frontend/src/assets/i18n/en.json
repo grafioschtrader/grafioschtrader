@@ -615,7 +615,7 @@
   "UPLOAD_HISTORYQUOTE_SUCCESS": "Successfully imported: {{success}}<br>Not overwritten: {{notOverridden}}<br>UInvalid values: {{validationErrors}}<br>Duplicates in import file: {{duplicatedInImport}}<br>Outside the date boundaries: {{outOfDateRange}}",
   "UPLOAD_TEMPLATES_SUCCESS": "Successfully created: {{successNew}}<br>Successfully updated: {{successUpdated}}<br>Not saved because not owner: {{notOwner}}<br>Error in Filename: {{fileNameError}}<br>Content error: {{contentError}}",
   "UPLOAD_PDFS": "Upload PDF files",
-  "UPLOAD_TXT_FROM_GT_TRANSFROM": "Upload from GT Transform",
+  "UPLOAD_TXT_FROM_GT_TRANSFORM": "Upload from GT Transform",
   "URL_DIVIDEND_EXTEND": "URL extension dividends data",
   "URL_HISTORY_EXTEND": "URL extension historical data",
   "URL_INTRA_EXTEND": "URL extension intraday data",

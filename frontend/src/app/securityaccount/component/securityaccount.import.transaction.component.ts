@@ -28,7 +28,8 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {FileUploadParam} from '../../shared/generaldialog/model/file.upload.param';
+import {AdditionalFieldConfig, FileUploadParam} from '../../shared/generaldialog/model/file.upload.param';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
 
 
 /**
@@ -154,18 +155,18 @@ export class SecurityaccountImportTransactionComponent
     menuItems.push({
       label: 'UPLOAD_CSV' + AppSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntity,
-      command: (event) => this.handleUploadFiles(this.selectedEntity, 'UPLOAD_CSV', 'csv', false)
+      command: (event) => this.handleUploadCSVFile()
     });
     menuItems.push({
       label: 'UPLOAD_PDFS' + AppSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntity,
-      command: (event) => this.handleUploadFiles(this.selectedEntity, 'UPLOAD_PDFs', 'pdf', true)
+      command: (event) => this.handleUploadFiles(null, this.selectedEntity, 'UPLOAD_PDFs', 'pdf', true)
     });
 
     menuItems.push({
-      label: 'UPLOAD_TXT_FROM_GT_TRANSFROM' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'UPLOAD_TXT_FROM_GT_TRANSFORM' + AppSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntity,
-      command: (event) => this.handleUploadFiles(this.selectedEntity, 'UPLOAD_TXT_FROM_GT_TRANSFROM', 'txt', false)
+      command: (event) => this.handleUploadFiles(null, this.selectedEntity, 'UPLOAD_TXT_FROM_GT_TRANSFORM', 'txt', false)
     });
 
     // Add menu items of child data table
@@ -180,12 +181,31 @@ export class SecurityaccountImportTransactionComponent
     this.refreshMenus();
   }
 
-  handleUploadFiles(importTransactionHead: ImportTransactionHead, titleUpload: string, acceptFileType: string, multiple: boolean) {
+  handleUploadCSVFile(): void {
+    this.importTransactionTemplateService.getCSVTemplateIdsAsValueKeyHtmlSelectOptions(
+      this.securityAccount.tradingPlatformPlan.importTransactionPlatform.idTransactionImportPlatform).subscribe(vkhso => {
+      const fieldConfig = [DynamicFieldHelper.createFieldSelectString('idTransactionImportTemplate',
+        'IMPORTTRANSACTIONTEMPLATE', true,{disabled: vkhso.length < 2})];
+      if (vkhso.length === 1) {
+        fieldConfig[0].defaultValue = vkhso[0].key;
+      }
+      fieldConfig[0].valueKeyHtmlOptions = vkhso;
+      this.handleUploadFiles(new AdditionalFieldConfig(fieldConfig, this.submitPrepareFN.bind(this)), this.selectedEntity, 'UPLOAD_CSV', 'csv', false);
+    });
+  }
+
+  handleUploadFiles(additionalFieldConfig: AdditionalFieldConfig, importTransactionHead: ImportTransactionHead,
+                    titleUpload: string, acceptFileType: string, multiple: boolean): void {
     this.fileUploadParam = new FileUploadParam(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
-      acceptFileType, titleUpload, multiple, this.importTransactionHeadService,
+      additionalFieldConfig, acceptFileType, titleUpload, multiple, this.importTransactionHeadService,
       importTransactionHead.idTransactionHead);
     this.visibleUploadFileDialog = true;
   }
+
+  submitPrepareFN(value: { [name: string]: any }, formData: FormData, fieldConfig: FieldConfig[]): void {
+    formData.append(fieldConfig[0].field, fieldConfig[0].formControl.value);
+  }
+
 
   handleCloseImportUploadDialog(processedActionData: ProcessedActionData): void {
     this.visibleUploadFileDialog = false;

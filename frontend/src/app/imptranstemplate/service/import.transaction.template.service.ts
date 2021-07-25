@@ -36,6 +36,13 @@ export class ImportTransactionTemplateService extends AuthServiceWithLogout<Impo
       this.getOptionsWithExcludeTemplate(excludeTemplate)).pipe(catchError(this.handleError.bind(this)));
   }
 
+  getCSVTemplateIdsAsValueKeyHtmlSelectOptions(idTradingPlatformPlan: number): Observable<ValueKeyHtmlSelectOptions[]> {
+    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/${AppSettings.IMP_TRANS_PLATFORM_KEY}/`
+      + `${AppSettings.TRADING_PLATFORM_PLAN_KEY}/csv/${idTradingPlatformPlan}`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   getPossibleLanguagesForTemplate(): Observable<ValueKeyHtmlSelectOptions[]> {
     return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/languages`,

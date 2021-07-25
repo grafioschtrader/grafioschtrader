@@ -37,7 +37,6 @@ import grafioschtrader.repository.ImportTransactionPosFailedJpaRepository;
 import grafioschtrader.repository.ImportTransactionPosJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
-
 /**
  * Import a single csv file, which can produce one or more import transactions.
  *
@@ -61,18 +60,19 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
 
   public void importCSV(ImportTransactionPosJpaRepository importTransactionPosJpaRepository,
       SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale)
-      throws IOException {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository, Locale userLocale,
+      Integer templateId) throws IOException {
 
     Map<TemplateConfigurationAndStateCsv, ImportTransactionTemplate> templateScannedMap = ImportTransactionHelperCsv
         .readTemplates(importTransactionTemplateList, userLocale);
     parseCsv(templateScannedMap, importTransactionPosJpaRepository, securityJpaRepository,
-        importTransactionPosFailedJpaRepository);
+        importTransactionPosFailedJpaRepository, templateId);
   }
 
   private void parseCsv(Map<TemplateConfigurationAndStateCsv, ImportTransactionTemplate> templateScannedMap,
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository, SecurityJpaRepository securityJpaRepository,
-      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository) throws IOException {
+      ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository,
+      Integer idTransactionImportTemplate) throws IOException {
 
     if (!uploadFile.isEmpty()) {
       List<Cashaccount> cashaccountList = importTransactionHead.getSecurityaccount().getPortfolio()
@@ -82,7 +82,6 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       ValueFormatConverter valueFormatConverter = null;
       List<ImportProperties> importPropertiesDuringDay = new ArrayList<>();
       int lineCounter = 0;
-      int templateId = -1;
 
       try (InputStream is = uploadFile.getInputStream();
           BufferedReader reader = new BufferedReader(new InputStreamReader(is, encoding))) {
@@ -91,17 +90,11 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
           lineCounter++;
           switch (lineCounter) {
           case 1:
-            String templateIdStr = line.replaceFirst("(\\d+).+", "$1").replaceAll("\\uFEFF", "");
-            templateId = Integer.parseInt(templateIdStr);
-            break;
-          case 2:
             // Header line
-            template = checkAndGetTemplate(templateScannedMap, line, templateId);
-
+            template = checkAndGetTemplate(templateScannedMap, line.replaceAll("\\uFEFF", ""), idTransactionImportTemplate);
             valueFormatConverter = new ValueFormatConverter(template.getDateFormat(), template.getTimeFormat(),
                 template.getThousandSeparators(), template.getThousandSeparatorsPattern(),
                 template.getDecimalSeparator(), template.getLocale());
-
             break;
           default:
             parseSingleDataLine(templateScannedMap, template, line, lineCounter, valueFormatConverter,
@@ -116,7 +109,6 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
             importTransactionPosJpaRepository);
       }
     }
-
   }
 
   protected void parseSingleDataLine(
@@ -168,15 +160,15 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
     }
     return false;
   }
-  
+
   private void detectEncodingOfFile() {
     try {
       encoding = UniversalDetector.detectCharset(uploadFile.getInputStream());
-      log.info("Encoding for file {} was detected as {}",  uploadFile.getOriginalFilename(), encoding);
+      log.info("Encoding for file {} was detected as {}", uploadFile.getOriginalFilename(), encoding);
     } catch (IOException e) {
       log.error("Encoding of file {} could not detected", uploadFile.getOriginalFilename());
     }
-    if(encoding == null) {
+    if (encoding == null) {
       encoding = StandardCharsets.UTF_8.toString();
     }
   }
@@ -247,8 +239,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       ImportTransactionTemplate importTransactionTemplate, SecurityJpaRepository securityJpaRepository,
       List<Cashaccount> cashaccountList, ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
 
-    checkAndSaveSuccessImportTransaction(importTransactionTemplate, cashaccountList, importPropertiesList,
-        fileName, importTransactionPosJpaRepository, securityJpaRepository);
+    checkAndSaveSuccessImportTransaction(importTransactionTemplate, cashaccountList, importPropertiesList, fileName,
+        importTransactionPosJpaRepository, securityJpaRepository);
 
   }
 
@@ -272,9 +264,11 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
 
   private TemplateConfigurationAndStateCsv checkAndGetTemplate(
       Map<TemplateConfigurationAndStateCsv, ImportTransactionTemplate> templateScannedMap, String headerLine,
-      int requiredTempalteId) {
-    Optional<TemplateConfigurationAndStateCsv> templateOpt = templateScannedMap.keySet().stream()
-        .filter(itt -> itt.getTemplateId() == requiredTempalteId).findFirst();
+      int requiredIdTransactionImportTemplate) {
+    Optional<TemplateConfigurationAndStateCsv> templateOpt = templateScannedMap.entrySet().stream()
+        .filter(e -> templateScannedMap.get(e.getKey()).getIdTransactionImportTemplate()
+            .equals(requiredIdTransactionImportTemplate))
+        .findFirst().map(e -> e.getKey());
     if (templateOpt.isPresent()) {
       if (!templateOpt.get().isValidTemplateForForm(headerLine)) {
         // Template does not have required columns
@@ -282,7 +276,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       }
     } else {
       // Template with id not found
-      throw new GeneralNotTranslatedWithArgumentsException("gt.import.csv.id", new Object[] { requiredTempalteId });
+      throw new GeneralNotTranslatedWithArgumentsException("gt.import.csv.id",
+          new Object[] { requiredIdTransactionImportTemplate });
     }
     return templateOpt.get();
   }

@@ -15,8 +15,8 @@ public interface ImportTransactionHeadJpaRepositoryCustom extends BaseRepository
    * @param uploadFiles
    * @throws Exception
    */
-  void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles)
-      throws Exception;
+  void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles,
+      Integer idTransactionImportTemplate) throws Exception;
 
   /**
    * Upload one or more PDF/CSV/Txt files, each for a single transaction.

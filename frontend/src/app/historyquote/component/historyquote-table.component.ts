@@ -338,7 +338,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   }
 
   uploadImportQuotes(): void {
-    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_WATCHLIST_HISTORYQUOTES,
+    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, null,
       'csv', 'IMPORT_QUOTES', false, this.historyquoteService,
       this.nameSecuritycurrency.getSecuritycurrency().idSecuritycurrency, this.historyquotesWithMissings.supportedCSVFormats,
       AppSettings.HIST_SUPPORTED_CSV_FORMAT);

@@ -32,7 +32,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class HistoryquotePeriodResource {
 
   @Autowired
-  HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
+  private HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
 
   @Operation(summary = "Returns historyquote peroid for a spezified security", description = "", tags = {
       RequestMappings.HISTORYQUOTE_PERIOD })

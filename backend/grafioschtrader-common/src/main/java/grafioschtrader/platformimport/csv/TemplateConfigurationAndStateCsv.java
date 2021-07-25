@@ -104,7 +104,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
     columnPropertyMapping = new HashMap<>();
     propertyColumnMapping = new HashMap<>();
     for (int i = 0; i < headerFields.length; i++) {
-      String property = columnHeaderNamePropertyMap.get(headerFields[i]);
+      String property = columnHeaderNamePropertyMap.get(headerFields[i].strip());
       if (property != null) {
         columnPropertyMapping.put(i, property);
         propertyColumnMapping.put(property, i);
