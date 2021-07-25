@@ -60,9 +60,18 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
       @Parameter(description = "true when a empty template is requried", required = true) @RequestParam() final boolean excludeTemplate) {
     TradingPlatformPlan tradingPlatformPlan = tradingPlatformPlanJpaRepository.findById(idTradingPlatformPlan)
         .orElse(null);
-
     return getImportTransactionPlatformById(
         tradingPlatformPlan.getImportTransactionPlatform().getIdTransactionImportPlatform(), excludeTemplate);
+  }
+
+  @Operation(summary = "Return all CSV of certain trading platform plan with its templateId", description = "Can be used as options for a html select", tags = {
+      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+  @GetMapping(value = "/importtransactionplatform/tradingplatformplan/csv/{idTradingPlatformPlan}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCSVTemplateIdsAsValueKeyHtmlSelectOptions(
+      @Parameter(description = "Id of trading platform plan", required = true) @PathVariable final Integer idTradingPlatformPlan) {
+    return new ResponseEntity<>(
+        importTransactionTemplateJpaRepository.getCSVTemplateIdsAsValueKeyHtmlSelectOptions(idTradingPlatformPlan),
+        HttpStatus.OK);
   }
 
   private ResponseEntity<List<ImportTransactionTemplate>> getImportTransactionPlatformById(

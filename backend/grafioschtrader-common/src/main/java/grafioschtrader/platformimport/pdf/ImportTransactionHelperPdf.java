@@ -43,7 +43,7 @@ public abstract class ImportTransactionHelperPdf {
     for (ImportTransactionTemplate itt : importTransactionTemplateList) {
       TemplateConfigurationPDFasTXT templateConfigurationPDFasTXT = new TemplateConfigurationPDFasTXT(itt, userLocale);
       templateScannedMap.put(templateConfigurationPDFasTXT, itt);
-      templateConfigurationPDFasTXT.parseTemplate(false);
+      templateConfigurationPDFasTXT.parseTemplateAndThrowError(false);
     }
 
     return templateScannedMap;
