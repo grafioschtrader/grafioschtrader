@@ -32,6 +32,7 @@ export class ImportTransactionPos implements BaseID {
   idTransaction: number;
   idTransactionMaybe: number;
   transactionError: string;
+  fileType: string;
 
   public getId(): number {
     return this.idTransactionPos;

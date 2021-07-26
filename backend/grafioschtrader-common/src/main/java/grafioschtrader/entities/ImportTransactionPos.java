@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.platformimport.ImportProperties;
+import grafioschtrader.platformimport.ImportTransactionHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 import grafioschtrader.validation.ValidISIN;
@@ -45,6 +46,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class ImportTransactionPos extends TenantBaseID implements Comparable<ImportTransactionPos> {
 
   public static final String TABNAME = "imp_trans_pos";
+
+  private static final String CSV_FILE = "C";
+  private static final String PDF_FILE = "P";
+  private static final String PDF_TEXT_FILE = "T";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -413,10 +418,10 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     return accruedInterest;
   }
 
-  public void setAccruedInterest(Double accruedInterest) {
-    this.accruedInterest = accruedInterest;
-    if (this.accruedInterest != null) {
-      this.accruedInterest = Math.abs(this.accruedInterest);
+  public void setAccruedInterest(Double accruedInterest, boolean add) {
+    if (accruedInterest != null) {
+      accruedInterest = Math.abs(accruedInterest);
+      this.accruedInterest = add? this.accruedInterest + accruedInterest: accruedInterest;
     }
   }
 
@@ -549,6 +554,11 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
             : (transactionCost != null) ? transactionCost : 0;
   }
 
+  public String getFileType() {
+    return ImportTransactionHelper.isCsvEnding(fileNameOriginal) ? CSV_FILE
+        : ImportTransactionHelper.isPdfEnding(fileNameOriginal) && idFilePart == null ? PDF_FILE : PDF_TEXT_FILE;
+  }
+
   public static ImportTransactionPos createFromImportPropertiesSuccess(Integer idTenant, String fileNameOriginal,
       Integer idTransactionHead, Integer idTransactionImportTemplate, ImportProperties importProperties) {
     ImportTransactionPos importTransactionPos = new ImportTransactionPos(idTenant, fileNameOriginal, idTransactionHead,
@@ -583,7 +593,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         importTransactionPos.setCurrencySecurity(ip.getCin());
         importTransactionPos.setIsin(ip.getIsin());
         importTransactionPos.setSymbolImp(ip.getSymbol());
-        importTransactionPos.setAccruedInterest(ip.getAc());
+        importTransactionPos.setAccruedInterest(ip.getAc(), false);
         importTransactionPos.setCurrencyCost(ip.getCct());
         importTransactionPos.setSecurityNameImp(ip.getSn());
         percentage = ip.isPercentage();
@@ -595,13 +605,12 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         units += transUnits;
         posTotal += transUnits * ip.getQuotation();
         if (i > 0) {
-          /*
-           * if (ip.getTa() != null) {
-           * importTransactionPos.setCashaccountAmount(importTransactionPos.
-           * getCashaccountAmount() + ip.getTa()); }
-           */
+          if (ip.getTa() != null && importTransactionPos.getFileType().equals(CSV_FILE)) {
+            importTransactionPos.setCashaccountAmount(importTransactionPos.getCashaccountAmount() + ip.getTa());
+          }
           importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), true);
           importTransactionPos.setTaxCost(ip.getTt1(), ip.getTt2(), true);
+          importTransactionPos.setAccruedInterest(ip.getAc(), true);
         }
       }
     }
