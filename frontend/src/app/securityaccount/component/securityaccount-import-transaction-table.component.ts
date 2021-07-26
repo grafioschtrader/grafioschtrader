@@ -408,10 +408,8 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   getFileTypeIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
                   valueField: any): string {
-    return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.fileType];
+    return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.importTransactionPos.fileType];
   }
-
-
 
   getMayBeHasTransactionIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
                              valueField: any): string {

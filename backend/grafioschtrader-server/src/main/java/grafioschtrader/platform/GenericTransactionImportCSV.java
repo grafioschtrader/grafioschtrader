@@ -238,10 +238,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
   private void createImportTransactionPosByOrder(List<ImportProperties> importPropertiesList, String fileName,
       ImportTransactionTemplate importTransactionTemplate, SecurityJpaRepository securityJpaRepository,
       List<Cashaccount> cashaccountList, ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
-
     checkAndSaveSuccessImportTransaction(importTransactionTemplate, cashaccountList, importPropertiesList, fileName,
         importTransactionPosJpaRepository, securityJpaRepository);
-
   }
 
   @Transactional

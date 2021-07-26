@@ -185,7 +185,7 @@ export class SecurityaccountImportTransactionComponent
     this.importTransactionTemplateService.getCSVTemplateIdsAsValueKeyHtmlSelectOptions(
       this.securityAccount.tradingPlatformPlan.importTransactionPlatform.idTransactionImportPlatform).subscribe(vkhso => {
       const fieldConfig = [DynamicFieldHelper.createFieldSelectString('idTransactionImportTemplate',
-        'IMPORTTRANSACTIONTEMPLATE', true,{disabled: vkhso.length < 2})];
+        'IMPORTTRANSACTIONTEMPLATE', true, {disabled: vkhso.length < 2})];
       if (vkhso.length === 1) {
         fieldConfig[0].defaultValue = vkhso[0].key;
       }

@@ -50,6 +50,8 @@ public class Securitysplit extends DividendSplit implements Serializable {
   @Column(name = "id_securitysplit")
   private Integer idSecuritysplit;
 
+  
+  @Schema(description = "The date of the split, on this day the split was carried out before the stock exchange opened")
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   @Basic(optional = false)
   @NotNull
@@ -58,6 +60,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
   @Temporal(TemporalType.DATE)
   private Date splitDate;
 
+  @Schema(description = "From factor")
   @Basic(optional = false)
   @Column(name = "from_factor")
   @NotNull
@@ -65,6 +68,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
   @Max(value = 99_999_999)
   private Integer fromFactor;
 
+  @Schema(description = "To factor")
   @Basic(optional = false)
   @Column(name = "to_factor")
   @NotNull
