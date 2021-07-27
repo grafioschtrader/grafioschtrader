@@ -31,7 +31,8 @@ public class FormInputTemplateMatchState {
   public FormInputTemplateMatchState(TemplateConfigurationPDFasTXT templateConfigurationPDFasTXT, Integer fileNumber) {
     this.templateConfigurationPDFasTXT = templateConfigurationPDFasTXT;
     importPropertiesPrimary = new ImportProperties(templateConfigurationPDFasTXT.getTransactionTypesMap(),
-        templateConfigurationPDFasTXT.getImportKnownOtherFlagsSet(), fileNumber);
+        templateConfigurationPDFasTXT.getImportKnownOtherFlagsSet().clone(), fileNumber,
+        templateConfigurationPDFasTXT.getIgnoreTaxOnDivInt());
     importPropertiesList.add(importPropertiesPrimary);
 
     valueFormatConverter = new ValueFormatConverter(templateConfigurationPDFasTXT.getDateFormat(),
@@ -64,7 +65,7 @@ public class FormInputTemplateMatchState {
       }
     }
   }
-    
+
   public List<ImportProperties> getImportPropertiesList() {
     return importPropertiesList;
   }
@@ -154,7 +155,7 @@ public class FormInputTemplateMatchState {
         if (matcher.find() && matcher.groupCount() == requiredColumns) {
           ImportProperties ipRepeated = this.importPropertiesPrimary;
           if (row > startRow) {
-            ipRepeated = new ImportProperties(null, null);
+            ipRepeated = new ImportProperties(null, null, null);
             importPropertiesList.add(ipRepeated);
           }
           for (int proertyCounter = propertyIndex, i = 1; i <= matcher.groupCount(); proertyCounter++, i++) {

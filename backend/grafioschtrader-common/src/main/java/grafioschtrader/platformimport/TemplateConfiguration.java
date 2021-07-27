@@ -26,6 +26,7 @@ import grafioschtrader.types.TransactionType;
 public abstract class TemplateConfiguration {
 
   public static final String SECTION_END = "[END]";
+  private static final String CONF_IGNORE_TAX_ON_DIV_INT = "ignoreTaxOnDivInt";
   private static final String CONF_TRANSACTION_TYPE = "transType";
   private static final String CONF_DATE_FORMAT = "dateFormat";
   private static final String CONF_TIME_FORMAT = "timeFormat";
@@ -42,6 +43,7 @@ public abstract class TemplateConfiguration {
   protected Locale userLocale;
   protected char decimalSeparator;
 
+  protected String ignoreTaxOnDivInt;
   protected String thousandSeparatorsPattern = "";
   protected String numberTypeRegex;
   protected String dateTypeRegex;
@@ -52,7 +54,7 @@ public abstract class TemplateConfiguration {
    * Contains the different possible properties with it data types.
    */
   protected static Map<String, Class<?>> propertyDataTypeMap = ValueFormatConverter
-      .getDataTypeOfPropertiesByBean(new ImportProperties(null, null));
+      .getDataTypeOfPropertiesByBean(new ImportProperties(null, null, null));
 
   /**
    * Format of date
@@ -119,6 +121,9 @@ public abstract class TemplateConfiguration {
       if (startRowConfig > 0 && i > startRowConfig) {
         String splitEqual[] = templateLines[i].split("=");
         switch (splitEqual[0]) {
+        case CONF_IGNORE_TAX_ON_DIV_INT:
+          ignoreTaxOnDivInt = splitEqual[1];
+          break;
         case CONF_TRANSACTION_TYPE:
           String transTypeSplit[] = splitEqual[1].split(Pattern.quote("|"));
           String transTypeWordsSplit[] = transTypeSplit[1].split(",");
@@ -149,7 +154,6 @@ public abstract class TemplateConfiguration {
         }
       }
     }
-
     createSeparatorPattern(separators);
     return startRowConfig;
   }
@@ -198,7 +202,6 @@ public abstract class TemplateConfiguration {
     if (thousandSeparators.length() > 1) {
       thousandSeparatorsPattern += "]";
     }
-
   }
 
   private Separators setAndOverRuleSeparators(String separatorsConfig) {
@@ -294,6 +297,10 @@ public abstract class TemplateConfiguration {
 
   public EnumSet<ImportKnownOtherFlags> getImportKnownOtherFlagsSet() {
     return importKnownOtherFlagsSet;
+  }
+
+  public String getIgnoreTaxOnDivInt() {
+    return ignoreTaxOnDivInt;
   }
 
   private static class Separators {
