@@ -51,7 +51,7 @@ public class ImportTransactionPosResource {
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Set a security for a specified import transacttion position", description = "", tags = {
+  @Operation(summary = "Set a security for some specified import transaction positions", description = "", tags = {
       RequestMappings.IMPORTTRANSACTIONPOS })
   @PutMapping(value = "/setsecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> setSecurity(@RequestBody SetSecurityImport setSecurityImport) {
@@ -59,6 +59,8 @@ public class ImportTransactionPosResource {
         setSecurityImport.idTransactionPosList), HttpStatus.OK);
   }
 
+  @Operation(summary = "Set a cash account for some specified import transaction positions", description = "", tags = {
+      RequestMappings.IMPORTTRANSACTIONPOS })
   @PutMapping(value = "/setcashaccount", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> setCashAccount(
       @RequestBody SetCashAccountImport setCashAccountImport) {

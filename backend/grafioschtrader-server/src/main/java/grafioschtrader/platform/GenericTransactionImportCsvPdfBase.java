@@ -59,7 +59,6 @@ public abstract class GenericTransactionImportCsvPdfBase {
         // Account Transfer in the same portfolio
         importTransactionPosList.addAll(accountTransferSamePortfolio(importTransactionTemplate, cashaccountList,
             importPropertiesList, fileNameOriginal, importTransactionPosJpaRepository));
-
       } else {
         // Transaction without security
         importTransactionPosList.add(ImportTransactionPos.createFromImportPropertiesSuccess(

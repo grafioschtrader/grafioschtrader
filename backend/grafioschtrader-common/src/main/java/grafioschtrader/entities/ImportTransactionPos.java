@@ -563,7 +563,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
       Integer idTransactionHead, Integer idTransactionImportTemplate, ImportProperties importProperties) {
     ImportTransactionPos importTransactionPos = new ImportTransactionPos(idTenant, fileNameOriginal, idTransactionHead,
         idTransactionImportTemplate);
-    return createFromImportPropertiesForAllTransaction(importTransactionPos, importProperties);
+    return createFromImportPropertiesForEveryKindOfTransaction(importTransactionPos, importProperties);
   }
 
   public static ImportTransactionPos createFromImportPropertiesSecurity(List<ImportProperties> importPropertiesList) {
@@ -587,7 +587,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     for (int i = 0; i < importPropertiesList.size(); i++) {
       ImportProperties ip = importPropertiesList.get(i);
       if (i == 0) {
-        createFromImportPropertiesForAllTransaction(importTransactionPos, ip);
+        createFromImportPropertiesForEveryKindOfTransaction(importTransactionPos, ip);
         importTransactionPos.setTaxCost(ip.getTt1(), ip.getTt2(), false);
         importTransactionPos.setExDate(ip.getExdiv());
         importTransactionPos.setCurrencySecurity(ip.getCin());
@@ -623,7 +623,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     return importTransactionPos;
   }
 
-  private static ImportTransactionPos createFromImportPropertiesForAllTransaction(
+  private static ImportTransactionPos createFromImportPropertiesForEveryKindOfTransaction(
       ImportTransactionPos importTransactionPos, ImportProperties ip) {
     importTransactionPos.setTransactionType(ip.getTransactionType().getValue());
     importTransactionPos.setTransactionTime(ip.getDatetime());

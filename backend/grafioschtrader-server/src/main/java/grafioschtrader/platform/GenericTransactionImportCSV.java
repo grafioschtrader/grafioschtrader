@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +48,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  public static final String ORDER_NOTHING = "0";
+  public  static final String ORDER_NOTHING = "0";
+  private static final Pattern ignoreOrderPattern = Pattern.compile("^"+ ORDER_NOTHING + "+$");
   private final MultipartFile uploadFile;
   private String encoding;
 
@@ -91,7 +93,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
           switch (lineCounter) {
           case 1:
             // Header line
-            template = checkAndGetTemplate(templateScannedMap, line.replaceAll("\\uFEFF", ""), idTransactionImportTemplate);
+            template = checkAndGetTemplate(templateScannedMap, line.replaceAll("\\uFEFF", ""),
+                idTransactionImportTemplate);
             valueFormatConverter = new ValueFormatConverter(template.getDateFormat(), template.getTimeFormat(),
                 template.getThousandSeparators(), template.getThousandSeparatorsPattern(),
                 template.getDecimalSeparator(), template.getLocale());
@@ -120,9 +123,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       ImportTransactionPosFailedJpaRepository importTransactionPosFailedJpaRepository) {
 
     // Data lines
-
     String[] values = StringUtils.splitByWholeSeparatorPreserveAllTokens(line, template.getDelimiterField());
-
     if (!ignoreLineByFieldValueCheck(values, template)) {
       ParseLineSuccessError parseLineSuccessError = parseDataLine(lineCounter, values, template, valueFormatConverter);
 
@@ -178,7 +179,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
 
     String lastSuccessProperty = null;
     ImportProperties importProperties = new ImportProperties(template.getTransactionTypesMap(),
-        template.getImportKnownOtherFlagsSet(), lineNumber);
+        template.getImportKnownOtherFlagsSet().clone(), lineNumber, template.getIgnoreTaxOnDivInt());
 
     for (int i = 0; i < values.length; i++) {
       String propertyName = template.getColumnPropertyMapping().get(i);
@@ -191,12 +192,9 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
           try {
             valueFormatConverter.convertAndSetValue(importProperties, propertyName, value,
                 TemplateConfiguration.getPropertyDataTypeMap().get(propertyName));
-
           } catch (Exception ex) {
             log.error("Line: {}  Field: {}", lineNumber, propertyName);
-
-            Throwable cause = ex.getCause();
-            return new ParseLineSuccessError(null, lastSuccessProperty, cause.getMessage());
+            return new ParseLineSuccessError(null, lastSuccessProperty, ex.toString());
           }
           lastSuccessProperty = propertyName;
         }
@@ -215,7 +213,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
           .collect(Collectors.groupingBy(ImportProperties::getOrder));
 
       for (Map.Entry<String, List<ImportProperties>> entry : orderMap.entrySet()) {
-        if (entry.getKey().equals(ORDER_NOTHING)) {
+        if (entry.getKey() == null || entry.getKey().isBlank()
+            || StringUtils.isNumeric(entry.getKey()) && ignoreOrderPattern.matcher(entry.getKey()).matches()) {
           for (ImportProperties ip : entry.getValue()) {
             createImportTransactionPosByOrder(Arrays.asList(ip), fileName, importTransactionTemplate,
                 securityJpaRepository, cashaccountList, importTransactionPosJpaRepository);
@@ -232,6 +231,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
           importTransactionTemplate, securityJpaRepository, cashaccountList, importTransactionPosJpaRepository));
     }
   }
+ 
 
   @Transactional
   @Modifying

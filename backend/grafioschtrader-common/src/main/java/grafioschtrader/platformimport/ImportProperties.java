@@ -142,16 +142,19 @@ public class ImportProperties {
   private final Map<String, TransactionType> transactionTypesMap;
   private final EnumSet<ImportKnownOtherFlags> knownOtherFlags;
   private Integer fileOrLineNumber;
+  
+  private String ignoreTaxOnDivInt;
 
   public ImportProperties(Map<String, TransactionType> transactionTypesMap,
-      EnumSet<ImportKnownOtherFlags> knownOtherFlags) {
+      EnumSet<ImportKnownOtherFlags> knownOtherFlags, String ignoreTaxOnDivInt) {
     this.transactionTypesMap = transactionTypesMap;
     this.knownOtherFlags = knownOtherFlags;
+    this.ignoreTaxOnDivInt = ignoreTaxOnDivInt;
   }
 
   public ImportProperties(Map<String, TransactionType> transactionTypesMap,
-      EnumSet<ImportKnownOtherFlags> knownOtherFlags, Integer fileOrLineNumber) {
-    this(transactionTypesMap, knownOtherFlags);
+      EnumSet<ImportKnownOtherFlags> knownOtherFlags, Integer fileOrLineNumber, String ignoreTaxOnDivInt) {
+    this(transactionTypesMap, knownOtherFlags, ignoreTaxOnDivInt);
     this.fileOrLineNumber = fileOrLineNumber;
   }
 
@@ -190,6 +193,9 @@ public class ImportProperties {
     this.transType = transType;
     if (transactionTypesMap.get(this.transType) == null) {
       throw new IllegalArgumentException(transType + " not accepted");
+    }
+    if(ignoreTaxOnDivInt != null && this.transType.equals(ignoreTaxOnDivInt) ) {
+      knownOtherFlags.add(ImportKnownOtherFlags.CAN_NO_TAX_ON_DIVIDEND_INTEREST);
     }
   }
 
