@@ -13,7 +13,7 @@ public abstract class BaseIntradayThru<S extends Securitycurrency<S>> implements
 
   protected final GlobalparametersJpaRepository globalparametersJpaRepository;
 
-  public BaseIntradayThru(GlobalparametersJpaRepository globalparametersJpaRepository) {
+  protected BaseIntradayThru(GlobalparametersJpaRepository globalparametersJpaRepository) {
     this.globalparametersJpaRepository = globalparametersJpaRepository;
   }
 

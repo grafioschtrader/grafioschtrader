@@ -76,7 +76,7 @@ public abstract class DataHelper {
 
     PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(object);
     for (PropertyDescriptor property : propertyDescriptors) {
-      if (property.getPropertyType() == String.class) {
+      if (property.getPropertyType() == String.class && property.getWriteMethod() != null) {
         String valueStr = (String) PropertyUtils.getProperty(object, property.getName());
         if (valueStr != null) {
           valueStr = valueStr.trim();
