@@ -112,7 +112,6 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Override
   public Double getClosePriceForDate(Currencypair currencypair, Date closeDate) {
-
     if (DateHelper.isTodayOrAfter(closeDate)) {
       return currencypair.getSLast();
     } else {
@@ -214,6 +213,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
+  @Transactional
   public Currencypair findOrCreateCurrencypairByFromAndToCurrency(final String fromCurrency, final String toCurrency) {
     Currencypair currencypair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(fromCurrency, toCurrency);
     if (currencypair == null) {
@@ -223,6 +223,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
+  @Transactional
   public Currencypair findOrCreateCurrencypairByFromAndToCurrency(List<Currencypair> currencypairs,
       final String fromCurrency, final String toCurrency) {
     Optional<Currencypair> currencypairOpt = currencypairs.stream()
@@ -237,11 +238,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
-  @Transactional
   public Currencypair createNonExistingCurrencypair(String fromCurrency, String toCurrency, boolean loadAsync) {
     Currencypair currencypairNew = new Currencypair(fromCurrency, toCurrency);
-    // currencypairNew.setCreateUserId(AppSettings.SYSTEM_ID_USER);
-
+  
     if (currencypairNew.getIsCryptocurrency()) {
       currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
           .getById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());

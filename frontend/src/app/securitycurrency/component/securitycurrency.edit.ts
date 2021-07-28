@@ -75,11 +75,13 @@ export abstract class SecuritycurrencyEdit extends FormBase {
           if (foundConnector) {
             urlExtends[i].labelHelpText = (this.configObject[this.ID_CONNECTOR_HISTORY] === connectorIdConfigs[i]) ?
               foundConnector.description.historicalDescription : foundConnector.description.intraDescription;
-            if (foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.INTRA]]) {
+            if (this.ID_CONNECTOR_INTRA === connectorIdConfigs[i].field
+              && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.INTRA]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.INTRA]],
                 feedIdentifier);
-            } else if (foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.HISTORY]]) {
+            } else if ( this.ID_CONNECTOR_HISTORY === connectorIdConfigs[i].field
+              && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.HISTORY]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.HISTORY]],
                 feedIdentifier);

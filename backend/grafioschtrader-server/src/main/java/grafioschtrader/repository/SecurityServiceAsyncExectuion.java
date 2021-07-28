@@ -1,5 +1,7 @@
 package grafioschtrader.repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.scheduling.annotation.Async;
@@ -15,9 +17,11 @@ import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 
 @Component
 public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U extends SecuritycurrencyPositionSummary<S>> {
-
+ 
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
+  
   @Autowired
-  PlatformTransactionManager platformTransactionManager;
+  private PlatformTransactionManager platformTransactionManager;
 
   @Transactional
   @Modifying
@@ -41,11 +45,10 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
           securitycurrencyService.createWithHistoryQuote(sc);
           securitycurrencyService.afterFullLoad(sc);
 
-        } catch (final Exception e) {
-          e.printStackTrace();
+        } catch (final Exception ex) {
+          log.error(ex.getMessage(), ex);
           transactionStatus.setRollbackOnly();
         }
-
       }
     });
   }

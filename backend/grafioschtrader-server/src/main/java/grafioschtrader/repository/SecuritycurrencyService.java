@@ -106,7 +106,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   }
 
   protected void afterFullLoad(final S securitycurrency) {
-
   }
 
   @Override

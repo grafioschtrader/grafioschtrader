@@ -50,7 +50,6 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   // Observer subscribe
   private fromCurrencyChangedSub: Subscription;
 
-
   constructor(private messageToastService: MessageToastService,
               private stockexchangeService: StockexchangeService,
               private assetclassService: AssetclassService,
@@ -97,7 +96,6 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity);
     this.dynamicForm.cleanMaskAndTransferValuesToBusinessObject(currencypair);
 
-
     this.currencypairService.update(currencypair).subscribe(newSecurity => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
         {i18nRecord: AppSettings.CURRENCYPAIR.toUpperCase()});
@@ -142,6 +140,5 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     FormHelper.disableEnableFieldConfigs(disable, [this.configObject.fromCurrency, this.configObject.toCurrency]);
     this.prepareExistingSecuritycurrency(disable ? this.configObject.note : this.configObject.fromCurrency);
   }
-
 
 }
