@@ -3,6 +3,7 @@ package grafioschtrader.entities;
 import java.io.Serializable;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -39,10 +40,10 @@ public class TradingPlatformPlan extends Auditable implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
-  @Column(name = " 	id_trading_platform_plan")
+  @Column(name = "id_trading_platform_plan")
   private Integer idTradingPlatformPlan;
 
-  @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
   @JoinColumn(name = "platform_plan_name_nls")
   @PropertyAlwaysUpdatable
   @ValidMultilanguage
