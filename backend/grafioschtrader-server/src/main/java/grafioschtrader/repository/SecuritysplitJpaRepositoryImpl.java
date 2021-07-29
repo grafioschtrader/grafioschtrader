@@ -84,7 +84,6 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
   @Transactional
   @Modifying
   public List<Securitysplit> deleteAndCreateMultiple(SecuritysplitDeleteAndCreateMultiple sdacm) {
-
     final BiPredicate<Securitysplit, Securitysplit> splitCompare = (ss1,
         ss2) -> ss1.getSplitDate().equals(ss2.getSplitDate()) && ss1.getFromFactor().equals(ss2.getFromFactor())
             && ss1.getToFactor().equals(ss2.getToFactor());
