@@ -154,7 +154,6 @@ public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> 
   @Operation(summary = "Delete single history quote", description = "", tags = { Historyquote.TABNAME })
   @DeleteMapping(value = "/{idHistoryquote}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteHistoryquote(@PathVariable final Integer idHistoryquote) {
-
     Optional<Historyquote> deletedHistoryquoteOpt = deleteById(idHistoryquote);
     historyquoteJpaRepository.afterDelete(deletedHistoryquoteOpt);
     return ResponseEntity.ok().build();

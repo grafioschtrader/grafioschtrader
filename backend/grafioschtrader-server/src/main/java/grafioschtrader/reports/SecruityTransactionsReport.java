@@ -361,7 +361,6 @@ public class SecruityTransactionsReport {
 
     final List<Securitysplit> securitySplits = securitySplitMap.get(idSecuritycurrency);
     if (securitySplits != null) {
-
       final ListIterator<SecurityTransactionPosition> li = securityTransactionSummary.transactionPositionList
           .listIterator(securityTransactionSummary.transactionPositionList.size());
 
@@ -373,7 +372,7 @@ public class SecruityTransactionsReport {
 
           int splitIndex = securitySplits.size() - 1;
           double factor = 1.0;
-          while (splitIndex >= 0 && transaction.getTransactionTime().getTime() <= securitySplits.get(splitIndex)
+          while (splitIndex >= 0 && transaction.getTransactionTime().getTime() < securitySplits.get(splitIndex)
               .getSplitDate().getTime()) {
             final Securitysplit securitysplit = securitySplits.get(splitIndex);
             factor /= (double) securitysplit.getToFactor() / securitysplit.getFromFactor();
@@ -383,7 +382,6 @@ public class SecruityTransactionsReport {
         }
       }
     }
-
   }
 
 }

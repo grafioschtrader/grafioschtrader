@@ -169,7 +169,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
   }
 
   /**
-   * Returns the factor for a security split, that happened after toDate.
+   * Returns the factor for a security split between a from data an to date.
    *
    * @param idSecuritycurrency
    * @param fromDate
