@@ -555,8 +555,12 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   }
 
   public String getFileType() {
+    if(fileNameOriginal == null) {
+      return CSV_FILE;
+    } else {
     return ImportTransactionHelper.isCsvEnding(fileNameOriginal) ? CSV_FILE
         : ImportTransactionHelper.isPdfEnding(fileNameOriginal) && idFilePart == null ? PDF_FILE : PDF_TEXT_FILE;
+    }
   }
 
   public static ImportTransactionPos createFromImportPropertiesSuccess(Integer idTenant, String fileNameOriginal,
