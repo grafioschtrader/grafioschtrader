@@ -1,5 +1,6 @@
 package grafioschtrader.connector.calendar;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.calendar.ICalendarFeedConnector.TickerSecuritysplit;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Security;
@@ -69,7 +71,7 @@ public class SplitCalendarAppender {
   private List<ICalendarFeedConnector> calendarFeedConnectors = new ArrayList<>();
 
   private static String removeFromNameRegex = " (corp|corp\\.|corporation|inc\\.|inc|llc)$";
-  
+
   public void appendSecuritySplitsUntilToday() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
         .findById(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE);
@@ -108,10 +110,10 @@ public class SplitCalendarAppender {
       List<Security> securities, SimilarityScore<Double> similarityAlgo) {
     securities.removeIf(s -> {
       TickerSecuritysplit tss = splitTickerMap.get(s.getTickerSymbol());
-      
+
       String name1 = s.getName().toLowerCase();
       String name2 = tss.companyName.toLowerCase();
-      if(s.isStockAndDirectInvestment()) {
+      if (s.isStockAndDirectInvestment()) {
         name1 = name1.replaceFirst(removeFromNameRegex, "").strip();
         name2 = name2.replaceFirst(removeFromNameRegex, "").strip();
       }
@@ -126,12 +128,10 @@ public class SplitCalendarAppender {
     });
   }
 
-  
-  
   private void proposeSecuritsplitOverTaskDataChange(Map<String, TickerSecuritysplit> splitTickerMap,
       List<Security> securities) {
     int ssi = 0;
-    Set<Integer> idSecuritiesSet = securities.stream().map(s -> s.getIdSecuritycurrency()).collect(Collectors.toSet());
+    Set<Integer> idSecuritiesSet = securities.stream().map(Security::getIdSecuritycurrency).collect(Collectors.toSet());
     List<Securitysplit> securitysplits = securitysplitJpaRepository
         .findByIdSecuritycurrencyInOrderByIdSecuritycurrencyAscSplitDateAsc(idSecuritiesSet);
 
@@ -148,17 +148,18 @@ public class SplitCalendarAppender {
           break;
         }
       }
-
       if (securitysplit == null || !(security.getIdSecuritycurrency().equals(securitysplit.getIdSecuritycurrency())
           && tss.securitysplit.getSplitDate().equals(securitysplit.getSplitDate()))) {
         if (taskDataChangeJpaRepository
             .findByIdTaskAndIdEntityAndProgressStateType(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY.getValue(),
                 security.getIdSecuritycurrency(), ProgressStateType.PROG_WAITING.getValue())
             .isEmpty()) {
-          taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
+          var taskDataChange = new TaskDataChange(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
               TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(2), security.getIdSecuritycurrency(),
-              Security.class.getSimpleName()));
-
+              Security.class.getSimpleName());
+          taskDataChange.setOldValueString(new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)
+              .format(tss.securitysplit.getSplitDate().toString()));
+          taskDataChangeJpaRepository.save(taskDataChange);
         }
       }
     }

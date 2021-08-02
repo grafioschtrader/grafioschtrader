@@ -91,6 +91,7 @@ public class GlobalConstants {
   public static final int SPLIT_DAYS_FOR_AVERAGE_CALC = 5;
   public static final int EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE = 4;
   public static final double ACCEPTESD_PERCENTAGE_EXCHANGE_RATE_DIFF = 8.0;
+  public static final double MAX_DAYS_FOR_SECURITY_IS_REFLECTING_SPLIT = 5;
 
   public static final int BANDWITH_MINUTE_BUCKET_SIZE = 30;
   public static final int BANDWITH_MINUTE_REFILL = 30;

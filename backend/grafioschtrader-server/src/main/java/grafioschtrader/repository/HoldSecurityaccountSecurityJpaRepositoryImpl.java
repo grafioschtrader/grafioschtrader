@@ -113,6 +113,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   }
 
   @Override
+  @Transactional
   public void rebuildHoldingsForSecurity(Integer idSecuritycurrency) {
     Optional<Security> securityOpt = securityJpaRepository.findById(idSecuritycurrency);
 
@@ -132,7 +133,6 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
         rebuildHoldingsForSecurity(security, hstbsList, null);
       }
     }
-
   }
 
   private void rebuildHoldingsForSecurity(Security security, List<IHoldSecuritySplitTransactionBySecurity> hstbsList,
