@@ -1,5 +1,6 @@
 package grafioschtrader.repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -20,5 +21,5 @@ public interface SecuritysplitJpaRepositoryCustom {
   List<Securitysplit> deleteAndCreateMultiple(
       SecuritysplitDeleteAndCreateMultiple securitysplitDeleteAndCreateMultiple);
 
-  List<String> loadAllSplitDataFromConnector(Security security);
+  List<String> loadAllSplitDataFromConnector(Security security, Date requestedSplitdate);
 }

@@ -1,12 +1,16 @@
 package grafioschtrader.task.exec;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
@@ -44,11 +48,18 @@ public class UpdateSplitForSecurityTask implements ITask {
   public void doWork(TaskDataChange taskDataChange) {
     Security security = securityJpaRepository.getById(taskDataChange.getIdEntity());
     if (security.getIdConnectorSplit() != null) {
-      List<String> errorMessages = securitysplitJpaRepository.loadAllSplitDataFromConnector(security);
-      if (!errorMessages.isEmpty()) {
-        throw new TaskBackgroundException("gt.split.connector.failure", errorMessages);
+      try {
+        Date requestSplitDate = taskDataChange.getOldValueString() == null ? null
+            : new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)
+                .parse(taskDataChange.getOldValueString());
+        List<String> errorMessages = securitysplitJpaRepository.loadAllSplitDataFromConnector(security,
+            requestSplitDate);
+        if (!errorMessages.isEmpty()) {
+          throw new TaskBackgroundException("gt.split.connector.failure", errorMessages);
+        }
+      } catch (ParseException e) {
+        throw new TaskBackgroundException("gt.split.date.missing.parse");
       }
-
     } else {
       throw new TaskBackgroundException("gt.split.connector.notfound");
     }
