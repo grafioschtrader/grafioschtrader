@@ -158,7 +158,7 @@ public class SplitCalendarAppender {
               TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(2), security.getIdSecuritycurrency(),
               Security.class.getSimpleName());
           taskDataChange.setOldValueString(new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)
-              .format(tss.securitysplit.getSplitDate().toString()));
+              .format(tss.securitysplit.getSplitDate()));
           taskDataChangeJpaRepository.save(taskDataChange);
         }
       }
