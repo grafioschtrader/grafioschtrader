@@ -22,5 +22,6 @@ public class CrossRateResponse {
       this.currencypair = currencypair;
       this.closeAndDateList = closeAndDateList;
     }
+    
   }
 }

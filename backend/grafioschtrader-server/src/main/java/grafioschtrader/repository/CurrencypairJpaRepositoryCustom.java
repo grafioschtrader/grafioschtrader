@@ -63,8 +63,17 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   List<Currencypair> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch);
 
+  /**
+   * We always start from the client's main currency. Therefore, the path for the
+   * cross currency can contain a maximum of three nodes. For example,
+   * USD(requested currency)-CHF(main currency)-EUR(currency security). This
+   * results in two currency pairs CHF/USD or USD/CHF and CHF/EUR or EUR/CHF.
+   * 
+   * @param crossRateRequest
+   * @return
+   */
   CrossRateResponse getCurrencypairForCrossRate(CrossRateRequest crossRateRequest);
-  
+
   List<Currencypair> searchBuilderWithExclusion(Integer idWatchlist, Integer idCorrelationSet,
       SecuritycurrencySearch securitycurrencySearch);
 

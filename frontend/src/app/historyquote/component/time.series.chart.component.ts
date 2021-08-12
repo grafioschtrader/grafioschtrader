@@ -18,7 +18,6 @@ import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {PlotlyLocales} from '../../shared/plotlylocale/plotly.locales';
 import {combineLatest, Observable, Subscription} from 'rxjs';
-import {NameSecuritycurrency} from '../../entities/view/name.securitycurrency';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {AppHelper, Comparison} from '../../shared/helper/app.helper';
@@ -122,7 +121,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   visibleTaDialog: boolean;
   contextMenuItems: MenuItem[] = [];
 
-
   requestedCurrency = '';
   currenciesOptions: SelectItem[] = [{value: '', label: ''}];
   private minValueOfY: number;
@@ -209,7 +207,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           : new CurrencypairWithTransaction(data[0]);
 
         if ((<HistoryquoteDateClose[]>data[1]).length > 0) {
-          this.createTodayAsHistoryquote(nameSecuritycurrency, data[1]);
+          this.createTodayAsHistoryquote(nameSecuritycurrency.getSecuritycurrency().sTimestamp,
+            nameSecuritycurrency.getSecuritycurrency().sLast, data[1]);
           this.loadedData.push(new LoadedData(timeSeriesParams[i].idSecuritycurrency, nameSecuritycurrency, data[1],
             timeSeriesParams[i].currencySecurity));
           if (observable.length === 3) {
@@ -244,14 +243,15 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private addCrossRateResponse(crossRateResponse: CrossRateResponse): void {
     this.mainCurrency = crossRateResponse.mainCurrency;
     crossRateResponse.currenciesAndClosePrice.forEach(crr => {
+      this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList);
       this.crossRateMap.set(crr.currencypair.fromCurrency, crr.currencypair.toCurrency, crr);
     });
     const co = new Set(this.loadedData.map(ld => ld.currencySecurity));
     this.currenciesOptions = [{value: '', label: ''}];
     co.add(crossRateResponse.mainCurrency);
     co.forEach((currency) => this.currenciesOptions.push({value: currency, label: currency}));
-
   }
+
 
   onBlurFromDate(event): void {
     if (!this.fromDate || this.fromDate.getTime() < this.oldestDate.getTime()) {
@@ -282,7 +282,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.normalizeAllSecurityPrices();
     this.prepareLoadedDataAndPlot(true);
   }
-
 
   getHistoricalLineTrace(loadedData: LoadedData): any {
     let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.historyquotesNorm,
@@ -698,17 +697,18 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
   }
 
-  private createTodayAsHistoryquote(nameSecuritycurrency: NameSecuritycurrency, historyquotes: HistoryquoteDateClose[]) {
-    if (nameSecuritycurrency.getSecuritycurrency().sLast) {
-      const dateLastStr = moment(nameSecuritycurrency.getSecuritycurrency().sTimestamp).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
+  private createTodayAsHistoryquote(sTimestamp: number, sLast: number, historyquotes: HistoryquoteDateClose[]) {
+    if (sLast) {
+      const dateLastStr = moment(sTimestamp).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
       if (historyquotes.length === 0 || dateLastStr > historyquotes[historyquotes.length - 1].date) {
         const historyquoteToday: HistoryquoteDateClose = {
-          date: dateLastStr, close: nameSecuritycurrency.getSecuritycurrency().sLast
+          date: dateLastStr, close: sLast
         };
         historyquotes.push(historyquoteToday);
       }
     }
   }
+
 
   private getLayout(): any {
     const dateNative = moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
@@ -759,7 +759,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
 
   private normalizeSecurityPrice(loadedData: LoadedData): void {
-    console.log('FromDate:', this.fromDate);
     if (this.normalizeNotNeeded(loadedData)) {
       loadedData.historyquotesNorm = loadedData.historyquotes;
     } else {
@@ -767,15 +766,19 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       const requestToSecurityCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.requestedCurrency,
         loadedData.currencySecurity);
       if (this.requestedCurrency === this.mainCurrency) {
-        this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency], [false]);
+        this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency], [
+          mainToSecurityCurrency.currencypair.fromCurrency !== this.mainCurrency]);
       } else if (requestToSecurityCurrency != null && (requestToSecurityCurrency.currencypair.fromCurrency === this.mainCurrency
         || requestToSecurityCurrency.currencypair.toCurrency === this.mainCurrency)) {
-        this.calculateHistoryquotes(loadedData, [requestToSecurityCurrency], [true]);
+        this.calculateHistoryquotes(loadedData, [requestToSecurityCurrency],
+          [requestToSecurityCurrency.currencypair.fromCurrency === this.mainCurrency]);
       } else {
         // Main currency is in the middle linke EUR -> CHF -> USD (requested currency: EUR, main currency: CHF,
         // security currency: USD
         const mainToRequestCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.mainCurrency, this.requestedCurrency);
-        this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency, mainToRequestCurrency], [false, true]);
+        this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency, mainToRequestCurrency],
+          [mainToSecurityCurrency.currencypair.fromCurrency !== this.mainCurrency,
+            mainToRequestCurrency.currencypair.fromCurrency === this.mainCurrency]);
       }
     }
   }

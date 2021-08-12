@@ -241,7 +241,6 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
       }
     }
-
   }
 
   /**
