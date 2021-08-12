@@ -133,7 +133,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     let menuItems: MenuItem[] = [];
     if (this.selectedSecurity) {
       menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(this.selectedSecurity.idSecuritycurrency,
-        false));
+         this.selectedSecurity.currency, false));
       this.contextMenuItems = menuItems;
       menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedSecurity));
       TranslateHelper.translateMenuItems(menuItems, this.translateService);

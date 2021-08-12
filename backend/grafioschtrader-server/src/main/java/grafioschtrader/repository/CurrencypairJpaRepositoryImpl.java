@@ -6,6 +6,7 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -21,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
@@ -28,10 +32,15 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.dto.CrossRateRequest;
+import grafioschtrader.dto.CrossRateResponse;
+import grafioschtrader.dto.CrossRateResponse.CurrenciesAndClosePrice;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.TaskDataChange;
+import grafioschtrader.entities.Tenant;
+import grafioschtrader.entities.User;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruConnector;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
@@ -58,6 +67,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
 
   ////////////////////////////////////////////////////////////////
   // Historical prices
@@ -240,15 +252,15 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
   public Currencypair createNonExistingCurrencypair(String fromCurrency, String toCurrency, boolean loadAsync) {
     Currencypair currencypairNew = new Currencypair(fromCurrency, toCurrency);
-  
+
     if (currencypairNew.getIsCryptocurrency()) {
       currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
           .getById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
           .getById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR).getPropertyString());
     } else {
-      currencypairNew.setIdConnectorIntra(
-          globalparametersJpaRepository.getById(Globalparameters.GLOB_KEY_CURRENCY_INTRA_CONNECTOR).getPropertyString());
+      currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
+          .getById(Globalparameters.GLOB_KEY_CURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
           .getById(Globalparameters.GLOB_KEY_CURRENCY_HISTORY_CONNECTOR).getPropertyString());
     }
@@ -362,6 +374,53 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
       currencyExchangeRate = currencypair.getSLast();
     }
     return currencyExchangeRate;
+  }
+
+  @Override
+  public CrossRateResponse getCurrencypairForCrossRate(CrossRateRequest crossRateRequest) {
+    List<Currencypair> currencypairsMissing = new ArrayList<>();
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    Tenant tenant = tenantJpaRepository.getById(user.getIdTenant());
+    String mainCurrencyTenant = tenant.getCurrency();
+
+    CrossRateResponse crossRateResponse = new CrossRateResponse(mainCurrencyTenant);
+
+    if (crossRateRequest.needNewCurrencypair(mainCurrencyTenant)) {
+      List<Currencypair> currencypairList = currencypairJpaRepository.findAll();
+      Map<String, Map<String, Currencypair>> fromCurrencyMap = currencypairList.stream().collect(Collectors.groupingBy(
+          Currencypair::getFromCurrency, Collectors.toMap(Currencypair::getToCurrency, Function.identity())));
+      Map<String, Map<String, Currencypair>> toCurrencyMap = currencypairList.stream().collect(Collectors.groupingBy(
+          Currencypair::getToCurrency, Collectors.toMap(Currencypair::getFromCurrency, Function.identity())));
+
+      for (String sc : crossRateRequest.securityCurrencyList) {
+        List<Currencypair> foundList = crossRateRequest.getExistingCurrencies().stream()
+            .filter(cp -> cp.getFromCurrency().equals(sc) || cp.getToCurrency().equals(sc))
+            .collect(Collectors.toList());
+        if (foundList.isEmpty()) {
+          // List does not contain in from an to the security currency
+          Map<String, Currencypair> foundFromCurrenciesMap = fromCurrencyMap.get(mainCurrencyTenant);
+          if (foundFromCurrenciesMap != null) {
+            Currencypair foundExactCurrencypair = foundFromCurrenciesMap.get(sc);
+            if (foundExactCurrencypair == null) {
+              // Check reverse
+              Map<String, Currencypair> foundToCurrenciesMap = toCurrencyMap.get(mainCurrencyTenant);
+              if (foundToCurrenciesMap != null) {
+                foundExactCurrencypair = foundToCurrenciesMap.get(sc);
+              }
+            }
+            if (foundExactCurrencypair == null) {
+              currencypairsMissing.add(findOrCreateCurrencypairByFromAndToCurrency(mainCurrencyTenant, sc));
+            } else {
+              currencypairsMissing.add(foundExactCurrencypair);
+            }
+          }
+        }
+      }
+    }
+    currencypairsMissing
+        .forEach(currencypair -> crossRateResponse.currenciesAndClosePrice.add(new CurrenciesAndClosePrice(currencypair,
+            historyquoteJpaRepository.getHistoryquoteDateClose(currencypair.getIdSecuritycurrency()))));
+    return crossRateResponse;
   }
 
 }

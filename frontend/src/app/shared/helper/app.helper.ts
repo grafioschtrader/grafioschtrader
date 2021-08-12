@@ -173,7 +173,6 @@ export class AppHelper {
     let middle = 1;
     while (left <= right) {
       middle = Math.floor((left + right) / 2);
-
       switch (compare(array[middle], item)) {
         case Comparison.LT:
           left = middle + 1;
@@ -185,7 +184,6 @@ export class AppHelper {
           return middle;
       }
     }
-
     if (array.length > middle && compare(array[middle], item) === Comparison.LT) {
       middle += 1;
     }

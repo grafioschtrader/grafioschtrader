@@ -182,7 +182,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       });
   }
 
-
   removeAndDeleteSecuritycurrency(securityCurrency: Securitycurrency, domainKey: string) {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + domainKey, () => {
@@ -360,7 +359,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
           && (<Security>this.selectedSecuritycurrencyPosition.securitycurrency).stockexchange.noMarketValue
       };
       menuItems = this.timeSeriesQuotesService.getMenuItems(this.selectedSecuritycurrencyPosition.securitycurrency.idSecuritycurrency,
-        isCurrencypair, optionalParameters);
+        isCurrencypair ? null : (<Security>this.selectedSecuritycurrencyPosition.securitycurrency).currency,
+        true, optionalParameters);
 
       menuItems.push(...BusinessHelper.getUrlLinkMenus(securitycurrencyPosition.securitycurrency));
       menuItems.push(

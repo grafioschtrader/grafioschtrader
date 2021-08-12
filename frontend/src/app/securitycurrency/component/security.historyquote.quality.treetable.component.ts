@@ -20,6 +20,7 @@ import {plainToClass} from 'class-transformer';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {SecurityIdWithCurrency} from './security-historyquote-quality-table.component';
 
 /**
  * Shows the quality of historical price data per stock exchange or data provider.
@@ -70,7 +71,8 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
         </ng-template>
       </p-treeTable>
       <security-historyquote-quality-table [historyquoteQualityIds]="historyquoteQualityIds"
-                                           [groupTitle]="groupTitle" (changedIdSecurity)="handleChangedIdSecurity($event)">
+                                           [groupTitle]="groupTitle"
+                                           (changedIdSecurity)="handleChangedIdSecurity($event)">
       </security-historyquote-quality-table>
       <p-contextMenu *ngIf="contextMenuItems" #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body">
       </p-contextMenu>
@@ -82,7 +84,7 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
   historyquoteQualityIds: HistoryquoteQualityIds;
   groupTitle: string;
   contextMenuItems: MenuItem[];
-  idSecurity: number;
+  securityIdWithCurrency: SecurityIdWithCurrency;
 
   qualityNode: TreeNode[] = [];
   historyquoteQualityHead: HistoryquoteQualityHead;
@@ -162,8 +164,9 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
   }
 
   protected getMenuShowOptions(): MenuItem[] {
-    if (this.idSecurity) {
-      const menuItems: MenuItem[] = this.timeSeriesQuotesService.getMenuItems(this.idSecurity, false);
+    if (this.securityIdWithCurrency) {
+      const menuItems: MenuItem[] = this.timeSeriesQuotesService.getMenuItems(this.securityIdWithCurrency.idSecurity,
+        this.securityIdWithCurrency.currency, false);
       TranslateHelper.translateMenuItems(menuItems, this.translateService);
       this.contextMenuItems = menuItems;
       return menuItems;
@@ -173,8 +176,8 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
     }
   }
 
-  handleChangedIdSecurity(idSecurity: number): void {
-    this.idSecurity = idSecurity;
+  handleChangedIdSecurity(securityIdWithCurrency: SecurityIdWithCurrency): void {
+    this.securityIdWithCurrency = securityIdWithCurrency;
     this.resetMenu();
   }
 
