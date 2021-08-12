@@ -66,8 +66,9 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
     }
   }
 
-  private void executeJob(final ITask task, final TaskDataChange taskDataChange, LocalDateTime startTime) {
+  private void executeJob(final ITask task, TaskDataChange taskDataChange, LocalDateTime startTime) {
     try {
+      taskDataChange = startJob(taskDataChange, startTime);
       task.doWork(cloneTaskDataChange(taskDataChange));
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_PROCESSED);
       if (task.removeAllOtherJobsOfSameTask()) {
@@ -95,6 +96,12 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
     TaskDataChange tdcNew = new TaskDataChange();
     BeanUtils.copyProperties(tdcNew, taskDataChange);
     return tdcNew;
+  }
+  
+  private TaskDataChange startJob(final TaskDataChange taskDataChange, LocalDateTime startTime) {
+    taskDataChange.setExecStartTime(startTime);
+    taskDataChange.setProgressStateType(ProgressStateType.PROG_RUNNING);
+    return  taskDataChangeRepository.save(taskDataChange);
   }
 
   private void finishedJob(final TaskDataChange taskDataChange, LocalDateTime startTime,
