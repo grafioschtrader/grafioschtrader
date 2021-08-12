@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.dto.CrossRateRequest;
+import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.User;
@@ -104,6 +106,13 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   public ResponseEntity<List<Currencypair>> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
     return new ResponseEntity<>(currencypairJpaRepository.searchByCriteria(securitycurrencySearch), HttpStatus.OK);
   }
+  
+  
+  @GetMapping(value = "/crossrate", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<CrossRateResponse> getCurrencypairForCrossRate(final CrossRateRequest crossRateRequest) {
+    return new ResponseEntity<>(currencypairJpaRepository.getCurrencypairForCrossRate(crossRateRequest), HttpStatus.OK);
+  }
+  
 
   ////////////////////////////////////////////////////////////
   // User depended Request

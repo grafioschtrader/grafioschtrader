@@ -135,6 +135,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @OrderBy("date ASC")
   protected List<Historyquote> historyquoteList;
 
+  
   public abstract String getName();
 
   public Securitycurrency() {

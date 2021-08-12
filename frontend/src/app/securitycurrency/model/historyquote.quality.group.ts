@@ -31,6 +31,7 @@ export enum  HistoryquoteQualityGrouped {
 
 export interface IHistoryquoteQualityWithSecurityProp extends IHistoryquoteQuality {
  name: string;
+ currency: string;
  activeFromDate: string;
  activeToDate: string;
  idSecurity: number;

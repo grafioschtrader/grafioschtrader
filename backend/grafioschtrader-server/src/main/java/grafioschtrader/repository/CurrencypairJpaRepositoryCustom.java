@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import grafioschtrader.dto.CrossRateRequest;
+import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.reportviews.account.CashaccountPositionSummary;
 import grafioschtrader.search.SecuritycurrencySearch;
@@ -61,6 +63,8 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   List<Currencypair> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch);
 
+  CrossRateResponse getCurrencypairForCrossRate(CrossRateRequest crossRateRequest);
+  
   List<Currencypair> searchBuilderWithExclusion(Integer idWatchlist, Integer idCorrelationSet,
       SecuritycurrencySearch securitycurrencySearch);
 

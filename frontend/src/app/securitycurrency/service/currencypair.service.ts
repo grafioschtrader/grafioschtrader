@@ -12,6 +12,7 @@ import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {AppHelper} from '../../shared/helper/app.helper';
+import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 
 
 @Injectable()
@@ -43,12 +44,10 @@ export class CurrencypairService extends AuthServiceWithLogout<Currencypair> {
       + `${idPortfolio}/${AppSettings.PORTFOLIO_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   findOrCreateCurrencypairByFromAndToCurrency(fromCurrency: string, toCurrency: string): Observable<Currencypair> {
     return <Observable<Currencypair>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/`
       + `${fromCurrency}/${toCurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(currencypair: Currencypair,
                                                              dateString: string): Observable<CurrencypairWithHistoryquote> {
@@ -76,6 +75,13 @@ export class CurrencypairService extends AuthServiceWithLogout<Currencypair> {
       }).pipe(catchError(this.handleError.bind(this)));
   }
 
+  getCurrencypairForCrossRate(crossRateRequest: CrossRateRequest): Observable<CrossRateResponse[]> {
+    return <Observable<CrossRateResponse[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/crossrate`,
+      {
+        headers: this.prepareHeaders(),
+        params: AppHelper.getHttpParamsOfObject(crossRateRequest)
+      }).pipe(catchError(this.handleError.bind(this)));
+  }
 
   /**
    * Update the passed currency pair.
@@ -83,4 +89,20 @@ export class CurrencypairService extends AuthServiceWithLogout<Currencypair> {
   update(currencypair: Currencypair): Observable<Currencypair> {
     return this.updateEntity(currencypair, currencypair.idSecuritycurrency, AppSettings.CURRENCYPAIR_KEY);
   }
+}
+
+
+export class CrossRateRequest {
+  constructor(public securityCurrencyList: string[], public existingCurrencies: string[]) {
+  }
+}
+
+export interface CurrenciesAndClosePrice {
+  currencypair: Currencypair;
+  closeAndDateList: HistoryquoteDateClose[];
+}
+
+export interface CrossRateResponse {
+  mainCurrency: string;
+  currenciesAndClosePrice: CurrenciesAndClosePrice[];
 }

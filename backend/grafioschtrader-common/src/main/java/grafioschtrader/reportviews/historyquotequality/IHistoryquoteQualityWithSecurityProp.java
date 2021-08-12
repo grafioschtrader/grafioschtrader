@@ -9,6 +9,8 @@ import grafioschtrader.dto.IHistoryquoteQuality;
 
 public interface IHistoryquoteQualityWithSecurityProp extends IHistoryquoteQuality {
   public String getName();
+  
+  public String getCurrency();
 
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   public LocalDate getActiveFromDate();

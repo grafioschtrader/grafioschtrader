@@ -287,21 +287,21 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   }
 
   private readAndShowData(timeSeriesParam: TimeSeriesParam): void {
-    const stsObservable = (timeSeriesParam.isCurrencypair)
-      ? this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency)
-      : BusinessHelper.setSecurityTransactionSummary(this.securitService,
-        timeSeriesParam.idSecuritycurrency, null, null, false);
+    const stsObservable = timeSeriesParam.currencySecurity
+      ? BusinessHelper.setSecurityTransactionSummary(this.securitService,
+        timeSeriesParam.idSecuritycurrency, null, null, false)
+      : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency);
     const historyquoteObservable = this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(
-      timeSeriesParam.idSecuritycurrency, timeSeriesParam.isCurrencypair);
+      timeSeriesParam.idSecuritycurrency, !timeSeriesParam.currencySecurity);
 
     this.firstRow = 0;
     combineLatest([stsObservable, historyquoteObservable]).subscribe((data: any[]) => {
-      this.nameSecuritycurrency = (timeSeriesParam.isCurrencypair)
-        ? new CurrencypairWithTransaction(data[0])
-        : new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary);
+      this.nameSecuritycurrency = timeSeriesParam.currencySecurity
+        ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
+        : new CurrencypairWithTransaction(data[0]);
       this.historyquotesWithMissings = data[1];
       this.entityList = this.historyquotesWithMissings.historyquoteList;
-      this.security = <Security>(timeSeriesParam.isCurrencypair ? null : this.historyquotesWithMissings.securitycurrency);
+      this.security = <Security>(timeSeriesParam.currencySecurity ? this.historyquotesWithMissings.securitycurrency : null);
       this.prepareMenu();
       this.refreshSelectedEntity();
       setTimeout(() => this.firstRow = this.firstRowIndexOnPage);

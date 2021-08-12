@@ -304,10 +304,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
   protected addTimeSeriesMenus(security: Security, menuItems: MenuItem[], translate: boolean): MenuItem[] {
     if (security) {
-      menuItems.push({separator: true});
-
-      menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(security.idSecuritycurrency, false,
-        this.addNoMarketValueOpt(security)));
+      menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(security.idSecuritycurrency, security.currency,
+        true, this.addNoMarketValueOpt(security)));
       translate && TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }
     return menuItems;

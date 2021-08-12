@@ -8,6 +8,7 @@ import {HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp} from '../m
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {FilterService} from 'primeng/api';
+import {Security} from '../../entities/security';
 
 /**
  * Shows the securities in a table.
@@ -46,7 +47,7 @@ import {FilterService} from 'primeng/api';
 export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
   @Input() historyquoteQualityIds: HistoryquoteQualityIds;
   @Input() groupTitle: string;
-  @Output() changedIdSecurity = new EventEmitter<number>();
+  @Output() changedIdSecurity = new EventEmitter<SecurityIdWithCurrency>();
 
   selectedSecurity: IHistoryquoteQualityWithSecurityProp;
   hqwspList: IHistoryquoteQualityWithSecurityProp[];
@@ -89,10 +90,15 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
   }
 
   onRowSelect(event): void {
-    this.changedIdSecurity.emit(this.selectedSecurity.idSecurity);
+    this.changedIdSecurity.emit(new SecurityIdWithCurrency(this.selectedSecurity.idSecurity,  this.selectedSecurity.currency));
   }
 
   onRowUnselect(event): void {
     this.changedIdSecurity.emit(null);
   }
+}
+
+export class SecurityIdWithCurrency {
+   public constructor(public idSecurity: number, public currency: string) {
+   }
 }

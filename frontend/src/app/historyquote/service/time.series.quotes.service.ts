@@ -12,7 +12,7 @@ import {TimeSeriesParam} from '../component/time.series.chart.component';
 export class TimeSeriesQuotesService {
 
   private idSecuritycurrency;
-  private isCurrencypair: boolean;
+  private currencySecurity: string;
   private optionalParameters: OptionalParameters = {idPortfolio: null, idSecurityaccount: null, noMarketValue: false};
   private timeSeriesParams: TimeSeriesParam[] = [];
 
@@ -20,10 +20,10 @@ export class TimeSeriesQuotesService {
               private router: Router) {
   }
 
-  getMenuItems(idSecuritycurrency: number, isCurrencypair: boolean,
+  getMenuItems(idSecuritycurrency: number, currencySecurity: string, addTopSeparator: boolean,
                optionalParameters?: OptionalParameters): MenuItem[] {
     this.idSecuritycurrency = idSecuritycurrency;
-    this.isCurrencypair = isCurrencypair;
+    this.currencySecurity = currencySecurity;
     if (optionalParameters) {
       this.optionalParameters = optionalParameters;
     }
@@ -33,7 +33,7 @@ export class TimeSeriesQuotesService {
     }
 
     const menuItems: MenuItem[] = [];
-    menuItems.push({separator: true});
+    addTopSeparator && menuItems.push({separator: true});
     menuItems.push(
       {
         label: 'LINE_CHART',
@@ -67,7 +67,7 @@ export class TimeSeriesQuotesService {
     if (initializeTimeSeriesParam) {
       this.timeSeriesParams = [];
     }
-    this.timeSeriesParams.push(new TimeSeriesParam(this.idSecuritycurrency, this.isCurrencypair,
+    this.timeSeriesParams.push(new TimeSeriesParam(this.idSecuritycurrency, this.currencySecurity,
       this.optionalParameters.idPortfolio, this.optionalParameters.idSecurityaccount));
     this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
       outlets: {

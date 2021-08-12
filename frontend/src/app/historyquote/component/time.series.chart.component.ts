@@ -1,6 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
+import {
+  CrossRateRequest,
+  CrossRateResponse,
+  CurrenciesAndClosePrice,
+  CurrencypairService
+} from '../../securitycurrency/service/currencypair.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {ActivatedRoute} from '@angular/router';
@@ -12,7 +17,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {PlotlyLocales} from '../../shared/plotlylocale/plotly.locales';
-import {combineLatest, Subscription} from 'rxjs';
+import {combineLatest, Observable, Subscription} from 'rxjs';
 import {NameSecuritycurrency} from '../../entities/view/name.securitycurrency';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
@@ -20,8 +25,7 @@ import {AppHelper, Comparison} from '../../shared/helper/app.helper';
 import * as moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
-import {Helper} from '../../helper/helper';
-import {MenuItem} from 'primeng/api';
+import {MenuItem, SelectItem} from 'primeng/api';
 import {
   IndicatorDefinition,
   IndicatorDefinitions,
@@ -41,6 +45,8 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 import {PlotlyService} from 'angular-plotly.js';
+import {TwoKeyMap} from '../../shared/helper/two.key.map';
+
 
 interface Traces {
   [key: string]: { x: string[], y: number[], text: string[] };
@@ -53,47 +59,52 @@ interface Traces {
  */
 @Component({
   template: `
-      <div #container class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
-           (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)">
-          <div class="input-w">
-              <label for="fromDate">{{'DATE_FROM' | translate}}</label>
-              <p-calendar [(ngModel)]="fromDate" id="fromDate" appendTo="body"
-                          monthNavigator="true" yearNavigator="true" [yearRange]="yearRange"
-                          [defaultDate]="oldestDate"
-                          [locale]="language"
-                          (onBlur)="onBlurFromDate($event)"
-                          (onSelect)="onBlurFromDate($event)"
-                          [dateFormat]="dateFormat"
-                          [disabledDays]="[0,6]"
-                          [minDate]="oldestDate" [maxDate]="youngestDate"></p-calendar>
-              <i class="fa fa-undo fa-border fa-lg" (click)="onResetOldestDate($event)"></i>
-              <!--
-                <ng-container *ngIf="this.loadedData.length===1">
-               -->
-              <label>{{'PERCENTAGE' | translate}}</label>
-              <input type="checkbox" [(ngModel)]="usePercentage" (change)="togglePercentage($event)">
-              <!--
-              </ng-container>
-              -->
-              <label>{{'CONNECT_GAPS' | translate}}</label>
-              <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleConnectGaps($event)">
-          </div>
-          <div #chart class="plot-container">
-          </div>
-          <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container" appendTo="body"></p-contextMenu>
+    <div #container class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+         (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)">
+      <div class="input-w">
+        <label for="fromDate">{{'DATE_FROM' | translate}}</label>
+        <p-calendar #cal appendTo="body"
+                    monthNavigator="true" yearNavigator="true" [yearRange]="yearRange"
+                    [(ngModel)]="fromDate" id="fromDate"
+                    [dateFormat]="dateFormat"
+                    [disabledDays]="[0,6]"
+                    (onBlur)="onBlurFromDate($event)"
+                    (onSelect)="onBlurFromDate($event)"
+                    [minDate]="oldestDate" [maxDate]="youngestDate">
+        </p-calendar>
+        <i class="fa fa-undo fa-border fa-lg" (click)="onResetOldestDate($event)"></i>
+        <!--
+          <ng-container *ngIf="this.loadedData.length===1">
+         -->
+        <label>{{'PERCENTAGE' | translate}}</label>
+        <input type="checkbox" [(ngModel)]="usePercentage" (change)="togglePercentage($event)">
+        <!--
+        </ng-container>
+        -->
+        <label>{{'CONNECT_GAPS' | translate}}</label>
+        <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleConnectGaps($event)">
+
+        <label>{{'CURRENCY' | translate}}</label>
+        <p-dropdown [options]="currenciesOptions" [(ngModel)]="requestedCurrency"
+                    (onChange)="handleChangeCurrency($event)">
+        </p-dropdown>
+
       </div>
-      <indicator-edit *ngIf="visibleTaDialog"
-                      [visibleDialog]="visibleTaDialog" [taEditParam]="taEditParam"
-                      (closeDialog)="handleCloseTaDialog($event)">
-      </indicator-edit>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+      <div #chart class="plot-container">
+      </div>
+      <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container" appendTo="body"></p-contextMenu>
+    </div>
+    <indicator-edit *ngIf="visibleTaDialog"
+                    [visibleDialog]="visibleTaDialog" [taEditParam]="taEditParam"
+                    (closeDialog)="handleCloseTaDialog($event)">
+    </indicator-edit>
+  `
+
+  // ,changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('container', {static: true}) container: ElementRef;
   @ViewChild('chart', {static: true}) chartElement: ElementRef;
-
-  language;
 
   fromDate: Date;
   usePercentage: boolean;
@@ -103,24 +114,27 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   loadedData: LoadedData[] = [];
   oldestMatchDate: string;
   youngestMatchDate: string;
-  minValueOfY: number;
-  maxValueOfY: number;
   subscriptionViewSizeChanged: Subscription;
   subscriptionLatest: Subscription;
   // protected paramMap: ParamMap;
   protected transactionPositionList: SecurityTransactionPosition[] = [];
-
-  // For technical indicator edit
-  taFormDefinitions: { [key: string]: TaFormDefinition };
   taEditParam: TaEditParam;
   visibleTaDialog: boolean;
   contextMenuItems: MenuItem[] = [];
-  indicatorDefinitions: IndicatorDefinitions;
 
+
+  requestedCurrency = '';
+  currenciesOptions: SelectItem[] = [{value: '', label: ''}];
+  private minValueOfY: number;
+  private maxValueOfY: number;
+  private taFormDefinitions: { [key: string]: TaFormDefinition };
+  private indicatorDefinitions: IndicatorDefinitions;
+
+  private crossRateMap = new TwoKeyMap<CurrenciesAndClosePrice>();
+  private mainCurrency: string;
 
   readonly compareHistoricalFN = (h, o) => h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT;
   readonly compareXaxisFN = (x, b) => x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT;
-
 
   constructor(private plotlyService: PlotlyService,
               private messageToastService: MessageToastService,
@@ -136,7 +150,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
               private activePanelService: ActivePanelService) {
 
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
-    this.language = Helper.CALENDAR_LANG[gps.getUserLang()];
     this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();
   }
@@ -149,7 +162,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return this.youngestMatchDate ? new Date(this.youngestMatchDate) : null;
   }
 
-
   ///////////////////////////////////////////////////////
   // Chart methods
   ///////////////////////////////////////////////////////
@@ -161,7 +173,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
       this.prepareChart(paramObject.allParam);
     });
-
     this.historyquoteService.getAllTaForms().subscribe(formDefinition => this.taFormDefinitions = formDefinition);
   }
 
@@ -176,30 +187,35 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     if (timeSeriesParams.length === 1 || timeSeriesParams.length - 1 !== this.loadedData.length) {
       this.loadedData = [];
     }
-
     if (timeSeriesParams.length === 2) {
       this.usePercentage = true;
     }
 
     for (let i = this.loadedData.length; i < timeSeriesParams.length; i++) {
-      const stsObservable = (timeSeriesParams[i].isCurrencypair)
-        ? this.currencypairService.getTransactionForCurrencyPair(timeSeriesParams[i].idSecuritycurrency)
-        : BusinessHelper.setSecurityTransactionSummary(this.securityService,
-          timeSeriesParams[i].idSecuritycurrency, timeSeriesParams[i].idSecurityaccount ? [timeSeriesParams[i].idSecurityaccount] : null,
-          timeSeriesParams[i].idPortfolio, true);
+      const stsObservable = timeSeriesParams[i].currencySecurity
+        ? BusinessHelper.setSecurityTransactionSummary(this.securityService,
+          timeSeriesParams[i].idSecuritycurrency, timeSeriesParams[i].idSecurityaccount
+            ? [timeSeriesParams[i].idSecurityaccount] : null,
+          timeSeriesParams[i].idPortfolio, true)
+        : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParams[i].idSecuritycurrency);
 
       const historyquoteObservable = this.historyquoteService.getDateCloseByIdSecuritycurrency(timeSeriesParams[i].idSecuritycurrency);
-      this.subscriptionLatest = combineLatest([stsObservable, historyquoteObservable]).subscribe((data: any[]) => {
+      const observable: Observable<any>[] = [stsObservable, historyquoteObservable];
+      this.addCurrencyCrossRateObservable(timeSeriesParams, timeSeriesParams[i].currencySecurity, observable);
 
-        const nameSecuritycurrency = (timeSeriesParams[i].isCurrencypair)
-          ? new CurrencypairWithTransaction(data[0])
-          : new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary);
+      this.subscriptionLatest = combineLatest(observable).subscribe((data: any[]) => {
+        const nameSecuritycurrency = timeSeriesParams[i].currencySecurity
+          ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
+          : new CurrencypairWithTransaction(data[0]);
 
         if ((<HistoryquoteDateClose[]>data[1]).length > 0) {
           this.createTodayAsHistoryquote(nameSecuritycurrency, data[1]);
           this.loadedData.push(new LoadedData(timeSeriesParams[i].idSecuritycurrency, nameSecuritycurrency, data[1],
-            timeSeriesParams[i].isCurrencypair));
-
+            timeSeriesParams[i].currencySecurity));
+          if (observable.length === 3) {
+            this.addCrossRateResponse(data[2]);
+            this.normalizeSecurityPrice(this.loadedData[this.loadedData.length - 1]);
+          }
 
           if (i === timeSeriesParams.length - 1) {
             this.prepareLoadedDataAndPlot(false);
@@ -210,6 +226,31 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         }
       });
     }
+  }
+
+  private addCurrencyCrossRateObservable(timeSeriesParams: TimeSeriesParam[], currencySecurity: string,
+                                         observable: Observable<any>[]): void {
+    if (timeSeriesParams[timeSeriesParams.length - 1].currencySecurity != null) {
+      const currencypairList: string[] = [];
+      this.crossRateMap.getValues().forEach(crossRateResponse => currencypairList.push(
+        crossRateResponse.currencypair.fromCurrency + '|' + crossRateResponse.currencypair.toCurrency));
+      const uniqueSecuritycurrency = new Set(this.loadedData.map(ld => ld.currencySecurity));
+      uniqueSecuritycurrency.add(currencySecurity);
+      observable.push(this.currencypairService.getCurrencypairForCrossRate(new CrossRateRequest(
+        [...uniqueSecuritycurrency], currencypairList)));
+    }
+  }
+
+  private addCrossRateResponse(crossRateResponse: CrossRateResponse): void {
+    this.mainCurrency = crossRateResponse.mainCurrency;
+    crossRateResponse.currenciesAndClosePrice.forEach(crr => {
+      this.crossRateMap.set(crr.currencypair.fromCurrency, crr.currencypair.toCurrency, crr);
+    });
+    const co = new Set(this.loadedData.map(ld => ld.currencySecurity));
+    this.currenciesOptions = [{value: '', label: ''}];
+    co.add(crossRateResponse.mainCurrency);
+    co.forEach((currency) => this.currenciesOptions.push({value: currency, label: currency}));
+
   }
 
   onBlurFromDate(event): void {
@@ -236,22 +277,29 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.prepareLoadedDataAndPlot(true);
   }
 
+  handleChangeCurrency(event) {
+    this.requestedCurrency = event.value;
+    this.normalizeAllSecurityPrices();
+    this.prepareLoadedDataAndPlot(true);
+  }
+
+
   getHistoricalLineTrace(loadedData: LoadedData): any {
-    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.historyquotes,
+    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.historyquotesNorm,
       moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
     // const foundEndIndex = AppHelper.binarySearch(loadedData.historyquotes, this.youngestDate, this.compareHistoricalFN);
 
-    while (loadedData.historyquotes[foundStartIndex].close === null) {
+    while (loadedData.historyquotesNorm[foundStartIndex].close === null) {
       foundStartIndex++;
     }
 
-    loadedData.factor = 100 / loadedData.historyquotes[foundStartIndex].close;
+    loadedData.factor = 100 / loadedData.historyquotesNorm[foundStartIndex].close;
     return {
       type: 'scatter',
       mode: 'lines',
       name: AppHelper.truncateString(loadedData.nameSecuritycurrency.getName(), 25, true),
-      x: loadedData.historyquotes.slice(foundStartIndex, loadedData.historyquotes.length).map(historyquote => historyquote.date),
-      y: loadedData.historyquotes.slice(foundStartIndex, loadedData.historyquotes.length).map(historyquote =>
+      x: loadedData.historyquotesNorm.slice(foundStartIndex, loadedData.historyquotesNorm.length).map(historyquote => historyquote.date),
+      y: loadedData.historyquotesNorm.slice(foundStartIndex, loadedData.historyquotesNorm.length).map(historyquote =>
         (this.usePercentage && historyquote.close != null) ? historyquote.close * loadedData.factor - 100 : historyquote.close),
       line: {width: 1},
       connectgaps: this.connectGaps
@@ -323,7 +371,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return traces;
   }
 
-  getBuySellDivMarkForSecurity(traces: Traces, historicalLine: any, securityTransactionSummary: SecurityTransactionSummary): Traces {
+  getBuySellDivMarkForSecurity(traces: Traces, loadedData: LoadedData, securityTransactionSummary: SecurityTransactionSummary): Traces {
     securityTransactionSummary.transactionPositionList.filter(stp => stp.transaction.transactionTime >= this.fromDate.getTime())
       .forEach(securityTransactionPosition => {
 
@@ -340,16 +388,23 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           const transactionDateStr = moment(transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
           traces[transactionTypeStr].x.push(transactionDateStr);
           if (transactionType === TransactionType.DIVIDEND || this.loadedData.length > 1 || this.usePercentage) {
-            const foundIndex = AppHelper.binarySearch(historicalLine.x, transactionDateStr, this.compareXaxisFN);
-            traces[transactionTypeStr].y.push(historicalLine.y[Math.abs(foundIndex)]);
+            const foundIndex = AppHelper.binarySearch(loadedData.historicalLine.x, transactionDateStr, this.compareXaxisFN);
+            traces[transactionTypeStr].y.push(loadedData.historicalLine.y[Math.abs(foundIndex)]);
           } else {
-            traces[transactionTypeStr].y.push(securityTransactionPosition.quotationSplitCorrection
-              ? securityTransactionPosition.quotationSplitCorrection : transaction.quotation);
+            // Y represent the normalized sell or buy price
+            let normalizeFactor = 1;
+            if (!this.normalizeNotNeeded(loadedData)) {
+              const foundStartIndex = AppHelper.binarySearch(loadedData.historyquotes,
+                moment(securityTransactionPosition.transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE),
+                this.compareHistoricalFN);
+              normalizeFactor = loadedData.historyquotesNorm[foundStartIndex].close / loadedData.historyquotes[foundStartIndex].close;
+            }
+            traces[transactionTypeStr].y.push((securityTransactionPosition.quotationSplitCorrection
+              ? securityTransactionPosition.quotationSplitCorrection : transaction.quotation) * normalizeFactor);
           }
           traces[transactionTypeStr].text.push(transaction.cashaccount.name);
         }
       });
-
     return traces;
   }
 
@@ -413,7 +468,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       };
       menuItems.push(iDef.menuItem);
     });
-
     TranslateHelper.translateMenuItems(menuItems, this.translateService, false);
     return menuItems;
   }
@@ -430,7 +484,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
   }
 
-
   private editIndicatorParam(iDef: IndicatorDefinition, taIndicators: string): void {
     const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taIndicators];
     const dataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators);
@@ -438,7 +491,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       dataModel ? dataModel : taFormDefinition.defaultDataModel,
       DynamicFieldHelper.createConfigFieldsFromDescriptor(taFormDefinition.taFormList, '', true, 'APPLY'));
     this.visibleTaDialog = true;
-   // this.changeDetectionStrategy.markForCheck();
+    // this.changeDetectionStrategy.markForCheck();
   }
 
   handleCloseTaDialog(processedActionData: ProcessedActionData): void {
@@ -472,7 +525,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       this.createTaTrace(iDef);
     });
   }
-
 
   private deleteShownTaTraceWhenInputDataHasChanged(taIndicator: string, iDef: IndicatorDefinition, newDataModel: any,
                                                     taFormDefinition: TaFormDefinition): void {
@@ -526,7 +578,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       });
       taTraceIndicatorData.traceIndex = this.chartElement.nativeElement.data.length - 1;
     });
-   // this.changeDetectionStrategy.markForCheck();
+    // this.changeDetectionStrategy.markForCheck();
   }
 
   private redoTaAfterDateChange(): void {
@@ -543,9 +595,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     });
   }
 
-
   callMeDeactivate(): void {
-   // this.changeDetectionStrategy.markForCheck();
+    // this.changeDetectionStrategy.markForCheck();
   }
 
   public getHelpContextId(): HelpIds {
@@ -560,9 +611,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     !userUserInputDate && this.evaluateOldestYoungestMatchDate();
     let traces = this.createAllQuotesLines();
     traces = traces.concat(this.createAllMarkerTraces());
-
     const layout: any = this.getLayout();
-    this.plot(element, traces, layout, userUserInputDate);
+    this.plot(element, traces, layout);
     this.redoTaAfterDateChange();
   }
 
@@ -585,11 +635,11 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.oldestMatchDate = null;
     this.youngestMatchDate = null;
     for (const ld of this.loadedData) {
-      this.oldestMatchDate = !this.oldestMatchDate ? ld.historyquotes[0].date : ld.historyquotes[0].date > this.oldestMatchDate ?
-        ld.historyquotes[0].date : this.oldestMatchDate;
-      const maxIndex = ld.historyquotes.length - 1;
-      this.youngestMatchDate = !this.youngestMatchDate ? ld.historyquotes[maxIndex].date :
-        ld.historyquotes[maxIndex].date < this.youngestMatchDate ? ld.historyquotes[maxIndex].date : this.youngestMatchDate;
+      this.oldestMatchDate = !this.oldestMatchDate ? ld.historyquotesNorm[0].date : ld.historyquotesNorm[0].date > this.oldestMatchDate ?
+        ld.historyquotesNorm[0].date : this.oldestMatchDate;
+      const maxIndex = ld.historyquotesNorm.length - 1;
+      this.youngestMatchDate = !this.youngestMatchDate ? ld.historyquotesNorm[maxIndex].date :
+        ld.historyquotesNorm[maxIndex].date < this.youngestMatchDate ? ld.historyquotesNorm[maxIndex].date : this.youngestMatchDate;
     }
     this.matchEveryHistoryquotesYoungestDate();
     if (!this.fromDate || this.loadedData.length === 1 || this.oldestDate.getTime() > this.fromDate.getTime()) {
@@ -600,7 +650,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private matchEveryHistoryquotesYoungestDate(): void {
     let i = 0;
     while (i < this.loadedData.length) {
-      const foundStartIndex = AppHelper.binarySearch(this.loadedData[i].historyquotes,
+      const foundStartIndex = AppHelper.binarySearch(this.loadedData[i].historyquotesNorm,
         moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
       if (foundStartIndex < 0) {
         this.fromDate = moment(this.fromDate).add(1, 'days').toDate();
@@ -625,25 +675,24 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private createAllMarkerTraces(): any[] {
     const traces: Traces = {};
     for (const ld of this.loadedData) {
-      if (ld.isCurrencypair) {
-        this.getBuySellDivMarkForCurrency(traces, ld.historicalLine, <CurrencypairWithTransaction>ld.nameSecuritycurrency);
+      if (ld.currencySecurity) {
+        this.getBuySellDivMarkForSecurity(traces, ld, <SecurityTransactionSummary>ld.nameSecuritycurrency);
       } else {
-        this.getBuySellDivMarkForSecurity(traces, ld.historicalLine, <SecurityTransactionSummary>ld.nameSecuritycurrency);
+        this.getBuySellDivMarkForCurrency(traces, ld.historicalLine, <CurrencypairWithTransaction>ld.nameSecuritycurrency);
       }
     }
     return Object.values(traces);
   }
 
-  private plot(element: any, traces: any, layout: any, userUserInputDate: boolean): void {
+  private plot(element: any, traces: any, layout: any): void {
     const config = PlotlyLocales.setPlotyLocales(this.plotlyService.getPlotly(), this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.displaylogo = false;
     this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
     this.plotlyService.getPlotly().newPlot(element, traces, layout, config);
-  // this.changeDetectionStrategy.markForCheck();
+    // this.changeDetectionStrategy.markForCheck();
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
-
       this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(changedViewSizeType =>
         this.plotlyService.getPlotly().Plots.resize(element));
     }
@@ -662,9 +711,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private getLayout(): any {
-
     const dateNative = moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
-
     const layout = {
       title: 'LINE_CHART',
       showlegend: true,
@@ -706,11 +753,90 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return buttons;
   }
 
+  private normalizeAllSecurityPrices(): void {
+    this.loadedData.filter(ld => ld.currencySecurity != null).forEach(ld => this.normalizeSecurityPrice(ld));
+  }
 
+
+  private normalizeSecurityPrice(loadedData: LoadedData): void {
+    console.log('FromDate:', this.fromDate);
+    if (this.normalizeNotNeeded(loadedData)) {
+      loadedData.historyquotesNorm = loadedData.historyquotes;
+    } else {
+      const mainToSecurityCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.mainCurrency, loadedData.currencySecurity);
+      const requestToSecurityCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.requestedCurrency,
+        loadedData.currencySecurity);
+      if (this.requestedCurrency === this.mainCurrency) {
+        this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency], [false]);
+      } else if (requestToSecurityCurrency != null && (requestToSecurityCurrency.currencypair.fromCurrency === this.mainCurrency
+        || requestToSecurityCurrency.currencypair.toCurrency === this.mainCurrency)) {
+        this.calculateHistoryquotes(loadedData, [requestToSecurityCurrency], [true]);
+      } else {
+        // Main currency is in the middle linke EUR -> CHF -> USD (requested currency: EUR, main currency: CHF,
+        // security currency: USD
+        const mainToRequestCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.mainCurrency, this.requestedCurrency);
+        this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency, mainToRequestCurrency], [false, true]);
+      }
+    }
+  }
+
+  private normalizeNotNeeded(loadedData: LoadedData): boolean {
+    return this.requestedCurrency.length === 0 || loadedData.currencySecurity == null
+      || loadedData.currencySecurity === this.requestedCurrency;
+  }
+
+  private getCurrencypairOrReverse(reqesteOrMainCurrency: string, currencySecurity: string): CurrenciesAndClosePrice {
+    let mainToSecurityCurrency: CurrenciesAndClosePrice = this.crossRateMap.get(reqesteOrMainCurrency, currencySecurity);
+    if (mainToSecurityCurrency == null) {
+      mainToSecurityCurrency = this.crossRateMap.get(currencySecurity, reqesteOrMainCurrency);
+    }
+    return mainToSecurityCurrency;
+  }
+
+
+  private calculateHistoryquotes(loadedData: LoadedData, currenciesAndClosePrice: CurrenciesAndClosePrice[],
+                                 multiple: boolean[]) {
+    const map2Loop: { [date: string]: HistoryquoteDateClose } = {};
+    loadedData.historyquotesNorm = [];
+
+    for (let i = 0; i < currenciesAndClosePrice.length; i++) {
+      let cIndex = Math.abs(AppHelper.binarySearch(currenciesAndClosePrice[i].closeAndDateList,
+        loadedData.historyquotes[0].date, this.compareHistoricalFN));
+      for (let hIndex = 0; hIndex < loadedData.historyquotes.length; hIndex++) {
+        do {
+          if (loadedData.historyquotes[hIndex].date > currenciesAndClosePrice[i].closeAndDateList[cIndex].date) {
+            cIndex++;
+          } else if (loadedData.historyquotes[hIndex].date < currenciesAndClosePrice[i].closeAndDateList[cIndex].date) {
+            hIndex++;
+          }
+        } while (hIndex < loadedData.historyquotes.length && cIndex < currenciesAndClosePrice[i].closeAndDateList.length
+        && loadedData.historyquotes[hIndex].date !== currenciesAndClosePrice[i].closeAndDateList[cIndex].date);
+        if (hIndex < loadedData.historyquotes.length && cIndex < currenciesAndClosePrice[i].closeAndDateList.length) {
+          if (loadedData.historyquotes[hIndex].close != null) {
+            if (i === 0) {
+              const historyquoteDateClose = {
+                date: loadedData.historyquotes[hIndex].date,
+                close: loadedData.historyquotes[hIndex].close * (multiple[i] ? currenciesAndClosePrice[i].closeAndDateList[cIndex].close :
+                  1 / currenciesAndClosePrice[i].closeAndDateList[cIndex].close)
+              };
+              loadedData.historyquotesNorm.push(historyquoteDateClose);
+              currenciesAndClosePrice.length > 1 && (map2Loop[historyquoteDateClose.date] = historyquoteDateClose);
+            } else {
+              const historyquoteDateClose = map2Loop[loadedData.historyquotes[hIndex].date];
+              if (historyquoteDateClose) {
+                historyquoteDateClose.close *= (multiple[i] ? currenciesAndClosePrice[i].closeAndDateList[cIndex].close :
+                  1 / currenciesAndClosePrice[i].closeAndDateList[cIndex].close);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 export class TimeSeriesParam {
-  constructor(public idSecuritycurrency: number, public isCurrencypair: boolean,
+  constructor(public idSecuritycurrency: number, public currencySecurity: string,
               public idPortfolio: number, public idSecurityaccount: number, fileGaps = true) {
   }
 }
@@ -718,9 +844,11 @@ export class TimeSeriesParam {
 class LoadedData {
   public factor: number;
   public historicalLine: any;
+  public historyquotesNorm: HistoryquoteDateClose[];
 
   constructor(public idSecuritycurrency: number, public nameSecuritycurrency: (CurrencypairWithTransaction | SecurityTransactionSummary),
-              public historyquotes: HistoryquoteDateClose[], public isCurrencypair: boolean) {
+              public historyquotes: HistoryquoteDateClose[], public currencySecurity: string) {
+    this.historyquotesNorm = historyquotes;
   }
 }
 
