@@ -10,7 +10,9 @@ public enum ProgressStateType {
   // The processing failed
   PROG_FAILED((byte) 2),
   // Task cannot be found
-  PROG_TASK_NOT_FOUND((byte) 3);
+  PROG_TASK_NOT_FOUND((byte) 3),
+  // Task ist started but finished
+  PROG_RUNNING((byte) 4);
 
   private final Byte value;
 
