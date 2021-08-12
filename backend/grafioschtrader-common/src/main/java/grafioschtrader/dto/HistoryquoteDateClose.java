@@ -7,7 +7,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafioschtrader.GlobalConstants;
 
-public class HistoryquoteDateClose {
+// Warning implements IDateAndClose wont work!!!
+public class HistoryquoteDateClose  {
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   public LocalDate date;
   public Double close;
