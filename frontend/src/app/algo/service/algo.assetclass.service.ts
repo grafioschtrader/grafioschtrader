@@ -9,7 +9,6 @@ import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {Injectable} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
 
 @Injectable()
 export class AlgoAssetclassService extends AuthServiceWithLogout<AlgoAssetclass> implements DeleteService,
@@ -20,7 +19,7 @@ export class AlgoAssetclassService extends AuthServiceWithLogout<AlgoAssetclass>
   }
 
   getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(idAlgoAssetclassSecurity: number): Observable<AlgoAssetclass[]> {
-    return <Observable<AlgoAssetclass[]>> this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}`
+    return <Observable<AlgoAssetclass[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_ASSETCLASS_KEY}`
       + `/${idAlgoAssetclassSecurity}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

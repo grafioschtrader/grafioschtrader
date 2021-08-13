@@ -7,7 +7,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {TransactionService} from '../service/transaction.service';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import {ChangeDetectorRef, Directive, EventEmitter, Output, ViewChild} from '@angular/core';
+import {Directive, EventEmitter, Output, ViewChild} from '@angular/core';
 import {Security} from '../../entities/security';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
@@ -56,13 +56,84 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
               protected transactionService: TransactionService,
               protected confirmationService: ConfirmationService,
               protected messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(null);
+  }
+
+  handleDeleteTransaction(transaction: Transaction): void {
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
+      (transaction.connectedIdTransaction != null) ? 'MSG_DELETE_ACCOUNTTRANSFER' : 'MSG_CONFIRM_DELETE_RECORD|TRANSACTION', () => {
+        this.transactionService.deleteTransaction(transaction.idTransaction).subscribe(response => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
+            (transaction.connectedIdTransaction != null) ? 'MSG_DELETE_TRANSACTIONS'
+              : 'MSG_DELETE_RECORD', {i18nRecord: (transaction.connectedIdTransaction != null) ? 'TRANSACTIONS' : 'TRANSACTIONS'});
+          this.afterDelete(transaction);
+        });
+      });
+  }
+
+  handleConnectDebitCreditTransaction(transaction: Transaction): void {
+    this.visibleConnectDebitCreditDialog = true;
+  }
+
+  afterDelete(transaction): void {
+    this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED,
+      this.getSecurity(transaction)));
+  }
+
+  handleCloseTransactionDialog(processedActionData: ProcessedActionData): void {
+    this.visibleSecurityTransactionDialog = false;
+    this.visibleCashaccountTransactionSingleDialog = false;
+    this.visibleCashaccountTransactionDoubleDialog = false;
+    this.visibleConnectDebitCreditDialog = false;
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED,
+        processedActionData.data));
+      // this.getSecurity(processedActionData.data)));
+    }
+  }
+
+  setMenuItemsToActivePanel(): void {
+    this.activePanelService.activatePanel(this,
+      {editMenu: this.getMenuItemsOnTransaction(this.selectedTransaction)});
+    this.contextMenuItems = this.getMenuItemsOnTransaction(this.selectedTransaction);
+  }
+
+  onRowUnselect(event): void {
+    this.selectedTransaction = null;
+  }
+
+  ////////////////////////////////////////////////
+  // Event handler
+  ////////////////////////////////////////////////
+
+  isActivated(): boolean {
+    return this.activePanelService.isActivated(this);
+  }
+
+  callMeDeactivate(): void {
+  }
+
+  hideContextMenu(): void {
+    this.contextMenu && this.contextMenu.hide();
+  }
+
+  onComponentClick(event): void {
+    event[this.consumedGT] = true;
+    this.contextMenu && this.contextMenu.hide();
+    this.setMenuItemsToActivePanel();
+  }
+
+  public getHelpContextId(): HelpIds {
+    return null;
+  }
+
+  destroy(): void {
+    this.activePanelService.destroyPanel(this);
   }
 
   protected handleEditTransaction(transaction: Transaction, closeMarginPosition?: CloseMarginPosition): void {
@@ -102,78 +173,6 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
         this.visibleCashaccountTransactionSingleDialog = true;
       }
     }
-  }
-
-  handleDeleteTransaction(transaction: Transaction): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      (transaction.connectedIdTransaction != null) ? 'MSG_DELETE_ACCOUNTTRANSFER' : 'MSG_CONFIRM_DELETE_RECORD|TRANSACTION', () => {
-        this.transactionService.deleteTransaction(transaction.idTransaction).subscribe(response => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            (transaction.connectedIdTransaction != null) ? 'MSG_DELETE_TRANSACTIONS'
-              : 'MSG_DELETE_RECORD', {i18nRecord: (transaction.connectedIdTransaction != null) ? 'TRANSACTIONS' : 'TRANSACTIONS'});
-          this.afterDelete(transaction);
-        });
-      });
-  }
-
-  handleConnectDebitCreditTransaction(transaction: Transaction): void {
-    this.visibleConnectDebitCreditDialog = true;
-  }
-
-  afterDelete(transaction): void {
-    this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED,
-      this.getSecurity(transaction)));
-  }
-
-  ////////////////////////////////////////////////
-  // Event handler
-  ////////////////////////////////////////////////
-
-  handleCloseTransactionDialog(processedActionData: ProcessedActionData): void {
-    this.visibleSecurityTransactionDialog = false;
-    this.visibleCashaccountTransactionSingleDialog = false;
-    this.visibleCashaccountTransactionDoubleDialog = false;
-    this.visibleConnectDebitCreditDialog = false;
-    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
-      this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED,
-        processedActionData.data));
-      // this.getSecurity(processedActionData.data)));
-    }
-  }
-
-  setMenuItemsToActivePanel(): void {
-    this.activePanelService.activatePanel(this,
-      {editMenu: this.getMenuItemsOnTransaction(this.selectedTransaction)});
-    this.contextMenuItems = this.getMenuItemsOnTransaction(this.selectedTransaction);
-  }
-
-  onRowUnselect(event): void {
-    this.selectedTransaction = null;
-  }
-
-  isActivated(): boolean {
-    return this.activePanelService.isActivated(this);
-  }
-
-  callMeDeactivate(): void {
-  }
-
-  hideContextMenu(): void {
-    this.contextMenu && this.contextMenu.hide();
-  }
-
-  onComponentClick(event): void {
-    event[this.consumedGT] = true;
-    this.contextMenu && this.contextMenu.hide();
-    this.setMenuItemsToActivePanel();
-  }
-
-  public getHelpContextId(): HelpIds {
-    return null;
-  }
-
-  destroy(): void {
-    this.activePanelService.destroyPanel(this);
   }
 
   protected abstract getSecurity(transaction: Transaction): Security;

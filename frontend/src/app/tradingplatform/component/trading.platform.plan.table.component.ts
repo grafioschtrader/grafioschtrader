@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
@@ -70,14 +70,12 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(AppSettings.TRADING_PLATFORM_PLAN, tradingPlatformPlanService, confirmationService, messageToastService,
-      activePanelService, dialogService, changeDetectionStrategy, filterService, translateService, gps,
-      usersettingsService);
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.en', 'PLATFORM_PLAN_NAME', true, false,
       {headerSuffix: 'EN', templateName: AppSettings.OWNER_TEMPLATE});

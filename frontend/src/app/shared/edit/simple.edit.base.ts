@@ -1,8 +1,7 @@
 import {ProcessedActionData} from '../types/processed.action.data';
 import {ProcessedAction} from '../types/processed.action';
-import {AppHelper} from '../helper/app.helper';
 import {GlobalparameterService} from '../service/globalparameter.service';
-import { EventEmitter, Input, Output, ViewChild, Directive } from '@angular/core';
+import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {HelpIds} from '../help/help.ids';
 import {FormBase} from './form.base';

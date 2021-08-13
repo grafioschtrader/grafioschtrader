@@ -1,5 +1,5 @@
 import {FieldFormFormGroupConfig} from '../models/field.form.form.group.config';
-import { AfterViewInit, ElementRef, OnInit, ViewChild, Directive } from '@angular/core';
+import {AfterViewInit, Directive, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {FieldConfig} from '../models/field.config';
 import {FormConfig} from '../models/form.config';
 import {FormGroup, Validators} from '@angular/forms';

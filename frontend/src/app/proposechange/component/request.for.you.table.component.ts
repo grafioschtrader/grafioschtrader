@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TranslateService} from '@ngx-translate/core';
@@ -161,12 +161,11 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
               private proposeChangeEntityService: ProposeChangeEntityService,
               private activePanelService: ActivePanelService,
               private messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
 
     this.entityMappingArr[this.ASSETCLASS] = new EntityMapping(new AssetclassPrepareEdit(assetclassService));
     this.entityMappingArr[this.STOCKEXCHANGE] = new EntityMapping(new StockexchangePrepareEdit(stockexchangeService,
@@ -187,7 +186,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.noteRequest', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'proposeChangeEntity.createdBy', true, false);
     this.addColumn(DataType.NumericInteger, 'proposeChangeEntity.idOwnerEntity', 'OWNER_ENTITY', true, false);
-    this.addColumnFeqH(DataType.DateString, 'proposeChangeEntity.creationTime',  true, false);
+    this.addColumnFeqH(DataType.DateString, 'proposeChangeEntity.creationTime', true, false);
     this.prepareTableAndTranslate();
   }
 
@@ -230,14 +229,6 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     }
   }
 
-  private getEntityMapping(proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): EntityMapping {
-    const entityMapping = this.entityMappingArr[proposeChangeEntityWithEntity.proposeChangeEntity.entity];
-    const entityMappingRedirect = this.entityMappingArr[entityMapping.prepareCallParam.redirectEntityMapping(
-      proposeChangeEntityWithEntity.proposedEntity)];
-    return entityMappingRedirect || entityMapping;
-  }
-
-
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
@@ -264,6 +255,13 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
 
   getHelpContextId(): HelpIds {
     return HelpIds.HELP_INTRO_PROPOSE_CHANGE_ENTITY;
+  }
+
+  private getEntityMapping(proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): EntityMapping {
+    const entityMapping = this.entityMappingArr[proposeChangeEntityWithEntity.proposeChangeEntity.entity];
+    const entityMappingRedirect = this.entityMappingArr[entityMapping.prepareCallParam.redirectEntityMapping(
+      proposeChangeEntityWithEntity.proposedEntity)];
+    return entityMappingRedirect || entityMapping;
   }
 
 }

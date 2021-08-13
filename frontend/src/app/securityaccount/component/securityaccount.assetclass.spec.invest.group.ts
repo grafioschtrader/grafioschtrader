@@ -3,7 +3,6 @@ import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dynamic';
-import {Assetclass} from '../../entities/assetclass';
 
 /**
  * Group by financial instrument of asset class like ETF, direct investment.

@@ -120,29 +120,6 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       DistributionFrequency);
   }
 
-  protected initialize(): void {
-    this.securityEditSupport.registerValueOnChanged(SecurityDerived.Derived, this.configObject);
-    this.valueChangedOnFormula();
-    const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[]
-      | Assetclass[] | IFeedConnector[] | SecurityCurrencypairDerivedLinks>[] = [];
-    observables.push(this.stockexchangeService.getAllStockexchanges(false));
-    observables.push(this.gps.getCurrencies());
-    observables.push(this.assetclassService.getAllAssetclass());
-    if (this.securityCallParam) {
-      observables.push(this.securityService.getDerivedInstrumentsLinksForSecurity(this.securityCallParam.idSecuritycurrency));
-    }
-
-    combineLatest(observables).subscribe((data: [Stockexchange[], ValueKeyHtmlSelectOptions[], Assetclass[],
-      SecurityCurrencypairDerivedLinks]) => {
-      this.securityEditSupport.assignLoadedValues(this.configObject, data[0], data[1], data[2]);
-      this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
-        this.securityCallParam, this.form, this.configObject, this.proposeChangeEntityWithEntity);
-      this.securityCallParam && this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[data.length - 1]);
-
-    });
-  }
-
   disableBaseInstrumentFields(): void {
     if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securityCallParam)) {
       this.config.filter(fieldConfig => fieldConfig.fieldsetName === this.derivedData).forEach(
@@ -167,6 +144,69 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     });
   }
 
+  handleSecurityClick(fieldConfig: FieldConfig): void {
+    this.visibleSetSecurityDialog = true;
+    this.dialogSecurityTargetFieldname = fieldConfig.field;
+  }
+
+  setSecurity(security: Security | CurrencypairWatchlist, afterSetSecurity: AfterSetSecurity): void {
+    afterSetSecurity.afterSetSecurity();
+    if (this.dialogSecurityTargetFieldname === this.BASE_PRODUCT_NAME) {
+      this.setSecurityBaseInstrument(security);
+    } else {
+      this.additionalInstruments[this.dialogSecurityTargetFieldname] = security;
+    }
+    this.configObject[this.dialogSecurityTargetFieldname].formControl.setValue(security.name);
+  }
+
+  handleOnCloseSetDialog(processedActionData: ProcessedActionData): void {
+    this.visibleSetSecurityDialog = false;
+  }
+
+  submit(value: { [name: string]: any }): void {
+    const security = this.securityEditSupport.prepareForSave(this, this.proposeChangeEntityWithEntity, this.securityCallParam,
+      this.dynamicForm, value);
+    if (this.baseInstrument) {
+      security.idLinkSecuritycurrency = this.baseInstrument.idSecuritycurrency;
+    }
+    this.translateFormulaFromUserLanguage(security);
+    this.setSecurityDerivedLinks(security);
+    this.securityService.update(security).subscribe(newSecurity => {
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
+      this.closeDialog.emit(new ProcessedActionData(this.securityCallParam ? ProcessedAction.UPDATED
+        : ProcessedAction.CREATED, newSecurity));
+    }, () => this.configObject.submit.disabled = false);
+  }
+
+  onHide(event): void {
+    this.securityEditSupport.destroy();
+    this.formulaSubscribe && this.formulaSubscribe.unsubscribe();
+    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+  }
+
+  protected initialize(): void {
+    this.securityEditSupport.registerValueOnChanged(SecurityDerived.Derived, this.configObject);
+    this.valueChangedOnFormula();
+    const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[]
+      | Assetclass[] | IFeedConnector[] | SecurityCurrencypairDerivedLinks>[] = [];
+    observables.push(this.stockexchangeService.getAllStockexchanges(false));
+    observables.push(this.gps.getCurrencies());
+    observables.push(this.assetclassService.getAllAssetclass());
+    if (this.securityCallParam) {
+      observables.push(this.securityService.getDerivedInstrumentsLinksForSecurity(this.securityCallParam.idSecuritycurrency));
+    }
+
+    combineLatest(observables).subscribe((data: [Stockexchange[], ValueKeyHtmlSelectOptions[], Assetclass[],
+      SecurityCurrencypairDerivedLinks]) => {
+      this.securityEditSupport.assignLoadedValues(this.configObject, data[0], data[1], data[2]);
+      this.form.setDefaultValuesAndEnableSubmit();
+      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
+        this.securityCallParam, this.form, this.configObject, this.proposeChangeEntityWithEntity);
+      this.securityCallParam && this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[data.length - 1]);
+
+    });
+  }
+
   private addInvestmentInstrumentFieldRow(): void {
     const fieldConfig: FieldConfig[] = [];
     this.usedFormulaVars.forEach((ufv: string) => {
@@ -182,7 +222,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     });
 
     const unusedInstruments = this.config.filter(fc => fc.field.startsWith(
-      SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_')
+        SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_')
       && this.usedFormulaVars.indexOf(fc.field.charAt(fc.field.length - 1)) < 0);
     unusedInstruments.forEach(ffc => this.config.splice(this.config.findIndex(fc => fc.field === ffc.field), 1));
     if (fieldConfig.length > 0 || unusedInstruments.length > 0) {
@@ -211,7 +251,6 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     this.disableBaseInstrumentFields();
   }
 
-
   private reduceExpandChoosableAssetclass(): void {
     const formula: string = this.configObject[this.FORMULA_PRICES].formControl.value;
     if (this.baseInstrument && this.baseInstrument.assetClass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR]
@@ -222,21 +261,6 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     }
   }
 
-  handleSecurityClick(fieldConfig: FieldConfig): void {
-    this.visibleSetSecurityDialog = true;
-    this.dialogSecurityTargetFieldname = fieldConfig.field;
-  }
-
-  setSecurity(security: Security | CurrencypairWatchlist, afterSetSecurity: AfterSetSecurity): void {
-    afterSetSecurity.afterSetSecurity();
-    if (this.dialogSecurityTargetFieldname === this.BASE_PRODUCT_NAME) {
-      this.setSecurityBaseInstrument(security);
-    } else {
-      this.additionalInstruments[this.dialogSecurityTargetFieldname] = security;
-    }
-    this.configObject[this.dialogSecurityTargetFieldname].formControl.setValue(security.name);
-  }
-
   private setSecurityBaseInstrument(security: Security | CurrencypairWatchlist): void {
     this.baseInstrument = security;
     if (security instanceof CurrencypairWatchlist) {
@@ -245,25 +269,6 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     } else {
       this.form.transferBusinessObjectToForm(security);
     }
-  }
-
-  handleOnCloseSetDialog(processedActionData: ProcessedActionData): void {
-    this.visibleSetSecurityDialog = false;
-  }
-
-  submit(value: { [name: string]: any }): void {
-    const security = this.securityEditSupport.prepareForSave(this, this.proposeChangeEntityWithEntity, this.securityCallParam,
-      this.dynamicForm, value);
-    if (this.baseInstrument) {
-      security.idLinkSecuritycurrency = this.baseInstrument.idSecuritycurrency;
-    }
-    this.translateFormulaFromUserLanguage(security);
-    this.setSecurityDerivedLinks(security);
-    this.securityService.update(security).subscribe(newSecurity => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
-      this.closeDialog.emit(new ProcessedActionData(this.securityCallParam ? ProcessedAction.UPDATED
-        : ProcessedAction.CREATED, newSecurity));
-    }, () => this.configObject.submit.disabled = false);
   }
 
   private translateFormulaFromUserLanguage(security: Security): void {
@@ -284,11 +289,5 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
         }
       });
     }
-  }
-
-  onHide(event): void {
-    this.securityEditSupport.destroy();
-    this.formulaSubscribe && this.formulaSubscribe.unsubscribe();
-    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 }

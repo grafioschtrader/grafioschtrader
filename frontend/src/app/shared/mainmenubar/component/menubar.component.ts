@@ -30,8 +30,8 @@ import {AppSettings} from '../../app.settings';
   `,
 })
 export class MenubarComponent implements OnInit, OnDestroy {
-  private subscriptionViewSizeChanged: Subscription;
   menuItems: MenuItem[] = new Array<MenuItem>(4);
+  private subscriptionViewSizeChanged: Subscription;
 
   constructor(public translateService: TranslateService,
               public mainDialogService: MainDialogService,
@@ -92,6 +92,10 @@ export class MenubarComponent implements OnInit, OnDestroy {
     }
   }
 
+  ngOnDestroy(): void {
+    this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
+  }
+
   private deleteMyDataAndUserAccount(): void {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'DELETE_MY_SURE', () => {
@@ -120,10 +124,6 @@ export class MenubarComponent implements OnInit, OnDestroy {
     } else {
       BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_INTRO);
     }
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
   }
 }
 

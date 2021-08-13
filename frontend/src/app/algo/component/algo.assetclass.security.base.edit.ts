@@ -9,12 +9,9 @@ import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {InputType} from '../../dynamic-form/models/input.type';
-import { Input, Directive } from '@angular/core';
-import {CallParam} from '../../shared/maintree/types/dialog.visible';
+import {Directive, Input} from '@angular/core';
 import {AlgoAssetclassSecurity} from '../../entities/algo.assetclass.security';
 import {AlgoCallParam} from '../model/algo.dialog.visible';
-import {AppHelper} from '../../shared/helper/app.helper';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 
 @Directive()
@@ -31,6 +28,11 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
               serviceEntityUpdate: ServiceEntityUpdate<T>) {
     super(HelpIds.HELP_ALGO, i18nRecord, translateService, gps,
       messageToastService, serviceEntityUpdate);
+  }
+
+  onHide(event): void {
+    this.securityaccount1ChangedSub && this.securityaccount1ChangedSub.unsubscribe();
+    super.onHide(event);
   }
 
   protected getFieldDefinition(): FieldConfig[] {
@@ -54,7 +56,6 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
     }
   }
 
-
   protected createPorfolioSecurityaccountHtmlSelectOptions(portfolios: Portfolio[],
                                                            idSecurityaccount: string): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
@@ -72,17 +73,11 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
     return valueKeyHtmlSelectOptions;
   }
 
-
   protected valueChangedOnSecurityaccount1(): void {
     this.securityaccount1ChangedSub = this.configObject.idSecurityaccount1.formControl.valueChanges
       .subscribe((idSecurityaccount: string) => {
         this.configObject.idSecurityaccount2.valueKeyHtmlOptions = this.createPorfolioSecurityaccountHtmlSelectOptions(this.portfolios,
           idSecurityaccount);
       });
-  }
-
-  onHide(event): void {
-    this.securityaccount1ChangedSub && this.securityaccount1ChangedSub.unsubscribe();
-    super.onHide(event);
   }
 }

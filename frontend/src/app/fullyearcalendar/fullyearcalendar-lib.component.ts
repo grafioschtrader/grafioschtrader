@@ -20,29 +20,34 @@ import {DayOfWeek} from './model/day.of.week';
 })
 export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
 
-  private initial_data: string;
-  private colorBgToFgColor: Map<string, string> = new Map();
-
   @Input()
   underline = false;
-
   @Input()
   locale: LocaleSettings = {
     dayNamesMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
     monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
   };
-
-
   value: YearCalendarData;
-
   @Output()
   onDaySelect: EventEmitter<Date> = new EventEmitter<Date>();
-
   public year: Year;
-
   disabledDaysOfWeek: string[];
+  private initial_data: string;
+  private colorBgToFgColor: Map<string, string> = new Map();
 
   constructor() {
+  }
+
+  @Input('value')
+  set _initValue(val: YearCalendarData) {
+    if (val.disableWeekDays) {
+      this.disabledDaysOfWeek = [];
+      val.disableWeekDays.forEach((dayOfWeek: DayOfWeek) =>
+        this.disabledDaysOfWeek.push(this.locale.dayNamesMin[Year.getDayNumberByDayOfWeek(dayOfWeek)]));
+    }
+    this.value = val;
+
+    this.initValue(val);
   }
 
   ngOnDestroy(): void {
@@ -57,56 +62,6 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
     if (this.initial_data !== stringData) {
       this.initial_data = stringData;
       this.initValue(this.value, stringData);
-    }
-  }
-
-
-  @Input('value')
-  set _initValue(val: YearCalendarData) {
-    if (val.disableWeekDays) {
-      this.disabledDaysOfWeek = [];
-      val.disableWeekDays.forEach((dayOfWeek: DayOfWeek) =>
-        this.disabledDaysOfWeek.push(this.locale.dayNamesMin[Year.getDayNumberByDayOfWeek(dayOfWeek)]));
-    }
-    this.value = val;
-
-    this.initValue(val);
-  }
-
-  private initValue(val: YearCalendarData, oldValue: string = null): void {
-    this.year = new Year(val.year);
-    this.initial_data = oldValue != null ? oldValue : JSON.stringify(val);
-    for (const m of this.year.months) {
-      for (const w of m.weeks) {
-        for (const day of w.daysOfWeek) {
-          if (this.value.dates && this.value.dates.length > 0) {
-            for (const d of this.value.dates) {
-
-              if (day.day >= d.start && day.day <= d.end) {
-                const range = new Range();
-                range.id = d.id;
-                range.start = d.start;
-                range.end = d.end;
-                range.tooltip = d.tooltip;
-                range.backgroundColor = (d.color) ? d.color : 'gray';
-                range.foregroundColor = this.getForegroundColorByBackgroundColor(range.backgroundColor);
-                range.day = day.day;
-                range.select = (allRanges): void => {
-                  if (typeof d.select === 'function') {
-                    d.select(range, allRanges);
-                  }
-                };
-                if (!day.ranges) {
-                  day.ranges = [];
-                }
-                day.ranges.push(range);
-              }
-            }
-          }
-          day.isDisabled = this.isDisabled(day.day, this.value.disabledDays)
-            || this.isWeekdayDisabled(day.dayOfWeek, this.value.disableWeekDays);
-        }
-      }
     }
   }
 
@@ -151,6 +106,43 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
     const rgb: Uint8ClampedArray = ctx.getImageData(0, 0, 1, 1).data;
 
     return ctx.getImageData(0, 0, 1, 1).data;
+  }
+
+  private initValue(val: YearCalendarData, oldValue: string = null): void {
+    this.year = new Year(val.year);
+    this.initial_data = oldValue != null ? oldValue : JSON.stringify(val);
+    for (const m of this.year.months) {
+      for (const w of m.weeks) {
+        for (const day of w.daysOfWeek) {
+          if (this.value.dates && this.value.dates.length > 0) {
+            for (const d of this.value.dates) {
+
+              if (day.day >= d.start && day.day <= d.end) {
+                const range = new Range();
+                range.id = d.id;
+                range.start = d.start;
+                range.end = d.end;
+                range.tooltip = d.tooltip;
+                range.backgroundColor = (d.color) ? d.color : 'gray';
+                range.foregroundColor = this.getForegroundColorByBackgroundColor(range.backgroundColor);
+                range.day = day.day;
+                range.select = (allRanges): void => {
+                  if (typeof d.select === 'function') {
+                    d.select(range, allRanges);
+                  }
+                };
+                if (!day.ranges) {
+                  day.ranges = [];
+                }
+                day.ranges.push(range);
+              }
+            }
+          }
+          day.isDisabled = this.isDisabled(day.day, this.value.disabledDays)
+            || this.isWeekdayDisabled(day.dayOfWeek, this.value.disableWeekDays);
+        }
+      }
+    }
   }
 
 

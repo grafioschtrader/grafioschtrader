@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component} from '@angular/core';
+import {Component} from '@angular/core';
 import {AddInstrumentTable} from './add-instrument-table.component';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
 import {FilterService} from 'primeng/api';
@@ -20,13 +20,11 @@ export class WatchlistAddInstrumentTableComponent extends AddInstrumentTable<Wat
 
   constructor(dataChangedService: DataChangedService,
               watchlistService: WatchlistService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(new Watchlist(), dataChangedService, watchlistService, changeDetectionStrategy, filterService,
-      translateService, gps, usersettingsService);
+    super(new Watchlist(), dataChangedService, watchlistService, filterService, translateService, gps, usersettingsService);
   }
 
 }

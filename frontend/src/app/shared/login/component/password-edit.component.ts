@@ -44,19 +44,6 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
     this.changePasswdFormDefinition(JSON.parse(sessionStorage.getItem(GlobalSessionNames.USER_FORM_DEFINITION)));
   }
 
-  private changePasswdFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
-    super.init(fdias, true);
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      5);
-    this.config = [
-      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('password', fdias,
-        {targetField: 'passwordOld'}),
-      ...this.configPassword,
-      DynamicFieldHelper.createSubmitButton()
-    ];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-  }
-
   submit(value: { [name: string]: any }): void {
     const changePassword = new ChangePasswordDTO();
     this.form.cleanMaskAndTransferValuesToBusinessObject(changePassword);
@@ -79,6 +66,19 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
 
   public onHide(event) {
     this.mainDialogService.visibleDialog(false, UserSettingsDialogs.Password);
+  }
+
+  private changePasswdFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
+    super.init(fdias, true);
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
+      5);
+    this.config = [
+      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('password', fdias,
+        {targetField: 'passwordOld'}),
+      ...this.configPassword,
+      DynamicFieldHelper.createSubmitButton()
+    ];
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
 

@@ -3,7 +3,6 @@ import {BaseService} from '../login/service/base.service';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../app.settings';
-import {ActuatorHealth} from './actuator.service';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {Stockexchange} from '../../entities/stockexchange';
 

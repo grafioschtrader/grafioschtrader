@@ -4,7 +4,6 @@ html {
 }
 
 
-
 body {
   line-height: 1.3;
 }
@@ -61,7 +60,6 @@ label {
 .p-datepicker {
   width: 400px !important;
 }
-
 
 
 .p-autocomplete {
@@ -141,6 +139,7 @@ label {
   height: 100%;
   float: left;
 }
+
 button.p-button.button-no-label > span.p-button-label {
   display: none;
 }

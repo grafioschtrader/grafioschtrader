@@ -109,10 +109,10 @@ import {HttpClientModule} from '@angular/common/http';
 export class DynamicFormModule {
   static withComponents(components: any[]): ModuleWithProviders<DynamicFormModule> {
     return {
-        ngModule: DynamicFormModule,
-        providers: [
-            { provide: ANALYZE_FOR_ENTRY_COMPONENTS, useValue: components, multi: true }
-        ]
+      ngModule: DynamicFormModule,
+      providers: [
+        {provide: ANALYZE_FOR_ENTRY_COMPONENTS, useValue: components, multi: true}
+      ]
     };
-}
+  }
 }

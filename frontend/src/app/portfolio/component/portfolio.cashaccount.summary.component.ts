@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CashaccountService} from '../../cashaccount/service/cashaccount.service';
 import {ActivatedRoute, Params} from '@angular/router';
 import {Cashaccount} from '../../entities/cashaccount';
@@ -73,12 +73,11 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
               private messageToastService: MessageToastService,
               private activatedRoute: ActivatedRoute,
               private dataChangedService: DataChangedService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
       {width: 100, columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]});

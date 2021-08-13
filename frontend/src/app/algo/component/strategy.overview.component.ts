@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {CurrencyMaskConfig, CurrencyMaskInputMode} from 'ngx-currency';
+import {CurrencyMaskInputMode} from 'ngx-currency';
 
 @Component({
   template: `
@@ -40,12 +40,25 @@ import {CurrencyMaskConfig, CurrencyMaskInputMode} from 'ngx-currency';
 })
 export class StrategyOverviewComponent {
   displayBasic: boolean;
-  optionsInput01 = {prefix: 'CHF ', thousands: '\'', decimal: '.', inputMode: CurrencyMaskInputMode.NATURAL, precision: 2};
-  optionsInput02 = {prefix: 'USD ', thousands: '\'', decimal: '.', inputMode: CurrencyMaskInputMode.NATURAL, precision: 2};
+  optionsInput01 = {
+    prefix: 'CHF ',
+    thousands: '\'',
+    decimal: '.',
+    inputMode: CurrencyMaskInputMode.NATURAL,
+    precision: 2
+  };
+  optionsInput02 = {
+    prefix: 'USD ',
+    thousands: '\'',
+    decimal: '.',
+    inputMode: CurrencyMaskInputMode.NATURAL,
+    precision: 2
+  };
   price1 = 100.20;
   price2 = 43.10;
   curreny1 = 'CHF';
   curreny2 = 'EUR';
+
   showBasicDialog() {
     this.displayBasic = true;
   }

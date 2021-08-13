@@ -205,21 +205,6 @@ export class AppHelper {
     }
   }
 
-  private static confirmationDialogParam(translateService: TranslateService, confirmationService: ConfirmationService, msgKey: string,
-                                         param: string, acceptFN: Function, headerKey: string) {
-
-    const observableMsg = (param) ? translateService.get(msgKey, {i18nRecord: param}) : translateService.get(msgKey);
-    const observableHeaderKey = translateService.get(headerKey);
-
-    combineLatest([observableMsg, observableHeaderKey]).subscribe((translated: string[]) => {
-      confirmationService.confirm({
-        message: translated[0],
-        header: translated[1],
-        accept: acceptFN
-      });
-    });
-  }
-
   public static getDefaultFormConfig(gps: GlobalparameterService, labelcolums: number,
                                      helpLinkFN: Function = null, nonModal = false): FormConfig {
     return {
@@ -230,7 +215,6 @@ export class AppHelper {
       decimalSymbol: gps.getDecimalSymbol(), helpLinkFN: helpLinkFN, nonModal: nonModal
     };
   }
-
 
   public static getHttpParamsOfObject(dataobject: any): HttpParams {
     let params = new HttpParams();
@@ -243,7 +227,6 @@ export class AppHelper {
     }
     return params;
   }
-
 
   public static processDroppedFiles(files: NgxFileDropEntry[], messageToastService: MessageToastService,
                                     allowedFileExtension: string, uploadFunc: (formData: FormData) => void): void {
@@ -265,6 +248,21 @@ export class AppHelper {
         break;
       }
     }
+  }
+
+  private static confirmationDialogParam(translateService: TranslateService, confirmationService: ConfirmationService, msgKey: string,
+                                         param: string, acceptFN: Function, headerKey: string) {
+
+    const observableMsg = (param) ? translateService.get(msgKey, {i18nRecord: param}) : translateService.get(msgKey);
+    const observableHeaderKey = translateService.get(headerKey);
+
+    combineLatest([observableMsg, observableHeaderKey]).subscribe((translated: string[]) => {
+      confirmationService.confirm({
+        message: translated[0],
+        header: translated[1],
+        accept: acceptFN
+      });
+    });
   }
 }
 

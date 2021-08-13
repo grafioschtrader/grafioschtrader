@@ -1,5 +1,5 @@
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
-import {ChangeDetectorRef, Directive, EventEmitter, Input, Output} from '@angular/core';
+import {Directive, EventEmitter, Input, Output} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -22,21 +22,21 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
 
   selectedRow: T;
   dataChanged = false;
-  _dataList: T[] = [];
 
   protected constructor(public dataSortKey: string,
                         public maxRowMessageKey: string,
                         private classz: ClassConstructor<T>,
                         private messageToastService: MessageToastService,
                         private deleteCreateMultipleService: DeleteCreateMultiple<T>,
-                        changeDetectionStrategy: ChangeDetectorRef,
                         filterService: FilterService,
                         usersettingsService: UserSettingsService,
                         translateService: TranslateService,
                         gps: GlobalparameterService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     this.multiSortMeta.push({field: dataSortKey, order: 1});
   }
+
+  _dataList: T[] = [];
 
   get dataList(): T[] {
     return this._dataList;

@@ -41,7 +41,7 @@ export class MessageToastService {
 
   showMessageI18nEnableHtml(infoLevelType: InfoLevelType, key: string | Array<string>, interpolateParams?: Object) {
     const messageContainer: MessageContainer = new MessageContainer(true, infoLevelType, key, interpolateParams);
-    messageContainer.enableHtml  = true;
+    messageContainer.enableHtml = true;
     this.showMessageSource.next(messageContainer);
   }
 

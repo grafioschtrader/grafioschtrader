@@ -1,10 +1,7 @@
-import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmDialogModule} from 'primeng/confirmdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MailInOutTable} from './mail.in.out.table';
-import {MailInbox} from '../model/mail.inbox';
-import {MailInboxService} from '../service/mail.inbox.service';
 import {Router} from '@angular/router';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
@@ -15,7 +12,6 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {plainToClass} from 'class-transformer';
 import {MailSendboxService} from '../service/mail.sendbox.service';
 import {MailSendbox} from '../model/mail.sendbox';
-import {filter} from 'rxjs/operators';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
@@ -31,13 +27,12 @@ export class MailSendboxTableComponent extends MailInOutTable<MailSendbox> imple
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(router, 'sendTime', AppSettings.MAIL_SENDBOX, mailSendboxService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      dialogService, filterService, translateService, gps, usersettingsService);
     this.addColumnFeqH(DataType.String, 'idUserTo', true, false, {width: 50});
     this.addColumnFeqH(DataType.String, 'roleNameTo', true, false,
       {width: 80, translateValues: TranslateValue.NORMAL});

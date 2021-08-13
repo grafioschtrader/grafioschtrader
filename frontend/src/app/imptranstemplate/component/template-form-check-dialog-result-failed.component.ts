@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {FailedParsedTemplateState} from './failed.parsed.template.state';
@@ -46,12 +46,11 @@ import {FilterService} from 'primeng/api';
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {
   @Input() failedParsedTemplateStateList: FailedParsedTemplateState[];
 
-  constructor(changeDetectionStrategy: ChangeDetectorRef,
-              filterService: FilterService,
+  constructor(filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
   }
 
   ngOnInit(): void {

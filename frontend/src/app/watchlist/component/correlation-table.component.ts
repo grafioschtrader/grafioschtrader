@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
+import {Component, Input, OnDestroy} from '@angular/core';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
@@ -86,12 +86,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   constructor(private correlationSetService: CorrelationSetService,
               private messageToastService: MessageToastService,
               private dataChangedService: DataChangedService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     this.createDynamicTableDefinition(null, null);
     this.addInstrumentsToCorrelationSet();
   }
@@ -99,6 +98,60 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   parentSelectionChanged(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
     this.createDynamicTableDefinition(correlationSet, correlationResult);
     this.readListLimitOnce(correlationSet);
+  }
+
+  public prepareEditMenu(): MenuItem[] {
+    const menuItems: MenuItem[] = [];
+    menuItems.push({separator: true});
+    menuItems.push(
+      {
+        label: 'ADD_EXISTING_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
+        disabled: !this.tenantLimits || !this.correlationSet
+          || this.correlationSet.securitycurrencyList.length >= this.tenantLimits[0].limit
+      }
+    );
+
+    menuItems.push({
+      label: 'REMOVE_INSTRUMENT', command: (event) => this.removeInstrumentFromCorrelationSet(this.selectedEntity
+        .idSecuritycurrency)
+    });
+    return menuItems;
+  }
+
+  addExistingSecurity(event) {
+    this.visibleAddInstrumentDialog = true;
+  }
+
+  handleCloseAddInstrumentDialog(processedActionData: ProcessedActionData) {
+    this.visibleAddInstrumentDialog = false;
+    this.childToParent.refreshData(null);
+  }
+
+  removeInstrumentFromCorrelationSet(idSecuritycurrency: number) {
+    this.correlationSetService.removeInstrumentFromCorrelationSet(this.correlationSet.idCorrelationSet,
+      idSecuritycurrency).subscribe(correlationSet => {
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_INSTRUMENT_FROM_CORRELATIONSET');
+      // this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new CorrelationSet()));
+      this.childToParent.refreshData(correlationSet);
+    });
+  }
+
+  getCorrelation(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
+    const ci: CorrelationInstrument = this.correlationResult.correlationInstruments.find(correlationResult =>
+      correlationResult.idSecuritycurrency === dataobject.idSecuritycurrency);
+    return ci ? ci.correlations[field.userValue] : null;
+  }
+
+  getBackgroundColor(dataobject: Securitycurrency, field: ColumnConfig): string {
+    if (field.userValue != null) {
+      const value: number = this.getCorrelation(dataobject, field, null) as number;
+      return 'hsl(' + ((value + 1) * 58) + ',100%, 50%)';
+    }
+    return null;
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptionInstrumentAdded && this.subscriptionInstrumentAdded.unsubscribe();
   }
 
   private readListLimitOnce(correlationSet: CorrelationSet): void {
@@ -139,33 +192,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.correlationSet = correlationSet;
   }
 
-  public prepareEditMenu(): MenuItem[] {
-    const menuItems: MenuItem[] = [];
-    menuItems.push({separator: true});
-    menuItems.push(
-      {
-        label: 'ADD_EXISTING_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
-        disabled: !this.tenantLimits || !this.correlationSet
-          || this.correlationSet.securitycurrencyList.length >= this.tenantLimits[0].limit
-      }
-    );
-
-    menuItems.push({
-      label: 'REMOVE_INSTRUMENT', command: (event) => this.removeInstrumentFromCorrelationSet(this.selectedEntity
-        .idSecuritycurrency)
-    });
-    return menuItems;
-  }
-
-  addExistingSecurity(event) {
-    this.visibleAddInstrumentDialog = true;
-  }
-
-  handleCloseAddInstrumentDialog(processedActionData: ProcessedActionData) {
-    this.visibleAddInstrumentDialog = false;
-    this.childToParent.refreshData(null);
-  }
-
   private addInstrumentsToCorrelationSet(): void {
     this.subscriptionInstrumentAdded = this.dataChangedService.dateChanged$.subscribe(processedActionData => {
       if (processedActionData.data.hasOwnProperty('idCorrelationSet')
@@ -174,33 +200,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
         this.childToParent.refreshData(processedActionData.data);
       }
     });
-  }
-
-  removeInstrumentFromCorrelationSet(idSecuritycurrency: number) {
-    this.correlationSetService.removeInstrumentFromCorrelationSet(this.correlationSet.idCorrelationSet,
-      idSecuritycurrency).subscribe(correlationSet => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_INSTRUMENT_FROM_CORRELATIONSET');
-      // this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new CorrelationSet()));
-      this.childToParent.refreshData(correlationSet);
-    });
-  }
-
-  getCorrelation(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
-    const ci: CorrelationInstrument = this.correlationResult.correlationInstruments.find(correlationResult =>
-      correlationResult.idSecuritycurrency === dataobject.idSecuritycurrency);
-    return ci ? ci.correlations[field.userValue] : null;
-  }
-
-  getBackgroundColor(dataobject: Securitycurrency, field: ColumnConfig): string {
-    if (field.userValue != null) {
-      const value: number = this.getCorrelation(dataobject, field, null) as number;
-      return 'hsl(' + ((value + 1) * 58) + ',100%, 50%)';
-    }
-    return null;
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptionInstrumentAdded && this.subscriptionInstrumentAdded.unsubscribe();
   }
 
 }

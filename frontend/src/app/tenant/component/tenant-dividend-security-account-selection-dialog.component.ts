@@ -54,8 +54,8 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
-  @ViewChild('securityaccountTree', { static: true }) securityaccountTree: TenantDividendAccountSelectionComponent;
-  @ViewChild('cashaccountTree', { static: true }) cashaccountTree: TenantDividendAccountSelectionComponent;
+  @ViewChild('securityaccountTree', {static: true}) securityaccountTree: TenantDividendAccountSelectionComponent;
+  @ViewChild('cashaccountTree', {static: true}) cashaccountTree: TenantDividendAccountSelectionComponent;
 
   saColumnConfig: ColumnConfig[] = [];
   caColumnConfig: ColumnConfig[] = [];
@@ -67,13 +67,12 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
     this.caColumnConfig.push(new ColumnConfig(DataType.String, 'currency', 'CURRENCY', true, false));
   }
 
-  public onShow(event): void {
-    setTimeout(() => this.prepareData());
+  get disableButton(): boolean {
+    return this.securityaccountTree.getSelectedAccountIds().length === 0;
   }
 
-  private prepareData(): void {
-    this.securityaccountTree.prepareData();
-    this.cashaccountTree.prepareData();
+  public onShow(event): void {
+    setTimeout(() => this.prepareData());
   }
 
   submit(event) {
@@ -82,12 +81,13 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
     ));
   }
 
-  get disableButton(): boolean {
-    return this.securityaccountTree.getSelectedAccountIds().length === 0;
-  }
-
   onHide(event) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+  }
+
+  private prepareData(): void {
+    this.securityaccountTree.prepareData();
+    this.cashaccountTree.prepareData();
   }
 
 }

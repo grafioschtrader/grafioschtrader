@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -20,13 +20,12 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
   @Input() idSecuritycurrency: number;
 
   constructor(private securitysplitService: SecuritysplitService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               iconReg: SvgIconRegistryService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps, iconReg,
+    super(filterService, usersettingsService, translateService, gps, iconReg,
       'idSecuritysplit', WatchlistSecuritysplitTableComponent.SPLIT_DATE, 'SPLIT');
 
     this.addColumnFeqH(DataType.DateNumeric, 'splitDate', true, false);

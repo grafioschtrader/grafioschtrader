@@ -1,6 +1,6 @@
 /* tslint:disable:no-unused-variable */
 
-import { TestBed, waitForAsync } from '@angular/core/testing';
+import {TestBed, waitForAsync} from '@angular/core/testing';
 import {HistoryquoteTableComponent} from './historyquote/component/historyquote-table.component';
 
 describe('App: PrimengQuickstartCli', () => {

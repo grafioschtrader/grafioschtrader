@@ -6,11 +6,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AlgoStrategyService} from '../service/algo.strategy.service';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {InputType} from '../../dynamic-form/models/input.type';
-import {Validators} from '@angular/forms';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.message.rules';
 import {AlgoCallParam} from '../model/algo.dialog.visible';
 import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.implementations';
 import {Subscription} from 'rxjs';
@@ -63,6 +59,19 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
+  valueChangedOnAlgoStrategyImplemtation(): void {
+    this.algoStrategyImplementationsChangedSub = this.configObject.algoStrategyImplementations.formControl.valueChanges
+      .subscribe((asi: AlgoStrategyImplementations) => {
+        if (!this.ignoreValueChanged) {
+          this.getFieldDescriptorAndSetItForForm(asi);
+        }
+      });
+  }
+
+  onHide(event): void {
+    this.algoStrategyImplementationsChangedSub && this.algoStrategyImplementationsChangedSub.unsubscribe();
+    super.onHide(event);
+  }
 
   protected initialize(): void {
     this.config = [this.config[0], this.config[this.config.length - 1]];
@@ -74,8 +83,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
       this.configObject.algoStrategyImplementations.valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AlgoStrategyImplementations,
-          [AlgoStrategyImplementations[(<AlgoStrategy> this.algoCallParam.thisObject).algoStrategyImplementations]], false);
-      this.getFieldDescriptorAndSetItForForm((<AlgoStrategy> this.algoCallParam.thisObject).algoStrategyImplementations);
+          [AlgoStrategyImplementations[(<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations]], false);
+      this.getFieldDescriptorAndSetItForForm((<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
       this.configObject.algoStrategyImplementations.formControl.setValue(
         (<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
     } else {
@@ -87,15 +96,20 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     }
   }
 
-  valueChangedOnAlgoStrategyImplemtation(): void {
-    this.algoStrategyImplementationsChangedSub = this.configObject.algoStrategyImplementations.formControl.valueChanges
-      .subscribe((asi: AlgoStrategyImplementations) => {
-        if (!this.ignoreValueChanged) {
-          this.getFieldDescriptorAndSetItForForm(asi);
-        }
-      });
-  }
+  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoStrategy {
+    const algoStrategy: AlgoStrategy = new AlgoStrategy();
+    if (this.algoCallParam.thisObject) {
+      Object.assign(algoStrategy, this.algoCallParam.thisObject);
+    }
+    this.form.cleanMaskAndTransferValuesToBusinessObject(algoStrategy);
+    algoStrategy.idAlgoAssetclassSecurity = this.algoCallParam.parentObject.idAlgoAssetclassSecurity;
+    algoStrategy.algoRuleStrategyParamMap = {};
+    this.fieldDescriptorInputAndShows.forEach(fDIAS => {
+      algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new AlgoRuleStrategyParam(value[fDIAS.fieldName]);
+    });
 
+    return algoStrategy;
+  }
 
   private getFieldDescriptorAndSetItForForm(asi: string | AlgoStrategyImplementations): void {
     const asiNo: number = AlgoStrategyImplementations[asi];
@@ -128,30 +142,10 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   private setExistingModel(): void {
     this.ignoreValueChanged = true;
-    const dynamicModel = AlgoStrategyHelper.createAndSetValuesInDynamicModel(<AlgoStrategy> this.algoCallParam.thisObject,
+    const dynamicModel = AlgoStrategyHelper.createAndSetValuesInDynamicModel(<AlgoStrategy>this.algoCallParam.thisObject,
       this.fieldDescriptorInputAndShows, true);
     this.form.transferBusinessObjectToForm(dynamicModel);
     this.configObject.algoStrategyImplementations.formControl.disable();
     this.ignoreValueChanged = false;
-  }
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoStrategy {
-    const algoStrategy: AlgoStrategy = new AlgoStrategy();
-    if (this.algoCallParam.thisObject) {
-      Object.assign(algoStrategy, this.algoCallParam.thisObject);
-    }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(algoStrategy);
-    algoStrategy.idAlgoAssetclassSecurity = this.algoCallParam.parentObject.idAlgoAssetclassSecurity;
-    algoStrategy.algoRuleStrategyParamMap = {};
-    this.fieldDescriptorInputAndShows.forEach(fDIAS => {
-      algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new AlgoRuleStrategyParam(value[fDIAS.fieldName]);
-    });
-
-    return algoStrategy;
-  }
-
-  onHide(event): void {
-    this.algoStrategyImplementationsChangedSub && this.algoStrategyImplementationsChangedSub.unsubscribe();
-    super.onHide(event);
   }
 }

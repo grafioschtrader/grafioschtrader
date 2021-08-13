@@ -25,9 +25,18 @@ export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
     this.items = [
-      {label: 'WATCHLIST_PERFORMANCE', command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_PERFORMANCE_KEY, 0)},
-      {label: 'WACHTLIST_PRICE_FEED', command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_PRICE_FEED_KEY, 1)},
-      {label: 'WACHTLIST_DIVIDEND_SPLIT_FEED', command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY, 2)}
+      {
+        label: 'WATCHLIST_PERFORMANCE',
+        command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_PERFORMANCE_KEY, 0)
+      },
+      {
+        label: 'WACHTLIST_PRICE_FEED',
+        command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_PRICE_FEED_KEY, 1)
+      },
+      {
+        label: 'WACHTLIST_DIVIDEND_SPLIT_FEED',
+        command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY, 2)
+      }
     ];
     TranslateHelper.translateMenuItems(this.items, this.translateService);
   }

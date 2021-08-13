@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -87,13 +87,12 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(AppSettings.ASSETCLASS, assetclassService, confirmationService, messageToastService,
-      activePanelService, dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.String, this.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true, false,
       {translateValues: TranslateValue.NORMAL, templateName: AppSettings.OWNER_TEMPLATE});

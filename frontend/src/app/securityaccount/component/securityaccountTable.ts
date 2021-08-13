@@ -1,5 +1,4 @@
-
-import { ChangeDetectorRef, Directive } from '@angular/core';
+import {Directive} from '@angular/core';
 import {SecurityPositionCurrenyGroupSummary} from '../../entities/view/security.position.curreny.group.summary';
 import {SecurityaccountService} from '../service/securityaccount.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
@@ -45,12 +44,10 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
 
   public idTenant: number;
   public idPortfolio: number;
-  protected securityAccount: Securityaccount;
-
   groupOptions: SelectItem[] = [];
   selectedGroup: string = SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY];
-
   groupMapping: Map<string, any> = new Map();
+  protected securityAccount: Securityaccount;
 
   protected constructor(timeSeriesQuotesService: TimeSeriesQuotesService,
                         activePanelService: ActivePanelService,
@@ -60,15 +57,13 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
                         activatedRoute: ActivatedRoute,
                         router: Router,
                         chartDataService: ChartDataService,
-                        changeDetectionStrategy: ChangeDetectorRef,
                         filterService: FilterService,
                         translateService: TranslateService,
                         gps: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
 
-    super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService,
-      productIconService, activatedRoute, router, chartDataService, changeDetectionStrategy, filterService,
-      translateService, gps, usersettingsService);
+    super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
+      activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
 
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY],
       new SecurityaccountCurrencyGroup(this.translateService, this));
@@ -89,13 +84,13 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
     this.createColumns();
   }
 
-  protected getTitleChart(): string {
-    return this.groupOptions.find(item => item.value === this.selectedGroup).label;
-  }
-
   handleChangeGroup(event) {
     this.selectedGroup = event.value;
     this.changeGroupToView(this.groupMapping.get(this.selectedGroup));
+  }
+
+  protected getTitleChart(): string {
+    return this.groupOptions.find(item => item.value === this.selectedGroup).label;
   }
 
   private changeGroupToView(securityPositionGroupSummary: SecurityaccountGroupBase<SecurityPositionDynamicGroupSummary<any>

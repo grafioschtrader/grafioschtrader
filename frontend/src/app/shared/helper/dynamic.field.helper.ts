@@ -145,28 +145,6 @@ export class DynamicFieldHelper {
       labelKey, maxLength, required, fieldOptions), validationSpecials);
   }
 
-  private static addValidations(fieldConfig: FieldConfig, validationSpecials: VALIDATION_SPECIAL[]): FieldConfig {
-    for (const validationSpecial of validationSpecials) {
-      const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
-      this.addValidationParam(fieldConfig, validationSpecial, null);
-    }
-    return fieldConfig;
-  }
-
-  private static addValidationParam(fieldConfig: FieldConfig, validationSpecial: VALIDATION_SPECIAL, param1: any,
-                                    param2?: any): FieldConfig {
-    const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
-    (fieldConfig.errors = fieldConfig.errors || []).push(validError.msgR);
-    switch (validationSpecial) {
-      case VALIDATION_SPECIAL.GT_With_Mask_Param:
-        validError.vFN = gtWithMask(param1);
-        validError.msgR.param1 = param1;
-        break;
-    }
-    (fieldConfig.validation = fieldConfig.validation || []).push(validError.vFN);
-    return fieldConfig;
-  }
-
   public static createFieldInputStringHeqF(fieldName: string, maxLength: number, required: boolean,
                                            fieldOptions?: FieldOptions): FieldConfig {
     return DynamicFieldHelper.createFieldDAInputString(DataType.String, fieldName,
@@ -178,7 +156,6 @@ export class DynamicFieldHelper {
     return DynamicFieldHelper.createFieldInputButton(dataType, fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName),
       buttonFN, required, fieldOptions);
   }
-
 
   public static createFieldInputButton(dataType: DataType, fieldName: string, labelKey: string, buttonFN: (event?: any) => void,
                                        required: boolean, fieldOptions?: FieldOptions): FieldConfig {
@@ -223,14 +200,14 @@ export class DynamicFieldHelper {
   }
 
   public static createFieldPcalendarHeqF(dataType: DataType.DateString | DataType.DateNumeric | DataType.DateTimeNumeric
-    | DataType.DateStringShortUS, fieldName: string, required: boolean,
+                                           | DataType.DateStringShortUS, fieldName: string, required: boolean,
                                          fieldOptions?: FieldOptions): FieldConfig {
     return this.createFieldPcalendar(dataType, fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName),
       required, fieldOptions);
   }
 
   public static createFieldPcalendar(dataType: DataType.DateString | DataType.DateNumeric | DataType.DateTimeNumeric
-    | DataType.DateStringShortUS, fieldName: string, labelKey: string, required: boolean,
+                                       | DataType.DateStringShortUS, fieldName: string, labelKey: string, required: boolean,
                                      fieldOptions?: FieldOptions): FieldConfig {
     const fieldConfig = this.setFieldBaseAndOptions({dataType: dataType, inputType: InputType.Pcalendar},
       fieldName, labelKey,
@@ -255,40 +232,6 @@ export class DynamicFieldHelper {
     const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(DataType.String, fieldName, labelKey, required,
       fieldOptions);
     fieldConfig.defaultValue = fieldConfig.defaultValue || '';
-    return fieldConfig;
-  }
-
-  private static createFieldSelectNumberString(dataType: DataType, fieldName: string, labelKey: string, required: boolean,
-                                               fieldOptions?: FieldOptions): FieldConfig {
-    return this.setFieldBaseAndOptions({
-        dataType: dataType,
-        inputType: InputType.Select
-      },
-      fieldName, labelKey,
-      required ? [Validators.required] : null,
-      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
-  }
-
-  private static createFieldInputAndTeString(dataType: DataType, inputType: InputType, fieldName: string, labelKey: string,
-                                             maxLength: number, required: boolean,
-                                             fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
-        dataType: dataType,
-        inputType: inputType,
-        maxLength: maxLength
-      },
-      fieldName, labelKey,
-      required ? [Validators.required] : null,
-      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
-    if (fieldOptions && fieldOptions.minLength) {
-      (fieldConfig.validation = fieldConfig.validation || []).push(
-        rangeLength([fieldOptions.minLength, maxLength]));
-      (fieldConfig.errors = fieldConfig.errors || []).push({
-        name: 'rangeLength', keyi18n: 'rangeLength', param1: fieldOptions.minLength, param2: maxLength,
-        rules: [RuleEvent.TOUCHED]
-      });
-    }
-
     return fieldConfig;
   }
 
@@ -337,7 +280,6 @@ export class DynamicFieldHelper {
       isCurrency, fieldOptions);
   }
 
-
   public static createFieldCurrencyNumberVSParam(fieldName: string, labelKey: string, required: boolean,
                                                  integerDigits: number, maxFractionDigits: number,
                                                  allowNegative: boolean, defaultCurrencyMaskConfig: CurrencyMaskConfig,
@@ -381,14 +323,6 @@ export class DynamicFieldHelper {
     fieldConfig.currencyMaskConfig = newMask;
   }
 
-  private static setMinMaxValues(fieldConfig: FieldConfig, integerDigits: number, maxFractionDigits: number,
-                                 allowNegative: boolean): void {
-    fieldConfig.max = Number('9'.repeat(integerDigits) + '.' + '9'.repeat(maxFractionDigits));
-    fieldConfig.min = allowNegative ?
-      fieldConfig.max * -1 : DynamicFieldHelper.isRequired(fieldConfig) ? 1 / Math.pow(10, maxFractionDigits) : 0;
-
-  }
-
   public static isRequired(fieldConfig: FieldConfig): boolean {
     return fieldConfig.validation && fieldConfig.validation.includes(Validators.required);
   }
@@ -419,7 +353,6 @@ export class DynamicFieldHelper {
       required, min, max, fieldOptions);
   }
 
-
   public static createFieldMinMaxNumber(dataType: DataType.Numeric | DataType.NumericInteger, fieldName: string, labelKey: string,
                                         required: boolean, min: number, max: number, fieldOptions?: FieldOptions): FieldConfig {
     const validations: ValidatorFn[] = required ? [Validators.required] : [];
@@ -447,25 +380,11 @@ export class DynamicFieldHelper {
       fieldName, labelKey, validations, errorMessageRules, fieldOptions);
   }
 
-  private static setFieldBaseAndOptions(fieldConfig: FieldConfig, fieldName: string,
-                                        labelKey: string, validations: ValidatorFn[], errorMessageRules: ErrorMessageRules[],
-                                        fieldOptions: FieldOptions): FieldConfig {
-    fieldConfig.field = fieldName;
-    fieldConfig.labelKey = labelKey;
-    fieldConfig.validation = validations;
-    fieldConfig.errors = errorMessageRules;
-    if (fieldOptions) {
-      Object.assign(fieldConfig, fieldOptions);
-    }
-    return fieldConfig;
-  }
-
   public static ccWithFieldsFromDescriptorHeqF(fieldName: string, fieldDescriptorInputAndShows:
     FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
     return this.ccWithFieldsFromDescriptor(fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName),
       fieldDescriptorInputAndShows, fieldOptionsCc);
   }
-
 
   public static ccWithFieldsFromDescriptor(fieldName: string, labelKey: string, fieldDescriptorInputAndShows:
     FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
@@ -503,7 +422,6 @@ export class DynamicFieldHelper {
 
     return fc;
   }
-
 
   public static createConfigFieldsFromDescriptor(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
                                                  labelPreffix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
@@ -550,7 +468,6 @@ export class DynamicFieldHelper {
     fieldConfig.baseInputComponent.reEvaluateRequired();
   }
 
-
   public static getFieldPercentageSuffix(fDIAS: FieldDescriptorInputAndShow): string {
     if (fDIAS.dynamicFormPropertyHelps
       && (<string[]>fDIAS.dynamicFormPropertyHelps)
@@ -570,6 +487,83 @@ export class DynamicFieldHelper {
       return true;
     }
     return false;
+  }
+
+  private static addValidations(fieldConfig: FieldConfig, validationSpecials: VALIDATION_SPECIAL[]): FieldConfig {
+    for (const validationSpecial of validationSpecials) {
+      const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
+      this.addValidationParam(fieldConfig, validationSpecial, null);
+    }
+    return fieldConfig;
+  }
+
+  private static addValidationParam(fieldConfig: FieldConfig, validationSpecial: VALIDATION_SPECIAL, param1: any,
+                                    param2?: any): FieldConfig {
+    const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
+    (fieldConfig.errors = fieldConfig.errors || []).push(validError.msgR);
+    switch (validationSpecial) {
+      case VALIDATION_SPECIAL.GT_With_Mask_Param:
+        validError.vFN = gtWithMask(param1);
+        validError.msgR.param1 = param1;
+        break;
+    }
+    (fieldConfig.validation = fieldConfig.validation || []).push(validError.vFN);
+    return fieldConfig;
+  }
+
+  private static createFieldSelectNumberString(dataType: DataType, fieldName: string, labelKey: string, required: boolean,
+                                               fieldOptions?: FieldOptions): FieldConfig {
+    return this.setFieldBaseAndOptions({
+        dataType: dataType,
+        inputType: InputType.Select
+      },
+      fieldName, labelKey,
+      required ? [Validators.required] : null,
+      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
+  }
+
+  private static createFieldInputAndTeString(dataType: DataType, inputType: InputType, fieldName: string, labelKey: string,
+                                             maxLength: number, required: boolean,
+                                             fieldOptions?: FieldOptions): FieldConfig {
+    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
+        dataType: dataType,
+        inputType: inputType,
+        maxLength: maxLength
+      },
+      fieldName, labelKey,
+      required ? [Validators.required] : null,
+      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
+    if (fieldOptions && fieldOptions.minLength) {
+      (fieldConfig.validation = fieldConfig.validation || []).push(
+        rangeLength([fieldOptions.minLength, maxLength]));
+      (fieldConfig.errors = fieldConfig.errors || []).push({
+        name: 'rangeLength', keyi18n: 'rangeLength', param1: fieldOptions.minLength, param2: maxLength,
+        rules: [RuleEvent.TOUCHED]
+      });
+    }
+
+    return fieldConfig;
+  }
+
+  private static setMinMaxValues(fieldConfig: FieldConfig, integerDigits: number, maxFractionDigits: number,
+                                 allowNegative: boolean): void {
+    fieldConfig.max = Number('9'.repeat(integerDigits) + '.' + '9'.repeat(maxFractionDigits));
+    fieldConfig.min = allowNegative ?
+      fieldConfig.max * -1 : DynamicFieldHelper.isRequired(fieldConfig) ? 1 / Math.pow(10, maxFractionDigits) : 0;
+
+  }
+
+  private static setFieldBaseAndOptions(fieldConfig: FieldConfig, fieldName: string,
+                                        labelKey: string, validations: ValidatorFn[], errorMessageRules: ErrorMessageRules[],
+                                        fieldOptions: FieldOptions): FieldConfig {
+    fieldConfig.field = fieldName;
+    fieldConfig.labelKey = labelKey;
+    fieldConfig.validation = validations;
+    fieldConfig.errors = errorMessageRules;
+    if (fieldOptions) {
+      Object.assign(fieldConfig, fieldOptions);
+    }
+    return fieldConfig;
   }
 }
 

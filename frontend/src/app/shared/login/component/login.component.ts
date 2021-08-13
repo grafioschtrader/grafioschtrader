@@ -1,12 +1,11 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../app.settings';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {FormBase} from '../../edit/form.base';
 import {DynamicDialogHelper} from '../../dynamicdialog/component/dynamic.dialog.helper';
@@ -74,25 +73,6 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       }, err => this.applicationInfo = null);
   }
 
-  private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
-    this.formConfig = {
-      labelcolumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
-      language: this.translateService.currentLang
-    };
-    this.applicationInfo.users;
-    this.config = [];
-    this.config.push(DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('email', fdias));
-    this.config.push(DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('password', fdias));
-
-    if (this.applicationInfo.users.active < this.applicationInfo.users.allowed) {
-      this.config.push(DynamicFieldHelper.createFunctionButton('REGISTRATION',
-        (e) => this.router.navigate([`/${AppSettings.REGISTER_KEY}`])));
-    }
-    this.config.push(DynamicFieldHelper.createSubmitButton('SIGN_IN'));
-    this.queryParams = this.activatedRoute.params.subscribe(params => this.successLastRegistration = params['success']);
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-  }
-
   submit(value: { [name: string]: any }): void {
     this.loginService.login(value.email, value.password)
       .subscribe((response: Response) => {
@@ -120,6 +100,25 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
 
   helpLink() {
     BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO);
+  }
+
+  private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
+    this.formConfig = {
+      labelcolumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      language: this.translateService.currentLang
+    };
+    this.applicationInfo.users;
+    this.config = [];
+    this.config.push(DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('email', fdias));
+    this.config.push(DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('password', fdias));
+
+    if (this.applicationInfo.users.active < this.applicationInfo.users.allowed) {
+      this.config.push(DynamicFieldHelper.createFunctionButton('REGISTRATION',
+        (e) => this.router.navigate([`/${AppSettings.REGISTER_KEY}`])));
+    }
+    this.config.push(DynamicFieldHelper.createSubmitButton('SIGN_IN'));
+    this.queryParams = this.activatedRoute.params.subscribe(params => this.successLastRegistration = params['success']);
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 }
 

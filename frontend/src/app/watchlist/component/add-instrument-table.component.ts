@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Directive, Input} from '@angular/core';
+import {Directive, Input} from '@angular/core';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {TranslateService} from '@ngx-translate/core';
@@ -27,12 +27,11 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   constructor(private instance: T,
               private dataChangedService: DataChangedService,
               private addSearchToListService: AddSearchToListService<T>,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     this.multiSortMeta.push({field: 'name', order: 1});
   }
 
@@ -50,7 +49,6 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
         this.createTranslatedValueStoreAndFilterField(securitycurrencyLists.securityList);
         this.securitycurrencyList = securitycurrencyLists.securityList;
         this.transformCurrencypairToCurrencypairWatchlist(securitycurrencyLists.currencypairList);
-        //   this.changeDetectionStrategy.markForCheck();
       });
   }
 

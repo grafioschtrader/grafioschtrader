@@ -100,18 +100,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
-    this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-      TransactionType, [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
-        TransactionType.WITHDRAWAL, TransactionType.FEE]);
-    this.selectSingleOptions(this.configObject.transactionType, true);
-    if (this.transactionCallParam.portfolio) {
-      this.getSinglePortfolioByIdPortfolio();
-    } else {
-      this.getAllPortfolios();
-    }
-  }
-
   isVisibleDialog(): boolean {
     return this.visibleCashaccountTransactionSingleDialog;
   }
@@ -176,12 +164,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     });
   }
 
-  private adjustNumberInputFractions(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
-    fieldConfig.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.cashaccountCurrency);
-    DynamicFieldHelper.adjustNumberFraction(fieldConfig, integerDigits,
-      precision);
-  }
-
   valueChangedOnCalcFields(): void {
     this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges.subscribe(data => {
       if (!this.configObject.transactionCost.invisible) {
@@ -222,6 +204,24 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
 
   helpLink() {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
+  }
+
+  protected initialize(): void {
+    this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
+      TransactionType, [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
+        TransactionType.WITHDRAWAL, TransactionType.FEE]);
+    this.selectSingleOptions(this.configObject.transactionType, true);
+    if (this.transactionCallParam.portfolio) {
+      this.getSinglePortfolioByIdPortfolio();
+    } else {
+      this.getAllPortfolios();
+    }
+  }
+
+  private adjustNumberInputFractions(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
+    fieldConfig.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.cashaccountCurrency);
+    DynamicFieldHelper.adjustNumberFraction(fieldConfig, integerDigits,
+      precision);
   }
 
   private setValueChanged(): void {

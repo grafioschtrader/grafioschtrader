@@ -1,6 +1,5 @@
 import {Component, OnInit} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
-import {Helper} from '../../../helper/helper';
 
 /**
  * It is not working als expected: https://github.com/primefaces/primeng/issues/9380
@@ -36,6 +35,7 @@ import {Helper} from '../../../helper/helper';
 
 export class FormInputNumberComponent extends BaseInputComponent implements OnInit {
   price1 = 12.20;
+
   ngOnInit() {
   }
 }

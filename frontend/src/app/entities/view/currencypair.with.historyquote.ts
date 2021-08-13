@@ -1,4 +1,3 @@
-import {Historyquote} from '../historyquote';
 import {Currencypair} from '../currencypair';
 import {ISecuritycurrencyIdDateClose} from '../projection/i.securitycurrency.id.date.close';
 

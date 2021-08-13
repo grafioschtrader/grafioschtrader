@@ -1,5 +1,4 @@
 import {GlobalSessionNames} from './global.session.names';
-import {MultipleRequestToOneService} from './service/multiple.request.to.one.service';
 
 export class AppSettings {
 

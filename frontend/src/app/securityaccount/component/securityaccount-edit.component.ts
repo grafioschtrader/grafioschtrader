@@ -79,13 +79,6 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  private getUntilFieldDefinition(): FieldConfig[] {
-    const fieldConfigs: FieldConfig[] = [];
-    this.untilFields.forEach(uf => fieldConfigs.push(DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString,
-      uf.fieldName, false)));
-    return fieldConfigs;
-  }
-
   tradingPlatformPlanCreateValueKeyHtmlSelectOptions(tradingPlatformPlans: TradingPlatformPlan[]): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
     this.configObject.tradingPlatformPlan.referencedDataObject = tradingPlatformPlans;
@@ -122,6 +115,13 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
       <Securityaccount>this.callParam.thisObject);
     securityaccount.portfolio = <Portfolio>this.callParam.parentObject;
     return securityaccount;
+  }
+
+  private getUntilFieldDefinition(): FieldConfig[] {
+    const fieldConfigs: FieldConfig[] = [];
+    this.untilFields.forEach(uf => fieldConfigs.push(DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString,
+      uf.fieldName, false)));
+    return fieldConfigs;
   }
 }
 

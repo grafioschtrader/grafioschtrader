@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component} from '@angular/core';
+import {Component} from '@angular/core';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -21,13 +21,12 @@ export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTab
 
   constructor(historyquotePeriodService: HistoryquotePeriodService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
     super('fromDate', 'SECURITY_PERIODS_FROM_MAX', HistoryquotePeriod, messageToastService, historyquotePeriodService,
-      changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+      filterService, usersettingsService, translateService, gps);
     this.addColumn(DataType.DateString, this.dataSortKey, 'DATE_FROM', true, false);
     this.addColumn(DataType.Numeric, 'price', 'CLOSE', true, false);
     this.prepareTableAndTranslate();

@@ -1,5 +1,5 @@
 import {TransactionTable} from '../../transaction/component/transaction.table';
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -31,15 +31,13 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
               transactionService: TransactionService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
-      messageToastService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      messageToastService, filterService, translateService, gps, usersettingsService);
   }
-
 
   ngOnInit(): void {
     this.multiSortMeta.push({field: 'transactionTime', order: -1});

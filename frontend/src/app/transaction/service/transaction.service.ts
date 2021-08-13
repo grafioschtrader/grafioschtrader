@@ -23,7 +23,7 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
 
   getConnectedMarginPositionByIdTransaction(idTransaction: number): Observable<ClosedMarginPosition> {
     return <Observable<ClosedMarginPosition>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/`
-    + `connectedmargin/${idTransaction}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      + `connectedmargin/${idTransaction}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
 

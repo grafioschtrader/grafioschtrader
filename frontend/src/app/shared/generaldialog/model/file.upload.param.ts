@@ -23,7 +23,8 @@ export interface UploadServiceFunction {
 
 export class AdditionalFieldConfig {
   constructor(public fieldConfig: FieldConfig[],
-              public submitPrepareFN: (value: { [name: string]: any }, formData:  FormData, fieldConfig: FieldConfig[]) => void) {}
+              public submitPrepareFN: (value: { [name: string]: any }, formData: FormData, fieldConfig: FieldConfig[]) => void) {
+  }
 }
 
 export class SupportedCSVFormat {

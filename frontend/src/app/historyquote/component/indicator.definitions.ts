@@ -5,6 +5,7 @@ import {MenuItem} from 'primeng/api';
 export class IndicatorDefinitions {
   defMap = new Map<TaIndicators, IndicatorDefinition>();
   idSecuritycurrency: number;
+
   constructor() {
     this.defMap.set(TaIndicators.SMA, new IndicatorDefinition());
     this.defMap.set(TaIndicators.EMA, new IndicatorDefinition());

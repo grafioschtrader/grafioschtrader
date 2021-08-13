@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component} from '@angular/core';
+import {Component} from '@angular/core';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TranslateService} from '@ngx-translate/core';
@@ -79,14 +79,12 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(AppSettings.IMPORT_TRANSACTION_TEMPLATE, importTransactionTemplateService, confirmationService,
-      messageToastService, activePanelService, dialogService, changeDetectionStrategy, filterService,
-      translateService, gps,
+      messageToastService, activePanelService, dialogService, filterService, translateService, gps,
       usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
 
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {templateName: AppSettings.OWNER_TEMPLATE});
@@ -134,10 +132,6 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     this.callParam = new CallParam(this.selectImportTransactionPlatform, entity);
   }
 
-  protected isDeleteDisabled(entity: ImportTransactionTemplate): boolean {
-    return !super.hasRightsForDeleteEntity(entity);
-  }
-
   public prepareEditMenu(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     menuItems.push({separator: true});
@@ -145,5 +139,9 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
       menuItems = menuItems.concat(super.prepareEditMenu(this.selectedEntity));
     }
     return menuItems;
+  }
+
+  protected isDeleteDisabled(entity: ImportTransactionTemplate): boolean {
+    return !super.hasRightsForDeleteEntity(entity);
   }
 }

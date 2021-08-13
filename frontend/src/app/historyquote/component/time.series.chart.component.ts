@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {
   CrossRateRequest,
@@ -115,14 +115,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   youngestMatchDate: string;
   subscriptionViewSizeChanged: Subscription;
   subscriptionLatest: Subscription;
-  // protected paramMap: ParamMap;
-  protected transactionPositionList: SecurityTransactionPosition[] = [];
   taEditParam: TaEditParam;
   visibleTaDialog: boolean;
   contextMenuItems: MenuItem[] = [];
-
   requestedCurrency = '';
   currenciesOptions: SelectItem[] = [{value: '', label: ''}];
+  // protected paramMap: ParamMap;
+  protected transactionPositionList: SecurityTransactionPosition[] = [];
   private minValueOfY: number;
   private maxValueOfY: number;
   private taFormDefinitions: { [key: string]: TaFormDefinition };
@@ -131,9 +130,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private crossRateMap = new TwoKeyMap<CurrenciesAndClosePrice>();
   private mainCurrency: string;
 
-  readonly compareHistoricalFN = (h, o) => h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT;
-  readonly compareXaxisFN = (x, b) => x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT;
-
   constructor(private plotlyService: PlotlyService,
               private messageToastService: MessageToastService,
               private usersettingsService: UserSettingsService,
@@ -141,7 +137,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
               private securityService: SecurityService,
               private currencypairService: CurrencypairService,
               private gps: GlobalparameterService,
-              private changeDetectionStrategy: ChangeDetectorRef,
               private historyquoteService: HistoryquoteService,
               private activatedRoute: ActivatedRoute,
               private translateService: TranslateService,
@@ -159,6 +154,10 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   get youngestDate(): Date {
     return this.youngestMatchDate ? new Date(this.youngestMatchDate) : null;
   }
+
+  readonly compareHistoricalFN = (h, o) => h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT;
+
+  readonly compareXaxisFN = (x, b) => x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT;
 
   ///////////////////////////////////////////////////////
   // Chart methods
@@ -227,32 +226,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
   }
 
-  private addCurrencyCrossRateObservable(timeSeriesParams: TimeSeriesParam[], currencySecurity: string,
-                                         observable: Observable<any>[]): void {
-    if (timeSeriesParams[timeSeriesParams.length - 1].currencySecurity != null) {
-      const currencypairList: string[] = [];
-      this.crossRateMap.getValues().forEach(crossRateResponse => currencypairList.push(
-        crossRateResponse.currencypair.fromCurrency + '|' + crossRateResponse.currencypair.toCurrency));
-      const uniqueSecuritycurrency = new Set(this.loadedData.map(ld => ld.currencySecurity));
-      uniqueSecuritycurrency.add(currencySecurity);
-      observable.push(this.currencypairService.getCurrencypairForCrossRate(new CrossRateRequest(
-        [...uniqueSecuritycurrency], currencypairList)));
-    }
-  }
-
-  private addCrossRateResponse(crossRateResponse: CrossRateResponse): void {
-    this.mainCurrency = crossRateResponse.mainCurrency;
-    crossRateResponse.currenciesAndClosePrice.forEach(crr => {
-      this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList);
-      this.crossRateMap.set(crr.currencypair.fromCurrency, crr.currencypair.toCurrency, crr);
-    });
-    const co = new Set(this.loadedData.map(ld => ld.currencySecurity));
-    this.currenciesOptions = [{value: '', label: ''}];
-    co.add(crossRateResponse.mainCurrency);
-    co.forEach((currency) => this.currenciesOptions.push({value: currency, label: currency}));
-  }
-
-
   onBlurFromDate(event): void {
     if (!this.fromDate || this.fromDate.getTime() < this.oldestDate.getTime()) {
       this.fromDate = this.oldestDate;
@@ -304,7 +277,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       connectgaps: this.connectGaps
     };
   }
-
 
   getBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, currencypairWithTransaction: CurrencypairWithTransaction): Traces {
 
@@ -444,6 +416,55 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.resetMenu();
   }
 
+  handleCloseTaDialog(processedActionData: ProcessedActionData): void {
+    this.visibleTaDialog = false;
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      const taEditReturn: TaEditReturn = processedActionData.data;
+      const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taEditReturn.taIndicators];
+      const iDef: IndicatorDefinition = this.indicatorDefinitions.defMap.get(TaIndicators[taEditReturn.taIndicators]);
+      this.deleteShownTaTraceWhenInputDataHasChanged(taEditReturn.taIndicators, iDef, taEditReturn.taDynamicDataModel,
+        taFormDefinition);
+      this.usersettingsService.saveObject(AppSettings.TA_INDICATORS_STORE + taEditReturn.taIndicators,
+        taEditReturn.taDynamicDataModel);
+      this.loadAndShowIndicatorDataWithMenu(taEditReturn.taIndicators, iDef);
+    }
+  }
+
+  callMeDeactivate(): void {
+  }
+
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART;
+  }
+
+  hideContextMenu(): void {
+  }
+
+  private addCurrencyCrossRateObservable(timeSeriesParams: TimeSeriesParam[], currencySecurity: string,
+                                         observable: Observable<any>[]): void {
+    if (timeSeriesParams[timeSeriesParams.length - 1].currencySecurity != null) {
+      const currencypairList: string[] = [];
+      this.crossRateMap.getValues().forEach(crossRateResponse => currencypairList.push(
+        crossRateResponse.currencypair.fromCurrency + '|' + crossRateResponse.currencypair.toCurrency));
+      const uniqueSecuritycurrency = new Set(this.loadedData.map(ld => ld.currencySecurity));
+      uniqueSecuritycurrency.add(currencySecurity);
+      observable.push(this.currencypairService.getCurrencypairForCrossRate(new CrossRateRequest(
+        [...uniqueSecuritycurrency], currencypairList)));
+    }
+  }
+
+  private addCrossRateResponse(crossRateResponse: CrossRateResponse): void {
+    this.mainCurrency = crossRateResponse.mainCurrency;
+    crossRateResponse.currenciesAndClosePrice.forEach(crr => {
+      this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList);
+      this.crossRateMap.set(crr.currencypair.fromCurrency, crr.currencypair.toCurrency, crr);
+    });
+    const co = new Set(this.loadedData.map(ld => ld.currencySecurity));
+    this.currenciesOptions = [{value: '', label: ''}];
+    co.add(crossRateResponse.mainCurrency);
+    co.forEach((currency) => this.currenciesOptions.push({value: currency, label: currency}));
+  }
+
   private resetMenu(): void {
     this.contextMenuItems = this.getShowMenu();
     this.activePanelService.activatePanel(this, {
@@ -459,7 +480,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         label: TaIndicators[taIndicators],
         icon: (iDef.shown) ? AppSettings.ICONNAME_SQUARE_CHECK : AppSettings.ICONNAME_SQUARE_EMTPY,
         command: (event) => this.onOffIndicatorEvent(event, TaIndicators[taIndicators], iDef),
-        disabled: this.loadedData.length !== 1,
+        disabled: !this.possibleShowingTaIndicator(),
         items: [{
           label: `EDIT_RECORD|${TaIndicators[taIndicators]}`,
           command: () => this.editIndicatorParam(iDef, TaIndicators[taIndicators])
@@ -469,6 +490,11 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     });
     TranslateHelper.translateMenuItems(menuItems, this.translateService, false);
     return menuItems;
+  }
+
+  private possibleShowingTaIndicator(): boolean {
+    return this.loadedData.length === 1 && (this.loadedData[0].currencySecurity === this.requestedCurrency
+      || this.requestedCurrency === '');
   }
 
   private onOffIndicatorEvent(event, taIndicators: string, iDef: IndicatorDefinition): void {
@@ -490,21 +516,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       dataModel ? dataModel : taFormDefinition.defaultDataModel,
       DynamicFieldHelper.createConfigFieldsFromDescriptor(taFormDefinition.taFormList, '', true, 'APPLY'));
     this.visibleTaDialog = true;
-    // this.changeDetectionStrategy.markForCheck();
-  }
-
-  handleCloseTaDialog(processedActionData: ProcessedActionData): void {
-    this.visibleTaDialog = false;
-    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
-      const taEditReturn: TaEditReturn = processedActionData.data;
-      const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taEditReturn.taIndicators];
-      const iDef: IndicatorDefinition = this.indicatorDefinitions.defMap.get(TaIndicators[taEditReturn.taIndicators]);
-      this.deleteShownTaTraceWhenInputDataHasChanged(taEditReturn.taIndicators, iDef, taEditReturn.taDynamicDataModel,
-        taFormDefinition);
-      this.usersettingsService.saveObject(AppSettings.TA_INDICATORS_STORE + taEditReturn.taIndicators,
-        taEditReturn.taDynamicDataModel);
-      this.loadAndShowIndicatorDataWithMenu(taEditReturn.taIndicators, iDef);
-    }
   }
 
   private loadAndShowIndicatorDataWithMenu(taIndicators: string, iDef: IndicatorDefinition): void {
@@ -536,9 +547,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private deleteTaIndicator(iDef: IndicatorDefinition) {
-    if (this.loadedData.length > 1) {
-      // iDef.menuItem.disabled = true;
-    }
     if (iDef.shown) {
       iDef.menuItem.icon = AppSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
@@ -577,13 +585,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       });
       taTraceIndicatorData.traceIndex = this.chartElement.nativeElement.data.length - 1;
     });
-    // this.changeDetectionStrategy.markForCheck();
   }
 
   private redoTaAfterDateChange(): void {
     this.indicatorDefinitions.defMap.forEach((iDef: IndicatorDefinition, taIndicators: TaIndicators) => {
       if (iDef.shown) {
-        if (this.loadedData.length === 1) {
+        if (this.possibleShowingTaIndicator()) {
           if (this.indicatorDefinitions.idSecuritycurrency === this.loadedData[0].idSecuritycurrency) {
             this.createTaTrace(iDef);
           } else {
@@ -592,17 +599,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         }
       }
     });
-  }
-
-  callMeDeactivate(): void {
-    // this.changeDetectionStrategy.markForCheck();
-  }
-
-  public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART;
-  }
-
-  hideContextMenu(): void {
   }
 
   private prepareLoadedDataAndPlot(userUserInputDate: boolean) {
@@ -689,7 +685,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     config.displaylogo = false;
     this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
     this.plotlyService.getPlotly().newPlot(element, traces, layout, config);
-    // this.changeDetectionStrategy.markForCheck();
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
       this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(changedViewSizeType =>

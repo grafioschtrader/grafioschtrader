@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -123,12 +123,11 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
               private activePanelService: ActivePanelService,
               private router: Router,
               private chartDataService: ChartDataService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
   }
 
   ngOnInit(): void {

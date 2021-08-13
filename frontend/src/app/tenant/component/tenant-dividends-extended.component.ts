@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {SecurityDividendsPosition} from '../../entities/view/securitydividends/security.dividends.position';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
@@ -11,7 +11,6 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {TransactionSecurityOptionalParam} from '../../transaction/model/transaction.security.optional.param';
 import {FilterService} from 'primeng/api';
-import {ProcessedAction} from '../../shared/types/processed.action';
 
 /**
  * Shows the dividends an other information of securities for one year in a table. One row per security.
@@ -83,12 +82,11 @@ export class TenantDividendsExtendedComponent extends TableConfigBase implements
   // Output
   @Output() dateChanged = new EventEmitter<ProcessedActionData>();
 
-  constructor(changeDetectionStrategy: ChangeDetectorRef,
-              filterService: FilterService,
+  constructor(filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     this.idTenant = this.gps.getIdTenant();
   }
 

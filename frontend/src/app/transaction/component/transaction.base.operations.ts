@@ -64,21 +64,6 @@ export abstract class TransactionBaseOperations {
     return null;
   }
 
-  protected createExRateButtons(): FieldConfig[] {
-    return [
-      DynamicFieldHelper.createFunctionButtonFieldName('oneOverX', 'ONE_OVER_X',
-        (e) => this.oneOverX(e), {
-          buttonInForm: true, usedLayoutColumns: 1,
-        }),
-
-      DynamicFieldHelper.createFunctionButtonFieldName('exRateButton', 'TIME_DEPENDING_EXCHANGE_RATE_',
-        (e) => this.getTimeDependingExchangeRate(e), {
-          icon: AppSettings.PATH_ASSET_ICONS + 'refresh.svg',
-          buttonInForm: true, usedLayoutColumns: 1
-        })
-    ];
-  }
-
   oneOverX(event): void {
     this.configObject.currencyExRate.formControl.setValue(1 / this.configObject.currencyExRate.formControl.value);
   }
@@ -93,6 +78,21 @@ export abstract class TransactionBaseOperations {
       BusinessHelper.getAndSetQuotationCurrencypair(this.currencypairService, this.currencypair,
         transactionTime, this.configObject.currencyExRate.formControl);
     }
+  }
+
+  protected createExRateButtons(): FieldConfig[] {
+    return [
+      DynamicFieldHelper.createFunctionButtonFieldName('oneOverX', 'ONE_OVER_X',
+        (e) => this.oneOverX(e), {
+          buttonInForm: true, usedLayoutColumns: 1,
+        }),
+
+      DynamicFieldHelper.createFunctionButtonFieldName('exRateButton', 'TIME_DEPENDING_EXCHANGE_RATE_',
+        (e) => this.getTimeDependingExchangeRate(e), {
+          icon: AppSettings.PATH_ASSET_ICONS + 'refresh.svg',
+          buttonInForm: true, usedLayoutColumns: 1
+        })
+    ];
   }
 
   protected disableEnableExchangeRateButtons() {

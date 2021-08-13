@@ -12,6 +12,6 @@ export class Tenant {
 }
 
 export enum TenantKindType {
-  MAIN =  0,
+  MAIN = 0,
   SIMULATION = 1,
 }

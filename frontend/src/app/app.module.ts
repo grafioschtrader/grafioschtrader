@@ -88,7 +88,6 @@ import {SecurityEditComponent} from './securitycurrency/component/security-edit.
 import {CurrencypairEditComponent} from './securitycurrency/component/currencypair-edit.component';
 import {WatchlistAddInstrumentComponent} from './watchlist/component/watchlist-add-instrument.component';
 import {WatchlistEditComponent} from './watchlist/component/watchlist-edit.component';
-import {AddInstrumentTable} from './watchlist/component/add-instrument-table.component';
 import {TradingPlatformPlanEditComponent} from './tradingplatform/component/trading-platform-plan-edit.component';
 import {SecurityaccountEditComponent} from './securityaccount/component/securityaccount-edit.component';
 import {StockexchangeEditComponent} from './stockexchange/component/stockexchange-edit.component';
@@ -247,7 +246,6 @@ import {CorrelationSetEditComponent} from './watchlist/component/correlation-set
 import {WatchlistAddInstrumentTableComponent} from './watchlist/component/watchlist-add-instrument-table.component';
 import {CorrelationSetAddInstrumentTableComponent} from './watchlist/component/correlation-set-add-instrument-table.component';
 import {CorrelationAddInstrumentComponent} from './watchlist/component/correlation-add-instrument.component';
-
 
 
 export function createTranslateLoader(http: HttpClient) {

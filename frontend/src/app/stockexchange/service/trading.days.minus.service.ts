@@ -40,6 +40,7 @@ export class TradingDaysMinusService extends AuthServiceWithLogout<TradingDaysMi
 
 export class CopyTradingDaysFromSourceToTarget {
   sourceIdStockexchange: number;
+
   constructor(public targetIdStockexchange: number, public returnOrCopyYear: number, public fullCopy: boolean) {
   }
 }

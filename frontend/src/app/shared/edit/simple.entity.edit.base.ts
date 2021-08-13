@@ -12,8 +12,8 @@ import {AuditHelper} from '../helper/audit.helper';
 import {ProposeTransientTransfer} from '../../entities/propose.transient.transfer';
 import {TransformedError} from '../login/service/transformed.error';
 import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
-import {plainToClass, plainToClassFromExist} from 'class-transformer';
-import { Directive } from '@angular/core';
+import {plainToClassFromExist} from 'class-transformer';
+import {Directive} from '@angular/core';
 
 /**
  * Base class for simple editing fields of an entity in a dialog. It will call a service for updating the

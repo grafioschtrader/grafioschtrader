@@ -11,7 +11,7 @@ export class Historyquote extends ProposeTransientTransfer implements BaseID {
   open?: number = null;
   high?: number = null;
   low?: number = null;
-  createType?: string|HistoryquoteCreateType;
+  createType?: string | HistoryquoteCreateType;
   createModifyTime: string | Date;
 
   @Exclude()

@@ -17,7 +17,6 @@ import {ChildToParent, CorrelationTableComponent} from './correlation-table.comp
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {DataType} from '../../dynamic-form/models/data.type';
 import {AppHelper} from '../../shared/helper/app.helper';
 
 
@@ -74,8 +73,8 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
         {usedLayoutColumns: 6}),
       DynamicFieldHelper.createFieldSelectNumberHeqF('samplingPeriod', true,
         {usedLayoutColumns: 6}),
-     // DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'startDate', false),
-     // DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'endDate', false),
+      // DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'startDate', false),
+      // DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'endDate', false),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
         {usedLayoutColumns: 6, disabled: true}),
     ];

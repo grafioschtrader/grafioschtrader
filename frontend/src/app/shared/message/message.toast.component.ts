@@ -28,7 +28,7 @@ export class MessageToastComponent implements OnDestroy {
       } else if (messageConainer.titleKey) {
         this.translateTitle(messageConainer);
       } else {
-        this.showMessage(<string> messageConainer.key, messageConainer.title, messageConainer);
+        this.showMessage(<string>messageConainer.key, messageConainer.title, messageConainer);
       }
     });
 

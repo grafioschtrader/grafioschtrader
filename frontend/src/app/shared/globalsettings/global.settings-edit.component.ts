@@ -50,6 +50,14 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
+  protected initialize(): void {
+    this.form.transferBusinessObjectToForm(this.globalparameters);
+  }
+
+  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Globalparameters {
+    return this.copyFormToPrivateBusinessObject(new Globalparameters(), <Globalparameters>this.globalparameters);
+  }
+
   private getPropertyDefinition(globalparameters: Globalparameters): FieldConfig {
     if (globalparameters.propertyDate) {
       this.selectedPropertyField = 'propertyDate';
@@ -64,15 +72,6 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
       return DynamicFieldHelper.createFieldInputString(this.selectedPropertyField, globalparameters.propertyName,
         30, true);
     }
-  }
-
-  protected initialize(): void {
-    this.form.transferBusinessObjectToForm(this.globalparameters);
-  }
-
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Globalparameters {
-    return this.copyFormToPrivateBusinessObject(new Globalparameters(), <Globalparameters>this.globalparameters);
   }
 
 }

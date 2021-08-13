@@ -49,7 +49,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.ASSETCLASS_KEY,  true,
+      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.ASSETCLASS_KEY, true,
         {dataproperty: 'assetclass.idAssetClass'}),
       ...this.getFieldDefinition()
     ];
@@ -71,6 +71,15 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       });
   }
 
+  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoAssetclass {
+    const algoAssetclass: AlgoAssetclass = new AlgoAssetclass();
+    if (this.algoCallParam.thisObject) {
+      Object.assign(algoAssetclass, this.algoCallParam.thisObject);
+    }
+    this.form.cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
+    algoAssetclass.idAlgoAssetclassParent = (<AlgoTop>this.algoCallParam.parentObject).idAlgoAssetclassSecurity;
+    return algoAssetclass;
+  }
 
   private getAssetclassObserver(): Observable<Assetclass> | Observable<Assetclass[]> {
     if (this.algoCallParam.thisObject) {
@@ -87,16 +96,5 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     } else {
       this.configObject.idSecurityaccount1.elementRef.nativeElement.focus();
     }
-  }
-
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoAssetclass {
-    const algoAssetclass: AlgoAssetclass = new AlgoAssetclass();
-    if (this.algoCallParam.thisObject) {
-      Object.assign(algoAssetclass, this.algoCallParam.thisObject);
-    }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
-    algoAssetclass.idAlgoAssetclassParent = (<AlgoTop>this.algoCallParam.parentObject).idAlgoAssetclassSecurity;
-    return algoAssetclass;
   }
 }

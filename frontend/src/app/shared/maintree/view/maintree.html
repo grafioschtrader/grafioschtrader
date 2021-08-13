@@ -1,9 +1,9 @@
-<div dynamicItems (click)="onComponentClick($event)"
-     [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-  <p-tree [value]="portfolioTrees" selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="onNodeSelect($event)"
-          (onNodeContextMenuSelect)="onNodeContextMenuSelect($event)"
-          [contextMenu]="cm" (keydown)="onKeydown($event)">
-    <ng-template let-node  pTemplate="default">
+<div (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+     dynamicItems>
+  <p-tree (keydown)="onKeydown($event)" (onNodeContextMenuSelect)="onNodeContextMenuSelect($event)" (onNodeSelect)="onNodeSelect($event)" [(selection)]="selectedNode"
+          [contextMenu]="cm"
+          [value]="portfolioTrees" selectionMode="single">
+    <ng-template let-node pTemplate="default">
         <span (dragover)="dragOver($event, node)" (drop)="drop($event, node)">
             {{node.label}}
         </span>
@@ -13,32 +13,32 @@
   <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
 </div>
 
-<p-confirmDialog header="Confirmation" icon="fa fa-question-circle" width="425" #cd>
+<p-confirmDialog #cd header="Confirmation" icon="fa fa-question-circle" width="425">
   <p-footer>
-    <button type="button" pButton icon="pi pi-check" label="{{'YES' | translate}}" (click)="cd.accept()"></button>
-    <button type="button" pButton icon="pi pi-times" label="{{'NO' | translate}}" (click)="cd.reject()"></button>
+    <button (click)="cd.accept()" icon="pi pi-check" label="{{'YES' | translate}}" pButton type="button"></button>
+    <button (click)="cd.reject()" icon="pi pi-times" label="{{'NO' | translate}}" pButton type="button"></button>
   </p-footer>
 </p-confirmDialog>
 
 
-<tenant-edit-dialog *ngIf="visibleDialogs[DialogVisible.Tenant]" [callParam]="callParam"
-                    [visibleTenantDialog]="visibleDialogs[DialogVisible.Tenant]"
+<tenant-edit-dialog (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.Tenant]"
+                    [callParam]="callParam"
                     [onlyCurrency]="onlyCurrency"
-                    (closeDialog)="handleOnProcessedDialog($event)">
+                    [visibleTenantDialog]="visibleDialogs[DialogVisible.Tenant]">
 </tenant-edit-dialog>
-<portfolio-edit *ngIf="visibleDialogs[DialogVisible.Portfolio]" [callParam]="callParam"
-                [visibleDialog]="visibleDialogs[DialogVisible.Portfolio]"
-                (closeDialog)="handleOnProcessedDialog($event)">
+<portfolio-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.Portfolio]"
+                [callParam]="callParam"
+                [visibleDialog]="visibleDialogs[DialogVisible.Portfolio]">
 </portfolio-edit>
-<securityaccount-edit *ngIf="visibleDialogs[DialogVisible.Securityaccount]" [callParam]="callParam"
-                      [visibleDialog]="visibleDialogs[DialogVisible.Securityaccount]"
-                      (closeDialog)="handleOnProcessedDialog($event)">
+<securityaccount-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.Securityaccount]"
+                      [callParam]="callParam"
+                      [visibleDialog]="visibleDialogs[DialogVisible.Securityaccount]">
 </securityaccount-edit>
-<watchlist-edit *ngIf="visibleDialogs[DialogVisible.Watchlist]" [callParam]="callParam"
-                [visibleDialog]="visibleDialogs[DialogVisible.Watchlist]"
-                (closeDialog)="handleOnProcessedDialog($event)">
+<watchlist-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.Watchlist]"
+                [callParam]="callParam"
+                [visibleDialog]="visibleDialogs[DialogVisible.Watchlist]">
 </watchlist-edit>
-<algo-rule-strategy-create *ngIf="visibleDialogs[DialogVisible.AlgoRuleStrategy]" [callParam]="callParam"
-                           [visibleDialog]="visibleDialogs[DialogVisible.AlgoRuleStrategy]"
-                           (closeDialog)="handleOnProcessedDialog($event)">
+<algo-rule-strategy-create (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.AlgoRuleStrategy]"
+                           [callParam]="callParam"
+                           [visibleDialog]="visibleDialogs[DialogVisible.AlgoRuleStrategy]">
 </algo-rule-strategy-create>

@@ -42,9 +42,6 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
 
-  private subscriptionViewSizeChanged: Subscription;
-  private topicSubscription: Subscription;
-
   stompConfig: InjectableRxStompConfig = {
     heartbeatIncoming: 0,
     heartbeatOutgoing: 20000,
@@ -54,6 +51,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       console.log(str);
     }
   };
+  private subscriptionViewSizeChanged: Subscription;
+  private topicSubscription: Subscription;
 
   constructor(private stompService: RxStompService,
               private updatedStompConfig: InjectableRxStompConfig,
@@ -144,26 +143,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.getWatchlistWithoutUpdate();
   }
 
-  protected updateAllPriceWebSocket() {
-    if (this.topicSubscription) {
-      this.sendMessage(this.idWatchlist, this.choosenTimeFrame.days);
-    } else {
-      this.sendMessage(this.idWatchlist, this.choosenTimeFrame.days);
-      this.getAndSetDataWebsocket();
-    }
-  }
-
-  private getAndSetDataWebsocket(): void {
-    this.topicSubscription = this.stompService.watch('/user/queue/security',
-      this.stompConfig.connectHeaders).subscribe(securitycurrencyGroup => {
-      const sg: SecuritycurrencyGroup = JSON.parse(securitycurrencyGroup.body);
-      if (this.watchlist.idWatchlist === sg.idWatchlist) {
-        this.selectedSecuritycurrencyPosition = null;
-        this.createSecurityPositionList(sg);
-      }
-    });
-  }
-
   sendMessage(idWatchlist: number, daysFrameDate: number) {
 
     this.stompService.publish({
@@ -180,6 +159,15 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   ngOnDestroy(): void {
     this.topicSubscription && this.topicSubscription.unsubscribe();
     super.ngOnDestroy();
+  }
+
+  protected updateAllPriceWebSocket() {
+    if (this.topicSubscription) {
+      this.sendMessage(this.idWatchlist, this.choosenTimeFrame.days);
+    } else {
+      this.sendMessage(this.idWatchlist, this.choosenTimeFrame.days);
+      this.getAndSetDataWebsocket();
+    }
   }
 
   protected getWatchlistWithoutUpdate() {
@@ -201,6 +189,23 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     }
   }
 
+  protected getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
+    const menuItems = [...this.getShowContextMenuItems(securitycurrencyPosition, false), {separator: true},
+      this.getMenuTimeFrame(), ...this.getMenuShowOptions()];
+    TranslateHelper.translateMenuItems(menuItems, this.translateService);
+    return menuItems;
+  }
+
+  private getAndSetDataWebsocket(): void {
+    this.topicSubscription = this.stompService.watch('/user/queue/security',
+      this.stompConfig.connectHeaders).subscribe(securitycurrencyGroup => {
+      const sg: SecuritycurrencyGroup = JSON.parse(securitycurrencyGroup.body);
+      if (this.watchlist.idWatchlist === sg.idWatchlist) {
+        this.selectedSecuritycurrencyPosition = null;
+        this.createSecurityPositionList(sg);
+      }
+    });
+  }
 
   private updateAllPriceThruRest(): void {
     this.watchlistService.getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days)
@@ -210,13 +215,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
           this.createSecurityPositionList(data);
         }
       });
-  }
-
-  protected getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
-    const menuItems = [...this.getShowContextMenuItems(securitycurrencyPosition, false), {separator: true},
-      this.getMenuTimeFrame(), ...this.getMenuShowOptions()];
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
-    return menuItems;
   }
 
   private getMenuTimeFrame(): MenuItem {

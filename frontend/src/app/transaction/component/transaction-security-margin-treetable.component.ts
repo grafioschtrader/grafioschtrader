@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem, TreeNode} from 'primeng/api';
 import {TransactionContextMenu} from './transaction.context.menu';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
@@ -29,53 +29,53 @@ import {HelpIds} from '../../shared/help/help.ids';
 @Component({
   selector: 'transaction-security-margin-treetable',
   template: `
-      <div #cmDiv class="data-container" (click)="onComponentClick($event)"
-           [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-          <div class="datatable nestedtable">
-              <p-treeTable [value]="transactionNodes" [columns]="fields" [(selection)]="selectedNode"
-                           selectionMode="single" [scrollable]="true" dataKey="transaction.idTransaction"
-                           (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
-                           [paginator]="true" [rows]="20"  styleClass="p-treetable-gridlines">
-                  <ng-template pTemplate="header" let-fields>
-                      <tr>
-                          <th *ngFor="let field of fields" [style.width.px]="field.width"
-                              [pTooltip]="field.headerTooltipTranslated">
-                              {{field.headerTranslated}}
-                          </th>
-                      </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
-                      <tr [ttSelectableRow]="rowNode" [ttSelectableRowDisabled]="rowData.transaction.idTransaction < 0"
-                          [ngClass]="{'rowgroup-total': rowData.transaction.idTransaction < 0}" >
-                          <td *ngFor="let field of fields; let i = index"
-                              [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+    <div #cmDiv class="data-container" (click)="onComponentClick($event)"
+         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+      <div class="datatable nestedtable">
+        <p-treeTable [value]="transactionNodes" [columns]="fields" [(selection)]="selectedNode"
+                     selectionMode="single" [scrollable]="true" dataKey="transaction.idTransaction"
+                     (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
+                     [paginator]="true" [rows]="20" styleClass="p-treetable-gridlines">
+          <ng-template pTemplate="header" let-fields>
+            <tr>
+              <th *ngFor="let field of fields" [style.width.px]="field.width"
+                  [pTooltip]="field.headerTooltipTranslated">
+                {{field.headerTranslated}}
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+            <tr [ttSelectableRow]="rowNode" [ttSelectableRowDisabled]="rowData.transaction.idTransaction < 0"
+                [ngClass]="{'rowgroup-total': rowData.transaction.idTransaction < 0}">
+              <td *ngFor="let field of fields; let i = index"
+                  [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
               || field.dataType===DataType.DateTimeNumeric)}" [style.width.px]="field.width">
-                              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
-                              <ng-container [ngSwitch]="field.templateName">
-                                  <ng-container *ngSwitchCase="'greenRed'">
+                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
+                <ng-container [ngSwitch]="field.templateName">
+                  <ng-container *ngSwitchCase="'greenRed'">
                 <span [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'>
                   {{getValueByPath(rowData, field)}}
                 </span>
-                                  </ng-container>
-                                  <ng-container *ngSwitchDefault>
-                                      <span>{{getValueByPath(rowData, field)}}</span>
-                                  </ng-container>
-                              </ng-container>
-                          </td>
-                      </tr>
-                  </ng-template>
-              </p-treeTable>
-              <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length >0" #cm
-                             [target]="cmDiv" [model]="contextMenuItems" appendTo="body">
-              </p-contextMenu>
-          </div>
-          <transaction-security-edit *ngIf="visibleSecurityTransactionDialog"
-                                     [transactionCallParam]="transactionCallParam"
-                                     [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
-                                     (closeDialog)="handleCloseTransactionDialog($event)">
-          </transaction-security-edit>
-
+                  </ng-container>
+                  <ng-container *ngSwitchDefault>
+                    <span>{{getValueByPath(rowData, field)}}</span>
+                  </ng-container>
+                </ng-container>
+              </td>
+            </tr>
+          </ng-template>
+        </p-treeTable>
+        <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length >0" #cm
+                       [target]="cmDiv" [model]="contextMenuItems" appendTo="body">
+        </p-contextMenu>
       </div>
+      <transaction-security-edit *ngIf="visibleSecurityTransactionDialog"
+                                 [transactionCallParam]="transactionCallParam"
+                                 [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
+                                 (closeDialog)="handleCloseTransactionDialog($event)">
+      </transaction-security-edit>
+
+    </div>
   `
 })
 export class TransactionSecurityMarginTreetableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
@@ -103,13 +103,12 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
               transactionService: TransactionService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService);
   }
 
 
@@ -117,6 +116,28 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(this, this.idTenant, true,
       this.transactionSecurityOptionalParam);
     this.initialize();
+  }
+
+  getSecurity(transaction: Transaction): Security {
+    return this.securityTransactionSummary.securityPositionSummary.security;
+  }
+
+  onNodeSelect(event): void {
+    const securityTransactionPosition: SecurityTransactionPosition = event.node.data;
+    this.selectedTransaction = securityTransactionPosition.transaction;
+    this.setMenuItemsToActivePanel();
+  }
+
+  onNodeUnselect(event): void {
+    super.onRowUnselect(event);
+  }
+
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_TRANSACTION_MARGIN_BASED;
+  }
+
+  ngOnDestroy(): void {
+    super.destroy();
   }
 
   protected initialize(): void {
@@ -132,6 +153,32 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
       });
       this.addTreeNodes();
     });
+  }
+
+  protected getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
+    const localContextMenu: MenuItem[] = [];
+    if (transaction && !transaction.connectedIdTransaction) {
+      localContextMenu.push({
+        label: 'CLOSE_MARGIN_POSITION',
+        command: (e) => this.handleClosePosition(transaction, this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]),
+        disabled: !this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]
+      });
+      localContextMenu.push({
+        label: 'MARGIN_FINANCE_COST',
+        command: (e) => this.handleFinanceCost(transaction)
+      });
+      localContextMenu.push({separator: true});
+    }
+
+    TranslateHelper.translateMenuItems(localContextMenu, this.translateService);
+    return localContextMenu.concat(super.getMenuItemsOnTransaction(transaction));
+  }
+
+  protected canDeleteTransaction(transaction): boolean {
+    return transaction.connectedIdTransaction !== null || !this.selectedNode.data[this.OPEN_HAS_CLOSE_POSITION];
+  }
+
+  protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
   }
 
   private addTreeNodes(): void {
@@ -166,26 +213,6 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     this.transactionNodes = rootNodes;
   }
 
-
-  getSecurity(transaction: Transaction): Security {
-    return this.securityTransactionSummary.securityPositionSummary.security;
-  }
-
-  onNodeSelect(event): void {
-    const securityTransactionPosition: SecurityTransactionPosition = event.node.data;
-    this.selectedTransaction = securityTransactionPosition.transaction;
-    this.setMenuItemsToActivePanel();
-  }
-
-  onNodeUnselect(event): void {
-    super.onRowUnselect(event);
-  }
-
-  public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_TRANSACTION_MARGIN_BASED;
-  }
-
-
   private handleClosePosition(openTransaction: Transaction, hypoTransaction: Transaction): void {
     const closeTransaction = this.getNewTransaction(openTransaction);
     closeTransaction.units = hypoTransaction.units;
@@ -218,37 +245,5 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     newTransaction.cashaccount = openTransaction.cashaccount;
     newTransaction.transactionTime = new Date();
     return newTransaction;
-  }
-
-
-  protected getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
-    const localContextMenu: MenuItem[] = [];
-    if (transaction && !transaction.connectedIdTransaction) {
-      localContextMenu.push({
-        label: 'CLOSE_MARGIN_POSITION',
-        command: (e) => this.handleClosePosition(transaction, this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]),
-        disabled: !this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]
-      });
-      localContextMenu.push({
-        label: 'MARGIN_FINANCE_COST',
-        command: (e) => this.handleFinanceCost(transaction)
-      });
-      localContextMenu.push({separator: true});
-    }
-
-    TranslateHelper.translateMenuItems(localContextMenu, this.translateService);
-    return localContextMenu.concat(super.getMenuItemsOnTransaction(transaction));
-  }
-
-  protected canDeleteTransaction(transaction): boolean {
-    return transaction.connectedIdTransaction !== null || !this.selectedNode.data[this.OPEN_HAS_CLOSE_POSITION];
-  }
-
-
-  ngOnDestroy(): void {
-    super.destroy();
-  }
-
-  protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
   }
 }

@@ -52,8 +52,7 @@ export class PlotlyHelper {
     const founds: any = [];
     this.searchArrayInTree(layout, founds);
 
-    founds.forEach(elements => elements.filter(e => e.hasOwnProperty(LABEL)).
-    filter(f => f[LABEL] = f[LABEL].toUpperCase()).map(match =>
+    founds.forEach(elements => elements.filter(e => e.hasOwnProperty(LABEL)).filter(f => f[LABEL] = f[LABEL].toUpperCase()).map(match =>
       translateService.get(Helper.getValueByPath(match, LABEL)).subscribe(trans => {
         Helper.setValueByPath(match, LABEL, trans);
       })));
@@ -64,7 +63,7 @@ export class PlotlyHelper {
       Object.entries(tree).forEach(([key, value]) => {
         // key is either an array index or object key
         if (value.constructor === Array) {
-           founds.push(value);
+          founds.push(value);
         } else {
           this.searchArrayInTree(value, founds);
         }

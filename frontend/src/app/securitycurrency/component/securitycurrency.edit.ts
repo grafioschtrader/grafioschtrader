@@ -25,20 +25,15 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   // Input from parent component
   @Input() securityCurrencypairCallParam: Security | Securitycurrency;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
-
+  // Access child components
+  @ViewChild(DynamicFormComponent, {static: true}) dynamicForm: DynamicFormComponent;
+  // Output for parent view
+  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  connectorSubscribe: { [fieldName: string]: Subscription } = {};
+  feedPriceConnectors: IFeedConnector[];
   protected readonly ID_CONNECTOR_HISTORY = 'idConnectorHistory';
   protected readonly ID_CONNECTOR_INTRA = 'idConnectorIntra';
   protected connectorPriceFieldConfig: FieldConfig[];
-
-  // Access child components
-  @ViewChild(DynamicFormComponent, {static: true}) dynamicForm: DynamicFormComponent;
-
-  // Output for parent view
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
-
-  connectorSubscribe: { [fieldName: string]: Subscription } = {};
-
-  feedPriceConnectors: IFeedConnector[];
 
   // connectorFieldConfig: FieldConfig[];
 
@@ -51,12 +46,48 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     setTimeout(() => this.loadHelperData());
   }
 
+  public hideVisibleFeedConnectorsFields(connectorFieldConfig: FieldConfig[], hideConnector: boolean,
+                                         feedIdentifier: FeedIdentifier): void {
+    const idFieldConfigurations = connectorFieldConfig.filter(field => field.field.startsWith('id'));
+    const urlFieldConfigurations = connectorFieldConfig.filter(field => field.field.startsWith('url'));
+    if (hideConnector) {
+      idFieldConfigurations.forEach(cfc => {
+        if (this.connectorSubscribe[cfc.field]) {
+          this.connectorSubscribe[cfc.field].unsubscribe();
+          this.connectorSubscribe[cfc.field] = null;
+        }
+      });
+    } else {
+      this.valueChangedOnFeedConnectors(idFieldConfigurations, urlFieldConfigurations, feedIdentifier);
+    }
+    FormHelper.hideVisibleFieldConfigs(hideConnector, connectorFieldConfig);
+  }
+
+  onHide(event): void {
+    Object.values(this.connectorSubscribe).forEach(cs => cs && cs.unsubscribe);
+    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+  }
+
   protected abstract loadHelperData(): void;
 
   protected prepareFeedConnectors(feedConnectors: IFeedConnector[], isCurrency: boolean): void {
     this.feedPriceConnectors = feedConnectors;
     this.feedConnectorsCreateValueKeyHtmlSelectOptions(this.configObject[this.ID_CONNECTOR_HISTORY], FeedSupport.HISTORY, isCurrency);
     this.feedConnectorsCreateValueKeyHtmlSelectOptions(this.configObject[this.ID_CONNECTOR_INTRA], FeedSupport.INTRA, isCurrency);
+  }
+
+  protected prepareExistingSecuritycurrency(focusControl: FieldConfig): void {
+    this.dynamicForm.setDefaultValuesAndEnableSubmit();
+    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
+      this.securityCurrencypairCallParam, this.dynamicForm, this.configObject, this.proposeChangeEntityWithEntity);
+    focusControl.elementRef.nativeElement.focus();
+  }
+
+  protected disableEnableFeedUrlExtended(urlExtended: FieldConfig, feedIdentifiers: string[], feedIdentifier: FeedIdentifier): void {
+    AppHelper.invisibleAndHide(urlExtended, feedIdentifiers.indexOf(FeedIdentifier[feedIdentifier]) >= 0);
+
+    DynamicFieldHelper.resetValidator(urlExtended, (urlExtended.invisible) ? null : [Validators.required],
+      (urlExtended.invisible) ? null : [DynamicFieldHelper.RULE_REQUIRED_TOUCHED]);
   }
 
   /**
@@ -80,7 +111,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
               this.disableEnableFeedUrlExtended(urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.INTRA]],
                 feedIdentifier);
-            } else if ( this.ID_CONNECTOR_HISTORY === connectorIdConfigs[i].field
+            } else if (this.ID_CONNECTOR_HISTORY === connectorIdConfigs[i].field
               && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.HISTORY]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.HISTORY]],
@@ -105,13 +136,6 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     }
   }
 
-  protected prepareExistingSecuritycurrency(focusControl: FieldConfig): void {
-    this.dynamicForm.setDefaultValuesAndEnableSubmit();
-    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
-      this.securityCurrencypairCallParam, this.dynamicForm, this.configObject, this.proposeChangeEntityWithEntity);
-    focusControl.elementRef.nativeElement.focus();
-  }
-
   private feedConnectorsCreateValueKeyHtmlSelectOptions(fieldConfig: FieldConfig, filterType: FeedSupport, isCurrency: boolean): void {
     const historyProvider: IFeedConnector[] = this.feedPriceConnectors.filter(feedConnector =>
       !!feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]]
@@ -129,35 +153,6 @@ export abstract class SecuritycurrencyEdit extends FormBase {
       return feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(FeedIdentifier[FeedIdentifier.SECURITY]) >= 0 ||
         feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(FeedIdentifier[FeedIdentifier.SECURITY_URL]) >= 0;
     }
-  }
-
-  protected disableEnableFeedUrlExtended(urlExtended: FieldConfig, feedIdentifiers: string[], feedIdentifier: FeedIdentifier): void {
-    AppHelper.invisibleAndHide(urlExtended, feedIdentifiers.indexOf(FeedIdentifier[feedIdentifier]) >= 0);
-
-    DynamicFieldHelper.resetValidator(urlExtended, (urlExtended.invisible) ? null : [Validators.required],
-      (urlExtended.invisible) ? null : [DynamicFieldHelper.RULE_REQUIRED_TOUCHED]);
-  }
-
-  public hideVisibleFeedConnectorsFields(connectorFieldConfig: FieldConfig[], hideConnector: boolean,
-                                         feedIdentifier: FeedIdentifier): void {
-    const idFieldConfigurations = connectorFieldConfig.filter(field => field.field.startsWith('id'));
-    const urlFieldConfigurations = connectorFieldConfig.filter(field => field.field.startsWith('url'));
-    if (hideConnector) {
-      idFieldConfigurations.forEach(cfc => {
-        if (this.connectorSubscribe[cfc.field]) {
-          this.connectorSubscribe[cfc.field].unsubscribe();
-          this.connectorSubscribe[cfc.field] = null;
-        }
-      });
-    } else {
-      this.valueChangedOnFeedConnectors(idFieldConfigurations, urlFieldConfigurations, feedIdentifier);
-    }
-    FormHelper.hideVisibleFieldConfigs(hideConnector, connectorFieldConfig);
-  }
-
-  onHide(event): void {
-    Object.values(this.connectorSubscribe).forEach(cs => cs && cs.unsubscribe);
-    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 
 }

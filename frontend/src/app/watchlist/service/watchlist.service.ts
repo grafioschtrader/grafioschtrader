@@ -65,7 +65,7 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
       + `${idWatchlist}/quote`, this.getOptionsWithDaysTimeFrame(daysTimeFrame)).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getWatchlistForSplitAndDividend(idWatchlist:  number):  Observable<SecuritycurrencyGroup> {
+  getWatchlistForSplitAndDividend(idWatchlist: number): Observable<SecuritycurrencyGroup> {
     return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/dividendsplit`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

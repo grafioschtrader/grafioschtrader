@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component} from '@angular/core';
+import {Component} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
@@ -24,13 +24,12 @@ export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securi
   constructor(private iconReg: SvgIconRegistryService,
               securitysplitService: SecuritysplitService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
     super('splitDate', 'SECURITY_SPLITS_FROM_MAX', Securitysplit, messageToastService, securitysplitService,
-      changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+      filterService, usersettingsService, translateService, gps);
     this.addColumnFeqH(DataType.DateString, 'splitDate', true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});

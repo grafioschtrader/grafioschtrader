@@ -51,16 +51,6 @@ export class Year {
     }
   }
 
-  private _initYear(): void {
-    for (let i = 0; i < 12; i++) {
-      const days: Day[] = this.getMonthDays(i);
-      const month = new Month(days);
-      month.index = i;
-      month.days = days;
-      this.months.push(month);
-    }
-  }
-
   getMonthDays(month: number): Day[] {
     const date = new Date(this.year, month, 1);
     date.setHours(0, 0, 0, 0);
@@ -73,6 +63,16 @@ export class Year {
       date.setDate(date.getDate() + 1);
     }
     return days;
+  }
+
+  private _initYear(): void {
+    for (let i = 0; i < 12; i++) {
+      const days: Day[] = this.getMonthDays(i);
+      const month = new Month(days);
+      month.index = i;
+      month.days = days;
+      this.months.push(month);
+    }
   }
 
 

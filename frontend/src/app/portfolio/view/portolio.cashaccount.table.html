@@ -1,13 +1,13 @@
-<div class="data-container" (click)="onComponentClick($event)"
+<div #cmDiv (click)="onComponentClick($event)"
      (contextmenu)="onContextMenuClick($event)"
-     #cmDiv [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+     [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}" class="data-container">
 
   <div class="datatable">
-    <p-table [columns]="fields" [value]="accountPositionGroupSummary?.accountPositionSummaryList" selectionMode="single"
-             [(selection)]="selectedAccountPositionSummary" dataKey="cashaccount.idSecuritycashAccount"
-             sortMode="multiple" [multiSortMeta]="multiSortMeta"
-             styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
-             (onRowExpand)="onRowExpand($event)" (onRowCollapse)="onRowCollapse($event)">
+    <p-table (onRowCollapse)="onRowCollapse($event)" (onRowExpand)="onRowExpand($event)" [(selection)]="selectedAccountPositionSummary"
+             [columns]="fields" [multiSortMeta]="multiSortMeta"
+             [value]="accountPositionGroupSummary?.accountPositionSummaryList" dataKey="cashaccount.idSecuritycashAccount"
+             selectionMode="single"
+             sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
 
       <ng-template pTemplate="caption">
         <div class="flex-two-columns">
@@ -15,20 +15,20 @@
             <h4>{{'PORTFOLIO' | translate}}: {{accountPositionGroupSummary?.groupName}}</h4>
           </div>
           <div class="right-half">
-            <label style="margin-right: 5px; margin-top: 5px;" for="untilDate">{{'UNTIL_DATE' | translate}}</label>
-            <p-calendar #cal appendTo="body"
-                        id="untilDate"
+            <label for="untilDate" style="margin-right: 5px; margin-top: 5px;">{{'UNTIL_DATE' | translate}}</label>
+            <p-calendar #cal (onSelect)="filterDate($event)"
                         [(ngModel)]="untilDate"
                         [dateFormat]="baseLocale.dateFormat"
-                        (onSelect)="filterDate($event)">
+                        appendTo="body"
+                        id="untilDate">
             </p-calendar>
-            <i class="pi pi-replay" style="font-size: 1.5em" (click)="onResetToDay($event)"></i>
+            <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
           </div>
         </div>
       </ng-template>
 
 
-      <ng-template pTemplate="header" let-fields>
+      <ng-template let-fields pTemplate="header">
         <tr>
           <th style="width:24px"></th>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field"
@@ -40,21 +40,21 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+      <ng-template let-columns="fields" let-el let-expanded="expanded" pTemplate="body">
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <td>
-            <a href="#" [pRowToggler]="el">
+            <a [pRowToggler]="el" href="#">
               <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
           </td>
           <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [style.width.px]="field.width"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+                [style.width.px]="field.width">
 
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'greenRed'">
-                  <span [style.color]='isValueByPathMinus(el, field)? "red": "inherit"' [pTooltip]="getValueByPath(el, field)"
+                  <span [pTooltip]="getValueByPath(el, field)" [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
                         tooltipPosition="top">
                     {{getValueByPath(el, field)}}
                   </span>
@@ -72,9 +72,9 @@
         <tr>
           <td></td>
           <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" class="row-total" [style.width.px]="field.width"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
+                class="row-total">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'greenRed'">
                 <span [style.color]='isValueColumnTotalMinus(field, 0, accountPositionGroupSummary, null)? "red": "inherit"'>
@@ -90,12 +90,12 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="rowexpansion" let-apgs let-columns="fields">
+      <ng-template let-apgs let-columns="fields" pTemplate="rowexpansion">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-            <transaction-cashaccount-table [portfolio]="portfolio"
+            <transaction-cashaccount-table (dateChanged)="transactionDataChanged($event)"
                                            [idSecuritycashAccount]="apgs.cashaccount.idSecuritycashAccount"
-                                           (dateChanged)="transactionDataChanged($event)">
+                                           [portfolio]="portfolio">
             </transaction-cashaccount-table>
           </td>
         </tr>
@@ -103,26 +103,26 @@
     </p-table>
 
   </div>
-  <p-contextMenu *ngIf="contextMenuItems" #contextMenuPCD [target]="cmDiv" [model]="contextMenuItems"
+  <p-contextMenu #contextMenuPCD *ngIf="contextMenuItems" [model]="contextMenuItems" [target]="cmDiv"
                  appendTo="body"></p-contextMenu>
 </div>
 
 
-<transaction-cashaccount-editsingle *ngIf="visibleCashaccountTransactionSingleDialog"
-                                    [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog"
+<transaction-cashaccount-editsingle (closeDialog)="handleCloseDialog($event)"
+                                    *ngIf="visibleCashaccountTransactionSingleDialog"
                                     [transactionCallParam]="transactionCallParam"
-                                    (closeDialog)="handleCloseDialog($event)">
+                                    [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
 </transaction-cashaccount-editsingle>
 
-<transaction-cashaccount-editdouble *ngIf="visibleCashaccountTransactionDoubleDialog"
-                                    [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog"
+<transaction-cashaccount-editdouble (closeDialog)="handleCloseDialog($event)"
+                                    *ngIf="visibleCashaccountTransactionDoubleDialog"
                                     [transactionCallParam]="transactionCallParam"
-                                    (closeDialog)="handleCloseDialog($event)">
+                                    [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
 </transaction-cashaccount-editdouble>
 
-<cashaccount-edit *ngIf="visibleCashaccountDialog" [callParam]="callParam"
-                  [visibleDialog]="visibleCashaccountDialog"
-                  (closeDialog)="handleCloseCashaccountDialog($event)">
+<cashaccount-edit (closeDialog)="handleCloseCashaccountDialog($event)" *ngIf="visibleCashaccountDialog"
+                  [callParam]="callParam"
+                  [visibleDialog]="visibleCashaccountDialog">
 </cashaccount-edit>
 
 

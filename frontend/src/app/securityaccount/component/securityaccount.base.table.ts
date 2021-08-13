@@ -1,7 +1,7 @@
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
-import {ChangeDetectorRef, Directive, ElementRef, ViewChild} from '@angular/core';
+import {Directive, ElementRef, ViewChild} from '@angular/core';
 import {SecurityaccountGroupBase} from './securityaccount.group.base';
 import {SecurityPositionCurrenyGroupSummary} from '../../entities/view/security.position.curreny.group.summary';
 import {Subscription} from 'rxjs';
@@ -73,15 +73,12 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
                         protected activatedRoute: ActivatedRoute,
                         protected router: Router,
                         private chartDataService: ChartDataService,
-                        changeDetectionStrategy: ChangeDetectorRef,
                         filterService: FilterService,
                         translateService: TranslateService,
                         gps: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
-
+    super(filterService, usersettingsService, translateService, gps);
     this.untilDate = AppHelper.getUntilDateBySessionStorage();
-
   }
 
   getGroupValueByRowIndex(columnConfig: ColumnConfig, securityPositionSummary: SecurityPositionSummary): string {
@@ -153,7 +150,6 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.readData();
   }
 
-
   handleTransaction(transactionType: TransactionType, security: Security) {
     this.transactionCallParam = Object.assign(new TransactionCallParam(), {
       transactionType: transactionType,
@@ -196,7 +192,6 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.resetMenu();
   }
 
-
   onResetToDay(event): void {
     this.untilDate = new Date();
     this.readData();
@@ -231,6 +226,19 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
   }
 
+  getInstrumentIcon(securityPositionSummary: SecurityPositionSummary): string {
+    return this.productIconService.getIconForInstrument(securityPositionSummary.security, null);
+  }
+
+  addUrlLinkMenus(securitycurrency: Securitycurrency, menuItems: MenuItem[], translate: boolean): MenuItem[] {
+    const urlLinkMenuItems = BusinessHelper.getUrlLinkMenus(securitycurrency);
+    translate && TranslateHelper.translateMenuItems(urlLinkMenuItems, this.translateService);
+    return menuItems.concat(urlLinkMenuItems);
+  }
+
+  isMarginProduct(security: Security): boolean {
+    return BusinessHelper.isMarginProduct(security);
+  }
 
   protected abstract readData(): void;
 
@@ -284,11 +292,6 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.fields.filter(cc => cc.dataType === DataType.Numeric).map(cc => cc.templateName = 'greenRed');
   }
 
-  getInstrumentIcon(securityPositionSummary: SecurityPositionSummary): string {
-    return this.productIconService.getIconForInstrument(securityPositionSummary.security, null);
-  }
-
-
   protected getDataToView(data: SecurityPositionGrandSummary) {
     this.securityPositionSummary = data;
     this.securityPositionAll = [];
@@ -311,19 +314,6 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     return menuItems;
   }
 
-  private addNoMarketValueOpt(security: Security): OptionalParameters {
-    const optionalParameters = this.getOptionalParameters() || {};
-    optionalParameters.noMarketValue = security.stockexchange.noMarketValue;
-    return optionalParameters;
-  }
-
-  addUrlLinkMenus(securitycurrency: Securitycurrency, menuItems: MenuItem[], translate: boolean): MenuItem[] {
-    const urlLinkMenuItems = BusinessHelper.getUrlLinkMenus(securitycurrency);
-    translate && TranslateHelper.translateMenuItems(urlLinkMenuItems, this.translateService);
-    return menuItems.concat(urlLinkMenuItems);
-  }
-
-
   protected changeToOpenChart() {
     this.subscriptionRequestFromChart && this.chartDataService.sentToChart(
       this.securityaccountGroupBase.getChartDefinition(this.getTitleChart(), this.securityPositionSummary));
@@ -336,6 +326,12 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   protected getComponentId(): string {
     const routeUrlCompoent = /(\/\w+\/)\({0,1}(\w+)/.exec(this.router.url);
     return routeUrlCompoent[2];
+  }
+
+  private addNoMarketValueOpt(security: Security): OptionalParameters {
+    const optionalParameters = this.getOptionalParameters() || {};
+    optionalParameters.noMarketValue = security.stockexchange.noMarketValue;
+    return optionalParameters;
   }
 
   private navigateToChartRoute() {
@@ -355,7 +351,6 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       }
     });
   }
-
 
   private resetMenu() {
     this.contextMenuItems = this.getEditMenu(this.selectedSecurityPositionSummary);
@@ -401,10 +396,5 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     }
     return menuItems;
   }
-
-  isMarginProduct(security: Security): boolean {
-    return BusinessHelper.isMarginProduct(security);
-  }
-
 
 }

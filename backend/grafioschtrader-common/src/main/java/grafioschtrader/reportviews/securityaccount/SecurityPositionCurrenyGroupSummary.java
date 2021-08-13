@@ -1,5 +1,7 @@
 package grafioschtrader.reportviews.securityaccount;
 
+import grafioschtrader.common.DataHelper;
+
 /**
  * Summary of securities grouped by currency. A single security account may
  * produce one or more instance of this class.
@@ -31,7 +33,7 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
   public double groupTaxCost = 0.0;
 
   public SecurityPositionCurrenyGroupSummary(String currency, double currencyExchangeRate, int precision) {
-    super();
+    super(precision);
     this.currency = currency;
     this.currencyExchangeRate = currencyExchangeRate;
   }
@@ -45,4 +47,20 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
     groupTransactionCost += securityPositionSummary.transactionCost;
   }
 
+  public double getGroupGainLossSecurity() {
+    return DataHelper.round(groupGainLossSecurity, precision);
+  }
+
+  public double getGroupTransactionCost() {
+    return DataHelper.round(groupTransactionCost, precision);
+  }
+
+  public double getGroupAccountValueSecurity() {
+    return DataHelper.round(groupAccountValueSecurity, precision);
+  }
+
+  public double getGroupTaxCost() {
+    return DataHelper.round(groupTaxCost, precision);
+  }
+    
 }

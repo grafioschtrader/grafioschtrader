@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../shared/message/message.toast.service';
@@ -33,13 +33,12 @@ export class MailInboxTableComponent extends MailInOutTable<MailInbox> implement
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(router, 'receivedTime', AppSettings.MAIL_INBOX, mailInboxService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      dialogService, filterService, translateService, gps, usersettingsService);
 
     this.addColumnFeqH(DataType.String, 'idUserFrom', true, false, {width: 50});
     this.addColumnFeqH(DataType.String, 'roleNameTo', true, false,

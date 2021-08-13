@@ -51,15 +51,6 @@ export abstract class TenantEditComponent {
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  private getFields(onlyCurrency: boolean): FieldConfig[] {
-    const fieldConfig = [DynamicFieldHelper.createFieldInputStringHeqF('tenantName', 25, true),
-      DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
-      DynamicFieldHelper.createFieldCheckboxHeqF('excludeDivTax'),
-      DynamicFieldHelper.createSubmitButton()];
-    return (onlyCurrency) ? [fieldConfig[1], fieldConfig[3]] : fieldConfig;
-  }
-
-
   onHide(event) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
@@ -99,6 +90,14 @@ export abstract class TenantEditComponent {
 
       }
     );
+  }
+
+  private getFields(onlyCurrency: boolean): FieldConfig[] {
+    const fieldConfig = [DynamicFieldHelper.createFieldInputStringHeqF('tenantName', 25, true),
+      DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
+      DynamicFieldHelper.createFieldCheckboxHeqF('excludeDivTax'),
+      DynamicFieldHelper.createSubmitButton()];
+    return (onlyCurrency) ? [fieldConfig[1], fieldConfig[3]] : fieldConfig;
   }
 }
 

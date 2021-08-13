@@ -62,17 +62,13 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   dateFormatPipe: string;
   firstAndMissingTradingDays: FirstAndMissingTradingDays;
   loading = false;
-  private subscriptionRequestFromChart: Subscription;
-
-  private idPortfolio: number;
-
-
   menuItems: MenuItem[] = [{
     label: 'SHOW_CHART',
     disabled: !this.performancePeriod, command: (event) => this.navigateToChartRoute()
   }];
-
   chartData: Partial<ChartTrace>[];
+  private subscriptionRequestFromChart: Subscription;
+  private idPortfolio: number;
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -126,6 +122,65 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     });
   }
 
+  valueChangedOnDateFrom(): void {
+    this.dateFromSubscribe = this.configObject.dateFrom.formControl.valueChanges.subscribe((dateFrom: Date) => {
+      this.setMinDateForToDate(dateFrom);
+      this.setMonthWeekPeriod();
+    });
+  }
+
+  valueChangedOnDateTo(): void {
+    this.dateToSubscribe = this.configObject.dateTo.formControl.valueChanges.subscribe((dateTo: Date) => {
+      this.setMonthWeekPeriod();
+    });
+  }
+
+  helpLink() {
+    // Used in a dialog
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE);
+  }
+
+  isActivated(): boolean {
+    return this.activePanelService.isActivated(this);
+  }
+
+  onComponentClick(event): void {
+    this.activePanelService.activatePanel(this, {showMenu: this.menuItems});
+  }
+
+  hideContextMenu(): void {
+  }
+
+  callMeDeactivate(): void {
+  }
+
+  getHelpContextId(): HelpIds {
+    return HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE;
+  }
+
+  submit(value: { [name: string]: any }): void {
+    const pWD: PerformanceWindowDef = new PerformanceWindowDef(this.idPortfolio);
+    this.form.cleanMaskAndTransferValuesToBusinessObject(pWD, true);
+    this.loading = true;
+    this.holdingService.getPeriodPerformance(pWD).subscribe(periodPerformance => {
+      this.performancePeriod = periodPerformance;
+      this.periodHoldingsAndDiff = [periodPerformance.firstDayTotals, periodPerformance.lastDayTotals, periodPerformance.difference];
+      this.configObject.submit.disabled = false;
+      this.menuItems[0].disabled = false;
+      this.changeToOpenChart();
+      this.loading = false;
+    }, () => {
+      this.configObject.submit.disabled = false;
+      this.loading = false;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.dateFromSubscribe && this.dateFromSubscribe.unsubscribe();
+    this.dateToSubscribe && this.dateToSubscribe.unsubscribe();
+    this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
+  }
+
   private createInputFormDefinition(): void {
     this.config = [
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'dateFrom', true,
@@ -140,19 +195,6 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     this.configObject.periodSplit.valueKeyHtmlOptions =
       SelectOptionsHelper.createHtmlOptionsFromEnumAddEmpty(this.translateService, WeekYear);
 
-  }
-
-  valueChangedOnDateFrom(): void {
-    this.dateFromSubscribe = this.configObject.dateFrom.formControl.valueChanges.subscribe((dateFrom: Date) => {
-      this.setMinDateForToDate(dateFrom);
-      this.setMonthWeekPeriod();
-    });
-  }
-
-  valueChangedOnDateTo(): void {
-    this.dateToSubscribe = this.configObject.dateTo.formControl.valueChanges.subscribe((dateTo: Date) => {
-      this.setMonthWeekPeriod();
-    });
   }
 
   private setMinDateForToDate(dateFrom: Date): void {
@@ -187,30 +229,6 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
         this.configObject.periodSplit.formControl.setValue('');
       }
     }
-  }
-
-  helpLink() {
-    // Used in a dialog
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE);
-  }
-
-
-  isActivated(): boolean {
-    return this.activePanelService.isActivated(this);
-  }
-
-  onComponentClick(event): void {
-    this.activePanelService.activatePanel(this, {showMenu: this.menuItems});
-  }
-
-  hideContextMenu(): void {
-  }
-
-  callMeDeactivate(): void {
-  }
-
-  getHelpContextId(): HelpIds {
-    return HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE;
   }
 
   private changeToOpenChart(): void {
@@ -277,30 +295,5 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       },
 
     });
-  }
-
-
-  submit(value: { [name: string]: any }): void {
-    const pWD: PerformanceWindowDef = new PerformanceWindowDef(this.idPortfolio);
-    this.form.cleanMaskAndTransferValuesToBusinessObject(pWD, true);
-    this.loading = true;
-    this.holdingService.getPeriodPerformance(pWD).subscribe(periodPerformance => {
-      this.performancePeriod = periodPerformance;
-      this.periodHoldingsAndDiff = [periodPerformance.firstDayTotals, periodPerformance.lastDayTotals, periodPerformance.difference];
-      this.configObject.submit.disabled = false;
-      this.menuItems[0].disabled = false;
-      this.changeToOpenChart();
-      this.loading = false;
-    }, () => {
-      this.configObject.submit.disabled = false;
-      this.loading = false;
-    });
-  }
-
-
-  ngOnDestroy(): void {
-    this.dateFromSubscribe && this.dateFromSubscribe.unsubscribe();
-    this.dateToSubscribe && this.dateToSubscribe.unsubscribe();
-    this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
   }
 }

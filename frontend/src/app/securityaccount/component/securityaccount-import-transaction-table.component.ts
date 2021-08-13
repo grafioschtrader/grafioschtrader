@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -144,30 +144,26 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   };
   private static SVG = '.svg';
   private static iconLoadDone = false;
-  private readonly ITP = 'IMPORT_TRANSACTION_POS';
-
   supplementCriteria: SupplementCriteria;
   entityList: CombineTemplateAndImpTransPos[] = [];
   selectedEntities: CombineTemplateAndImpTransPos[] = [];
   selectImportTransactionHead: ImportTransactionHead;
   importTransactionTemplates: ImportTransactionTemplate[];
   failedParsedTemplateStateList: FailedParsedTemplateState[];
-
   visibleSetSecurityDialog = false;
   visibleSetCashaccountDialog = false;
-
   parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>;
+  private readonly ITP = 'IMPORT_TRANSACTION_POS';
 
   constructor(private importTransactionPosService: ImportTransactionPosService,
               private confirmationService: ConfirmationService,
               private messageToastService: MessageToastService,
               private iconReg: SvgIconRegistryService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
 
     this.supplementCriteria = new SupplementCriteria(true, false);
     SecurityaccountImportTransactionTableComponent.registerIcons(this.iconReg);
@@ -341,10 +337,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     return menuItems;
   }
 
-  private hasTransactionOrMaybe(itp: ImportTransactionPos): boolean {
-    return itp.idTransaction != null || itp.idTransactionMaybe != null && itp.idTransactionMaybe > 0;
-  }
-
   adjustExchangeRateOrQuotation(): void {
     this.importTransactionPosService.adjustCurrencyExRateOrQuotation(this.selectedEntities.map((ctaitp: CombineTemplateAndImpTransPos) =>
       ctaitp.importTransactionPos.idTransactionPos)).subscribe(importTransactionPosList =>
@@ -419,6 +411,10 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   ngOnDestroy(): void {
     this.writeTableDefinition(AppSettings.IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE);
+  }
+
+  private hasTransactionOrMaybe(itp: ImportTransactionPos): boolean {
+    return itp.idTransaction != null || itp.idTransactionMaybe != null && itp.idTransactionMaybe > 0;
   }
 
 }

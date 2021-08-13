@@ -2,7 +2,7 @@ import {CrudMenuOptions, TableCrudSupportMenu} from '../../shared/datashowbase/t
 import {Router} from '@angular/router';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import { ChangeDetectorRef, Directive } from '@angular/core';
+import {Directive} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -27,14 +27,12 @@ export abstract class MailInOutTable<T extends MailInOut> extends TableCrudSuppo
                         messageToastService: MessageToastService,
                         activePanelService: ActivePanelService,
                         dialogService: DialogService,
-                        changeDetectionStrategy: ChangeDetectorRef,
                         filterService: FilterService,
                         translateService: TranslateService,
                         gps: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
     super(entityName, deleteService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
-      [CrudMenuOptions.Allow_Delete]);
+      dialogService, filterService, translateService, gps, usersettingsService, [CrudMenuOptions.Allow_Delete]);
     this.multiSortMeta.push({field: sortField, order: 1});
   }
 

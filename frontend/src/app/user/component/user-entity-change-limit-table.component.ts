@@ -1,7 +1,7 @@
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -22,7 +22,6 @@ import {AuditHelper} from '../../shared/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 import {AppSettings} from '../../shared/app.settings';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
-import {Menu} from 'primeng/menu';
 
 /**
  * It is implemented as a nested table.
@@ -105,8 +104,10 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
 
   private proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   private proposeMap: Map<number, ProposeChangeEntityWithEntity> = new Map();
-  private deleteMenu:  MenuItem = {label: 'DELETE_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT,
-  command: (event) => this.handleDelete(this.selectedUserEntityChangeLimit)};
+  private deleteMenu: MenuItem = {
+    label: 'DELETE_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT,
+    command: (event) => this.handleDelete(this.selectedUserEntityChangeLimit)
+  };
   private menuItems: MenuItem[] = [
     {
       label: 'EDIT_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT + AppSettings.DIALOG_MENU_SUFFIX,
@@ -120,12 +121,11 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
               private messageToastService: MessageToastService,
               private confirmationService: ConfirmationService,
               private proposeUserTaskService: ProposeUserTaskService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, this.UPPER_CASE_ENTITY_NAME, 'ENTITY_NAME', true, false,
       {translateValues: TranslateValue.NORMAL});
@@ -167,10 +167,6 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
     this.contextMenuItems = this.getMenuItemsOnUserEntityChangeLimit(this.selectedUserEntityChangeLimit);
   }
 
-  protected getMenuItemsOnUserEntityChangeLimit(userEntityChangeLimit: UserEntityChangeLimit): MenuItem[] {
-    return this.selectedUserEntityChangeLimit == null ? null : this.menuItems;
-  }
-
   handleEditEntity(selectedUserEntityChangeLimit: UserEntityChangeLimit): void {
     this.existingUserEntityChangeLimit = selectedUserEntityChangeLimit;
     this.proposeChangeEntityWithEntity = this.proposeMap.get(selectedUserEntityChangeLimit.idUserEntityChangeLimit);
@@ -194,30 +190,6 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
     this.user.userEntityChangeLimitList.forEach((userEntityChangeLimit: UserEntityChangeLimit) =>
       userEntityChangeLimit[this.UPPER_CASE_ENTITY_NAME] = userEntityChangeLimit.entityName.toUpperCase());
     this.createTranslatedValueStoreAndFilterField(this.user.userEntityChangeLimitList);
-  }
-
-  private createProposeLimitForView(): void {
-    if (this.user.userChangeLimitProposeList) {
-      for (const proposeUserTask of this.user.userChangeLimitProposeList) {
-        const entityField = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'entity');
-        let existingLimit = this.user.userEntityChangeLimitList.find(uec => uec.entityName === entityField.valueDesarialized) ;
-        this.deleteMenu.disabled = !existingLimit;
-        if (!existingLimit) {
-          existingLimit = new UserEntityChangeLimit();
-          // create and add user entity change Limit
-          const uecl: UserEntityChangeLimit = new UserEntityChangeLimit();
-          uecl.idUser = this.user.idUser;
-          existingLimit.idUser = uecl.idUser;
-          uecl.entityName = entityField.valueDesarialized;
-          existingLimit.entityName = uecl.entityName;
-          uecl.dayLimit = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'dayLimit').valueDesarialized;
-          uecl.untilDate = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'untilDate').valueDesarialized;
-          this.user.userEntityChangeLimitList.push(uecl);
-        }
-        this.proposeMap.set(existingLimit.idUserEntityChangeLimit,
-          AuditHelper.convertToProposeChangeEntityWithEntity(existingLimit, proposeUserTask));
-      }
-    }
   }
 
   handleCloseDialog(processedActionData: ProcessedActionData) {
@@ -248,6 +220,34 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
 
   public getHelpContextId(): HelpIds {
     return HelpIds.HELP_USER;
+  }
+
+  protected getMenuItemsOnUserEntityChangeLimit(userEntityChangeLimit: UserEntityChangeLimit): MenuItem[] {
+    return this.selectedUserEntityChangeLimit == null ? null : this.menuItems;
+  }
+
+  private createProposeLimitForView(): void {
+    if (this.user.userChangeLimitProposeList) {
+      for (const proposeUserTask of this.user.userChangeLimitProposeList) {
+        const entityField = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'entity');
+        let existingLimit = this.user.userEntityChangeLimitList.find(uec => uec.entityName === entityField.valueDesarialized);
+        this.deleteMenu.disabled = !existingLimit;
+        if (!existingLimit) {
+          existingLimit = new UserEntityChangeLimit();
+          // create and add user entity change Limit
+          const uecl: UserEntityChangeLimit = new UserEntityChangeLimit();
+          uecl.idUser = this.user.idUser;
+          existingLimit.idUser = uecl.idUser;
+          uecl.entityName = entityField.valueDesarialized;
+          existingLimit.entityName = uecl.entityName;
+          uecl.dayLimit = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'dayLimit').valueDesarialized;
+          uecl.untilDate = proposeUserTask.proposeChangeFieldList.find(p => p.field === 'untilDate').valueDesarialized;
+          this.user.userEntityChangeLimitList.push(uecl);
+        }
+        this.proposeMap.set(existingLimit.idUserEntityChangeLimit,
+          AuditHelper.convertToProposeChangeEntityWithEntity(existingLimit, proposeUserTask));
+      }
+    }
   }
 }
 

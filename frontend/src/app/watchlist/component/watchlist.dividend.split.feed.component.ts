@@ -107,6 +107,10 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     });
   }
 
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_WATCHLIST_DIVIDEND_SPLIT_FEED;
+  }
+
   protected updateAllPrice() {
     this.loading = true;
     this.getWatchlistWithoutUpdate();
@@ -115,10 +119,6 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
   private loadData(): void {
     SecurityCurrencyHelper.loadAllConnectors(this.securityService, this.currencypairService, this.feedConnectorsKV,
       this.getWatchlistWithoutUpdate.bind(this));
-  }
-
-  public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_WATCHLIST_DIVIDEND_SPLIT_FEED;
   }
 
 }

@@ -1,5 +1,5 @@
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -8,8 +8,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {IFeedConnector} from '../../securitycurrency/component/ifeed.connector';
-import {FilterService, MenuItem} from 'primeng/api';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {FilterService} from 'primeng/api';
 
 /**
  * Shows a table with the missing instruments that do not have a complete price history.
@@ -18,7 +17,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
   selector: 'tenant-performance-eod-missing-table',
   template: `
     <p-table [columns]="fields" [value]="securities" selectionMode="single"
-             [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+             [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
+             (onRowUnselect)="onRowUnselect($event)"
              dataKey="idSecuritycurrency" [responsive]="true" (sortFunction)="customSort($event)" [customSort]="true"
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
@@ -58,12 +58,11 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   private feedConnectorsKV: { [id: string]: string };
 
   constructor(private securityService: SecurityService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.String, 'isin');
     this.addColumnFeqH(DataType.String, 'currency');
@@ -106,7 +105,6 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
       this.selectedSecurity = null;
     }
   }
-
 
 
 }

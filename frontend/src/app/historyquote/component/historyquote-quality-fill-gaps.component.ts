@@ -56,14 +56,6 @@ export class HistoryquoteQualityFillGapsComponent extends SimpleEditBase impleme
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
-    const hasWeekendDays: boolean = this.historyquoteQuality.quoteSaturday !== null && this.historyquoteQuality.quoteSaturday > 0
-      || this.historyquoteQuality.quoteSunday !== null && this.historyquoteQuality.quoteSunday > 0;
-    this.configObject[this.moveWeekendToFriday].formControl.setValue(hasWeekendDays);
-    !hasWeekendDays && this.configObject[this.moveWeekendToFriday].formControl.disable();
-  }
-
   submit(value: { [name: string]: any }): void {
     this.configObject.execute.disabled = true;
     this.securityService.fillHistoryquoteGapsLinear(this.securitycurrency.idSecuritycurrency,
@@ -73,5 +65,13 @@ export class HistoryquoteQualityFillGapsComponent extends SimpleEditBase impleme
           'HISTORYQUOTE_FILL_RESULT', hlfs);
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
       }, () => this.configObject.execute.disabled = false);
+  }
+
+  protected initialize(): void {
+    this.form.setDefaultValuesAndEnableSubmit();
+    const hasWeekendDays: boolean = this.historyquoteQuality.quoteSaturday !== null && this.historyquoteQuality.quoteSaturday > 0
+      || this.historyquoteQuality.quoteSunday !== null && this.historyquoteQuality.quoteSunday > 0;
+    this.configObject[this.moveWeekendToFriday].formControl.setValue(hasWeekendDays);
+    !hasWeekendDays && this.configObject[this.moveWeekendToFriday].formControl.disable();
   }
 }

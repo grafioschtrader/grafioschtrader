@@ -166,8 +166,8 @@ export class BusinessHelper {
   public static hasSecurityDenomination(assetclass: Assetclass, hasMarkedPrice: boolean): boolean {
     if (hasMarkedPrice) {
       return !!assetclass && ((assetclass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME]
-        || assetclass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND]
-        || assetclass.categoryType === AssetclassType[AssetclassType.MONEY_MARKET])
+          || assetclass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND]
+          || assetclass.categoryType === AssetclassType[AssetclassType.MONEY_MARKET])
         && assetclass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT]);
     } else {
       return true;

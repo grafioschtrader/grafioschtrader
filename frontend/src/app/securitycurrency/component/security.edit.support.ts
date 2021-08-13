@@ -228,16 +228,6 @@ export class SecurityEditSupport {
     );
   }
 
-  private getIsinTickerShortFields(securityDerived: SecurityDerived,
-                                   configObject: { [name: string]: FieldConfig }): FieldConfig[] {
-    const fieldConfigs: FieldConfig[] = [configObject.shortSecurity];
-    if (securityDerived === SecurityDerived.Security) {
-      fieldConfigs.push(configObject.tickerSymbol);
-      fieldConfigs.push(configObject.isin);
-    }
-    return fieldConfigs;
-  }
-
   prepareForSave(formBase: FormBase, proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity, existingSecurity: Security,
                  dynamicForm: DynamicFormComponent, value: { [name: string]: any }): Security {
     const security: Security = new Security();
@@ -250,6 +240,22 @@ export class SecurityEditSupport {
 
     security.idTenantPrivate = value.isTenantPrivate ? this.gps.getIdTenant() : null;
     return security;
+  }
+
+  destroy(): void {
+    this.assetClassSubscribe && this.assetClassSubscribe.unsubscribe();
+    this.activeFromDateSubscribe && this.activeFromDateSubscribe.unsubscribe();
+    this.securitySubscribe && this.securitySubscribe.unsubscribe();
+  }
+
+  private getIsinTickerShortFields(securityDerived: SecurityDerived,
+                                   configObject: { [name: string]: FieldConfig }): FieldConfig[] {
+    const fieldConfigs: FieldConfig[] = [configObject.shortSecurity];
+    if (securityDerived === SecurityDerived.Security) {
+      fieldConfigs.push(configObject.tickerSymbol);
+      fieldConfigs.push(configObject.isin);
+    }
+    return fieldConfigs;
   }
 
   /**
@@ -269,13 +275,6 @@ export class SecurityEditSupport {
                              assetClass: Assetclass): void {
     FormHelper.hideVisibleFieldConfigs(assetClass.specialInvestmentInstrument
       === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD], this.getIsinTickerShortFields(securityDerived, configObject));
-  }
-
-
-  destroy(): void {
-    this.assetClassSubscribe && this.assetClassSubscribe.unsubscribe();
-    this.activeFromDateSubscribe && this.activeFromDateSubscribe.unsubscribe();
-    this.securitySubscribe && this.securitySubscribe.unsubscribe();
   }
 }
 

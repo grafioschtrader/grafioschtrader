@@ -1,5 +1,4 @@
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
-import {ChangeDetectorRef} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -18,12 +17,11 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
 
   securitycurrencyList: (Security | Currencypair)[] = [];
 
-  constructor(changeDetectionStrategy: ChangeDetectorRef,
-              filterService: FilterService,
+  constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.String, 'isin', true, false);

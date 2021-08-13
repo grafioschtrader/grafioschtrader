@@ -4,9 +4,6 @@ import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
 import {HelpIds} from '../../shared/help/help.ids';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {InputType} from '../../dynamic-form/models/input.type';
-import {Validators} from '@angular/forms';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
 
 @Component({
@@ -33,9 +30,8 @@ export class TransactionCashaccountConnectDebitCreditComponent extends SimpleEdi
   ngOnInit(): void {
     this.config = [
       FormDefinitionHelper.getTransactionTime()
-  ];
+    ];
   }
-
 
 
   initialize(): void {

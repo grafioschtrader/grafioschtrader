@@ -16,7 +16,6 @@ import {Cashaccount} from '../../entities/cashaccount';
 import {Transaction} from '../../entities/transaction';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {Currencypair} from '../../entities/currencypair';
 import {Helper} from '../../helper/helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
@@ -161,30 +160,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       this.debitCashaccount.currency, this.currencypair) + ((values.transactionCost) ? values.transactionCost : 0);
   }
 
-  private adjustNumberInputFractions(): void {
-    const fromCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ?
-      this.currencypair.fromCurrency : this.creditCashaccount.currency);
-    const toCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency :
-      this.debitCashaccount.currency);
-    DynamicFieldHelper.adjustNumberFraction(this.configObject.creditAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
-      toCurrencyFraction);
-    DynamicFieldHelper.adjustNumberFraction(this.configObject.transactionCost, AppSettings.FID_SMALL_INTEGER_LIMIT,
-      fromCurrencyFraction);
-    DynamicFieldHelper.adjustNumberFraction(this.configObject.debitAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
-      fromCurrencyFraction);
-  }
-
-  private getCurrencypair() {
-    this.currencypairService.findOrCreateCurrencypairByFromAndToCurrency(this.currencypair.fromCurrency,
-      this.currencypair.toCurrency).subscribe(currencypair => {
-      this.currencypair = currencypair;
-      if (this.hasChangedOnExistingTransaction()) {
-        BusinessHelper.getAndSetQuotationCurrencypair(this.currencypairService, this.currencypair,
-          +this.configObject.transactionTime.formControl.value, this.configObject.currencyExRate.formControl);
-      }
-    });
-  }
-
   valueChangedOnTransactionTime() {
     this.transactionTimeChangeSub = this.configObject.transactionTime.formControl.valueChanges.subscribe(() =>
       this.disableEnableExchangeRateButtons());
@@ -224,6 +199,22 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 
+  submit(value: { [name: string]: any }) {
+    let cashAccountTransfer: CashAccountTransfer = this.createOrCopyExistingTransaction();
+    cashAccountTransfer = this.viewToBusinessModel(cashAccountTransfer);
+    this.saveTransaction(cashAccountTransfer);
+  }
+
+  saveTransaction(cashAccountTransfer: CashAccountTransfer) {
+    this.transactionService.updateCreateDoubleTransaction(cashAccountTransfer).subscribe((newCashAccountTransfer: CashAccountTransfer) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
+          {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
+        this.closeDialog.emit(new ProcessedActionData(cashAccountTransfer.depositTransaction.idTransaction ? ProcessedAction.UPDATED
+          : ProcessedAction.CREATED, [newCashAccountTransfer.withdrawalTransaction, newCashAccountTransfer.depositTransaction]));
+      }, () => this.configObject.submit.disabled = false
+    );
+  }
+
   protected initialize(): void {
     this.valueChangedOnTransactionTime();
     this.portfolioService.getPortfoliosForTenantOrderByName()
@@ -239,6 +230,30 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       });
   }
 
+  private adjustNumberInputFractions(): void {
+    const fromCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ?
+      this.currencypair.fromCurrency : this.creditCashaccount.currency);
+    const toCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency :
+      this.debitCashaccount.currency);
+    DynamicFieldHelper.adjustNumberFraction(this.configObject.creditAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
+      toCurrencyFraction);
+    DynamicFieldHelper.adjustNumberFraction(this.configObject.transactionCost, AppSettings.FID_SMALL_INTEGER_LIMIT,
+      fromCurrencyFraction);
+    DynamicFieldHelper.adjustNumberFraction(this.configObject.debitAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
+      fromCurrencyFraction);
+  }
+
+  private getCurrencypair() {
+    this.currencypairService.findOrCreateCurrencypairByFromAndToCurrency(this.currencypair.fromCurrency,
+      this.currencypair.toCurrency).subscribe(currencypair => {
+      this.currencypair = currencypair;
+      if (this.hasChangedOnExistingTransaction()) {
+        BusinessHelper.getAndSetQuotationCurrencypair(this.currencypairService, this.currencypair,
+          +this.configObject.transactionTime.formControl.value, this.configObject.currencyExRate.formControl);
+      }
+    });
+  }
+
   private setupCashaccountSelect(debitIdCashaccount: number, creditIdCashaccount: number) {
     this.configObject.idDebitCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
     this.filterCreditHtmlOptions(this.configObject.idDebitCashaccount.valueKeyHtmlOptions,
@@ -252,7 +267,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     }
     this.valueChangedOnCalcFields();
   }
-
 
   private setupModifyExistingTransaction(transaction1: Transaction) {
     this.transactionService.getTransactionByIdTransaction(transaction1.connectedIdTransaction).subscribe(data => {
@@ -278,7 +292,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       this.transactions[this.DepIndex].cashaccount.idSecuritycashAccount);
     this.setCalculatedDebitAmount();
   }
-
 
   /**
    * Enable or disable input for currency exchange rate.
@@ -355,22 +368,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       this.form.cleanMaskAndTransferValuesToBusinessObject(newTransactions[i]);
     }
     return new CashAccountTransfer(newTransactions[0], newTransactions[1]);
-  }
-
-  submit(value: { [name: string]: any }) {
-    let cashAccountTransfer: CashAccountTransfer = this.createOrCopyExistingTransaction();
-    cashAccountTransfer = this.viewToBusinessModel(cashAccountTransfer);
-    this.saveTransaction(cashAccountTransfer);
-  }
-
-  saveTransaction(cashAccountTransfer: CashAccountTransfer) {
-    this.transactionService.updateCreateDoubleTransaction(cashAccountTransfer).subscribe((newCashAccountTransfer: CashAccountTransfer) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
-          {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
-        this.closeDialog.emit(new ProcessedActionData(cashAccountTransfer.depositTransaction.idTransaction ? ProcessedAction.UPDATED
-          : ProcessedAction.CREATED, [newCashAccountTransfer.withdrawalTransaction, newCashAccountTransfer.depositTransaction]));
-      }, () => this.configObject.submit.disabled = false
-    );
   }
 
   private viewToBusinessModel(cashAccountTransfer: CashAccountTransfer): CashAccountTransfer {

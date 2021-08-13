@@ -1,5 +1,3 @@
-import {InputNumber} from 'primeng/inputnumber';
-
 export enum InputType {
   Button,
   Pbutton,

@@ -1,7 +1,7 @@
-<p-table [columns]="fields" [value]="_dataList" selectionMode="single" [(selection)]="selectedRow" responsive="true"
-         [dataKey]="dataSortKey" [paginator]="true" [rows]="10" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+<p-table [(selection)]="selectedRow" [columns]="fields" [dataKey]="dataSortKey" [multiSortMeta]="multiSortMeta" [paginator]="true"
+         [rows]="10" [value]="_dataList" responsive="true" selectionMode="single" sortMode="multiple"
          styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-  <ng-template pTemplate="header" let-fields>
+  <ng-template let-fields pTemplate="header">
     <tr>
       <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
         {{field.headerTranslated}}
@@ -9,12 +9,12 @@
       </th>
     </tr>
   </ng-template>
-  <ng-template pTemplate="body" let-el let-columns="fields">
+  <ng-template let-columns="fields" let-el pTemplate="body">
     <tr [pSelectableRow]="el">
       <ng-container *ngFor="let field of fields">
-        <td *ngIf="field.visible" [style.width.px]="field.width"
-            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+        <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+            [style.width.px]="field.width">
           <ng-container [ngSwitch]="field.templateName">
             <ng-container *ngSwitchCase="'icon'">
               <svg-icon [name]="getValueByPath(el, field)"
@@ -28,18 +28,18 @@
       </ng-container>
     </tr>
   </ng-template>
-  <ng-template pTemplate="paginatorleft" let-state>
+  <ng-template let-state pTemplate="paginatorleft">
     {{_dataList.length}} {{maxRowMessageKey | translate}} {{maxRows}}
   </ng-template>
 </p-table>
 
 
-<button pButton [disabled]="!selectedRow" (click)="onClickDelete()" type="button"
-        class="btn btn-primary mr-1"
-        label="{{ 'DELETE' | translate }}"></button>
-<button pButton [disabled]="!selectedRow" (click)="onClickEdit()" type="button"
-        class="btn btn-primary"
-        label="{{ 'EDIT' | translate }}"></button>
+<button (click)="onClickDelete()" [disabled]="!selectedRow" class="btn btn-primary mr-1" label="{{ 'DELETE' | translate }}"
+        pButton
+        type="button"></button>
+<button (click)="onClickEdit()" [disabled]="!selectedRow" class="btn btn-primary" label="{{ 'EDIT' | translate }}"
+        pButton
+        type="button"></button>
 
 
 

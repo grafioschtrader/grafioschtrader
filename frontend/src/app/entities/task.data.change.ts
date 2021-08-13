@@ -7,7 +7,7 @@ export class TaskDataChange implements BaseID {
   entity: string = null;
   idEntity: number = null;
   creationTime: number;
-  earliestStartTime: Date|string = null;
+  earliestStartTime: Date | string = null;
   oldValueString: string;
   oldValueNumber: number;
   progressStateType: number;
@@ -16,6 +16,7 @@ export class TaskDataChange implements BaseID {
   failedMessageCode: string;
   failedStackTrace: string;
   taskAsId: number;
+
   getId(): number {
     return this.idTaskDataChange;
   }
@@ -58,7 +59,7 @@ export enum TaskType {
 }
 
 export class TaskDataChangeFormConstraints {
-  taskTypeConfig: {[key: string]: string[]};
+  taskTypeConfig: { [key: string]: string[] };
   maxUserCreateTask: number;
   maxDaysInFuture: number;
 }
