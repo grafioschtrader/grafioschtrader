@@ -5,11 +5,8 @@ import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {AddInstrumentTable} from './add-instrument-table.component';
 import {SecuritycurrencySearchBase} from '../../securitycurrency/component/securitycurrency.search.base';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {HelpIds} from '../../shared/help/help.ids';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-table.component';
 

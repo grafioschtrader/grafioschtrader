@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -94,13 +94,12 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(AppSettings.STOCKEXCHANGE, stockexchangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      dialogService, filterService, translateService, gps, usersettingsService);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {
       width: 180,
@@ -139,6 +138,13 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
     this.activePanelService.destroyPanel(this);
   }
 
+  getCopySourceStockexchanges(targetIdStockexchange: number): ValueKeyHtmlSelectOptions[] {
+    const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
+    return this.entityList.filter(stockexhange => !stockexhange.noMarketValue
+      && targetIdStockexchange !== stockexhange.idStockexchange)
+      .map(stockexchange => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
+  }
+
   protected readData(): void {
     combineLatest([this.stockexchangeService.getAllStockexchanges(true),
       this.stockexchangeService.stockexchangesHasSecurity(), this.gps.getCountries()]).subscribe(data => {
@@ -156,12 +162,5 @@ export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexcha
   protected prepareCallParm(entity: Stockexchange) {
     this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
     this.callParam.stockexchange = entity;
-  }
-
-  getCopySourceStockexchanges(targetIdStockexchange: number): ValueKeyHtmlSelectOptions[] {
-    const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
-    return this.entityList.filter(stockexhange => !stockexhange.noMarketValue
-      && targetIdStockexchange !== stockexhange.idStockexchange)
-      .map(stockexchange => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
   }
 }

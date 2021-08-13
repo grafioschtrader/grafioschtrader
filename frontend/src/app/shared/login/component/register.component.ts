@@ -74,26 +74,6 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
       }, err => this.applicationInfo = null);
   }
 
-  private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
-    super.init(fdias, false);
-    this.formConfig = {
-      labelcolumns: 3, helpLinkFN: this.helpLink.bind(this), nonModal: true,
-      language: this.translateService.currentLang
-    };
-
-    this.config = [
-      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('nickname', fdias),
-      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('email', fdias),
-      {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
-      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('localeStr', fdias),
-      DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) =>
-        this.router.navigate([`/${AppSettings.LOGIN_KEY}`])),
-      DynamicFieldHelper.createSubmitButton('REGISTRATION')
-    ];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.prepareData();
-  }
-
   submit(value: { [name: string]: any }): void {
     const user = new User();
     this.form.cleanMaskAndTransferValuesToBusinessObject(user);
@@ -130,6 +110,30 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.queryParams && this.queryParams.unsubscribe();
   }
 
+  helpLink() {
+    BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO_REGISTER);
+  }
+
+  private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
+    super.init(fdias, false);
+    this.formConfig = {
+      labelcolumns: 3, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      language: this.translateService.currentLang
+    };
+
+    this.config = [
+      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('nickname', fdias),
+      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('email', fdias),
+      {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
+      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('localeStr', fdias),
+      DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) =>
+        this.router.navigate([`/${AppSettings.LOGIN_KEY}`])),
+      DynamicFieldHelper.createSubmitButton('REGISTRATION')
+    ];
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.prepareData();
+  }
+
   private prepareData() {
     this.queryParams = this.activatedRoute.params.subscribe(params => {
       this.errorLastRegistration = params['failure'];
@@ -140,9 +144,5 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
         this.configObject.nickname.elementRef.nativeElement.focus();
       }
     );
-  }
-
-  helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO_REGISTER);
   }
 }

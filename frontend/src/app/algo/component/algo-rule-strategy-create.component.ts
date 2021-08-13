@@ -53,14 +53,13 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
 
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
-
-  private assetsclasses: Assetclass[] = [];
-  protected watchlistChangedSub: Subscription;
-  protected assetclassChangeSubList: Subscription[] = new Array(AlgoRuleStrategyCreateComponent.maxAssetclassRows);
   assetclassCounter = 0;
   algoTitleKey: string;
   valueKeyHtmlOptionsAssetclasses: ValueKeyHtmlSelectOptions[];
   algoTopCreate: AlgoTopCreate;
+  protected watchlistChangedSub: Subscription;
+  protected assetclassChangeSubList: Subscription[] = new Array(AlgoRuleStrategyCreateComponent.maxAssetclassRows);
+  private assetsclasses: Assetclass[] = [];
 
   constructor(public algoTopService: AlgoTopService,
               public assetclassService: AssetclassService,
@@ -156,6 +155,26 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
     });
   }
 
+  onHide(event): void {
+    this.watchlistChangedSub && this.watchlistChangedSub.unsubscribe();
+    this.assetclassChangeSubList.forEach(assetclassChangeSub => assetclassChangeSub && assetclassChangeSub.unsubscribe());
+    super.onHide(event);
+  }
+
+  submit(value: { [name: string]: any }): void {
+    this.form.cleanMaskAndTransferValuesToBusinessObject(this.algoTopCreate);
+    this.algoTopCreate.assetclassPercentageList = [];
+    for (let i = 1; i <= this.assetclassCounter; i++) {
+      this.algoTopCreate.assetclassPercentageList.push(new AssetclassPercentage(
+        parseInt(value[AlgoRuleStrategyCreateComponent.ASSETCLASS_FIELD + i], 10),
+        parseInt(value[AlgoRuleStrategyCreateComponent.PERCENTAGE_FIELD + i], 10)));
+    }
+    this.algoTopService.create(this.algoTopCreate).subscribe(returnEntity => {
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: this.algoTitleKey});
+      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
+    }, () => this.configObject.submit.disabled = false);
+  }
+
   private getUsedAssetclasses(): string[] {
     const usedAssetclassIds: string[] = new Array(this.assetclassCounter);
     for (let i = 1; i <= this.assetclassCounter; i++) {
@@ -178,28 +197,8 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
 
   private disableEnableAssetclasses(usedAssetclassIds: string[]) {
     this.valueKeyHtmlOptionsAssetclasses.forEach(vkh => {
-      vkh.disabled = !!usedAssetclassIds.find(id => id === ( '' + vkh.key));
+      vkh.disabled = !!usedAssetclassIds.find(id => id === ('' + vkh.key));
     });
-  }
-
-  onHide(event): void {
-    this.watchlistChangedSub && this.watchlistChangedSub.unsubscribe();
-    this.assetclassChangeSubList.forEach(assetclassChangeSub => assetclassChangeSub && assetclassChangeSub.unsubscribe());
-    super.onHide(event);
-  }
-
-  submit(value: { [name: string]: any }): void {
-    this.form.cleanMaskAndTransferValuesToBusinessObject(this.algoTopCreate);
-    this.algoTopCreate.assetclassPercentageList = [];
-    for (let i = 1; i <= this.assetclassCounter; i++) {
-      this.algoTopCreate.assetclassPercentageList.push(new AssetclassPercentage(
-        parseInt(value[AlgoRuleStrategyCreateComponent.ASSETCLASS_FIELD + i], 10),
-        parseInt(value[AlgoRuleStrategyCreateComponent.PERCENTAGE_FIELD + i], 10)));
-    }
-    this.algoTopService.create(this.algoTopCreate).subscribe(returnEntity => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: this.algoTitleKey});
-      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
-    }, () => this.configObject.submit.disabled = false);
   }
 
 

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {SecurityaccountTable} from './securityaccountTable';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
@@ -35,19 +35,14 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
               activatedRoute: ActivatedRoute,
               router: Router,
               chartDataService: ChartDataService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, changeDetectionStrategy, filterService,
-      translateService, gps, usersettingsService);
-
-
+      activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
     this.createColumns();
   }
-
 
   ngOnInit() {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {

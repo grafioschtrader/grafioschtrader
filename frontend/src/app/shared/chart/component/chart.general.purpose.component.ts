@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ActivatedRoute} from '@angular/router';
@@ -42,8 +42,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
               private chartDataService: ChartDataService,
               private viewSizeChangedService: ViewSizeChangedService,
               private activePanelService: ActivePanelService,
-              private activatedRoute: ActivatedRoute,
-              private changeDetectionStrategy: ChangeDetectorRef) {
+              private activatedRoute: ActivatedRoute) {
   }
 
   ngOnInit(): void {
@@ -68,27 +67,14 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     });
   }
 
-
-  private plotOrRePlot(): void {
-    // Plotly.Plots.resize(this.el.nativeElement));
-    this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
-    this.plotlyService.getPlotly().newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
-      this.chartData.options);
-    if (this.chartData.callBackFN) {
-      PlotlyHelper.registerPlotlyClick(this.chartElement.nativeElement, this.chartData.callBackFN);
-    }
-  }
-
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
-
 
   hideContextMenu(): void {
   }
 
   callMeDeactivate(): void {
- //   this.changeDetectionStrategy.markForCheck();
   }
 
   onComponentClick(event): void {
@@ -100,11 +86,20 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     return null;
   }
 
-
   ngOnDestroy(): void {
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
     this.subscriptionChartDataChanged && this.subscriptionChartDataChanged.unsubscribe();
     this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
     this.activePanelService.destroyPanel(this);
+  }
+
+  private plotOrRePlot(): void {
+    // Plotly.Plots.resize(this.el.nativeElement));
+    this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
+    this.plotlyService.getPlotly().newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
+      this.chartData.options);
+    if (this.chartData.callBackFN) {
+      PlotlyHelper.registerPlotlyClick(this.chartElement.nativeElement, this.chartData.callBackFN);
+    }
   }
 }

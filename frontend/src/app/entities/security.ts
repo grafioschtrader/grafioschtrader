@@ -43,8 +43,8 @@ export class Security extends Securitycurrency implements BaseID {
 
   public static canHaveSplitConnector(assetClass: Assetclass, hasMarketValue: boolean): boolean {
     return hasMarketValue && assetClass ? !((assetClass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND]
-      || assetClass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME])
-      && assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT])
+          || assetClass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME])
+        && assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT])
       && (assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF]
         || assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.MUTUAL_FUND]
         || assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD]

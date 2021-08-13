@@ -5,7 +5,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityaccountImportTransactionTableComponent} from './securityaccount-import-transaction-table.component';
 
@@ -19,14 +19,13 @@ import {SecurityaccountImportTransactionTableComponent} from './securityaccount-
 })
 export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnInit {
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;
+  private readonly IMPORT_VALUE = 'IMPORT_VALUE';
+  private readonly IMPORT_ASSIGN = 'IMPORT_ASSIGN';
+  private readonly IMPORT_STATE = 'IMPORT_STATE';
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
   }
-
-  private readonly IMPORT_VALUE = 'IMPORT_VALUE';
-  private readonly IMPORT_ASSIGN = 'IMPORT_ASSIGN';
-  private readonly IMPORT_STATE = 'IMPORT_STATE';
 
   ngOnInit(): void {
     this.addFieldProperty(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE',

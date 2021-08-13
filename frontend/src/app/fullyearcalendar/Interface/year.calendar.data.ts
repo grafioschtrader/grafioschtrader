@@ -1,4 +1,4 @@
-import { RangeSelectDays } from './range.select.days';
+import {RangeSelectDays} from './range.select.days';
 import {DisabledDate} from './disabled.date';
 import {DayOfWeek} from '../model/day.of.week';
 

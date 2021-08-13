@@ -5,7 +5,6 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {ImportTransactionPos} from '../../entities/import.transaction.pos';
 import {ImportTransactionPosService} from '../service/import.transaction.pos.service';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';

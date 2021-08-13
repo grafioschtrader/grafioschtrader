@@ -1,8 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {InputType} from '../../dynamic-form/models/input.type';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -11,11 +9,9 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {Validators} from '@angular/forms';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {Auditable} from '../../entities/auditable';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
-import {AppSettings} from '../../shared/app.settings';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
@@ -64,7 +60,7 @@ export class ImportTransactionEditPlatformComponent extends SimpleEntityEditBase
   protected initialize(): void {
     this.form.setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
-      <Auditable> this.callParam.thisObject, this.form, this.configObject, this.proposeChangeEntityWithEntity);
+      <Auditable>this.callParam.thisObject, this.form, this.configObject, this.proposeChangeEntityWithEntity);
     setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
   }
 

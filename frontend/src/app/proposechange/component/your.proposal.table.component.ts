@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component} from '@angular/core';
+import {Component} from '@angular/core';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
@@ -60,16 +60,14 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(AppSettings.PROPOSE_CHANGE_ENTITY, proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
-      [CrudMenuOptions.Allow_Delete]);
+      dialogService, filterService, translateService, gps, usersettingsService, [CrudMenuOptions.Allow_Delete]);
 
-    this.addColumnFeqH(DataType.String, 'entity',  true, false,
+    this.addColumnFeqH(DataType.String, 'entity', true, false,
       {translateValues: TranslateValue.UPPER_CASE});
     this.addColumnFeqH(DataType.String, 'noteRequest', true, false);
     this.addColumnFeqH(DataType.String, 'dataChangeState', true, false,

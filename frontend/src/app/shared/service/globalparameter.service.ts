@@ -13,8 +13,8 @@ import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit
 import * as moment from 'moment';
 import {CurrencyMaskConfig, CurrencyMaskInputMode} from 'ngx-currency';
 import {ServiceEntityUpdate} from '../edit/service.entity.update';
-import NumberFormat = Intl.NumberFormat;
 import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
+import NumberFormat = Intl.NumberFormat;
 
 
 @Injectable()
@@ -145,12 +145,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return this.dateFormatCalendar || (this.dateFormatCalendar = this.getDateFormatYearCalendar('Y'));
   }
 
-  private getDateFormatYearCalendar(yearReplace: string): string {
-    moment.locale(this.getLocale());
-    const formatYear = moment.localeData().longDateFormat('L');
-    return formatYear.replace(/YYYY/g, yearReplace);
-  }
-
   public getCalendarTwoNumberDateFormat(): string {
     if (!this.dateFormatCalendarTowNumber) {
       moment.locale(this.getLocale());
@@ -170,7 +164,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     }
     return this.entityKeyMapping[entityName];
   }
-
 
   public getCurrencyPrecision(currency: string): number {
     if (!this.currencyPrecisionMap) {
@@ -243,7 +236,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       {headers: this.prepareHeaders(), params: httpParams}).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   public getUserFormDefinitions(): Observable<FieldDescriptorInputAndShow[]> {
     return <Observable<FieldDescriptorInputAndShow[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/userformdefinition`,
@@ -264,6 +256,18 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return this.getGlobalparameterNumber(GlobalSessionNames.START_FEED_DATE, 'startfeeddate');
   }
 
+  update(globalparameters: Globalparameters): Observable<Globalparameters> {
+    return <Observable<Globalparameters>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/`, globalparameters,
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  private getDateFormatYearCalendar(yearReplace: string): string {
+    moment.locale(this.getLocale());
+    const formatYear = moment.localeData().longDateFormat('L');
+    return formatYear.replace(/YYYY/g, yearReplace);
+  }
+
   private getGlobalparameterNumber(globalSessionNames: GlobalSessionNames, uriPart: string): Observable<number> {
     if (sessionStorage.getItem(globalSessionNames)) {
       return of(+sessionStorage.getItem(globalSessionNames));
@@ -273,11 +277,5 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
         this.getHeaders()).pipe(tap(value => sessionStorage.setItem(globalSessionNames, '' + value)),
         catchError(this.handleError.bind(this)));
     }
-  }
-
-  update(globalparameters: Globalparameters): Observable<Globalparameters> {
-    return <Observable<Globalparameters>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
-      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/`, globalparameters,
-      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 }

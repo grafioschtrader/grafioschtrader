@@ -1,5 +1,4 @@
 import {DataType} from '../../dynamic-form/models/data.type';
-import {Password} from 'primeng/password';
 
 export enum DynamicFormPropertyHelps {
   PERCENTAGE,

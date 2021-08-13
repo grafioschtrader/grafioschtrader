@@ -66,37 +66,6 @@ export class TranslateHelper {
     });
   }
 
-  private static translateMenuItem(menuItem: MenuItem, targetProperty: string, translateService: TranslateService, translateParam): void {
-    if (menuItem[targetProperty] && menuItem[targetProperty].toUpperCase() === menuItem[targetProperty]) {
-      // Translate only once
-      const dialogMenuItem = menuItem[targetProperty].endsWith(AppSettings.DIALOG_MENU_SUFFIX);
-      if (dialogMenuItem) {
-        menuItem[targetProperty] = TranslateHelper.cutOffDialogDots(menuItem[targetProperty]);
-      }
-      if (menuItem[targetProperty].indexOf('|') >= 0) {
-        const labelWord: string[] = menuItem[targetProperty].split('|');
-
-        if (translateParam) {
-          translateService.get(labelWord[1]).subscribe(param =>
-            translateService.get(labelWord[0], {i18nRecord: param}).subscribe(message =>
-              menuItem[targetProperty] = message + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''))
-          );
-        } else {
-          translateService.get(labelWord[0], {i18nRecord: labelWord[1]}).subscribe(
-            message => menuItem[targetProperty] = message);
-        }
-      } else {
-        translateService.get(menuItem[targetProperty]).subscribe(translated => menuItem[targetProperty] =
-          translated + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''));
-      }
-    }
-  }
-
-  private static cutOffDialogDots(label: string): string {
-    return label.endsWith(AppSettings.DIALOG_MENU_SUFFIX) ? label.slice(0, -AppSettings.DIALOG_MENU_SUFFIX.length) : label;
-  }
-
-
   /**
    * Create a column which contains a translated value. A $ is added to the existing field name, which will bo shown.
    *
@@ -132,6 +101,36 @@ export class TranslateHelper {
       });
       columnConfigs.forEach(columnConfig => columnConfig.fieldTranslated = columnConfig.field + '$');
     }
+  }
+
+  private static translateMenuItem(menuItem: MenuItem, targetProperty: string, translateService: TranslateService, translateParam): void {
+    if (menuItem[targetProperty] && menuItem[targetProperty].toUpperCase() === menuItem[targetProperty]) {
+      // Translate only once
+      const dialogMenuItem = menuItem[targetProperty].endsWith(AppSettings.DIALOG_MENU_SUFFIX);
+      if (dialogMenuItem) {
+        menuItem[targetProperty] = TranslateHelper.cutOffDialogDots(menuItem[targetProperty]);
+      }
+      if (menuItem[targetProperty].indexOf('|') >= 0) {
+        const labelWord: string[] = menuItem[targetProperty].split('|');
+
+        if (translateParam) {
+          translateService.get(labelWord[1]).subscribe(param =>
+            translateService.get(labelWord[0], {i18nRecord: param}).subscribe(message =>
+              menuItem[targetProperty] = message + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''))
+          );
+        } else {
+          translateService.get(labelWord[0], {i18nRecord: labelWord[1]}).subscribe(
+            message => menuItem[targetProperty] = message);
+        }
+      } else {
+        translateService.get(menuItem[targetProperty]).subscribe(translated => menuItem[targetProperty] =
+          translated + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''));
+      }
+    }
+  }
+
+  private static cutOffDialogDots(label: string): string {
+    return label.endsWith(AppSettings.DIALOG_MENU_SUFFIX) ? label.slice(0, -AppSettings.DIALOG_MENU_SUFFIX.length) : label;
   }
 
 }

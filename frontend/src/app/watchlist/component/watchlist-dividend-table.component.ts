@@ -1,5 +1,5 @@
 import {SvgIconRegistryService} from 'angular-svg-icon';
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -21,13 +21,12 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
 
 
   constructor(private dividendService: DividendService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               iconReg: SvgIconRegistryService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps, iconReg, 'idDividend',
+    super(filterService, usersettingsService, translateService, gps, iconReg, 'idDividend',
       WatchlistDividendTableComponent.EX_DATE, AppSettings.DIVIDEND.toUpperCase());
     this.addColumnFeqH(DataType.DateNumeric, WatchlistDividendTableComponent.EX_DATE, true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,

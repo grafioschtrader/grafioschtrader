@@ -3,7 +3,7 @@ import {ActivatedRoute, Params, Router} from '@angular/router';
 import {AppSettings} from '../../shared/app.settings';
 import {Securityaccount} from '../../entities/securityaccount';
 import {MenuItem} from 'primeng/api';
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
@@ -26,12 +26,11 @@ export class SecurityaccountTabMenuComponent implements OnInit, OnDestroy {
   @ViewChild('tabMenu') tabMenu: any;
   activeTab: MenuItem;
   items: MenuItem[];
+  readonly platTransImportMenuItem: MenuItem;
   private lastItemIndex = 0;
-
   private routeParamSubscribe: Subscription;
   private queryParamSubscribe: Subscription;
   private securityaccount: Securityaccount;
-  readonly platTransImportMenuItem: MenuItem;
   private lastRouteKey = AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY;
 
   constructor(private router: Router,

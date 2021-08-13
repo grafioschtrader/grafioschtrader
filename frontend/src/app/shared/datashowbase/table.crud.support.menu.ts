@@ -1,5 +1,5 @@
 import {TableConfigBase} from './table.config.base';
-import {ChangeDetectorRef, Directive, OnInit} from '@angular/core';
+import {Directive, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../service/user.settings.service';
 import {AppHelper} from '../helper/app.helper';
@@ -59,13 +59,12 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
               protected messageToastService: MessageToastService,
               protected activePanelService: ActivePanelService,
               protected dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService,
               private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     this.entityNameUpper = this.entityName.toUpperCase();
     this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
   }
@@ -73,10 +72,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   ////////////////////////////////////////////////
   ngOnInit(): void {
     this.initialize();
-  }
-
-  protected initialize(): void {
-    this.readData();
   }
 
   handleEditEntity(entity: T): void {
@@ -112,16 +107,16 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     return this.activePanelService.isActivated(this);
   }
 
-
-  ////////////////////////////////////////////////
-  // Event handler
-
   /**
    * When row is clicked, this event catches it as well
    */
   onComponentClick(event): void {
     this.resetMenu(this.selectedEntity);
   }
+
+
+  ////////////////////////////////////////////////
+  // Event handler
 
   callMeDeactivate(): void {
   }
@@ -135,17 +130,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
 
   public isEmpty(): boolean {
     return this.entityList.length === 0;
-  }
-
-  /**
-   * Prepare parameter data object for editing component.
-   */
-  protected abstract prepareCallParm(entity: T);
-
-  protected abstract readData(): void;
-
-  protected prepareShowMenu(): MenuItem[] {
-    return null;
   }
 
   downloadCSvFile(data: any[]) {
@@ -164,6 +148,21 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
 
     const blob = new Blob([csvArray], {type: 'text/csv'});
     filesaver.saveAs(blob, this.entityName.toLocaleLowerCase() + '.csv');
+  }
+
+  protected initialize(): void {
+    this.readData();
+  }
+
+  /**
+   * Prepare parameter data object for editing component.
+   */
+  protected abstract prepareCallParm(entity: T);
+
+  protected abstract readData(): void;
+
+  protected prepareShowMenu(): MenuItem[] {
+    return null;
   }
 
   protected prepareEditMenu(entity: T): MenuItem[] {

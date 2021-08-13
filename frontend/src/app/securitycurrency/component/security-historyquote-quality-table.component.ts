@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, Output} from '@angular/core';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {SecurityService} from '../service/security.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -8,7 +8,6 @@ import {HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp} from '../m
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {FilterService} from 'primeng/api';
-import {Security} from '../../entities/security';
 
 /**
  * Shows the securities in a table.
@@ -17,7 +16,8 @@ import {Security} from '../../entities/security';
   selector: 'security-historyquote-quality-table',
   template: `
     <p-table [columns]="fields" [value]="hqwspList" selectionMode="single"
-             [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+             [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
+             (onRowUnselect)="onRowUnselect($event)"
              dataKey="idSecurity" [responsive]="true"
              (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
@@ -54,12 +54,11 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
 
   constructor(private timeSeriesQuotesService: TimeSeriesQuotesService,
               private securityService: SecurityService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.DateString, 'activeFromDate');
@@ -90,7 +89,7 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
   }
 
   onRowSelect(event): void {
-    this.changedIdSecurity.emit(new SecurityIdWithCurrency(this.selectedSecurity.idSecurity,  this.selectedSecurity.currency));
+    this.changedIdSecurity.emit(new SecurityIdWithCurrency(this.selectedSecurity.idSecurity, this.selectedSecurity.currency));
   }
 
   onRowUnselect(event): void {
@@ -99,6 +98,6 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
 }
 
 export class SecurityIdWithCurrency {
-   public constructor(public idSecurity: number, public currency: string) {
-   }
+  public constructor(public idSecurity: number, public currency: string) {
+  }
 }

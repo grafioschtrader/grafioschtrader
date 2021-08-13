@@ -125,6 +125,66 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
     this.createPeriodNodes();
   }
 
+  getFirstColumnLabel(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
+    let colVal: string | number;
+
+    switch (dataobject.showField) {
+      case this.CASH_BALANCE_MC:
+        colVal = this.translatedTexts['CASH_BALANCE'];
+        break;
+
+      case this.TOTAL_SECURITIES_MC:
+        colVal = this.translatedTexts[AppSettings.SECURITY.toUpperCase()];
+        break;
+      case this.MARGIN_CLOSE_GAIN_MC:
+        colVal = this.translatedTexts['MARGIN_CLOSE_GAIN'];
+        break;
+
+      default:
+        if (this.performancePeriod.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
+          // Date range for week
+          colVal = moment(dataobject.periodWindow.startDate).format(this.gps.getDateFormatWithoutYear()) + ' - '
+            + moment(dataobject.periodWindow.endDate).format(this.gps.getDateFormatWithoutYear());
+        } else {
+          // Only year
+          colVal = moment(dataobject.periodWindow.startDate).year();
+        }
+    }
+    return colVal;
+  }
+
+  getLastColumn(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
+    return dataobject.showField === this.GAIN_MC ? valueField : null;
+  }
+
+  getDataValue(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
+    const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
+    if (psmh.hasOwnProperty(dataobject.showField)) {
+      return AppHelper.numberFormat(this.gps, (<PeriodStep>psmh)[dataobject.showField], field.maxFractionDigits,
+        field.minFractionDigits);
+    }
+    return null;
+  }
+
+  isValueByPathMinusWithEmptyColor(dataobject: PeriodWindowWithField, field: ColumnConfig): boolean {
+    if (isNaN(<any>field.field) && field.dataType === DataType.Numeric) {
+      return super.isValueByPathMinus(dataobject, field);
+    } else {
+      const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
+      if (psmh.hasOwnProperty(dataobject.showField)) {
+        return (<PeriodStep>psmh)[dataobject.showField] < 0;
+      }
+    }
+    return false;
+  }
+
+  getHolidayMissing(dataobject: PeriodWindowWithField, field: ColumnConfig): HolidayMissing | string {
+    if (isNaN(<any>field.field)) {
+      return HolidayMissing.HM_OTHER_CELL;
+    }
+    return dataobject.periodWindow.periodStepList[+field.field].holidayMissing;
+  }
+
   private createPeriodTreeTableDefinition(): void {
     if (this.performancePeriod) {
       if (this.performancePeriod.periodSplit !== this.lastPeriodSplit) {
@@ -177,74 +237,23 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
           expanded: false,
           leaf: true
         },
-          {data: new PeriodWindowWithField(this.TOTAL_SECURITIES_MC, periodWindow), children: [], expanded: false, leaf: true},
-          {data: new PeriodWindowWithField(this.MARGIN_CLOSE_GAIN_MC, periodWindow), children: [], expanded: false, leaf: true}
+          {
+            data: new PeriodWindowWithField(this.TOTAL_SECURITIES_MC, periodWindow),
+            children: [],
+            expanded: false,
+            leaf: true
+          },
+          {
+            data: new PeriodWindowWithField(this.MARGIN_CLOSE_GAIN_MC, periodWindow),
+            children: [],
+            expanded: false,
+            leaf: true
+          }
         ];
         tn.push(pwTreeNode);
       });
     }
     this.periodWindowsNodes = tn;
-  }
-
-  getFirstColumnLabel(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
-    let colVal: string | number;
-
-    switch (dataobject.showField) {
-      case this.CASH_BALANCE_MC:
-        colVal = this.translatedTexts['CASH_BALANCE'];
-        break;
-
-      case this.TOTAL_SECURITIES_MC:
-        colVal = this.translatedTexts[AppSettings.SECURITY.toUpperCase()];
-        break;
-      case this.MARGIN_CLOSE_GAIN_MC:
-        colVal = this.translatedTexts['MARGIN_CLOSE_GAIN'];
-        break;
-
-      default:
-        if (this.performancePeriod.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
-          // Date range for week
-          colVal = moment(dataobject.periodWindow.startDate).format(this.gps.getDateFormatWithoutYear()) + ' - '
-            + moment(dataobject.periodWindow.endDate).format(this.gps.getDateFormatWithoutYear());
-        } else {
-          // Only year
-          colVal = moment(dataobject.periodWindow.startDate).year();
-        }
-    }
-    return colVal;
-  }
-
-  getLastColumn(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
-    return dataobject.showField === this.GAIN_MC ? valueField : null;
-  }
-
-  getDataValue(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
-    const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
-    if (psmh.hasOwnProperty(dataobject.showField)) {
-      return AppHelper.numberFormat(this.gps, (<PeriodStep>psmh)[dataobject.showField], field.maxFractionDigits,
-        field.minFractionDigits);
-    }
-    return null;
-  }
-
-
-  isValueByPathMinusWithEmptyColor(dataobject: PeriodWindowWithField, field: ColumnConfig): boolean {
-    if (isNaN(<any>field.field) && field.dataType === DataType.Numeric) {
-      return super.isValueByPathMinus(dataobject, field);
-    } else {
-      const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
-      if (psmh.hasOwnProperty(dataobject.showField)) {
-        return (<PeriodStep>psmh)[dataobject.showField] < 0;
-      }
-    }
-    return false;
-  }
-
-  getHolidayMissing(dataobject: PeriodWindowWithField, field: ColumnConfig): HolidayMissing | string {
-    if (isNaN(<any>field.field)) {
-      return HolidayMissing.HM_OTHER_CELL;
-    }
-    return dataobject.periodWindow.periodStepList[+field.field].holidayMissing;
   }
 }
 

@@ -136,7 +136,7 @@ export const email: ValidatorFn = (control: AbstractControl): ValidationErrors =
 
   const v: string = control.value;
   /* tslint:disable */
-  return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) ? null : { 'email': true };
+  return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) ? null : {'email': true};
   /* tslint:enable */
 };
 
@@ -150,7 +150,7 @@ export const maxValue = (value: number): ValidatorFn => {
     }
 
     const v: number = +control.value;
-    return v <= +value ? null : { max: { value: value } };
+    return v <= +value ? null : {max: {value: value}};
   };
 };
 
@@ -167,7 +167,7 @@ export const equalTo = (equalControl: AbstractControl): ValidatorFn => {
 
     const v: string = control.value;
 
-    return equalControl.value === v ? null : { equalTo: { control: equalControl, value: equalControl.value } };
+    return equalControl.value === v ? null : {equalTo: {control: equalControl, value: equalControl.value}};
   };
 };
 
@@ -182,7 +182,7 @@ export const range = (value: Array<number>): ValidatorFn => {
     }
 
     const v: number = +control.value;
-    return v >= value[0] && v <= value[1] ? null : { range: { value: value } };
+    return v >= value[0] && v <= value[1] ? null : {range: {value: value}};
   };
 };
 

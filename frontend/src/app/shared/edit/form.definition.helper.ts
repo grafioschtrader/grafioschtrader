@@ -1,7 +1,6 @@
 import {DataType} from '../../dynamic-form/models/data.type';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../helper/dynamic.field.helper';
-import {CurrencyMaskConfig} from 'ngx-currency';
+import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
 
 export abstract class FormDefinitionHelper {
 

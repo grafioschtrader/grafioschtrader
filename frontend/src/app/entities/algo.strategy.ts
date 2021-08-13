@@ -4,7 +4,7 @@ import {AlgoStrategyImplementations} from '../shared/types/algo.strategy.impleme
 import {AlgoRuleStrategy} from './algo.rule.strategy';
 
 
-export class  AlgoStrategy extends AlgoRuleStrategy implements AlgoTreeName {
+export class AlgoStrategy extends AlgoRuleStrategy implements AlgoTreeName {
 
   algoStrategyImplementations: AlgoStrategyImplementations | string = null;
 

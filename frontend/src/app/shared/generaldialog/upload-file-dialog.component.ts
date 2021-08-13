@@ -97,17 +97,19 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       }, () => this.configObject.submit.disabled = false);
   }
 
-  private getCSVFormatsFields(): FieldConfig[] {
-    const fieldConfig: FieldConfig[] = [];
-    if (this.fileUploadParam.supportedCSVFormats) {
-      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('decimalSeparator', true,
-        {inputWidth: 3}));
-      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('thousandSeparator', true,
-        {inputWidth: 3}));
-      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('dateFormat', true,
-        {inputWidth: 15}));
-    }
-    return fieldConfig;
+  valueChangedOnDecimalSeparator(): void {
+    this.decimalSeparatorSub = this.configObject.decimalSeparator.formControl.valueChanges.subscribe((data: string) => {
+      const thousandSeparators: string[] = this.fileUploadParam.supportedCSVFormats.thousandSeparators.filter(separator => separator !==
+        this.configObject.decimalSeparator.formControl.value);
+
+      this.configObject.thousandSeparator.valueKeyHtmlOptions =
+        SelectOptionsHelper.createHtmlOptionsFromStringArray(thousandSeparators);
+    });
+  }
+
+  onHide(event) {
+    super.onHide(event);
+    this.decimalSeparatorSub && this.decimalSeparatorSub.unsubscribe();
   }
 
   protected initialize(): void {
@@ -125,19 +127,17 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     }
   }
 
-  valueChangedOnDecimalSeparator(): void {
-    this.decimalSeparatorSub = this.configObject.decimalSeparator.formControl.valueChanges.subscribe((data: string) => {
-      const thousandSeparators: string[] = this.fileUploadParam.supportedCSVFormats.thousandSeparators.filter(separator => separator !==
-        this.configObject.decimalSeparator.formControl.value);
-
-      this.configObject.thousandSeparator.valueKeyHtmlOptions =
-        SelectOptionsHelper.createHtmlOptionsFromStringArray(thousandSeparators);
-    });
-  }
-
-  onHide(event) {
-    super.onHide(event);
-    this.decimalSeparatorSub && this.decimalSeparatorSub.unsubscribe();
+  private getCSVFormatsFields(): FieldConfig[] {
+    const fieldConfig: FieldConfig[] = [];
+    if (this.fileUploadParam.supportedCSVFormats) {
+      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('decimalSeparator', true,
+        {inputWidth: 3}));
+      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('thousandSeparator', true,
+        {inputWidth: 3}));
+      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('dateFormat', true,
+        {inputWidth: 15}));
+    }
+    return fieldConfig;
   }
 }
 

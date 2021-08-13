@@ -13,7 +13,6 @@ import {LoginService} from '../../shared/login/service/log-in.service';
 import {UploadServiceFunction} from '../../shared/generaldialog/model/file.upload.param';
 
 
-
 @Injectable()
 export class ImportTransactionHeadService extends AuthServiceWithLogout<ImportTransactionHead>
   implements DeleteService, ServiceEntityUpdate<ImportTransactionHead>, UploadServiceFunction {

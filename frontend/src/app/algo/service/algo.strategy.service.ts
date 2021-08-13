@@ -11,7 +11,6 @@ import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.impl
 import {AlgoStrategy} from '../../entities/algo.strategy';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
-import {TranslateService} from '@ngx-translate/core';
 
 @Injectable()
 export class AlgoStrategyService extends AuthServiceWithLogout<AlgoStrategy> implements DeleteService,

@@ -6,7 +6,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TransactionService} from '../service/transaction.service';
-import { ChangeDetectorRef, OnInit, Directive } from '@angular/core';
+import {Directive} from '@angular/core';
 import {TransactionContextMenu} from './transaction.context.menu';
 import {FilterType} from '../../shared/datashowbase/filter.type';
 import {DataType} from '../../dynamic-form/models/data.type';
@@ -32,13 +32,12 @@ export abstract class TransactionTable extends TransactionContextMenu {
               transactionService: TransactionService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false,
       {width: 60, filterType: FilterType.likeDataType});
@@ -63,11 +62,13 @@ export abstract class TransactionTable extends TransactionContextMenu {
 
     this.addColumnFeqH(DataType.Numeric, 'taxCost', true, false,
       {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
-    this.addColumnFeqH(DataType.Numeric, 'transactionCost',  true, false,
+    this.addColumnFeqH(DataType.Numeric, 'transactionCost', true, false,
       {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false,
-      {width: 60, filterType: FilterType.likeDataType, templateName: 'greenRed',
-        maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {
+        width: 60, filterType: FilterType.likeDataType, templateName: 'greenRed',
+        maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
+      });
   }
 
   getSecurity(transaction: Transaction): Security {
@@ -83,7 +84,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
     super.handleCloseTransactionDialog(processedActionData);
     if (processedActionData.action === ProcessedAction.UPDATED) {
       if (processedActionData.data instanceof Array) {
-        this.selectedTransaction = (<Transaction[]> processedActionData.data).find(newTrans =>
+        this.selectedTransaction = (<Transaction[]>processedActionData.data).find(newTrans =>
           newTrans.idTransaction === this.selectedTransaction.idTransaction);
       } else {
         this.selectedTransaction = processedActionData.data;
@@ -91,12 +92,15 @@ export abstract class TransactionTable extends TransactionContextMenu {
       this.setMenuItemsToActivePanel();
     }
     processedActionData.action !== ProcessedAction.NO_CHANGE && this.initialize();
-
   }
 
   afterDelete(transaction: Transaction): void {
     this.selectedTransaction = null;
     this.initialize();
+  }
+
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_PORTFOLIOS_TRANSACTIONLIST;
   }
 
   protected addCurrencypairToTransaction(transactions: Transaction[],
@@ -114,10 +118,6 @@ export abstract class TransactionTable extends TransactionContextMenu {
   }
 
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
-  }
-
-  public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_PORTFOLIOS_TRANSACTIONLIST;
   }
 
 }

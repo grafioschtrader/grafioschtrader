@@ -79,6 +79,14 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
     this.createTranslatedValueStore([this.content]);
   }
 
+  getDerivedValues(dataobject: any, field: ColumnConfig, valueField: any): any {
+    if (field.field === this.BASE_PRODUCT_NAME) {
+      return this.baseInstrument ? this.baseInstrument.name : '';
+    } else {
+      return this.additionalInstruments[field.field] ? this.additionalInstruments[field.field].name : '';
+    }
+    return '';
+  }
 
   private addSecurityFields(security: Security): void {
     this.addDerivedFields(security);
@@ -114,7 +122,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
       {fieldsetName: 'BASE_DATA'});
     this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'distributionFrequency',
       {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
-    this.addFieldPropertyFeqH(DataType.Boolean, this.SECURITYCURRENCY + 'shortSecurity',  {
+    this.addFieldPropertyFeqH(DataType.Boolean, this.SECURITYCURRENCY + 'shortSecurity', {
       fieldsetName: 'BASE_DATA', templateName: 'check'
     });
     this.addNoteField();
@@ -171,16 +179,6 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
         });
     }
   }
-
-  getDerivedValues(dataobject: any, field: ColumnConfig, valueField: any): any {
-    if (field.field === this.BASE_PRODUCT_NAME) {
-      return this.baseInstrument ? this.baseInstrument.name : '';
-    } else {
-      return this.additionalInstruments[field.field] ? this.additionalInstruments[field.field].name : '';
-    }
-    return '';
-  }
-
 
   private addCurrencypairFields(): void {
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'fromCurrency', 'CURRENCY_FROM', {fieldsetName: 'BASE_DATA'});

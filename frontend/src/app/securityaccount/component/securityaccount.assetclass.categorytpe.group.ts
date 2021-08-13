@@ -1,9 +1,7 @@
 import {Security} from '../../entities/security';
-import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SecurityPositionDynamicGrandSummary} from '../../entities/view/security.position.dynamic.grand.summary';
 import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dynamic';
 
 /**
@@ -14,7 +12,7 @@ export class SecurityaccountAssetclassCategorytpeGroup extends SecurityaccountGr
 
   constructor(translateService: TranslateService, datatableConfigBase: TableConfigBase) {
     super(translateService, datatableConfigBase, 'assetclasstype', 'security.assetClass.categoryType', 'GROUP_BY_ASSETCLASS');
-   // this.translateService.get('short').subscribe(translated => this.translatedShort = translated);
+    // this.translateService.get('short').subscribe(translated => this.translatedShort = translated);
   }
 
   /*

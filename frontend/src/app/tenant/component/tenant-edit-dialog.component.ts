@@ -45,10 +45,6 @@ export class TenantEditDialogComponent extends TenantEditComponent implements On
     setTimeout(() => this.loadData());
   }
 
-  protected afterSaved(tenant: Tenant): void {
-    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, tenant));
-  }
-
   submit(value: { [name: string]: any }) {
     if (this.onlyCurrency) {
       this.tenantService.changeCurrencyTenantAndPortfolios(value.currency).subscribe(tenant => {
@@ -59,6 +55,10 @@ export class TenantEditDialogComponent extends TenantEditComponent implements On
     } else {
       super.submit(value);
     }
+  }
+
+  protected afterSaved(tenant: Tenant): void {
+    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, tenant));
   }
 
 

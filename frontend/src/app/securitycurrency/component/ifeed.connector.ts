@@ -30,7 +30,7 @@ export enum FeedIdentifier {
   CURRENCY_URL,
   SECURITY,
   SECURITY_URL,
-  DIVIDEND ,
+  DIVIDEND,
   DIVIDEND_URL,
   SPLIT,
   SPLIT_URL

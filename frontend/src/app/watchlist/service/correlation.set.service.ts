@@ -13,7 +13,6 @@ import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencyLists} from '../../entities/view/securitycurrency.lists';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {Watchlist} from '../../entities/watchlist';
 import {AddSearchToListService} from '../component/add-instrument-table.component';
 
 @Injectable()

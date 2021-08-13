@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -41,27 +41,24 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
   untilDate: Date;
   accountPositionGrandSummary: AccountPositionGrandSummary;
   accountPositionSummaryAll: AccountPositionSummary [] = [];
+  groupOptions: SelectItem[] = [];
+  selectedGroup: string = TenantPortfolioSummary[TenantPortfolioSummary.GROUP_BY_CURRENCY];
   private idTenant: number;
   private routeSubscribe: Subscription;
   private columnConfigs: ColumnConfig[] = [];
   private subscriptionRequestFromChart: Subscription;
-
   private CHART_TITLE = 'CASH_BALANCE_SECURITIES';
-
-  groupOptions: SelectItem[] = [];
-  selectedGroup: string = TenantPortfolioSummary[TenantPortfolioSummary.GROUP_BY_CURRENCY];
 
   constructor(private portfolioService: PortfolioService,
               private activatedRoute: ActivatedRoute,
               private activePanelService: ActivePanelService,
               private router: Router,
               private chartDataService: ChartDataService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
       {
@@ -151,16 +148,6 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     this.readData();
   }
 
-  private readData(): void {
-    this.portfolioService.getGroupedAccountsSecuritiesTenantSummary(this.untilDate, TenantPortfolioSummary[this.selectedGroup]).subscribe(
-      result => {
-        this.transformToFlatArray(result);
-        this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.accountPositionGrandSummary.mainCurrency);
-        this.prepareTableAndTranslate();
-        this.changeToOpenChart();
-      });
-  }
-
   public filterDate(event): void {
     this.readData();
   }
@@ -169,7 +156,6 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     this.untilDate = new Date();
     this.readData();
   }
-
 
   getMenuShowOptions(): MenuItem[] {
     const otherMenuShowOptions: MenuItem[] = super.getMenuShowOptions();
@@ -189,7 +175,6 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     this.selectedGroup = event.value;
     this.readData();
   }
-
 
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
@@ -214,6 +199,16 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     this.activePanelService.destroyPanel(this);
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
     this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
+  }
+
+  private readData(): void {
+    this.portfolioService.getGroupedAccountsSecuritiesTenantSummary(this.untilDate, TenantPortfolioSummary[this.selectedGroup]).subscribe(
+      result => {
+        this.transformToFlatArray(result);
+        this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.accountPositionGrandSummary.mainCurrency);
+        this.prepareTableAndTranslate();
+        this.changeToOpenChart();
+      });
   }
 
   private transformToFlatArray(accountPositionGrandSummary: AccountPositionGrandSummary) {

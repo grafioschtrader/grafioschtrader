@@ -1,20 +1,20 @@
-<div class="data-container" (click)="onComponentClick($event)"
-     [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+<div (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+     class="data-container">
   <div class="datatable">
-    <p-table [columns]="fields" [value]="securityDividendsYearGroup" selectionMode="single"
-             [(selection)]="securityDividendsGrandTotalSelected" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-             dataKey="year" [paginator]="true" [rows]="20"
+    <p-table [(selection)]="securityDividendsGrandTotalSelected" [columns]="fields" [multiSortMeta]="multiSortMeta"
+             [paginator]="true" [rows]="20" [value]="securityDividendsYearGroup"
+             dataKey="year" selectionMode="single" sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
       <ng-template pTemplate="caption">
         <ng-container *ngIf="securityDividendsGrandTotal">
-          <h4 [translate]="'PORTFOLIO_DIVIDENDS_YEAR'"
-              [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"></h4>
-          <h4 [translate]="'PORTFOLIO_INTEREST_YEAR'"
-              [translateParams]="{select: selectedCashAccounts, total: totalCashAccounts}"></h4>
+          <h4 [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"
+              [translate]="'PORTFOLIO_DIVIDENDS_YEAR'"></h4>
+          <h4 [translateParams]="{select: selectedCashAccounts, total: totalCashAccounts}"
+              [translate]="'PORTFOLIO_INTEREST_YEAR'"></h4>
         </ng-container>
       </ng-template>
 
-      <ng-template pTemplate="header" let-fields>
+      <ng-template let-fields pTemplate="header">
         <tr>
           <th style="width:24px"></th>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field"
@@ -25,17 +25,17 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+      <ng-template let-columns="fields" let-el let-expanded="expanded" pTemplate="body">
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <td>
-            <a href="#" [pRowToggler]="el">
+            <a [pRowToggler]="el" href="#">
               <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
           </td>
           <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [style.width.px]="field.width"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+                [style.width.px]="field.width">
               {{getValueByPath(el, field)}}
             </td>
           </ng-container>
@@ -46,23 +46,23 @@
         <tr>
           <td></td>
           <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" class="row-total" [style.width.px]="field.width"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
+                class="row-total">
               {{getValueColumnTotal(field, 0, securityDividendsGrandTotal, null)}}
             </td>
           </ng-container>
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="rowexpansion" let-sDYG let-columns="fields">
+      <ng-template let-columns="fields" let-sDYG pTemplate="rowexpansion">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1">
             <tenant-dividends-extended
+              (dateChanged)="transactionDataChanged($event)"
               [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
-              [securityDividendsPositions]="sDYG.securityDividendsPositions"
               [securityDividendsGrandTotal]="securityDividendsGrandTotal"
-              (dateChanged)="transactionDataChanged($event)">
+              [securityDividendsPositions]="sDYG.securityDividendsPositions">
             </tenant-dividends-extended>
           </td>
         </tr>
@@ -71,9 +71,9 @@
   </div>
 </div>
 
-<tenant-dividend-security-account-selection-dialog *ngIf="visibleSecurityaccountDialog"
-                                                   [visibleDialog]="visibleSecurityaccountDialog"
-                                                   [portfolios]="securityDividendsGrandTotal.portfolioList"
+<tenant-dividend-security-account-selection-dialog (closeDialog)="handleOnProcessedDialog($event)"
+                                                   *ngIf="visibleSecurityaccountDialog"
                                                    [idsAccounts]="idsAccounts"
-                                                   (closeDialog)="handleOnProcessedDialog($event)">
+                                                   [portfolios]="securityDividendsGrandTotal.portfolioList"
+                                                   [visibleDialog]="visibleSecurityaccountDialog">
 </tenant-dividend-security-account-selection-dialog>

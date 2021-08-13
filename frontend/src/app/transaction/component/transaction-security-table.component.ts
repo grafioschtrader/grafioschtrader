@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {TranslateService} from '@ngx-translate/core';
@@ -47,13 +47,12 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
               transactionService: TransactionService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService);
   }
 
   ngOnInit(): void {
@@ -61,20 +60,6 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
     this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(this, this.idTenant, false,
       this.transactionSecurityOptionalParam);
     this.initialize();
-  }
-
-  protected initialize(): void {
-    BusinessHelper.setSecurityTransactionSummary(this.securityService, this.idSecuritycurrency, this.idsSecurityaccount,
-      this.idPortfolio, false).subscribe(result => {
-
-      this.securityTransactionSummary = result;
-      this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);
-      this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;
-      this.currencyColumnConfigMC.forEach(cc => {
-        cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
-        this.setFieldHeaderTranslation(cc);
-      });
-    });
   }
 
   getSecurity(transaction: Transaction): Security {
@@ -93,6 +78,20 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
 
   public getHelpContextId(): HelpIds {
     return HelpIds.HELP_TRANSACTION_CASH_BASED;
+  }
+
+  protected initialize(): void {
+    BusinessHelper.setSecurityTransactionSummary(this.securityService, this.idSecuritycurrency, this.idsSecurityaccount,
+      this.idPortfolio, false).subscribe(result => {
+
+      this.securityTransactionSummary = result;
+      this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);
+      this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;
+      this.currencyColumnConfigMC.forEach(cc => {
+        cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
+        this.setFieldHeaderTranslation(cc);
+      });
+    });
   }
 
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {

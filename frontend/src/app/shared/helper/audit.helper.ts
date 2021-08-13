@@ -91,41 +91,6 @@ export class AuditHelper {
       proposeChangeEntityWithEntity.proposeChangeEntity.noteRequest);
   }
 
-  private static createDifferenceAsLabelTitle(configObject: { [name: string]: FieldConfig },
-                                              proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
-    Object.keys(configObject).forEach((key) => {
-      const fieldConfig: FieldConfig = configObject[key];
-      const field = fieldConfig.dataproperty ? fieldConfig.dataproperty : key;
-      let oldValue = Helper.getValueByPath(proposeChangeEntityWithEntity.entity, field);
-      if (oldValue !== Helper.getValueByPath(proposeChangeEntityWithEntity.proposedEntity, field)) {
-        if (fieldConfig.inputType === InputType.Select && fieldConfig.valueKeyHtmlOptions) {
-          oldValue = fieldConfig.valueKeyHtmlOptions.find(v => v.key === oldValue).value;
-        }
-        configObject[key].labelTitle = oldValue;
-      }
-    });
-  }
-
-  private static editWithoutProposalInForm(form: DynamicFormComponent, configObject: { [name: string]: FieldConfig }): void {
-    AuditHelper.setHeaderChangeRequest(null, form);
-    FormHelper.hideVisibleFieldConfigs(true, [configObject[AuditHelper.NOTE_REQUEST_INPUT],
-      configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], configObject[AuditHelper.REJECT_FIELD_BUTTON]]);
-    configObject[AuditHelper.SUBMIT_FIELD_BUTTON].labelKey = 'SAVE';
-    DynamicFieldHelper.resetValidator(configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], null, null);
-  }
-
-
-  private static setHeaderChangeRequest(translateService: TranslateService, form: DynamicFormComponent, textKey: string = null) {
-    if (textKey) {
-      form.formConfig.fieldHeaders = form.formConfig.fieldHeaders || {};
-      translateService.get(textKey).subscribe(text => form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = text);
-    } else {
-      if (form.formConfig.fieldHeaders && form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT]) {
-        form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = null;
-      }
-    }
-  }
-
   public static getFullNoteRequestInputDefinition(closed: EventEmitter<ProcessedActionData>, formBase: FormBase,
                                                   acceptRejectRequired = false): FieldConfig[] {
     return [
@@ -168,7 +133,6 @@ export class AuditHelper {
     return !(entity instanceof Auditable) || AuditHelper.hasRightsForEditingOrDeleteAuditable(gps, <Auditable>entity);
   }
 
-
   public static hasRightsForEditingOrDeleteAuditable(gps: GlobalparameterService,
                                                      entityAuditable: Auditable): boolean {
     return AuditHelper.hasHigherPrivileges(gps)
@@ -191,5 +155,39 @@ export class AuditHelper {
 
   public static isLimitedEditUser(user: User): boolean {
     return user.mostPrivilegedRole === AppSettings.ROLE_LIMIT_EDIT;
+  }
+
+  private static createDifferenceAsLabelTitle(configObject: { [name: string]: FieldConfig },
+                                              proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
+    Object.keys(configObject).forEach((key) => {
+      const fieldConfig: FieldConfig = configObject[key];
+      const field = fieldConfig.dataproperty ? fieldConfig.dataproperty : key;
+      let oldValue = Helper.getValueByPath(proposeChangeEntityWithEntity.entity, field);
+      if (oldValue !== Helper.getValueByPath(proposeChangeEntityWithEntity.proposedEntity, field)) {
+        if (fieldConfig.inputType === InputType.Select && fieldConfig.valueKeyHtmlOptions) {
+          oldValue = fieldConfig.valueKeyHtmlOptions.find(v => v.key === oldValue).value;
+        }
+        configObject[key].labelTitle = oldValue;
+      }
+    });
+  }
+
+  private static editWithoutProposalInForm(form: DynamicFormComponent, configObject: { [name: string]: FieldConfig }): void {
+    AuditHelper.setHeaderChangeRequest(null, form);
+    FormHelper.hideVisibleFieldConfigs(true, [configObject[AuditHelper.NOTE_REQUEST_INPUT],
+      configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], configObject[AuditHelper.REJECT_FIELD_BUTTON]]);
+    configObject[AuditHelper.SUBMIT_FIELD_BUTTON].labelKey = 'SAVE';
+    DynamicFieldHelper.resetValidator(configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], null, null);
+  }
+
+  private static setHeaderChangeRequest(translateService: TranslateService, form: DynamicFormComponent, textKey: string = null) {
+    if (textKey) {
+      form.formConfig.fieldHeaders = form.formConfig.fieldHeaders || {};
+      translateService.get(textKey).subscribe(text => form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = text);
+    } else {
+      if (form.formConfig.fieldHeaders && form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT]) {
+        form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = null;
+      }
+    }
   }
 }

@@ -59,16 +59,30 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => this.updateView());
+  }
+
+  submit(value: { [name: string]: any }): void {
+    const mailSendbox = new MailSendbox();
+    this.form.cleanMaskAndTransferValuesToBusinessObject(mailSendbox, true);
+    mailSendbox.idUserFrom = this.gps.getIdUser();
+    this.mailSendboxService.replyMessage(mailSendbox).subscribe((sendMailSendbox: MailSendbox) => {
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');
+      this.dynamicDialogRef.close();
+    });
+  }
+
+  helpLink() {
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_USER);
+  }
+
   private getGroupOrUserField(): FieldConfig {
     if (this.mailSendParam.idUserTo) {
       return DynamicFieldHelper.createFieldInputStringHeqF(this.ID_USER_TO, 10, true);
     } else {
       return DynamicFieldHelper.createFieldSelectStringHeqF(this.ROLE_NAME_TO, true);
     }
-  }
-
-  ngAfterViewInit(): void {
-    setTimeout(() => this.updateView());
   }
 
   private updateView(): void {
@@ -99,20 +113,6 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
     } else if (this.mailSendParam.subject) {
       this.configObject[this.SUBJECT].formControl.setValue(this.mailSendParam.subject);
     }
-  }
-
-  submit(value: { [name: string]: any }): void {
-    const mailSendbox = new MailSendbox();
-    this.form.cleanMaskAndTransferValuesToBusinessObject(mailSendbox, true);
-    mailSendbox.idUserFrom = this.gps.getIdUser();
-    this.mailSendboxService.replyMessage(mailSendbox).subscribe((sendMailSendbox: MailSendbox) => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');
-      this.dynamicDialogRef.close();
-    });
-  }
-
-  helpLink() {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_USER);
   }
 
 }

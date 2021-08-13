@@ -1,11 +1,6 @@
-import {ChangeDetectorRef, Component} from '@angular/core';
+import {Component} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {
-  ProgressStateType,
-  TaskDataChange,
-  TaskDataChangeFormConstraints,
-  TaskType
-} from '../../../entities/task.data.change';
+import {ProgressStateType, TaskDataChange, TaskDataChangeFormConstraints} from '../../../entities/task.data.change';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
@@ -129,13 +124,12 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(AppSettings.TASK_DATE_CHANGE, taskDataChangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
+      dialogService, filterService, translateService, gps, usersettingsService,
       gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
 
@@ -175,6 +169,10 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.callParam = entity;
   }
 
+  getHelpContextId(): HelpIds {
+    return HelpIds.HELP_TASK_DATA_CHANGE_MONITOR;
+  }
+
   protected readData(): void {
     combineLatest([this.taskDataChangeService.getAllTaskDataChange(), this.taskDataChangeService.getFormConstraints()]).subscribe(data => {
       this.taskDataChangeList = data[0];
@@ -182,10 +180,6 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       this.prepareTableAndTranslate();
       this.createTranslatedValueStoreAndFilterField(this.taskDataChangeList);
     });
-  }
-
-  getHelpContextId(): HelpIds {
-    return HelpIds.HELP_TASK_DATA_CHANGE_MONITOR;
   }
 
   protected addCustomMenusToSelectedEntity(taskDataChange: TaskDataChange, menuItems: MenuItem[]): void {

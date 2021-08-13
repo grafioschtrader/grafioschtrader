@@ -16,15 +16,14 @@ import {GlobalSessionNames} from '../../shared/global.session.names';
 })
 export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
   items: MenuItem[] = [];
-  private routeSubscribe: Subscription;
-  private portfolio: Portfolio;
-
   idActiveItem = 0;
   nameRouteMapping: string[][] = [
     [AppSettings.PORTFOLIO.toUpperCase(), AppSettings.PORTFOLIO_SUMMARY_KEY],
     ['PEROIDPERFORMANCE', AppSettings.PERFORMANCE_KEY],
     ['TRANSACTIONS', AppSettings.PORTFOLIO_TRANSACTION_KEY]
   ];
+  private routeSubscribe: Subscription;
+  private portfolio: Portfolio;
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
     for (let i = 0; i < this.nameRouteMapping.length; i++) {

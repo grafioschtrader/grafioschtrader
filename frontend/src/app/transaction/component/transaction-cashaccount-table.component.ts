@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {TransactionService} from '../service/transaction.service';
 import {Transaction} from '../../entities/transaction';
 import {Currencypair} from '../../entities/currencypair';
@@ -50,13 +50,12 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
               transactionService: TransactionService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService);
   }
 
 
@@ -72,7 +71,7 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     this.addColumn(DataType.Numeric, 'transaction.taxCost', 'TAX_COST', true, false);
     this.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false);
     this.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'balance',  true, false);
+    this.addColumnFeqH(DataType.Numeric, 'balance', true, false);
     this.prepareTableAndTranslate();
     // this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(this.idSecuritycashAccount);
 
@@ -80,7 +79,6 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     this.initialize();
     this.parentChildRegisterService.registerChildComponent(this);
   }
-
 
   preservePage(data: any) {
     if (data && this.cashaccountTransactionPositionSelected) {

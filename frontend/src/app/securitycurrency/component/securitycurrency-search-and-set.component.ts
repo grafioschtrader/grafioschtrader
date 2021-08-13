@@ -4,14 +4,10 @@ import {TranslateService} from '@ngx-translate/core';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {SecuritycurrencySearchBase} from './securitycurrency.search.base';
-import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencySearchAndSetTableComponent} from './securitycurrency-search-and-set-table.component';
 import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {HelpIds} from '../../shared/help/help.ids';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 
 /**
@@ -51,23 +47,17 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
     super(false, gps, multipleRequestToOneService, translateService);
   }
 
-  protected initialize(): void {
-    super.initialize();
-  }
-
   onHide(event) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 
-
-  setSecurity(security: Security|CurrencypairWatchlist): void {
+  setSecurity(security: Security | CurrencypairWatchlist): void {
     this.callBackSetSecurityWithAfter.setSecurity(security, this);
   }
 
   afterSetSecurity(): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
   }
-
 
   childClearList(): void {
     this.sissdc.clearList();
@@ -77,15 +67,19 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
     this.sissdc.loadData(securitycurrencySearch);
   }
 
+  protected initialize(): void {
+    super.initialize();
+  }
+
 }
 
 
 export interface CallBackSetSecurity {
-  setSecurity(security: Security|CurrencypairWatchlist): void;
+  setSecurity(security: Security | CurrencypairWatchlist): void;
 }
 
 export interface CallBackSetSecurityWithAfter {
-  setSecurity(security: Security|CurrencypairWatchlist, afterSetSecurity: AfterSetSecurity): void;
+  setSecurity(security: Security | CurrencypairWatchlist, afterSetSecurity: AfterSetSecurity): void;
 }
 
 export interface AfterSetSecurity {

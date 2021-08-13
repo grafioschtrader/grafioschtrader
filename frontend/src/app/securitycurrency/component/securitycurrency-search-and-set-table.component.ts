@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {Security} from '../../entities/security';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -19,41 +19,41 @@ import {FilterService} from 'primeng/api';
 @Component({
   selector: 'securitycurrency-search-and-set-table',
   template: `
-      <div class="col-md-12">
+    <div class="col-md-12">
 
-          <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single" [(selection)]="selectedSecurity"
-                   dataKey="idSecuritycurrency" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20,30]"
-                   sortField="name" sortMode="multiple"
-                   styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-              <ng-template pTemplate="header" let-fields>
-                  <tr>
-                      <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
-                          {{field.headerTranslated}}
-                          <p-sortIcon [field]="field.field"></p-sortIcon>
-                      </th>
-                  </tr>
-              </ng-template>
+      <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single" [(selection)]="selectedSecurity"
+               dataKey="idSecuritycurrency" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20,30]"
+               sortField="name" sortMode="multiple"
+               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+        <ng-template pTemplate="header" let-fields>
+          <tr>
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
+              {{field.headerTranslated}}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          </tr>
+        </ng-template>
 
-              <ng-template pTemplate="body" let-el let-columns="fields">
-                  <tr [pSelectableRow]="el">
-                      <ng-container *ngFor="let field of fields">
-                          <td *ngIf="field.visible" [style.width.px]="field.width"
-                              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+        <ng-template pTemplate="body" let-el let-columns="fields">
+          <tr [pSelectableRow]="el">
+            <ng-container *ngFor="let field of fields">
+              <td *ngIf="field.visible" [style.width.px]="field.width"
+                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                              {{getValueByPath(el, field)}}
-                          </td>
-                      </ng-container>
-                  </tr>
-              </ng-template>
-          </p-table>
-      </div>
+                {{getValueByPath(el, field)}}
+              </td>
+            </ng-container>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
 
-      <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
-          <button pButton [disabled]="!selectedSecurity"
-                  class="btn pull-right" [label]="'ASSIGN_SELECTED' | translate"
-                  (click)="chooseSecurity()" type="button">
-          </button>
-      </div>
+    <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+      <button pButton [disabled]="!selectedSecurity"
+              class="btn pull-right" [label]="'ASSIGN_SELECTED' | translate"
+              (click)="chooseSecurity()" type="button">
+      </button>
+    </div>
   `
 })
 export class SecuritycurrencySearchAndSetTableComponent extends SecuritycurrencySearchTableBase {
@@ -64,13 +64,11 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
 
   constructor(private securityService: SecurityService,
               private currencypairService: CurrencypairService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
-
+    super(filterService, usersettingsService, translateService, gps);
   }
 
   loadData(securitycurrencySearch: SecuritycurrencySearch): void {

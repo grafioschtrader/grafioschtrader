@@ -6,7 +6,7 @@ export class CorrelationSet implements BaseID {
   idCorrelationSet: number = null;
   name: string = null;
   note: string = null;
-  samplingPeriod: SamplingPeriodType| string = null;
+  samplingPeriod: SamplingPeriodType | string = null;
   rolling: number;
   securitycurrencyList: (Security | Currencypair)[];
   startDate: Date;
@@ -28,8 +28,8 @@ export class CorrelationResultSet {
 }
 
 export class CorrelationResult {
-  firstAvailableDate:  string;
-  lastAvailableDate:  string;
+  firstAvailableDate: string;
+  lastAvailableDate: string;
   correlationInstruments: CorrelationInstrument[];
 
 }

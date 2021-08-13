@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit} from '@angular/core';
+import {Component, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {SecurityaccountService} from '../service/securityaccount.service';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 
@@ -14,11 +14,14 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {ImportTransactionHeadService, SuccessFailedDirectImportTransaction} from '../service/import.transaction.head.service';
+import {
+  ImportTransactionHeadService,
+  SuccessFailedDirectImportTransaction
+} from '../service/import.transaction.head.service';
 
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {AppSettings} from '../../shared/app.settings';
-import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
+import {NgxFileDropEntry} from 'ngx-file-drop';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
 import {AppHelper} from '../../shared/helper/app.helper';
@@ -37,7 +40,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
 
 
   constructor(private ngZone: NgZone,
-              protected  importTransactionHeadService: ImportTransactionHeadService,
+              protected importTransactionHeadService: ImportTransactionHeadService,
               timeSeriesQuotesService: TimeSeriesQuotesService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService,
@@ -46,14 +49,12 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
               activatedRoute: ActivatedRoute,
               router: Router,
               chartDataService: ChartDataService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, changeDetectionStrategy, filterService, translateService, gps,
-      usersettingsService);
+      activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
   }
 
   ngOnInit() {
@@ -85,16 +86,16 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
+  public dropped(files: NgxFileDropEntry[]): void {
+    AppHelper.processDroppedFiles(files, this.messageToastService, 'pdf', this.uploadTransactionFiles.bind(this));
+  }
+
   protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {
     transactionCallParam.securityaccount = this.securityAccount;
   }
 
   protected getOptionalParameters(): OptionalParameters {
     return {idSecurityaccount: this.idSecurityaccount};
-  }
-
-  public dropped(files: NgxFileDropEntry[]): void {
-    AppHelper.processDroppedFiles(files, this.messageToastService, 'pdf', this.uploadTransactionFiles.bind(this));
   }
 
   private uploadTransactionFiles(formData: FormData): void {
@@ -108,8 +109,10 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
         } else {
           // Success created transactions
           this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'CREATED_TRANS_FROM_IMPORT',
-            {noOfImportedTransactions: sfdit.noOfImportedTransactions,
-              noOfDifferentSecurities: sfdit.noOfDifferentSecurities});
+            {
+              noOfImportedTransactions: sfdit.noOfImportedTransactions,
+              noOfDifferentSecurities: sfdit.noOfDifferentSecurities
+            });
         }
       });
   }

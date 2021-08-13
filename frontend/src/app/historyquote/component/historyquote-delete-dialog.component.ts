@@ -57,10 +57,6 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-
-  protected initialize(): void {
-  }
-
   submit(value: { [name: string]: any }): void {
     this.configObject.execute.disabled = true;
     const hct: HistoryquoteCreateType[] = [];
@@ -82,6 +78,9 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     } else {
       this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
     }
+  }
+
+  protected initialize(): void {
   }
 
 }

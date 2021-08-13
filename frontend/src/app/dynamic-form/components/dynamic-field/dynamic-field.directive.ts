@@ -1,4 +1,13 @@
-import {ComponentFactoryResolver, ComponentRef, Directive, Input, OnChanges, OnInit, Type, ViewContainerRef} from '@angular/core';
+import {
+  ComponentFactoryResolver,
+  ComponentRef,
+  Directive,
+  Input,
+  OnChanges,
+  OnInit,
+  Type,
+  ViewContainerRef
+} from '@angular/core';
 import {FormGroup} from '@angular/forms';
 
 import {FormButtonComponent} from '../form-button/form-button.component';

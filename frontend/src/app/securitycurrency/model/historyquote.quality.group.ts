@@ -24,21 +24,21 @@ export class HistoryquoteQualityHead extends HistoryquoteQualityGroup {
   lastUpdate: string;
 }
 
-export enum  HistoryquoteQualityGrouped {
+export enum HistoryquoteQualityGrouped {
   STOCKEXCHANGE_GROUPED,
   CONNECTOR_GROUPED
 }
 
 export interface IHistoryquoteQualityWithSecurityProp extends IHistoryquoteQuality {
- name: string;
- currency: string;
- activeFromDate: string;
- activeToDate: string;
- idSecurity: number;
- connectorCreated: number;
- filledNoTradeDay: number;
- manualImported: number;
- filledLinear: number;
+  name: string;
+  currency: string;
+  activeFromDate: string;
+  activeToDate: string;
+  idSecurity: number;
+  connectorCreated: number;
+  filledNoTradeDay: number;
+  manualImported: number;
+  filledLinear: number;
 }
 
 export interface HisotryqouteLinearFilledSummary {

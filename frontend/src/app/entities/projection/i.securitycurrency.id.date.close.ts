@@ -1,5 +1,5 @@
 export interface ISecuritycurrencyIdDateClose {
   idSecuritycurrency: number;
-  date: string|Date;
+  date: string | Date;
   close: number;
 }

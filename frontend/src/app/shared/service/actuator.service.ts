@@ -29,6 +29,7 @@ export interface ActuatorHealth {
   status: 'UP' | 'DOWN';
 
 }
+
 export class Users {
   allowed: number;
   active: number;

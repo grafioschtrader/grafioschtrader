@@ -1,4 +1,3 @@
-import {DataType} from '../../../dynamic-form/models/data.type';
 import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {FormConfig} from '../../../dynamic-form/models/form.config';
 import {TranslateService} from '@ngx-translate/core';
@@ -28,18 +27,6 @@ export abstract class PasswordBaseComponent {
   protected constructor(public translateService: TranslateService) {
   }
 
-  protected init(fdias: FieldDescriptorInputAndShow[], newPassword: boolean): void {
-    this.configPassword = [
-      // TODO Should only accept better passwords
-      DynamicFieldHelper.ccWithFieldsFromDescriptor('password',
-        (newPassword) ? 'PASSWORD_NEW' : 'PASSWORD', fdias),
-      DynamicFieldHelper.ccWithFieldsFromDescriptor('password',
-        (newPassword) ? 'PASSWORD_NEW_CONFIRM' : 'PASSWORD_CONFIRM', fdias,
-        {targetField: this.passwordConfirm}),
-    ];
-  }
-
-
   afterViewInit(): void {
     this.configObject[this.passwordConfirm].errors.push({
       name: 'equalTo',
@@ -50,6 +37,17 @@ export abstract class PasswordBaseComponent {
     this.configObject[this.passwordConfirm].validation.push(equalTo(this.configObject.password.formControl));
     this.configObject[this.passwordConfirm].formControl.setValidators(this.configObject.passwordConfirm.validation);
     this.configObject[this.passwordConfirm].formControl.updateValueAndValidity();
+  }
+
+  protected init(fdias: FieldDescriptorInputAndShow[], newPassword: boolean): void {
+    this.configPassword = [
+      // TODO Should only accept better passwords
+      DynamicFieldHelper.ccWithFieldsFromDescriptor('password',
+        (newPassword) ? 'PASSWORD_NEW' : 'PASSWORD', fdias),
+      DynamicFieldHelper.ccWithFieldsFromDescriptor('password',
+        (newPassword) ? 'PASSWORD_NEW_CONFIRM' : 'PASSWORD_CONFIRM', fdias,
+        {targetField: this.passwordConfirm}),
+    ];
   }
 
 }

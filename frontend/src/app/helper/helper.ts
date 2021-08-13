@@ -81,7 +81,7 @@ export abstract class Helper {
     if (createProperty || config.field in targetObject) {
       if (config.referencedDataObject) {
         targetObject[config.field] = this.getReferencedDataObject(config, config.field);
-      } else  if (config.dataType === DataType.Numeric && config.inputType === InputType.Select
+      } else if (config.dataType === DataType.Numeric && config.inputType === InputType.Select
         && !Helper.hasValue(config.formControl.value)) {
         targetObject[config.field] = null;
       } else if (config.dataType === DataType.Numeric) {

@@ -1,5 +1,5 @@
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
-import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {UserAdminService} from '../service/user.admin.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {DialogService} from 'primeng/dynamicdialog';
@@ -57,7 +57,8 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
               </a>
             </td>
 
-            <td *ngFor="let field of fields"  [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric  || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+            <td *ngFor="let field of fields"
+                [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric  || field.dataType===DataType.NumericInteger)? 'text-right': ''">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'check'">
                   <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
@@ -133,14 +134,12 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(AppSettings.USER, userAdminService, confirmationService, messageToastService, activePanelService, dialogService,
-      changeDetectionStrategy, filterService, translateService, gps, usersettingsService,
-      [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
+      filterService, translateService, gps, usersettingsService, [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);
 
     this.addColumn(DataType.NumericInteger, 'idUser', 'ID', true, false, {width: 60});
@@ -193,18 +192,6 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.activePanelService.destroyPanel(this);
   }
 
-  protected readData(): void {
-    this.userAdminService.getAllUsers().subscribe(users => {
-      this.createTranslatedValueStoreAndFilterField(users);
-      this.entityList = users;
-      this.refreshSelectedEntity();
-    });
-  }
-
-  protected prepareCallParm(entity: User) {
-    this.callParam = entity;
-  }
-
   onComponentClick(event): void {
     if (!event[this.consumedGT]) {
       this.resetMenu(this.selectedEntity);
@@ -253,7 +240,6 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     }
   }
 
-
   resetMenu(user: User): void {
     this.selectedEntity = user;
     if (this.selectedEntity) {
@@ -269,6 +255,18 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
       this.contextMenuItems = null;
     }
     this.activePanelService.activatePanel(this, {editMenu: this.contextMenuItems});
+  }
+
+  protected readData(): void {
+    this.userAdminService.getAllUsers().subscribe(users => {
+      this.createTranslatedValueStoreAndFilterField(users);
+      this.entityList = users;
+      this.refreshSelectedEntity();
+    });
+  }
+
+  protected prepareCallParm(entity: User) {
+    this.callParam = entity;
   }
 
 }

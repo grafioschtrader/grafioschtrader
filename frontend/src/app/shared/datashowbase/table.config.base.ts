@@ -1,6 +1,5 @@
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../app.settings';
-import {ChangeDetectorRef} from '@angular/core';
 import {FilterService, MenuItem, SelectItem, SortEvent, SortMeta} from 'primeng/api';
 import {UserSettingsService} from '../service/user.settings.service';
 import {Helper} from '../../helper/helper';
@@ -17,7 +16,7 @@ import {TableTreetableTotalBase} from './table.treetable.total.base';
 export abstract class TableConfigBase extends TableTreetableTotalBase {
   FilterType: typeof FilterType = FilterType;
 
-  formLocale:  string;
+  formLocale: string;
   // Used when an component click event is consumed by the child and the parent should ignored it.
   readonly consumedGT = 'consumedGT';
 
@@ -31,8 +30,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   multiSortMeta: SortMeta[] = [];
   private visibleRestore: boolean[] = [];
 
-  protected constructor(protected changeDetectionStrategy: ChangeDetectorRef,
-                        protected filterService: FilterService,
+  protected constructor(protected filterService: FilterService,
                         protected usersettingsService: UserSettingsService,
                         translateService: TranslateService,
                         gps: GlobalparameterService) {
@@ -44,9 +42,22 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     return this.fields.filter(field => field.visible).length;
   }
 
-
   ////////////////////////////////////////////////////////////////////
   // Read and write table definition in persistence
+
+  get groupFields(): ColumnConfig[] {
+    const groupFields: ColumnConfig[] = [];
+    for (let i = 0; i < this.fields.length; i++) {
+      groupFields.push(this.fields[i]);
+      if (this.fields[i].columnGroupConfigs && this.fields[i].columnGroupConfigs[0].colspan) {
+        const nextUsedGroupColumn = this.getNextUsedGroupColumnIndex(i + 1);
+        const newI = Math.min(i + this.fields[i].columnGroupConfigs[0].colspan, nextUsedGroupColumn);
+        this.fields[i].columnGroupConfigs[0].colspan = newI - i;
+        i = newI - 1;
+      }
+    }
+    return groupFields;
+  }
 
   prepareTableAndTranslate(): void {
     this.hasFilter = this.fields.filter(field => field.filterType).length > 0;
@@ -57,6 +68,10 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   ////////////////////////////////////////////////////////////////////
+  // Filter Table
+  ////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////
   writeTableDefinition(key: string) {
     const visibleColumns: any[] = [];
     this.fields.forEach(field => {
@@ -64,44 +79,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       }
     );
     this.usersettingsService.saveArray(key, visibleColumns);
-  }
-
-  ////////////////////////////////////////////////////////////////////
-  // Filter Table
-  ////////////////////////////////////////////////////////////////////
-
-  private registerFilter(): void {
-
-    const filters: FilterFN[] = [{name: 'gtNoFilter', fn: null},
-      {name: 'gtIS', fn: this.isEqual.bind(this)},
-      {name: 'gtSameOrBefore', fn: this.sameOrBefore.bind(this)},
-      {name: 'gtSameAfter', fn: this.sameOrAfter.bind(this)},
-    ];
-
-    this.customSearchNames = filters.map(v => v.name);
-    this.translateService.get('GT_FILTER').subscribe(tr => filters.forEach(f =>
-      this.customMatchModeOptions.push({value: f.name, label: tr[f.name]})));
-
-    filters.forEach(f => {
-      this.filterService.register(f.name, (value, filter): boolean => {
-        if (filter === undefined || filter === null || f.fn === null) {
-          return true;
-        }
-        return f.fn(value, filter);
-      });
-    });
-  }
-
-  private sameOrBefore(value, filter): boolean {
-    return moment(value).isSameOrBefore(filter, 'day');
-  }
-
-  private sameOrAfter(value, filter): boolean {
-    return moment(value).isSameOrAfter(filter, 'day');
-  }
-
-  private isEqual(value, filter): boolean {
-    return moment(value).isSame(filter, 'day');
   }
 
   readTableDefinition(key: string): void {
@@ -197,33 +174,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     columnConfig.width = event.element.style.width;
   }
 
-  get groupFields(): ColumnConfig[] {
-    const groupFields: ColumnConfig[] = [];
-    for (let i = 0; i < this.fields.length; i++) {
-      groupFields.push(this.fields[i]);
-      if (this.fields[i].columnGroupConfigs && this.fields[i].columnGroupConfigs[0].colspan) {
-        const nextUsedGroupColumn = this.getNextUsedGroupColumnIndex(i + 1);
-        const newI = Math.min(i + this.fields[i].columnGroupConfigs[0].colspan, nextUsedGroupColumn);
-        this.fields[i].columnGroupConfigs[0].colspan = newI - i;
-        i = newI - 1;
-      }
-    }
-    return groupFields;
-  }
-
-  private getNextUsedGroupColumnIndex(startIndex: number): number {
-    for (let i = startIndex; i < this.fields.length; i++) {
-      if (this.fields[i].columnGroupConfigs) {
-        return i;
-      }
-    }
-    return this.fields.length - 1;
-  }
-
   getStyle(field: ColumnConfig): any {
     return (field.width) ? {'width': field.width + 'px'} : {};
   }
-
 
   /**
    *
@@ -271,7 +224,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     });
   }
 
-
   getColumnsShow(): MenuItem[] {
     const columnsMenuItems: MenuItem[] = [];
     this.fields.forEach(field => {
@@ -300,6 +252,49 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   getMenuShowOptions(): MenuItem[] {
     const items = this.getColumnsShow();
     return items.length > 0 ? [{label: 'ON_OFF_COLUMNS', items: items}] : null;
+  }
+
+  private registerFilter(): void {
+
+    const filters: FilterFN[] = [{name: 'gtNoFilter', fn: null},
+      {name: 'gtIS', fn: this.isEqual.bind(this)},
+      {name: 'gtSameOrBefore', fn: this.sameOrBefore.bind(this)},
+      {name: 'gtSameAfter', fn: this.sameOrAfter.bind(this)},
+    ];
+
+    this.customSearchNames = filters.map(v => v.name);
+    this.translateService.get('GT_FILTER').subscribe(tr => filters.forEach(f =>
+      this.customMatchModeOptions.push({value: f.name, label: tr[f.name]})));
+
+    filters.forEach(f => {
+      this.filterService.register(f.name, (value, filter): boolean => {
+        if (filter === undefined || filter === null || f.fn === null) {
+          return true;
+        }
+        return f.fn(value, filter);
+      });
+    });
+  }
+
+  private sameOrBefore(value, filter): boolean {
+    return moment(value).isSameOrBefore(filter, 'day');
+  }
+
+  private sameOrAfter(value, filter): boolean {
+    return moment(value).isSameOrAfter(filter, 'day');
+  }
+
+  private isEqual(value, filter): boolean {
+    return moment(value).isSame(filter, 'day');
+  }
+
+  private getNextUsedGroupColumnIndex(startIndex: number): number {
+    for (let i = startIndex; i < this.fields.length; i++) {
+      if (this.fields[i].columnGroupConfigs) {
+        return i;
+      }
+    }
+    return this.fields.length - 1;
   }
 
 }

@@ -21,15 +21,15 @@ export class HistoryquotePrepareEdit extends BasePrepareEdit implements PrepareC
     combineLatest(cpObservable, securityObservable).subscribe((data: any[]) => {
       const historyquote = new Historyquote();
       Object.assign(historyquote, entity);
-/*
-      if(data[0]) {
-        // const currencypair = new Currencypair();
-        entityMapping.callParam = new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Currencypair(), data[0]));
-      } else {
-        const security = new Security();
-        entityMapping.callParam = new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Security(), data[1]));
-      }
- */
+      /*
+            if(data[0]) {
+              // const currencypair = new Currencypair();
+              entityMapping.callParam = new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Currencypair(), data[0]));
+            } else {
+              const security = new Security();
+              entityMapping.callParam = new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Security(), data[1]));
+            }
+       */
       entityMapping.callParam = data[0] ? new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Currencypair(), data[0])) :
         new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Security(), data[1]));
       entityMapping.visibleDialog = true;

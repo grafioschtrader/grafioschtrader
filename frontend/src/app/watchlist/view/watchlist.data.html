@@ -1,20 +1,20 @@
-<div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
-     #cmDiv [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-  <p-table [columns]="fields" [value]="securityPositionList" [selectionMode]="selectMultiMode"
-           styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
-           [loading]="loading" loadingIcon="fa fa-circle-o-notch fa-5x"
-           [(selection)]="singleMultiSelection" dataKey="securitycurrency.idSecuritycurrency"
-           [responsive]="true" (onColResize)="onColResize($event)" [resizableColumns]="true"
-           (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta">
+<div #cmDiv (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
+     [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}" class="data-container">
+  <p-table (onColResize)="onColResize($event)" (sortFunction)="customSort($event)" [(selection)]="singleMultiSelection"
+           [columns]="fields"
+           [customSort]="true" [loading]="loading"
+           [multiSortMeta]="multiSortMeta" [resizableColumns]="true"
+           [responsive]="true" [selectionMode]="selectMultiMode" [value]="securityPositionList"
+           dataKey="securitycurrency.idSecuritycurrency" loadingIcon="fa fa-circle-o-notch fa-5x" sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
     <ng-template pTemplate="caption">
       <h4>{{'WATCHLIST' | translate}}: "{{watchlist.name}}" {{securitycurrencyGroup?.lastTimestamp
         | date: 'HH:mm dd.MM.yy'}}</h4>
     </ng-template>
 
-    <ng-template pTemplate="header" let-fields>
+    <ng-template let-fields pTemplate="header">
       <tr>
         <th style="width:24px"></th>
-        <th style="width: 2.25em" *ngIf="selectMultiMode === 'multiple'">
+        <th *ngIf="selectMultiMode === 'multiple'" style="width: 2.25em">
           <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
         </th>
         <ng-container *ngFor="let field of fields">
@@ -28,11 +28,11 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="body" let-spl let-expanded="expanded" let-columns="fields">
+    <ng-template let-columns="fields" let-expanded="expanded" let-spl pTemplate="body">
       <tr [pSelectableRow]="spl">
         <td style="width:24px">
-          <a *ngIf="spl.watchlistSecurityHasEver || watchlistType == WatchListType.PRICE_FEED" href="#"
-             [pRowToggler]="spl">
+          <a *ngIf="spl.watchlistSecurityHasEver || watchlistType == WatchListType.PRICE_FEED" [pRowToggler]="spl"
+             href="#">
             <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
           </a>
         </td>
@@ -41,12 +41,12 @@
         </td>
 
         <ng-container *ngFor="let field of fields">
-          <td *ngIf="field.visible" [style.width.px]="field.width"
-              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
+          <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+              [style.width.px]="field.width">
             <ng-container [ngSwitch]="field.templateName">
               <ng-container *ngSwitchCase="'owner'">
-                <span [style]='isNotSingleModeAndOwner(field, spl.securitycurrency)? "font-weight:500": null'
-                      [pTooltip]="getValueByPath(spl, field)" tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
+                <span [pTooltip]="getValueByPath(spl, field)"
+                      [style]='isNotSingleModeAndOwner(field, spl.securitycurrency)? "font-weight:500": null' tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
               </ng-container>
               <ng-container *ngSwitchCase="'greenRed'">
                 <span [style.color]='isValueByPathMinus(spl, field)? "red": "green"'>{{getValueByPath(spl, field)}}</span>
@@ -55,8 +55,8 @@
                 <span><i [ngClass]="{'fa fa-check': getValueByPath(spl, field)}" aria-hidden="true"></i></span>
               </ng-container>
               <ng-container *ngSwitchCase="'icon'">
-                <svg-icon draggable="true" (dragstart)="dragStart($event, spl)" (dragend)="dragEnd($event, spl)" class="cell-move"
-                          [name]="getValueByPath(spl, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                <svg-icon (dragend)="dragEnd($event, spl)" (dragstart)="dragStart($event, spl)" [name]="getValueByPath(spl, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"
+                          class="cell-move" draggable="true"></svg-icon>
               </ng-container>
               <ng-container *ngSwitchDefault>
                 <span [pTooltip]="getValueByPath(spl, field)" tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
@@ -67,26 +67,26 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="rowexpansion" let-spl let-columns="fields">
+    <ng-template let-columns="fields" let-spl pTemplate="rowexpansion">
       <tr *ngIf="spl.watchlistSecurityHasEver || watchlistType != WatchListType.PERFORMANCE">
         <td [attr.colspan]="numberOfVisibleColumns + 1">
-          <transaction-security-table *ngIf="watchlistType === WatchListType.PERFORMANCE && !isMarginProduct(spl)"
+          <transaction-security-table (dateChanged)="handleCloseTransactionDialog($event)"
+                                      *ngIf="watchlistType === WatchListType.PERFORMANCE && !isMarginProduct(spl)"
                                       [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency"
-                                      [idTenant]="idTenant"
-                                      (dateChanged)="handleCloseTransactionDialog($event)">
+                                      [idTenant]="idTenant">
           </transaction-security-table>
 
-          <transaction-security-margin-treetable *ngIf="watchlistType === WatchListType.PERFORMANCE && isMarginProduct(spl)"
+          <transaction-security-margin-treetable (dateChanged)="handleCloseTransactionDialog($event)"
+                                                 *ngIf="watchlistType === WatchListType.PERFORMANCE && isMarginProduct(spl)"
                                                  [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency"
-                                                 [idTenant]="idTenant"
-                                                 (dateChanged)="handleCloseTransactionDialog($event)">
+                                                 [idTenant]="idTenant">
           </transaction-security-margin-treetable>
 
           <securitycurrency-extended-info *ngIf="watchlistType === WatchListType.PRICE_FEED"
-                                          [securitycurrency]="spl.securitycurrency"
-                                          [intradayUrl]="spl.intradayUrl"
+                                          [dividendUrl]="spl.dividendUrl"
                                           [historicalUrl]="spl.historicalUrl"
-                                          [dividendUrl]="spl.dividendUrl">
+                                          [intradayUrl]="spl.intradayUrl"
+                                          [securitycurrency]="spl.securitycurrency">
           </securitycurrency-extended-info>
 
           <div *ngIf="watchlistType === WatchListType.DIVIDEND_SPLIT_FEDED">
@@ -100,38 +100,38 @@
     </ng-template>
   </p-table>
 
-  <p-contextMenu *ngIf="contextMenuItems && isActivated()" #contextMenu [target]="cmDiv" [model]="contextMenuItems"
+  <p-contextMenu #contextMenu *ngIf="contextMenuItems && isActivated()" [model]="contextMenuItems" [target]="cmDiv"
                  appendTo="body"></p-contextMenu>
 
 </div>
 
-<transaction-security-edit *ngIf="visibleSecurityTransactionDialog"
-                           [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
+<transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
+                           *ngIf="visibleSecurityTransactionDialog"
                            [transactionCallParam]="transactionCallParam"
-                           (closeDialog)="handleCloseTransactionDialog($event)">
+                           [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
 </transaction-security-edit>
 
-<watchlist-add-instrument *ngIf="visibleAddInstrumentDialog" [idWatchlist]="idWatchlist"
+<watchlist-add-instrument (closeDialog)="handleCloseAddInstrumentDialog($event)" *ngIf="visibleAddInstrumentDialog"
+                          [idWatchlist]="idWatchlist"
                           [tenantLimits]="tenantLimits"
-                          [visibleAddInstrumentDialog]="visibleAddInstrumentDialog"
-                          (closeDialog)="handleCloseAddInstrumentDialog($event)">
+                          [visibleAddInstrumentDialog]="visibleAddInstrumentDialog">
 </watchlist-add-instrument>
 
-<currencypair-edit *ngIf="visibleEditCurrencypairDialog"
-                   [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog"
+<currencypair-edit (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
+                   *ngIf="visibleEditCurrencypairDialog"
                    [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-                   (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)">
+                   [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog">
 </currencypair-edit>
 
-<security-edit *ngIf="visibleEditSecurityDialog"
-               [visibleEditSecurityDialog]="visibleEditSecurityDialog"
+<security-edit (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
+               *ngIf="visibleEditSecurityDialog"
                [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-               (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)">
+               [visibleEditSecurityDialog]="visibleEditSecurityDialog">
 </security-edit>
 
-<security-derived-edit *ngIf="visibleEditSecurityDerivedDialog"
-                       [visibleDialog]="visibleEditSecurityDerivedDialog"
+<security-derived-edit (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
+                       *ngIf="visibleEditSecurityDerivedDialog"
                        [securityCallParam]="securityCallParam"
-                       (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)">
+                       [visibleDialog]="visibleEditSecurityDerivedDialog">
 </security-derived-edit>
 

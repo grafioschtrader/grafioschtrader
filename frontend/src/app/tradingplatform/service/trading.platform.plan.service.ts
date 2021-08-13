@@ -10,7 +10,6 @@ import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
-import {TranslateService} from '@ngx-translate/core';
 
 
 @Injectable()
@@ -22,7 +21,7 @@ export class TradingPlatformPlanService extends AuthServiceWithLogout<TradingPla
   }
 
   public getAllTradingPlatform(): Observable<TradingPlatformPlan[]> {
-    return <Observable<TradingPlatformPlan[]>> this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/`,
+    return <Observable<TradingPlatformPlan[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

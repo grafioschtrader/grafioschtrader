@@ -10,7 +10,6 @@ import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {TranslateService} from '@ngx-translate/core';
 
 
 @Injectable()

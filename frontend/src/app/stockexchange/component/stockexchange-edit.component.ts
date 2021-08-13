@@ -21,7 +21,6 @@ import {SpecialInvestmentInstruments} from '../../shared/types/special.investmen
 import {combineLatest} from 'rxjs';
 import {Observable} from 'rxjs/internal/Observable';
 import {Security} from '../../entities/security';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import * as moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
@@ -62,7 +61,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldInputStringHeqF('name',  32, true, {minLength: 2}),
+      DynamicFieldHelper.createFieldInputStringHeqF('name', 32, true, {minLength: 2}),
       DynamicFieldHelper.createFieldSelectStringHeqF('countryCode', true),
       DynamicFieldHelper.createFieldInputStringHeqF('symbol', 8, true, {minLength: 3}),
       DynamicFieldHelper.createFieldCheckboxHeqF('secondaryMarket', {defaultValue: true}),
@@ -100,6 +99,12 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     });
   }
 
+  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Stockexchange {
+    const stockexchange: Stockexchange = new Stockexchange();
+    this.copyFormToPublicBusinessObject(stockexchange, this.callParam.stockexchange, this.proposeChangeEntityWithEntity);
+    return stockexchange;
+  }
+
   private getSecurityObservable(): Observable<Security[]> {
     const securitycurrencySearch = new SecuritycurrencySearch();
     securitycurrencySearch.assetclassType = AssetclassType[AssetclassType.EQUITIES];
@@ -107,13 +112,6 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     securitycurrencySearch.activeDate = moment().format(AppSettings.FORMAT_DATE_SHORT_US);
     securitycurrencySearch.stockexchangeCounrtyCode = this.callParam.stockexchange.countryCode;
     return this.securityService.searchByCriteria(securitycurrencySearch);
-  }
-
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Stockexchange {
-    const stockexchange: Stockexchange = new Stockexchange();
-    this.copyFormToPublicBusinessObject(stockexchange, this.callParam.stockexchange, this.proposeChangeEntityWithEntity);
-    return stockexchange;
   }
 
 }

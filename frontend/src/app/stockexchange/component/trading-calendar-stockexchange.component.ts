@@ -88,40 +88,6 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
     });
   }
 
-
-  private markDays(tradingDaysMinus: Date[], createTypes: CreateType[]): void {
-    this.dateCreateTypes = tradingDaysMinus.reduce((result, date, index) => {
-      result[this.getZeroTimeDate(date).getTime()] = createTypes[index];
-      return result;
-    }, {});
-
-    this.markWorkingDaysOfFullYear();
-    this.markGlobalTradingDay();
-    this.markOnOffSingleDays(tradingDaysMinus);
-  }
-
-  /**
-   * Prepare mark ever day of year but saturday and sunday
-   */
-  private markWorkingDaysOfFullYear(): void {
-    const startDate = new Date(this.yearCalendarData.year, 0, 1);
-    startDate.setHours(0, 0, 0, 0);
-    const toDate = new Date(this.yearCalendarData.year, 11, 31);
-    toDate.setHours(0, 0, 0, 0);
-    while (startDate <= toDate) {
-      const weekDay = startDate.getDay();
-      if (weekDay !== 0 && weekDay !== 6) {
-        this.globalTradingMinusDaysSet.add(startDate.getTime());
-      }
-      startDate.setDate(startDate.getDate() + 1);
-    }
-  }
-
-  protected getExistingColor(date: Date): string {
-    return this.dateCreateTypes[date.getTime()] === CreateType.ADD_MODIFIED_USER ?
-      TradingCalendarStockexchangeComponent.USER_CREATED_COLOR : TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR;
-  }
-
   markGlobalTradingDay(): void {
     this.yearCalendarData.dates = [];
     this.tradingDaysPlusList.forEach((tradingDaysPlus, i) => {
@@ -208,5 +174,38 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
 
   public hasRightsToModify(): boolean {
     return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, this.stockexchange);
+  }
+
+  protected getExistingColor(date: Date): string {
+    return this.dateCreateTypes[date.getTime()] === CreateType.ADD_MODIFIED_USER ?
+      TradingCalendarStockexchangeComponent.USER_CREATED_COLOR : TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR;
+  }
+
+  private markDays(tradingDaysMinus: Date[], createTypes: CreateType[]): void {
+    this.dateCreateTypes = tradingDaysMinus.reduce((result, date, index) => {
+      result[this.getZeroTimeDate(date).getTime()] = createTypes[index];
+      return result;
+    }, {});
+
+    this.markWorkingDaysOfFullYear();
+    this.markGlobalTradingDay();
+    this.markOnOffSingleDays(tradingDaysMinus);
+  }
+
+  /**
+   * Prepare mark ever day of year but saturday and sunday
+   */
+  private markWorkingDaysOfFullYear(): void {
+    const startDate = new Date(this.yearCalendarData.year, 0, 1);
+    startDate.setHours(0, 0, 0, 0);
+    const toDate = new Date(this.yearCalendarData.year, 11, 31);
+    toDate.setHours(0, 0, 0, 0);
+    while (startDate <= toDate) {
+      const weekDay = startDate.getDay();
+      if (weekDay !== 0 && weekDay !== 6) {
+        this.globalTradingMinusDaysSet.add(startDate.getTime());
+      }
+      startDate.setDate(startDate.getDate() + 1);
+    }
   }
 }

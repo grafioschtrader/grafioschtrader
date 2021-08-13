@@ -44,12 +44,8 @@ import {AppSettings} from '../../shared/app.settings';
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
   public static readonly SINGLE = 'single';
   public static readonly MULTIPLE = 'multiple';
-
-  @ViewChild('contextMenu') protected contextMenu: any;
-
   WatchListType: typeof WatchListType = WatchListType;
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
-
   securitycurrencyGroup: SecuritycurrencyGroup;
   securityPositionList: SecuritycurrencyPosition<Security | Currencypair>[];
   // For child transaction dialogs
@@ -72,12 +68,10 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   contextMenuItems: MenuItem[] = [];
   timeFrames: TimeFrame[] = [];
   choosenTimeFrame: TimeFrame;
-
   tenantLimits: TenantLimit[];
-
   singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[];
   selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>;
-
+  @ViewChild('contextMenu') protected contextMenu: any;
   private routeSubscribe: Subscription;
   private subscriptionWatchlistAdded: Subscription;
 
@@ -93,13 +87,13 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
               protected confirmationService: ConfirmationService,
               protected messageToastService: MessageToastService,
               protected productIconService: ProductIconService,
-              changeDetectionStrategy: ChangeDetectorRef,
+              protected changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService,
               public selectMultiMode: string) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     if (selectMultiMode === WatchlistTable.MULTIPLE) {
       this.singleMultiSelection = [];
     }
@@ -121,25 +115,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     });
 
     this.translateFormulaToUserLanguage();
-    // this.changeDetectionStrategy.markForCheck();
-  }
-
-  protected addBaseColumns(): void {
-    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
-      {width: 200, templateName: AppSettings.OWNER_TEMPLATE});
-    this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
-      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.isin', true, true, {width: 90});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol', true, true);
-    this.addColumnFeqH(DataType.String, 'securitycurrency.currency', true, true);
-  }
-
-  private translateFormulaToUserLanguage(): void {
-    if (this.gps.getDecimalSymbol() !== '.') {
-      this.securitycurrencyGroup.securityPositionList.filter(sp => sp.securitycurrency.formulaPrices)
-        .map(sp => sp.securitycurrency.formulaPrices = sp.securitycurrency.formulaPrices.split('.')
-          .join(this.gps.getDecimalSymbol()));
-    }
   }
 
   getInstrumentIcon(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig,
@@ -159,7 +134,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   addExistingSecurity(event) {
     this.visibleAddInstrumentDialog = true;
-    // this.changeDetectionStrategy.markForCheck();
   }
 
   removeInstrument(securityCurrency: Security | Currencypair) {
@@ -206,7 +180,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   modifyOrCreateAndAddSecurity(security: Security): void {
     this.securityCurrencypairCallParam = security;
     this.visibleEditSecurityDialog = true;
-    // this.changeDetectionStrategy.markForCheck();
   }
 
   modifyOrCreateAndAddSecurityDerived(security: Security): void {
@@ -217,7 +190,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   modifyOrCreateAndAddCurrencypair(securityCurrency: Securitycurrency): void {
     this.securityCurrencypairCallParam = securityCurrency;
     this.visibleEditCurrencypairDialog = true;
-    // this.changeDetectionStrategy.markForCheck();
   }
 
   handleTransaction(transactionType: TransactionType, security: Security) {
@@ -231,7 +203,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.transactionCallParam.defaultTransactionTime = activeToDate.getTime() < new Date().getTime() ? activeToDate : new Date();
 
     this.visibleSecurityTransactionDialog = true;
-    // this.changeDetectionStrategy.markForCheck();
   }
 
   /**
@@ -268,7 +239,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   callMeDeactivate(): void {
-    // this.changeDetectionStrategy.markForCheck();
   }
 
   hideContextMenu(): void {
@@ -281,9 +251,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   onRightClick(event): void {
     this.isActivated() ? this.contextMenu.show() : this.hideContextMenu();
-    // this.changeDetectionStrategy.markForCheck();
   }
-
 
   onComponentClick(event): void {
     if (!event[this.consumedGT]) {
@@ -292,13 +260,28 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
-  private getSSP(singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair>
-    | SecuritycurrencyPosition<Security | Currencypair>[]): SecuritycurrencyPosition<Security | Currencypair> {
-    if (Array.isArray(singleMultiSelection)) {
-      return singleMultiSelection.length === 1 ? singleMultiSelection[0] : null;
-    } else {
-      return singleMultiSelection as SecuritycurrencyPosition<Security | Currencypair>;
-    }
+  isMarginProduct(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): boolean {
+    return BusinessHelper.isMarginProduct(<Security>securitycurrencyPosition.securitycurrency);
+  }
+
+  dragStart(event: DragEvent, data: SecuritycurrencyPosition<Security | Currencypair>) {
+    this.changeDetectionStrategy.detach();
+    event.dataTransfer.setData('text/plain',
+      JSON.stringify(new WatchlistSecurityExists(this.watchlist.idWatchlist, data.securitycurrency.idSecuritycurrency)));
+  }
+
+  public dragEnd(event: DragEvent, item: any) {
+    this.changeDetectionStrategy.reattach();
+  }
+
+  protected addBaseColumns(): void {
+    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
+      {width: 200, templateName: AppSettings.OWNER_TEMPLATE});
+    this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
+      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
+    this.addColumnFeqH(DataType.String, 'securitycurrency.isin', true, true, {width: 90});
+    this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol', true, true);
+    this.addColumnFeqH(DataType.String, 'securitycurrency.currency', true, true);
   }
 
   protected abstract getWatchlistWithoutUpdate(): void;
@@ -385,30 +368,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
     translate && TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
-  }
-
-  private mailToCreator(securitycurrency: Securitycurrency): void {
-    const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
-      : (<Security>securitycurrency).name;
-    DynamicDialogHelper.getOpenedMailSendComponent(this.translateService, this.dialogService,
-      new MailSendParam(securitycurrency.createdBy, null, subject));
-  }
-
-
-  private handleUpdateAllPrice() {
-    if (Date.now() < +this.securitycurrencyGroup.lastTimestamp + this.intraUpdateTimoutSeconds * 1000) {
-      const minutes = this.millisToMinutesAndSeconds(+this.securitycurrencyGroup.lastTimestamp
-        + this.intraUpdateTimoutSeconds * 1000 - Date.now());
-      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'UPDATE_TIMEOUT', {time: minutes});
-    } else {
-      this.updateAllPrice();
-    }
-  }
-
-  private millisToMinutesAndSeconds(millis: number): string {
-    const minutes: number = Math.floor(millis / 60000);
-    const seconds: number = +((millis % 60000) / 1000).toFixed(0);
-    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   }
 
   protected getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
@@ -537,6 +496,46 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     return menuItems;
   }
 
+  private translateFormulaToUserLanguage(): void {
+    if (this.gps.getDecimalSymbol() !== '.') {
+      this.securitycurrencyGroup.securityPositionList.filter(sp => sp.securitycurrency.formulaPrices)
+        .map(sp => sp.securitycurrency.formulaPrices = sp.securitycurrency.formulaPrices.split('.')
+          .join(this.gps.getDecimalSymbol()));
+    }
+  }
+
+  private getSSP(singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair>
+    | SecuritycurrencyPosition<Security | Currencypair>[]): SecuritycurrencyPosition<Security | Currencypair> {
+    if (Array.isArray(singleMultiSelection)) {
+      return singleMultiSelection.length === 1 ? singleMultiSelection[0] : null;
+    } else {
+      return singleMultiSelection as SecuritycurrencyPosition<Security | Currencypair>;
+    }
+  }
+
+  private mailToCreator(securitycurrency: Securitycurrency): void {
+    const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
+      : (<Security>securitycurrency).name;
+    DynamicDialogHelper.getOpenedMailSendComponent(this.translateService, this.dialogService,
+      new MailSendParam(securitycurrency.createdBy, null, subject));
+  }
+
+  private handleUpdateAllPrice() {
+    if (Date.now() < +this.securitycurrencyGroup.lastTimestamp + this.intraUpdateTimoutSeconds * 1000) {
+      const minutes = this.millisToMinutesAndSeconds(+this.securitycurrencyGroup.lastTimestamp
+        + this.intraUpdateTimoutSeconds * 1000 - Date.now());
+      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'UPDATE_TIMEOUT', {time: minutes});
+    } else {
+      this.updateAllPrice();
+    }
+  }
+
+  private millisToMinutesAndSeconds(millis: number): string {
+    const minutes: number = Math.floor(millis / 60000);
+    const seconds: number = +((millis % 60000) / 1000).toFixed(0);
+    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+  }
+
   private getEditMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     const menuItems: MenuItem[] = this.getEditMenuItems(securitycurrencyPosition);
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
@@ -554,10 +553,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     return false;
   }
 
-  isMarginProduct(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): boolean {
-    return BusinessHelper.isMarginProduct(<Security>securitycurrencyPosition.securitycurrency);
-  }
-
   private resetMenu(selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>) {
     this.selectedSecuritycurrencyPosition = selectedSecuritycurrencyPosition;
     this.contextMenuItems = [...this.getEditMenu(selectedSecuritycurrencyPosition),
@@ -566,17 +561,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       showMenu: this.getShowMenu(selectedSecuritycurrencyPosition),
       editMenu: this.getEditMenu(selectedSecuritycurrencyPosition)
     });
-    // this.changeDetectionStrategy.markForCheck();
-  }
-
-  dragStart(event: DragEvent, data: SecuritycurrencyPosition<Security | Currencypair>) {
-    this.changeDetectionStrategy.detach();
-    event.dataTransfer.setData('text/plain',
-      JSON.stringify(new WatchlistSecurityExists(this.watchlist.idWatchlist, data.securitycurrency.idSecuritycurrency)));
-  }
-
-  public dragEnd(event: DragEvent, item: any) {
-    this.changeDetectionStrategy.reattach();
   }
 
 }

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Injectable, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Injectable, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TreeNodeType} from '../types/treeNodeType';
 import {AppSettings} from '../../app.settings';
 import {Router} from '@angular/router';
@@ -54,39 +54,30 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
    */
   lastRoute: string;
   lastId: number;
-
+  portfolioTrees: TreeNode [];
+  hasSecurityObject: { [key: number]: number } = {};
+  selectedNode: TreeNode;
+  contextMenuItems: MenuItem[];
+  // For modal dialogs
+  visibleDialogs: boolean[] = [false, false];
+  callParam: CallParam;
+  onlyCurrency = false;
+  // Otherwise enum DialogVisible can't be used in a html template
+  DialogVisible: typeof DialogVisible = DialogVisible;
+  tenantLimits: { [key: string]: TenantLimit };
+  tenant: Tenant;
   private PORTFOLIO_INDEX: number;
   private ALGO_INDEX: number;
   private WATCHLIST_INDEX: number;
   private BASEDATA_INDEX: number;
   // Admin node must be the last index
   private ADMINDATA_INDEX: number;
-
   private readonly UPDATE_TREE_PARTS = 2;
-
-  portfolioTrees: TreeNode [];
-  hasSecurityObject: { [key: number]: number } = {};
-
-  selectedNode: TreeNode;
-  contextMenuItems: MenuItem[];
-
-  // For modal dialogs
-  visibleDialogs: boolean[] = [false, false];
-  callParam: CallParam;
-
-  onlyCurrency = false;
-
-  // Otherwise enum DialogVisible can't be used in a html template
-  DialogVisible: typeof DialogVisible = DialogVisible;
-
-  tenantLimits: { [key: string]: TenantLimit };
-  tenant: Tenant;
   private subscription: Subscription;
 
   private reRoutePrevSelection = -1;
 
-  constructor(private changeDetectionStrategy: ChangeDetectorRef,
-              private dataChangedService: DataChangedService,
+  constructor(private dataChangedService: DataChangedService,
               private confirmationService: ConfirmationService,
               private activePanelService: ActivePanelService,
               private router: Router,
@@ -158,65 +149,6 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     });
   }
 
-  private useAlgo(): boolean {
-    return sessionStorage.getItem(GlobalSessionNames.USE_ALGO) === 'true';
-  }
-
-
-  ////////////////////////////////////////////////////////////////////////////////
-  // Build Tree
-
-  private addAndRefreshPortfolioToTree() {
-
-    const portfolioObservable = this.portfolioService.getPortfoliosForTenantOrderByName();
-    const teantLimitsObservalte =
-      this.globalParamService.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_SECURITY_ACCOUNT,
-        TenantLimitTypes.MAX_PORTFOLIO, TenantLimitTypes.MAX_WATCHLIST]);
-
-    combineLatest([portfolioObservable, teantLimitsObservalte]).subscribe(results => {
-
-      const tenantStringify = JSON.stringify(this.tenant);
-
-      this.setLangTrans('PORTFOLIOS', this.portfolioTrees[this.PORTFOLIO_INDEX], '-' + this.tenant.tenantName
-        + ' / ' + this.tenant.currency);
-      const portfolios = results[0];
-      this.portfolioTrees[this.PORTFOLIO_INDEX].data.entityObject = tenantStringify;
-      this.tenantLimits = results[1].reduce((ac, tl) => ({...ac, [tl.msgKey]: tl}), {});
-
-      this.portfolioTrees[this.PORTFOLIO_INDEX].children.splice(0);
-      for (const portfolio of portfolios) {
-        const treeNode = {
-          label: portfolio.name + ' / ' + portfolio.currency,
-          data: new TypeNodeData(TreeNodeType.Portfolio, this.addMainRoute(AppSettings.PORTFOLIO_TAB_MENU_KEY),
-            portfolio.idPortfolio, tenantStringify, JSON.stringify(portfolio)), expanded: true,
-          children: [this.addSecurityaccountToTree(portfolio)]
-        };
-        this.portfolioTrees[this.PORTFOLIO_INDEX].children.push(treeNode);
-      }
-      this.reRoutePrevSelection--;
-      this.selectPreviousSelection();
-    });
-  }
-
-  private addRefreshAlgoToTree(): void {
-    if (this.useAlgo()) {
-      this.algoTopService.getAlgoTopByIdTenantOrderByName().subscribe(algoTopList => {
-        this.portfolioTrees[this.ALGO_INDEX].children.splice(0);
-        for (const algoTop of algoTopList) {
-          const treeNode = {
-            label: algoTop.name,
-            icon: 'pi ' + (algoTop.activatable ? 'pi-check-circle' : 'pi-question'),
-            data: new TypeNodeData(TreeNodeType.Strategy, this.addMainRoute(AppSettings.ALGO_TOP_KEY),
-              algoTop.idAlgoAssetclassSecurity, null, JSON.stringify(algoTop))
-          };
-          this.portfolioTrees[this.ALGO_INDEX].children.push(treeNode);
-          this.reRoutePrevSelection--;
-          this.selectPreviousSelection();
-        }
-      });
-    }
-  }
-
   addAndRefreshWatchlistToTree(): void {
     combineLatest([this.watchlistService.getWatchlistsByIdTenant(),
       this.watchlistService.watchlistsOfTenantHasSecurity()])
@@ -237,6 +169,10 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         this.selectPreviousSelection();
       });
   }
+
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Build Tree
 
   addBaseData(): void {
     this.portfolioTrees[this.BASEDATA_INDEX].children =
@@ -299,7 +235,6 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     }
     this.setLangTransNode(this.portfolioTrees[this.ADMINDATA_INDEX]);
   }
-
 
   addSecurityaccountToTree(portfolio: Portfolio): TreeNode {
     const portfolioJson = JSON.stringify(portfolio);
@@ -398,7 +333,6 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         });
       });
   }
-
 
   handleDeleteWatchlist(treeNode: TreeNode, idWatchlist: number) {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
@@ -515,18 +449,9 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     return (menuItems.length > 0) ? menuItems : null;
   }
 
-
-  ////////////////////////////////////////////////////////////////////////////////
-  // Events
   ////////////////////////////////////////////////////////////////////////////////
   onNodeSelect(event) {
     this.nodeSelect(event.node);
-  }
-
-  private nodeSelect(node: TreeNode) {
-    this.selectedNode = node;
-    const data: TypeNodeData = this.selectedNode.data;
-    this.navigateRoute(data);
   }
 
   onNodeContextMenuSelect(event) {
@@ -540,6 +465,10 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
+
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Events
 
   callMeDeactivate(): void {
   }
@@ -574,6 +503,99 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  onKeydown(event) {
+    // TODO Should show the content
+    if (event.key === 'Enter') {
+      console.log(event);
+    }
+  }
+
+  public dragOver(event: DragEvent, node: TreeNode) {
+    if (node.data.treeNodeType === TreeNodeType.Watchlist) {
+      event.preventDefault();
+    }
+  }
+
+  public drop(event: DragEvent, treeNode: TreeNode) {
+    event.preventDefault();
+    const wse: WatchlistSecurityExists = JSON.parse(event.dataTransfer.getData('text/plain'));
+    this.watchlistService.getAllWatchlistsWithSecurityByIdSecuritycurrency(wse.idSecuritycurrency).subscribe(existWatchlistsIds => {
+      if (existWatchlistsIds.includes(treeNode.data.id)) {
+        // Move not possible
+        this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MOVE_SECURITY_WATCHLIST_FAILED', {to: treeNode.label});
+      } else {
+        // Move is possible
+        this.watchlistService.moveSecuritycurrency(wse.idWatchlistSource, treeNode.data.id, wse.idSecuritycurrency).subscribe(success => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MOVE_SECURITY_WATCHLIST', {
+            from: this.selectedNode.label, to: treeNode.label
+          });
+          this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
+        });
+      }
+    });
+  }
+
+  private useAlgo(): boolean {
+    return sessionStorage.getItem(GlobalSessionNames.USE_ALGO) === 'true';
+  }
+
+  private addAndRefreshPortfolioToTree() {
+
+    const portfolioObservable = this.portfolioService.getPortfoliosForTenantOrderByName();
+    const teantLimitsObservalte =
+      this.globalParamService.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_SECURITY_ACCOUNT,
+        TenantLimitTypes.MAX_PORTFOLIO, TenantLimitTypes.MAX_WATCHLIST]);
+
+    combineLatest([portfolioObservable, teantLimitsObservalte]).subscribe(results => {
+
+      const tenantStringify = JSON.stringify(this.tenant);
+
+      this.setLangTrans('PORTFOLIOS', this.portfolioTrees[this.PORTFOLIO_INDEX], '-' + this.tenant.tenantName
+        + ' / ' + this.tenant.currency);
+      const portfolios = results[0];
+      this.portfolioTrees[this.PORTFOLIO_INDEX].data.entityObject = tenantStringify;
+      this.tenantLimits = results[1].reduce((ac, tl) => ({...ac, [tl.msgKey]: tl}), {});
+
+      this.portfolioTrees[this.PORTFOLIO_INDEX].children.splice(0);
+      for (const portfolio of portfolios) {
+        const treeNode = {
+          label: portfolio.name + ' / ' + portfolio.currency,
+          data: new TypeNodeData(TreeNodeType.Portfolio, this.addMainRoute(AppSettings.PORTFOLIO_TAB_MENU_KEY),
+            portfolio.idPortfolio, tenantStringify, JSON.stringify(portfolio)), expanded: true,
+          children: [this.addSecurityaccountToTree(portfolio)]
+        };
+        this.portfolioTrees[this.PORTFOLIO_INDEX].children.push(treeNode);
+      }
+      this.reRoutePrevSelection--;
+      this.selectPreviousSelection();
+    });
+  }
+
+  private addRefreshAlgoToTree(): void {
+    if (this.useAlgo()) {
+      this.algoTopService.getAlgoTopByIdTenantOrderByName().subscribe(algoTopList => {
+        this.portfolioTrees[this.ALGO_INDEX].children.splice(0);
+        for (const algoTop of algoTopList) {
+          const treeNode = {
+            label: algoTop.name,
+            icon: 'pi ' + (algoTop.activatable ? 'pi-check-circle' : 'pi-question'),
+            data: new TypeNodeData(TreeNodeType.Strategy, this.addMainRoute(AppSettings.ALGO_TOP_KEY),
+              algoTop.idAlgoAssetclassSecurity, null, JSON.stringify(algoTop))
+          };
+          this.portfolioTrees[this.ALGO_INDEX].children.push(treeNode);
+          this.reRoutePrevSelection--;
+          this.selectPreviousSelection();
+        }
+      });
+    }
+  }
+
+  private nodeSelect(node: TreeNode) {
+    this.selectedNode = node;
+    const data: TypeNodeData = this.selectedNode.data;
+    this.navigateRoute(data);
   }
 
   private refreshTreeBecauseOfParentAction(): void {
@@ -647,13 +669,6 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     }
   }
 
-  onKeydown(event) {
-    // TODO Should show the content
-    if (event.key === 'Enter') {
-      console.log(event);
-    }
-  }
-
   private clearSelection(): void {
     this.tenantService.getTenantAndPortfolio().subscribe(tenant => {
       this.tenant = tenant;
@@ -679,31 +694,6 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       }
     }
     return null;
-  }
-
-  public dragOver(event: DragEvent, node: TreeNode) {
-    if (node.data.treeNodeType === TreeNodeType.Watchlist) {
-      event.preventDefault();
-    }
-  }
-
-  public drop(event: DragEvent, treeNode: TreeNode) {
-    event.preventDefault();
-    const wse: WatchlistSecurityExists = JSON.parse(event.dataTransfer.getData('text/plain'));
-    this.watchlistService.getAllWatchlistsWithSecurityByIdSecuritycurrency(wse.idSecuritycurrency).subscribe(existWatchlistsIds => {
-      if (existWatchlistsIds.includes(treeNode.data.id)) {
-        // Move not possible
-        this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MOVE_SECURITY_WATCHLIST_FAILED', {to: treeNode.label});
-      } else {
-        // Move is possible
-        this.watchlistService.moveSecuritycurrency(wse.idWatchlistSource, treeNode.data.id, wse.idSecuritycurrency).subscribe(success => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MOVE_SECURITY_WATCHLIST', {
-            from: this.selectedNode.label, to: treeNode.label
-          });
-          this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
-        });
-      }
-    });
   }
 
 

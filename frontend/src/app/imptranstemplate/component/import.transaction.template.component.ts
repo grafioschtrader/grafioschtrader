@@ -184,6 +184,24 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
     this.refreshMenus();
   }
 
+  ngOnDestroy(): void {
+    super.destroy();
+  }
+
+  public dropped(files: NgxFileDropEntry[]) {
+    AppHelper.processDroppedFiles(files, this.messageToastService, 'tmpl', this.uploadTemplateFiles.bind(this));
+  }
+
+  /*
+    protected beforeDelete(entity: ImportTransactionPlatform): ImportTransactionPlatform {
+      const importTransactionPlatform = new ImportTransactionPlatform();
+      return Object.assign(importTransactionPlatform, entity);
+    }
+  */
+  protected prepareCallParm(entity: ImportTransactionPlatform): void {
+    this.callParam = new CallParam(null, entity);
+  }
+
   private async exportAllTemplates(itp: ImportTransactionPlatform): Promise<void> {
     const blob = await this.importTransactionTemplateService.getTemplatesByPlatformPlanAsZip(
       this.selectedEntity.idTransactionImportPlatform)
@@ -194,29 +212,14 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
     }
   }
 
-  ngOnDestroy(): void {
-    super.destroy();
-  }
-/*
-  protected beforeDelete(entity: ImportTransactionPlatform): ImportTransactionPlatform {
-    const importTransactionPlatform = new ImportTransactionPlatform();
-    return Object.assign(importTransactionPlatform, entity);
-  }
-*/
-  protected prepareCallParm(entity: ImportTransactionPlatform): void {
-    this.callParam = new CallParam(null, entity);
-  }
-
-  public dropped(files: NgxFileDropEntry[]) {
-    AppHelper.processDroppedFiles(files, this.messageToastService, 'tmpl', this.uploadTemplateFiles.bind(this));
-  }
-
   private uploadTemplateFiles(formData: FormData): void {
     this.importTransactionTemplateService.uploadImportTemplateFiles(this.selectedEntity.idTransactionImportPlatform,
       formData).subscribe((sitt: SuccessFailedImportTransactionTemplate) => {
       this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'UPLOAD_TEMPLATES_SUCCESS',
-        {successNew: sitt.successNew, successUpdated: sitt.successUpdated, notOwner:
-          sitt.notOwner, fileNameError: sitt.fileNameError, contentError: sitt.contentError});
+        {
+          successNew: sitt.successNew, successUpdated: sitt.successUpdated, notOwner:
+          sitt.notOwner, fileNameError: sitt.fileNameError, contentError: sitt.contentError
+        });
       this.setChildData(this.selectedEntity);
     });
   }

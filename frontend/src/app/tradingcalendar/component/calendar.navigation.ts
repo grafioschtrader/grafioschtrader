@@ -27,16 +27,10 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   readonly consumedGT = 'consumedGT';
   contextMenuItems: MenuItem[];
 
-  abstract getHelpContextId(): HelpIds;
-
-  abstract readData(yearChange: boolean): void;
-
-  abstract onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void;
-
   constructor(public translateService: TranslateService,
               protected gps: GlobalparameterService,
               protected activePanelService: ActivePanelService,
-              protected  markExistingColors: string[]) {
+              protected markExistingColors: string[]) {
 
     const language: string = gps.getUserLang();
 
@@ -46,6 +40,12 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     };
     this.yearCalendarData = {year: new Date().getFullYear(), disableWeekDays: [DayOfWeek.SATURDAY, DayOfWeek.SUNDAY]};
   }
+
+  abstract getHelpContextId(): HelpIds;
+
+  abstract readData(yearChange: boolean): void;
+
+  abstract onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void;
 
   setYearsBoundaries(fromYear: number, toYear: number) {
     for (let i = fromYear; i <= toYear; i++) {
@@ -95,6 +95,40 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     this.resetMenu();
   }
 
+  addRemoveDays(days: Date[]): void {
+    days.forEach(date => this.addRemoveOnOffDay(date));
+  }
+
+  /**
+   * Add or remove a day from marked days.
+   *
+   * @param date Date to be added or removed
+   */
+  addRemoveOnOffDay(date: Date): void {
+    let i = 0;
+
+    for (; i < this.yearCalendarData.dates.length; i++) {
+      if (this.yearCalendarData.dates[i].start === date && (this.markExistingColors.includes(this.yearCalendarData.dates[i].color)
+        || this.yearCalendarData.dates[i].color === this.NEW_DATE_COLOR)) {
+        break;
+      }
+    }
+    if (i < this.yearCalendarData.dates.length) {
+      // Date was marked -> it will be removed
+      this.adjustAddRemoveMap(date, false);
+      this.yearCalendarData.dates = this.yearCalendarData.dates.slice(0, i).concat(this.yearCalendarData.dates.slice(i + 1,
+        this.yearCalendarData.dates.length));
+    } else {
+      // Date was not marked -> it will be marked
+      this.adjustAddRemoveMap(date, true);
+      this.yearCalendarData.dates = [...this.yearCalendarData.dates, {
+        id: date.getTime(), start: date, end: date,
+        color: this.originalDaysMark.has(date.getTime()) ? this.getExistingColor(date) : this.NEW_DATE_COLOR,
+        select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
+      }];
+    }
+  }
+
   protected resetMenu(): void {
     this.activePanelService.activatePanel(this, {
       showMenu: this.getMenuShowOptions(),
@@ -138,40 +172,6 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
 
   protected getExistingColor(date: Date): string {
     return this.markExistingColors[0];
-  }
-
-  addRemoveDays(days: Date[]): void {
-    days.forEach(date => this.addRemoveOnOffDay(date));
-  }
-
-  /**
-   * Add or remove a day from marked days.
-   *
-   * @param date Date to be added or removed
-   */
-  addRemoveOnOffDay(date: Date): void {
-    let i = 0;
-
-    for (; i < this.yearCalendarData.dates.length; i++) {
-      if (this.yearCalendarData.dates[i].start === date && (this.markExistingColors.includes(this.yearCalendarData.dates[i].color)
-        || this.yearCalendarData.dates[i].color === this.NEW_DATE_COLOR)) {
-        break;
-      }
-    }
-    if (i < this.yearCalendarData.dates.length) {
-      // Date was marked -> it will be removed
-      this.adjustAddRemoveMap(date, false);
-      this.yearCalendarData.dates = this.yearCalendarData.dates.slice(0, i).concat(this.yearCalendarData.dates.slice(i + 1,
-        this.yearCalendarData.dates.length));
-    } else {
-      // Date was not marked -> it will be marked
-      this.adjustAddRemoveMap(date, true);
-      this.yearCalendarData.dates = [...this.yearCalendarData.dates, {
-        id: date.getTime(), start: date, end: date,
-        color: this.originalDaysMark.has(date.getTime()) ? this.getExistingColor(date) : this.NEW_DATE_COLOR,
-        select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
-      }];
-    }
   }
 
   private adjustAddRemoveMap(date: Date, addDay: boolean) {

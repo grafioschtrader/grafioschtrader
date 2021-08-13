@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 
 import {Historyquote, HistoryquoteCreateType} from '../../entities/historyquote';
 import {HistoryquoteService} from '../service/historyquote.service';
@@ -167,21 +167,12 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   firstRow: number;
 
   nameSecuritycurrency: NameSecuritycurrency;
-  protected transactionPositionList: SecurityTransactionPosition[] = [];
-
   historyquotesWithMissings: HistoryquotesWithMissings;
-  private routeSubscribe: Subscription;
   security: Security;
-
   visibleUploadFileDialog = false;
   fileUploadParam: FileUploadParam;
-
   visibleFillGapsDialog = false;
   visibleDeleteHistoryquotes = false;
-
-  private timeSeriesParams: TimeSeriesParam[];
-  private historyquoteSpecMenuItems: MenuItem[];
-
   importQuotesMenu: MenuItem = {
     label: 'IMPORT_QUOTES' + AppSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.uploadImportQuotes()
@@ -194,6 +185,10 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     label: 'DELETE_CREATE_TYPES_QUOTES' + AppSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.deleteCreateTypeQuotes()
   };
+  protected transactionPositionList: SecurityTransactionPosition[] = [];
+  private routeSubscribe: Subscription;
+  private timeSeriesParams: TimeSeriesParam[];
+  private historyquoteSpecMenuItems: MenuItem[];
 
   constructor(private iconReg: SvgIconRegistryService,
               private securitService: SecurityService,
@@ -206,12 +201,11 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               dialogService: DialogService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               gps: GlobalparameterService,
               translateService: TranslateService) {
     super(AppSettings.HISTORYQUOTE, historyquoteService, confirmationService, messageToastService, activePanelService,
-      dialogService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      dialogService, filterService, translateService, gps, usersettingsService);
 
     HistoryquoteTableComponent.registerIcons(this.iconReg);
     this.addColumnFeqH(DataType.DateString, 'date', true, false,
@@ -244,15 +238,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     }
   }
 
-  protected initialize(): void {
-    this.rowsPerPage = this.usersettingsService.readSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE) || 30;
-    this.routeSubscribe = this.activatedRoute.paramMap.subscribe(paramMap => {
-      const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
-      this.timeSeriesParams = paramObject.allParam;
-      this.readAndShowData(this.timeSeriesParams[0]);
-    });
-  }
-
   readData(): void {
     this.readAndShowData(this.timeSeriesParams[0]);
     // Changing history quotes an affect some others viewed parts
@@ -273,41 +258,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     return HistoryquoteTableComponent.createTypeIconMap[HistoryquoteCreateType[historyquote.createType]];
   }
 
-  protected prepareCallParm(entity: Historyquote) {
-    // For a new Historyquote the idSecuritycurrency is needed
-    this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency.getSecuritycurrency());
-  }
-
-  protected getId(entity: Historyquote): number {
-    return entity.idHistoryQuote;
-  }
-
-  protected beforeDelete(entity: Historyquote): Historyquote {
-    return plainToClass(Historyquote, entity);
-  }
-
-  private readAndShowData(timeSeriesParam: TimeSeriesParam): void {
-    const stsObservable = timeSeriesParam.currencySecurity
-      ? BusinessHelper.setSecurityTransactionSummary(this.securitService,
-        timeSeriesParam.idSecuritycurrency, null, null, false)
-      : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency);
-    const historyquoteObservable = this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(
-      timeSeriesParam.idSecuritycurrency, !timeSeriesParam.currencySecurity);
-
-    this.firstRow = 0;
-    combineLatest([stsObservable, historyquoteObservable]).subscribe((data: any[]) => {
-      this.nameSecuritycurrency = timeSeriesParam.currencySecurity
-        ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
-        : new CurrencypairWithTransaction(data[0]);
-      this.historyquotesWithMissings = data[1];
-      this.entityList = this.historyquotesWithMissings.historyquoteList;
-      this.security = <Security>(timeSeriesParam.currencySecurity ? this.historyquotesWithMissings.securitycurrency : null);
-      this.prepareMenu();
-      this.refreshSelectedEntity();
-      setTimeout(() => this.firstRow = this.firstRowIndexOnPage);
-    });
-  }
-
   prepareMenu(): void {
     this.historyquoteSpecMenuItems = [
       this.importQuotesMenu,
@@ -319,22 +269,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
       this.historyquoteSpecMenuItems.push(this.fillGapsMenu);
     }
     TranslateHelper.translateMenuItems(this.historyquoteSpecMenuItems, this.translateService);
-  }
-
-  /**
-   * The creation of a history quote depends on the right on the security or currency
-   */
-  protected hasRightsForCreateEntity(histroyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
-      this.nameSecuritycurrency.getSecuritycurrency());
-  }
-
-  /**
-   * The deletion of a history quote depends on the right on the security or currency
-   */
-  protected hasRightsForDeleteEntity(histroyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
-      this.nameSecuritycurrency.getSecuritycurrency());
   }
 
   uploadImportQuotes(): void {
@@ -355,13 +289,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.visibleFillGapsDialog = false;
     this.visibleDeleteHistoryquotes = false;
     this.readDataAndProposeDataChangedEvent(processedActionData);
-  }
-
-
-  private readDataAndProposeDataChangedEvent(processedActionData: ProcessedActionData): void {
-    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
-      this.readData();
-    }
   }
 
   deleteCreateTypeQuotes(): void {
@@ -392,6 +319,72 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
 
   getDateByFormat(date: string): string {
     return AppHelper.getDateByFormat(this.gps, date);
+  }
+
+  protected initialize(): void {
+    this.rowsPerPage = this.usersettingsService.readSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE) || 30;
+    this.routeSubscribe = this.activatedRoute.paramMap.subscribe(paramMap => {
+      const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
+      this.timeSeriesParams = paramObject.allParam;
+      this.readAndShowData(this.timeSeriesParams[0]);
+    });
+  }
+
+  protected prepareCallParm(entity: Historyquote) {
+    // For a new Historyquote the idSecuritycurrency is needed
+    this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency.getSecuritycurrency());
+  }
+
+  protected getId(entity: Historyquote): number {
+    return entity.idHistoryQuote;
+  }
+
+  protected beforeDelete(entity: Historyquote): Historyquote {
+    return plainToClass(Historyquote, entity);
+  }
+
+  /**
+   * The creation of a history quote depends on the right on the security or currency
+   */
+  protected hasRightsForCreateEntity(histroyquote: Historyquote): boolean {
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
+      this.nameSecuritycurrency.getSecuritycurrency());
+  }
+
+  /**
+   * The deletion of a history quote depends on the right on the security or currency
+   */
+  protected hasRightsForDeleteEntity(histroyquote: Historyquote): boolean {
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
+      this.nameSecuritycurrency.getSecuritycurrency());
+  }
+
+  private readAndShowData(timeSeriesParam: TimeSeriesParam): void {
+    const stsObservable = timeSeriesParam.currencySecurity
+      ? BusinessHelper.setSecurityTransactionSummary(this.securitService,
+        timeSeriesParam.idSecuritycurrency, null, null, false)
+      : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency);
+    const historyquoteObservable = this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(
+      timeSeriesParam.idSecuritycurrency, !timeSeriesParam.currencySecurity);
+
+    this.firstRow = 0;
+    combineLatest([stsObservable, historyquoteObservable]).subscribe((data: any[]) => {
+      this.nameSecuritycurrency = timeSeriesParam.currencySecurity
+        ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
+        : new CurrencypairWithTransaction(data[0]);
+      this.historyquotesWithMissings = data[1];
+      this.entityList = this.historyquotesWithMissings.historyquoteList;
+      this.security = <Security>(timeSeriesParam.currencySecurity ? this.historyquotesWithMissings.securitycurrency : null);
+      this.prepareMenu();
+      this.refreshSelectedEntity();
+      setTimeout(() => this.firstRow = this.firstRowIndexOnPage);
+    });
+  }
+
+  private readDataAndProposeDataChangedEvent(processedActionData: ProcessedActionData): void {
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
   }
 
 }

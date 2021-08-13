@@ -1,9 +1,8 @@
 import {WeekYear} from '../service/holding.service';
 
 
-
 export interface PerformancePeriod {
-  periodSplit: WeekYear|string;
+  periodSplit: WeekYear | string;
   firstDayTotals: PeriodHoldingAndDiff;
   lastDayTotals: PeriodHoldingAndDiff;
   difference: PeriodHoldingAndDiff;
@@ -24,7 +23,7 @@ export class PeriodWindowWithField {
 }
 
 export interface PeriodStepMissingHoliday {
-  holidayMissing: HolidayMissing|string;
+  holidayMissing: HolidayMissing | string;
 }
 
 export interface PeriodStep extends PeriodStepMissingHoliday {
@@ -38,9 +37,9 @@ export interface PeriodStep extends PeriodStepMissingHoliday {
 
 export enum HolidayMissing {
   HM_NONE = 0,
-  HM_TRADING_DAY  = 1,
-  HM_HOLIDAY  = 2,
-  HM_HISTORY_DATA_MISSING  = 3,
+  HM_TRADING_DAY = 1,
+  HM_HOLIDAY = 2,
+  HM_HISTORY_DATA_MISSING = 3,
   // Added for client only
   HM_OTHER_CELL = 4
 }

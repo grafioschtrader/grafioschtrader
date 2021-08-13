@@ -7,12 +7,12 @@ export class DividendSplit {
 }
 
 export class Dividend extends DividendSplit {
-  @Expose()idDividend?: number;
-  @Expose()  exDate = null;
-  @Expose()  payDate = null;
-  @Expose()  amount: number = null;
-  @Expose()  amountAdjusted: number = null;
-  @Expose()  currency: string = null;
+  @Expose() idDividend?: number;
+  @Expose() exDate = null;
+  @Expose() payDate = null;
+  @Expose() amount: number = null;
+  @Expose() amountAdjusted: number = null;
+  @Expose() currency: string = null;
 }
 
 export class Securitysplit extends DividendSplit {

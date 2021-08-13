@@ -1,4 +1,4 @@
-export interface SuccessfullyChanged  {
+export interface SuccessfullyChanged {
   wasChanged: boolean;
   message: string;
 }

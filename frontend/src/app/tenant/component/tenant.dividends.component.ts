@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {SecurityDividendsGrandTotal} from '../../entities/view/securitydividends/security.dividends.grand.total';
 import {ActivatedRoute} from '@angular/router';
@@ -39,12 +39,29 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   constructor(private portfolioService: PortfolioService,
               private activatedRoute: ActivatedRoute,
               private activePanelService: ActivePanelService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
+  }
+
+  get selectedSecurityAccounts(): number {
+    return this.idsAccounts.idsSecurityaccount.length === 0 ? this.securityDividendsGrandTotal.numberOfSecurityAccounts
+      : this.idsAccounts.idsSecurityaccount.length;
+  }
+
+  get selectedCashAccounts(): number {
+    return this.idsAccounts.idsCashaccount.length === 1 && this.idsAccounts.idsCashaccount[0] === -1
+      ? this.securityDividendsGrandTotal.numberOfCashAccounts : this.idsAccounts.idsCashaccount.length;
+  }
+
+  get totalSecurityAccounts(): number {
+    return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfSecurityAccounts : 0;
+  }
+
+  get totalCashAccounts(): number {
+    return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfCashAccounts : 0;
   }
 
   ngOnInit(): void {
@@ -82,16 +99,6 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     this.onComponentClick(null);
   }
 
-  private readData(): void {
-    this.portfolioService.getSecurityDividendsGrandTotalByTenant(this.idsAccounts.idsSecurityaccount,
-      this.idsAccounts.idsCashaccount).subscribe((data: SecurityDividendsGrandTotal) => {
-      this.securityDividendsGrandTotal = data;
-      this.securityDividendsYearGroup = this.securityDividendsGrandTotal.securityDividendsYearGroup;
-      this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.securityDividendsGrandTotal.mainCurrency);
-      this.prepareTableAndTranslate();
-    });
-  }
-
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
@@ -108,24 +115,6 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
 
   public getHelpContextId(): HelpIds {
     return HelpIds.HELP_PROTFOLIOS_DIVIDENDS;
-  }
-
-  get selectedSecurityAccounts(): number {
-    return this.idsAccounts.idsSecurityaccount.length === 0  ? this.securityDividendsGrandTotal.numberOfSecurityAccounts
-      : this.idsAccounts.idsSecurityaccount.length;
-  }
-
-  get selectedCashAccounts(): number {
-    return this.idsAccounts.idsCashaccount.length === 1 && this.idsAccounts.idsCashaccount[0] === -1
-      ? this.securityDividendsGrandTotal.numberOfCashAccounts : this.idsAccounts.idsCashaccount.length;
-  }
-
-  get totalSecurityAccounts(): number {
-    return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfSecurityAccounts : 0;
-  }
-
-  get totalCashAccounts(): number {
-    return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfCashAccounts : 0;
   }
 
   ngOnDestroy(): void {
@@ -158,5 +147,15 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
+  }
+
+  private readData(): void {
+    this.portfolioService.getSecurityDividendsGrandTotalByTenant(this.idsAccounts.idsSecurityaccount,
+      this.idsAccounts.idsCashaccount).subscribe((data: SecurityDividendsGrandTotal) => {
+      this.securityDividendsGrandTotal = data;
+      this.securityDividendsYearGroup = this.securityDividendsGrandTotal.securityDividendsYearGroup;
+      this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.securityDividendsGrandTotal.mainCurrency);
+      this.prepareTableAndTranslate();
+    });
   }
 }

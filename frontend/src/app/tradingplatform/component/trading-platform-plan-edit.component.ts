@@ -1,8 +1,4 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.message.rules';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {InputType} from '../../dynamic-form/models/input.type';
-import {Validators} from '@angular/forms';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';

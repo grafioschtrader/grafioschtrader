@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {TranslateService} from '@ngx-translate/core';
 import {TransactionService} from '../../transaction/service/transaction.service';
@@ -27,15 +27,13 @@ export class TenantTransactionTableComponent extends TransactionTable implements
               transactionService: TransactionService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
-      messageToastService, changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      messageToastService, filterService, translateService, gps, usersettingsService);
   }
-
 
   ngOnInit(): void {
     this.multiSortMeta.push({field: 'transactionTime', order: -1});
@@ -58,6 +56,5 @@ export class TenantTransactionTableComponent extends TransactionTable implements
 
     });
   }
-
 
 }

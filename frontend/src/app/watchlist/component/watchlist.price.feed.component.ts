@@ -28,7 +28,6 @@ import {AuditHelper} from '../../shared/helper/audit.helper';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {filter} from 'rxjs/operators';
 
 /**
  * View to check the reliability of the price data feeds. It has some special function implemented to update price data.
@@ -36,14 +35,15 @@ import {filter} from 'rxjs/operators';
 @Component({
   templateUrl: '../view/watchlist.data.html',
   styles: [`
-      :host ::ng-deep .ui-table .ui-table-thead > tr > th {
-          position: -webkit-sticky;
-          position: sticky;
-          top: 0px;
-      }
-      .cell-move {
-        cursor: move !important;
-      }
+    :host ::ng-deep .ui-table .ui-table-thead > tr > th {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0px;
+    }
+
+    .cell-move {
+      cursor: move !important;
+    }
   `],
   providers: [DialogService]
 })
@@ -113,6 +113,10 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     });
   }
 
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_WATCHLIST_PRICE_FEED;
+  }
+
   protected getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     if (this.securityPositionList && AuditHelper.hasHigherPrivileges(this.gps)) {
       const menuItems: MenuItem[] = [
@@ -137,19 +141,15 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     }
   }
 
+  protected updateAllPrice() {
+    this.loading = true;
+    this.getWatchlistWithoutUpdate();
+  }
+
   private disableUpToDateFeedDataMenu(propName: string, untilDate: Date): boolean {
     return this.securityPositionList.every(sp => sp.securitycurrency[propName] === 0
       || (!(sp.securitycurrency instanceof CurrencypairWatchlist)
         && new Date((<Security>sp.securitycurrency).activeToDate) <= (untilDate === null ? sp.youngestHistoryDate : untilDate)));
-  }
-
-  public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_WATCHLIST_PRICE_FEED;
-  }
-
-  protected updateAllPrice() {
-    this.loading = true;
-    this.getWatchlistWithoutUpdate();
   }
 
   private loadData(): void {

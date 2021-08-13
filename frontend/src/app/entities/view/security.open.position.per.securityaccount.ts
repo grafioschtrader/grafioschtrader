@@ -1,4 +1,3 @@
-import {SecurityPositionGrandSummary} from './security.position.grand.summary';
 import {SecurityaccountOpenPositionUnits} from './securityaccount.open.position.units';
 import {SecurityPositionSummary} from './security.position.summary';
 

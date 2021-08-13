@@ -2,11 +2,11 @@
   <ng-container *ngFor="let tenantLimit of tenantLimits">
     <h5>{{tenantLimit.actual}} {{tenantLimit.msgKey | translate}} {{tenantLimit.limit}}</h5>
   </ng-container>
-  <p-table [columns]="fields" [value]="securitycurrencyList" [(selection)]="selectedSecuritycurrencies"
-           dataKey="idSecuritycurrency" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20,30]"
-           sortMode="multiple" [multiSortMeta]="multiSortMeta"
+  <p-table [(selection)]="selectedSecuritycurrencies" [columns]="fields" [multiSortMeta]="multiSortMeta"
+           [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [rows]="10" [value]="securitycurrencyList"
+           dataKey="idSecuritycurrency" sortMode="multiple"
            styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-    <ng-template pTemplate="header" let-fields>
+    <ng-template let-fields pTemplate="header">
       <tr>
         <th style="width: 2.25em">
           <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
@@ -17,21 +17,21 @@
         </th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-el let-columns="fields">
+    <ng-template let-columns="fields" let-el pTemplate="body">
       <tr [pSelectableRow]="el">
         <td>
           <p-tableCheckbox [value]="el"></p-tableCheckbox>
         </td>
         <ng-container *ngFor="let field of fields">
-          <td *ngIf="field.visible" [style.width.px]="field.width"
-              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+          <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+              [style.width.px]="field.width">
             {{getValueByPath(el, field)}}
           </td>
         </ng-container>
       </tr>
     </ng-template>
-    <ng-template pTemplate="paginatorleft" let-state>
+    <ng-template let-state pTemplate="paginatorleft">
       {{selectedSecuritycurrencies.length}} {{'SELECTED_FROM' | translate}} {{securitycurrencyList.length}}
       {{"ALLOWED" | translate}}: <span *ngFor="let tenantLimit of tenantLimits"
                                        [style.color]='selectedSecuritycurrencies.length>
@@ -42,8 +42,8 @@
 </div>
 
 <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
-  <button pButton [disabled]="selectedSecuritycurrencies.length === 0 || reachedListLimits()"
-          class="btn pull-right" [label]="'ADD' | translate"
-          (click)="onClickAdd()" type="button">
+  <button (click)="onClickAdd()" [disabled]="selectedSecuritycurrencies.length === 0 || reachedListLimits()"
+          [label]="'ADD' | translate" class="btn pull-right"
+          pButton type="button">
   </button>
 </div>

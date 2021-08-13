@@ -131,19 +131,6 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
     });
   }
 
-  private addTreeNode(tn: TreeNode[], hqg: HistoryquoteQualityGroup, parentNode: TreeNode): void {
-    const treeNode: TreeNode = {
-      data: hqg,
-      children: [],
-      expanded: false,
-      leaf: hqg.childrendHqg.length === 0,
-      parent: parentNode
-    };
-    tn.push(treeNode);
-    hqg.childrendHqg.forEach((historyquoteQualityGroup: HistoryquoteQualityGroup) => this.addTreeNode(treeNode.children,
-      historyquoteQualityGroup, treeNode));
-  }
-
   groupChanged(event): void {
     this.readData(event.value);
   }
@@ -154,26 +141,6 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
 
   onComponentClick(event): void {
     this.resetMenu();
-  }
-
-  protected resetMenu(): void {
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptions(),
-      editMenu: null
-    });
-  }
-
-  protected getMenuShowOptions(): MenuItem[] {
-    if (this.securityIdWithCurrency) {
-      const menuItems: MenuItem[] = this.timeSeriesQuotesService.getMenuItems(this.securityIdWithCurrency.idSecurity,
-        this.securityIdWithCurrency.currency, false);
-      TranslateHelper.translateMenuItems(menuItems, this.translateService);
-      this.contextMenuItems = menuItems;
-      return menuItems;
-    } else {
-      this.contextMenuItems = null;
-      return null;
-    }
   }
 
   handleChangedIdSecurity(securityIdWithCurrency: SecurityIdWithCurrency): void {
@@ -197,6 +164,39 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
       this.groupTitle = event.node.parent.parent.data.name + ' / ' + event.node.parent.data.name + ' / ' + hqg.name;
       this.historyquoteQualityIds = plainToClass(HistoryquoteQualityIds, event.node.data, {excludeExtraneousValues: true});
     }
+  }
+
+  protected resetMenu(): void {
+    this.activePanelService.activatePanel(this, {
+      showMenu: this.getMenuShowOptions(),
+      editMenu: null
+    });
+  }
+
+  protected getMenuShowOptions(): MenuItem[] {
+    if (this.securityIdWithCurrency) {
+      const menuItems: MenuItem[] = this.timeSeriesQuotesService.getMenuItems(this.securityIdWithCurrency.idSecurity,
+        this.securityIdWithCurrency.currency, false);
+      TranslateHelper.translateMenuItems(menuItems, this.translateService);
+      this.contextMenuItems = menuItems;
+      return menuItems;
+    } else {
+      this.contextMenuItems = null;
+      return null;
+    }
+  }
+
+  private addTreeNode(tn: TreeNode[], hqg: HistoryquoteQualityGroup, parentNode: TreeNode): void {
+    const treeNode: TreeNode = {
+      data: hqg,
+      children: [],
+      expanded: false,
+      leaf: hqg.childrendHqg.length === 0,
+      parent: parentNode
+    };
+    tn.push(treeNode);
+    hqg.childrendHqg.forEach((historyquoteQualityGroup: HistoryquoteQualityGroup) => this.addTreeNode(treeNode.children,
+      historyquoteQualityGroup, treeNode));
   }
 
 }

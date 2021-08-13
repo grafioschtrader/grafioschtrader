@@ -133,6 +133,15 @@ export class SelectOptionsHelper {
     return valueKeyHtmlSelectOptions;
   }
 
+  public static createSelectItemForEnum(translateService: TranslateService, e: EnumI, items: SelectItem[]): void {
+    for (const n in e) {
+      if (typeof e[n] === 'number') {
+        const stringType: string = e[e[n]];
+        translateService.get(stringType).subscribe(result => items.push({value: stringType, label: result}));
+      }
+    }
+  }
+
   private static createHtmlOptionsFromEnumWithEmptyOrNot(valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[],
                                                          translateService: TranslateService, e: EnumI, allowedEnums?: any[],
                                                          deny?: boolean, disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
@@ -153,23 +162,14 @@ export class SelectOptionsHelper {
     return valueKeyHtmlSelectOptions;
   }
 
+  // Primeng SelectItem[]
+  /////////////////////////////////////////////////////////////
+
   private static translateValueKeyHtmlSelectOptions(translateService: TranslateService, key: string | number,
                                                     value: string): ValueKeyHtmlSelectOptions {
     const valueKeyHtmlSelectOptions = new ValueKeyHtmlSelectOptions(key, value);
     value !== '' && translateService.get(value).subscribe(translated => valueKeyHtmlSelectOptions.value = translated);
 
     return valueKeyHtmlSelectOptions;
-  }
-
-  // Primeng SelectItem[]
-  /////////////////////////////////////////////////////////////
-
-  public static createSelectItemForEnum(translateService: TranslateService, e: EnumI, items: SelectItem[]): void {
-    for (const n in e) {
-      if (typeof e[n] === 'number') {
-        const stringType: string = e[e[n]];
-        translateService.get(stringType).subscribe(result => items.push({value: stringType, label: result}));
-      }
-    }
   }
 }

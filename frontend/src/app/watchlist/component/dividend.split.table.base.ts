@@ -1,6 +1,5 @@
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {SvgIconRegistryService} from 'angular-svg-icon';
-import {ChangeDetectorRef} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -14,15 +13,14 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
 
   data: S[];
 
-  constructor(changeDetectionStrategy: ChangeDetectorRef,
-              filterService: FilterService,
+  constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               private iconReg: SvgIconRegistryService,
               public keyfield: string, sortField: string,
               public groupTitle: string) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
     this.multiSortMeta.push({field: sortField, order: -1});
     DividendSplitSvgCreator.registerIcons(this.iconReg);
   }

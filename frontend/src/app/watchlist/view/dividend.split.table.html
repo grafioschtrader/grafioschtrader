@@ -1,14 +1,14 @@
 <div class="datatable nestedtable">
-  <p-table [columns]="fields" [value]="data" selectionMode="single"
-           (onPage)="onPage($event)" [dataKey]="keyfield" [paginator]="true" [rows]="20"
-           sortMode="multiple" [multiSortMeta]="multiSortMeta"
-           styleClass="sticky-table p-datatable-striped p-datatable-gridlines" class="leftRight2Table">
+  <p-table (onPage)="onPage($event)" [columns]="fields" [dataKey]="keyfield"
+           [multiSortMeta]="multiSortMeta" [paginator]="true" [rows]="20" [value]="data"
+           class="leftRight2Table" selectionMode="single"
+           sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
     <ng-template pTemplate="caption">
       <div class="table-header">
         <h5>{{groupTitle | translate}}</h5>
       </div>
     </ng-template>
-    <ng-template pTemplate="header" let-fields>
+    <ng-template let-fields pTemplate="header">
       <tr>
         <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
           {{field.headerTranslated}}
@@ -16,12 +16,12 @@
         </th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-el let-columns="fields">
+    <ng-template let-columns="fields" let-el pTemplate="body">
       <tr [pSelectableRow]="el">
         <ng-container *ngFor="let field of fields">
-          <td *ngIf="field.visible" [style.width.px]="field.width"
-              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+          <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+              [style.width.px]="field.width">
             <ng-container [ngSwitch]="field.templateName">
               <ng-container *ngSwitchCase="'icon'">
                 <svg-icon [name]="getValueByPath(el, field)"

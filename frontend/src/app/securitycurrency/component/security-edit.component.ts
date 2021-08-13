@@ -139,8 +139,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.periodPrices = [
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'fromDate', true),
       DynamicFieldHelper.createFieldCurrencyNumber('price', 'CLOSE', true, 6,
-        10, false, { ...this.gps.getNumberCurrencyMask(),
-          allowZero: false}, false),
+        10, false, {
+          ...this.gps.getNumberCurrencyMask(),
+          allowZero: false
+        }, false),
       DynamicFieldHelper.createSubmitButton('APPLY')
     ];
 
@@ -174,27 +176,6 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   valueChangedOnAssetClassExtend(assetClass: Assetclass): void {
     this.enableDisableDividendSplitConnector(assetClass);
-  }
-
-  private enableDisableDividendSplitConnector(assetClass: Assetclass): void {
-    this.canHaveSplits = Security.canHaveSplitConnector(assetClass, this.securityEditSupport.hasMarketValue);
-    this.hideVisibleFeedConnectorsFields(this.securityEditSupport.connectorSplitConfig,
-      !this.canHaveSplits, null);
-    this.enableDisableDividendConnector(assetClass, this.configObject.distributionFrequency.formControl.value);
-  }
-
-  private enableDisableDividendConnector(assetClass: Assetclass, distributionFrequency: string): void {
-    this.hideVisibleFeedConnectorsFields(this.securityEditSupport.connectorDividendConfig,
-      !Security.canHaveDividendConnector(assetClass, !distributionFrequency
-        || distributionFrequency === '' ? null : DistributionFrequency[distributionFrequency],
-        this.securityEditSupport.hasMarketValue), null);
-  }
-
-  private setHasMarkedValue(idStockexchange: number): void {
-    this.securityEditSupport.hasMarketValue = !!idStockexchange
-      && !(<Stockexchange[]>this.configObject.stockexchange.referencedDataObject)
-        .find((stockexchange: Stockexchange) =>
-          stockexchange.idStockexchange === +idStockexchange).noMarketValue;
   }
 
   addSplit(value: { [name: string]: any }): void {
@@ -328,14 +309,35 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       });
   }
 
-  private disableEnableInputForExisting(disable: boolean): void {
-    FormHelper.disableEnableFieldConfigsWhenAlreadySet(disable, [this.configObject.isin, this.configObject.currency]);
-  }
-
   protected prepareSplitDividendConnector(feedConnectors: IFeedConnector[]): void {
     this.splitDividendCreateValueKeyHtmlSelectOptions(this.configObject.idConnectorSplit, FeedSupport.SPLIT);
     this.splitDividendCreateValueKeyHtmlSelectOptions(this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND],
       FeedSupport.DIVIDEND);
+  }
+
+  private enableDisableDividendSplitConnector(assetClass: Assetclass): void {
+    this.canHaveSplits = Security.canHaveSplitConnector(assetClass, this.securityEditSupport.hasMarketValue);
+    this.hideVisibleFeedConnectorsFields(this.securityEditSupport.connectorSplitConfig,
+      !this.canHaveSplits, null);
+    this.enableDisableDividendConnector(assetClass, this.configObject.distributionFrequency.formControl.value);
+  }
+
+  private enableDisableDividendConnector(assetClass: Assetclass, distributionFrequency: string): void {
+    this.hideVisibleFeedConnectorsFields(this.securityEditSupport.connectorDividendConfig,
+      !Security.canHaveDividendConnector(assetClass, !distributionFrequency
+        || distributionFrequency === '' ? null : DistributionFrequency[distributionFrequency],
+        this.securityEditSupport.hasMarketValue), null);
+  }
+
+  private setHasMarkedValue(idStockexchange: number): void {
+    this.securityEditSupport.hasMarketValue = !!idStockexchange
+      && !(<Stockexchange[]>this.configObject.stockexchange.referencedDataObject)
+        .find((stockexchange: Stockexchange) =>
+          stockexchange.idStockexchange === +idStockexchange).noMarketValue;
+  }
+
+  private disableEnableInputForExisting(disable: boolean): void {
+    FormHelper.disableEnableFieldConfigsWhenAlreadySet(disable, [this.configObject.isin, this.configObject.currency]);
   }
 
   private splitDividendCreateValueKeyHtmlSelectOptions(fieldConfig: FieldConfig, filterType: FeedSupport): void {

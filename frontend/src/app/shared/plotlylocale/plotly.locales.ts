@@ -1,12 +1,9 @@
-
 import localeDE_CH from 'plotly.js-locales/de-ch';
 import localeFR from 'plotly.js-locales/fr';
 import {GlobalparameterService} from '../service/globalparameter.service';
 
 
-
 export class PlotlyLocales {
-
 
 
   public static readonly PLOTY_LOCALES = [

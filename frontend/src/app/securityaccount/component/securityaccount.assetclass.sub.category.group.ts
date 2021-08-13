@@ -3,7 +3,6 @@ import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {Security} from '../../entities/security';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {Assetclass} from '../../entities/assetclass';
 
 /**
  * Group by sub category of asset class

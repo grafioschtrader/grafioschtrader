@@ -51,15 +51,6 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
-    combineLatest([this.gps.getSupportedLocales(), this.loginService.getNicknameLocale()])
-      .subscribe(data => {
-        this.configObject.localeStr.valueKeyHtmlOptions = data[0];
-        this.form.transferBusinessObjectToForm(data[1]);
-        this.configObject.nickname.elementRef.nativeElement.focus();
-      });
-  }
-
   submit(value: { [name: string]: any }): void {
     const userOwnProjection = new UserOwnProjection();
     this.form.cleanMaskAndTransferValuesToBusinessObject(userOwnProjection);
@@ -72,6 +63,15 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
 
   onHide(event) {
     this.mainDialogService.visibleDialog(false, UserSettingsDialogs.NicknameLocale);
+  }
+
+  protected initialize(): void {
+    combineLatest([this.gps.getSupportedLocales(), this.loginService.getNicknameLocale()])
+      .subscribe(data => {
+        this.configObject.localeStr.valueKeyHtmlOptions = data[0];
+        this.form.transferBusinessObjectToForm(data[1]);
+        this.configObject.nickname.elementRef.nativeElement.focus();
+      });
   }
 
 }

@@ -2,10 +2,8 @@ import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dyna
 import {TranslateService} from '@ngx-translate/core';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {Security} from '../../entities/security';
-import {Assetclass} from '../../entities/assetclass';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
-import {AppHelper} from '../../shared/helper/app.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 
 /**

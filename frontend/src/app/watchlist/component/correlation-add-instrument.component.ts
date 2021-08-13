@@ -1,16 +1,12 @@
 import {SecuritycurrencySearchBase} from '../../securitycurrency/component/securitycurrency.search.base';
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {AddInstrumentTable} from './add-instrument-table.component';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ProcessedAction} from '../../shared/types/processed.action';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {HelpIds} from '../../shared/help/help.ids';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-table.component';
 import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-instrument-table.component';
 
 /**
@@ -34,19 +30,19 @@ import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-i
 })
 export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBase {
   // From parent view
-@Input() visibleAddInstrumentDialog: boolean;
-@Input() idCorrelationSet: number;
-@Input() tenantLimits: TenantLimit[];
+  @Input() visibleAddInstrumentDialog: boolean;
+  @Input() idCorrelationSet: number;
+  @Input() tenantLimits: TenantLimit[];
 
   // Access child components
-@ViewChild(CorrelationSetAddInstrumentTableComponent) csaitc: CorrelationSetAddInstrumentTableComponent;
+  @ViewChild(CorrelationSetAddInstrumentTableComponent) csaitc: CorrelationSetAddInstrumentTableComponent;
 
   // Output for parent view
-@Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
   constructor(gps: GlobalparameterService,
-    multipleRequestToOneService: MultipleRequestToOneService,
-    translateService: TranslateService) {
+              multipleRequestToOneService: MultipleRequestToOneService,
+              translateService: TranslateService) {
     super(true, gps, multipleRequestToOneService, translateService);
   }
 

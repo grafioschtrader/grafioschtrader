@@ -44,13 +44,13 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   // For the component Edit-Menu, it shows the same menu items as the context menu
   contextMenuItems: MenuItem[];
   /**
-   * Avoid looking for changes on the main select box
-   */
-  protected ignoreChangeOnMonitorField: boolean;
-  /**
    * The selected entity
    */
   selectedEntity: T;
+  /**
+   * Avoid looking for changes on the main select box
+   */
+  protected ignoreChangeOnMonitorField: boolean;
 
   /**
    * Shows a singe row of a array. If the value of the main field changes then others shown properties are
@@ -130,7 +130,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   handleDeleteEntity(entity: T) {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + this.entityName, () => {
-    //    entity = this.beforeDelete(entity);
+        //    entity = this.beforeDelete(entity);
         this.deleteService.deleteEntity(entity[this.mainFieldId]).subscribe(response => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
             'MSG_DELETE_RECORD', {i18nRecord: this.entityName});

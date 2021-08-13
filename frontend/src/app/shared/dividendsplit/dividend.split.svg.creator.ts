@@ -3,11 +3,11 @@ import {SvgIconRegistryService} from 'angular-svg-icon';
 import {AppSettings} from '../app.settings';
 
 export class DividendSplitSvgCreator {
-  private static SVG = '.svg';
   public static createTypeIconMap: { [key: number]: string } = {
     [CreateType.CONNECTOR_CREATED]: 'connector',
     [CreateType.ADD_MODIFIED_USER]: 'edit'
   };
+  private static SVG = '.svg';
   private static iconLoadDone = false;
 
 

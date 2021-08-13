@@ -46,7 +46,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.SECURITY.toUpperCase(),  true,
+      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.SECURITY.toUpperCase(), true,
         {dataproperty: 'security.idSecuritycurrency'}),
       ...this.getFieldDefinition()
     ];

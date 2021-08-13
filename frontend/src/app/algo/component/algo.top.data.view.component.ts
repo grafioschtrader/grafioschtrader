@@ -126,10 +126,9 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   selectedNode: TreeNode;
 
   contextMenuItems: MenuItem[] = [];
-  private routeSubscribe: Subscription;
-
   // Detail Show param
   algoStrategyShowParamCall: AlgoStrategyParamCall = new AlgoStrategyParamCall();
+  private routeSubscribe: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
               private activePanelService: ActivePanelService,
@@ -183,6 +182,114 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     return dataobject.getNameByLanguage(this.gps.getUserLang());
   }
 
+  isActivated(): boolean {
+    return this.activePanelService.isActivated(this);
+  }
+
+  onComponentClick(event): void {
+    this.resetMenu();
+  }
+
+  onRightClick(event): void {
+    this.resetMenu();
+  }
+
+  extendMenuWithAlgoStrategy(menuItems: MenuItem[], parent: AlgoTop | AlgoAssetclass | AlgoSecurity, algoStrategy: AlgoStrategy): void {
+    menuItems.push({separator: true});
+    const algoStrategyMenuItem: MenuItem = {
+      label: 'CREATE|ALGO_STRATEGY', command: (e) => this.addEdit(AlgoDialogVisible.AlgoStrategy, parent, algoStrategy,
+        this.algoStrategyDefinitionForm)
+    };
+    menuItems.push(algoStrategyMenuItem);
+    if (this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.has(parent.idAlgoAssetclassSecurity)) {
+      algoStrategyMenuItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
+        parent.idAlgoAssetclassSecurity).length === 0;
+    } else {
+
+      this.algoStrategyService.getUnusedStrategiesForManualAdding(parent.idAlgoAssetclassSecurity)
+        .subscribe(algoStrategyImplementations => {
+          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(parent.idAlgoAssetclassSecurity, algoStrategyImplementations);
+          algoStrategyMenuItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
+            parent.idAlgoAssetclassSecurity).length === 0;
+        });
+    }
+  }
+
+  handleDeleteEntity<T extends BaseID>(entity: T, deleteService: DeleteService): void {
+    const entityMsg = AppHelper.convertPropertyNameToUppercase(entity.constructor.name);
+
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|' + entityMsg, () => {
+        deleteService.deleteEntity(entity.getId()).subscribe(response => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
+            'MSG_DELETE_RECORD', {i18nRecord: entity.constructor.name});
+          this.resetMenu();
+          this.readDataWithoutTopLevel();
+        });
+      });
+  }
+
+  handleCloseAlgoAssetclassDialog(processedActionData: ProcessedActionData) {
+    this.visibleDialogs = new Array(this.visibleDialogs.length).fill(false);
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      if (processedActionData.data instanceof AlgoTopAssetSecurity) {
+        this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(processedActionData.data.idAlgoAssetclassSecurity);
+      }
+      if (this.algoCallParam.parentObject.getId() === this.algoTop.idAlgoAssetclassSecurity) {
+        this.readDataWithTopLevel();
+      } else {
+        this.readDataWithoutTopLevel();
+      }
+    }
+  }
+
+  searchTree(treeNode: TreeNode, idTree: string): TreeNode {
+    if (treeNode.data.idTree === idTree) {
+      return treeNode;
+    } else if (treeNode.children != null) {
+      let result = null;
+      for (let i = 0; result == null && i < treeNode.children.length; i++) {
+        result = this.searchTree(treeNode.children[i], idTree);
+      }
+      return result;
+    }
+    return null;
+  }
+
+  hideContextMenu(): void {
+  }
+
+  callMeDeactivate(): void {
+  }
+
+  getHelpContextId(): HelpIds {
+    return HelpIds.HELP_ALGO;
+  }
+
+  onNodeSelect(event) {
+    if (this.selectedNode instanceof TreeAlgoStrategy) {
+      // Needed to cause ngOnChanges
+      this.algoStrategyShowParamCall = new AlgoStrategyParamCall();
+      this.setFieldDescriptorInputAndShow((<TreeNode>this.selectedNode).parent.data, this.selectedNode.data,
+        this.algoStrategyShowParamCall);
+      // this.algoStrategyShowParamCall.algoStrategy = this.selectedNode.algoStrategy;
+    } else {
+      this.algoStrategyShowParamCall.algoStrategy = null;
+    }
+  }
+
+  onNodeUnselect(event) {
+    this.algoStrategyShowParamCall.algoStrategy = null;
+  }
+
+  getMenuShowOptions(): MenuItem[] {
+    return null;
+  }
+
+  ngOnDestroy(): void {
+    this.routeSubscribe.unsubscribe();
+  }
+
   private translateDataForAssetclass(): void {
     const fieldsAssetclass: ColumnConfig[] = [];
     this.addColumnToFields(fieldsAssetclass, DataType.String, 'assetclass.categoryType',
@@ -212,19 +319,6 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     }
   }
 
-  isActivated(): boolean {
-    return this.activePanelService.isActivated(this);
-  }
-
-  onComponentClick(event): void {
-    this.resetMenu();
-  }
-
-  onRightClick(event): void {
-    this.resetMenu();
-  }
-
-
   private resetMenu(): void {
     this.contextMenuItems = this.getEditMenu(this.selectedNode);
     this.activePanelService.activatePanel(this, {
@@ -247,7 +341,8 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
           this.algoTop, selectedNode.data)
       });
       menuItems.push({
-        label: 'DELETE_RECORD|ASSETCLASS', command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoAssetclassService),
+        label: 'DELETE_RECORD|ASSETCLASS',
+        command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoAssetclassService),
         disabled: selectedNode.children.length > 0
       });
       menuItems.push({separator: true});
@@ -262,7 +357,8 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
           (<TreeNode>selectedNode).parent.data, <AlgoSecurity>selectedNode.data)
       });
       menuItems.push({
-        label: 'DELETE_RECORD|SECURITY', command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoSecurityService)
+        label: 'DELETE_RECORD|SECURITY',
+        command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoSecurityService)
       });
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoStrategy) {
@@ -271,34 +367,13 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
           (<TreeNode>selectedNode).parent.data, selectedNode.data, this.algoStrategyDefinitionForm)
       });
       menuItems.push({
-        label: 'DELETE_RECORD|ALGO_STRATEGY', command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoStrategyService)
+        label: 'DELETE_RECORD|ALGO_STRATEGY',
+        command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoStrategyService)
       });
     }
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
-
-  extendMenuWithAlgoStrategy(menuItems: MenuItem[], parent: AlgoTop | AlgoAssetclass | AlgoSecurity, algoStrategy: AlgoStrategy): void {
-    menuItems.push({separator: true});
-    const algoStrategyMenuItem: MenuItem = {
-      label: 'CREATE|ALGO_STRATEGY', command: (e) => this.addEdit(AlgoDialogVisible.AlgoStrategy, parent, algoStrategy,
-        this.algoStrategyDefinitionForm)
-    };
-    menuItems.push(algoStrategyMenuItem);
-    if (this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.has(parent.idAlgoAssetclassSecurity)) {
-      algoStrategyMenuItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
-        parent.idAlgoAssetclassSecurity).length === 0;
-    } else {
-
-      this.algoStrategyService.getUnusedStrategiesForManualAdding(parent.idAlgoAssetclassSecurity)
-        .subscribe(algoStrategyImplementations => {
-          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(parent.idAlgoAssetclassSecurity, algoStrategyImplementations);
-          algoStrategyMenuItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
-            parent.idAlgoAssetclassSecurity).length === 0;
-        });
-    }
-  }
-
 
   private addEdit(algoDialogVisible: AlgoDialogVisible, parent: AlgoTop | AlgoAssetclass | AlgoSecurity,
                   thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
@@ -307,77 +382,10 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     this.visibleDialogs[algoDialogVisible] = true;
   }
 
-
-  handleDeleteEntity<T extends BaseID>(entity: T, deleteService: DeleteService): void {
-    const entityMsg = AppHelper.convertPropertyNameToUppercase(entity.constructor.name);
-
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|' + entityMsg, () => {
-        deleteService.deleteEntity(entity.getId()).subscribe(response => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: entity.constructor.name});
-          this.resetMenu();
-          this.readDataWithoutTopLevel();
-        });
-      });
-  }
-
-
-  handleCloseAlgoAssetclassDialog(processedActionData: ProcessedActionData) {
-    this.visibleDialogs = new Array(this.visibleDialogs.length).fill(false);
-    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
-      if (processedActionData.data instanceof AlgoTopAssetSecurity) {
-        this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(processedActionData.data.idAlgoAssetclassSecurity);
-      }
-      if (this.algoCallParam.parentObject.getId() === this.algoTop.idAlgoAssetclassSecurity) {
-        this.readDataWithTopLevel();
-      } else {
-        this.readDataWithoutTopLevel();
-      }
-    }
-  }
-
   private refreshSelectedEntity(): void {
     if (this.selectedNode) {
       this.selectedNode = this.searchTree(this.treeNodes[0], this.selectedNode.data.idTree);
       setTimeout(() => this.onNodeSelect(null));
-    }
-  }
-
-
-  searchTree(treeNode: TreeNode, idTree: string): TreeNode {
-    if (treeNode.data.idTree === idTree) {
-      return treeNode;
-    } else if (treeNode.children != null) {
-      let result = null;
-      for (let i = 0; result == null && i < treeNode.children.length; i++) {
-        result = this.searchTree(treeNode.children[i], idTree);
-      }
-      return result;
-    }
-    return null;
-  }
-
-
-  hideContextMenu(): void {
-  }
-
-  callMeDeactivate(): void {
-  }
-
-  getHelpContextId(): HelpIds {
-    return HelpIds.HELP_ALGO;
-  }
-
-  onNodeSelect(event) {
-    if (this.selectedNode instanceof TreeAlgoStrategy) {
-      // Needed to cause ngOnChanges
-      this.algoStrategyShowParamCall = new AlgoStrategyParamCall();
-      this.setFieldDescriptorInputAndShow((<TreeNode>this.selectedNode).parent.data, this.selectedNode.data,
-        this.algoStrategyShowParamCall);
-      // this.algoStrategyShowParamCall.algoStrategy = this.selectedNode.algoStrategy;
-    } else {
-      this.algoStrategyShowParamCall.algoStrategy = null;
     }
   }
 
@@ -400,19 +408,5 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       this.algoStrategyShowParamCall.algoStrategy = algoStrategy;
     }
 
-  }
-
-
-  onNodeUnselect(event) {
-    this.algoStrategyShowParamCall.algoStrategy = null;
-  }
-
-
-  getMenuShowOptions(): MenuItem[] {
-    return null;
-  }
-
-  ngOnDestroy(): void {
-    this.routeSubscribe.unsubscribe();
   }
 }

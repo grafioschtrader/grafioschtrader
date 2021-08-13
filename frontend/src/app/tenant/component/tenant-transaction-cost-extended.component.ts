@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TransactionCostPosition} from '../../entities/view/transactioncost/transaction.cost.position';
 import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/transaction.cost.grand.summary';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -52,7 +52,8 @@ import {AppSettings} from '../../shared/app.settings';
               <ng-container *ngFor="let field of fields">
                 <td *ngIf="field.visible" [style.width.px]="field.width"
                     [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
-                  <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{getValueByPath(el, field)}}</span>
+                  <span [pTooltip]="getValueByPath(el, field)"
+                        tooltipPosition="top">{{getValueByPath(el, field)}}</span>
                 </td>
               </ng-container>
             </tr>
@@ -84,13 +85,12 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
               transactionService: TransactionService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      changeDetectionStrategy, filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService);
   }
 
   ngOnInit(): void {
@@ -139,7 +139,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
     const localContextMenu: MenuItem[] = [
       {separator: true},
 
-     {label: 'EXPORT_CSV', command: (e) => this.dataTable.exportCSV()}
+      {label: 'EXPORT_CSV', command: (e) => this.dataTable.exportCSV()}
     ];
     TranslateHelper.translateMenuItems(localContextMenu, this.translateService);
     return super.getMenuItemsOnTransaction(transaction).concat(localContextMenu);

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {TableConfigBase} from '../datashowbase/table.config.base';
 import {Globalparameters} from '../../entities/globalparameters';
 import {FilterService, MenuItem} from 'primeng/api';
@@ -69,22 +69,20 @@ import {TranslateHelper} from '../helper/translate.helper';
 })
 export class GlobalSettingsTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
 
-  private readonly PROPERTY_NAME = 'propertyName';
-
   contextMenuItems: MenuItem[] = [];
   editMenu: MenuItem;
   globalparametersList: Globalparameters[];
   selectedEntity: Globalparameters;
   callParam: User;
   visibleDialog = false;
+  private readonly PROPERTY_NAME = 'propertyName';
 
   constructor(private activePanelService: ActivePanelService,
-              changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(changeDetectionStrategy, filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, this.PROPERTY_NAME, 'PROPERTY_NAME_DESC', true, false,
       {translateValues: TranslateValue.NORMAL, width: 450});
@@ -93,10 +91,12 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     this.addColumnFeqH(DataType.Boolean, 'changedBySystem', true, false,
       {templateName: 'check'});
     this.addColumn(DataType.String, this.PROPERTY_NAME + '1', this.PROPERTY_NAME, true, false,
-      {width: 200,  fieldValueFN: this.getPropertyName1.bind(this)});
-    this.editMenu = { label: 'EDIT_RECORD|GLOBAL_SETTINGS' + AppSettings.DIALOG_MENU_SUFFIX,
+      {width: 200, fieldValueFN: this.getPropertyName1.bind(this)});
+    this.editMenu = {
+      label: 'EDIT_RECORD|GLOBAL_SETTINGS' + AppSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleEditEntity(this.selectedEntity),
-      disabled: !AuditHelper.hasAdminRole(this.gps)};
+      disabled: !AuditHelper.hasAdminRole(this.gps)
+    };
     TranslateHelper.translateMenuItems([this.editMenu], translateService);
   }
 
@@ -121,35 +121,12 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     return dataobject[this.PROPERTY_NAME];
   }
 
-  private readData(): void {
-    this.gps.getAllGlobalparameters().subscribe(globalparametersList => {
-      this.globalparametersList = globalparametersList;
-      this.prepareTableAndTranslate();
-      this.createTranslatedValueStoreAndFilterField(globalparametersList);
-    });
-  }
-
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
 
   onComponentClick(event): void {
     this.resetMenu();
-  }
-
-  private resetMenu(): void {
-    this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptions(),
-      editMenu: this.getEditMenu()
-    });
-  }
-
-  protected getEditMenu(): MenuItem[] {
-    this.contextMenuItems = [];
-    if (this.selectedEntity) {
-      this.contextMenuItems.push(this.editMenu);
-    }
-    return this.contextMenuItems;
   }
 
   handleEditEntity(globalparameters: Globalparameters): void {
@@ -171,6 +148,29 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
 
   getHelpContextId(): HelpIds {
     return HelpIds.HELP_GLOBAL_SETTINGS;
+  }
+
+  protected getEditMenu(): MenuItem[] {
+    this.contextMenuItems = [];
+    if (this.selectedEntity) {
+      this.contextMenuItems.push(this.editMenu);
+    }
+    return this.contextMenuItems;
+  }
+
+  private readData(): void {
+    this.gps.getAllGlobalparameters().subscribe(globalparametersList => {
+      this.globalparametersList = globalparametersList;
+      this.prepareTableAndTranslate();
+      this.createTranslatedValueStoreAndFilterField(globalparametersList);
+    });
+  }
+
+  private resetMenu(): void {
+    this.activePanelService.activatePanel(this, {
+      showMenu: this.getMenuShowOptions(),
+      editMenu: this.getEditMenu()
+    });
   }
 
 }

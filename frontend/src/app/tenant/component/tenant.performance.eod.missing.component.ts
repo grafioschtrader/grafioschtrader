@@ -129,20 +129,6 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     return null;
   }
 
-  protected getMenuShowOptions(): MenuItem[] {
-    let menuItems: MenuItem[] = [];
-    if (this.selectedSecurity) {
-      menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(this.selectedSecurity.idSecuritycurrency,
-         this.selectedSecurity.currency, false));
-      this.contextMenuItems = menuItems;
-      menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedSecurity));
-      TranslateHelper.translateMenuItems(menuItems, this.translateService);
-    } else {
-      this.contextMenuItems = null;
-    }
-    return super.getMenuShowOptions().concat(menuItems);
-  }
-
   /**
    * Callback to unmark a day.
    */
@@ -150,15 +136,6 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     !this.foundDayMarkedRange && this.clearDaySelection(this.selectedDayByUser);
     this.foundDayMarkedRange = false;
   }
-
-  private clearDaySelection(day: Date): void {
-    if (this.selectedDayByUser) {
-      this.selectedDayByUser = null;
-      this.selectedDayIdSecurities = [];
-      this.addRemoveOnOffDay(day);
-    }
-  }
-
 
   onDayPlusSelect(range: RangeSelectDays, ranges: RangeSelectDays[]) {
     this.foundDayMarkedRange = ranges.length === 2 && this.securityMissingDays.find(date => date === range.start) !== null;
@@ -173,7 +150,6 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       this.selectedDayIdSecurities = this.missingQuotesWithSecurities.dateSecurityMissingMap[moment(range.start).format('YYYY-MM-DD')];
     }
   }
-
 
   handleChangedSecurity(security: Security): void {
     this.selectedSecurity = security;
@@ -203,5 +179,27 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
 
   ngOnDestroy(): void {
     this.subscriptionHistoryquoteChanged && this.subscriptionHistoryquoteChanged.unsubscribe();
+  }
+
+  protected getMenuShowOptions(): MenuItem[] {
+    let menuItems: MenuItem[] = [];
+    if (this.selectedSecurity) {
+      menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(this.selectedSecurity.idSecuritycurrency,
+        this.selectedSecurity.currency, false));
+      this.contextMenuItems = menuItems;
+      menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedSecurity));
+      TranslateHelper.translateMenuItems(menuItems, this.translateService);
+    } else {
+      this.contextMenuItems = null;
+    }
+    return super.getMenuShowOptions().concat(menuItems);
+  }
+
+  private clearDaySelection(day: Date): void {
+    if (this.selectedDayByUser) {
+      this.selectedDayByUser = null;
+      this.selectedDayIdSecurities = [];
+      this.addRemoveOnOffDay(day);
+    }
   }
 }

@@ -3,8 +3,6 @@ import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TranslateService} from '@ngx-translate/core';
-import {InputType} from '../../dynamic-form/models/input.type';
-import {DataType} from '../../dynamic-form/models/data.type';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';

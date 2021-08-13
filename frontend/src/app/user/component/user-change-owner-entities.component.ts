@@ -2,7 +2,6 @@ import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import {LoginService} from '../../shared/login/service/log-in.service';
 import {MainDialogService} from '../../shared/mainmenubar/service/main.dialog.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
@@ -58,22 +57,23 @@ export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
-    this.configObject.fromIdUser.formControl.setValue(this.fromUser.nickname);
-    this.configObject.toIdUser.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idUser', 'nickname',
-      this.allUsers.filter(u => u.nickname !== this.fromUser.nickname && u.enabled), false);
-  }
-
   onHide(event) {
     this.mainDialogService.visibleDialog(false, UserSettingsDialogs.NicknameLocale);
   }
 
   submit(values: { [name: string]: any }): void {
     this.userAdminService.moveCreatedByUserToOtherUser(this.fromUser.idUser, values.toIdUser).subscribe(
-      numberOfChangedEntities => { this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.SUCCESS,
-        'CHANGED_OWNER_OF_ENTITIES', {numberOfChangedEntities: numberOfChangedEntities});
+      numberOfChangedEntities => {
+        this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.SUCCESS,
+          'CHANGED_OWNER_OF_ENTITIES', {numberOfChangedEntities: numberOfChangedEntities});
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null));
       });
+  }
+
+  protected initialize(): void {
+    this.configObject.fromIdUser.formControl.setValue(this.fromUser.nickname);
+    this.configObject.toIdUser.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idUser', 'nickname',
+      this.allUsers.filter(u => u.nickname !== this.fromUser.nickname && u.enabled), false);
   }
 }
 

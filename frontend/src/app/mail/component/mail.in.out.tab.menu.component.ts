@@ -20,7 +20,8 @@ export class MailInOutTabMenuComponent implements OnInit {
   constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
     this.items = [
       {label: AppSettings.MAIL_INBOX.toUpperCase(), command: (event) => this.navigateToChangeRequest(true)},
-      {label: AppSettings.MAIL_SENDBOX.toUpperCase(),
+      {
+        label: AppSettings.MAIL_SENDBOX.toUpperCase(),
         command: (event) => this.router.navigate([AppSettings.MAIL_SENDBOX_KEY],
           {relativeTo: this.activatedRoute})
       }

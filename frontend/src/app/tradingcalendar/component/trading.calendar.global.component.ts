@@ -28,7 +28,7 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService) {
     super(translateService, gps, [TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR],
-      activePanelService, messageToastService,  'TRADING_CALENDAR_GLOBAL');
+      activePanelService, messageToastService, 'TRADING_CALENDAR_GLOBAL');
   }
 
   ngOnInit(): void {
@@ -63,6 +63,10 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
     return menuItems;
   }
 
+  public hasRightsToModify(): boolean {
+    return AuditHelper.hasAdminRole(this.gps);
+  }
+
   private markWorkingDaysOfFullYear(): void {
     const startDate = new Date(this.yearCalendarData.year, 0, 1);
     startDate.setHours(0, 0, 0, 0);
@@ -77,10 +81,6 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
       }
       startDate.setDate(startDate.getDate() + 1);
     }
-  }
-
-  public hasRightsToModify(): boolean {
-    return AuditHelper.hasAdminRole(this.gps);
   }
 
 }

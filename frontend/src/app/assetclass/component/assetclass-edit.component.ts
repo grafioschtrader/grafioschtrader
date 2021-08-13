@@ -82,6 +82,23 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
       suggestion => suggestion.toLocaleLowerCase().startsWith(query));
   }
 
+  valueChangedOnCategoryType(): void {
+    this.categoryTypeSubscribe = this.configObject.categoryType
+      .formControl.valueChanges.subscribe(categoryType => {
+        if (!this.callParam.assetclass && categoryType && categoryType.length > 0) {
+          this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest.filter(
+            v => this.assetclassSpezInstMap[categoryType].includes(v.key));
+          this.configObject.specialInvestmentInstrument.formControl.setValue(
+            this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions[0].key);
+        }
+      });
+  }
+
+  onHide(event): void {
+    this.categoryTypeSubscribe && this.categoryTypeSubscribe.unsubscribe();
+    super.onHide(event);
+  }
+
   protected initialize(): void {
     (<AssetclassService>this.serviceEntityUpdate).getPossibleAssetclassInstrumentMap().subscribe(assetclassSpezInstMap => {
       this.assetclassSpezInstMap = assetclassSpezInstMap;
@@ -113,23 +130,6 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
     assetclass.subCategoryNLS.map.de = values.de;
     assetclass.subCategoryNLS.map.en = values.en;
     return assetclass;
-  }
-
-  valueChangedOnCategoryType(): void {
-    this.categoryTypeSubscribe = this.configObject.categoryType
-      .formControl.valueChanges.subscribe(categoryType => {
-        if (!this.callParam.assetclass && categoryType && categoryType.length > 0) {
-          this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest.filter(
-            v => this.assetclassSpezInstMap[categoryType].includes(v.key));
-          this.configObject.specialInvestmentInstrument.formControl.setValue(
-            this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions[0].key);
-        }
-      });
-  }
-
-  onHide(event): void {
-    this.categoryTypeSubscribe && this.categoryTypeSubscribe.unsubscribe();
-    super.onHide(event);
   }
 
 }

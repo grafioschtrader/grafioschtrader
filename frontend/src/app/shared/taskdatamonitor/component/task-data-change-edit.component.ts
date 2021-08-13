@@ -67,25 +67,6 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
-    this.valueChangedOnIdTask();
-    this.valueChangedOnEntity();
-    this.configObject.idTask.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, TaskType, Object.keys(TaskType).filter(
-        key => TaskType[key] <= this.tdcFormConstraints.maxUserCreateTask).map(key => TaskType[key]));
-    if (this.callParam) {
-      this.form.transferBusinessObjectToForm(this.callParam);
-    }
-    this.configObject.earliestStartTime.formControl.setValue(moment().add(1, 'm').toDate());
-    this.configObject.idTask.elementRef.nativeElement.focus();
-  }
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {
-    const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
-    taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).add(moment().utcOffset() * -1, 'm').format('yyyy-MM-DD HH:mm:ss');
-    return taskDataChange;
-  }
-
   valueChangedOnIdTask(): void {
     this.idTaskSubscribe = this.configObject.idTask.formControl.valueChanges.subscribe(idTask => {
       this.configObject.entity.valueKeyHtmlOptions = this.tdcFormConstraints.taskTypeConfig[idTask] ?
@@ -110,5 +91,24 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     this.idTaskSubscribe && this.idTaskSubscribe.unsubscribe();
     this.entitySubscribe && this.entitySubscribe.unsubscribe();
     super.onHide(event);
+  }
+
+  protected initialize(): void {
+    this.valueChangedOnIdTask();
+    this.valueChangedOnEntity();
+    this.configObject.idTask.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService, TaskType, Object.keys(TaskType).filter(
+        key => TaskType[key] <= this.tdcFormConstraints.maxUserCreateTask).map(key => TaskType[key]));
+    if (this.callParam) {
+      this.form.transferBusinessObjectToForm(this.callParam);
+    }
+    this.configObject.earliestStartTime.formControl.setValue(moment().add(1, 'm').toDate());
+    this.configObject.idTask.elementRef.nativeElement.focus();
+  }
+
+  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {
+    const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
+    taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).add(moment().utcOffset() * -1, 'm').format('yyyy-MM-DD HH:mm:ss');
+    return taskDataChange;
   }
 }

@@ -22,9 +22,14 @@ public abstract class SecurityPositionGroupSummary {
 
   public List<SecurityPositionSummary> securityPositionSummaryList = new ArrayList<>();
 
-  private int precision;
+  protected int precision;
   private int precisionMC;
 
+  public SecurityPositionGroupSummary(int precision) {
+    this.precision = precision;
+  }
+  
+  
   public void addToGroupSummaryAndCalcGroupTotals(SecurityPositionSummary securityPositionSummary) {
     precision = securityPositionSummary.precision;
     precisionMC = securityPositionSummary.precisionMC;

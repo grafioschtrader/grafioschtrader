@@ -54,7 +54,6 @@ import {GlobalSettingsTableComponent} from './shared/globalsettings/global.setti
 import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
 
 
-
 const APP_ROUTES: Routes = [
   {path: '', redirectTo: '/' + AppSettings.LOGIN_KEY, pathMatch: 'full'},
   {path: AppSettings.LOGIN_KEY, component: LoginComponent},

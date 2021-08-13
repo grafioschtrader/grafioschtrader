@@ -3,9 +3,7 @@ import {Type} from '@angular/core';
 import {LimitTransactionRequestDynamicComponent} from './limit.transaction.request.dynamic.component';
 import {LogoutReleaseRequestDynamicComponent} from './logout.release.request.dynamic.component';
 import {MailSendDynamicComponent, MailSendParam} from './mail.send.dynamic.component';
-import {DialogService} from 'primeng/dynamicdialog';
-import {DynamicDialogRef} from 'primeng/dynamicdialog';
-import {DynamicDialogConfig} from 'primeng/dynamicdialog';
+import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
 
 export class DynamicDialogHelper {
 

@@ -1,4 +1,3 @@
-import {BuySell} from '../shared/types/buy.sell';
 import {TenantBaseId} from './tenant.base.id';
 import {AlgoRuleStrategyParam} from './algo.rule.strategy.param';
 import {Exclude} from 'class-transformer';
