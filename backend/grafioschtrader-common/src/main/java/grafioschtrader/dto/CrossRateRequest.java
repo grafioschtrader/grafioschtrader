@@ -28,6 +28,6 @@ public class CrossRateRequest {
   
   public boolean needNewCurrencypair(String mainCurrency) {
     return (securityCurrencyList.size() == 1 && existingCurrencies.length == 0 
-        || !securityCurrencyList.get(0).equals(mainCurrency)) || securityCurrencyList.size() > 1;   
+        && !securityCurrencyList.get(0).equals(mainCurrency)) || securityCurrencyList.size() > 1;   
   }
 }
