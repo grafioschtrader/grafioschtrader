@@ -78,7 +78,6 @@ export class BusinessHelper {
     return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
   }
 
-
   /**
    * Sets the quotation depending of a certain date for a currency pair to a FormControl.
    */
@@ -177,7 +176,6 @@ export class BusinessHelper {
   public static toExternalWebpage(url: string, target: string = 'blank'): void {
     window.open(url, target);
   }
-
 
   public static getServerUrl(location: Location, port: number, addToDomain: string): string {
     let serverUrl = `//${location.hostname}`;

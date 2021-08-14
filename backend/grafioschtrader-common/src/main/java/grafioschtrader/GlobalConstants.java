@@ -36,6 +36,12 @@ public class GlobalConstants {
   public static final int FID_MAX_INTEGER_DIGITS = 11;
 
   public static final int FID_MAX_DIGITS = 16;
+  
+  /**
+   * It will adjust the currency exchange rate or quotation for the cash account amount.
+   */
+  public static final boolean AUTO_CORRECT_TO_AMOUNT = false;
+  
   /**
    * The standard note text size
    */

@@ -130,8 +130,9 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
     menuItems.push({separator: true});
     menuItems.push({
-      label: 'SHOW_CLOSE_POSITION', icon: AppSettings.ICONNAME_SQUARE_EMTPY,
-      command: (event) => this.handleOpenClosePosition(event)
+      label: 'SHOW_CLOSE_POSITION',
+      command: (event) => this.handleOpenClosePosition(event),
+      icon: this.includeClosedPosition ? AppSettings.ICONNAME_SQUARE_CHECK : AppSettings.ICONNAME_SQUARE_EMTPY
     });
 
     if (securitycurrencySelected && securitycurrencySelected.idSecuritycurrency >= 0) {

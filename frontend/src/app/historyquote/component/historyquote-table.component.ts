@@ -263,7 +263,6 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
       this.importQuotesMenu,
       {label: 'EXPORT_CSV', command: (event) => this.downloadCSvFile(this.historyquotesWithMissings.historyquoteList)},
       this.deleteCreateTypesMenu,
-
     ];
     if (this.security && this.hasRightsForCreateEntity(null)) {
       this.historyquoteSpecMenuItems.push(this.fillGapsMenu);
