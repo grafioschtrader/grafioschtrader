@@ -215,7 +215,11 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', false,
         9, 2, true, this.gps.getNumberCurrencyMask(),
-        true, {readonly: true, userDefinedValue: 'C'}),
+        true, {readonly: true, userDefinedValue: 'C', usedLayoutColumns: 8}),
+     /*
+      DynamicFieldHelper.createFieldInputString('cashaccountAmountExact', '_exact',
+        15, false, { dataproperty: 'cashaccountAmount', readonly: true,  usedLayoutColumns: 4}),
+*/
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
@@ -416,8 +420,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       if (!this.configObject.securityRisk.invisible) {
         this.setValueToControl(this.configObject.securityRisk, (this.calcPosTotal(data, true) * -1));
       }
-      this.setValueToControl(this.configObject.cashaccountAmount,
-        this.calcPosTotal(data, false));
+      const amount = this.calcPosTotal(data, false);
+      this.setValueToControl(this.configObject.cashaccountAmount, amount);
+     // this.setValueToControl(this.configObject.cashaccountAmountExact, this.gps.getNumberFormatRaw().format(amount));
     }
   }
 

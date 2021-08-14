@@ -550,7 +550,6 @@ export class DynamicFieldHelper {
     fieldConfig.max = Number('9'.repeat(integerDigits) + '.' + '9'.repeat(maxFractionDigits));
     fieldConfig.min = allowNegative ?
       fieldConfig.max * -1 : DynamicFieldHelper.isRequired(fieldConfig) ? 1 / Math.pow(10, maxFractionDigits) : 0;
-
   }
 
   private static setFieldBaseAndOptions(fieldConfig: FieldConfig, fieldName: string,

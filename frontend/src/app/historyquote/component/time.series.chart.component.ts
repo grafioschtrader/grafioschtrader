@@ -156,7 +156,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   readonly compareHistoricalFN = (h, o) => h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT;
-
   readonly compareXaxisFN = (x, b) => x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT;
 
   ///////////////////////////////////////////////////////
@@ -180,7 +179,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   prepareChart(timeSeriesParams: TimeSeriesParam[]): void {
-
     if (timeSeriesParams.length === 1 || timeSeriesParams.length - 1 !== this.loadedData.length) {
       this.loadedData = [];
     }

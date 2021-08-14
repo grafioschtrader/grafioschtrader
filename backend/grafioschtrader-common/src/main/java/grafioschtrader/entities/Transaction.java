@@ -24,6 +24,9 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
@@ -45,6 +48,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class Transaction extends TenantBaseID implements Serializable, Comparable<Transaction> {
 
   public static final String TABNAME = "transaction";
+  private static final Logger log = LoggerFactory.getLogger(Transaction.class);
 
   private static final long serialVersionUID = 1L;
   @Id
@@ -631,7 +635,11 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     double roundCashaccountAmount = DataHelper.round(cashaccountAmount, currencyFraction);
 
     if (roundCashaccountAmount == calcCashaccountAmount) {
-      cashaccountAmount = roundCashaccountAmount;
+      if (GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {
+        if (calcCashaccountAmount != DataHelper.round(cashaccountAmount, currencyFraction + 1)) {
+          correctToAmount(cashaccountAmount - roundCashaccountAmount);
+        }
+      }
     } else {
       throw new DataViolationException("cashaccount.amount", "gt.cashaccount.amount.calc",
           new Object[] { calcCashaccountAmount, roundCashaccountAmount, cashaccountAmount });
@@ -662,23 +670,49 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       // Close a open position or finance cost
       return validateSecurityGeneralCashaccountAmount(openPositionMarginTransaction.getQuotation());
     }
+  }
 
+  private void correctToAmount(double diff) {
+    if (this.idCurrencypair != null) {
+      double oldCurrencyExRate = currencyExRate;
+      currencyExRate = DataHelper.round(
+          (validateSecurityGeneralCashaccountAmount(0) - diff) / calculateAmountWithoutExchangeRate(0),
+          GlobalConstants.FID_MAX_FRACTION_DIGITS);
+      log.debug("Corrected currency exchange rate for difference {} from {} to {}", diff, oldCurrencyExRate,
+          currencyExRate);
+
+    } else if (quotation != null) {
+      double oldQuotation = quotation;
+      quotation = DataHelper.round((getSeucritiesNetPrice(0) + diff) / this.units,
+          GlobalConstants.FID_MAX_FRACTION_DIGITS);
+      log.debug("Corrected currency exchange rate for difference {} from {} to {}", diff, oldQuotation, quotation);
+      cashaccountAmount = this.validateSecurityGeneralCashaccountAmount(0);
+    }
   }
 
   // It is public for test
   public double validateSecurityGeneralCashaccountAmount(double buyQuotation) {
-    double calcCashaccountAmount = DataHelper.round(getSeucritiesNetPrice(buyQuotation));
+    return DataHelper.divideMultiplyExchangeRate(calculateAmountWithoutExchangeRate(buyQuotation), currencyExRate,
+        security.getCurrency(), cashaccount.getCurrency());
+  }
+
+  private double calculateAmountWithoutExchangeRate(double buyQuotation) {
+    double calcCashaccountAmount = getSeucritiesNetPrice(buyQuotation);
+    if (getTransactionType() == TransactionType.ACCUMULATE) {
+      calcCashaccountAmount = (calcCashaccountAmount + calculateOtherCosts()) * -1.0;
+    } else {
+      // For reduce and dividend
+      calcCashaccountAmount -= calculateOtherCosts();
+    }
+    return calcCashaccountAmount;
+  }
+
+  private double calculateOtherCosts() {
     double taxCostC = taxCost == null ? 0.0 : taxCost;
     double transactionCostC = transactionCost == null ? 0 : transactionCost;
     double accruedInterestC = assetInvestmentValue1 != null && !isMarginInstrument() ? assetInvestmentValue1 : 0;
-    if (getTransactionType() == TransactionType.ACCUMULATE) {
-      calcCashaccountAmount = (calcCashaccountAmount + taxCostC + transactionCostC + accruedInterestC) * -1.0;
-    } else {
-      // For reduce and dividend
-      calcCashaccountAmount -= taxCostC + transactionCostC - accruedInterestC;
-    }
-    return DataHelper.divideMultiplyExchangeRate(calcCashaccountAmount, currencyExRate, security.getCurrency(),
-        cashaccount.getCurrency());
+    return taxCostC + transactionCostC
+        + accruedInterestC * (getTransactionType() == TransactionType.ACCUMULATE ? 1.0 : -1.0);
   }
 
   @Override

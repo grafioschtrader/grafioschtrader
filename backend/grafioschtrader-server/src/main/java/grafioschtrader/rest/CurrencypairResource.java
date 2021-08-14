@@ -126,12 +126,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
         HttpStatus.OK);
   }
 
-  /**
-   *
-   *
-   * @param idCurrencypair
-   * @return
-   */
+ 
   @Operation(summary = "Returns all transactions for a certain currency pair of a tenant.", description = "", tags = {
       Currencypair.TABNAME })
   @GetMapping(value = "/tenant/{idCurrencypair}", produces = APPLICATION_JSON_VALUE)
