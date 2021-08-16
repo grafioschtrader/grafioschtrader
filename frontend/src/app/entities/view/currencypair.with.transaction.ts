@@ -1,9 +1,9 @@
 import {Currencypair} from '../currencypair';
 import {Transaction} from '../transaction';
-import {NameSecuritycurrency} from './name.securitycurrency';
+import {INameSecuritycurrency} from './iname.securitycurrency';
 import {Securitycurrency} from '../securitycurrency';
 
-export class CurrencypairWithTransaction implements NameSecuritycurrency {
+export class CurrencypairWithTransaction implements INameSecuritycurrency {
 
   public currencypair: Currencypair;
   public transactionList: Transaction[];
@@ -11,6 +11,7 @@ export class CurrencypairWithTransaction implements NameSecuritycurrency {
   public sumAmountTo: number;
   public gainTo: number;
   public gainFrom: number;
+  public cwtReverse: CurrencypairWithTransaction;
 
   constructor(notRealCwt: CurrencypairWithTransaction) {
     Object.assign(this, notRealCwt);
@@ -18,6 +19,7 @@ export class CurrencypairWithTransaction implements NameSecuritycurrency {
     this.currencypair.sLast = notRealCwt.currencypair.sLast;
     this.currencypair.sTimestamp = notRealCwt.currencypair.sTimestamp;
     this.currencypair.idSecuritycurrency = notRealCwt.currencypair.idSecuritycurrency;
+    this.cwtReverse = notRealCwt.cwtReverse;
   }
 
   getName(): string {

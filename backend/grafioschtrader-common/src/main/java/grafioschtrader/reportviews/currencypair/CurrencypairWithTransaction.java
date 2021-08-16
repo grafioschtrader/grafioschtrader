@@ -16,10 +16,16 @@ public class CurrencypairWithTransaction {
   public Currencypair currencypair;
   public List<Transaction> transactionList;
 
-  public CurrencypairWithTransaction(Currencypair currencypair, List<Transaction> transactionList) {
-    super();
+  public CurrencypairWithTransaction cwtReverse;
+  
+  public CurrencypairWithTransaction(Currencypair currencypair) {
     this.currencypair = currencypair;
-    this.transactionList = transactionList;
   }
 
+  @Override
+  public String toString() {
+    return "CurrencypairWithTransaction [sumAmountFrom=" + sumAmountFrom + ", sumAmountTo=" + sumAmountTo + ", gainTo="
+        + gainTo + ", gainFrom=" + gainFrom + ", currencypair=" + currencypair + "]";
+  } 
+  
 }

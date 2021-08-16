@@ -19,14 +19,14 @@ import {
   IHistoryquoteQualityWithSecurityProp
 } from '../model/historyquote.quality.group';
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
+import {SecurityCurrencyService} from './security.currency.service';
 
 @Injectable()
-export class SecurityService extends AuthServiceWithLogout<Security> {
+export class SecurityService extends SecurityCurrencyService<Security> {
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
   }
-
 
   getTradableSecuritiesByTenantAndIdWatschlist(idWatchlist: number): Observable<Security[]> {
     return <Observable<Security[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/`
@@ -134,15 +134,9 @@ export class SecurityService extends AuthServiceWithLogout<Security> {
       .set('idOpenMarginTransaction', idOpenMarginTransaction ? '' + idOpenMarginTransaction : '');
   }
 
-  private getOptionsWithIncludeForChart(forchart: boolean) {
-    const httpParams = new HttpParams().set('forchart', forchart.toString());
-    return {headers: this.prepareHeaders(), params: httpParams};
-  }
-
   private getOptionHistoryqouteQuality(groupedBy: string) {
     const httpParams = new HttpParams().set('groupedBy', groupedBy);
     return {headers: this.prepareHeaders(), params: httpParams};
   }
-
 
 }

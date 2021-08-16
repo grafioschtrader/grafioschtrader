@@ -238,7 +238,6 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
         } else {
           historyquoteJpaRepository.save(historyquote);
         }
-
       }
     }
   }
@@ -359,7 +358,6 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       taTraceIndicatorData
           .add(getTrace(taIndicator, taClass, shortMediumLongInputPeriod.taLongPeriod, historyquoteDateClose));
     }
-
     return taTraceIndicatorData;
   }
 

@@ -29,6 +29,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
@@ -230,7 +232,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     List<Historyquote> historyquotes = null;
 
     CookieStore cookieStore = new BasicCookieStore();
-    HttpClient client = HttpClientBuilder.create().build();
+    HttpClient client = HttpClientBuilder.create()
+        .setDefaultRequestConfig(RequestConfig.custom()
+            .setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
 
@@ -258,7 +262,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private String getCrumb(String symbol, HttpClient client, HttpClientContext context)
-      throws IOException, URISyntaxException {
+      throws IOException {
     return findCrumb(splitPageData(getPage(symbol, client, context)));
   }
 
