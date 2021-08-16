@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -27,6 +28,7 @@ import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -131,10 +133,11 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
       Currencypair.TABNAME })
   @GetMapping(value = "/tenant/{idCurrencypair}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CurrencypairWithTransaction> findOrCreateCurrencypairByFromAndToCurrency(
-      @PathVariable final Integer idCurrencypair) {
+      @PathVariable final Integer idCurrencypair,
+      @Parameter(description = "True it will add some transactions", required = true) @RequestParam() final boolean forchart)  {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
-        transactionJpaRepository.getTransactionForCurrencyPair(user.getIdTenant(), idCurrencypair), HttpStatus.OK);
+        transactionJpaRepository.getTransactionForCurrencyPair(user.getIdTenant(), idCurrencypair, forchart), HttpStatus.OK);
   }
 
   @GetMapping(value = "/{idPortfolio}/portfolio", produces = APPLICATION_JSON_VALUE)

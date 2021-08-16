@@ -45,6 +45,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 import {PlotlyService} from 'angular-plotly.js';
 import {TwoKeyMap} from '../../shared/helper/two.key.map';
+import {Transaction} from '../../entities/transaction';
+import {Moment} from 'moment/moment';
 
 
 interface Traces {
@@ -72,6 +74,11 @@ interface Traces {
                     [minDate]="oldestDate" [maxDate]="youngestDate">
         </p-calendar>
         <i class="fa fa-undo fa-border fa-lg" (click)="onResetOldestDate($event)"></i>
+        <button type="button" (click)="fiveDays($event)">5{{"D" | translate}}</button>
+        <button type="button" (click)="oneMonth($event)">1M</button>
+        <button type="button" (click)="threeMonth($event)">3M</button>
+        <button type="button" (click)="yearToDate($event)">YTD</button>
+        <button type="button" (click)="oneYear($event)">1{{"Y" | translate}}</button>
         <!--
           <ng-container *ngIf="this.loadedData.length===1">
          -->
@@ -97,9 +104,9 @@ interface Traces {
                     [visibleDialog]="visibleTaDialog" [taEditParam]="taEditParam"
                     (closeDialog)="handleCloseTaDialog($event)">
     </indicator-edit>
-  `
+  `,
+  styles: ['button { border: 0; margin-left: 3px}']
 
-  // ,changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('container', {static: true}) container: ElementRef;
@@ -192,7 +199,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           timeSeriesParams[i].idSecuritycurrency, timeSeriesParams[i].idSecurityaccount
             ? [timeSeriesParams[i].idSecurityaccount] : null,
           timeSeriesParams[i].idPortfolio, true)
-        : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParams[i].idSecuritycurrency);
+        : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParams[i].idSecuritycurrency, true);
 
       const historyquoteObservable = this.historyquoteService.getDateCloseByIdSecuritycurrency(timeSeriesParams[i].idSecuritycurrency);
       const observable: Observable<any>[] = [stsObservable, historyquoteObservable];
@@ -240,6 +247,33 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.onBlurFromDate(event);
   }
 
+  fiveDays(event): void {
+    this.goNextWorkDay(moment().add(-7, 'days'), event);
+  }
+
+  oneMonth(event): void {
+    this.goNextWorkDay(moment().add(-1, 'month'), event);
+  }
+
+  threeMonth(event): void {
+    this.goNextWorkDay(moment().add(-3, 'month'), event);
+  }
+
+  yearToDate(event): void {
+    this.goNextWorkDay(moment().startOf('year').add(1, 'days'), event);
+  }
+
+  oneYear(event): void {
+    this.goNextWorkDay(moment().add(-1, 'year'), event);
+  }
+
+  private goNextWorkDay(momentDate: Moment, event): void {
+    momentDate = momentDate.day() % 6 === 0 ? momentDate.add(1, 'day').day(1) : momentDate;
+    this.fromDate = momentDate.toDate();
+    this.onBlurFromDate(event);
+  }
+
+
   togglePercentage(event): void {
     this.prepareLoadedDataAndPlot(true);
   }
@@ -278,67 +312,70 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   getBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, currencypairWithTransaction: CurrencypairWithTransaction): Traces {
 
-    const sizes: { [key: string]: { size: number[] } } = {};
-    let minAmount = Number.MAX_VALUE;
-    let maxAmount = 0;
-
-    currencypairWithTransaction.transactionList.filter(transaction => transaction.transactionTime >= this.fromDate.getTime())
-      .forEach(transaction => {
-
-        const transactionType: TransactionType = TransactionType[transaction.transactionType];
-
-        const transactionTypeStr: string = transactionType === TransactionType.DEPOSIT ? TransactionType[TransactionType.ACCUMULATE] :
-          transactionType === TransactionType.WITHDRAWAL ? TransactionType[TransactionType.REDUCE] : transaction.transactionType;
-
-        if (transactionType === TransactionType.DEPOSIT || transactionType === TransactionType.WITHDRAWAL
-          || transactionType === TransactionType.ACCUMULATE || transactionType === TransactionType.REDUCE) {
-          let amount = Math.abs(transaction.cashaccountAmount);
-          if (amount > 50) {
-            if (!traces[transactionTypeStr]) {
-              traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
-              sizes[transactionTypeStr] = {size: []};
-            }
-            const transactionDateStr = moment(transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
-
-            traces[transactionTypeStr].x.push(transactionDateStr);
-            traces[transactionTypeStr].text.push(transaction.cashaccount.name);
-
-            switch (transactionType) {
-              case TransactionType.ACCUMULATE:
-              case TransactionType.REDUCE:
-                amount = amount / transaction.currencyExRate;
-                break;
-              case TransactionType.DEPOSIT:
-              case TransactionType.WITHDRAWAL:
-
-                break;
-            }
-            if (this.loadedData.length > 1 || this.usePercentage) {
-              const foundIndex = AppHelper.binarySearch(historicalLine.x, transactionDateStr, this.compareXaxisFN);
-              traces[transactionTypeStr].y.push(historicalLine.y[Math.abs(foundIndex)]);
-            } else {
-              traces[transactionTypeStr].y.push(transaction.currencyExRate);
-              sizes[transactionTypeStr].size.push(amount);
-              minAmount = Math.min(minAmount, amount);
-              maxAmount = Math.max(maxAmount, amount);
-            }
-          }
-        }
-      });
+    const cptv = new CurrencyPairTraceValues();
+    this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.transactionList, cptv, false);
+    this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.cwtReverse.transactionList, cptv, true);
 
     if (this.loadedData.length === 1 && !this.usePercentage) {
-      const maxAmountSqrt = Math.sqrt(maxAmount);
-      const minAmountSqrt = Math.sqrt(minAmount);
+      const maxAmountSqrt = Math.sqrt(cptv.maxAmount);
+      const minAmountSqrt = Math.sqrt(cptv.minAmount);
       const step = (maxAmountSqrt - minAmountSqrt) ? 18 / (maxAmountSqrt - minAmountSqrt) : 0;
 
       Object.entries(traces).forEach(
         ([key, value]) => {
-          (<any>value).marker = {size: sizes[key].size.map(amount => (Math.sqrt(amount) - minAmountSqrt) * step + 6)};
+          (<any>value).marker = {size: cptv.sizes[key].size.map(amount => (Math.sqrt(amount) - minAmountSqrt) * step + 6)};
         }
       );
     }
     return traces;
   }
+
+  private addBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, transactions: Transaction[],
+                                       cptv: CurrencyPairTraceValues, reverse: boolean): void {
+    transactions.filter(transaction => transaction.transactionTime >= this.fromDate.getTime())
+      .forEach(transaction => {
+        const transactionType: TransactionType = TransactionType[transaction.transactionType];
+        const transactionTypeStr = this.getTransactionTypeStr(transaction, transactionType, reverse);
+        const amount = Math.abs(transaction.cashaccountAmount);
+        if (!traces[transactionTypeStr]) {
+          traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
+          cptv.sizes[transactionTypeStr] = {size: []};
+        }
+        const transactionDateStr = moment(transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
+
+        traces[transactionTypeStr].x.push(transactionDateStr);
+        traces[transactionTypeStr].text.push(transaction.cashaccount.name + ':' + amount);
+
+        if (this.loadedData.length > 1 || this.usePercentage) {
+          const foundIndex = AppHelper.binarySearch(historicalLine.x, transactionDateStr, this.compareXaxisFN);
+          traces[transactionTypeStr].y.push(historicalLine.y[Math.abs(foundIndex)]);
+        } else {
+          traces[transactionTypeStr].y.push((reverse) ? 1 / transaction.currencyExRate : transaction.currencyExRate);
+          cptv.sizes[transactionTypeStr].size.push(amount);
+          cptv.minAmount = Math.min(cptv.minAmount, amount);
+          cptv.maxAmount = Math.max(cptv.maxAmount, amount);
+        }
+      });
+  }
+
+  private getTransactionTypeStr(transaction: Transaction, transactionType: TransactionType, reverse: boolean): string {
+    if (reverse) {
+      switch (transactionType) {
+        case TransactionType.DEPOSIT:
+        case TransactionType.ACCUMULATE:
+          return TransactionType[TransactionType.REDUCE];
+        case TransactionType.WITHDRAWAL:
+        case TransactionType.REDUCE:
+          return TransactionType[TransactionType.ACCUMULATE];
+        default:
+          return transaction.transactionType;
+      }
+    } else {
+      return transactionType === TransactionType.DEPOSIT ? TransactionType[TransactionType.ACCUMULATE] :
+        transactionType === TransactionType.WITHDRAWAL ? TransactionType[TransactionType.REDUCE] : transaction.transactionType;
+    }
+  }
+
 
   getBuySellDivMarkForSecurity(traces: Traces, loadedData: LoadedData, securityTransactionSummary: SecurityTransactionSummary): Traces {
     securityTransactionSummary.transactionPositionList.filter(stp => stp.transaction.transactionTime >= this.fromDate.getTime())
@@ -702,7 +739,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
   }
 
-
   private getLayout(): any {
     const dateNative = moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
     const layout = {
@@ -712,9 +748,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       xaxis: {
         autorange: false,
         range: [dateNative, this.youngestMatchDate],
-        rangeselector: {
-          buttons: this.getRangeSelectorButtons(),
-        },
         rangeslider: {
           autorange: false,
           range: [dateNative, this.youngestMatchDate]
@@ -732,24 +765,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return layout;
   }
 
-  private getRangeSelectorButtons(): any {
-    const duration = moment.duration(moment(this.youngestDate).diff(moment(this.fromDate)));
-    const months = duration.asMonths();
-    const buttons: any[] = [];
-    if (months >= 1) {
-      buttons.push({count: 1, label: '1m', step: 'month', stepmode: 'backward'});
-    }
-    if (months >= 6) {
-      buttons.push({count: 6, label: '6m', step: 'month', stepmode: 'backward'});
-    }
-    buttons.push({label: 'ALL', step: 'all'});
-    return buttons;
-  }
-
   private normalizeAllSecurityPrices(): void {
     this.loadedData.filter(ld => ld.currencySecurity != null).forEach(ld => this.normalizeSecurityPrice(ld));
   }
-
 
   private normalizeSecurityPrice(loadedData: LoadedData): void {
     if (this.normalizeNotNeeded(loadedData)) {
@@ -848,5 +866,9 @@ class LoadedData {
   }
 }
 
-
+class CurrencyPairTraceValues {
+  public sizes: { [key: string]: { size: number[] } } = {};
+  public minAmount = Number.MAX_VALUE;
+  public maxAmount = 0;
+}
 

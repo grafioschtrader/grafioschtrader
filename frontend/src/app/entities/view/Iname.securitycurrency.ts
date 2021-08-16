@@ -1,6 +1,6 @@
 import {Securitycurrency} from '../securitycurrency';
 
-export interface NameSecuritycurrency {
+export interface INameSecuritycurrency {
   getName(): string;
 
   getSecuritycurrency(): Securitycurrency;

@@ -206,12 +206,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   private void checkCurrencypair(final Transaction transaction, final String sourceCurrency,
       final String targetCurrency) {
-    
+
     transaction.clearCurrencypairExRate();
-    if(sourceCurrency.equals(targetCurrency)) {
+    if (sourceCurrency.equals(targetCurrency)) {
       transaction.setIdCurrencypair(null);
     }
-    
+
     if (transaction.getIdCurrencypair() != null) {
       Currencypair currencypairRequried = DataHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency, targetCurrency);
       Currencypair currencypairFound = currencypairJpaRepository.findByFromCurrencyAndToCurrency(
@@ -436,18 +436,32 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   //////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public CurrencypairWithTransaction getTransactionForCurrencyPair(final Integer idTenant,
-      final Integer idCurrencypair) {
+  public CurrencypairWithTransaction getTransactionForCurrencyPair(final Integer idTenant, final Integer idCurrencypair,
+      final boolean forChart) {
 
     final Currencypair currencypair = currencypairJpaRepository.getById(idCurrencypair);
     currencypairJpaRepository.updateLastPrice(currencypair);
+    final CurrencypairWithTransaction cwt = new CurrencypairWithTransaction(currencypair);
+    if (forChart) {
+      addTransactionsForChart(idTenant, currencypair, cwt);
+      final Currencypair currencypairReverse = currencypairJpaRepository
+          .findByFromCurrencyAndToCurrency(currencypair.getToCurrency(), currencypair.getFromCurrency());
+      cwt.cwtReverse = new CurrencypairWithTransaction(currencypairReverse);
+      addTransactionsForChart(idTenant, currencypairReverse, cwt.cwtReverse);
+    }
 
-    List<Transaction> transactionList = this.transactionJpaRepository.findByCurrencypair(idTenant, idCurrencypair);
+    return cwt;
+  }
+
+  private void addTransactionsForChart(final Integer idTenant, final Currencypair currencypair,
+      final CurrencypairWithTransaction cwt) {
+    List<Transaction> transactionList = this.transactionJpaRepository.findByCurrencypair(idTenant,
+        currencypair.getIdSecuritycurrency());
     transactionList = transactionList.stream()
         .filter(transaction -> !(transaction.getCashaccount().getCurrency().equals(currencypair.getToCurrency())
             && transaction.isCashaccountTransfer()))
         .collect(Collectors.toList());
-    final CurrencypairWithTransaction cwt = new CurrencypairWithTransaction(currencypair, transactionList);
+    cwt.transactionList = transactionList;
 
     for (final Transaction transaction : transactionList) {
       if (transaction.getCashaccount().getCurrency().equals(currencypair.getToCurrency())) {
@@ -464,7 +478,6 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       cwt.gainTo = cwt.sumAmountFrom * currencypair.getSLast() - cwt.sumAmountTo;
       cwt.gainFrom = cwt.gainTo / currencypair.getSLast();
     }
-    return cwt;
   }
 
   @Override
@@ -489,5 +502,5 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
     return cashaccountTransactionPositions;
   }
- 
+
 }

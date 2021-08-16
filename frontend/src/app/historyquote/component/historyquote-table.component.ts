@@ -14,7 +14,7 @@ import {CurrencypairService} from '../../securitycurrency/service/currencypair.s
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
 import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
 import {TranslateService} from '@ngx-translate/core';
-import {NameSecuritycurrency} from '../../entities/view/name.securitycurrency';
+import {INameSecuritycurrency} from '../../entities/view/iname.securitycurrency';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {MessageToastService} from '../../shared/message/message.toast.service';
@@ -166,7 +166,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   callParam: HistoryquoteSecurityCurrency;
   firstRow: number;
 
-  nameSecuritycurrency: NameSecuritycurrency;
+  nameSecuritycurrency: INameSecuritycurrency;
   historyquotesWithMissings: HistoryquotesWithMissings;
   security: Security;
   visibleUploadFileDialog = false;
@@ -362,7 +362,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     const stsObservable = timeSeriesParam.currencySecurity
       ? BusinessHelper.setSecurityTransactionSummary(this.securitService,
         timeSeriesParam.idSecuritycurrency, null, null, false)
-      : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency);
+      : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency, false);
     const historyquoteObservable = this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(
       timeSeriesParam.idSecuritycurrency, !timeSeriesParam.currencySecurity);
 

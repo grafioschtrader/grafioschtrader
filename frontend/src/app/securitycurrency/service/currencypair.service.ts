@@ -13,10 +13,11 @@ import {LoginService} from '../../shared/login/service/log-in.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
+import {SecurityCurrencyService} from './security.currency.service';
 
 
 @Injectable()
-export class CurrencypairService extends AuthServiceWithLogout<Currencypair> {
+export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
@@ -56,10 +57,10 @@ export class CurrencypairService extends AuthServiceWithLogout<Currencypair> {
       + `${dateString}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getTransactionForCurrencyPair(idCurrencypair): Observable<CurrencypairWithTransaction> {
+  getTransactionForCurrencyPair(idCurrencypair: number, forChart: boolean): Observable<CurrencypairWithTransaction> {
     return <Observable<CurrencypairWithTransaction>>this.httpClient.get(
       `${AppSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/tenant/${idCurrencypair}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      this.getOptionsWithIncludeForChart(forChart)).pipe(catchError(this.handleError.bind(this)));
   }
 
   getFeedConnectors(): Observable<IFeedConnector[]> {
@@ -90,7 +91,6 @@ export class CurrencypairService extends AuthServiceWithLogout<Currencypair> {
     return this.updateEntity(currencypair, currencypair.idSecuritycurrency, AppSettings.CURRENCYPAIR_KEY);
   }
 }
-
 
 export class CrossRateRequest {
   constructor(public securityCurrencyList: string[], public existingCurrencies: string[]) {

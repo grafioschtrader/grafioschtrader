@@ -71,4 +71,5 @@ public class SecurityTransactionSummary {
     return "SecurityTransactionSummary [transactionPositionList=" + transactionPositionList
         + ", securityPositionSummary=" + securityPositionSummary + "]";
   }
+ 
 }

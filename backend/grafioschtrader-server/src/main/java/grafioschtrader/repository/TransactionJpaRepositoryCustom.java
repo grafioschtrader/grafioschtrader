@@ -29,7 +29,7 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
   CashAccountTransfer updateCreateCashaccountTransfer(CashAccountTransfer cashAccountTransfer,
       CashAccountTransfer cashAccountTransferExisting);
 
-  CurrencypairWithTransaction getTransactionForCurrencyPair(Integer idTenant, Integer idCurrencypair);
+  CurrencypairWithTransaction getTransactionForCurrencyPair(Integer idTenant, Integer idCurrencypair, boolean forChart);
 
   List<Transaction> getTransactionsByIdPortfolio(Integer idPortfolio, Integer idTenant);
 
