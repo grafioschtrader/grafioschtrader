@@ -481,7 +481,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       const currencypairList: string[] = [];
       this.crossRateMap.getValues().forEach(crossRateResponse => currencypairList.push(
         crossRateResponse.currencypair.fromCurrency + '|' + crossRateResponse.currencypair.toCurrency));
-      const uniqueSecuritycurrency = new Set(this.loadedData.map(ld => ld.currencySecurity));
+      const uniqueSecuritycurrency = new Set(this.loadedData.filter(ld => ld.currencySecurity).map(ld => ld.currencySecurity));
       uniqueSecuritycurrency.add(currencySecurity);
       observable.push(this.currencypairService.getCurrencypairForCrossRate(new CrossRateRequest(
         [...uniqueSecuritycurrency], currencypairList)));
