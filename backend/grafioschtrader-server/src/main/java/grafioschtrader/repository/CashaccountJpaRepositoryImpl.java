@@ -41,7 +41,7 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
 
     if (!createEditCashaccount.getPortfolio().getCurrency().equals(cashaccount.getCurrency())) {
       currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(
-          createEditCashaccount.getPortfolio().getCurrency(), cashaccount.getCurrency());
+          createEditCashaccount.getPortfolio().getCurrency(), cashaccount.getCurrency(), true);
     }
     return cashaccountJpaRepository.save(createEditCashaccount);
   }

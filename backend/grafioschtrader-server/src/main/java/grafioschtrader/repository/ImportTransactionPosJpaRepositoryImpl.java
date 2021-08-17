@@ -396,7 +396,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
           itp.getCashaccount().getCurrency());
       // It is as currency
       Integer idCurrencypair = this.currencypairJpaRepository
-          .findOrCreateCurrencypairByFromAndToCurrency(currencypair.getFromCurrency(), currencypair.getToCurrency())
+          .findOrCreateCurrencypairByFromAndToCurrency(currencypair.getFromCurrency(), currencypair.getToCurrency(), true)
           .getIdSecuritycurrency();
       ISecuritycurrencyIdDateClose idc = historyquoteJpaRepository
           .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime(), false);
@@ -438,7 +438,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
             currencypair.getFromCurrency(), currencypair.getToCurrency()).getIdSecuritycurrency();
       } else {
         idCurrencypair = this.currencypairJpaRepository
-            .findOrCreateCurrencypairByFromAndToCurrency(currencypair.getFromCurrency(), currencypair.getToCurrency())
+            .findOrCreateCurrencypairByFromAndToCurrency(currencypair.getFromCurrency(), currencypair.getToCurrency(), true)
             .getIdSecuritycurrency();
       }
     }
