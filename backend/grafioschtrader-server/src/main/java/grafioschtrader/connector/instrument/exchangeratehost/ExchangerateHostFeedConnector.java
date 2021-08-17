@@ -92,10 +92,17 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
       String toCurrency) throws ParseException {
     final List<Historyquote> historyquotes = new ArrayList<>();
     for (String dateString : rates.keySet()) {
-      var historyquote = new Historyquote();
-      historyquotes.add(historyquote);
-      historyquote.setDate(dateFormat.parse(dateString));
-      historyquote.setClose(rates.get(dateString).get(toCurrency));
+      Double rate = rates.get(dateString).get(toCurrency);
+      if (rate != null) {
+        var historyquote = new Historyquote();
+        historyquotes.add(historyquote);
+        historyquote.setDate(dateFormat.parse(dateString));
+        historyquote.setClose(rate);
+      } else {
+        // When a rate is not available for a certain year it returns a lot of currencies but not the 
+        // expected one
+        break;
+      }
     }
     return historyquotes;
   }

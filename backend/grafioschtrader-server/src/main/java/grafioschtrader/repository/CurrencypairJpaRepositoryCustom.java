@@ -49,9 +49,10 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
    *
    * @param fromCurrency
    * @param toCurrency
+   * @param loadAsync TODO
    * @return
    */
-  Currencypair findOrCreateCurrencypairByFromAndToCurrency(String fromCurrency, String toCurrency);
+  Currencypair findOrCreateCurrencypairByFromAndToCurrency(String fromCurrency, String toCurrency, boolean loadAsync);
 
   Currencypair findOrCreateCurrencypairByFromAndToCurrency(List<Currencypair> currencypairs, String fromCurrency,
       String toCurrency);

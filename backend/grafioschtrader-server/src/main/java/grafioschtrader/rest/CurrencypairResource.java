@@ -67,7 +67,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   public ResponseEntity<Currencypair> findOrCreateCurrencypairByFromAndToCurrency(
       @PathVariable final String baseCurrency, @PathVariable final String quoteCurrency) {
     return new ResponseEntity<>(
-        currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(baseCurrency, quoteCurrency),
+        currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(baseCurrency, quoteCurrency, true),
         HttpStatus.OK);
   }
 

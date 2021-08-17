@@ -229,10 +229,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Override
   @Transactional
-  public Currencypair findOrCreateCurrencypairByFromAndToCurrency(final String fromCurrency, final String toCurrency) {
+  public Currencypair findOrCreateCurrencypairByFromAndToCurrency(final String fromCurrency, final String toCurrency,
+      boolean loadAsync) {
     Currencypair currencypair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(fromCurrency, toCurrency);
     if (currencypair == null) {
-      createNonExistingCurrencypair(fromCurrency, toCurrency, true);
+      createNonExistingCurrencypair(fromCurrency, toCurrency, loadAsync);
     }
     return currencypair;
   }
@@ -373,7 +374,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     double currencyExchangeRate = 1.0;
     if (!fromCurrency.equals(toCurrency)) {
       Currencypair currencypair = currencypairMap.computeIfAbsent(fromCurrency,
-          fc -> currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(fc, toCurrency));
+          fc -> currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(fc, toCurrency, true));
       currencyExchangeRate = currencypair.getSLast();
     }
     return currencyExchangeRate;
@@ -412,7 +413,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
               }
             }
             if (foundExactCurrencypair == null) {
-              currencypairsMissing.add(findOrCreateCurrencypairByFromAndToCurrency(mainCurrencyTenant, sc));
+              currencypairsMissing.add(findOrCreateCurrencypairByFromAndToCurrency(mainCurrencyTenant, sc, false));
             } else {
               currencypairsMissing.add(foundExactCurrencypair);
             }
