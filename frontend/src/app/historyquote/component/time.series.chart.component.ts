@@ -494,7 +494,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList);
       this.crossRateMap.set(crr.currencypair.fromCurrency, crr.currencypair.toCurrency, crr);
     });
-    const co = new Set(this.loadedData.map(ld => ld.currencySecurity));
+    const co = new Set(this.loadedData.filter(ld => ld.currencySecurity).map(ld => ld.currencySecurity));
     this.currenciesOptions = [{value: '', label: ''}];
     co.add(crossRateResponse.mainCurrency);
     co.forEach((currency) => this.currenciesOptions.push({value: currency, label: currency}));
