@@ -189,6 +189,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   prepareChart(timeSeriesParams: TimeSeriesParam[]): void {
     if (timeSeriesParams.length === 1 || timeSeriesParams.length - 1 !== this.loadedData.length) {
       this.loadedData = [];
+      this.requestedCurrency = '';
     }
     if (timeSeriesParams.length === 2) {
       this.usePercentage = true;
@@ -724,8 +725,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.displaylogo = false;
     this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
-    this.plotlyService.getPlotly().newPlot(element, traces, layout, config).then(this.attach.bind(this));
-    element.on('plotly_afterplot', this.attach.bind(this));
+    this.plotlyService.getPlotly().newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
+    element.on('plotly_afterplot', this.attachTooltip.bind(this));
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
@@ -746,7 +747,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
   }
 
-  private attach() {
+  private attachTooltip() {
     const legendLayer = this.plotlyService.getPlotly().d3.select('g.legend');
     const items = legendLayer.selectAll('g.traces');
     let tooltip: any;
@@ -763,7 +764,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       }
     });
   }
-
 
   private getLayout(): any {
     const dateNative = moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
