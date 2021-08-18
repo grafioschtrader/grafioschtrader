@@ -750,11 +750,11 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     const legendLayer = this.plotlyService.getPlotly().d3.select('g.legend');
     const items = legendLayer.selectAll('g.traces');
     let tooltip: any;
-    legendLayer.selectAll('.tooltip').remove();
+    legendLayer.selectAll('.tooltip-line-graphics').remove();
     items.on('mouseover', (d) => {
       const fullName = this.legendTooltipMap.get(d[0].trace.name);
       tooltip = legendLayer.append('text')
-        // .classed('tooltip', true)
+        .classed('tooltip-line-graphics', true)
         .text(fullName ? fullName : d[0].trace.name);
     });
     items.on('mouseout', () => {
@@ -783,7 +783,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       yaxis: {
         autorange: true,
         range: [this.minValueOfY, this.maxValueOfY],
-        ticksuffix: this.loadedData.length > 1 || this.usePercentage ? '%' : '',
+        ticksuffix: this.usePercentage ? '%' : '',
         type: 'linear'
       }
     };
