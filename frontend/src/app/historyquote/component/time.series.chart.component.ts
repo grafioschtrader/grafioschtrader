@@ -136,6 +136,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   private crossRateMap = new TwoKeyMap<CurrenciesAndClosePrice>();
   private mainCurrency: string;
+  private legendTooltipMap = new Map<string, string>();
 
   constructor(private plotlyService: PlotlyService,
               private messageToastService: MessageToastService,
@@ -273,7 +274,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.onBlurFromDate(event);
   }
 
-
   togglePercentage(event): void {
     this.prepareLoadedDataAndPlot(true);
   }
@@ -298,10 +298,15 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
 
     loadedData.factor = 100 / loadedData.historyquotesNorm[foundStartIndex].close;
+    if (loadedData.currencySecurity) {
+      this.legendTooltipMap.set(loadedData.nameSecuritycurrency.getName(),
+        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity);
+    }
     return {
       type: 'scatter',
       mode: 'lines',
-      name: AppHelper.truncateString(loadedData.nameSecuritycurrency.getName(), 25, true),
+      name: loadedData.nameSecuritycurrency.getName(),
+      // name: AppHelper.truncateString(loadedData.nameSecuritycurrency.getName(), 25, true),
       x: loadedData.historyquotesNorm.slice(foundStartIndex, loadedData.historyquotesNorm.length).map(historyquote => historyquote.date),
       y: loadedData.historyquotesNorm.slice(foundStartIndex, loadedData.historyquotesNorm.length).map(historyquote =>
         (this.usePercentage && historyquote.close != null) ? historyquote.close * loadedData.factor - 100 : historyquote.close),
@@ -719,7 +724,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.displaylogo = false;
     this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
-    this.plotlyService.getPlotly().newPlot(element, traces, layout, config);
+    this.plotlyService.getPlotly().newPlot(element, traces, layout, config).then(this.attach.bind(this));
+    element.on('plotly_afterplot', this.attach.bind(this));
+
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
       this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(changedViewSizeType =>
@@ -738,6 +745,25 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       }
     }
   }
+
+  private attach() {
+    const legendLayer = this.plotlyService.getPlotly().d3.select('g.legend');
+    const items = legendLayer.selectAll('g.traces');
+    let tooltip: any;
+    legendLayer.selectAll('.tooltip').remove();
+    items.on('mouseover', (d) => {
+      const fullName = this.legendTooltipMap.get(d[0].trace.name);
+      tooltip = legendLayer.append('text')
+        // .classed('tooltip', true)
+        .text(fullName ? fullName : d[0].trace.name);
+    });
+    items.on('mouseout', () => {
+      if (tooltip) {
+        tooltip.remove();
+      }
+    });
+  }
+
 
   private getLayout(): any {
     const dateNative = moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
