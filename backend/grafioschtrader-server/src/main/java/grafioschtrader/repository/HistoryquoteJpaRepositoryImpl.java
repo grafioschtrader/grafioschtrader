@@ -382,11 +382,16 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     if (currencypairJpaRepository.findById(idSecuritycurrency).isPresent()) {
       return new UserAccess(true);
     } else {
+      
       final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+      
+      // Issue: 53: TODO Check if someone is using GT to get historical data. The following way will certainly not work. 
+      /*
       if (historyquoteJpaRepository.countSecuritycurrencyForHistoryquoteAccess(user.getIdTenant(),
           idSecuritycurrency) == 0) {
         throw new SecurityException(GlobalConstants.STEAL_DATA_SECURITY_BREACH);
       }
+      */
       return new UserAccess(false, securityJpaRepository
           .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency, user.getIdTenant()));
     }
