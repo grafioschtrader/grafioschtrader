@@ -27,7 +27,12 @@ public class CrossRateRequest {
   }
   
   public boolean needNewCurrencypair(String mainCurrency) {
-    return (securityCurrencyList.size() == 1 && existingCurrencies.length == 0 
-        && !securityCurrencyList.get(0).equals(mainCurrency)) || securityCurrencyList.size() > 1;   
+    if(securityCurrencyList.size() == 1 && existingCurrencies.length == 0) {
+      return true;
+    } else {
+      return getExistingCurrencies().stream().filter(cp -> 
+      cp.getFromCurrency().equals(mainCurrency) && cp.getToCurrency().equals(securityCurrencyList.get(0))  
+          || cp.getFromCurrency().equals(securityCurrencyList.get(0)) && cp.getToCurrency().equals(mainCurrency)).findFirst().isEmpty();
+    }
   }
 }
