@@ -233,7 +233,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
       boolean loadAsync) {
     Currencypair currencypair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(fromCurrency, toCurrency);
     if (currencypair == null) {
-      createNonExistingCurrencypair(fromCurrency, toCurrency, loadAsync);
+      currencypair = createNonExistingCurrencypair(fromCurrency, toCurrency, loadAsync);
     }
     return currencypair;
   }
