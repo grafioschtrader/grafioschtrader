@@ -9,30 +9,36 @@ import grafioschtrader.entities.Currencypair;
 public class CrossRateRequest {
   public List<String> securityCurrencyList;
   public String existingCurrencies[];
-  
+
   public void setSecurityCurrencyList(List<String> securityCurrencyList) {
     this.securityCurrencyList = securityCurrencyList;
   }
+
   public void setExistingCurrencies(String[] existingCurrencies) {
     this.existingCurrencies = existingCurrencies;
   }
 
   public List<Currencypair> getExistingCurrencies() {
     List<Currencypair> currencypairs = new ArrayList<>();
-    for(String existingCurrency: existingCurrencies) {
+    for (String existingCurrency : existingCurrencies) {
       String[] fromTo = existingCurrency.split(Pattern.quote("|"));
       currencypairs.add(new Currencypair(fromTo[0], fromTo[1]));
     }
     return currencypairs;
   }
-  
+
   public boolean needNewCurrencypair(String mainCurrency) {
-    if(securityCurrencyList.size() == 1 && existingCurrencies.length == 0) {
+    if (securityCurrencyList.size() == 1 && existingCurrencies.length == 0) {
       return true;
     } else {
-      return getExistingCurrencies().stream().filter(cp -> 
-      cp.getFromCurrency().equals(mainCurrency) && cp.getToCurrency().equals(securityCurrencyList.get(0))  
-          || cp.getFromCurrency().equals(securityCurrencyList.get(0)) && cp.getToCurrency().equals(mainCurrency)).findFirst().isEmpty();
+      List<Currencypair> ec = getExistingCurrencies();
+      for (String sc : securityCurrencyList) {
+        if (ec.stream().filter(cp -> cp.getFromCurrency().equals(mainCurrency) && cp.getToCurrency().equals(sc)
+            || cp.getFromCurrency().equals(sc) && cp.getToCurrency().equals(mainCurrency)).findFirst().isEmpty()) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 }
