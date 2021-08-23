@@ -62,10 +62,9 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
     final DividendHead dividendHead = objectMapper.readValue(url, DividendHead.class);
 
     for (DividendDetail dd : dividendHead.dividends) {
-      LocalDate exDate = dd.exDate.toLocalDate();
-      if (!exDate.isBefore(fromDate)) {
-        dividends.add(0, new Dividend(security.getIdSecuritycurrency(), dd.exDate.toLocalDate(),
-            dd.payDate.toLocalDate(), dd.amount, null, dd.currency, CreateType.CONNECTOR_CREATED));
+      if (!dd.exDate.isBefore(fromDate)) {
+        dividends.add(0, new Dividend(security.getIdSecuritycurrency(), dd.exDate,
+            dd.payDate, dd.amount, null, dd.currency, CreateType.CONNECTOR_CREATED));
       }
     }
     return dividends;
@@ -76,12 +75,8 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
   }
 
   private static class DividendDetail {
-    // @JsonFormat(shape = JsonFormat.Shape.STRING, pattern =
-    // "yyyy-MM-dd'T'HH:mm:ssZ")
-    public LocalDateTime exDate;
-    // @JsonFormat(shape = JsonFormat.Shape.STRING, pattern =
-    // "yyyy-MM-dd'T'HH:mm:ssZ")
-    public LocalDateTime payDate;
+    public LocalDate exDate;
+    public LocalDate payDate;
     public Double amount;
     public String currency;
   }
