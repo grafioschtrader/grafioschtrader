@@ -70,8 +70,9 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     this.addColumn(DataType.String, 'transaction.currencyExRate', 'EXCHANGE_RATE', true, false);
     this.addColumn(DataType.Numeric, 'transaction.taxCost', 'TAX_COST', true, false);
     this.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'balance', true, false);
+    this.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false,
+      {templateName: 'greenRed'});
+    this.addColumnFeqH(DataType.Numeric, 'balance', true, false, {templateName: 'greenRed'});
     this.prepareTableAndTranslate();
     // this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(this.idSecuritycashAccount);
 
