@@ -216,14 +216,16 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.addColumnFeqH(DataType.Numeric, 'volume', true, false, {export: true});
     this.addColumnFeqH(DataType.Numeric, 'open', true, false, {
       minFractionDigits: 5,
-      maxFractionDigits: 8,
+      maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS,
       export: true
     });
-    this.addColumnFeqH(DataType.Numeric, 'high', true, false, {maxFractionDigits: 8, export: true});
-    this.addColumnFeqH(DataType.Numeric, 'low', true, false, {maxFractionDigits: 8, export: true});
+    this.addColumnFeqH(DataType.Numeric, 'high', true, false,
+      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, export: true});
+    this.addColumnFeqH(DataType.Numeric, 'low', true, false,
+      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, export: true});
     this.addColumnFeqH(DataType.Numeric, 'close', true, false, {
       minFractionDigits: 5,
-      maxFractionDigits: 8, filterType: FilterType.likeDataType, export: true
+      maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, filterType: FilterType.likeDataType, export: true
     });
     this.multiSortMeta.push({field: 'date', order: -1});
     this.prepareTableAndTranslate();

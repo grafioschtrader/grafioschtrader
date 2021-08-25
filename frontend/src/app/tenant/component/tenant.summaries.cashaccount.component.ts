@@ -65,6 +65,8 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
         width: 100, columnGroupConfigs: [new ColumnGroupConfig('groupName', 'TOTAL'),
           new ColumnGroupConfig(null, 'GRAND_TOTAL')],
       });
+    this.addColumnFeqH(DataType.String, 'cashaccount.currency', true, false,
+      {width: 40});
 
     this.addColumn(DataType.Numeric, 'closePrice', 'CURRENCY_RATE', true, false,
       {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, templateName: 'greenRed'});

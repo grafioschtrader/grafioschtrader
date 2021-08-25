@@ -26,7 +26,6 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {FilterService} from 'primeng/api';
 import {AppHelper} from '../../shared/helper/app.helper';
 
-
 /**
  * It is the summary for a single security account with its securities.
  */
@@ -37,7 +36,6 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
 
   private routeSubscribe: Subscription;
   private idSecurityaccount: number;
-
 
   constructor(private ngZone: NgZone,
               protected importTransactionHeadService: ImportTransactionHeadService,

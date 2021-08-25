@@ -182,10 +182,10 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
       securityPositionSummary.transactionCurrencyGainLossMC = balance * ctp.exchangeRate
           - balance * securityPositionSummary.adjustedCostBaseMC / securityPositionSummary.balanceSecurityCurrency;
-
       securityPositionSummary.adjustedCostBaseMC -= gainLostMC * securityPositionSummary.adjustedCostBaseMC
           / securityPositionSummary.balanceSecurityCurrency;
       securityPositionSummary.balanceSecurityCurrency -= securityPositionSummary.transactionGainLoss;
+      securityPositionSummary.currencyGainLossMC += securityPositionSummary.transactionCurrencyGainLossMC;
     }
   }
 
@@ -206,12 +206,15 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
       final boolean excludeDivTaxcost, final double transactionCost, final double taxCost, final Double exchangeRate) {
     securityPositionSummary.transactionGainLoss = transaction.getSeucritiesNetPrice()
         - ((excludeDivTaxcost) ? 0.0 : taxCost) - transactionCost;
+ 
+    
     securityPositionSummary.transactionGainLossPercentage = (securityPositionSummary.units > 0)
         ? securityPositionSummary.transactionGainLoss / securityPositionSummary.adjustedCostBase * 100.0
         : null;
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
     if (exchangeRate != null && !transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
       securityPositionSummary.transactionGainLossMC = securityPositionSummary.transactionGainLoss * exchangeRate;
+      // securityPositionSummary.currencyGainLossMC += securityPositionSummary.transactionCurrencyGainLossMC;
     }
   }
 

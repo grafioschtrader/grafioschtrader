@@ -79,7 +79,8 @@ class CheckCashaccountAmountTransaction {
           CashAccountTransfer cashAccountTransfer = new CashAccountTransfer(transaction, transactions.get(index));
           cashAccountTransfer.validateWithdrawalCashaccountAmount(GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
         } catch (DataViolationException e) {
-          System.out.println(transaction);
+          System.err.println(transaction);
+          System.err.println(e);
           System.out.println();
         }
       }

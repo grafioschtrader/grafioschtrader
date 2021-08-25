@@ -111,7 +111,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
           });
         }
         field.filterValues = valueLabelHtmlSelectOptions;
-
       }
     });
   }

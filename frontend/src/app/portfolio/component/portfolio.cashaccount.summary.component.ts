@@ -36,7 +36,7 @@ import {AppSettings} from '../../shared/app.settings';
  * Shows all cash accounts of a certain portfolio. Over this view the cash account can be edited.
  */
 @Component({
-  templateUrl: '../view/portolio.cashaccount.table.html'
+  templateUrl: '../view/portfolio.cashaccount.table.html'
 })
 export class PortfolioCashaccountSummaryComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 
@@ -79,7 +79,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
               usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
 
-    this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
+    this.addColumnFeqH(DataType.String, 'cashaccount.name', true, false,
       {width: 100, columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]});
     this.addColumnFeqH(DataType.String, 'cashaccount.currency', true, false,
       {width: 40});
@@ -260,7 +260,6 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.transactionDataChanged(processedActionData);
     }
-
   }
 
   /**

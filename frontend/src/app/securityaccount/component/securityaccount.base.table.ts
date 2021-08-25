@@ -277,6 +277,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
         columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecurityMC'),
           new ColumnGroupConfig('grandGainLossSecurityMC')]
       }));
+/*
+    this.addColumnFeqH(DataType.Numeric, 'currencyGainLossMC', true, false,
+      { columnGroupConfigs: [new ColumnGroupConfig('groupCurrencyGainLossMC'),
+          new ColumnGroupConfig('grandCurrencyGainLossMC')]});
+*/
 
     this.addColumn(DataType.Numeric, 'accountValueSecurity', AppSettings.VALUE_SECURITY_ACCOUNT_HEADER, true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('groupAccountValueSecurity')]});
