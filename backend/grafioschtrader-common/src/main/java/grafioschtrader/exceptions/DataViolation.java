@@ -1,5 +1,7 @@
 package grafioschtrader.exceptions;
 
+import java.util.Arrays;
+
 public class DataViolation {
 
   private final String field;
@@ -41,6 +43,11 @@ public class DataViolation {
     return translateFieldName;
   }
 
+  @Override
+  public String toString() {
+    return "DataViolation [field=" + field + ", messageKey=" + messageKey + ", data=" + Arrays.toString(data)
+        + ", translateFieldName=" + translateFieldName + "]";
+  }
 
 
 }

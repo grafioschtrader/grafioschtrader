@@ -55,4 +55,9 @@ public class DataViolationException extends RuntimeException {
     return dataViolation;
   }
 
+  @Override
+  public String toString() {
+    return "DataViolationException [localeStr=" + localeStr + ", dataViolation=" + dataViolation + "]";
+  }
+
 }

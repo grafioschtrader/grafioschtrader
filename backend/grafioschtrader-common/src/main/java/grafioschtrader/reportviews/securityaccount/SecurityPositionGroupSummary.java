@@ -16,6 +16,7 @@ public abstract class SecurityPositionGroupSummary {
 
   public double groupAccountValueSecurityMC;
   public double groupGainLossSecurityMC = 0.0;
+  public double groupCurrencyGainLossMC = 0.0;
 
   public double groupValueSecurityShort;
   public double groupSecurityRiskMC;
@@ -35,6 +36,7 @@ public abstract class SecurityPositionGroupSummary {
     precisionMC = securityPositionSummary.precisionMC;
     securityPositionSummaryList.add(securityPositionSummary);
     groupGainLossSecurityMC += securityPositionSummary.gainLossSecurityMC;
+    groupCurrencyGainLossMC += securityPositionSummary.currencyGainLossMC;
     groupAccountValueSecurityMC += securityPositionSummary.accountValueSecurityMC;
 
     groupValueSecurityShort += securityPositionSummary.valueSecurity
@@ -59,5 +61,12 @@ public abstract class SecurityPositionGroupSummary {
   public double getGroupSecurityRiskMC() {
     return DataHelper.round(groupSecurityRiskMC, precisionMC);
   }
+
+
+  public double getGroupCurrencyGainLossMC() {
+    return DataHelper.round(groupCurrencyGainLossMC, precisionMC);
+  }
+  
+  
 
 }

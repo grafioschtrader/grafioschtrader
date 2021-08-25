@@ -635,9 +635,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     double roundCashaccountAmount = DataHelper.round(cashaccountAmount, currencyFraction);
 
     if (roundCashaccountAmount == calcCashaccountAmount) {
-      if (GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {
+      if (quotation != null && GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {
         if (calcCashaccountAmount != DataHelper.round(cashaccountAmount, currencyFraction + 1)) {
-          correctToAmount(cashaccountAmount - roundCashaccountAmount);
+          correctSecurityTransactionToAmount(cashaccountAmount - roundCashaccountAmount);
         }
       }
     } else {
@@ -672,12 +672,11 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     }
   }
 
-  private void correctToAmount(double diff) {
-    if (this.idCurrencypair != null) {
+  private void correctSecurityTransactionToAmount(double diff) {
+    if (idCurrencypair != null) {
       double oldCurrencyExRate = currencyExRate;
-      currencyExRate = DataHelper.round(
-          (validateSecurityGeneralCashaccountAmount(0) - diff) / calculateAmountWithoutExchangeRate(0),
-          GlobalConstants.FID_MAX_FRACTION_DIGITS);
+      currencyExRate = DataHelper.round((validateSecurityGeneralCashaccountAmount(0) - diff)
+          / calculateSecurityTransactionAmountWithoutExchangeRate(0), GlobalConstants.FID_MAX_FRACTION_DIGITS);
       log.debug("Corrected currency exchange rate for difference {} from {} to {}", diff, oldCurrencyExRate,
           currencyExRate);
 
@@ -685,18 +684,18 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       double oldQuotation = quotation;
       quotation = DataHelper.round((getSeucritiesNetPrice(0) + diff) / this.units,
           GlobalConstants.FID_MAX_FRACTION_DIGITS);
-      log.debug("Corrected currency exchange rate for difference {} from {} to {}", diff, oldQuotation, quotation);
+      log.debug("Corrected quotation for difference {} from {} to {}", diff, oldQuotation, quotation);
       cashaccountAmount = this.validateSecurityGeneralCashaccountAmount(0);
     }
   }
 
   // It is public for test
   public double validateSecurityGeneralCashaccountAmount(double buyQuotation) {
-    return DataHelper.divideMultiplyExchangeRate(calculateAmountWithoutExchangeRate(buyQuotation), currencyExRate,
-        security.getCurrency(), cashaccount.getCurrency());
+    return DataHelper.divideMultiplyExchangeRate(calculateSecurityTransactionAmountWithoutExchangeRate(buyQuotation),
+        currencyExRate, security.getCurrency(), cashaccount.getCurrency());
   }
 
-  private double calculateAmountWithoutExchangeRate(double buyQuotation) {
+  private double calculateSecurityTransactionAmountWithoutExchangeRate(double buyQuotation) {
     double calcCashaccountAmount = getSeucritiesNetPrice(buyQuotation);
     if (getTransactionType() == TransactionType.ACCUMULATE) {
       calcCashaccountAmount = (calcCashaccountAmount + calculateOtherCosts()) * -1.0;

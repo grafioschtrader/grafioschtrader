@@ -22,6 +22,8 @@ public class SecurityPositionGrandSummary {
   public double grandGainLossSecurityMC = 0.0;
 
   public double grandTaxCostMC = 0.0;
+  
+  public double grandCurrencyGainLossMC = 0.0;
 
   protected int precision;
 
@@ -46,6 +48,7 @@ public class SecurityPositionGrandSummary {
     grandAccountValueSecurityMC += securityPositionGroupSummary.groupAccountValueSecurityMC;
     grandGainLossSecurityMC += securityPositionGroupSummary.groupGainLossSecurityMC;
     grandSecurityRiskMC += securityPositionGroupSummary.groupSecurityRiskMC;
+    grandCurrencyGainLossMC += securityPositionGroupSummary.groupCurrencyGainLossMC;
     // grandTaxCostMC += securityPositionGroupSummary.groupTaxCost;
     // grandTransactionCostMC +=
     // securityPositionGroupSummary.groupTransactionCostMC;
@@ -75,5 +78,11 @@ public class SecurityPositionGrandSummary {
   public double getGrandTaxCostMC() {
     return DataHelper.round(grandTaxCostMC, precision);
   }
+
+  public double getGrandCurrencyGainLossMC() {
+    return DataHelper.round(grandCurrencyGainLossMC, precision);
+  }
+  
+  
 
 }

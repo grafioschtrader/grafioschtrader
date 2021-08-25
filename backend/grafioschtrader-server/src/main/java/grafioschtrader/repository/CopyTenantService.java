@@ -59,8 +59,7 @@ public class CopyTenantService {
 
   private Map<Integer, Portfolio> copyPortfolio(Integer sourceIdTenant, Integer targetIdTenant) {
     Map<Integer, Portfolio> portfolioMap = new HashMap<>();
-    TypedQuery<Portfolio> q = em.createQuery("SELECT p from Portfolio p where p.idTenant = ?1",
-        Portfolio.class);
+    TypedQuery<Portfolio> q = em.createQuery("SELECT p from Portfolio p where p.idTenant = ?1", Portfolio.class);
     List<Portfolio> portfolios = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Portfolio portfolio : portfolios) {
@@ -137,13 +136,19 @@ public class CopyTenantService {
 
   private void copyTransaction(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityaccountMap, Map<Integer, Cashaccount> cashaccoutMap) {
-    Map<Integer, Transaction> transactionMap = new HashMap<>();
-    Map<Integer, Transaction> newNotFinishedMap = new HashMap<>();
-    TypedQuery<Transaction> q = em.createQuery("SELECT t from Transaction t where t.idTenant = ?1", Transaction.class);
+    Map<Integer, Transaction> transactionReMap = new HashMap<>();
+    List<Transaction> newNotFinishedList = new ArrayList<>();
+    Map<Integer, Integer> connectIdToIdMap = new HashMap<>();
+    TypedQuery<Transaction> q = em
+        .createQuery("SELECT t from Transaction t where t.idTenant = ?1 ORDER BY t.transactionTime", Transaction.class);
     List<Transaction> transactionList = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Transaction transaction : transactionList) {
-      Integer id = transaction.getId();
+
+      Integer idSource = transaction.getId();
+      if (idSource.equals(42009) || idSource.equals(42008)) {
+        System.out.println(transaction);
+      }
       transaction.setIdTenant(targetIdTenant);
       transaction.setIdTransaction(null);
       transaction.setCashaccount(cashaccoutMap.get(transaction.getCashaccount().getIdSecuritycashAccount()));
@@ -151,10 +156,11 @@ public class CopyTenantService {
         transaction.setIdSecurityaccount(
             securityaccountMap.get(transaction.getIdSecurityaccount()).getIdSecuritycashAccount());
       }
+
       if (transaction.getConnectedIdTransaction() != null) {
-        Transaction connectedConnection = transactionMap.get(transaction.getConnectedIdTransaction());
+        Transaction connectedConnection = transactionReMap.get(transaction.getConnectedIdTransaction());
         if (connectedConnection == null) {
-          newNotFinishedMap.put(id, transaction);
+          newNotFinishedList.add(transaction);
           transaction.setConnectedIdTransaction(null);
         } else {
           transaction.setConnectedIdTransaction(connectedConnection.getIdTransaction());
@@ -162,12 +168,14 @@ public class CopyTenantService {
       }
 
       em.persist(transaction);
-      transactionMap.put(id, transaction);
+      transactionReMap.put(idSource, transaction);
+      if (transaction.getConnectedIdTransaction() != null) {
+        connectIdToIdMap.put(transaction.getConnectedIdTransaction(), transaction.getIdTransaction());
+      }
     }
 
-    for (Map.Entry<Integer, Transaction> entry : newNotFinishedMap.entrySet()) {
-      Transaction transaction = entry.getValue();
-      transaction.setConnectedIdTransaction(transactionMap.get(entry.getKey()).getIdTransaction());
+    for (Transaction transaction : newNotFinishedList) {
+      transaction.setConnectedIdTransaction(connectIdToIdMap.get(transaction.getIdTransaction()));
       em.persist(transaction);
     }
   }
