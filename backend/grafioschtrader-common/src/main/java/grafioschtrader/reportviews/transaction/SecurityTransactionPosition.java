@@ -25,15 +25,15 @@ public class SecurityTransactionPosition {
 
   public SecurityTransactionPosition(Transaction transaction, SecurityPositionSummary securityPositionSummary) {
     this.transaction = transaction;
-    this.transactionGainLoss = (securityPositionSummary.transactionGainLoss == null) ? null
+    transactionGainLoss = (securityPositionSummary.transactionGainLoss == null) ? null
         : DataHelper.round(securityPositionSummary.transactionGainLoss, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
-    this.transactionGainLossPercentage = (securityPositionSummary.transactionGainLossPercentage == null) ? null
+    transactionGainLossPercentage = (securityPositionSummary.transactionGainLossPercentage == null) ? null
         : DataHelper.round(securityPositionSummary.transactionGainLossPercentage,
             GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
-    this.transactionExchangeRate = securityPositionSummary.transactionExchangeRate;
-    this.transactionGainLossMC = securityPositionSummary.transactionGainLossMC;
-    this.transactionCurrencyGainLossMC = securityPositionSummary.transactionCurrencyGainLossMC;
-    this.precisionMC = securityPositionSummary.precisionMC;
+    transactionExchangeRate = securityPositionSummary.transactionExchangeRate;
+    transactionGainLossMC = securityPositionSummary.transactionGainLossMC;
+    transactionCurrencyGainLossMC = securityPositionSummary.transactionCurrencyGainLossMC;
+    precisionMC = securityPositionSummary.precisionMC;
   }
 
   public void setSecurityInTransactionToNull() {
