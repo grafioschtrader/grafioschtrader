@@ -117,7 +117,7 @@ public class FinnhubConnector extends BaseFeedConnector {
     security.setSHigh(quote.h);
     security.setSPrevClose(quote.pc);
     security.setSTimestamp(new Date(quote.t * 1000));
-    security.setSChangePercentage(DataHelper.roundStandard((quote.c - quote.pc) / quote.pc * 100));
+    security.setSChangePercentage(quote.dp);
   }
 
   @Override
@@ -154,6 +154,7 @@ public class FinnhubConnector extends BaseFeedConnector {
      * List of close prices for returned candles.
      */
     public double[] c;
+   
     /**
      * List of high prices for returned candles.
      */
@@ -185,6 +186,8 @@ public class FinnhubConnector extends BaseFeedConnector {
   static class Quote {
     public double o;
     public double h;
+    public double d;
+    public double dp;
     public double l;
     public double c;
     public double pc;

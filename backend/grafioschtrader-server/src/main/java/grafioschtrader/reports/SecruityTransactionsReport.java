@@ -45,7 +45,7 @@ import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Creates a Report for a single Security with all its Transactions.
+ * Creates a Report for a single security with all its transactions.
  *
  *
  * @author Hugo Graf
@@ -199,10 +199,8 @@ public class SecruityTransactionsReport {
             .add(new SecurityaccountOpenPositionUnits(entry.getKey(),
                 securityTransactionSummary.securityPositionSummary.getUnits()));
       }
-
     }
     return securityaccountOpenPositionSecurity;
-
   }
 
   private SecurityTransactionSummary getTransactionsByIdTenantAndIdSecurity(final Integer idTenant,

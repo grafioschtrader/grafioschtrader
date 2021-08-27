@@ -229,7 +229,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     if (this.securitycurrency.isMarginInstrument()) {
       calcGainLossByPriceForMargin(price);
     } else {
-      gainLossSecurity = DataHelper.roundStandard(gainLossSecurity + valueSecurity - units * adjustedCostBase / units);
+      gainLossSecurity = gainLossSecurity + valueSecurity - units * adjustedCostBase / units;
     }
     transactionGainLossPercentage = DataHelper.roundStandard(gainLossSecurity * 100 / adjustedCostBase);
   }
