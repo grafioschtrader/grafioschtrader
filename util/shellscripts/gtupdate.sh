@@ -1,10 +1,10 @@
 #!/bin/bash
+. ~/gtvar.sh
 ./checkversion.sh
 if [ $? -ne 0 ]; then
   exit 1
 fi
 sudo systemctl stop grafioschtrader.service
-. ~/gtvar.sh
 cd $builddir
 cp grafioschtrader/backend/grafioschtrader-server/src/main/resources/application.properties .
 cd grafioschtrader
