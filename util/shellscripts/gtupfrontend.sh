@@ -2,7 +2,7 @@
 . ~/gtvar.sh
 cd $builddir/grafioschtrader/frontend
 npm install
-memorytotal="$(free -m | awk '/^Mem/ { print $2}')"
+memorytotal="$(free -m | awk '/^Mem|Speicher/ { print $2}')"
 if [ $memorytotal -lt 2001 ]
   then
     sudo systemctl stop grafioschtrader.service
