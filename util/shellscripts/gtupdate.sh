@@ -17,4 +17,5 @@ if [ -f application.properties ]; then
 fi
 cd ~
 cp $builddir/grafioschtrader/util/shellscripts/gtup{front,back}*.sh .
+cp $builddir/grafioschtrader/util/shellscripts/checkversion.sh .
 ~/gtupfrontback.sh
