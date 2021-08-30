@@ -1,4 +1,8 @@
 #!/bin/bash
+./checkversion.sh
+if [ $? -eq 0 ]; then
+  exit 1
+fi
 sudo systemctl stop grafioschtrader.service
 . ~/gtvar.sh
 cd $builddir
