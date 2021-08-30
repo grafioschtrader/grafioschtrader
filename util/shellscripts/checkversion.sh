@@ -1,6 +1,7 @@
 CLIVERSION=`npm list -global --depth 0 | grep "@angular/cli" | cut -d "@" -f3 | cut -d "." -f1`
 if [[ -z "$CLIVERSION" ||  "$CLIVERSION" -lt 12 ]]
   then
+    . ~/gtvar.sh
     rm -f $builddir/grafioschtrader/frontend/node_modules
     rm -f $builddir/grafioschtrader/frontend/package-lock.json
     tput setaf 1
