@@ -104,13 +104,14 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
         columnGroupConfigs: [new ColumnGroupConfig('groupAccountInterestMC'),
           new ColumnGroupConfig('grandAccountInterestMC')]
       }));
-    this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, false,
-      {
-        templateName: 'greenRed',
-        columnGroupConfigs: [new ColumnGroupConfig('groupGainLossCurrencyMC'),
-          new ColumnGroupConfig('grandGainLossCurrencyMC')]
-      }));
-
+    /*
+       this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, false,
+         {
+           templateName: 'greenRed',
+           columnGroupConfigs: [new ColumnGroupConfig('groupGainLossCurrencyMC'),
+             new ColumnGroupConfig('grandGainLossCurrencyMC')]
+         }));
+   */
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossSecurities', true, false,
       {
         templateName: 'greenRed',
