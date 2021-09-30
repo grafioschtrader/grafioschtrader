@@ -382,9 +382,7 @@ public class WatchlistReport {
     // Calculate all positions closed or open
     transactions.forEach(transaction -> securityCalcService.calcSingleSecurityTransaction(transaction,
         summarySecurityMap, securitysplitMap, excludeDivTax, dateCurrencyMap));
-
     this.calcOpenSecurityPositons(securitycurrencyPositions, summarySecurityMap, securitysplitMap, dateCurrencyMap);
-
     return securitycurrencyPositions;
   }
 

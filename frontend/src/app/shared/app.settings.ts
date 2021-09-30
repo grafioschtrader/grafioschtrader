@@ -183,7 +183,8 @@ export class AppSettings {
 
   public static readonly INSTRUMENT_HEADER = 'I';
 
-  public static FID_MAX_DIGITS = 16;
+
+  public static FID_MAX_DIGITS = 14;
   public static FID_STANDARD_INTEGER_DIGITS = 9;
   public static FID_STANDARD_FRACTION_DIGITS = 2;
   public static FID_SMALL_INTEGER_LIMIT = 6;

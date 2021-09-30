@@ -192,7 +192,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.dynamicPeriodPriceForm.setDefaultValuesAndEnableSubmit();
   }
 
-  submit(value: { [name: string]: any }): void {
+ submit(value: { [name: string]: any }): void {
     const security = this.securityEditSupport.prepareForSave(this, this.proposeChangeEntityWithEntity,
       <Security>this.securityCurrencypairCallParam, this.dynamicForm, value);
     this.securityService.update(security).subscribe(newSecurity => {
@@ -234,7 +234,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.dynamicPeriodPriceForm.transferBusinessObjectToForm(historyquotePeriod);
   }
 
-  onHide(event) {
+  override onHide(event) {
     this.securityEditSupport.destroy();
     this.stockexchangeSubscribe && this.stockexchangeSubscribe.unsubscribe();
     this.distributionFrequencySubscribe && this.distributionFrequencySubscribe.unsubscribe();
