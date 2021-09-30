@@ -4,6 +4,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import grafioschtrader.types.TransactionType;
 
 /**
  * Contains the gain/loss of a single transaction. For every Transaction one
@@ -20,6 +21,7 @@ public class SecurityTransactionPosition {
   public Double transactionExchangeRate;
   public Double transactionCurrencyGainLossMC;
   public Double quotationSplitCorrection;
+  public Double holdingsSplitAdjusted;
 
   private int precisionMC;
 
@@ -34,6 +36,9 @@ public class SecurityTransactionPosition {
     transactionGainLossMC = securityPositionSummary.transactionGainLossMC;
     transactionCurrencyGainLossMC = securityPositionSummary.transactionCurrencyGainLossMC;
     precisionMC = securityPositionSummary.precisionMC;
+
+    holdingsSplitAdjusted = transaction.getTransactionType() == TransactionType.HYPOTHETICAL_SELL
+        || transaction.getTransactionType() == TransactionType.HYPOTHETICAL_BUY ? 0.0: securityPositionSummary.units;
   }
 
   public void setSecurityInTransactionToNull() {

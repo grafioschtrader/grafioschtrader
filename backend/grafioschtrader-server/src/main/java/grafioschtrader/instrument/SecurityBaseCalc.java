@@ -135,5 +135,15 @@ public abstract class SecurityBaseCalc {
       return unitsSplited / splitFactorFromBaseTransaction;
     }
 
+    @Override
+    public String toString() {
+      return "CalcTransactionPos [exchangeRate=" + exchangeRate + ", securitiesNetPrice=" + securitiesNetPrice
+          + ", transactionTaxCost=" + transactionTaxCost + ", taxCost=" + taxCost + ", transactionCost="
+          + transactionCost + ", unitsSplited=" + unitsSplited + ", splitFactorFromBaseTransaction="
+          + splitFactorFromBaseTransaction + "]";
+    }
+
+    
+    
   }
 }
