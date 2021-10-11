@@ -12,6 +12,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
@@ -32,13 +33,16 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Override
   public List<String> periodicallyUpdate() {
     List<String> errorMessages = new ArrayList<>();
-    List<Integer> securityIds = dividendJpaRepository
-        .getIdSecurityForPeriodicallyUpdate(GlobalConstants.DIVIDEND_FREQUENCY_PLUS_DAY);
+    List<Integer> securityIds = dividendJpaRepository.getIdSecurityForPeriodicallyUpdate(
+        GlobalConstants.DIVIDEND_FREQUENCY_PLUS_DAY, globalparametersJpaRepository.getMaxDividendRetry());
     List<Security> securities = securityJpaRepository.findAllById(securityIds);
     Map<Integer, List<Dividend>> idSecurityDividendsMap = dividendJpaRepository
         .findByIdSecuritycurrencyInOrderByIdSecuritycurrencyAscExDateAsc(securityIds).stream()

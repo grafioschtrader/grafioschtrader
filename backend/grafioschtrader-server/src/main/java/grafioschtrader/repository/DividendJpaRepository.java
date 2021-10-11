@@ -19,7 +19,7 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
   List<DivdendForHoldings> getDivdendForSecurityHoldingByIdTenant(Integer idTenant);
 
   @Query(nativeQuery = true)
-  List<Integer> getIdSecurityForPeriodicallyUpdate(Integer daysAdded);
+  List<Integer> getIdSecurityForPeriodicallyUpdate(Integer daysAdded, Short maxRetryDividend);
 
   @Query(nativeQuery = true)
   List<Integer> getIdSecuritySplitAfterDividendWhenAdjusted(List<String> idsConnectorDividend,

@@ -23,12 +23,12 @@ public class MoveCreatedByUserToOtherUser implements ITask {
   }
 
   @Override
-  public void doWork(TaskDataChange taskDataChange) {
+  public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     try {
       userJpaRepository.moveCreatedByUserToOtherUser(taskDataChange.getOldValueNumber().intValue(),
           taskDataChange.getIdEntity());
     } catch (SQLException sqle) {
-      throw new TaskBackgroundException("gt.move.createdby.procedure.failure");
+      throw new TaskBackgroundException("gt.move.createdby.procedure.failure", true);
     }
   }
 

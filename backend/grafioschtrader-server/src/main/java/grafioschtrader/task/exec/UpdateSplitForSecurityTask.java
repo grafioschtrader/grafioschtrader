@@ -45,7 +45,7 @@ public class UpdateSplitForSecurityTask implements ITask {
 
   @Override
   @Transactional
-  public void doWork(TaskDataChange taskDataChange) {
+  public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     Security security = securityJpaRepository.getById(taskDataChange.getIdEntity());
     if (security.getIdConnectorSplit() != null) {
       try {
@@ -55,13 +55,13 @@ public class UpdateSplitForSecurityTask implements ITask {
         List<String> errorMessages = securitysplitJpaRepository.loadAllSplitDataFromConnector(security,
             requestSplitDate);
         if (!errorMessages.isEmpty()) {
-          throw new TaskBackgroundException("gt.split.connector.failure", errorMessages);
+          throw new TaskBackgroundException("gt.split.connector.failure", errorMessages, false);
         }
       } catch (ParseException e) {
-        throw new TaskBackgroundException("gt.split.date.missing.parse");
+        throw new TaskBackgroundException("gt.split.date.missing.parse", false);
       }
     } else {
-      throw new TaskBackgroundException("gt.split.connector.notfound");
+      throw new TaskBackgroundException("gt.split.connector.notfound", false);
     }
   }
 

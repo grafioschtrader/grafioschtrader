@@ -53,14 +53,14 @@ public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
 
   @Override
   @Transactional
-  public void doWork(TaskDataChange taskDataChange) {
+  public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     Optional<Security> securityOpt = securityJpaRepository.findById(taskDataChange.getIdEntity());
     if (securityOpt.isPresent()) {
       loadSplitsAndPossiblePrices(securityOpt.get());
     }
   }
 
-  private void loadSplitsAndPossiblePrices(Security security) {
+  private void loadSplitsAndPossiblePrices(Security security) throws TaskBackgroundException {
     try {
       List<Securitysplit> securitysplits = securitysplitJpaRepository
           .findByIdSecuritycurrencyOrderBySplitDateAsc(security.getIdSecuritycurrency());
@@ -79,7 +79,7 @@ public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
       }
     } catch (final Exception ex) {
       log.error(ex.getMessage() + " " + security, ex);
-      throw new TaskBackgroundException("gt.historical.connector.failure");
+      throw new TaskBackgroundException("gt.historical.connector.failure", false);
     }
   }
 

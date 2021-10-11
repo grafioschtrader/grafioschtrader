@@ -1,6 +1,3 @@
-# This index has the wrong currency
-UPDATE security SET currency = "DKK" WHERE ticker_symbol = "OMXC20";
-
 # BUG https://jira.mariadb.org/browse/MDEV-25672 - FLUSH TABLES cannot be used because of rights
 # Wating vor mariadb Version 10.3.30 
 ALTER TABLE transaction DROP CONSTRAINT `s_quotation`;
