@@ -3,6 +3,7 @@ package grafioschtrader.task.exec;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,10 +40,10 @@ public class PeriodicallyDividendUpdCheck implements ITask {
 
   @Override
   @Transactional
-  public void doWork(TaskDataChange taskDataChange) {
+  public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     List<String> errorMessages = dividendJpaRepository.periodicallyUpdate();
     if (!errorMessages.isEmpty()) {
-      throw new TaskBackgroundException("gt.dividend.connector.failure", errorMessages);
+      throw new TaskBackgroundException("gt.dividend.connector.failure", errorMessages, false);
     }
   }
 }

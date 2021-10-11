@@ -57,6 +57,8 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_CURRENCY_INTRA_CONNECTOR = GT_PREFIX + "currency.intra.connector";
   public static final String GLOB_KEY_INTRA_RETRY = GT_PREFIX + "intra.retry";
   public static final String GLOB_KEY_HISTORY_RETRY = GT_PREFIX + "history.retry";
+  public static final String GLOB_KEY_DIVIDEND_RETRY = GT_PREFIX + "dividend.retry";
+  public static final String GLOB_KEY_SPLIT_RETRY = GT_PREFIX + "split.retry";
   public static final String GLOB_KEY_START_FEED_DATE = GT_PREFIX + "core.data.feed.start.date";
   public static final String GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS = GT_PREFIX + "sc.intra.update.timeout.seconds";
   public static final String GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS = GT_PREFIX + "w.intra.update.timeout.seconds";
@@ -132,6 +134,8 @@ public class Globalparameters implements Serializable {
   public static final int DEFAULT_TASK_DATA_DAYS_PRESERVE = 10;
   public static final short DEFAULT_INTRA_RETRY = 4;
   public static final short DEFAULT_HISTORY_RETRY = 4;
+  public static final short DEFAULT_DIVIDEND_RETRY = 2;
+  public static final short DEFAULT_SPLIT_RETRY = 2;
   public static final int DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS = 300;
   public static final int DEFAULT_W_INTRA_UPDATE_TIMEOUT_SECONDS = 1200;
 

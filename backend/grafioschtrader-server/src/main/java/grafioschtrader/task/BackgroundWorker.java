@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
@@ -82,6 +83,9 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
             .setFailedStackTrace(failure.toString().substring(0, TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE));
       }
       taskDataChange.setFailedMessageCode(tbe.getErrorMessagesKey());
+      if(tbe.isRollback()) {
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+      }
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
     } catch (Exception e) {
       StringWriter errors = new StringWriter();

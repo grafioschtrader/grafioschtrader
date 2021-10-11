@@ -41,15 +41,15 @@ public class UpdateDividendForSecurityTask implements ITask {
 
   @Override
   @Transactional
-  public void doWork(TaskDataChange taskDataChange) {
+  public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     Security security = securityJpaRepository.getById(taskDataChange.getIdEntity());
     if (security.getIdConnectorDividend() != null) {
       List<String> errorMessages = dividendJpaRepository.loadAllDividendDataFromConnector(security);
       if (!errorMessages.isEmpty()) {
-        throw new TaskBackgroundException("gt.dividend.connector.failure", errorMessages);
+        throw new TaskBackgroundException("gt.dividend.connector.failure", errorMessages, false);
       }
     } else {
-      throw new TaskBackgroundException("gt.dividend.connector.notfound");
+      throw new TaskBackgroundException("gt.dividend.connector.notfound", false);
     }
   }
 
