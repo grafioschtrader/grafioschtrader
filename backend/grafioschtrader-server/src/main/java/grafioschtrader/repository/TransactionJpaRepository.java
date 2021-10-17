@@ -122,8 +122,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   @Query(nativeQuery = true)
   List<Transaction> findByIdSecurityaccountAndIdSecurity(Integer idSecuritycashAccount, Integer idSecuritycurrency);
 
-  @Query(value = "SELECT t FROM Watchlist w JOIN  w.securitycurrencyList s, Portfolio p JOIN p.securitycashaccountList a JOIN a.securityTransactionList t"
-      + " JOIN Fetch t.security JOIN Fetch t.cashaccount WHERE p.idTenant = w.idTenant AND w.idWatchlist = ?1 AND s.idSecuritycurrency = t.security.idSecuritycurrency")
+  @Query
   List<Transaction> findByIdWatchlist(Integer idWatchlist);
 
   @Query(nativeQuery = true)
