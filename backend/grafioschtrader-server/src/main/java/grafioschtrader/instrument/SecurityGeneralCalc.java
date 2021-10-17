@@ -171,14 +171,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
     securityPositionSummary.transactionGainLossPercentage = securityPositionSummary.transactionGainLoss
         / (ctp.unitsSplited / securityPositionSummary.units * securityPositionSummary.adjustedCostBase) * 100.0;
-
-    if("ZSIL".equals(securityPositionSummary.securitycurrency.getTickerSymbol()) && securityPositionSummary.units == 600.0) {
-      System.out.println(securityPositionSummary);
-      System.out.println(ctp);
-      System.out.println();
-    }
-    
-    
+  
     securityPositionSummary.adjustedCostBase -= acb;
     securityPositionSummary.units -= ctp.unitsSplited;
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
