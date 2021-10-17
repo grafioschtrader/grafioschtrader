@@ -29,7 +29,7 @@ export class TransactionSecurityFieldDefinition {
     if (tsop && tsop.indexOf(TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN) >= 0) {
       tcm.addColumnFeqH(DataType.Boolean, 'transaction.taxableInterest', true, false, {templateName: 'check'});
     }
-
+    tcm.addColumnFeqH(DataType.Numeric, 'holdingsSplitAdjusted', true, false);
     tcm.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false);
     tcm.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false);
     tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false);

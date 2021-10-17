@@ -3,7 +3,7 @@
   <p-table (onColResize)="onColResize($event)" (sortFunction)="customSort($event)" [(selection)]="singleMultiSelection"
            [columns]="fields"
            [customSort]="true" [loading]="loading"
-           [multiSortMeta]="multiSortMeta" [resizableColumns]="true"
+           [multiSortMeta]="multiSortMeta"
            [responsive]="true" [selectionMode]="selectMultiMode" [value]="securityPositionList"
            dataKey="securitycurrency.idSecuritycurrency" loadingIcon="fa fa-circle-o-notch fa-5x" sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
     <ng-template pTemplate="caption">
@@ -20,7 +20,7 @@
         <ng-container *ngFor="let field of fields">
           <th *ngIf="field.visible" [pSortableColumn]="field.field"
               [pTooltip]="field.headerTooltipTranslated"
-              [style.width.px]="field.width" pResizableColumn>
+              [style.width.px]="field.width" >
             {{field.headerTranslated}}
             <p-sortIcon [field]="field.field"></p-sortIcon>
           </th>
@@ -41,8 +41,7 @@
         </td>
 
         <ng-container *ngFor="let field of fields">
-          <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
-              [style.width.px]="field.width">
+          <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
             <ng-container [ngSwitch]="field.templateName">
               <ng-container *ngSwitchCase="'owner'">
                 <span [pTooltip]="getValueByPath(spl, field)"
