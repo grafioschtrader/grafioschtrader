@@ -1,6 +1,10 @@
 package grafioschtrader.repository;
 
+import java.util.List;
+
+import grafioschtrader.dto.CorrelationLimits;
 import grafioschtrader.dto.CorrelationResult;
+import grafioschtrader.dto.CorrelationRollingResult;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
@@ -15,7 +19,7 @@ public interface CorrelationSetJpaRepositoryCustom extends BaseRepositoryCustom<
 
   CorrelationResult getCalculationByCorrelationSet(Integer idCorrelationSet);
 
-  TenantLimit getCorrelationSetLimit();
+  CorrelationLimits getCorrelationSetLimit();
 
   TenantLimit getCorrelationSetInstrumentLimit(Integer idCorrelationSet);
 
@@ -23,4 +27,6 @@ public interface CorrelationSetJpaRepositoryCustom extends BaseRepositoryCustom<
       final SecuritycurrencySearch securitycurrencySearch);
 
   CorrelationSet removeInstrumentFromCorrelationSet(Integer idCorrelationSet, Integer idSecuritycurrency);
+
+  List<CorrelationRollingResult> getRollingCorrelations(Integer idCorrelationSet, Integer[][] securityIdsPairs);
 }

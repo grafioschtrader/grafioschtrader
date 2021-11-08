@@ -14,9 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafioschtrader.dto.CorrelationLimits;
 import grafioschtrader.dto.CorrelationResult;
+import grafioschtrader.dto.CorrelationRollingResult;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.User;
@@ -67,7 +70,7 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   @Operation(summary = "Return the limits for the number of correlation sets", description = "", tags = {
       RequestMappings.CORRELATION_SET })
   @GetMapping(value = "limit", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<TenantLimit> getCorrelationSetLimit() {
+  public ResponseEntity<CorrelationLimits> getCorrelationSetLimit() {
     return new ResponseEntity<>(correlationSetJpaRepository.getCorrelationSetLimit(), HttpStatus.OK);
   }
 
@@ -86,6 +89,21 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   @GetMapping(value = "limit/{idCorrelationSet}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TenantLimit> getCorrelationSetInstrumentLimit(@PathVariable final Integer idCorrelationSet) {
     return new ResponseEntity<>(correlationSetJpaRepository.getCorrelationSetInstrumentLimit(idCorrelationSet),
+        HttpStatus.OK);
+  }
+
+  @Operation(summary = "Return the rolling correlations for spezified list security pairs and its correlation set", description = "", tags = {
+      RequestMappings.CORRELATION_SET })
+  @GetMapping(value = "corrrolling/{idCorrelationSet}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<CorrelationRollingResult>> getRollingCorrelations(
+      @PathVariable final Integer idCorrelationSet, @RequestParam() final String securityIdsPairs) {
+    String [] ids = securityIdsPairs.split(",");
+    var securityIdsPairs2 = new Integer[ids.length / 2][2];
+    for (int i = 0; i < ids.length; i++) {
+      securityIdsPairs2[i / 2][i % 2] = Integer.valueOf(ids[i]);
+    }
+
+    return new ResponseEntity<>(correlationSetJpaRepository.getRollingCorrelations(idCorrelationSet, securityIdsPairs2),
         HttpStatus.OK);
   }
 

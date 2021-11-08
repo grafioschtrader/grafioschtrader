@@ -23,7 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class MailSendboxResource extends UpdateCreateResource<MailSendbox> {
 
   @Autowired
-  MailSendboxJpaRepository mailSendboxJpaRepository;
+  private MailSendboxJpaRepository mailSendboxJpaRepository;
 
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<MailSendbox>> getAllInboxByUser() {

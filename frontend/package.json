@@ -1,16 +1,13 @@
 {
   "name": "grafioschtrader-client",
-  "version": "0.18.0",
+  "version": "0.21.0",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
-    "startaot": "ng serve --proxy-config proxy.conf.json -aot",
-    "startprod": "ng serve --prod --proxy-config proxy.conf.json --aot=false",
     "build": "ng build",
-    "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
   },
   "private": true,
   "dependencies": {

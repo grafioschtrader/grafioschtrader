@@ -24,7 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class MailInboxResource {
 
   @Autowired
-  MailInboxJpaRepository mailInboxJpaRepository;
+  private MailInboxJpaRepository mailInboxJpaRepository;
 
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<MailInbox>> getMailInboxByUser() {

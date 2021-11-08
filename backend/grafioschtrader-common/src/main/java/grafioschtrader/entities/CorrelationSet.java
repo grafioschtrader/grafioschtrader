@@ -2,9 +2,12 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -26,13 +29,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.types.SamplingPeriodType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = CorrelationSet.TABNAME)
 public class CorrelationSet extends TenantBaseID implements Serializable {
-  
+
   private static final long serialVersionUID = 1L;
 
   public static final String TABNAME = "correlation_set";
@@ -48,6 +52,7 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @Column(name = "id_tenant")
   private Integer idTenant;
 
+  @Schema(description = "The correlation set is used for the recognition of the corresponding correlation matrix by the user.")
   @Basic(optional = false)
   @NotNull
   @Size(min = 1, max = 25)
@@ -60,19 +65,37 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @PropertyAlwaysUpdatable
   private String note;
 
+  @Schema(description = "This allows you to restrict the period with respect to the start date.")
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "start_date")
-  private LocalDate startDate;
+  @Column(name = "date_from")
+  @PropertyAlwaysUpdatable
+  private LocalDate dateFrom;
+
+  @Schema(description = "This allows you to restrict the period with respect to the to date.")
+  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "date_to")
+  @PropertyAlwaysUpdatable
+  private LocalDate dateTo;
 
   @Schema(description = "Sampling period of returns for correlation calculations")
+  @NotNull
   @Column(name = "sampling_period")
   @PropertyAlwaysUpdatable
   private byte samplingPeriod;
 
   @Schema(description = "Number of trading days or month used for rolling correlation calculations")
   @Column(name = "rolling")
+  @PropertyAlwaysUpdatable
   private Byte rolling;
 
+  @Schema(description = "Normalize historical prices of securities to a currency determined by the system.")
+  @NotNull
+  @Column(name = "adjust_currency")
+  @PropertyAlwaysUpdatable
+  private boolean adjustCurrency;
+
+  
+  
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JoinTable(name = TABNAME_CORRELATION_INSTRUMENT, joinColumns = {
       @JoinColumn(name = "id_correlation_set", referencedColumnName = "id_correlation_set") }, inverseJoinColumns = {
@@ -80,10 +103,18 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @ManyToMany(fetch = FetchType.EAGER)
   private List<Securitycurrency<?>> securitycurrencyList;
 
-  private transient LocalDate endDate;
   private transient boolean isSortedByNames;
 
   public CorrelationSet() {
+  }
+
+  public CorrelationSet(Integer idCorrelationSet, LocalDate dateFrom, LocalDate dateTo, byte samplingPeriod,
+      Byte rolling) {
+    this.idCorrelationSet = idCorrelationSet;
+    this.dateFrom = dateFrom;
+    this.dateTo = dateTo;
+    this.samplingPeriod = samplingPeriod;
+    this.rolling = rolling;
   }
 
   @JsonIgnore
@@ -116,12 +147,20 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
     this.note = note;
   }
 
-  public LocalDate getStartDate() {
-    return startDate;
+  public LocalDate getDateFrom() {
+    return dateFrom;
   }
 
-  public void setStartDate(LocalDate startDate) {
-    this.startDate = startDate;
+  public void setDateFrom(LocalDate dateFrom) {
+    this.dateFrom = dateFrom;
+  }
+
+  public LocalDate getDateTo() {
+    return dateTo;
+  }
+
+  public void setDateTo(LocalDate dateTo) {
+    this.dateTo = dateTo;
   }
 
   public Byte getRolling() {
@@ -158,24 +197,48 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
     this.securitycurrencyList = securitycurrencyList;
   }
 
-  public LocalDate getEndDate() {
-    return endDate;
+    
+  public boolean isAdjustCurrency() {
+    return adjustCurrency;
   }
 
-  public void setEndDate(LocalDate endDate) {
-    this.endDate = endDate;
+  public void setAdjustCurrency(boolean adjustCurrency) {
+    this.adjustCurrency = adjustCurrency;
   }
 
   @Override
   public String toString() {
     return "CorrelationSet [idCorrelationSet=" + idCorrelationSet + ", idTenant=" + idTenant + ", name=" + name
-        + ", note=" + note + ", startDate=" + startDate + ", samplingPeriod=" + samplingPeriod + ", rolling=" + rolling
-        + ", securitycurrencyList=" + securitycurrencyList + "]";
+        + ", note=" + note + ", dateFrom=" + dateFrom + ", dateTo=" + dateTo + ", samplingPeriod=" + samplingPeriod
+        + ", rolling=" + rolling + ", securitycurrencyList=" + securitycurrencyList + "]";
   }
 
   public void removeInstrument(Integer idSecuritycurrency) {
     securitycurrencyList.removeIf(s -> s.idSecuritycurrency.equals(idSecuritycurrency));
+  }
 
+  public void validateBeforeSave() {
+    switch (getSamplingPeriod()) {
+    case DAILY_RETURNS:
+      validateAgainstDefinition(GlobalConstants.CORR_DAILY);
+      break;
+    case MONTHLY_RETURNS:
+      validateAgainstDefinition(GlobalConstants.CORR_MONTHLY);
+      break;
+    default:
+      this.rolling = null;
+    }
+  }
+
+  private void validateAgainstDefinition(String stepMinMaxDefinition) {
+    int[] stepMinMax = Arrays.stream(stepMinMaxDefinition.split(",")).mapToInt(Integer::parseInt).toArray();
+    Set<Byte> possibleValues = new HashSet<>();
+    for (int i = stepMinMax[1]; i <= stepMinMax[2]; i += stepMinMax[0]) {
+      possibleValues.add((byte) i);
+    }
+    if (!possibleValues.contains(rolling)) {
+      throw new DataViolationException("rolling", "gt.correlation.rolling", null);
+    }
   }
 
 }

@@ -197,7 +197,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     this.activePanelService.activatePanel(this, {showMenu: this.getMenuShowOptions()});
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     AppHelper.saveUntilDateInSessionStorage(this.untilDate);
     this.activePanelService.destroyPanel(this);
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
@@ -234,7 +234,6 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
   }
 
   private navigateToChartRoute(): void {
-
     !this.subscriptionRequestFromChart && this.prepareChartDataWithRequest();
     this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
       outlets: {

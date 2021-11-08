@@ -34,7 +34,7 @@ export class MessageToastComponent implements OnDestroy {
 
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     // prevent memory leak when component destroyed
     this.subscription.unsubscribe();
   }

@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.20.0</version>
+		<version>0.21.0</version>
 	</parent>
 
 
@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.5.10</version>
+			<version>1.5.11</version>
 		</dependency>
 
 		<dependency>

@@ -50,6 +50,7 @@ export class AppSettings {
   public static readonly TOKEN_VERIFY_KEY = 'tokenverify';
   public static readonly ASSETCLASS_KEY = AppSettings.ASSETCLASS.toLowerCase();
   public static readonly CORRELATION_SET_KEY = 'correlationset';
+  public static readonly CORRELATION_CHART = 'correlationchart';
   public static readonly WATCHLIST_KEY = AppSettings.WATCHLIST.toLowerCase();
   public static readonly SECURITY_DIVIDEND_KEY = AppSettings.DIVIDEND.toLowerCase();
   public static readonly MAIL_INBOX_KEY = AppSettings.MAIL_INBOX.toLowerCase();

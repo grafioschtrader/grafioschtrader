@@ -44,12 +44,12 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
     return securityPositionGroupSummary.groupField;
   }
 
-  public getGroupRowFieldText(columnConfig: ColumnConfig,
+  public override getGroupRowFieldText(columnConfig: ColumnConfig,
                               arrIndex: number, data: any, mapKey: any): string {
     return this.translatedGroupValues[mapKey];
   }
 
-  getGroupRowFieldTextByRowIndex(columnConfig: ColumnConfig, arrIndex: number, data: any, rowIndex: number): string {
+  override getGroupRowFieldTextByRowIndex(columnConfig: ColumnConfig, arrIndex: number, data: any, rowIndex: number): string {
     const securityaccountGroupBase = data.get(rowIndex);
     return this.translatedGroupValues[securityaccountGroupBase.groupField];
   }
@@ -64,7 +64,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
     });
   }
 
-  public getChartDefinition(title: string,
+  public override getChartDefinition(title: string,
                             spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<AssetclassType>>): any {
 
     const valuesNet: number[] = [];

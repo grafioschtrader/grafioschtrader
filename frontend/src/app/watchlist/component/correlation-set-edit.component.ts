@@ -5,13 +5,15 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {CorrelationSetService} from '../service/correlation.set.service';
-import {CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
+import {CorrelationLimit, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
+import {DataType} from '../../dynamic-form/models/data.type';
+import {CorrelationHelper} from './correlation.helper';
 
 
 /**
@@ -33,6 +35,8 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
 export class CorrelationSetEditComponent extends SimpleEntityEditBase<CorrelationSet> implements OnInit {
 
   @Input() callParam: CallParam;
+  @Input() correlationLimit: CorrelationLimit;
+  private correlationHelper: CorrelationHelper = new CorrelationHelper();
 
   constructor(translateService: TranslateService,
               gps: GlobalparameterService,
@@ -45,27 +49,28 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
-    this.config = [
-      DynamicFieldHelper.createFieldInputStringHeqF('name', 25, true),
-      DynamicFieldHelper.createFieldSelectStringHeqF('samplingPeriod', true),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
-      DynamicFieldHelper.createSubmitButton()
-    ];
+    this.config = this.correlationHelper.getCorrelationFieldDefinition(null, 12, 'SAVE_AND_CALC');
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.configObject.samplingPeriod.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
       SamplingPeriodType);
     if (this.callParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
     }
+    this.correlationHelper.setUpValueChange(this.configObject, this.correlationLimit);
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): CorrelationSet {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): CorrelationSet {
     const newCorrelationSet = this.copyFormToPrivateBusinessObject(new CorrelationSet(),
       <CorrelationSet>this.callParam.thisObject);
     delete newCorrelationSet.securitycurrencyList;
     return newCorrelationSet;
+  }
+
+  override onHide(event): void {
+    this.correlationHelper.destroy();
+    super.onHide(event);
   }
 }
