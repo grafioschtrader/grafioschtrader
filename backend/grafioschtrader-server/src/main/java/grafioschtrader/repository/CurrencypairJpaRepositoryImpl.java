@@ -5,7 +5,6 @@
  */
 package grafioschtrader.repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,8 +35,6 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.CrossRateResponse.CurrenciesAndClosePrice;
-import grafioschtrader.dto.HistoryquoteDateClose;
-import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Historyquote;
