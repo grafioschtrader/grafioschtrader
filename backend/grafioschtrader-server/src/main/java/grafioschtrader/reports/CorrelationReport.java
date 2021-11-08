@@ -17,10 +17,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.CorrelationResult;
-import grafioschtrader.dto.CorrelationRollingResult;
 import grafioschtrader.dto.CorrelationResult.CorrelationInstrument;
+import grafioschtrader.dto.CorrelationRollingResult;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;

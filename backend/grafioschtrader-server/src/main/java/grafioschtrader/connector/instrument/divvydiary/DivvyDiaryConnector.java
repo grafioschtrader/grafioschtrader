@@ -2,7 +2,6 @@ package grafioschtrader.connector.instrument.divvydiary;
 
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
