@@ -8,7 +8,7 @@ if [ $memorytotal -lt 2001 ]
     sudo systemctl stop grafioschtrader.service
     export NODE_OPTIONS="--max_old_space_size=1600"
   fi
-ng build --prod --base-href /$basehref --deploy-url /$basehref
+ng build --configuration production --base-href /$basehref --deploy-url /$basehref
 rm -r $docroot/${basehref}assets
 rm $docroot/${basehref}*
 cp -r $builddir/grafioschtrader/frontend/dist/* $docroot/$basehref

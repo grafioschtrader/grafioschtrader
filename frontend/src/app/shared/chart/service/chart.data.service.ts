@@ -18,7 +18,6 @@ export class ChartDataService {
   private requestFromChart = new Subject<string>();
   requestFromChart$ = this.requestFromChart.asObservable();
 
-
   private chartDataChanged = new Subject<Partial<ChartData>>();
   chartDataChanged$ = this.chartDataChanged.asObservable();
 
@@ -32,7 +31,7 @@ export class ChartDataService {
   }
 
   /**
-   * Send data to the chart
+   * Send data to the chart when the showing chart data schuld be changed
    * @param chartData Chart data
    */
   sentToChart(chartData: Partial<ChartData>) {

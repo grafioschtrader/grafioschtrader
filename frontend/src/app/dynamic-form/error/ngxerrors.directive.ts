@@ -64,7 +64,7 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
 
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subject.unsubscribe();
   }
 

@@ -26,7 +26,7 @@ import {ChartTrace, PlotlyHelper} from '../../chart/plotly.helper';
 import {FormHelper} from '../../../dynamic-form/components/FormHelper';
 
 /**
- * Performance over a certain Period for a tenant or portfolio.
+ * Performance over a certain period for a tenant or portfolio.
  */
 @Component({
   template: `

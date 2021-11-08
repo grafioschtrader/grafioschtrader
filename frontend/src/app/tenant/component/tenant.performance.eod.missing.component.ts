@@ -20,6 +20,7 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {Historyquote} from '../../entities/historyquote';
 import {BusinessHelper} from '../../shared/helper/business.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Displays an annual calendar with a table of missing EOD courses.
@@ -147,7 +148,8 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       }
       this.addRemoveOnOffDay(range.start);
       this.selectedDayByUser = range.start;
-      this.selectedDayIdSecurities = this.missingQuotesWithSecurities.dateSecurityMissingMap[moment(range.start).format('YYYY-MM-DD')];
+      this.selectedDayIdSecurities = this.missingQuotesWithSecurities.dateSecurityMissingMap[
+        moment(range.start).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)];
     }
   }
 

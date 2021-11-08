@@ -41,14 +41,14 @@ export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<Secur
   }
 
 
-  getGroupRowFieldText(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any): string {
+  override getGroupRowFieldText(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any): string {
     const text = this.datatableConfigBase.getTextValueColumnTotal(columnConfig, arrIndex);
     const exchangeRate = this.datatableConfigBase.getFieldValueForFieldColumnTotal(columnConfig, arrIndex, data,
       mapKey, 'currencyExchangeRate');
     return `${mapKey} ( ${text}: ${exchangeRate} )`;
   }
 
-  getGroupRowFieldTextByRowIndex(columnConfig: ColumnConfig, arrIndex: number, data: any, rowIndex: number): string {
+  override getGroupRowFieldTextByRowIndex(columnConfig: ColumnConfig, arrIndex: number, data: any, rowIndex: number): string {
     const text = this.datatableConfigBase.getTextValueColumnTotal(columnConfig, arrIndex);
     const exchangeRate = this.datatableConfigBase.getFieldValueForFieldColumnTotal(columnConfig, arrIndex, data,
       rowIndex, 'currencyExchangeRate');
@@ -59,7 +59,7 @@ export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<Secur
   public translateGroupValues(securityPositionGroupSummary: SecurityPositionCurrenyGroupSummary[]): void {
   }
 
-  public getChartDefinition(title: string, securityPositionGrandSummary: SecurityPositionGrandSummary): any {
+   public override getChartDefinition(title: string, securityPositionGrandSummary: SecurityPositionGrandSummary): any {
     const values: number[] = [];
     const labels: string[] = [];
 

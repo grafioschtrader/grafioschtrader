@@ -17,7 +17,8 @@ public abstract class CorrelationSet_ {
   public static volatile SingularAttribute<CorrelationSet, String> name;
   public static volatile SingularAttribute<CorrelationSet, Byte> samplingPeriod;
   public static volatile SingularAttribute<CorrelationSet, Integer> idCorrelationSet;
-  public static volatile SingularAttribute<CorrelationSet, LocalDate> startDate;
+  public static volatile SingularAttribute<CorrelationSet, LocalDate> fromDate;
+  public static volatile SingularAttribute<CorrelationSet, LocalDate> toDate;
   public static volatile ListAttribute<CorrelationSet, Securitycurrency<?>> securitycurrencyList;
 
   public static final String ID_TENANT = "idTenant";
@@ -26,7 +27,8 @@ public abstract class CorrelationSet_ {
   public static final String NAME = "name";
   public static final String SAMPLING_PERIOD = "samplingPeriod";
   public static final String ID_CORRELATION_SET = "idCorrelationSet";
-  public static final String START_DATE = "startDate";
+  public static final String DATE_FROM = "dateFrom";
+  public static final String DATE_TO = "dateTo";
   public static final String SECURITYCURRENCY_LIST = "securitycurrencyList";
 
 }

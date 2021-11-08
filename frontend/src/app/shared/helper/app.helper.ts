@@ -14,6 +14,7 @@ import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {AppSettings} from '../app.settings';
 
 export const enum Comparison { GT, LT, EQ }
 
@@ -41,7 +42,7 @@ export class AppHelper {
   }
 
   static saveDateToSessionStore(property: string, date: Date) {
-    sessionStorage.setItem(property, moment(date).format('YYYY-MM-DD'));
+    sessionStorage.setItem(property, moment(date).format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
   }
 
   static getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition: boolean, untilDate: Date, httpHeaders: HttpHeaders) {
@@ -52,7 +53,7 @@ export class AppHelper {
 
   static getOptionsWithUntilDate(untilDate: Date, httpHeaders: HttpHeaders) {
     const httpParams = new HttpParams()
-      .set('untilDate', moment(untilDate).format('YYYY-MM-DD'));
+      .set('untilDate', moment(untilDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
     return {headers: httpHeaders, params: httpParams};
   }
 
@@ -130,7 +131,7 @@ export class AppHelper {
         case DataType.DateTimeString:
           return moment(dataobject).format(gps.getTimeDateFormatForTable());
         case DataType.DateTimeSecondString:
-          return moment(dataobject).format(gps.getTimeSecondDateFormatForTable());
+          return moment.utc(dataobject).local().format(gps.getTimeSecondDateFormatForTable());
         default:
           return dataobject;
       }

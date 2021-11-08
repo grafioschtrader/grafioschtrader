@@ -3,10 +3,14 @@ package grafioschtrader.task;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -48,7 +52,7 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
   public void run() {
     while (someCondition) {
       try {
-        Optional<TaskDataChange> taskDataChangeOpt = taskDataChangeRepository
+         Optional<TaskDataChange> taskDataChangeOpt = taskDataChangeRepository
             .findTopByProgressStateTypeAndEarliestStartTimeLessThanEqualOrderByExecutionPriorityAscCreationTimeAsc(
                 ProgressStateType.PROG_WAITING.getValue(), LocalDateTime.now());
         if (taskDataChangeOpt.isPresent()) {

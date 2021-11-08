@@ -4,7 +4,13 @@ import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {CorrelationInstrument, CorrelationResult, CorrelationSet} from '../../entities/correlation.set';
+import {
+  CorrelationInstrument,
+  CorrelationResult,
+  CorrelationRollingResult,
+  CorrelationSet,
+  SamplingPeriodType
+} from '../../entities/correlation.set';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
@@ -18,6 +24,10 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {Subscription} from 'rxjs';
+import {ChartDataService} from '../../shared/chart/service/chart.data.service';
+import {Router} from '@angular/router';
+import {PlotlyHelper} from '../../shared/chart/plotly.helper';
+import * as moment from 'moment';
 
 @Component({
   selector: 'correlation-table',
@@ -44,7 +54,8 @@ import {Subscription} from 'rxjs';
             </a>
           </td>
           <td *ngFor="let field of fields" [style.background-color]="getBackgroundColor(el, field)"
-              [ngClass]="field.dataType===DataType.NumericShowZero ? 'text-right': ''">
+              [ngClass]="field.dataType===DataType.NumericShowZero ? 'text-right': ''"
+              (click)="cellClick(field)">
             <ng-container [ngSwitch]="field.templateName">
               <ng-container *ngSwitchCase="'check'">
                 <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
@@ -74,18 +85,27 @@ import {Subscription} from 'rxjs';
 export class CorrelationTableComponent extends TableConfigBase implements OnDestroy {
   @Input() childToParent: ChildToParent;
 
+
   tenantLimits: TenantLimit[];
   securitycurrencyList: Securitycurrency[];
   selectedEntity: Securitycurrency;
   visibleAddInstrumentDialog: boolean;
 
+  private readonly nameHeader = 'name';
+  private readonly tickerSymbol = 'tickerSymbol';
   private correlationResult: CorrelationResult;
   private correlationSet: CorrelationSet;
   private subscriptionInstrumentAdded: Subscription;
+  private securityCurrencyColumn: Securitycurrency;
+  private subscriptionRequestFromChart: Subscription;
+  private traceShow: { [name: string]: any } = {};
 
-  constructor(private correlationSetService: CorrelationSetService,
+
+  constructor(private router: Router,
+              private correlationSetService: CorrelationSetService,
               private messageToastService: MessageToastService,
               private dataChangedService: DataChangedService,
+              private chartDataService: ChartDataService,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
@@ -94,6 +114,15 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.createDynamicTableDefinition(null, null);
     this.addInstrumentsToCorrelationSet();
   }
+
+  cellClick(field: ColumnConfig): void {
+    const columnHeader = field.headerKey === this.nameHeader
+    || field.headerKey === this.tickerSymbol ? null : field.headerKey;
+
+    this.securityCurrencyColumn = this.correlationSet.securitycurrencyList.find(sc => (sc.hasOwnProperty(this.tickerSymbol)
+      ? (<Security>sc)[this.tickerSymbol] : sc.name) === columnHeader);
+  }
+
 
   parentSelectionChanged(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
     this.createDynamicTableDefinition(correlationSet, correlationResult);
@@ -116,6 +145,43 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
         .idSecuritycurrency)
     });
     return menuItems;
+  }
+
+  public prepareShowMenu(): MenuItem[] {
+    const menuItems: MenuItem[] = [];
+    if (this.correlationSet && SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS) {
+      if (this.selectedEntity && this.securityCurrencyColumn && this.selectedEntity !== this.securityCurrencyColumn
+        && !this.isGraphForPairShowing(this.selectedEntity.idSecuritycurrency, this.securityCurrencyColumn.idSecuritycurrency)) {
+        menuItems.push({separator: true});
+        menuItems.push({
+          label: 'CORRELATION_SET_GRAPH|' + this.getMenuName(this.selectedEntity, this.securityCurrencyColumn),
+          command: (event) => this.navigateToChartRoute()
+        });
+        if (Object.keys(this.traceShow).length > 0) {
+          menuItems.push({
+            label: 'CORRELATION_ADD_GRAPH|' + this.getMenuName(this.selectedEntity, this.securityCurrencyColumn),
+            command: (event) => this.changeToOpenChart()
+          });
+        }
+      }
+    }
+    return menuItems;
+  }
+
+  private isGraphForPairShowing(id1: number, id2: number): boolean {
+    return !!Object.keys(this.traceShow).find(key => {
+      const ids: number[] = key.split(',').map(Number);
+      return ids.indexOf(id1) >= 0 && ids.indexOf(id2) >= 0;
+    });
+  }
+
+  private getMenuName(securityCurrencyRow: Securitycurrency, securityCurrencyColumn: Securitycurrency): string {
+    return this.getTickerOrName(securityCurrencyRow) + '<->' + this.getTickerOrName(securityCurrencyColumn);
+  }
+
+  private getTickerOrName(securityCurrency: Securitycurrency): string {
+    return securityCurrency.hasOwnProperty(this.tickerSymbol) ?
+      (<Security>securityCurrency)[this.tickerSymbol] : securityCurrency.name;
   }
 
   addExistingSecurity(event) {
@@ -150,6 +216,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     return null;
   }
 
+
   ngOnDestroy(): void {
     this.subscriptionInstrumentAdded && this.subscriptionInstrumentAdded.unsubscribe();
   }
@@ -165,22 +232,23 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private createDynamicTableDefinition(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
     this.removeAllColumns();
     this.correlationResult = correlationResult;
-    this.addColumnFeqH(DataType.String, 'name', true, false,
-      {width: 200, templateName: AppSettings.OWNER_TEMPLATE});
+    this.addColumnFeqH(DataType.String, this.nameHeader, true, false,
+      {width: 250, templateName: AppSettings.OWNER_TEMPLATE});
+    this.addColumnFeqH(DataType.String, 'currency', true, false);
+
     if (correlationSet) {
       this.addCorrelationDefinition(correlationSet);
     } else {
       this.securitycurrencyList = [];
     }
-
     this.translateHeadersAndColumns();
   }
 
   private addCorrelationDefinition(correlationSet: CorrelationSet): void {
-    this.addColumnFeqH(DataType.String, 'tickerSymbol', true, false);
+    this.addColumnFeqH(DataType.String, this.tickerSymbol, true, false);
     let i = 0;
     correlationSet.securitycurrencyList.forEach(sc => {
-      let label = (sc.hasOwnProperty('tickerSymbol') ? (<Security>sc).tickerSymbol : sc.name);
+      let label = sc.hasOwnProperty(this.tickerSymbol) ? (<Security>sc)[this.tickerSymbol] : sc.name;
       if (!label) {
         label = '(' + i + ')';
         (<Security>sc).tickerSymbol = label;
@@ -202,10 +270,127 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     });
   }
 
+  public refreshChartWhenCorrelationSetChanges(): void {
+    if (SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS
+      && this.subscriptionRequestFromChart) {
+      const idsPairs: number[][] = [];
+      Object.keys(this.traceShow).filter(key => {
+        const ids: string[] = key.split(',');
+        return this.correlationSet.securitycurrencyList.find(s => s.idSecuritycurrency === +ids[0])
+          && this.correlationSet.securitycurrencyList.find(s => s.idSecuritycurrency === +ids[1]);
+      }).forEach(key => {
+        const ids: string[] = key.split(',');
+        idsPairs.push([+ids[0], +ids[1]]);
+      });
+      this.traceShow = [];
+      if (idsPairs.length > 0) {
+        this.correlationSetService.getRollingCorrelations(this.correlationSet.idCorrelationSet, idsPairs)
+          .subscribe((crs: CorrelationRollingResult[]) => this.prepareCharDataAndSentToChart(crs));
+      }
+    }
+  }
+
+  /**
+   * Used when correlation chart is already show. Reset chart or add another correlation line
+   */
+  private changeToOpenChart(): void {
+    this.subscriptionRequestFromChart && this.getAndSetRollingCorrelation();
+  }
+
+  /**
+   * Open chart line or reset existing chart.
+   */
+  private navigateToChartRoute(): void {
+    if (this.subscriptionRequestFromChart) {
+      this.traceShow = {};
+      this.getAndSetRollingCorrelation();
+    } else {
+      this.prepareChartDataWithRequest();
+      this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
+        outlets: {
+          mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.CORRELATION_CHART]
+        }
+      }]);
+    }
+  }
+
+  /**
+   * For the first call from the chart (callback)
+   */
+  private prepareChartDataWithRequest(): void {
+    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe(id => {
+        if (id === AppSettings.CORRELATION_CHART) {
+          this.getAndSetRollingCorrelation();
+        }
+      }
+    );
+  }
+
+  /**
+   * Add single line to chart. It gets the data from the backend.
+   */
+  private getAndSetRollingCorrelation(): void {
+    this.correlationSetService.getRollingCorrelations(this.correlationSet.idCorrelationSet,
+      [[this.securityCurrencyColumn.idSecuritycurrency, this.selectedEntity.idSecuritycurrency]])
+      .subscribe((crs: CorrelationRollingResult[]) => this.prepareCharDataAndSentToChart(crs));
+  }
+
+
+  private prepareCharDataAndSentToChart(crsArray: CorrelationRollingResult[]): void {
+    let minDate = moment();
+    let maxDate = moment('2000-01-01');
+    crsArray.forEach(crs => {
+      const trace = {
+        type: 'scatter',
+        mode: 'lines',
+        name: this.getTickerOrName(crs.securitycurrencyList[0]) + '<->' + this.getTickerOrName(crs.securitycurrencyList[1]),
+        x: crs.dates,
+        y: crs.correlation
+      };
+      minDate = moment.min(minDate, moment(crs.dates[0]));
+      maxDate = moment.max(maxDate, moment(crs.dates[crs.dates.length - 1]));
+      this.traceShow[crs.securitycurrencyList[0].idSecuritycurrency + ',' + crs.securitycurrencyList[1].idSecuritycurrency] = trace;
+    });
+
+    const chartData = Object.values(this.traceShow);
+
+    this.chartDataService.sentToChart({
+      data: chartData,
+      layout: this.getChartLayout(minDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE),
+        maxDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE)),
+      options: {
+        modeBarButtonsToRemove: ['hoverCompareCartesian', 'hoverClosestCartesian']
+      },
+    });
+  }
+
+  private getChartLayout(minDate: string, maxDate: string): any {
+    const layout = {
+      title: 'CORRELATION_ROLLING',
+      showlegend: true,
+      legend: PlotlyHelper.getLegendUnderChart(11),
+      xaxis: {
+        autorange: true,
+        range: [minDate, maxDate],
+        rangeslider: {range: [minDate, maxDate]},
+        type: 'date'
+      },
+      yaxis: {
+        autorange: true,
+        range: [-1, 1],
+        type: 'linear'
+      }
+    };
+    PlotlyHelper.translateLayout(this.translateService, layout);
+    return layout;
+  }
+
+
 }
 
 export interface ChildToParent {
-  refreshData(correlationSet: CorrelationSet);
+  refreshData(correlationSet: CorrelationSet): void;
+
 }
 
 

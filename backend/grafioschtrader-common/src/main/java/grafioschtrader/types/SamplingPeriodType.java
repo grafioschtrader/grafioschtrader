@@ -2,7 +2,7 @@ package grafioschtrader.types;
 
 public enum SamplingPeriodType {
 
-  Daily((byte) 0), Monthly((byte) 1), Annual((byte) 2);
+  DAILY_RETURNS((byte) 0), MONTHLY_RETURNS((byte) 1), ANNUAL_RETURNS((byte) 2);
 
   private final Byte value;
 

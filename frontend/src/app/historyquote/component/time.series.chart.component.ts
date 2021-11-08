@@ -63,7 +63,7 @@ interface Traces {
     <div #container class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
          (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)">
       <div class="input-w">
-        <label for="fromDate">{{'DATE_FROM' | translate}}</label>
+        <label for="fromDate">{{'FROM_DATE' | translate}}</label>
         <p-calendar #cal appendTo="body"
                     monthNavigator="true" yearNavigator="true" [yearRange]="yearRange"
                     [(ngModel)]="fromDate" id="fromDate"
@@ -832,7 +832,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
     return mainToSecurityCurrency;
   }
-
 
   private calculateHistoryquotes(loadedData: LoadedData, currenciesAndClosePrice: CurrenciesAndClosePrice[],
                                  multiple: boolean[]) {

@@ -144,11 +144,7 @@ public class CopyTenantService {
     List<Transaction> transactionList = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Transaction transaction : transactionList) {
-
       Integer idSource = transaction.getId();
-      if (idSource.equals(42009) || idSource.equals(42008)) {
-        System.out.println(transaction);
-      }
       transaction.setIdTenant(targetIdTenant);
       transaction.setIdTransaction(null);
       transaction.setCashaccount(cashaccoutMap.get(transaction.getCashaccount().getIdSecuritycashAccount()));

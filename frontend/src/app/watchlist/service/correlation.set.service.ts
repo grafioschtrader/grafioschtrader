@@ -1,8 +1,13 @@
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
-import {CorrelationResult, CorrelationSet} from '../../entities/correlation.set';
+import {
+  CorrelationLimit,
+  CorrelationResult,
+  CorrelationRollingResult,
+  CorrelationSet
+} from '../../entities/correlation.set';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {LoginService} from '../../shared/login/service/log-in.service';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {Injectable} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
@@ -62,10 +67,20 @@ export class CorrelationSetService extends AuthServiceWithLogout<CorrelationSet>
     }).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getCorrelationSetLimit(): Observable<TenantLimit> {
-    return <Observable<TenantLimit>>this.httpClient.get(
+  getCorrelationSetLimit(): Observable<CorrelationLimit> {
+    return <Observable<CorrelationLimit>>this.httpClient.get(
       `${AppSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/limit/`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getRollingCorrelations(idCorrelationSet: number, securityIdsPairs: number[][]): Observable<CorrelationRollingResult[]> {
+    let params = new HttpParams();
+    params = params.append('securityIdsPairs', [].concat(...securityIdsPairs).join(','));
+    return <Observable<CorrelationRollingResult[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}`
+      + `/corrrolling/${idCorrelationSet}`, {
+      headers: this.prepareHeaders(),
+      params: params
+    }).pipe(catchError(this.handleError.bind(this)));
   }
 
   getCorrelationSetInstrumentLimit(idCorrelationSet: number): Observable<TenantLimit> {

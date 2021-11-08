@@ -125,7 +125,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
     return this.selectedTransactionCostPosition.transaction.security;
   }
 
-  onRowSelect(event) {
+  onRowSelect(event): void {
     this.selectedTransactionCostPosition = event.data;
     this.selectedTransaction = this.selectedTransactionCostPosition.transaction;
     this.setMenuItemsToActivePanel();
@@ -146,7 +146,6 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   }
 
   protected initialize(): void {
-
   }
 
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {

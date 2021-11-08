@@ -104,7 +104,7 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     return transaction.security;
   }
 
-  onRowSelect(event) {
+  onRowSelect(event): void {
     this.cashaccountTransactionPositionSelected = event.data;
     this.selectedTransaction = this.cashaccountTransactionPositionSelected.transaction;
   }

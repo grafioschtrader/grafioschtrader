@@ -85,8 +85,7 @@ export class NgxErrorDirective implements OnInit, OnDestroy, DoCheck, AfterViewI
     }
   }
 
-
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscription.unsubscribe();
     this.focusOutListener && this.focusOutListener();
   }

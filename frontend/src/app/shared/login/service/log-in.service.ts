@@ -63,7 +63,7 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.ROLES, responseClaim.roles);
     sessionStorage.setItem(GlobalSessionNames.LANGUAGE, responseClaim.localeStr.slice(0, 2));
     sessionStorage.setItem(GlobalSessionNames.JWT, token);
-    sessionStorage.setItem(GlobalSessionNames.REPORT_UNTIL_DATE, moment().format('YYYY-MM-DD'));
+    sessionStorage.setItem(GlobalSessionNames.REPORT_UNTIL_DATE, moment().format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
 
     sessionStorage.setItem(GlobalSessionNames.USE_WEBSOCKET, JSON.stringify(configurationWithLogin.useWebsocket));
     sessionStorage.setItem(GlobalSessionNames.USE_ALGO, JSON.stringify(configurationWithLogin.useAlgo));
