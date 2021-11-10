@@ -75,13 +75,14 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
           builder.not(builder.exists(subQueryForAddingCorrelationSet(idCorrelationSet, securityRoot, query, builder))));
     }
 
-    if(idSecurityList != null) {
+    if (idSecurityList != null) {
       Expression<Integer> exp = securityRoot.get(Securitycurrency_.idSecuritycurrency);
       mainPredicates.add(builder.and(exp.in(idSecurityList)));
     }
 
     if (securitycurrencySearch.getIsin() != null) {
-      mainPredicates.add(builder.and(builder.equal(securityRoot.get(Security_.isin), securitycurrencySearch.getIsin())));
+      mainPredicates
+          .add(builder.and(builder.equal(securityRoot.get(Security_.isin), securitycurrencySearch.getIsin())));
     } else {
       if (securitycurrencySearch.isExcludeDerivedSecurity()) {
         mainPredicates.add(builder.and(builder.isNull(securityRoot.get(Security_.idLinkSecuritycurrency))));
@@ -109,18 +110,18 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
       }
 
       if (securitycurrencySearch.getIdConnectorHistory() != null) {
-        mainPredicates.add(builder.and(
-            builder.equal(securityRoot.get(Securitycurrency_.idConnectorHistory), securitycurrencySearch.getIdConnectorHistory())));
+        mainPredicates.add(builder.and(builder.equal(securityRoot.get(Securitycurrency_.idConnectorHistory),
+            securitycurrencySearch.getIdConnectorHistory())));
       }
 
       if (securitycurrencySearch.getIdConnectorIntra() != null) {
-        mainPredicates.add(builder
-            .and(builder.equal(securityRoot.get(Securitycurrency_.idConnectorIntra), securitycurrencySearch.getIdConnectorIntra())));
+        mainPredicates.add(builder.and(builder.equal(securityRoot.get(Securitycurrency_.idConnectorIntra),
+            securitycurrencySearch.getIdConnectorIntra())));
       }
 
       if (securitycurrencySearch.getCurrency() != null) {
-        mainPredicates
-            .add(builder.and(builder.equal(securityRoot.get(Security_.currency), securitycurrencySearch.getCurrency())));
+        mainPredicates.add(
+            builder.and(builder.equal(securityRoot.get(Security_.currency), securitycurrencySearch.getCurrency())));
       }
 
       addActiveDate(securityRoot, builder, mainPredicates);
@@ -146,7 +147,8 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
   private void addAssetclassPredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {
-    if (securitycurrencySearch.getAssetclassType() != null || securitycurrencySearch.getSpecialInvestmentInstruments() != null
+    if (securitycurrencySearch.getAssetclassType() != null
+        || securitycurrencySearch.getSpecialInvestmentInstruments() != null
         || securitycurrencySearch.getSubCategoryNLS() != null) {
       final Join<Security, Assetclass> joinAssetclass = securityRoot.join(Security_.assetClass);
       if (securitycurrencySearch.getAssetclassType() != null) {
@@ -169,16 +171,24 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
   private void addStockexchangePredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {
-    if (securitycurrencySearch.getIdStockexchange() != null || securitycurrencySearch.getStockexchangeCounrtyCode() != null) {
+
+    if (securitycurrencySearch.getIdStockexchange() != null
+        || securitycurrencySearch.getStockexchangeCounrtyCode() != null
+        || securitycurrencySearch.isNoMarketValue()) {
       final Join<Security, Stockexchange> joinStockexchane = securityRoot.join(Security_.stockexchange);
       if (securitycurrencySearch.getIdStockexchange() != null) {
         mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.idStockexchange),
             securitycurrencySearch.getIdStockexchange()));
       }
+      if (securitycurrencySearch.isNoMarketValue()) {
+        mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.noMarketValue), false));
+      }
+      
       if (securitycurrencySearch.getStockexchangeCounrtyCode() != null) {
         mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.countryCode),
             securitycurrencySearch.getStockexchangeCounrtyCode()));
       }
+
     }
   }
 

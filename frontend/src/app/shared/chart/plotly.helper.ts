@@ -1,11 +1,13 @@
 import {TranslateService} from '@ngx-translate/core';
 import {Helper} from '../../helper/helper';
 import {Legend} from 'plotly.js';
+import {PlotlyService} from 'angular-plotly.js';
 
 export interface ChartData {
   data: any;
   layout: any;
   options: any;
+  legendTooltipMap: Map<string, string>;
   callBackFN?: (traceIndex: number, dataPointIndex: number) => void;
 }
 
@@ -71,6 +73,24 @@ export class PlotlyHelper {
     } else {
       // jsonObj is a number or string
     }
+  }
+
+  public static attachTooltip(plotlyService: PlotlyService, legendTooltipMap = new Map<string, string>()): void {
+    const legendLayer = plotlyService.getPlotly().d3.select('g.legend');
+    const items = legendLayer.selectAll('g.traces');
+    let tooltip: any;
+    legendLayer.selectAll('.tooltip-line-graphics').remove();
+    items.on('mouseover', (d) => {
+      const fullName = legendTooltipMap.get(d[0].trace.name);
+      tooltip = legendLayer.append('text')
+        .classed('tooltip-line-graphics', true)
+        .text(fullName ? fullName : d[0].trace.name);
+    });
+    items.on('mouseout', () => {
+      if (tooltip) {
+        tooltip.remove();
+      }
+    });
   }
 
   public static getLegendUnderChart(fontSize: number): Partial<Legend> {

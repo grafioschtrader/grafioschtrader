@@ -140,10 +140,12 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       }
     );
 
-    menuItems.push({
-      label: 'REMOVE_INSTRUMENT', command: (event) => this.removeInstrumentFromCorrelationSet(this.selectedEntity
-        .idSecuritycurrency)
-    });
+    if (this.selectedEntity) {
+      menuItems.push({
+        label: 'REMOVE_INSTRUMENT', command: (event) => this.removeInstrumentFromCorrelationSet(this.selectedEntity
+          .idSecuritycurrency)
+      });
+    }
     return menuItems;
   }
 
@@ -180,8 +182,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   }
 
   private getTickerOrName(securityCurrency: Securitycurrency): string {
-    return securityCurrency.hasOwnProperty(this.tickerSymbol) ?
-      (<Security>securityCurrency)[this.tickerSymbol] : securityCurrency.name;
+    if (securityCurrency.hasOwnProperty(this.tickerSymbol)) {
+      const ticker = (<Security>securityCurrency)[this.tickerSymbol];
+      return ticker ? ticker : securityCurrency.name.slice(0, 20);
+    }
+    return securityCurrency.name;
   }
 
   addExistingSecurity(event) {
@@ -339,14 +344,19 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private prepareCharDataAndSentToChart(crsArray: CorrelationRollingResult[]): void {
     let minDate = moment();
     let maxDate = moment('2000-01-01');
+    const legendTooltipMap = new Map<string, string>();
     crsArray.forEach(crs => {
+      const traceName = this.getTickerOrName(crs.securitycurrencyList[0]) + '<->' + this.getTickerOrName(crs.securitycurrencyList[1]);
+      const fullName = crs.securitycurrencyList[0].name + '<->' + crs.securitycurrencyList[1].name;
+      legendTooltipMap.set(traceName, fullName);
       const trace = {
         type: 'scatter',
         mode: 'lines',
-        name: this.getTickerOrName(crs.securitycurrencyList[0]) + '<->' + this.getTickerOrName(crs.securitycurrencyList[1]),
+        name: traceName,
         x: crs.dates,
         y: crs.correlation
       };
+
       minDate = moment.min(minDate, moment(crs.dates[0]));
       maxDate = moment.max(maxDate, moment(crs.dates[crs.dates.length - 1]));
       this.traceShow[crs.securitycurrencyList[0].idSecuritycurrency + ',' + crs.securitycurrencyList[1].idSecuritycurrency] = trace;
@@ -354,10 +364,12 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
     const chartData = Object.values(this.traceShow);
 
+
     this.chartDataService.sentToChart({
       data: chartData,
       layout: this.getChartLayout(minDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE),
         maxDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE)),
+      legendTooltipMap: legendTooltipMap,
       options: {
         modeBarButtonsToRemove: ['hoverCompareCartesian', 'hoverClosestCartesian']
       },
