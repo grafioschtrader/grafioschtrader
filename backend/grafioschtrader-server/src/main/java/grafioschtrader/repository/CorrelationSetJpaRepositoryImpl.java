@@ -77,6 +77,7 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     var correlationSet = getCorrelationSetById(idCorrelationSet);
 
+    securitycurrencySearch.setNoMarketValue(true);
     return new SecuritycurrencyLists(
         securityJpaRepository.searchBuilderWithExclusion(null, idCorrelationSet, securitycurrencySearch,
             user.getIdTenant()),

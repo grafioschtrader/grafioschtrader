@@ -5,6 +5,8 @@ import java.util.Date;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
@@ -33,6 +35,9 @@ public class SecuritycurrencySearch implements Serializable {
   private Date activeDate;
 
   private boolean withHoldings;
+  
+  @JsonIgnore
+  private boolean noMarketValue;
 
   public String getIsin() {
     return isin;
@@ -160,6 +165,15 @@ public class SecuritycurrencySearch implements Serializable {
 
   public void setWithHoldings(boolean withHoldings) {
     this.withHoldings = withHoldings;
+  }
+  
+
+  public boolean isNoMarketValue() {
+    return noMarketValue;
+  }
+
+  public void setNoMarketValue(boolean noMarketValue) {
+    this.noMarketValue = noMarketValue;
   }
 
   @Override

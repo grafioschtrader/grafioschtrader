@@ -747,22 +747,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
   }
 
-  private attachTooltip() {
-    const legendLayer = this.plotlyService.getPlotly().d3.select('g.legend');
-    const items = legendLayer.selectAll('g.traces');
-    let tooltip: any;
-    legendLayer.selectAll('.tooltip-line-graphics').remove();
-    items.on('mouseover', (d) => {
-      const fullName = this.legendTooltipMap.get(d[0].trace.name);
-      tooltip = legendLayer.append('text')
-        .classed('tooltip-line-graphics', true)
-        .text(fullName ? fullName : d[0].trace.name);
-    });
-    items.on('mouseout', () => {
-      if (tooltip) {
-        tooltip.remove();
-      }
-    });
+  private attachTooltip(): void {
+    PlotlyHelper.attachTooltip(this.plotlyService, this.legendTooltipMap);
   }
 
   private getLayout(): any {

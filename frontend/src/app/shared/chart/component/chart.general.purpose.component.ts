@@ -96,10 +96,21 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private plotOrRePlot(): void {
     // Plotly.Plots.resize(this.el.nativeElement));
     this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
-    this.plotlyService.getPlotly().newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
-      this.chartData.options);
+    if (this.chartData.legendTooltipMap) {
+      this.plotlyService.getPlotly().newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
+        this.chartData.options).then(this.attachTooltip.bind(this));
+      this.chartElement.nativeElement.on('plotly_afterplot', this.attachTooltip.bind(this));
+    } else {
+      this.plotlyService.getPlotly().newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
+        this.chartData.options);
+    }
     if (this.chartData.callBackFN) {
       PlotlyHelper.registerPlotlyClick(this.chartElement.nativeElement, this.chartData.callBackFN);
     }
+
+  }
+
+  private attachTooltip(): void {
+    PlotlyHelper.attachTooltip(this.plotlyService, this.chartData.legendTooltipMap);
   }
 }
