@@ -68,8 +68,8 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
 
   @Override
   public List<String> loadAllDividendDataFromConnector(Security security) {
-    List<Dividend> existingDividends = dividendJpaRepository
-        .findByIdSecuritycurrencyOrderByExDateAsc(security.getIdSecuritycurrency());
+    List<Dividend> existingDividends = dividendJpaRepository.findByIdSecuritycurrencyAndCreateTypeOrderByExDateAsc(
+        security.getIdSecuritycurrency(), CreateType.ADD_MODIFIED_USER.getValue());
     List<String> errorMessages = loadAllDividendDataFromConnectorAndUpdate(security, existingDividends, true);
     return errorMessages;
   }

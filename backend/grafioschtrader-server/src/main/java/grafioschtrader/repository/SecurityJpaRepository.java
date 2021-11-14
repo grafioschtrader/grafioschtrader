@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.projection.IFormulaSecurityLoad;
+import grafioschtrader.entities.projection.SecurityYearClose;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithSecurityProp;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
@@ -109,6 +110,12 @@ public interface SecurityJpaRepository extends JpaRepository<Security, Integer>,
   @Query(nativeQuery = true)
   List<IFormulaSecurityLoad> getBySecurityDerivedLinkByIdSecurityLink(Integer idLinkSecuritycurrency);
 
+  @Query(nativeQuery = true)
+  List<SecurityYearClose>getSecurityYearDivSum(Integer idSecurity);
+  
+  @Query(nativeQuery = true)
+  List<SecurityYearClose>getSecurityYearDivSumCurrencyClose(Integer idSecurity, Integer idCurrencypair);
+  
   @Override
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
       Date untilDate);

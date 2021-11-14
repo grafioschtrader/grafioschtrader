@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import grafioschtrader.entities.Currencypair;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class CrossRateRequest {
+  @Schema(description = "Contains the required currencies of the security like 'CHF'")
   public List<String> securityCurrencyList;
+  @Schema(description = "Contains the existing currency pairs like 'CHF/USD' as an array")
   public String existingCurrencies[];
 
   public void setSecurityCurrencyList(List<String> securityCurrencyList) {

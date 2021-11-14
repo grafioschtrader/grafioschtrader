@@ -479,6 +479,7 @@
   "ROLE_NAME_TO": "To role",
   "ROLE_USER": "User without limits",
   "SAMPLING_PERIOD": "Sampling period",
+  "SAMPLING_PERIOD_TOOLTIP": "Sampling period of returns for correlation calculations",
   "SAVE": "Save",
   "SAVE_AND_CALC": "Save and calculate",
   "SAVE_CHANGE_REQUEST": "Save data change request",

@@ -38,6 +38,7 @@ import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
+import grafioschtrader.dto.AnnualisedSecurityPerformance;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
@@ -53,6 +54,7 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.priceupdate.intraday.IntradayThruCalculation;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
+import grafioschtrader.reports.AnnualisedPerformanceReport;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
@@ -84,6 +86,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Autowired
   private HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
 
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
+  
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
@@ -502,6 +507,12 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     }
 
     return security;
+  }
+
+  @Override
+  public AnnualisedSecurityPerformance getAnnualisedPerformance(Integer idSecuritycurrency) {
+   var apr = new AnnualisedPerformanceReport(securityJpaRepository, tenantJpaRepository, currencypairJpaRepository);
+    return apr.getAnnualisedPerformance(idSecuritycurrency);
   }
 
 }
