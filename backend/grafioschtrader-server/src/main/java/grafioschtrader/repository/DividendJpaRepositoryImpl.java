@@ -19,6 +19,7 @@ import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 
 public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
@@ -34,6 +35,9 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -92,6 +96,9 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
         securityJpaRepository.save(security);
         return errorMessages;
       }
+      if (!connector.isDividendSplitAdjusted()) {
+        splitAdjustDividends(security.getIdSecuritycurrency(), dividendsRead);
+      }
       updateDividendData(security, dividendsRead, existingDividends);
     } catch (ParseException pe) {
       log.error(pe.getMessage() + "Offset: " + pe.getErrorOffset(), pe);
@@ -112,5 +119,16 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
 
     DividendSplitsHelper.updateDividendSplitData(security, dividendsRead, existingDividends,
         this.dividendJpaRepository);
+  }
+
+  private void splitAdjustDividends(Integer idSecurity, List<Dividend> dividendsRead) {
+    List<Securitysplit> securitysplitList = securitysplitJpaRepository
+        .findByIdSecuritycurrencyOrderBySplitDateAsc(idSecurity);
+
+    for (Dividend dividend : dividendsRead) {
+      double factor = Securitysplit.calcSplitFatorForFromDate(securitysplitList,
+          DateHelper.getDateFromLocalDate(dividend.getExDate()));
+      dividend.setAmountAdjusted(dividend.getAmount() / factor);
+    }
   }
 }
