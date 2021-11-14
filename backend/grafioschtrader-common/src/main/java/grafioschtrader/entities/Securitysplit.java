@@ -151,12 +151,13 @@ public class Securitysplit extends DividendSplit implements Serializable {
    *         the split date.
    *
    */
-
   public static double calcSplitFatorForFromDate(Integer idSecuritycurrency, Date toDate,
       Map<Integer, List<Securitysplit>> securitysplitMap) {
+    return calcSplitFatorForFromDate(securitysplitMap.get(idSecuritycurrency), toDate);
+  }
+  
+  public static double calcSplitFatorForFromDate(List<Securitysplit> securitysplitList, Date toDate) {
     double factor = 1;
-
-    List<Securitysplit> securitysplitList = securitysplitMap.get(idSecuritycurrency);
 
     if (securitysplitList != null) {
       for (Securitysplit securitySplit : securitysplitList) {
@@ -167,6 +168,8 @@ public class Securitysplit extends DividendSplit implements Serializable {
     }
     return factor;
   }
+  
+  
 
   /**
    * Returns the factor for a security split between a from data an to date.
