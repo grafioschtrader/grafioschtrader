@@ -181,12 +181,16 @@ public interface IFeedConnector {
    */
   void updateCurrencyPairLastPrice(Currencypair currencyPair) throws Exception;
 
+  /**
+   * Returns true if dividends are split adjusted
+   * @return
+   */
   @JsonIgnore
   boolean isDividendSplitAdjusted();
 
   /*
    * Return the url as string for access the historical dividend data. It may also
-   * be used in the frontend to check the settings.
+   * be used in the front end to check the settings.
    */
   String getDividendHistoricalDownloadLink(Security security);
 
@@ -219,6 +223,7 @@ public interface IFeedConnector {
    */
   List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate) throws Exception;
 
+    
   class Description {
 
     @Schema(description = "Help text for the histrical data connector")

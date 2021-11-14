@@ -30,7 +30,7 @@ export class CorrelationHelper {
     ];
     if (mainField) {
       fieldConfig.splice(0, 1,
-        DynamicFieldHelper.createFieldSelectNumber(mainField, 'CORRELATION_SET_NAME', false,
+        DynamicFieldHelper.createFieldSelectNumber(mainField, 'CORRELATION_SET_NAME', true,
           {usedLayoutColumns: 6}));
     }
 

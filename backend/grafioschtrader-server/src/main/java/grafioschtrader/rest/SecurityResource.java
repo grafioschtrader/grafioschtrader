@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.dto.AnnualisedSecurityPerformance;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
 import grafioschtrader.entities.Auditable;
@@ -211,9 +212,18 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns the base securties with its parameter mapping of the specified derived security", description = "A derived security is based on one or more other securities with a formuala for calculation its prices", tags = {
+  @Operation(summary = "Return of annual return over specified periods.", 
+      description = "The result in currency of the instrument and the main currency of the client.", tags = {
       Security.TABNAME })
-  @GetMapping(value = "/{idSecuritycurrency}/derivedlinks", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{idSecuritycurrency}/annualisedperformance", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<AnnualisedSecurityPerformance> getAnnualisedPerformance(
+      @PathVariable final Integer idSecuritycurrency) {
+    return new ResponseEntity<>(
+        securityJpaRepository.getAnnualisedPerformance(idSecuritycurrency),
+        HttpStatus.OK);
+  }
+  
+  @GetMapping(value = "/{idSecuritycurrency}/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityCurrencypairDerivedLinks> getDerivedInstrumensLinksForSecurity(
       @PathVariable final Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

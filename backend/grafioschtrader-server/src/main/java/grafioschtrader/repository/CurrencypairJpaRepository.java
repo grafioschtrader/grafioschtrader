@@ -18,10 +18,13 @@ import grafioschtrader.rest.UpdateCreateJpaRepository;
 public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, Integer>,
     JpaSpecificationExecutor<Currencypair>, CurrencypairJpaRepositoryCustom, UpdateCreateJpaRepository<Currencypair> {
 
+  List<Currencypair> findByFromCurrency(String fromCurrency);
+  
   Currencypair findByFromCurrencyAndToCurrency(String fromCurrency, String toCurrency);
 
-  List<Currencypair> findByFromCurrency(String fromCurrency);
-
+  @Query(nativeQuery = true) 
+  List<Currencypair> findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency(String c1, String c2);
+  
   @Query(value = "SELECT c.from_currency FROM currencypair c WHERE c.to_currency = ?1", nativeQuery = true)
   Set<String> getFromCurrencyByToCurrency(String toCurrency);
 
@@ -44,7 +47,7 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
   List<Currencypair> findByIdTenantAndIdWatchlistWhenRetryIntraThan0(Integer idTenant, Integer idWatchlist);
 
   /**
-   * Only currencies without a single historyquote are ingnored by this query.
+   * Only currencies without a single history quote are ignored by this query.
    *
    * @param idTenant
    * @param idWatchlist
