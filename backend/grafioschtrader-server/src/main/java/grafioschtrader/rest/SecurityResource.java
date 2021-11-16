@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.dto.AnnualisedSecurityPerformance;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
+import grafioschtrader.dto.SecurityStatisticsReturnResult;
 import grafioschtrader.entities.Auditable;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.User;
@@ -215,11 +215,11 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   @Operation(summary = "Return of annual return over specified periods.", 
       description = "The result in currency of the instrument and the main currency of the client.", tags = {
       Security.TABNAME })
-  @GetMapping(value = "/{idSecuritycurrency}/annualisedperformance", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<AnnualisedSecurityPerformance> getAnnualisedPerformance(
+  @GetMapping(value = "/{idSecuritycurrency}/securitystatistics", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SecurityStatisticsReturnResult> getAnnualisedPerformance(
       @PathVariable final Integer idSecuritycurrency) {
     return new ResponseEntity<>(
-        securityJpaRepository.getAnnualisedPerformance(idSecuritycurrency),
+        securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency),
         HttpStatus.OK);
   }
   

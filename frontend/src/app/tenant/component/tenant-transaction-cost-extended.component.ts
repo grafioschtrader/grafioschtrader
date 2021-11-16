@@ -76,7 +76,6 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   @Input() firstRowIndex: number;
   @ViewChild('dataTable', {static: true}) dataTable: Table;
 
-
   private selectedTransactionCostPosition: TransactionCostPosition;
 
   constructor(private securityService: SecurityService,

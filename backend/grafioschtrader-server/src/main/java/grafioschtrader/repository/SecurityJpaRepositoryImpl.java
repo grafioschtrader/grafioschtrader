@@ -29,6 +29,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +39,7 @@ import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
-import grafioschtrader.dto.AnnualisedSecurityPerformance;
+import grafioschtrader.dto.SecurityStatisticsReturnResult;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
@@ -54,7 +55,7 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.priceupdate.intraday.IntradayThruCalculation;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
-import grafioschtrader.reports.AnnualisedPerformanceReport;
+import grafioschtrader.reports.SecurityStatisticsSummary;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
@@ -94,6 +95,10 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Autowired
   private MessageSource messages;
+  
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+  
 
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
@@ -510,9 +515,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  public AnnualisedSecurityPerformance getAnnualisedPerformance(Integer idSecuritycurrency) {
-   var apr = new AnnualisedPerformanceReport(securityJpaRepository, tenantJpaRepository, currencypairJpaRepository);
-    return apr.getAnnualisedPerformance(idSecuritycurrency);
+  public SecurityStatisticsReturnResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency) {
+   var securityStatisticsSummary = new SecurityStatisticsSummary(securityJpaRepository, tenantJpaRepository, currencypairJpaRepository);
+   securityStatisticsSummary.prepareSecurityCurrencypairs(idSecuritycurrency);
+   return new SecurityStatisticsReturnResult(securityStatisticsSummary.getAnnualisedSecurityPerformance(), 
+   securityStatisticsSummary.getStandardDeviation(jdbcTemplate, null, null));
   }
 
 }

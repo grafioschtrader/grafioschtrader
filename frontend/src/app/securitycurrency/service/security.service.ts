@@ -5,7 +5,6 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {SecurityOpenPositionPerSecurityaccount} from '../../entities/view/security.open.position.per.securityaccount';
 import {Observable} from 'rxjs';
 import {IFeedConnector} from '../component/ifeed.connector';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
@@ -20,6 +19,7 @@ import {
 } from '../model/historyquote.quality.group';
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
 import {SecurityCurrencyService} from './security.currency.service';
+import {SecurityStatisticsReturnResult} from '../../entities/view/security.statistics.return.result';
 
 @Injectable()
 export class SecurityService extends SecurityCurrencyService<Security> {
@@ -118,6 +118,12 @@ export class SecurityService extends SecurityCurrencyService<Security> {
     return <Observable<HisotryqouteLinearFilledSummary>>this.httpClient.post(
       `${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurreny}/fillgapes`,
       moveWeekendToFriday, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getSecurityStatisticsReturnResult(idSecuritycurrency: number): Observable<SecurityStatisticsReturnResult> {
+    return <Observable<SecurityStatisticsReturnResult>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/securitystatistics`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getDerivedInstrumentsLinksForSecurity(idSecuritycurrency: number): Observable<SecurityCurrencypairDerivedLinks> {

@@ -24,7 +24,10 @@ public class CorrelationResult {
     public Integer idSecuritycurrency;
     public double correlations[];
     public double annualizedReturn;
-    public double standardDeviation;
+    public String name;
+    public double standardDeviationDay;
+    public double standardDeviationMonth;
+    public double standardDeviationYear;
     public double maxPercentageChange;
 
     public CorrelationInstrument(Integer idSecuritycurrency, double[] correlations) {

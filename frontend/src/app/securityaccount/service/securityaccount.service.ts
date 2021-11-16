@@ -10,6 +10,7 @@ import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {AppHelper} from '../../shared/helper/app.helper';
+import {SecurityStatisticsReturnResult} from '../../entities/view/security.statistics.return.result';
 
 
 @Injectable()
@@ -42,7 +43,6 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
       AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition, untilDate, this.prepareHeaders()))
       .pipe(catchError(this.handleError.bind(this)));
   }
-
 
   update(securityaccount: Securityaccount): Observable<Securityaccount> {
     return this.updateEntity(securityaccount, securityaccount.idSecuritycashAccount, AppSettings.SECURITYACCOUNT_KEY);
