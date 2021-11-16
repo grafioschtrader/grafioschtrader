@@ -93,8 +93,6 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @Column(name = "adjust_currency")
   @PropertyAlwaysUpdatable
   private boolean adjustCurrency;
-
-  
   
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JoinTable(name = TABNAME_CORRELATION_INSTRUMENT, joinColumns = {

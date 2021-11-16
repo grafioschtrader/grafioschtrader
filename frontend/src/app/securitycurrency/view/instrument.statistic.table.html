@@ -1,0 +1,46 @@
+<div class="datatable nestedtable">
+  <p-table [columns]="fields" [dataKey]="datakey"
+           [value]="values"
+           class="leftRight2Table" selectionMode="single"
+           sortMode="single" [sortField]="datakey" [sortOrder]="sortOrder"
+           [paginator]="true" [rows]="5"
+           styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+    <ng-template pTemplate="caption">
+      <div class="table-header">
+        <h5>{{groupTitle | translate}}</h5>
+      </div>
+    </ng-template>
+    <ng-template let-fields pTemplate="header">
+      <tr>
+        <th *ngFor="let field of fields" [pSortableColumn]="field.field"
+            [pTooltip]="field.headerTooltipTranslated">
+          {{field.headerTranslated}}
+          <p-sortIcon [field]="field.field"></p-sortIcon>
+        </th>
+      </tr>
+    </ng-template>
+
+    <ng-template let-columns="fields" let-el pTemplate="body">
+      <tr [pSelectableRow]="el">
+        <ng-container *ngFor="let field of fields">
+          <td *ngIf="field.visible"
+              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+              [style.width.px]="field.width">
+            <ng-container [ngSwitch]="field.templateName">
+              <ng-container *ngSwitchCase="'greenRed'">
+                  <span [pTooltip]="getValueByPath(el, field)"
+                        [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+                        tooltipPosition="top">
+                    {{getValueByPath(el, field)}}
+                  </span>
+              </ng-container>
+              <ng-container *ngSwitchDefault>
+                <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
+              </ng-container>
+            </ng-container>
+          </td>
+        </ng-container>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

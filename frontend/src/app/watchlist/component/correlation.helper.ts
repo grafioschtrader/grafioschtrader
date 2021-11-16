@@ -67,7 +67,6 @@ export class CorrelationHelper {
   }
 
 
-
   private valueChangedOnDateFrom(configObject: { [name: string]: FieldConfig }): void {
     this.changeOnDateFromSub = configObject.dateFrom.formControl.valueChanges.subscribe(dateFrom =>
       this.setDateToMin(configObject));

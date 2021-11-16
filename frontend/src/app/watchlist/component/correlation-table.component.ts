@@ -67,10 +67,11 @@ import * as moment from 'moment';
           </td>
         </tr>
       </ng-template>
-      <ng-template pTemplate="rowexpansion" let-tdc let-columns="fields">
+      <ng-template pTemplate="rowexpansion" let-securitycrrency let-columns="fields">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-            <h4>Some Data</h4>
+            <instrument-statistics-summary [idSecuritycurrency]="securitycrrency.idSecuritycurrency">
+            </instrument-statistics-summary>
           </td>
         </tr>
       </ng-template>

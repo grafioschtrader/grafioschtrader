@@ -246,6 +246,9 @@ import {CorrelationSetEditComponent} from './watchlist/component/correlation-set
 import {WatchlistAddInstrumentTableComponent} from './watchlist/component/watchlist-add-instrument-table.component';
 import {CorrelationSetAddInstrumentTableComponent} from './watchlist/component/correlation-set-add-instrument-table.component';
 import {CorrelationAddInstrumentComponent} from './watchlist/component/correlation-add-instrument.component';
+import {InstrumentStatisticsSummaryComponent} from './securitycurrency/component/instrument-statistics-summary.component';
+import {InstrumentAnnualisedReturnComponent} from './securitycurrency/component/instrument.annualised.return.component';
+import {InstrumentYearPerformanceTableComponent} from './securitycurrency/component/instrument-year-performance-table.component';
 
 
 export function createTranslateLoader(http: HttpClient) {
@@ -264,6 +267,7 @@ export function createTranslateLoader(http: HttpClient) {
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
     HistoryquoteEditComponent, HistoryquoteTableComponent, ImportTransactionEditPlatformComponent, HistoryquoteQualityComponent,
     SecurityHistoryquoteQualityTreetableComponent, SecurityHistoryquoteQualityTableComponent,
+    InstrumentYearPerformanceTableComponent, InstrumentStatisticsSummaryComponent, InstrumentAnnualisedReturnComponent,
     ImportTransactionEditTemplateComponent, ImportTransactionTemplateComponent, ImportTransactionTemplateTableComponent,
     IndicatorEditComponent, LimitTransactionRequestDynamicComponent, LoginComponent, LogoutReleaseRequestDynamicComponent,
     MailMessageComponent, MailInOutTabMenuComponent, MailSendboxTableComponent, MailSendDynamicComponent,

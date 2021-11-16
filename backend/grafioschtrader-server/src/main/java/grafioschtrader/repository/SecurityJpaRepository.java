@@ -111,7 +111,7 @@ public interface SecurityJpaRepository extends JpaRepository<Security, Integer>,
   List<IFormulaSecurityLoad> getBySecurityDerivedLinkByIdSecurityLink(Integer idLinkSecuritycurrency);
 
   @Query(nativeQuery = true)
-  List<SecurityYearClose>getSecurityYearDivSum(Integer idSecurity);
+  List<SecurityYearClose>getSecurityYearCloseDivSum(Integer idSecurity);
   
   @Query(nativeQuery = true)
   List<SecurityYearClose>getSecurityYearDivSumCurrencyClose(Integer idSecurity, Integer idCurrencypair);
