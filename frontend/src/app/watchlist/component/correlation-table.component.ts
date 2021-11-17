@@ -28,6 +28,7 @@ import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {Router} from '@angular/router';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import * as moment from 'moment';
+import {BusinessHelper} from '../../shared/helper/business.helper';
 
 @Component({
   selector: 'correlation-table',
@@ -168,6 +169,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
         }
       }
     }
+    menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedEntity));
     return menuItems;
   }
 
@@ -221,7 +223,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     }
     return null;
   }
-
 
   ngOnDestroy(): void {
     this.subscriptionInstrumentAdded && this.subscriptionInstrumentAdded.unsubscribe();
@@ -365,7 +366,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
     const chartData = Object.values(this.traceShow);
 
-
     this.chartDataService.sentToChart({
       data: chartData,
       layout: this.getChartLayout(minDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE),
@@ -398,12 +398,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     return layout;
   }
 
-
 }
 
 export interface ChildToParent {
   refreshData(correlationSet: CorrelationSet): void;
-
 }
 
 

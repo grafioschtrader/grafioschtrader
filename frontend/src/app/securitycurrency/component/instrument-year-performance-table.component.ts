@@ -29,7 +29,10 @@ export class InstrumentYearPerformanceTableComponent extends TableConfigBase imp
     this.addColumn(DataType.String, 'year', 'CALENDAR', true, false);
     this.addColumn(DataType.Numeric, 'performanceYear', 'PERFORMANCE', true, false,
       {templateName: 'greenRed', headerSuffix: '%'});
-    this.addColumn(DataType.Numeric, 'performanceYearMC', 'PERFORMANCE', true, false, {templateName: 'greenRed', headerSuffix: (this.mainCurrency ? this.mainCurrency + ' ' : '') + '%'});
+    this.addColumn(DataType.Numeric, 'performanceYearMC', 'PERFORMANCE', true, false, {
+      templateName: 'greenRed',
+      headerSuffix: (this.mainCurrency ? this.mainCurrency + ' ' : '') + '%'
+    });
     this.prepareTableAndTranslate();
   }
 

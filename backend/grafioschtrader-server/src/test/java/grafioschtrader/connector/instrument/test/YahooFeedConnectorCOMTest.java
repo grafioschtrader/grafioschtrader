@@ -163,6 +163,7 @@ class YahooFeedConnectorCOMTest {
     final List<Security> securities = new ArrayList<>();
     securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.add(createSecurity("AAPL", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    securities.add(createSecurity("TLT", "America/New_York", "USD", SpecialInvestmentInstruments.ETF));
 
     securities.parallelStream().forEach(security -> {
       List<Dividend> dividens = new ArrayList<>();
@@ -187,6 +188,7 @@ class YahooFeedConnectorCOMTest {
     security.setUrlHistoryExtend(ticker);
     security.setUrlIntraExtend(ticker);
     security.setUrlSplitExtend(ticker);
+    security.setUrlDividendExtend(ticker);
     security.setCurrency(currency);
     return security;
   }

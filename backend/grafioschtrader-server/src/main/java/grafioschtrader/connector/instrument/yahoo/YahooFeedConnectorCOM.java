@@ -233,8 +233,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
     CookieStore cookieStore = new BasicCookieStore();
     HttpClient client = HttpClientBuilder.create()
-        .setDefaultRequestConfig(RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.STANDARD).build()).build();
+        .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
 
@@ -261,8 +260,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     return historyquotes;
   }
 
-  private String getCrumb(String symbol, HttpClient client, HttpClientContext context)
-      throws IOException {
+  private String getCrumb(String symbol, HttpClient client, HttpClientContext context) throws IOException {
     return findCrumb(splitPageData(getPage(symbol, client, context)));
   }
 
@@ -407,7 +405,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
 
-    String symbol = URLEncoder.encode(security.getUrlSplitExtend(), StandardCharsets.UTF_8);
+    String symbol = URLEncoder.encode(
+        event.equals(SPLIT_EVENT) ? security.getUrlSplitExtend() : security.getUrlDividendExtend(),
+        StandardCharsets.UTF_8);
 
     String crumb = getCrumb(symbol, client, context);
     if (crumb != null && !crumb.isEmpty()) {
