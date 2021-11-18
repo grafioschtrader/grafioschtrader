@@ -98,7 +98,7 @@
   "COPY_YEAR_OR_FULL": "Kopierungsbereich",
   "CORRELATION_ADD_GRAPH": "{{i18nRecord}} hinzufügen als Grafik",
   "CORRELATION_MATRIX": "Korrelationsmatrix",
-  "CORRELATION_ROLLING": "Rollende Korrelation",
+  "CORRELATION_ROLLING": "Rollende Korrelation - {{p0}}/{{p1}}",
   "CORRELATION_SET": "Korrelationsset",
   "CORRELATION_SET_GRAPH": "{{i18nRecord}} als Grafik",
   "CORRELATION_SET_NAME": "Korrelationsset-Name",

@@ -66,6 +66,9 @@ export class CorrelationHelper {
     });
   }
 
+  public getPeriodAndRollingWithParamPrefix(configObject: { [name: string]: FieldConfig }): string[] {
+    return ['p0@' + configObject[this.samplingPeriod].formControl.value, 'p1@' + configObject[this.rolling].formControl.value ];
+  }
 
   private valueChangedOnDateFrom(configObject: { [name: string]: FieldConfig }): void {
     this.changeOnDateFromSub = configObject.dateFrom.formControl.valueChanges.subscribe(dateFrom =>

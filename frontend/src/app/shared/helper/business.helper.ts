@@ -14,7 +14,6 @@ import {GlobalparameterService} from '../service/globalparameter.service';
 import {InfoLevelType} from '../message/info.leve.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {MenuItem} from 'primeng/api';
-import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {Security} from '../../entities/security';
 import {HelpIds} from '../help/help.ids';
 import {AppSettings} from '../app.settings';
@@ -145,7 +144,7 @@ export class BusinessHelper {
         disabled: !securitycurrency.stockexchangeLink
       }
     );
-    if (!(securitycurrency instanceof CurrencypairWatchlist)) {
+    if (securitycurrency.hasOwnProperty('productLink')) {
       menuItems.push(
         {
           label: 'PRODUCT_LINK',

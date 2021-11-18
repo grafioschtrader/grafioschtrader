@@ -97,7 +97,7 @@
   "COPY_TO_CLIPBOARD": "copy text to clipboard",
   "COPY_YEAR_OR_FULL": "Copy range",
   "CORRELATION_ADD_GRAPH": "{{i18nRecord}} add as graph",
-  "CORRELATION_ROLLING": "Rolling correlation",
+  "CORRELATION_ROLLING": "Rolling correlation {{p0}}/{{p1}}",
   "CORRELATION_MATRIX": "Correlation matrix",
   "CORRELATION_SET": "Correlation set",
   "CORRELATION_SET_GRAPH": "{{i18nRecord}} as graph",

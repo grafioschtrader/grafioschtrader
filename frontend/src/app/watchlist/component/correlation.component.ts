@@ -98,6 +98,10 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     }
   }
 
+  getPeriodAndRollingWithParamPrefix(): string[] {
+    return this.correlationHelper.getPeriodAndRollingWithParamPrefix(this.configObject);
+  }
+
   override readData(): void {
     this.correlationSetService.getCorrelationSetByTenant().subscribe((correlationSets: CorrelationSet[]) => {
       this.entityList = correlationSets;
