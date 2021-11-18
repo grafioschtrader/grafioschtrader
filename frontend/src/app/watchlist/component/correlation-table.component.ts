@@ -87,7 +87,6 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 export class CorrelationTableComponent extends TableConfigBase implements OnDestroy {
   @Input() childToParent: ChildToParent;
 
-
   tenantLimits: TenantLimit[];
   securitycurrencyList: Securitycurrency[];
   selectedEntity: Securitycurrency;
@@ -169,7 +168,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
         }
       }
     }
-    menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedEntity));
+    this.selectedEntity && menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedEntity));
     return menuItems;
   }
 
@@ -379,7 +378,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   private getChartLayout(minDate: string, maxDate: string): any {
     const layout = {
-      title: 'CORRELATION_ROLLING',
+      title: 'CORRELATION_ROLLING|' + this.childToParent.getPeriodAndRollingWithParamPrefix().join('|'),
       showlegend: true,
       legend: PlotlyHelper.getLegendUnderChart(11),
       xaxis: {
@@ -402,6 +401,8 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
 export interface ChildToParent {
   refreshData(correlationSet: CorrelationSet): void;
+
+  getPeriodAndRollingWithParamPrefix(): string[];
 }
 
 

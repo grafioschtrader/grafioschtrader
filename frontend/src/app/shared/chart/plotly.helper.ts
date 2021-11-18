@@ -49,15 +49,37 @@ export class PlotlyHelper {
    * the property is an array element.
    */
   public static translateLayout(translateService: TranslateService, layout: any): void {
-    translateService.get(layout.title).subscribe(translated => layout.title = translated);
+    PlotlyHelper.translateLayoutTitle(translateService, layout);
     const LABEL = 'label';
     const founds: any = [];
     this.searchArrayInTree(layout, founds);
 
-    founds.forEach(elements => elements.filter(e => e.hasOwnProperty(LABEL)).filter(f => f[LABEL] = f[LABEL].toUpperCase()).map(match =>
-      translateService.get(Helper.getValueByPath(match, LABEL)).subscribe(trans => {
-        Helper.setValueByPath(match, LABEL, trans);
-      })));
+    founds.forEach(elements => elements.filter(e => e.hasOwnProperty(LABEL)).filter(f => f[LABEL] =
+      f[LABEL].toUpperCase()).map(match => translateService.get(Helper.getValueByPath(match, LABEL)).subscribe(
+      trans => Helper.setValueByPath(match, LABEL, trans))));
+  }
+
+  private static translateLayoutTitle(translateService: TranslateService, layout: any): void {
+    const labelParts: string[] = layout.title.split('|');
+    if (labelParts.length > 1) {
+      const paramKey: string[] = [];
+      const wordKey: string[] = [];
+      for (let i = 1; i < labelParts.length; i++) {
+        const entry: string[] = labelParts[i].split('@');
+        paramKey.push(entry[0]);
+        wordKey.push(entry[1]);
+      }
+
+      const params = {};
+      translateService.get(wordKey).subscribe(paramTrans => {
+        for (let i = 0; i < wordKey.length; i++) {
+          params['p' + i] = paramTrans[wordKey[i]];
+        }
+        translateService.get(labelParts[0], params).subscribe(trans => layout.title = trans);
+      });
+    } else {
+      translateService.get(labelParts[0]).subscribe(trans => layout.title = trans);
+    }
   }
 
   public static searchArrayInTree(tree: any, founds: any[]): void {

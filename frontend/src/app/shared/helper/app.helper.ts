@@ -253,7 +253,6 @@ export class AppHelper {
 
   private static confirmationDialogParam(translateService: TranslateService, confirmationService: ConfirmationService, msgKey: string,
                                          param: string, acceptFN: Function, headerKey: string) {
-
     const observableMsg = (param) ? translateService.get(msgKey, {i18nRecord: param}) : translateService.get(msgKey);
     const observableHeaderKey = translateService.get(headerKey);
 
