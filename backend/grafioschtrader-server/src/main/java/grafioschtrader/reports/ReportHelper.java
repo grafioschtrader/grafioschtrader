@@ -20,6 +20,7 @@ import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.types.SamplingPeriodType;
 
 public abstract class ReportHelper {
+  private final static String WHERE_WORD = " WHERE ";
 
   public static void loadUntilDateHistoryquotes(final HistoryquoteJpaRepository historyquoteJpaRepository,
       DateTransactionCurrencypairMap dateCurrencyMap) {
@@ -43,13 +44,13 @@ public abstract class ReportHelper {
     dateCurrencyMap.putToDateFromCurrencyMap(currencyList);
     dateCurrencyMap.untilDateDataIsLoaded();
   }
-  
-  
+
   public static TreeMap<LocalDate, double[]> loadCloseData(JdbcTemplate jdbcTemplate,
-      List<Securitycurrency<?>> securitycurrencyList, SamplingPeriodType samplingPeriod, LocalDate dateFrom, LocalDate dateTo) {
+      List<Securitycurrency<?>> securitycurrencyList, SamplingPeriodType samplingPeriod, LocalDate dateFrom,
+      LocalDate dateTo) {
     StringBuilder qSelect = new StringBuilder("SELECT h0.date");
     StringBuilder qFrom = new StringBuilder(" FROM ");
-    StringBuilder qWhere = new StringBuilder(" WHERE ");
+    StringBuilder qWhere = new StringBuilder(WHERE_WORD);
 
     for (int i = 0; i < securitycurrencyList.size(); i++) {
       Securitycurrency<?> securitycurrency = securitycurrencyList.get(i);
@@ -68,8 +69,9 @@ public abstract class ReportHelper {
     addDateBoundry(dateTo, qWhere, "<");
     StringBuilder qGroup = addMonthYearGroupBy(samplingPeriod);
 
-    String query = qSelect.append(qFrom).append(qWhere).append(qGroup).append(" ORDER BY h0.date").toString();
-  //  System.out.println(query);
+    String query = qSelect.append(qFrom).append(WHERE_WORD.endsWith(qWhere.toString()) ? "" : qWhere).append(qGroup)
+        .append(" ORDER BY h0.date").toString();
+    // System.out.println(query);
     return jdbcTemplate.query(query, new ResultSetExtractor<TreeMap<LocalDate, double[]>>() {
       @Override
       public TreeMap<LocalDate, double[]> extractData(ResultSet rs) throws SQLException, DataAccessException {
@@ -102,8 +104,7 @@ public abstract class ReportHelper {
     }
     return qGroup;
   }
-  
-  
+
   public static double[][] transformToPercentageChange(Map<LocalDate, double[]> closeValuesMap, int columns) {
     double[][] data = new double[closeValuesMap.size() - 1][columns];
     double[] prevClose = null;
