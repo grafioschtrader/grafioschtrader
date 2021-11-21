@@ -19,6 +19,8 @@
   "ADD_EXISTING_SECURITY": "Bestehendes Instrument hinzufügen",
   "ADD_RECORD": "Hinzufügen {{i18nRecord}}",
   "ADD_TO LINE_CHART": "Hinzufügen als Liniengrafik",
+  "ADJUST_CURRENCY": "Währungsbereinigt",
+  "ADJUST_CURRENCY_TOOLTIP": "Unterschiedliche Währung der Wertpapiere werden währungsbereinigt",
   "ADMIN_DATA": "Administrative Daten",
   "ALGO_ADD_ASSETCLASS": "Hinzufügen Anlageklasse",
   "ALGO_ADD_SECURITY": "Hinzufügen Strategie Wertpapier",

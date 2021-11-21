@@ -48,7 +48,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
- 
+
   @Autowired(required = false)
   public List<IPlatformTransactionImport> platformTransactionImportList = new ArrayList<>();
 
@@ -112,8 +112,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
   @Override
   public void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles,
-      Integer idTransactionImportTemplate)
-      throws Exception {
+      Integer idTransactionImportTemplate) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository.getById(idTransactionHead);
     if (user.getIdTenant().equals(importTransactionHead.getIdTenant())) {
@@ -170,7 +169,8 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
   private void readUploadedFilesAndSaveAsImport(ImportTransactionHead importTransactionHead,
       List<ImportTransactionTemplate> importTransactionTemplateList, IPlatformTransactionImport pti,
-      MultipartFile[] uploadFiles, SingleMultiTemplateFormatType singleMultiTemplateFormatType, Integer idTransactionImportTemplate) throws Exception {
+      MultipartFile[] uploadFiles, SingleMultiTemplateFormatType singleMultiTemplateFormatType,
+      Integer idTransactionImportTemplate) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     if (singleMultiTemplateFormatType.singleFile) {
       if (singleMultiTemplateFormatType.gtTransformed) {

@@ -16,7 +16,7 @@ public interface ImportTransactionTemplateJpaRepository extends JpaRepository<Im
 
   @Query(nativeQuery = true)
   List<TemplateIdPurposeCsv> getTemplateIdPurposeCsv(Integer idTransactionImportPlatform);
-    
+
   Optional<ImportTransactionTemplate> findByIdTransactionImportPlatformAndTemplateCategoryAndTemplateFormatTypeAndValidSinceAndTemplateLanguage(
       Integer idTransactionImportPlatform, byte templateCategory, byte templateFormatType, Date validSince,
       String templateLanguage);

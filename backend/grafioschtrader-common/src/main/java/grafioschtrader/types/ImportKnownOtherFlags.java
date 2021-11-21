@@ -5,7 +5,8 @@ import java.util.EnumSet;
 import grafioschtrader.common.EnumHelper;
 
 /**
- * Attention: The order must not be changed. Flags that start with "CAN" can be set be the user, others are set by the system.
+ * Attention: The order must not be changed. Flags that start with "CAN" can be
+ * set be the user, others are set by the system.
  *
  */
 public enum ImportKnownOtherFlags {
@@ -35,27 +36,29 @@ public enum ImportKnownOtherFlags {
    * currency and adjust the dividend per unity accordingly.
    */
   CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE,
-  
-  
+
   /**
-   * Maybe the base currency for exchange rate is not the one of the instrument. It could be the one of the cash account
+   * Maybe the base currency for exchange rate is not the one of the instrument.
+   * It could be the one of the cash account
    */
   CAN_BASE_CURRENCY_MAYBE_INVERSE,
-  
+
   /**
-   * Certain trading platforms show the value 1 in the units field of the CSV document for interest transaction 
-   * for bonds. GT wants the correct number as specified at purchase. This configuration allows GT to adjust 
-   * the number and interest using the units and quotation fields. This adjustment is not made until 
-   * the transaction is created.
+   * Certain trading platforms show the value 1 in the units field of the CSV
+   * document for interest transaction for bonds. GT wants the correct number as
+   * specified at purchase. This configuration allows GT to adjust the number and
+   * interest using the units and quotation fields. This adjustment is not made
+   * until the transaction is created.
    */
   CAN_BOND_ADJUST_UNITS_AND_QUOTATION_WHEN_UNITS_EQUAL_ONE,
-  
+
   /**
-   * In the transaction, the Subject to tax property is not set with this configuration for dividend or interest, 
-   * i.e. the amount is tax free. Otherwise, Subject to Tax is set.   
+   * In the transaction, the Subject to tax property is not set with this
+   * configuration for dividend or interest, i.e. the amount is tax free.
+   * Otherwise, Subject to Tax is set.
    */
   CAN_NO_TAX_ON_DIVIDEND_INTEREST;
-  
+
   public static int encode(EnumSet<ImportKnownOtherFlags> importKnownOtherFlagsSet) {
     return EnumHelper.encode(importKnownOtherFlagsSet);
   }

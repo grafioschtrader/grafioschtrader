@@ -93,7 +93,7 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @Column(name = "adjust_currency")
   @PropertyAlwaysUpdatable
   private boolean adjustCurrency;
-  
+
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JoinTable(name = TABNAME_CORRELATION_INSTRUMENT, joinColumns = {
       @JoinColumn(name = "id_correlation_set", referencedColumnName = "id_correlation_set") }, inverseJoinColumns = {
@@ -107,12 +107,13 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   }
 
   public CorrelationSet(Integer idCorrelationSet, LocalDate dateFrom, LocalDate dateTo, byte samplingPeriod,
-      Byte rolling) {
+      Byte rolling, boolean adjustCurrency) {
     this.idCorrelationSet = idCorrelationSet;
     this.dateFrom = dateFrom;
     this.dateTo = dateTo;
     this.samplingPeriod = samplingPeriod;
     this.rolling = rolling;
+    this.adjustCurrency = adjustCurrency;
   }
 
   @JsonIgnore
@@ -195,7 +196,6 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
     this.securitycurrencyList = securitycurrencyList;
   }
 
-    
   public boolean isAdjustCurrency() {
     return adjustCurrency;
   }

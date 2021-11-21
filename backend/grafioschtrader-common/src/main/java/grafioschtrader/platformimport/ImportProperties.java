@@ -90,7 +90,6 @@ public class ImportProperties {
    */
   private Double cex;
 
-
   /**
    * Transaction cost 1
    */
@@ -142,7 +141,7 @@ public class ImportProperties {
   private final Map<String, TransactionType> transactionTypesMap;
   private final EnumSet<ImportKnownOtherFlags> knownOtherFlags;
   private Integer fileOrLineNumber;
-  
+
   private String ignoreTaxOnDivInt;
 
   public ImportProperties(Map<String, TransactionType> transactionTypesMap,
@@ -194,7 +193,7 @@ public class ImportProperties {
     if (transactionTypesMap.get(this.transType) == null) {
       throw new IllegalArgumentException(transType + " not accepted");
     }
-    if(ignoreTaxOnDivInt != null && this.transType.equals(ignoreTaxOnDivInt) ) {
+    if (ignoreTaxOnDivInt != null && this.transType.equals(ignoreTaxOnDivInt)) {
       knownOtherFlags.add(ImportKnownOtherFlags.CAN_NO_TAX_ON_DIVIDEND_INTEREST);
     }
   }
@@ -344,10 +343,10 @@ public class ImportProperties {
     this.sf1 = sf1;
   }
 
-    public String getPer() {
+  public String getPer() {
     return per;
   }
-  
+
   public void setPer(String per) {
     this.per = per;
   }

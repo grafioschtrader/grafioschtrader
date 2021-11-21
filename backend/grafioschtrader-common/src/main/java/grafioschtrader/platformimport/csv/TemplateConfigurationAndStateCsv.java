@@ -128,7 +128,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
               && (importTransactionTemplate.getIdTransactionImportTemplate() == null || !importTransactionTemplate
                   .getIdTransactionImportTemplate().equals(tp.getIdTransactionImportTemplate())))
           .findFirst();
-      if(templateIdPurposeCsvOpt.isPresent()) {
+      if (templateIdPurposeCsvOpt.isPresent()) {
         dataViolationException.addDataViolation(CONF_TEMPLATE_ID, "gt.imptemplate.notunique.csv.id",
             templateIdPurposeCsvOpt.get().getTemplatePurpose(), false);
       }

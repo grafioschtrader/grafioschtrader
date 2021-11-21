@@ -99,7 +99,8 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
         historyquote.setDate(dateFormat.parse(dateString));
         historyquote.setClose(rate);
       } else {
-        // When a rate is not available for a certain year it returns a lot of currencies but not the 
+        // When a rate is not available for a certain year it returns a lot of
+        // currencies but not the
         // expected one
         break;
       }

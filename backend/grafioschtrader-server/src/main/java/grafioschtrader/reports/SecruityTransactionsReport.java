@@ -370,8 +370,8 @@ public class SecruityTransactionsReport {
 
           int splitIndex = securitySplits.size() - 1;
           double factor = 1.0;
-          while (splitIndex >= 0 && transaction.getTransactionTime().getTime() < securitySplits.get(splitIndex)
-              .getSplitDate().getTime()) {
+          while (splitIndex >= 0
+              && transaction.getTransactionTime().getTime() < securitySplits.get(splitIndex).getSplitDate().getTime()) {
             final Securitysplit securitysplit = securitySplits.get(splitIndex);
             factor /= (double) securitysplit.getToFactor() / securitysplit.getFromFactor();
             splitIndex--;

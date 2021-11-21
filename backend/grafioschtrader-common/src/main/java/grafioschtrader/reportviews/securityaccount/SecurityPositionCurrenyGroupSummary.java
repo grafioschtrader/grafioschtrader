@@ -62,5 +62,5 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
   public double getGroupTaxCost() {
     return DataHelper.round(groupTaxCost, precision);
   }
-    
+
 }

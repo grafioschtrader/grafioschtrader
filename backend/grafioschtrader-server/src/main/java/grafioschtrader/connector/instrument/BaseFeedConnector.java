@@ -306,7 +306,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         }
       }
     } catch (Exception e) {
-      log.error("URL: {}", url );
+      log.error("URL: {}", url);
     }
   }
 

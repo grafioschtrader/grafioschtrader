@@ -19,7 +19,7 @@ public class AnnualisedSecurityPerformance {
 
   public final List<LastYears> lastYears = new ArrayList<>();
   public final List<AnnualisedYears> annualisedYears = new ArrayList<>();
-  
+
   public AnnualisedSecurityPerformance(String securityCurrency, String mainCurrency, LocalDate dateFrom,
       LocalDate dateTo) {
     this.securityCurrency = securityCurrency;
@@ -46,7 +46,7 @@ public class AnnualisedSecurityPerformance {
     public double getPerformanceYearMC() {
       return DataHelper.roundStandard(performanceYearMC);
     }
-    
+
   }
 
   public static class AnnualisedYears {
@@ -67,7 +67,6 @@ public class AnnualisedSecurityPerformance {
     public double getPerformanceAnnualisedMC() {
       return DataHelper.roundStandard(performanceAnnualisedMC);
     }
-    
 
   }
 }

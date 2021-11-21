@@ -38,7 +38,7 @@ public class SecurityTransactionPosition {
     precisionMC = securityPositionSummary.precisionMC;
 
     holdingsSplitAdjusted = transaction.getTransactionType() == TransactionType.HYPOTHETICAL_SELL
-        || transaction.getTransactionType() == TransactionType.HYPOTHETICAL_BUY ? 0.0: securityPositionSummary.units;
+        || transaction.getTransactionType() == TransactionType.HYPOTHETICAL_BUY ? 0.0 : securityPositionSummary.units;
   }
 
   public void setSecurityInTransactionToNull() {

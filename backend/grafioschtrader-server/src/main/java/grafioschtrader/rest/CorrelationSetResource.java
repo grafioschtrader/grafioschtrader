@@ -97,7 +97,7 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   @GetMapping(value = "corrrolling/{idCorrelationSet}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<CorrelationRollingResult>> getRollingCorrelations(
       @PathVariable final Integer idCorrelationSet, @RequestParam() final String securityIdsPairs) {
-    String [] ids = securityIdsPairs.split(",");
+    String[] ids = securityIdsPairs.split(",");
     var securityIdsPairs2 = new Integer[ids.length / 2][2];
     for (int i = 0; i < ids.length; i++) {
       securityIdsPairs2[i / 2][i % 2] = Integer.valueOf(ids[i]);

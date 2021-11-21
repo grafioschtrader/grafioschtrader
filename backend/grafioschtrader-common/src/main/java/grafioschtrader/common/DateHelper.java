@@ -147,5 +147,4 @@ public class DateHelper {
     return java.util.Date.from(dateToConvert.atZone(ZoneId.systemDefault()).toInstant());
   }
 
- 
 }

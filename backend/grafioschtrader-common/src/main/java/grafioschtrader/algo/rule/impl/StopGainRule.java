@@ -17,6 +17,5 @@ public class StopGainRule {
   public String toString() {
     return "StopGainRule [gainPercentage=" + gainPercentage + "]";
   }
-  
-  
+
 }

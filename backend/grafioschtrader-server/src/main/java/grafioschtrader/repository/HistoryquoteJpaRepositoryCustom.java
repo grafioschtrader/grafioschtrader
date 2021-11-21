@@ -24,9 +24,8 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
   ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(Integer idSecuritycurrency,
       String dateString, boolean asTraded) throws ParseException;
 
-
-  ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
-      final Integer idSecuritycurrency, final Date date, final boolean asTraded);
+  ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(final Integer idSecuritycurrency,
+      final Date date, final boolean asTraded);
 
   /**
    * Create history quotes for weekend and public holidays

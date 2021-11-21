@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +18,8 @@ import javax.mail.internet.MimeMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.info.Info;
+import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -26,7 +29,8 @@ import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;
 import grafioschtrader.usertask.UserTaskType;
 
-public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User> implements UserJpaRepositoryCustom {
+public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
+    implements UserJpaRepositoryCustom, InfoContributor {
 
   @Autowired
   private UserJpaRepository userJpaRepository;
@@ -45,6 +49,17 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User> implements U
 
   @Value("${spring.mail.username}")
   private String springMailUsername;
+
+  @Value("${gt.allowed.users}")
+  private int allowed;
+
+  @Override
+  public void contribute(Info.Builder builder) {
+    Map<String, Integer> userDetails = new HashMap<>();
+    userDetails.put("allowed", allowed);
+    userDetails.put("active", userJpaRepository.countByEnabled(true));
+    builder.withDetail("users", userDetails);
+  }
 
   @Override
   public User saveOnlyAttributes(User user, User existingEntity,

@@ -48,7 +48,7 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
   public void run() {
     while (someCondition) {
       try {
-         Optional<TaskDataChange> taskDataChangeOpt = taskDataChangeRepository
+        Optional<TaskDataChange> taskDataChangeOpt = taskDataChangeRepository
             .findTopByProgressStateTypeAndEarliestStartTimeLessThanEqualOrderByExecutionPriorityAscCreationTimeAsc(
                 ProgressStateType.PROG_WAITING.getValue(), LocalDateTime.now());
         if (taskDataChangeOpt.isPresent()) {
@@ -83,7 +83,7 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
             .setFailedStackTrace(failure.toString().substring(0, TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE));
       }
       taskDataChange.setFailedMessageCode(tbe.getErrorMessagesKey());
-      if(tbe.isRollback()) {
+      if (tbe.isRollback()) {
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
       }
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
@@ -101,11 +101,11 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
     BeanUtils.copyProperties(tdcNew, taskDataChange);
     return tdcNew;
   }
-  
+
   private TaskDataChange startJob(final TaskDataChange taskDataChange, LocalDateTime startTime) {
     taskDataChange.setExecStartTime(startTime);
     taskDataChange.setProgressStateType(ProgressStateType.PROG_RUNNING);
-    return  taskDataChangeRepository.save(taskDataChange);
+    return taskDataChangeRepository.save(taskDataChange);
   }
 
   private void finishedJob(final TaskDataChange taskDataChange, LocalDateTime startTime,

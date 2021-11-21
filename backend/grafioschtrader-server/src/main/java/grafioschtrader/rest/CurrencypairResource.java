@@ -108,13 +108,11 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   public ResponseEntity<List<Currencypair>> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
     return new ResponseEntity<>(currencypairJpaRepository.searchByCriteria(securitycurrencySearch), HttpStatus.OK);
   }
-  
-  
+
   @GetMapping(value = "/crossrate", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CrossRateResponse> getCurrencypairForCrossRate(final CrossRateRequest crossRateRequest) {
     return new ResponseEntity<>(currencypairJpaRepository.getCurrencypairForCrossRate(crossRateRequest), HttpStatus.OK);
   }
-  
 
   ////////////////////////////////////////////////////////////
   // User depended Request
@@ -128,16 +126,16 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
         HttpStatus.OK);
   }
 
- 
   @Operation(summary = "Returns all transactions for a certain currency pair of a tenant.", description = "", tags = {
       Currencypair.TABNAME })
   @GetMapping(value = "/tenant/{idCurrencypair}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CurrencypairWithTransaction> findOrCreateCurrencypairByFromAndToCurrency(
       @PathVariable final Integer idCurrencypair,
-      @Parameter(description = "True it will add some transactions", required = true) @RequestParam() final boolean forchart)  {
+      @Parameter(description = "True it will add some transactions", required = true) @RequestParam() final boolean forchart) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
-        transactionJpaRepository.getTransactionForCurrencyPair(user.getIdTenant(), idCurrencypair, forchart), HttpStatus.OK);
+        transactionJpaRepository.getTransactionForCurrencyPair(user.getIdTenant(), idCurrencypair, forchart),
+        HttpStatus.OK);
   }
 
   @GetMapping(value = "/{idPortfolio}/portfolio", produces = APPLICATION_JSON_VALUE)

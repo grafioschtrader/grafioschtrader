@@ -158,7 +158,8 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
           propertyWithOptions.optional = true;
           break;
         default:
-          dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.anchor.config", propertyOptionsSplit[i], false);
+          dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.anchor.config",
+              propertyOptionsSplit[i], false);
         }
       }
       propertyWithOptions.createRegex();

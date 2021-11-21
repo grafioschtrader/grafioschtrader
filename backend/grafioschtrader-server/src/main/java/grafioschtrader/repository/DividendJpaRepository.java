@@ -14,6 +14,7 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
   List<Dividend> findByIdSecuritycurrencyInOrderByIdSecuritycurrencyAscExDateAsc(List<Integer> securityIds);
 
   List<Dividend> findByIdSecuritycurrencyOrderByExDateAsc(Integer idSecuritycurrency);
+
   List<Dividend> findByIdSecuritycurrencyAndCreateTypeOrderByExDateAsc(Integer idSecuritycurrency, byte createType);
 
   @Query(nativeQuery = true)

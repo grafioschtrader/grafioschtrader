@@ -48,7 +48,8 @@ public class ValueFormatConverter {
 
   public ValueFormatConverter(char decimalSeparator, String dateFormat, char thousandSeparators) {
     this(decimalSeparator, thousandSeparators);
-    simpleDateFormat = userLocale == null? new SimpleDateFormat(dateFormat): new SimpleDateFormat(dateFormat, userLocale);
+    simpleDateFormat = userLocale == null ? new SimpleDateFormat(dateFormat)
+        : new SimpleDateFormat(dateFormat, userLocale);
 
   }
 

@@ -76,7 +76,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
 
   SecurityStatisticsReturnResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency);
-  
+
   /**
    * Some cases the historical prices must be reloaded completely. For example
    * when a split is added.

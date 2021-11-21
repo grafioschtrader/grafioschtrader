@@ -117,20 +117,18 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         .map(g -> g.getPropertyInt().shortValue()).orElse(Globalparameters.DEFAULT_INTRA_RETRY);
   }
 
-  
   @Override
   public short getMaxDividendRetry() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_DIVIDEND_RETRY)
         .map(g -> g.getPropertyInt().shortValue()).orElse(Globalparameters.DEFAULT_DIVIDEND_RETRY);
   }
-  
+
   @Override
   public short getMaxSplitRetry() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_SPLIT_RETRY)
         .map(g -> g.getPropertyInt().shortValue()).orElse(Globalparameters.DEFAULT_SPLIT_RETRY);
   }
-  
-  
+
   @Override
   public int getMaxFillDaysCurrency() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY)
@@ -201,7 +199,5 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
   }
-
-  
 
 }

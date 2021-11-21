@@ -215,8 +215,8 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         var taskDataChange = new TaskDataChange(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
             TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusDays(1), security.getIdSecuritycurrency(),
             Security.class.getSimpleName());
-        taskDataChange.setOldValueString(new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)
-            .format(requestedSplitdate));
+        taskDataChange.setOldValueString(
+            new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).format(requestedSplitdate));
         taskDataChangeJpaRepository.save(taskDataChange);
       }
 

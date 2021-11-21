@@ -17,7 +17,7 @@ public class CurrencypairWithTransaction {
   public List<Transaction> transactionList;
 
   public CurrencypairWithTransaction cwtReverse;
-  
+
   public CurrencypairWithTransaction(Currencypair currencypair) {
     this.currencypair = currencypair;
   }
@@ -26,6 +26,6 @@ public class CurrencypairWithTransaction {
   public String toString() {
     return "CurrencypairWithTransaction [sumAmountFrom=" + sumAmountFrom + ", sumAmountTo=" + sumAmountTo + ", gainTo="
         + gainTo + ", gainFrom=" + gainFrom + ", currencypair=" + currencypair + "]";
-  } 
-  
+  }
+
 }

@@ -226,8 +226,6 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     this.setCreateModifyTime(new Date());
   }
 
-
-
   @Override
   public String toString() {
     return "Historyquote [idHistoryQuote=" + idHistoryQuote + ", date=" + date + ", close=" + close + ", volume="

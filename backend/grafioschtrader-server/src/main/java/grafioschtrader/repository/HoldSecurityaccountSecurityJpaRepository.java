@@ -95,7 +95,6 @@ public interface HoldSecurityaccountSecurityJpaRepository
   @Query(nativeQuery = true)
   List<Integer> getIdSecurityByIdTenantWithHoldings(Integer idTenant);
 
-
   /**
    * A stored procedure is used so that only transactions affected by the split
    * are selected with the splits in chronological order.

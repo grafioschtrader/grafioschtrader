@@ -22,7 +22,6 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
   @Autowired
   GlobalparametersJpaRepository globalparametersJpaRepository;
 
-
   @Autowired
   public void setCurrencypairJpaRepository(@Lazy final CurrencypairJpaRepository currencypairJpaRepository) {
     this.currencypairJpaRepository = currencypairJpaRepository;

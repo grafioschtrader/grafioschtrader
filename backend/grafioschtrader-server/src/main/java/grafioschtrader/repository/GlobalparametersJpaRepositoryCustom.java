@@ -44,9 +44,9 @@ public interface GlobalparametersJpaRepositoryCustom {
    * @return
    */
   short getMaxIntraRetry();
-  
+
   short getMaxDividendRetry();
-  
+
   short getMaxSplitRetry();
 
   int getMaxFillDaysCurrency();

@@ -30,24 +30,24 @@ public class GlobalConstants {
   public static final int FID_SMALL_INTEGER_LIMIT = 6;
 
   /** Step, min value and max value **/
-  public static final String CORR_DAILY="10,20,120";
-  public static final String CORR_MONTHLY="12,12,60";
-  public static final String CORR_ANNUAL=null;
-  
+  public static final String CORR_DAILY = "10,20,120";
+  public static final String CORR_MONTHLY = "12,12,60";
+  public static final String CORR_ANNUAL = null;
+
   /**
    * Number maybe rounded to this precision
    */
   public static final int FID_MAX_FRACTION_DIGITS = 8;
   public static final int FID_MAX_INTEGER_DIGITS = 11;
-   
 
   public static final int FID_MAX_DIGITS = 16;
-  
+
   /**
-   * It will adjust the currency exchange rate or quotation for the cash account amount.
+   * It will adjust the currency exchange rate or quotation for the cash account
+   * amount.
    */
   public static final boolean AUTO_CORRECT_TO_AMOUNT = false;
-  
+
   /**
    * The standard note text size
    */

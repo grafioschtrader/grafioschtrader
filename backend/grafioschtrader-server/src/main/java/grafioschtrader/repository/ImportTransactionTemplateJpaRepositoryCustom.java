@@ -17,7 +17,7 @@ public interface ImportTransactionTemplateJpaRepositoryCustom extends BaseReposi
   List<ValueKeyHtmlSelectOptions> getPossibleLanguagesForTemplate();
 
   List<ValueKeyHtmlSelectOptions> getCSVTemplateIdsAsValueKeyHtmlSelectOptions(Integer idTransactionImportPlatform);
-  
+
   void getTemplatesByPlatformPlanAsZip(Integer idTransactionImportPlatform, HttpServletResponse response);
 
   SuccessFailedImportTransactionTemplate uploadImportTemplateFiles(Integer idTransactionImportPlatform,

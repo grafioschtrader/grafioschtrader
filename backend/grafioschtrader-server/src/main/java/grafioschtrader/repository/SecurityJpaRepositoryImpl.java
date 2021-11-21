@@ -82,6 +82,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
+  protected CurrencypairJpaRepository currencypairJpaRepository;
+
+  @Autowired
   private SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
 
   @Autowired
@@ -89,16 +92,15 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
-  
+
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired
   private MessageSource messages;
-  
+
   @Autowired
   private JdbcTemplate jdbcTemplate;
-  
 
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
@@ -516,10 +518,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   public SecurityStatisticsReturnResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency) {
-   var securityStatisticsSummary = new SecurityStatisticsSummary(securityJpaRepository, tenantJpaRepository, currencypairJpaRepository);
-   securityStatisticsSummary.prepareSecurityCurrencypairs(idSecuritycurrency);
-   return new SecurityStatisticsReturnResult(securityStatisticsSummary.getAnnualisedSecurityPerformance(), 
-   securityStatisticsSummary.getStandardDeviation(jdbcTemplate, null, null));
+    var securityStatisticsSummary = new SecurityStatisticsSummary(securityJpaRepository, tenantJpaRepository,
+        currencypairJpaRepository);
+    securityStatisticsSummary.prepareSecurityCurrencypairs(idSecuritycurrency);
+    return new SecurityStatisticsReturnResult(securityStatisticsSummary.getAnnualisedSecurityPerformance(),
+        securityStatisticsSummary.getStandardDeviation(jdbcTemplate, null, null, false));
   }
 
 }
