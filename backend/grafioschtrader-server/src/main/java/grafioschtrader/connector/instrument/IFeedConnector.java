@@ -183,6 +183,7 @@ public interface IFeedConnector {
 
   /**
    * Returns true if dividends are split adjusted
+   * 
    * @return
    */
   @JsonIgnore
@@ -223,7 +224,6 @@ public interface IFeedConnector {
    */
   List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate) throws Exception;
 
-    
   class Description {
 
     @Schema(description = "Help text for the histrical data connector")

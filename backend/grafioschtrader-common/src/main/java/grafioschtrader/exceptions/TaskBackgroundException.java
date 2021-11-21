@@ -9,8 +9,6 @@ public class TaskBackgroundException extends Exception {
   private List<String> errorMsgOfSystem;
   private boolean rollback = true;
 
-
- 
   public TaskBackgroundException(String errorMessagesKey, boolean rollback) {
     super();
     this.errorMessagesKey = errorMessagesKey;
@@ -31,10 +29,9 @@ public class TaskBackgroundException extends Exception {
   public List<String> getErrorMsgOfSystem() {
     return errorMsgOfSystem;
   }
-  
+
   public boolean isRollback() {
     return rollback;
   }
-
 
 }

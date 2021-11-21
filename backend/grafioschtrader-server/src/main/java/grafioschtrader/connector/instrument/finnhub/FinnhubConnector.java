@@ -153,7 +153,7 @@ public class FinnhubConnector extends BaseFeedConnector {
      * List of close prices for returned candles.
      */
     public double[] c;
-   
+
     /**
      * List of high prices for returned candles.
      */

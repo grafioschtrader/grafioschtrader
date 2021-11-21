@@ -267,7 +267,6 @@ public abstract class UpdateCreate<T extends BaseID> {
     return result;
   }
 
-  
   /**
    * User can't change entity if another user created it -> create a proposal
    * change

@@ -48,8 +48,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  public  static final String ORDER_NOTHING = "0";
-  private static final Pattern ignoreOrderPattern = Pattern.compile("^"+ ORDER_NOTHING + "+$");
+  public static final String ORDER_NOTHING = "0";
+  private static final Pattern ignoreOrderPattern = Pattern.compile("^" + ORDER_NOTHING + "+$");
   private final MultipartFile uploadFile;
   private String encoding;
 
@@ -231,7 +231,6 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
           importTransactionTemplate, securityJpaRepository, cashaccountList, importTransactionPosJpaRepository));
     }
   }
- 
 
   @Transactional
   @Modifying

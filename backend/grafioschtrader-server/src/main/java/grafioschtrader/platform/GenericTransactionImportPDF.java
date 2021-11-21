@@ -51,8 +51,8 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
         .readTemplates(importTransactionTemplateList, userLocale);
 
     for (MultipartFile uploadFile : uploadFiles) {
-      this.parseSinglePdfForm(templateScannedMap, uploadFile, importTransactionPosJpaRepository,
-          securityJpaRepository, importTransactionPosFailedJpaRepository);
+      this.parseSinglePdfForm(templateScannedMap, uploadFile, importTransactionPosJpaRepository, securityJpaRepository,
+          importTransactionPosFailedJpaRepository);
     }
   }
 

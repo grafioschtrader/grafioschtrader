@@ -29,8 +29,7 @@ public abstract class SecurityPositionGroupSummary {
   public SecurityPositionGroupSummary(int precision) {
     this.precision = precision;
   }
-  
-  
+
   public void addToGroupSummaryAndCalcGroupTotals(SecurityPositionSummary securityPositionSummary) {
     precision = securityPositionSummary.precision;
     precisionMC = securityPositionSummary.precisionMC;
@@ -62,11 +61,8 @@ public abstract class SecurityPositionGroupSummary {
     return DataHelper.round(groupSecurityRiskMC, precisionMC);
   }
 
-
   public double getGroupCurrencyGainLossMC() {
     return DataHelper.round(groupCurrencyGainLossMC, precisionMC);
   }
-  
-  
 
 }

@@ -143,7 +143,5 @@ public abstract class SecurityBaseCalc {
           + splitFactorFromBaseTransaction + "]";
     }
 
-    
-    
   }
 }

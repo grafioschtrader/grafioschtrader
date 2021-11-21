@@ -114,7 +114,7 @@ public class FinanzenNet {
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
 
-   // HttpGet httpRequest = new HttpGet(url);
+    // HttpGet httpRequest = new HttpGet(url);
 
     HttpGet pkBHTsHttpRequest = new HttpGet("https://www.finanzen.net/holedaten.asp?strFrag=vdBHTSService");
 

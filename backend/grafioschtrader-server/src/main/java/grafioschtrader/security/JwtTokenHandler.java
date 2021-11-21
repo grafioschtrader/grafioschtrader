@@ -20,7 +20,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
-@ConfigurationProperties(prefix="gt.jwt")
+@ConfigurationProperties(prefix = "gt.jwt")
 public final class JwtTokenHandler {
 
   private static final String ID_USER = "idUser";
@@ -28,10 +28,10 @@ public final class JwtTokenHandler {
    * HS256 is used, the secret should at least be 32 characters long
    */
   private String secret;
-  
+
   @Autowired
   private UserService userService;
- 
+
   public void setSecret(String secret) {
     this.secret = secret;
   }

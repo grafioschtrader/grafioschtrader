@@ -50,7 +50,6 @@ public class Securitysplit extends DividendSplit implements Serializable {
   @Column(name = "id_securitysplit")
   private Integer idSecuritysplit;
 
-  
   @Schema(description = "The date of the split, on this day the split was carried out before the stock exchange opened")
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   @Basic(optional = false)
@@ -155,7 +154,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
       Map<Integer, List<Securitysplit>> securitysplitMap) {
     return calcSplitFatorForFromDate(securitysplitMap.get(idSecuritycurrency), toDate);
   }
-  
+
   public static double calcSplitFatorForFromDate(List<Securitysplit> securitysplitList, Date toDate) {
     double factor = 1;
 
@@ -168,8 +167,6 @@ public class Securitysplit extends DividendSplit implements Serializable {
     }
     return factor;
   }
-  
-  
 
   /**
    * Returns the factor for a security split between a from data an to date.

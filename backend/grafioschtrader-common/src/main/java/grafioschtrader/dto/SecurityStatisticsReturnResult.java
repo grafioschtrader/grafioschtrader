@@ -9,5 +9,5 @@ public class SecurityStatisticsReturnResult {
     this.annualisedPerformance = annualisedPerformance;
     this.summaryResult = summaryResult;
   }
-   
+
 }

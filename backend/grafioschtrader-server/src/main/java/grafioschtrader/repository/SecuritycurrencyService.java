@@ -56,9 +56,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     implements IHistoryquoteEntityAccess<S>, IIntradayEntityAccess<S>, ISecuritycurrencyService<S> {
 
   @Autowired
-  protected CurrencypairJpaRepository currencypairJpaRepository;
-  
-  @Autowired
   protected SecurityServiceAsyncExectuion<S, U> securityServiceAsyncExectuion;
 
   @Autowired

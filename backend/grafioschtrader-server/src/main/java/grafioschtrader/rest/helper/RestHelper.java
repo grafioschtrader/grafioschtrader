@@ -19,7 +19,7 @@ public interface RestHelper {
       throw new GeneralNotTranslatedWithArgumentsException("gt.demo.func.not.available", null);
     }
   }
-  
+
   public static ValidationError createValidationError(final DataViolationException dvex, MessageSource messageSource) {
     Object user = SecurityContextHolder.getContext().getAuthentication().getDetails();
     Locale locale = user instanceof User ? ((User) user).createAndGetJavaLocale()

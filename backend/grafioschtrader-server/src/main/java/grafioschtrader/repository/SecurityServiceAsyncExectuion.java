@@ -17,9 +17,9 @@ import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 
 @Component
 public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U extends SecuritycurrencyPositionSummary<S>> {
- 
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
-  
+
   @Autowired
   private PlatformTransactionManager platformTransactionManager;
 

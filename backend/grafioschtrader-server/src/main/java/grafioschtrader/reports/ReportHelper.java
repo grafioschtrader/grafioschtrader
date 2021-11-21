@@ -3,19 +3,27 @@ package grafioschtrader.reports;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.User;
+import grafioschtrader.entities.projection.CurrencyCount;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.types.SamplingPeriodType;
 
@@ -45,15 +53,25 @@ public abstract class ReportHelper {
     dateCurrencyMap.untilDateDataIsLoaded();
   }
 
-  public static TreeMap<LocalDate, double[]> loadCloseData(JdbcTemplate jdbcTemplate,
-      List<Securitycurrency<?>> securitycurrencyList, SamplingPeriodType samplingPeriod, LocalDate dateFrom,
-      LocalDate dateTo) {
+  public static ClosePricesCurrencyClose loadCloseData(JdbcTemplate jdbcTemplate,
+      CurrencypairJpaRepository currencypairJpaRepository, List<Securitycurrency<?>> securitycurrencyList,
+      SamplingPeriodType samplingPeriod, LocalDate dateFrom, LocalDate dateTo, boolean adjustToSingleCurrency) {
+    CurrencyRequired cr = null;
     StringBuilder qSelect = new StringBuilder("SELECT h0.date");
     StringBuilder qFrom = new StringBuilder(" FROM ");
     StringBuilder qWhere = new StringBuilder(WHERE_WORD);
+    List<Integer> securityCurrencyIds = securitycurrencyList.stream().map(sc -> sc.getIdSecuritycurrency())
+        .collect(Collectors.toList());
 
-    for (int i = 0; i < securitycurrencyList.size(); i++) {
-      Securitycurrency<?> securitycurrency = securitycurrencyList.get(i);
+    if (adjustToSingleCurrency) {
+      cr = adjustToSingleCurrency(currencypairJpaRepository, securitycurrencyList);
+      cr.carList.forEach(cfa -> {
+        securityCurrencyIds.add(cfa.idSecuritycurrency);
+        cfa.column = securityCurrencyIds.size() - 1;
+      });
+    }
+
+    for (int i = 0; i < securityCurrencyIds.size(); i++) {
       qSelect.append(", h" + i + ".close AS c" + i);
       if (i == 0) {
         qFrom.append(Historyquote.TABNAME + " h" + i);
@@ -63,7 +81,7 @@ public abstract class ReportHelper {
       if (i > 0) {
         qWhere.append(" AND ");
       }
-      qWhere.append("h" + i + ".id_securitycurrency=" + securitycurrency.getIdSecuritycurrency());
+      qWhere.append("h" + i + ".id_securitycurrency=" + securityCurrencyIds.get(i));
     }
     addDateBoundry(dateFrom, qWhere, ">");
     addDateBoundry(dateTo, qWhere, "<");
@@ -72,13 +90,58 @@ public abstract class ReportHelper {
     String query = qSelect.append(qFrom).append(WHERE_WORD.endsWith(qWhere.toString()) ? "" : qWhere).append(qGroup)
         .append(" ORDER BY h0.date").toString();
     // System.out.println(query);
+    return new ClosePricesCurrencyClose(getQueryDateCloseAsTreeMap(jdbcTemplate, query, securityCurrencyIds.size()),
+        cr);
+  }
+
+  public static void adjustCloseToSameCurrency(List<Securitycurrency<?>> securitycurrencyList,
+      ClosePricesCurrencyClose cpcc) {
+    if (cpcc.currencyRequired != null && cpcc.currencyRequired.needCurrencyAdjustment()) {
+      CurrencyRequired cr = cpcc.currencyRequired;
+
+      for (int col = 0; col < securitycurrencyList.size(); col++) {
+        if (securitycurrencyList.get(col) instanceof Currencypair
+            || ((Security) securitycurrencyList.get(col)).getCurrency().equals(cpcc.currencyRequired.adjustCurrency)) {
+          continue;
+        } else {
+          Security s = (Security) securitycurrencyList.get(col);
+          CurrencyAvailableRequired car = cr.get2ndCurrency(s.getCurrency());
+          for (double[] closeRow : cpcc.dateCloseTree.values()) {
+            closeRow[col] *= cr.isAdjustCurrencyEqualsFromCurrency(car) ? 1.0 / closeRow[car.column]
+                : closeRow[car.column];
+          }
+        }
+      }
+    }
+  }
+
+  public static double[][] transformToPercentageChange(Map<LocalDate, double[]> closeValuesMap, int columns) {
+    double[][] data = new double[closeValuesMap.size() - 1][columns];
+    double[] prevCloseRow = null;
+    int l = 0;
+    for (double[] closeRow : closeValuesMap.values()) {
+      if (prevCloseRow == null) {
+        prevCloseRow = closeRow;
+      } else {
+        for (int colCounter = 0; colCounter < columns; colCounter++) {
+          data[l][colCounter] = (closeRow[colCounter] / prevCloseRow[colCounter] - 1) * 100.0;
+        }
+        prevCloseRow = closeRow;
+        l++;
+      }
+    }
+    return data;
+  }
+
+  private static TreeMap<LocalDate, double[]> getQueryDateCloseAsTreeMap(JdbcTemplate jdbcTemplate, String query,
+      int columns) {
     return jdbcTemplate.query(query, new ResultSetExtractor<TreeMap<LocalDate, double[]>>() {
       @Override
       public TreeMap<LocalDate, double[]> extractData(ResultSet rs) throws SQLException, DataAccessException {
         TreeMap<LocalDate, double[]> resultCloseMap = new TreeMap<>();
         while (rs.next()) {
-          var closeColumns = new double[securitycurrencyList.size()];
-          for (int i = 0; i < securitycurrencyList.size(); i++) {
+          var closeColumns = new double[columns];
+          for (int i = 0; i < columns; i++) {
             closeColumns[i] = rs.getDouble(2 + i);
           }
           resultCloseMap.put(rs.getDate(1).toLocalDate(), closeColumns);
@@ -86,6 +149,60 @@ public abstract class ReportHelper {
         return resultCloseMap;
       }
     });
+  }
+
+  private static CurrencyRequired adjustToSingleCurrency(CurrencypairJpaRepository currencypairJpaRepository,
+      List<Securitycurrency<?>> securitycurrencyList) {
+    Map<String, Integer> requiredCurrenciesSet = new HashMap<>();
+    CurrencyRequired cr = new CurrencyRequired();
+    for (int i = 0; i < securitycurrencyList.size(); i++) {
+      Securitycurrency<?> sc = securitycurrencyList.get(i);
+      if (sc instanceof Security) {
+        requiredCurrenciesSet.merge(((Security) sc).getCurrency(), 1, Integer::sum);
+      } else {
+        Currencypair cp = (Currencypair) sc;
+        cr.carList.add(
+            new CurrencyAvailableRequired(i, cp.getIdSecuritycurrency(), cp.getFromCurrency(), cp.getToCurrency()));
+      }
+    }
+    determineMissingCurrencyPairs(currencypairJpaRepository, requiredCurrenciesSet, cr);
+    return cr;
+  }
+
+  private static void determineMissingCurrencyPairs(CurrencypairJpaRepository currencypairJpaRepository,
+      Map<String, Integer> requiredCurrenciesSet, CurrencyRequired cr) {
+
+    if (requiredCurrenciesSet.size() > 1) {
+      List<CurrencyCount> cc = currencypairJpaRepository.countCurrencyGroupByCurrency(requiredCurrenciesSet.keySet());
+      cr.adjustCurrency = cc.get(0).getCurrency();
+      List<String> cpairList = new ArrayList<>();
+      for (Map.Entry<String, Integer> entry : requiredCurrenciesSet.entrySet()) {
+        if (cr.adjustCurrency.equals(entry.getKey())) {
+          continue;
+        } else {
+          Optional<CurrencyAvailableRequired> loadedCurrencyOpt = cr.containsCurrencypairIgnoreFromTo(cr.adjustCurrency,
+              entry.getKey());
+          if (loadedCurrencyOpt.isEmpty()) {
+            cr.carList.add(new CurrencyAvailableRequired(-1, -1, cr.adjustCurrency, entry.getKey()));
+            cpairList.add(cr.adjustCurrency + entry.getKey());
+          } else {
+            cr.carList.add(loadedCurrencyOpt.get());
+          }
+        }
+      }
+      completeCurrencyAvailableRequired(cr, currencypairJpaRepository.getPairsByFromAndToCurrency(cpairList));
+    }
+  }
+
+  private static void completeCurrencyAvailableRequired(CurrencyRequired cr, List<Currencypair> possibleCpList) {
+    for (Currencypair currencypair : possibleCpList) {
+      Optional<CurrencyAvailableRequired> carOpt = cr.containsCurrencypairIgnoreFromTo(currencypair.getFromCurrency(),
+          currencypair.getToCurrency());
+      if (carOpt.isPresent() && carOpt.get().idSecuritycurrency.equals(-1)) {
+        CurrencyAvailableRequired car = carOpt.get();
+        car.adjust(currencypair.getIdSecuritycurrency(), currencypair.getFromCurrency(), currencypair.getToCurrency());
+      }
+    }
   }
 
   private static void addDateBoundry(LocalDate date, StringBuilder qWhere, String lessMore) {
@@ -105,22 +222,64 @@ public abstract class ReportHelper {
     return qGroup;
   }
 
-  public static double[][] transformToPercentageChange(Map<LocalDate, double[]> closeValuesMap, int columns) {
-    double[][] data = new double[closeValuesMap.size() - 1][columns];
-    double[] prevClose = null;
-    int l = 0;
-    for (double[] close : closeValuesMap.values()) {
-      if (prevClose == null) {
-        prevClose = close;
-      } else {
-        for (int i = 0; i < close.length; i++) {
-          data[l][i] = (close[i] / prevClose[i] - 1) * 100.0;
-        }
-        prevClose = close;
-        l++;
-      }
+  public static class CurrencyAvailableRequired {
+    public int column;
+    public Integer idSecuritycurrency;
+    public String formCurrency;
+    public String toCurrency;
+
+    public CurrencyAvailableRequired(int column, Integer idSecuritycurrency, String formCurrency, String toCurrency) {
+      this.column = column;
+      this.idSecuritycurrency = idSecuritycurrency;
+      this.formCurrency = formCurrency;
+      this.toCurrency = toCurrency;
     }
-    return data;
+
+    public void adjust(Integer idSecuritycurrency, String formCurrency, String toCurrency) {
+      this.idSecuritycurrency = idSecuritycurrency;
+      this.formCurrency = formCurrency;
+      this.toCurrency = toCurrency;
+    }
+
+    @Override
+    public String toString() {
+      return "CurrencyAvailableRequired [column=" + column + ", idSecuritycurrency=" + idSecuritycurrency
+          + ", formCurrency=" + formCurrency + ", toCurrency=" + toCurrency + "]";
+    }
+  }
+
+  public static class CurrencyRequired {
+    public String adjustCurrency;
+    public final List<CurrencyAvailableRequired> carList = new ArrayList<>();
+
+    public Optional<CurrencyAvailableRequired> containsCurrencypairIgnoreFromTo(String c1, String c2) {
+      return carList.stream().filter(cp -> cp.formCurrency.equals(c1) && cp.toCurrency.equals(c2)
+          || cp.formCurrency.equals(c2) && cp.toCurrency.equals(c1)).findFirst();
+    }
+
+    public boolean isAdjustCurrencyEqualsFromCurrency(CurrencyAvailableRequired car) {
+      return car.formCurrency.equals(adjustCurrency);
+    }
+
+    public CurrencyAvailableRequired get2ndCurrency(String currency) {
+      return carList.stream().filter(cp -> cp.formCurrency.equals(currency) || cp.toCurrency.equals(currency)).findAny()
+          .orElse(null);
+    }
+
+    public boolean needCurrencyAdjustment() {
+      return adjustCurrency != null;
+    }
+  }
+
+  public static class ClosePricesCurrencyClose {
+    public final TreeMap<LocalDate, double[]> dateCloseTree;
+    public final CurrencyRequired currencyRequired;
+
+    public ClosePricesCurrencyClose(TreeMap<LocalDate, double[]> dateCloseTree, CurrencyRequired currencyRequired) {
+      this.dateCloseTree = dateCloseTree;
+      this.currencyRequired = currencyRequired;
+    }
+
   }
 
 }

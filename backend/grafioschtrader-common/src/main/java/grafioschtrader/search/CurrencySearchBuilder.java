@@ -48,7 +48,8 @@ public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder impleme
     if (securitycurrencySearch.getCurrency() != null) {
       final Predicate pFrom = builder.equal(currencypair.get(Currencypair_.fromCurrency),
           securitycurrencySearch.getCurrency());
-      final Predicate pTo = builder.equal(currencypair.get(Currencypair_.toCurrency), securitycurrencySearch.getCurrency());
+      final Predicate pTo = builder.equal(currencypair.get(Currencypair_.toCurrency),
+          securitycurrencySearch.getCurrency());
       mainPredicates.add(builder.or(pFrom, pTo));
     } else if (securitycurrencySearch.getName() != null) {
       final Predicate pFrom = builder.like(currencypair.get(Currencypair_.fromCurrency),
@@ -59,13 +60,13 @@ public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder impleme
     }
 
     if (securitycurrencySearch.getIdConnectorHistory() != null) {
-      mainPredicates.add(builder.and(
-          builder.like(currencypair.get(Securitycurrency_.idConnectorHistory), securitycurrencySearch.getIdConnectorHistory())));
+      mainPredicates.add(builder.and(builder.like(currencypair.get(Securitycurrency_.idConnectorHistory),
+          securitycurrencySearch.getIdConnectorHistory())));
     }
 
     if (securitycurrencySearch.getIdConnectorIntra() != null) {
-      mainPredicates.add(builder.and(
-          builder.like(currencypair.get(Securitycurrency_.idConnectorIntra), securitycurrencySearch.getIdConnectorIntra())));
+      mainPredicates.add(builder.and(builder.like(currencypair.get(Securitycurrency_.idConnectorIntra),
+          securitycurrencySearch.getIdConnectorIntra())));
     }
 
     final Predicate[] predicatesArray = new Predicate[mainPredicates.size()];

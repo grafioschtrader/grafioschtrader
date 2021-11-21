@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.TreeMap;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -17,6 +16,8 @@ import grafioschtrader.dto.CorrelationResult.CorrelationInstrument;
 import grafioschtrader.dto.CorrelationRollingResult;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.reports.ReportHelper.ClosePricesCurrencyClose;
+import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.types.SamplingPeriodType;
 
 /**
@@ -26,19 +27,24 @@ import grafioschtrader.types.SamplingPeriodType;
 public class CorrelationReport {
 
   private final JdbcTemplate jdbcTemplate;
+  private final CurrencypairJpaRepository currencypairJpaRepository;
 
-  public CorrelationReport(JdbcTemplate jdbcTemplate) {
+  public CorrelationReport(JdbcTemplate jdbcTemplate, CurrencypairJpaRepository currencypairJpaRepository) {
     this.jdbcTemplate = jdbcTemplate;
+    this.currencypairJpaRepository = currencypairJpaRepository;
   }
 
   public CorrelationResult calcCorrelationForMatrix(CorrelationSet correlationSet) {
-    TreeMap<LocalDate, double[]> closeValuesMap = ReportHelper.loadCloseData(jdbcTemplate,
+    ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
         correlationSet.getSecuritycurrencyList(), correlationSet.getSamplingPeriod(), correlationSet.getDateFrom(),
-        correlationSet.getDateTo());
-    RealMatrix realMatrix = new Array2DRowRealMatrix(
-        ReportHelper.transformToPercentageChange(closeValuesMap, correlationSet.getSecuritycurrencyList().size()));
+        correlationSet.getDateTo(), correlationSet.isAdjustCurrency());
 
-    CorrelationResult cr = new CorrelationResult(closeValuesMap.firstKey(), closeValuesMap.lastKey());
+    ReportHelper.adjustCloseToSameCurrency(correlationSet.getSecuritycurrencyList(), closePrices);
+    RealMatrix realMatrix = new Array2DRowRealMatrix(ReportHelper.transformToPercentageChange(closePrices.dateCloseTree,
+        correlationSet.getSecuritycurrencyList().size()));
+
+    CorrelationResult cr = new CorrelationResult(closePrices.dateCloseTree.firstKey(),
+        closePrices.dateCloseTree.lastKey());
     PearsonsCorrelation corrObj = new PearsonsCorrelation(realMatrix);
     RealMatrix corr = corrObj.getCorrelationMatrix();
     CorrelationInstrument[] ci = new CorrelationInstrument[corr.getRowDimension()];
@@ -77,7 +83,6 @@ public class CorrelationReport {
     }
   }
 
-
   public List<CorrelationRollingResult> getRollingCorrelation(CorrelationSet correlationSet,
       Integer[][] securityIdsPairs) {
     List<CorrelationRollingResult> crrList = new ArrayList<>();
@@ -85,18 +90,21 @@ public class CorrelationReport {
       correlationSet.setDateFrom(substractRollingPeriodFromDateFrom(correlationSet.getDateFrom(),
           correlationSet.getSamplingPeriod(), correlationSet.getRolling()));
     }
-    TreeMap<LocalDate, double[]> closeValuesMap = ReportHelper.loadCloseData(jdbcTemplate,
+    ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
         correlationSet.getSecuritycurrencyList(), correlationSet.getSamplingPeriod(), correlationSet.getDateFrom(),
-        correlationSet.getDateTo());
-    RealMatrix realMatrix = new Array2DRowRealMatrix(
-        ReportHelper.transformToPercentageChange(closeValuesMap, correlationSet.getSecuritycurrencyList().size()));
+        correlationSet.getDateTo(), correlationSet.isAdjustCurrency());
+    ReportHelper.adjustCloseToSameCurrency(correlationSet.getSecuritycurrencyList(), closePrices);
+
+    RealMatrix realMatrix = new Array2DRowRealMatrix(ReportHelper.transformToPercentageChange(closePrices.dateCloseTree,
+        correlationSet.getSecuritycurrencyList().size()));
 
     var rw = new RollingWindow(correlationSet.getRolling());
     for (int i = 0; i < securityIdsPairs.length; i++) {
       int sc1 = getColumnNoOfMatrix(correlationSet, securityIdsPairs[i][0]);
       int sc2 = getColumnNoOfMatrix(correlationSet, securityIdsPairs[i][1]);
       Double[] correlation = rollingCovCorrBeta(realMatrix.getColumn(sc1), realMatrix.getColumn(sc2), rw);
-      LocalDate[] dates = closeValuesMap.keySet().toArray(new LocalDate[closeValuesMap.keySet().size()]);
+      LocalDate[] dates = closePrices.dateCloseTree.keySet()
+          .toArray(new LocalDate[closePrices.dateCloseTree.keySet().size()]);
       dates = rw.removeEmptyRollingAtStart ? Arrays.copyOfRange(dates, rw.rolling, dates.length) : dates;
       crrList.add(new CorrelationRollingResult(Arrays.asList(correlationSet.getSecuritycurrencyList().get(sc1),
           correlationSet.getSecuritycurrencyList().get(sc2)), dates, correlation));

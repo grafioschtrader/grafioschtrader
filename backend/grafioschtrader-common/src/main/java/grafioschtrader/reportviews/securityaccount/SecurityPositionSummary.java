@@ -59,7 +59,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   /**
    * Gain or loss in the currency of the security over all transaction
    */
- public double gainLossSecurity;
+  public double gainLossSecurity;
 
   /**
    * Amount of gain or loss in the main currency
@@ -79,10 +79,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    */
   public double accountValueSecurity;
   public double accountValueSecurityMC;
-  
+
   public double currencyGainLossMC;
-
-
 
   /////////////////////////////////////////////////////////////
   // The following members are only for internal use
@@ -138,7 +136,6 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public Double transactionCurrencyGainLossMC;
 
-  
   @JsonIgnore
   public int precision;
   @JsonIgnore
@@ -154,19 +151,17 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     this(mainCurrency, security, currencyPrecisionMap);
     this.usedIdSecurityaccount = usedIdSecurityaccount;
   }
- 
-  
+
   public SecurityPositionSummary(String mainCurrency, Security security, Map<String, Integer> currencyPrecisionMap) {
     this(mainCurrency, currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
     this.securitycurrency = security;
     this.precision = currencyPrecisionMap.getOrDefault(security.getCurrency(),
         GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
-  
+
   public double getUnits() {
     return DataHelper.round(units);
   }
-
 
   public double getAccountValueSecurity() {
     return DataHelper.round(accountValueSecurity, precision);
@@ -212,18 +207,16 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     return DataHelper.round(valueSecurityMC, precisionMC);
   }
 
- 
   public double getCurrencyGainLossMC() {
     return DataHelper.round(currencyGainLossMC, precisionMC);
   }
-  
+
   public void resetForOpenMargin() {
     gainLossSecurity = 0.0;
     adjustedCostBase = 0.0;
     units = 0.0;
   }
 
-  
   public void calcGainLossByPrice(final Double price) {
     valueSecurity = price * (openUnitsTimeValuePerPoint == 0 ? units : openUnitsTimeValuePerPoint);
     if (this.securitycurrency.isMarginInstrument()) {

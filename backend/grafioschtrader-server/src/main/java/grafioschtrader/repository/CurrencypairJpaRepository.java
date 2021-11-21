@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.projection.CurrencyCount;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
@@ -19,12 +20,18 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
     JpaSpecificationExecutor<Currencypair>, CurrencypairJpaRepositoryCustom, UpdateCreateJpaRepository<Currencypair> {
 
   List<Currencypair> findByFromCurrency(String fromCurrency);
-  
+
   Currencypair findByFromCurrencyAndToCurrency(String fromCurrency, String toCurrency);
 
-  @Query(nativeQuery = true) 
+  @Query(nativeQuery = true)
   List<Currencypair> findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency(String c1, String c2);
-  
+
+  @Query(nativeQuery = true)
+  List<Currencypair> getPairsByFromAndToCurrency(List<String> currencyPairConcat);
+
+  @Query(nativeQuery = true)
+  List<CurrencyCount> countCurrencyGroupByCurrency(Set<String> currencies);
+
   @Query(value = "SELECT c.from_currency FROM currencypair c WHERE c.to_currency = ?1", nativeQuery = true)
   Set<String> getFromCurrencyByToCurrency(String toCurrency);
 

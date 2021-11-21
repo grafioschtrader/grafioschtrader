@@ -7,7 +7,7 @@ public class CorrelationLimits {
   public final String dailyConfiguration = GlobalConstants.CORR_DAILY;
   public final String monthlyConfiguration = GlobalConstants.CORR_MONTHLY;
   public final String annualConfiguration = GlobalConstants.CORR_ANNUAL;
-  
+
   public CorrelationLimits(TenantLimit tenantLimit) {
     super();
     this.tenantLimit = tenantLimit;

@@ -212,17 +212,15 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Return of annual return over specified periods.", 
-      description = "The result in currency of the instrument and the main currency of the client.", tags = {
+  @Operation(summary = "Return of annual return over specified periods.", description = "The result in currency of the instrument and the main currency of the client.", tags = {
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/securitystatistics", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityStatisticsReturnResult> getAnnualisedPerformance(
       @PathVariable final Integer idSecuritycurrency) {
-    return new ResponseEntity<>(
-        securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency),
+    return new ResponseEntity<>(securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency),
         HttpStatus.OK);
   }
-  
+
   @GetMapping(value = "/{idSecuritycurrency}/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityCurrencypairDerivedLinks> getDerivedInstrumensLinksForSecurity(
       @PathVariable final Integer idSecuritycurrency) {

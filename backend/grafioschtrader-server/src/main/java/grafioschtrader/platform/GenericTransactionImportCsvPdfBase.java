@@ -88,7 +88,7 @@ public abstract class GenericTransactionImportCsvPdfBase {
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
 
     List<ImportTransactionPos> importTransactionPosList = new ArrayList<>();
- 
+
     int lineNumberIndex = 0;
     if (importPropertiesList.get(0).getTransactionType() == TransactionType.WITHDRAWAL) {
       lineNumberIndex = 1;

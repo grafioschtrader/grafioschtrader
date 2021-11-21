@@ -63,8 +63,7 @@ public class AlphaVantageFeedConnector extends BaseFeedConnector {
   public AlphaVantageFeedConnector() {
     super(supportedFeed, "alphavantage", "Alpha Vantage", URL_NORMAL_REGEX);
   }
-  
-  
+
   public void setApiKey(String apiKey) {
     this.apiKey = apiKey;
   }

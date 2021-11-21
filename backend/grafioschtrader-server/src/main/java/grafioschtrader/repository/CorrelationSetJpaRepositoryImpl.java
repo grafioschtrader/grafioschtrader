@@ -44,7 +44,6 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
-  
 
   @Override
   public CorrelationSet saveOnlyAttributes(CorrelationSet correlationSet, CorrelationSet existingEntity,
@@ -64,7 +63,7 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   public CorrelationResult getCalculationByCorrelationSet(Integer idCorrelationSet) {
     var correlationSet = getCorrelationSetById(idCorrelationSet);
     if (correlationSet.getSecuritycurrencyList().size() >= 2) {
-      var correlationReport = new CorrelationReport(jdbcTemplate);
+      var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository);
       return correlationReport.calcCorrelationForMatrix(correlationSet);
     } else {
       throw new GeneralNotTranslatedWithArgumentsException("gt.correlation.needs.twoormore", null);
@@ -95,10 +94,10 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   @Override
   public CorrelationLimits getCorrelationSetLimit() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new CorrelationLimits(new TenantLimit(
-        globalparametersJpaRepository.getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_CORRELATION_SET),
-        correlationSetJpaRepository.countByIdTenant(user.getIdTenant()).intValue(),
-        Globalparameters.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class.getSimpleName()));
+    return new CorrelationLimits(
+        new TenantLimit(globalparametersJpaRepository.getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_CORRELATION_SET),
+            correlationSetJpaRepository.countByIdTenant(user.getIdTenant()).intValue(),
+            Globalparameters.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class.getSimpleName()));
   }
 
   @Override
@@ -129,20 +128,17 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   @Override
   public List<CorrelationRollingResult> getRollingCorrelations(Integer idCorrelationSet, Integer[][] securityIdsPairs) {
     var cs = getCorrelationSetById(idCorrelationSet);
-    
-    if(cs.getSamplingPeriod() == SamplingPeriodType.ANNUAL_RETURNS) {
+
+    if (cs.getSamplingPeriod() == SamplingPeriodType.ANNUAL_RETURNS) {
       throw new IllegalArgumentException("Rolling correlation not possible for annual!");
     }
     var correlationSetNew = new CorrelationSet(cs.getIdCorrelationSet(), cs.getDateFrom(), cs.getDateTo(),
-        cs.getSamplingPeriod().getValue(), cs.getRolling());
-   
-    
-    Set<Integer> ids = Stream.of(securityIdsPairs)
-        .flatMap(Stream::of)
-        .collect(Collectors.toSet());
-    correlationSetNew.setSecuritycurrencyList(
-    cs.getSecuritycurrencyList().stream().filter(sc -> ids.contains(sc.getIdSecuritycurrency())).collect(Collectors.toList()));
-    var correlationReport = new CorrelationReport(jdbcTemplate);
+        cs.getSamplingPeriod().getValue(), cs.getRolling(), cs.isAdjustCurrency());
+
+    Set<Integer> ids = Stream.of(securityIdsPairs).flatMap(Stream::of).collect(Collectors.toSet());
+    correlationSetNew.setSecuritycurrencyList(cs.getSecuritycurrencyList().stream()
+        .filter(sc -> ids.contains(sc.getIdSecuritycurrency())).collect(Collectors.toList()));
+    var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository);
     return correlationReport.getRollingCorrelation(correlationSetNew, securityIdsPairs);
   }
 

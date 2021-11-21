@@ -37,7 +37,7 @@ import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 
 /**
- * Creates the report for period performance. 
+ * Creates the report for period performance.
  *
  */
 @Component

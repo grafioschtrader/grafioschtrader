@@ -26,6 +26,7 @@ export class CorrelationHelper {
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'dateTo', false),
       DynamicFieldHelper.createFieldSelectStringHeqF(this.samplingPeriod, true),
       DynamicFieldHelper.createFieldSelectNumberHeqF(this.rolling, false),
+      DynamicFieldHelper.createFieldCheckboxHeqF('adjustCurrency'),
       DynamicFieldHelper.createSubmitButton(submitTextKey)
     ];
     if (mainField) {

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.TreeMap;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,6 +21,7 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.SecurityYearClose;
+import grafioschtrader.reports.ReportHelper.ClosePricesCurrencyClose;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
@@ -34,7 +34,6 @@ public class SecurityStatisticsSummary {
   private final SecurityJpaRepository securityJpaRepository;
   private final TenantJpaRepository tenantJpaRepository;
   private final CurrencypairJpaRepository currencypairJpaRepository;
-
 
   private String tenantCurrency = null;
   private Securitycurrency<?> securityCurrency;
@@ -52,20 +51,20 @@ public class SecurityStatisticsSummary {
   @Transactional
   public void prepareSecurityCurrencypairs(Integer idSecuritycurrency) {
     Optional<Currencypair> currencypairOpt = currencypairJpaRepository.findById(idSecuritycurrency);
-    if(currencypairOpt.isEmpty()) {
+    if (currencypairOpt.isEmpty()) {
       prepareSecurity(idSecuritycurrency);
     } else {
       securityCurrency = currencypairOpt.get();
       securtyTenantSameCurrency = true;
     }
   }
-  
+
   private void prepareSecurity(Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Tenant tenant = tenantJpaRepository.getById(user.getIdTenant());
     tenantCurrency = tenant.getCurrency();
-    securityCurrency = securityJpaRepository.findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency,
-        user.getIdTenant());
+    securityCurrency = securityJpaRepository
+        .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency, user.getIdTenant());
     currencyOfSecurity = ((Security) securityCurrency).getCurrency();
     securtyTenantSameCurrency = tenantCurrency.equals(currencyOfSecurity);
     if (!securtyTenantSameCurrency) {
@@ -79,15 +78,13 @@ public class SecurityStatisticsSummary {
           currencypairJpaRepository.createNonExistingCurrencypair(tenant.getCurrency(), currencyOfSecurity, false));
     }
   }
-  
 
   public AnnualisedSecurityPerformance getAnnualisedSecurityPerformance() {
-    List<SecurityYearClose> sycList = securtyTenantSameCurrency 
+    List<SecurityYearClose> sycList = securtyTenantSameCurrency
         ? securityJpaRepository.getSecurityYearCloseDivSum(securityCurrency.getIdSecuritycurrency())
         : securityJpaRepository.getSecurityYearDivSumCurrencyClose(securityCurrency.getIdSecuritycurrency(),
             currencypairs.get(0).getIdSecuritycurrency());
-    AnnualisedSecurityPerformance asp = calculateYearPerformance(sycList,
-        divideOrMultiplyCurrency(tenantCurrency));
+    AnnualisedSecurityPerformance asp = calculateYearPerformance(sycList, divideOrMultiplyCurrency(tenantCurrency));
     calculateAnnualisedYears(asp);
     return asp;
   }
@@ -149,14 +146,15 @@ public class SecurityStatisticsSummary {
   }
 
   public SecurityStatisticsSummaryResult getStandardDeviation(JdbcTemplate jdbcTemplate, LocalDate dateFrom,
-      LocalDate dateTo) {
+      LocalDate dateTo, boolean adjustCurrency) {
     SecurityStatisticsSummaryResult sResult = new SecurityStatisticsSummaryResult();
     List<Securitycurrency<?>> securitycurrencyList = Arrays.asList(securityCurrency);
-    TreeMap<LocalDate, double[]> closeDataMap = ReportHelper.loadCloseData(jdbcTemplate, securitycurrencyList,
-        SamplingPeriodType.DAILY_RETURNS, dateFrom, dateTo);
+    ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
+        securitycurrencyList, SamplingPeriodType.DAILY_RETURNS, dateFrom, dateTo, adjustCurrency);
+    ReportHelper.adjustCloseToSameCurrency(securitycurrencyList, closePrices);
 
     DescriptiveStatistics stats = new DescriptiveStatistics();
-    double[][] percentageChange = ReportHelper.transformToPercentageChange(closeDataMap, 1);
+    double[][] percentageChange = ReportHelper.transformToPercentageChange(closePrices.dateCloseTree, 1);
     for (int i = 0; i < percentageChange.length; i++) {
       stats.addValue(percentageChange[i][0]);
     }

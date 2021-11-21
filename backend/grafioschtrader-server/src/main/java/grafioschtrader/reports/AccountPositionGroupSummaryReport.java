@@ -476,7 +476,6 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
 }
 
-
 class AccessCashaccountPositionSummary {
 
   /**

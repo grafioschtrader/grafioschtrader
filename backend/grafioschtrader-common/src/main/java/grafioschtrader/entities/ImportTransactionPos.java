@@ -421,7 +421,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   public void setAccruedInterest(Double accruedInterest, boolean add) {
     if (accruedInterest != null) {
       accruedInterest = Math.abs(accruedInterest);
-      this.accruedInterest = add? this.accruedInterest + accruedInterest: accruedInterest;
+      this.accruedInterest = add ? this.accruedInterest + accruedInterest : accruedInterest;
     }
   }
 
@@ -555,11 +555,11 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   }
 
   public String getFileType() {
-    if(fileNameOriginal == null) {
+    if (fileNameOriginal == null) {
       return CSV_FILE;
     } else {
-    return ImportTransactionHelper.isCsvEnding(fileNameOriginal) ? CSV_FILE
-        : ImportTransactionHelper.isPdfEnding(fileNameOriginal) && idFilePart == null ? PDF_FILE : PDF_TEXT_FILE;
+      return ImportTransactionHelper.isCsvEnding(fileNameOriginal) ? CSV_FILE
+          : ImportTransactionHelper.isPdfEnding(fileNameOriginal) && idFilePart == null ? PDF_FILE : PDF_TEXT_FILE;
     }
   }
 

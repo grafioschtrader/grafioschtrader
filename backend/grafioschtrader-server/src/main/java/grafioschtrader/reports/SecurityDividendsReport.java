@@ -48,7 +48,7 @@ import grafioschtrader.types.TransactionType;
  */
 @Component
 public class SecurityDividendsReport {
- 
+
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
@@ -64,7 +64,6 @@ public class SecurityDividendsReport {
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
 
-  
   public SecurityDividendsGrandTotal getSecurityDividendsGrandTotalByTenant(final Integer idTenant,
       final List<Integer> idsSecurityaccount, final List<Integer> idsCashaccount) {
 
@@ -243,7 +242,8 @@ public class SecurityDividendsReport {
     securityDividendsGrandTotal.calcDivInterest();
   }
 
-  private void adjustUnits(final SecurityDividendsGrandTotal securityDividendsGrandTotal, final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap) {
+  private void adjustUnits(final SecurityDividendsGrandTotal securityDividendsGrandTotal, final Integer year,
+      final Map<Integer, UnitsCounter> unitsCounterBySecurityMap) {
     final SecurityDividendsYearGroup securityDividendsYearGroupLast = securityDividendsGrandTotal
         .getOrCreateGroup(year);
     securityDividendsYearGroupLast.adjustUnits(unitsCounterBySecurityMap);

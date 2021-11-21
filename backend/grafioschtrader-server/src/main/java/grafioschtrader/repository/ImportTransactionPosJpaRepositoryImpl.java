@@ -395,9 +395,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       Currencypair currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(itp.getCurrencySecurity(),
           itp.getCashaccount().getCurrency());
       // It is as currency
-      Integer idCurrencypair = this.currencypairJpaRepository
-          .findOrCreateCurrencypairByFromAndToCurrency(currencypair.getFromCurrency(), currencypair.getToCurrency(), true)
-          .getIdSecuritycurrency();
+      Integer idCurrencypair = this.currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(
+          currencypair.getFromCurrency(), currencypair.getToCurrency(), true).getIdSecuritycurrency();
       ISecuritycurrencyIdDateClose idc = historyquoteJpaRepository
           .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime(), false);
       itp.setCurrencyExRate(idc.getClose());
@@ -437,9 +436,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         idCurrencypair = this.currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(currencypairs,
             currencypair.getFromCurrency(), currencypair.getToCurrency()).getIdSecuritycurrency();
       } else {
-        idCurrencypair = this.currencypairJpaRepository
-            .findOrCreateCurrencypairByFromAndToCurrency(currencypair.getFromCurrency(), currencypair.getToCurrency(), true)
-            .getIdSecuritycurrency();
+        idCurrencypair = this.currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(
+            currencypair.getFromCurrency(), currencypair.getToCurrency(), true).getIdSecuritycurrency();
       }
     }
     return idCurrencypair;

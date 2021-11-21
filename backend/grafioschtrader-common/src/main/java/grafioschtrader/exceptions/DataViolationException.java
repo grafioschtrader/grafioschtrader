@@ -26,7 +26,8 @@ public class DataViolationException extends RuntimeException {
     this.addDataViolation(field, messageKey, data);
   }
 
-  public void addDataViolation(final String field, final String messageKey, final Object data, boolean translateFieldName) {
+  public void addDataViolation(final String field, final String messageKey, final Object data,
+      boolean translateFieldName) {
     dataViolation.add(new DataViolation(field, messageKey, new Object[] { data }, translateFieldName));
   }
 
@@ -34,14 +35,14 @@ public class DataViolationException extends RuntimeException {
     dataViolation.add(new DataViolation(field, messageKey, new Object[] { data }, true));
   }
 
-  public void addDataViolation(final String field, final String messageKey, final Object[] data, boolean translateFieldName) {
+  public void addDataViolation(final String field, final String messageKey, final Object[] data,
+      boolean translateFieldName) {
     dataViolation.add(new DataViolation(field, messageKey, data, translateFieldName));
   }
 
   public void addDataViolation(final String field, final String messageKey, final Object[] data) {
     dataViolation.add(new DataViolation(field, messageKey, data, true));
   }
-
 
   public String getLocaleStr() {
     return localeStr;

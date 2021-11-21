@@ -85,8 +85,7 @@ public abstract class TemplateConfiguration {
       throw dataViolationException;
     }
   }
-  
-  
+
   protected DataViolationException parseTemplat(boolean forSaving) {
     final DataViolationException dataViolationException = new DataViolationException();
     template = importTransactionTemplate.getTemplateAsTxt().replaceAll("(?m)^\\s*$[\n\r]{1,}", "")
@@ -103,7 +102,6 @@ public abstract class TemplateConfiguration {
     }
     return dataViolationException;
   }
-  
 
   /**
    * Reads the END section.
@@ -128,8 +126,7 @@ public abstract class TemplateConfiguration {
           String transTypeSplit[] = splitEqual[1].split(Pattern.quote("|"));
           String transTypeWordsSplit[] = transTypeSplit[1].split(",");
           for (String element : transTypeWordsSplit) {
-            transactionTypesMap.put(element.trim(),
-                TransactionType.getTransactionTypeByName((transTypeSplit[0])));
+            transactionTypesMap.put(element.trim(), TransactionType.getTransactionTypeByName((transTypeSplit[0])));
           }
           break;
         case CONF_DATE_FORMAT:
@@ -243,8 +240,9 @@ public abstract class TemplateConfiguration {
         dataViolationException.addDataViolation(CONF_DATE_FORMAT, "gt.imptemplate.date", null, false);
       }
     }
-    if(transactionTypesMap.isEmpty()) {
-      dataViolationException.addDataViolation(CONF_TRANSACTION_TYPE, "gt.imptemplate.missing.transactiontype", null, false);
+    if (transactionTypesMap.isEmpty()) {
+      dataViolationException.addDataViolation(CONF_TRANSACTION_TYPE, "gt.imptemplate.missing.transactiontype", null,
+          false);
     }
   }
 

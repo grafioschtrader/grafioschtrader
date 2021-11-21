@@ -62,8 +62,8 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
 
     for (DividendDetail dd : dividendHead.dividends) {
       if (!dd.exDate.isBefore(fromDate)) {
-        dividends.add(0, new Dividend(security.getIdSecuritycurrency(), dd.exDate,
-            dd.payDate, dd.amount, null, dd.currency, CreateType.CONNECTOR_CREATED));
+        dividends.add(0, new Dividend(security.getIdSecuritycurrency(), dd.exDate, dd.payDate, dd.amount, null,
+            dd.currency, CreateType.CONNECTOR_CREATED));
       }
     }
     return dividends;
