@@ -10,7 +10,7 @@ import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {SecurityStatisticsReturnResult} from '../../entities/view/security.statistics.return.result';
+import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 
 
 @Injectable()

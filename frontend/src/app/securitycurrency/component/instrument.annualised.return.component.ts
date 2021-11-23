@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {AnnualisedYears} from '../../entities/view/security.statistics.return.result';
+import {AnnualisedYears} from '../../entities/view/instrument.statistics.result';
 import {FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';

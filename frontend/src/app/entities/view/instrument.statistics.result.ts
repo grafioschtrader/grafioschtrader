@@ -1,10 +1,9 @@
-export interface SecurityStatisticsReturnResult {
-   annualisedPerformance: AnnualisedSecurityPerformance;
-  summaryResult: SecurityStatisticsSummaryResult ;
-
+export interface InstrumentStatisticsResult {
+  annualisedPerformance: AnnualisedPerformance;
+  statisticsSummary: StatisticsSummary;
 }
 
-export interface  AnnualisedSecurityPerformance {
+export interface AnnualisedPerformance {
   securityCurrency: string;
   mainCurrency: string;
   dateFrom: Date;
@@ -13,8 +12,14 @@ export interface  AnnualisedSecurityPerformance {
   annualisedYears: AnnualisedYears[];
 }
 
-export interface SecurityStatisticsSummaryResult {
-  dailyStandardDeviation: number;
+export interface StatisticsSummary {
+  startsPropertyMap: { [key: string]: StatsProperty[] };
+}
+
+export interface StatsProperty {
+  property: string;
+  value: number;
+  valueMC: number;
 }
 
 export interface LastYears {

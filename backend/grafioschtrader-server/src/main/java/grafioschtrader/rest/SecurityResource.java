@@ -2,6 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.EnumSet;
@@ -22,8 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
+import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
-import grafioschtrader.dto.SecurityStatisticsReturnResult;
 import grafioschtrader.entities.Auditable;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.User;
@@ -215,8 +216,9 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
   @Operation(summary = "Return of annual return over specified periods.", description = "The result in currency of the instrument and the main currency of the client.", tags = {
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/securitystatistics", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<SecurityStatisticsReturnResult> getAnnualisedPerformance(
-      @PathVariable final Integer idSecuritycurrency) {
+  public ResponseEntity<InstrumentStatisticsResult> getAnnualisedPerformance(
+      @PathVariable final Integer idSecuritycurrency)
+      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     return new ResponseEntity<>(securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency),
         HttpStatus.OK);
   }

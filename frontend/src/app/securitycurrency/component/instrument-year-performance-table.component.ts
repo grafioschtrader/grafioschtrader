@@ -4,7 +4,7 @@ import {FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {LastYears} from '../../entities/view/security.statistics.return.result';
+import {LastYears} from '../../entities/view/instrument.statistics.result';
 import {DataType} from '../../dynamic-form/models/data.type';
 
 @Component({

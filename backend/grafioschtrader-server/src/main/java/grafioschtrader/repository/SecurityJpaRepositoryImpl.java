@@ -39,7 +39,7 @@ import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
-import grafioschtrader.dto.SecurityStatisticsReturnResult;
+import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
@@ -55,7 +55,7 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.priceupdate.intraday.IntradayThruCalculation;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
-import grafioschtrader.reports.SecurityStatisticsSummary;
+import grafioschtrader.reports.InstrumentStatisticsSummary;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
@@ -517,11 +517,12 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  public SecurityStatisticsReturnResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency) {
-    var securityStatisticsSummary = new SecurityStatisticsSummary(securityJpaRepository, tenantJpaRepository,
+  public InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency)
+      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    var securityStatisticsSummary = new InstrumentStatisticsSummary(securityJpaRepository, tenantJpaRepository,
         currencypairJpaRepository);
     securityStatisticsSummary.prepareSecurityCurrencypairs(idSecuritycurrency);
-    return new SecurityStatisticsReturnResult(securityStatisticsSummary.getAnnualisedSecurityPerformance(),
+    return new InstrumentStatisticsResult(securityStatisticsSummary.getAnnualisedSecurityPerformance(),
         securityStatisticsSummary.getStandardDeviation(jdbcTemplate, null, null, false));
   }
 
