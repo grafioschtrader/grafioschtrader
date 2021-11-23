@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 
-public class AnnualisedSecurityPerformance {
+public class AnnualisedPerformance {
   public final String securityCurrency;
   public final String mainCurrency;
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
@@ -20,8 +20,7 @@ public class AnnualisedSecurityPerformance {
   public final List<LastYears> lastYears = new ArrayList<>();
   public final List<AnnualisedYears> annualisedYears = new ArrayList<>();
 
-  public AnnualisedSecurityPerformance(String securityCurrency, String mainCurrency, LocalDate dateFrom,
-      LocalDate dateTo) {
+  public AnnualisedPerformance(String securityCurrency, String mainCurrency, LocalDate dateFrom, LocalDate dateTo) {
     this.securityCurrency = securityCurrency;
     this.mainCurrency = mainCurrency;
     this.dateFrom = dateFrom;

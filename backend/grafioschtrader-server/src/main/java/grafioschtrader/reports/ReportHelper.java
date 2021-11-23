@@ -97,19 +97,20 @@ public abstract class ReportHelper {
   public static void adjustCloseToSameCurrency(List<Securitycurrency<?>> securitycurrencyList,
       ClosePricesCurrencyClose cpcc) {
     if (cpcc.currencyRequired != null && cpcc.currencyRequired.needCurrencyAdjustment()) {
-      CurrencyRequired cr = cpcc.currencyRequired;
+      adjustCloseToSameCurrency(securitycurrencyList, cpcc, cpcc.currencyRequired);
+    }
+  }
 
-      for (int col = 0; col < securitycurrencyList.size(); col++) {
-        if (securitycurrencyList.get(col) instanceof Currencypair
-            || ((Security) securitycurrencyList.get(col)).getCurrency().equals(cpcc.currencyRequired.adjustCurrency)) {
-          continue;
-        } else {
-          Security s = (Security) securitycurrencyList.get(col);
-          CurrencyAvailableRequired car = cr.get2ndCurrency(s.getCurrency());
-          for (double[] closeRow : cpcc.dateCloseTree.values()) {
-            closeRow[col] *= cr.isAdjustCurrencyEqualsFromCurrency(car) ? 1.0 / closeRow[car.column]
-                : closeRow[car.column];
-          }
+  private static void adjustCloseToSameCurrency(List<Securitycurrency<?>> securitycurrencyList,
+      ClosePricesCurrencyClose cpcc, CurrencyRequired cr) {
+    for (int col = 0; col < securitycurrencyList.size(); col++) {
+      if (securitycurrencyList.get(col) instanceof Security
+          && !((Security) securitycurrencyList.get(col)).getCurrency().equals(cpcc.currencyRequired.adjustCurrency)) {
+        Security s = (Security) securitycurrencyList.get(col);
+        CurrencyAvailableRequired car = cr.get2ndCurrency(s.getCurrency());
+        for (double[] closeRow : cpcc.dateCloseTree.values()) {
+          closeRow[col] *= cr.isAdjustCurrencyEqualsFromCurrency(car) ? 1.0 / closeRow[car.column]
+              : closeRow[car.column];
         }
       }
     }
@@ -252,6 +253,13 @@ public abstract class ReportHelper {
     public String adjustCurrency;
     public final List<CurrencyAvailableRequired> carList = new ArrayList<>();
 
+    public CurrencyRequired() {
+    }
+
+    public CurrencyRequired(String adjustCurrency) {
+      this.adjustCurrency = adjustCurrency;
+    }
+
     public Optional<CurrencyAvailableRequired> containsCurrencypairIgnoreFromTo(String c1, String c2) {
       return carList.stream().filter(cp -> cp.formCurrency.equals(c1) && cp.toCurrency.equals(c2)
           || cp.formCurrency.equals(c2) && cp.toCurrency.equals(c1)).findFirst();
@@ -273,7 +281,7 @@ public abstract class ReportHelper {
 
   public static class ClosePricesCurrencyClose {
     public final TreeMap<LocalDate, double[]> dateCloseTree;
-    public final CurrencyRequired currencyRequired;
+    public CurrencyRequired currencyRequired;
 
     public ClosePricesCurrencyClose(TreeMap<LocalDate, double[]> dateCloseTree, CurrencyRequired currencyRequired) {
       this.dateCloseTree = dateCloseTree;

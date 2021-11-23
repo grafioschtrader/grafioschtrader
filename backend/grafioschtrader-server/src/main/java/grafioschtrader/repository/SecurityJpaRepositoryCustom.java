@@ -1,11 +1,12 @@
 package grafioschtrader.repository;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import grafioschtrader.dto.SecurityStatisticsReturnResult;
+import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.User;
@@ -75,7 +76,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
 
   void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
 
-  SecurityStatisticsReturnResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency);
+  InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency)
+      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException;
 
   /**
    * Some cases the historical prices must be reloaded completely. For example

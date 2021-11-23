@@ -19,7 +19,7 @@ import {
 } from '../model/historyquote.quality.group';
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
 import {SecurityCurrencyService} from './security.currency.service';
-import {SecurityStatisticsReturnResult} from '../../entities/view/security.statistics.return.result';
+import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 
 @Injectable()
 export class SecurityService extends SecurityCurrencyService<Security> {
@@ -120,8 +120,8 @@ export class SecurityService extends SecurityCurrencyService<Security> {
       moveWeekendToFriday, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getSecurityStatisticsReturnResult(idSecuritycurrency: number): Observable<SecurityStatisticsReturnResult> {
-    return <Observable<SecurityStatisticsReturnResult>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+  getSecurityStatisticsReturnResult(idSecuritycurrency: number): Observable<InstrumentStatisticsResult> {
+    return <Observable<InstrumentStatisticsResult>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/securitystatistics`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
