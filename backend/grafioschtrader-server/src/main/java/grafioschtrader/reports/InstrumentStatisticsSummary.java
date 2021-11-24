@@ -159,7 +159,7 @@ public class InstrumentStatisticsSummary {
     statsSummary.addProperties(SamplingPeriodType.MONTHLY_RETURNS, StatisticsSummary.STANDARD_DEVIATION);
     statsSummary.addProperties(SamplingPeriodType.ANNUAL_RETURNS, StatisticsSummary.STANDARD_DEVIATION);
 
-    for (SamplingPeriodType key : statsSummary.startsPropertyMap.keySet()) {
+    for (SamplingPeriodType key : statsSummary.statsPropertyMap.keySet()) {
       if (key != SamplingPeriodType.ANNUAL_RETURNS) {
         createStatisticsSummaryByPeriod(jdbcTemplate, dateFrom, dateTo, adjustCurrency, key, statsSummary);
       }

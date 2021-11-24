@@ -71,8 +71,8 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
       <ng-template pTemplate="rowexpansion" let-securitycrrency let-columns="fields">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-            <instrument-statistics-summary [idSecuritycurrency]="securitycrrency.idSecuritycurrency">
-            </instrument-statistics-summary>
+            <instrument-statistics-result [idSecuritycurrency]="securitycrrency.idSecuritycurrency">
+            </instrument-statistics-result>
           </td>
         </tr>
       </ng-template>
@@ -123,7 +123,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.securityCurrencyColumn = this.correlationSet.securitycurrencyList.find(sc => (sc.hasOwnProperty(this.tickerSymbol)
       ? (<Security>sc)[this.tickerSymbol] : sc.name) === columnHeader);
   }
-
 
   parentSelectionChanged(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
     this.createDynamicTableDefinition(correlationSet, correlationResult);

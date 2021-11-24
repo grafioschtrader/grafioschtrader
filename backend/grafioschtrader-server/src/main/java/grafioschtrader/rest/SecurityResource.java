@@ -223,7 +223,7 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
         HttpStatus.OK);
   }
 
-  @GetMapping(value = "/{idSecuritycurrency}/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{idSecuritycurrency}/derivedlinks", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityCurrencypairDerivedLinks> getDerivedInstrumensLinksForSecurity(
       @PathVariable final Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

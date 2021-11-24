@@ -246,9 +246,10 @@ import {CorrelationSetEditComponent} from './watchlist/component/correlation-set
 import {WatchlistAddInstrumentTableComponent} from './watchlist/component/watchlist-add-instrument-table.component';
 import {CorrelationSetAddInstrumentTableComponent} from './watchlist/component/correlation-set-add-instrument-table.component';
 import {CorrelationAddInstrumentComponent} from './watchlist/component/correlation-add-instrument.component';
-import {InstrumentStatisticsSummaryComponent} from './securitycurrency/component/instrument-statistics-summary.component';
+import {InstrumentStatisticsResultComponent} from './securitycurrency/component/instrument-statistics-result.component';
 import {InstrumentAnnualisedReturnComponent} from './securitycurrency/component/instrument.annualised.return.component';
 import {InstrumentYearPerformanceTableComponent} from './securitycurrency/component/instrument-year-performance-table.component';
+import {InstrumentStatisticsSummaryComponent} from './securitycurrency/component/instrument.statistics.summary.component';
 
 
 export function createTranslateLoader(http: HttpClient) {
@@ -266,8 +267,8 @@ export function createTranslateLoader(http: HttpClient) {
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
     HistoryquoteEditComponent, HistoryquoteTableComponent, ImportTransactionEditPlatformComponent, HistoryquoteQualityComponent,
-    SecurityHistoryquoteQualityTreetableComponent, SecurityHistoryquoteQualityTableComponent,
-    InstrumentYearPerformanceTableComponent, InstrumentStatisticsSummaryComponent, InstrumentAnnualisedReturnComponent,
+    SecurityHistoryquoteQualityTreetableComponent, SecurityHistoryquoteQualityTableComponent, InstrumentStatisticsSummaryComponent,
+    InstrumentYearPerformanceTableComponent, InstrumentStatisticsResultComponent, InstrumentAnnualisedReturnComponent,
     ImportTransactionEditTemplateComponent, ImportTransactionTemplateComponent, ImportTransactionTemplateTableComponent,
     IndicatorEditComponent, LimitTransactionRequestDynamicComponent, LoginComponent, LogoutReleaseRequestDynamicComponent,
     MailMessageComponent, MailInOutTabMenuComponent, MailSendboxTableComponent, MailSendDynamicComponent,
