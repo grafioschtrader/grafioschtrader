@@ -33,6 +33,12 @@ export enum SamplingPeriodType {
   ANNUAL_RETURNS = 2
 }
 
+export enum TimePeriodType {
+  DAILY = 0,
+  MONTHLY = 1,
+  ANNUAL = 2
+}
+
 export class CorrelationResultSet {
   correlationResult: CorrelationResult[];
 }

@@ -79,7 +79,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
   callParam: AssetclassCallParam = new AssetclassCallParam();
 
   readonly CATEGORY_TYPE = 'categoryType';
-  readonly CATEGORY_TYPE_TRANS = this.CATEGORY_TYPE + '$';
+  readonly CATEGORY_TYPE_TRANS = this.CATEGORY_TYPE + AppSettings.FIELD_SUFFIX;
 
   constructor(private assetclassService: AssetclassService,
               private productIconService: ProductIconService,

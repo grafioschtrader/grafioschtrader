@@ -76,31 +76,33 @@ export class TranslateHelper {
   public static createTranslatedValueStore(translateService: TranslateService, fields: ColumnConfig[], data: any[]): void {
     const columnConfigs = fields.filter(columnConfig => !!columnConfig.translateValues);
     if (columnConfigs.length > 0) {
-
-      data.forEach(datavalue => {
-        columnConfigs.forEach(columnConfig => {
-          let value = Helper.getValueByPath(datavalue, columnConfig.field);
-          if (!columnConfig.translatedValueMap) {
-            columnConfig.translatedValueMap = {};
-          }
-          if (!columnConfig.translatedValueMap.hasOwnProperty(value)) {
-            if (value) {
-              // Add value and translation
-              value = columnConfig.translateValues === TranslateValue.UPPER_CASE ? value.toUpperCase() : value;
-              translateService.get(value).subscribe(translated => {
-                columnConfig.translatedValueMap[value] = translated;
-                // Expand data with a field that contains the value
-                Helper.setValueByPath(datavalue, columnConfig.field + '$', translated);
-              });
-            }
-          } else {
-            // Expand data with a field and existing translation
-            Helper.setValueByPath(datavalue, columnConfig.field + '$', columnConfig.translatedValueMap[value]);
-          }
-        });
-      });
-      columnConfigs.forEach(columnConfig => columnConfig.fieldTranslated = columnConfig.field + '$');
+      data.forEach(datavalue => TranslateHelper.createTranslatedValueStoreForTranslation(translateService, columnConfigs, datavalue));
+      columnConfigs.forEach(columnConfig => columnConfig.fieldTranslated = columnConfig.field + AppSettings.FIELD_SUFFIX);
     }
+  }
+
+  public static createTranslatedValueStoreForTranslation(translateService: TranslateService,
+                                                         fields: ColumnConfig[], datavalue: any): void {
+    fields.forEach(columnConfig => {
+      let value = Helper.getValueByPath(datavalue, columnConfig.field);
+      if (!columnConfig.translatedValueMap) {
+        columnConfig.translatedValueMap = {};
+      }
+      if (!columnConfig.translatedValueMap.hasOwnProperty(value)) {
+        if (value) {
+          // Add value and translation
+          value = columnConfig.translateValues === TranslateValue.UPPER_CASE ? value.toUpperCase() : value;
+          translateService.get(value).subscribe(translated => {
+            columnConfig.translatedValueMap[value] = translated;
+            // Expand data with a field that contains the value
+            Helper.setValueByPath(datavalue, columnConfig.field + AppSettings.FIELD_SUFFIX, translated);
+          });
+        }
+      } else {
+        // Expand data with a field and existing translation
+        Helper.setValueByPath(datavalue, columnConfig.field + AppSettings.FIELD_SUFFIX, columnConfig.translatedValueMap[value]);
+      }
+    });
   }
 
   private static translateMenuItem(menuItem: MenuItem, targetProperty: string, translateService: TranslateService, translateParam): void {
