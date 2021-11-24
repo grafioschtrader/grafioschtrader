@@ -5,29 +5,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import grafioschtrader.types.SamplingPeriodType;
+import grafioschtrader.common.DataHelper;
+import grafioschtrader.types.TimePeriodType;
 
 public class StatisticsSummary {
   public final static String STANDARD_DEVIATION = "standardDeviation";
   public final static String MIN = "min";
   public final static String MAX = "max";
-  public final Map<SamplingPeriodType, List<StatsProperty>> statsPropertyMap = new HashMap<>();
+  public final Map<TimePeriodType, List<StatsProperty>> statsPropertyMap = new HashMap<>();
 
-  public void addProperties(SamplingPeriodType samplingPeriodType, String... properties) {
+  public void addProperties(TimePeriodType timePeriodType, String... properties) {
     List<StatsProperty> statsPropertyList = new ArrayList<>();
     for (String property : properties) {
       statsPropertyList.add(new StatsProperty(property));
     }
-    statsPropertyMap.put(samplingPeriodType, statsPropertyList);
+    statsPropertyMap.put(timePeriodType, statsPropertyList);
   }
 
-  public List<StatsProperty> getPropertiesBySamplingPeriodType(SamplingPeriodType samplingPeriodType) {
-    return statsPropertyMap.get(samplingPeriodType);
+  public List<StatsProperty> getPropertiesBySamplingPeriodType(TimePeriodType timePeriodType) {
+    return statsPropertyMap.get(timePeriodType);
   }
 
   public void createAnnualByMonthly() {
-    List<StatsProperty> monthlyProperties = statsPropertyMap.get(SamplingPeriodType.MONTHLY_RETURNS);
-    List<StatsProperty> annualProperties = statsPropertyMap.get(SamplingPeriodType.ANNUAL_RETURNS);
+    List<StatsProperty> monthlyProperties = statsPropertyMap.get(TimePeriodType.MONTHLY);
+    List<StatsProperty> annualProperties = statsPropertyMap.get(TimePeriodType.ANNUAL);
     if (annualProperties != null && monthlyProperties != null) {
       for (StatsProperty statsProperty : annualProperties) {
         if (statsProperty.property.equals(STANDARD_DEVIATION)) {
@@ -51,6 +52,14 @@ public class StatisticsSummary {
 
     public StatsProperty(String property) {
       this.property = property;
+    }
+
+    public double getValue() {
+      return DataHelper.roundStandard(value);
+    }
+
+    public double getValueMC() {
+      return DataHelper.roundStandard(valueMC);
     }
   }
 }

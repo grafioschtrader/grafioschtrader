@@ -3,8 +3,12 @@ import {StatisticsSummary} from '../../entities/view/instrument.statistics.resul
 import {TreeTableConfigBase} from '../../shared/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {TreeNode} from 'primeng/api';
+
 import {DataType} from '../../dynamic-form/models/data.type';
+import {TreeNode} from 'primeng/api';
+import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   selector: 'instrument-statistics-summary',
@@ -18,17 +22,32 @@ import {DataType} from '../../dynamic-form/models/data.type';
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
-            <th *ngFor="let field of fields">
+            <th *ngFor="let field of fields" [style.width.px]="field.width">
               {{field.headerTranslated}}
             </th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
           <tr>
-            <td *ngFor="let field of fields; let i = index">
-              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
-              {{getValueByPath(rowData, field)}}
-            </td>
+            <ng-container *ngFor="let field of fields; let i = index">
+              <td *ngIf="field.visible"
+                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                  [style.width.px]="field.width">
+                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
+                <ng-container [ngSwitch]="field.templateName">
+                  <ng-container *ngSwitchCase="'greenRed'">
+                  <span [pTooltip]="getValueByPath(rowData, field)"
+                        [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'
+                        tooltipPosition="top">
+                    {{getValueByPath(rowData, field)}}
+                  </span>
+                  </ng-container>
+                  <ng-container *ngSwitchDefault>
+                    <span [pTooltip]="getValueByPath(rowData, field)">{{getValueByPath(rowData, field)}}</span>
+                  </ng-container>
+                </ng-container>
+              </td>
+            </ng-container>
           </tr>
         </ng-template>
       </p-treeTable>
@@ -43,22 +62,28 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
   constructor(translateService: TranslateService,
               gps: GlobalparameterService) {
     super(translateService, gps);
-
-    this.addColumnFeqH(DataType.String, 'property', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'value', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'valueMC', true, false);
-
   }
 
   ngOnInit(): void {
+    this.addColumn(DataType.String, 'property', 'PROPERTY_PERIOD', true, false,
+      {translateValues: TranslateValue.UPPER_CASE});
+    this.addColumn(DataType.Numeric, 'value', 'VALUE_1', true, false,
+      {templateName: 'greenRed', width: 50});
+    this.addColumn(DataType.Numeric, 'valueMC', 'VALUE_1', true, false,
+      {templateName: 'greenRed', width: 50, headerSuffix: this.mainCurrency});
+    this.translateHeadersAndColumns();
+    this.prepareData();
+  }
+
+  private prepareData(): void {
     const mainTree: TreeNode = {data: this.statisticsSummary.statsPropertyMap, children: [], leaf: false};
     const sptKeys = Object.keys(mainTree.data);
     sptKeys.forEach(sptKey => {
       const data = {property: sptKey};
       mainTree.children.push({data: data, children: this.getChildren(mainTree, sptKey), expanded: true, leaf: false});
     });
-    this.translateHeadersAndColumns();
     this.rootNodes = mainTree.children;
+    this.createTRanslateValusStoreForTranslation(this.rootNodes);
   }
 
   private getChildren(mainTree: TreeNode, spt: string): TreeNode[] {
@@ -68,4 +93,5 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
     });
     return treeNodes;
   }
+
 }

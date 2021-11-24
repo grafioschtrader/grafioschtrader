@@ -32,6 +32,7 @@ import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.types.SamplingPeriodType;
+import grafioschtrader.types.TimePeriodType;
 
 public class InstrumentStatisticsSummary {
 
@@ -154,14 +155,15 @@ public class InstrumentStatisticsSummary {
       boolean adjustCurrency) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 
     StatisticsSummary statsSummary = new StatisticsSummary();
-    statsSummary.addProperties(SamplingPeriodType.DAILY_RETURNS, StatisticsSummary.STANDARD_DEVIATION,
+    statsSummary.addProperties(TimePeriodType.DAILY, StatisticsSummary.STANDARD_DEVIATION,
         StatisticsSummary.MIN, StatisticsSummary.MAX);
-    statsSummary.addProperties(SamplingPeriodType.MONTHLY_RETURNS, StatisticsSummary.STANDARD_DEVIATION);
-    statsSummary.addProperties(SamplingPeriodType.ANNUAL_RETURNS, StatisticsSummary.STANDARD_DEVIATION);
+    statsSummary.addProperties(TimePeriodType.MONTHLY, StatisticsSummary.STANDARD_DEVIATION);
+    statsSummary.addProperties(TimePeriodType.ANNUAL, StatisticsSummary.STANDARD_DEVIATION);
 
-    for (SamplingPeriodType key : statsSummary.statsPropertyMap.keySet()) {
-      if (key != SamplingPeriodType.ANNUAL_RETURNS) {
-        createStatisticsSummaryByPeriod(jdbcTemplate, dateFrom, dateTo, adjustCurrency, key, statsSummary);
+    for (TimePeriodType key : statsSummary.statsPropertyMap.keySet()) {
+      if (key != TimePeriodType.ANNUAL) {
+        createStatisticsSummaryByPeriod(jdbcTemplate, dateFrom, dateTo, adjustCurrency, 
+            key, statsSummary);
       }
     }
     statsSummary.createAnnualByMonthly();
@@ -170,14 +172,14 @@ public class InstrumentStatisticsSummary {
   }
 
   private void createStatisticsSummaryByPeriod(JdbcTemplate jdbcTemplate, LocalDate dateFrom, LocalDate dateTo,
-      boolean adjustCurrency, SamplingPeriodType samplingPeriodType, StatisticsSummary statsSummary)
+      boolean adjustCurrency, TimePeriodType timePeriodType, StatisticsSummary statsSummary)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     List<Securitycurrency<?>> securitycurrencyList = new ArrayList<>(Arrays.asList(securityCurrency));
     CurrencyAvailableRequired currencyAvailableRequired = prepareFakeSecurityWhenNotTenantCurrency(
         securitycurrencyList);
 
     ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
-        securitycurrencyList, samplingPeriodType, dateFrom, dateTo, adjustCurrency);
+        securitycurrencyList,SamplingPeriodType.getSamplingPeriodTypeByValue(timePeriodType.getValue()), dateFrom, dateTo, adjustCurrency);
     adjustCloseOfDifferentTenantCurrency(securitycurrencyList, currencyAvailableRequired, closePrices);
     int columns = currencyAvailableRequired == null ? 1 : 2;
     double[][] percentageChange = ReportHelper.transformToPercentageChange(closePrices.dateCloseTree, columns);
@@ -189,7 +191,7 @@ public class InstrumentStatisticsSummary {
       }
     }
 
-    List<StatsProperty> statsProperties = statsSummary.getPropertiesBySamplingPeriodType(samplingPeriodType);
+    List<StatsProperty> statsProperties = statsSummary.getPropertiesBySamplingPeriodType(timePeriodType);
     for (StatsProperty statsProperty : statsProperties) {
       statsProperty.value = (double) PropertyUtils.getProperty(stats[0], statsProperty.property);
       if (stats.length == 2) {

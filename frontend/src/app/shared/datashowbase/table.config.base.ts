@@ -118,7 +118,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   createFilterField(data: any[]): void {
     const columnConfigs = this.fields.filter(columnConfig => columnConfig.filterType && columnConfig.dataType === DataType.DateNumeric);
     columnConfigs.forEach(cc => {
-      const fieldName = cc.field + '$';
+      const fieldName = cc.field +  AppSettings.FIELD_SUFFIX;
       data.forEach(item => item[fieldName] = this.getValueByPath(item, cc));
     });
   }
@@ -133,14 +133,14 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     if (event) {
       if (columnConfig.dataType === DataType.DateNumeric) {
         const dateString = moment(event).format(this.gps.getDateFormat());
-        table.filter(dateString, columnConfig.field + '$', 'equals');
+        table.filter(dateString, columnConfig.field +  AppSettings.FIELD_SUFFIX, 'equals');
       } else {
         const dateStringUS = moment(event).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
         table.filter(dateStringUS, columnConfig.field, 'equals');
       }
     } else {
       // Without value
-      table.filter(null, columnConfig.field + (columnConfig.dataType === DataType.DateNumeric ? '$' : ''), null);
+      table.filter(null, columnConfig.field + (columnConfig.dataType === DataType.DateNumeric ?  AppSettings.FIELD_SUFFIX : ''), null);
     }
   }
 

@@ -183,7 +183,7 @@ export class AppSettings {
   public static readonly DIALOG_MENU_SUFFIX = '...';
 
   public static readonly INSTRUMENT_HEADER = 'I';
-
+  public static readonly FIELD_SUFFIX = '$';
 
   public static FID_MAX_DIGITS = 14;
   public static FID_STANDARD_INTEGER_DIGITS = 9;

@@ -223,6 +223,8 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
         HttpStatus.OK);
   }
 
+  @Operation(summary = "For a derived instrument it returns base instruments", 
+      description = "", tags = {Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/derivedlinks", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityCurrencypairDerivedLinks> getDerivedInstrumensLinksForSecurity(
       @PathVariable final Integer idSecuritycurrency) {
