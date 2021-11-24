@@ -13,7 +13,7 @@ export interface AnnualisedPerformance {
 }
 
 export interface StatisticsSummary {
-  startsPropertyMap: { [key: string]: StatsProperty[] };
+  statsPropertyMap: { [key: string]: StatsProperty[] };
 }
 
 export interface StatsProperty {
