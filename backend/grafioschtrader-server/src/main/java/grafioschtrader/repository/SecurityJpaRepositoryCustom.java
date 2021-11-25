@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +77,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
 
   void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
 
-  InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency)
+  InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom, LocalDate dateTo)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException;
 
   /**

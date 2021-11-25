@@ -8,6 +8,7 @@ package grafioschtrader.repository;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -517,13 +518,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  public InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency)
+  public InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom, LocalDate dateTo)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var securityStatisticsSummary = new InstrumentStatisticsSummary(securityJpaRepository, tenantJpaRepository,
         currencypairJpaRepository);
     securityStatisticsSummary.prepareSecurityCurrencypairs(idSecuritycurrency);
     return new InstrumentStatisticsResult(securityStatisticsSummary.getAnnualisedSecurityPerformance(),
-        securityStatisticsSummary.getStandardDeviation(jdbcTemplate, null, null, false));
+        securityStatisticsSummary.getStandardDeviation(jdbcTemplate, dateFrom, dateTo, false));
   }
 
 }

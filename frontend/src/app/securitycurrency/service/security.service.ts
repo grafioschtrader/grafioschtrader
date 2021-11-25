@@ -5,7 +5,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {SecurityOpenPositionPerSecurityaccount} from '../../entities/view/security.open.position.per.securityaccount';
 import {Observable} from 'rxjs';
 import {IFeedConnector} from '../component/ifeed.connector';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {AppHelper} from '../../shared/helper/app.helper';
@@ -20,6 +20,7 @@ import {
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
 import {SecurityCurrencyService} from './security.currency.service';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
+import * as moment from 'moment';
 
 @Injectable()
 export class SecurityService extends SecurityCurrencyService<Security> {
@@ -32,7 +33,6 @@ export class SecurityService extends SecurityCurrencyService<Security> {
     return <Observable<Security[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/`
       + `${AppSettings.WATCHLIST_KEY}/${idWatchlist}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   getUnusedSecurityForAlgo(idAlgoAssetclassSecurity: number): Observable<Security[]> {
     return <Observable<Security[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/`
@@ -120,10 +120,17 @@ export class SecurityService extends SecurityCurrencyService<Security> {
       moveWeekendToFriday, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getSecurityStatisticsReturnResult(idSecuritycurrency: number): Observable<InstrumentStatisticsResult> {
+  getSecurityStatisticsReturnResult(idSecuritycurrency: number, dateFrom: Date, dateTo: Date): Observable<InstrumentStatisticsResult> {
     return <Observable<InstrumentStatisticsResult>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/securitystatistics`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      this.getDateFromAndTo(dateFrom, dateTo, this.prepareHeaders())).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  private getDateFromAndTo(dateFrom: Date, dateTo: Date, httpHeaders: HttpHeaders) {
+    let httpParams = new HttpParams();
+    dateFrom && (httpParams = httpParams.append('dateFrom', moment(dateFrom).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)));
+    dateTo &&  (httpParams = httpParams.append('dateTo', moment(dateTo).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)));
+    return {headers: httpHeaders, params: httpParams};
   }
 
   getDerivedInstrumentsLinksForSecurity(idSecuritycurrency: number): Observable<SecurityCurrencypairDerivedLinks> {
