@@ -71,7 +71,8 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
       <ng-template pTemplate="rowexpansion" let-securitycrrency let-columns="fields">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-            <instrument-statistics-result [idSecuritycurrency]="securitycrrency.idSecuritycurrency">
+            <instrument-statistics-result [idSecuritycurrency]="securitycrrency.idSecuritycurrency"
+            [dateFrom]="correlationSet.dateFrom" [dateTo]="correlationSet.dateTo">
             </instrument-statistics-result>
           </td>
         </tr>

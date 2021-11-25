@@ -4,12 +4,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -217,9 +220,10 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/securitystatistics", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<InstrumentStatisticsResult> getAnnualisedPerformance(
-      @PathVariable final Integer idSecuritycurrency)
+      @PathVariable final Integer idSecuritycurrency, @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) final LocalDate dateFrom, 
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate dateTo)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-    return new ResponseEntity<>(securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency),
+    return new ResponseEntity<>(securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency, dateFrom, dateTo),
         HttpStatus.OK);
   }
 

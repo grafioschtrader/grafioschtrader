@@ -89,6 +89,8 @@ export abstract class Helper {
       } else if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateString) {
         if (config.formControl.value) {
           this.formatDateString(config, targetObject, AppSettings.FORMAT_DATE_SHORT_NATIVE);
+        } else {
+          targetObject[config.field] = null;
         }
       } else if (config.dataType === DataType.DateTimeNumeric) {
         targetObject[config.field] = config.formControl.value.getTime();
@@ -109,7 +111,6 @@ export abstract class Helper {
       refObject => refObject[keyProperty] === (+fieldConfig.formControl.value)
     )[0];
   }
-
 
   public static formatDateString(fieldConfig: FieldConfig, targetObject: any, dateFormat: string): void {
     if (fieldConfig.formControl.value && fieldConfig.formControl.value.toString().trim().length > 0) {

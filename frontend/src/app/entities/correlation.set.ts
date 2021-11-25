@@ -11,8 +11,8 @@ export class CorrelationSet implements BaseID {
   samplingPeriod: SamplingPeriodType | string = null;
   rolling: number = SamplingPeriodType.DAILY_RETURNS;
   securitycurrencyList: (Security | Currencypair)[];
-  fromDate: Date = null;
-  toDate: Date | string = null;
+  dateFrom: Date | string = null;
+  dateTo: Date | string = null;
   adjustCurrency: boolean = null;
 
   public getId(): number {

@@ -43,7 +43,6 @@ export class HistoryquoteService extends AuthServiceWithLogout<Historyquote> imp
                                                          asTraded: boolean): Observable<ISecuritycurrencyIdDateClose> {
     return <Observable<ISecuritycurrencyIdDateClose>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/`
       + `${idSecuritycurrency}/${dateString}/${asTraded}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
-    // .map((response: Response) => response.text() ? response.json() : null).catch(this.handleError.bind(this));
   }
 
   getAllTaForms(): Observable<{ [key: string]: TaFormDefinition }> {

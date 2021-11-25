@@ -28,13 +28,15 @@ import {SecurityService} from '../service/security.service';
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
   @Input() idSecuritycurrency: number;
+  @Input() dateFrom: Date;
+  @Input() dateTo: Date;
   isr: InstrumentStatisticsResult;
 
   constructor(private securityService: SecurityService) {
   }
 
   ngOnInit(): void {
-    this.securityService.getSecurityStatisticsReturnResult(this.idSecuritycurrency).subscribe(
+    this.securityService.getSecurityStatisticsReturnResult(this.idSecuritycurrency, this.dateFrom, this.dateTo).subscribe(
       (isr: InstrumentStatisticsResult) => {
         this.isr = isr;
       });
