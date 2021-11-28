@@ -33,6 +33,7 @@ public class GlobalConstants {
   public static final String CORR_DAILY = "10,20,120";
   public static final String CORR_MONTHLY = "12,12,60";
   public static final String CORR_ANNUAL = null;
+  public static final byte REQUIRED_MIN_PERIODS = 3;
 
   /**
    * Number maybe rounded to this precision

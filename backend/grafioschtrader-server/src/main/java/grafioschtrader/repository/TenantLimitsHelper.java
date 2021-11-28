@@ -15,6 +15,7 @@ import grafioschtrader.dto.MaxDefaultDBValueWithKey;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.BaseID;
 import grafioschtrader.entities.Cashaccount;
+import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
@@ -31,6 +32,7 @@ public abstract class TenantLimitsHelper {
      * count() FROM ..."
      */
     globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_CASH_ACCOUNT, Cashaccount.class);
+    globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class);
     globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_PORTFOLIO, Portfolio.class);
     globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_SECURITY_ACCOUNT, Securityaccount.class);
     globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_WATCHTLIST, Watchlist.class);

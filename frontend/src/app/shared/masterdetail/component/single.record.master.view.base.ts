@@ -54,7 +54,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
 
   /**
    * Shows a singe row of a array. If the value of the main field changes then others shown properties are
-   * ajusted to this change.
+   * adjusted to this change.
    *
    * @param gps Global parameter service.
    * @param helpId Identification for the help service
@@ -99,7 +99,8 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
     const menuItems: MenuItem[] = [];
     menuItems.push({
       label: 'CREATE|' + entityName + AppSettings.DIALOG_MENU_SUFFIX,
-      command: (event) => this.handleEditEntityOpenDialog(null)
+      command: (event) => this.handleEditEntityOpenDialog(null),
+      disabled: !this.canCreate()
     });
     menuItems.push({
       label: 'EDIT_RECORD|' + entityName + AppSettings.DIALOG_MENU_SUFFIX, disabled: !this.selectedEntity,
@@ -112,6 +113,10 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
       command: (event) => this.handleDeleteEntity(this.selectedEntity)
     });
     return menuItems;
+  }
+
+  protected canCreate(): boolean {
+    return true;
   }
 
   handleEditEntityOpenDialog(entity: T): void {

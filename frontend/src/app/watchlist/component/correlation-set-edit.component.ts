@@ -13,7 +13,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {CorrelationHelper} from './correlation.helper';
+import {CorrelationEditingSupport} from './correlation.editing.support';
 
 
 /**
@@ -36,7 +36,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
 
   @Input() callParam: CallParam;
   @Input() correlationLimit: CorrelationLimit;
-  private correlationHelper: CorrelationHelper = new CorrelationHelper();
+  private correlationEditingSupport: CorrelationEditingSupport = new CorrelationEditingSupport();
 
   constructor(translateService: TranslateService,
               gps: GlobalparameterService,
@@ -49,7 +49,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
-    this.config = this.correlationHelper.getCorrelationFieldDefinition(null, 12, 'SAVE_AND_CALC');
+    this.config = this.correlationEditingSupport.getCorrelationFieldDefinition(null, 12, 'SAVE_AND_CALC');
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
@@ -59,7 +59,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
     if (this.callParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
     }
-    this.correlationHelper.setUpValueChange(this.configObject, this.correlationLimit);
+    this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit);
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): CorrelationSet {
@@ -70,7 +70,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
   }
 
   override onHide(event): void {
-    this.correlationHelper.destroy();
+    this.correlationEditingSupport.destroy();
     super.onHide(event);
   }
 }

@@ -21,10 +21,14 @@ export class CorrelationSet implements BaseID {
 }
 
 export interface CorrelationLimit {
+  /**
+   * Limit the number of correlation set
+   */
   tenantLimit: TenantLimit;
   dailyConfiguration: string;
   monthlyConfiguration: string;
   annualConfiguration: string;
+  requiredMinPeriods: number;
 }
 
 export enum SamplingPeriodType {

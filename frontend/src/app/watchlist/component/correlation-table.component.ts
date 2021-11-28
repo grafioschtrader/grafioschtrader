@@ -30,6 +30,10 @@ import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import * as moment from 'moment';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 
+/**
+ * Component to add and remove instruments to the correlation matrix. It supports also creation of line graph
+ * for showing the rolling correlation.
+ */
 @Component({
   selector: 'correlation-table',
   template: `
@@ -88,6 +92,9 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 export class CorrelationTableComponent extends TableConfigBase implements OnDestroy {
   @Input() childToParent: ChildToParent;
 
+  /**
+   * Limit instruments per correlation set
+   */
   tenantLimits: TenantLimit[];
   securitycurrencyList: Securitycurrency[];
   selectedEntity: Securitycurrency;

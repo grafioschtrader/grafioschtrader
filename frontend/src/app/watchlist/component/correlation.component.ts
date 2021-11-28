@@ -15,9 +15,11 @@ import {ChildToParent, CorrelationTableComponent} from './correlation-table.comp
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {CorrelationHelper} from './correlation.helper';
+import {CorrelationEditingSupport} from './correlation.editing.support';
 
-
+/**
+ * Main component of correlation set. It supports the creation and deletion of a correlation set.
+ */
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
@@ -58,7 +60,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
   private readonly tickerSymbol = 'tickerSymbol';
   private correlationLimit: CorrelationLimit;
   private correlationResult: CorrelationResult;
-  private correlationHelper: CorrelationHelper = new CorrelationHelper();
+  private correlationEditingSupport: CorrelationEditingSupport = new CorrelationEditingSupport();
 
   constructor(private activatedRoute: ActivatedRoute,
               private correlationSetService: CorrelationSetService,
@@ -74,7 +76,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
       translateService);
     this.formConfig = this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       2, null, true);
-    this.config = this.correlationHelper.getCorrelationFieldDefinition(CorrelationComponent.MAIN_FIELD, 6, 'SAVE_AND_CALC');
+    this.config = this.correlationEditingSupport.getCorrelationFieldDefinition(CorrelationComponent.MAIN_FIELD, 6, 'SAVE_AND_CALC');
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.configObject.samplingPeriod.valueKeyHtmlOptions =
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, SamplingPeriodType, null);
@@ -85,7 +87,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
       this.correlationLimit = correlationLimit;
       this.readData();
       this.valueChangedMainField();
-      this.correlationHelper.setUpValueChange(this.configObject, this.correlationLimit);
+      this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit);
     });
   }
 
@@ -99,7 +101,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
   }
 
   getPeriodAndRollingWithParamPrefix(): string[] {
-    return this.correlationHelper.getPeriodAndRollingWithParamPrefix(this.configObject);
+    return this.correlationEditingSupport.getPeriodAndRollingWithParamPrefix(this.configObject);
   }
 
   override readData(): void {
@@ -125,7 +127,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
 
   ngOnDestroy(): void {
     super.destroy();
-    this.correlationHelper.destroy();
+    this.correlationEditingSupport.destroy();
   }
 
   /**
@@ -133,6 +135,10 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
    */
   override setChildData(selectedEntity: CorrelationSet): void {
     this.setChildDataAndCalculateWhenPossible(selectedEntity, true);
+  }
+
+  protected override canCreate(): boolean {
+    return this.correlationLimit.tenantLimit.actual < this.correlationLimit.tenantLimit.limit;
   }
 
   setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet, calculate: boolean): void {

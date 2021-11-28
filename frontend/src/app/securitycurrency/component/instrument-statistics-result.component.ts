@@ -20,8 +20,11 @@ import {SecurityService} from '../service/security.service';
   `,
   styles: [`
     .tabletree {
-      min-width: 200px;
-      max-width: 33.33%;
+      min-width: 250px;
+      max-width: 33.12%;
+      margin: 0.1%;
+      border-style: solid;
+      border-color: darkgrey;
     }
   `]
 

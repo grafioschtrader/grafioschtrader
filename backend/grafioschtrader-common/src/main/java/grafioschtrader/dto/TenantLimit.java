@@ -2,8 +2,13 @@ package grafioschtrader.dto;
 
 import java.util.regex.Pattern;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "The limits definition for a certain entity")
 public class TenantLimit {
+  @Schema(description = "Maximal number of entities in this limit definition")
   public int limit;
+  @Schema(description = "Actual number of entities in this limit definition")
   public int actual;
   public String msgKey;
   public String className;
