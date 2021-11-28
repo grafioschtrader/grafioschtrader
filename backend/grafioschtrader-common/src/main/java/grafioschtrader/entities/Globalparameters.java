@@ -253,6 +253,13 @@ public class Globalparameters implements Serializable {
     return new MaxDefaultDBValueWithKey(key, defaultLimitMap.get(key));
   }
 
+  public static void resetDBValueOfKey(final String key) {
+    MaxDefaultDBValue mddv = defaultLimitMap.get(key);
+    if(mddv != null) {
+      mddv.setDbValue(null);
+    }
+  }
+
   public void replaceExistingPropertyValue(Globalparameters gpNew) {
     if (gpNew.getPropertyDate() != null && propertyDate != null) {
       this.propertyDate = gpNew.getPropertyDate();

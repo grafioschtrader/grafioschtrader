@@ -102,7 +102,6 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
     for (int i = 0; i < ids.length; i++) {
       securityIdsPairs2[i / 2][i % 2] = Integer.valueOf(ids[i]);
     }
-
     return new ResponseEntity<>(correlationSetJpaRepository.getRollingCorrelations(idCorrelationSet, securityIdsPairs2),
         HttpStatus.OK);
   }

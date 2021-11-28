@@ -55,7 +55,6 @@ export class DynamicFieldHelper {
   };
   private static readonly ADJUST_INPUT_WITH_UNTIL_MAX_LENGTH = 25;
 
-
   public static createFunctionButton(labelKey: string, buttonFN: (event?: any) => void, fieldOptions?: FieldOptions): FieldConfig {
     return this.createFunctionButtonFieldName(null, labelKey, buttonFN, fieldOptions);
   }
@@ -369,7 +368,6 @@ export class DynamicFieldHelper {
     const maxLength = Math.max(min ? min.toString().length : 0, max.toString().length);
     (fieldOptions = fieldOptions || {}).inputWidth = maxLength + 2;
 
-
     return this.setFieldBaseAndOptions({
         dataType: dataType,
         inputType: InputType.Input,
@@ -419,7 +417,6 @@ export class DynamicFieldHelper {
         }
         break;
     }
-
     return fc;
   }
 

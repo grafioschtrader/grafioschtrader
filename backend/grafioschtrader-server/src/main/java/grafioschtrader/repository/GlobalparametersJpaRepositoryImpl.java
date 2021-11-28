@@ -194,7 +194,9 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
       if (existingGpOpt.isPresent()) {
         Globalparameters existingGp = existingGpOpt.get();
         existingGp.replaceExistingPropertyValue(updGp);
-        return globalparametersJpaRepository.save(existingGp);
+        existingGp = globalparametersJpaRepository.save(existingGp);
+        Globalparameters.resetDBValueOfKey(existingGp.getPropertyName());
+        return existingGp;
       }
     }
     throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);

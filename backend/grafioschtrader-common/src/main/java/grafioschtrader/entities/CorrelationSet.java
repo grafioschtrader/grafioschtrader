@@ -216,19 +216,25 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   }
 
   public void validateBeforeSave() {
+    
     switch (getSamplingPeriod()) {
     case DAILY_RETURNS:
-      validateAgainstDefinition(GlobalConstants.CORR_DAILY);
+      validateAgainstAllowedPeriodDefinition(GlobalConstants.CORR_DAILY);
+      validateFromToDateMinPeriods(dateFrom.plusDays(GlobalConstants.REQUIRED_MIN_PERIODS));
       break;
     case MONTHLY_RETURNS:
-      validateAgainstDefinition(GlobalConstants.CORR_MONTHLY);
+      validateAgainstAllowedPeriodDefinition(GlobalConstants.CORR_MONTHLY);
+      validateFromToDateMinPeriods(dateFrom.plusMonths(GlobalConstants.REQUIRED_MIN_PERIODS));
       break;
     default:
+      validateFromToDateMinPeriods(dateFrom.plusYears(GlobalConstants.REQUIRED_MIN_PERIODS));
       this.rolling = null;
     }
+   
   }
+ 
 
-  private void validateAgainstDefinition(String stepMinMaxDefinition) {
+  private void validateAgainstAllowedPeriodDefinition(String stepMinMaxDefinition) {
     int[] stepMinMax = Arrays.stream(stepMinMaxDefinition.split(",")).mapToInt(Integer::parseInt).toArray();
     Set<Byte> possibleValues = new HashSet<>();
     for (int i = stepMinMax[1]; i <= stepMinMax[2]; i += stepMinMax[0]) {
@@ -239,4 +245,9 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
     }
   }
 
+  private void validateFromToDateMinPeriods(LocalDate minDateTo) {
+    if(dateTo.isBefore(minDateTo)) {
+      throw new DataViolationException("date.to", "gt.dateto.min.period", new Object[]{GlobalConstants.REQUIRED_MIN_PERIODS});      
+    }
+  }
 }

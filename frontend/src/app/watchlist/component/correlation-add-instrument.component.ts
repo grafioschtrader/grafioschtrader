@@ -10,7 +10,7 @@ import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.sea
 import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-instrument-table.component';
 
 /**
- * Search dialog for adding an existing security or currency pair to a certain watchlist.
+ * Search dialog for adding an existing security or currency pair to a certain correlation set.
  */
 @Component({
   selector: 'correlation-add-instrument',

@@ -77,7 +77,6 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
     return false;
   }
 
-
 }
 
 export interface AddSearchToListService<T> {

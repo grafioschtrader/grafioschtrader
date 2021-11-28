@@ -6,16 +6,19 @@ import {Subscription} from 'rxjs';
 import * as moment from 'moment';
 import {CorrelationLimit, SamplingPeriodType} from '../../entities/correlation.set';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-
 import Base = moment.unitOfTime.Base;
 
-export class CorrelationHelper {
+/**
+ * It is used for editing a correlation set.
+ */
+export class CorrelationEditingSupport {
 
   private changeOnSamplingPeriodSub: Subscription;
   private readonly samplingPeriod = 'samplingPeriod';
   private readonly rolling = 'rolling';
   private changeOnDateFromSub: Subscription;
   private periodMoment: Base = 'M';
+  private requiredMinPeriods = 3;
 
 
   getCorrelationFieldDefinition(mainField: string, usedLayoutColumns: number, submitTextKey: string = null): FieldConfig[] {
@@ -43,6 +46,7 @@ export class CorrelationHelper {
   }
 
   setUpValueChange(configObject: { [name: string]: FieldConfig }, correlationLimit: CorrelationLimit): void {
+    this.requiredMinPeriods = correlationLimit.requiredMinPeriods;
     this.valueChangedOnSamplingPeriod(configObject, correlationLimit);
     this.valueChangedOnDateFrom(configObject);
   }
@@ -77,7 +81,7 @@ export class CorrelationHelper {
   }
 
   private setDateToMin(configObject: { [name: string]: FieldConfig }): void {
-    configObject.dateTo.calendarConfig.minDate = moment(configObject.dateFrom.formControl.value).add(2,
+    configObject.dateTo.calendarConfig.minDate = moment(configObject.dateFrom.formControl.value).add(this.requiredMinPeriods,
       this.periodMoment).toDate();
   }
 

@@ -8,6 +8,9 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {CorrelationSet} from '../../entities/correlation.set';
 
+/**
+ * Table part of the search dialog, which is used to select instruments for the correlation set.
+ */
 @Component({
   selector: 'correlation-set-add-instrument-table',
   templateUrl: '../view/add.instrument.table.html'
