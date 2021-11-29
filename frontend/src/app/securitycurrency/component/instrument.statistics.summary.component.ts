@@ -17,7 +17,7 @@ import {AppSettings} from '../../shared/app.settings';
       <p-treeTable [value]="rootNodes" [columns]="fields">
         <ng-template pTemplate="caption">
           <div style="text-align:left">
-            <h4>{{"STATISTICS_DATA" | translate}}</h4>
+            <h5>{{"STATISTICS_DATA" | translate}}</h5>
           </div>
         </ng-template>
         <ng-template pTemplate="header" let-fields>

@@ -5,17 +5,20 @@ import {SecurityService} from '../service/security.service';
 @Component({
   selector: 'instrument-statistics-result',
   template: `
-    <div class="fcontainer">
-      <instrument-year-performance-table *ngIf="isr" [values]="isr.annualisedPerformance.lastYears" class="tabletree"
-                                         [mainCurrency]="isr.annualisedPerformance.mainCurrency"> >
-      </instrument-year-performance-table>
-      <instrument-annualised-return-table *ngIf="isr" [values]="isr.annualisedPerformance.annualisedYears"
-                                          class="tabletree"
-                                          [mainCurrency]="isr.annualisedPerformance.mainCurrency">
-      </instrument-annualised-return-table>
-      <instrument-statistics-summary *ngIf="isr" [statisticsSummary]="isr.statisticsSummary" class="tabletree"
-                                     [mainCurrency]="isr.annualisedPerformance.mainCurrency">
-      </instrument-statistics-summary>
+    <div>
+      <h4>{{"RETURN_STATISTICAL_DATA" | translate}}</h4>
+      <div class="fcontainer">
+        <instrument-year-performance-table *ngIf="isr" [values]="isr.annualisedPerformance.lastYears" class="tabletree"
+                                           [mainCurrency]="isr.annualisedPerformance.mainCurrency"> >
+        </instrument-year-performance-table>
+        <instrument-annualised-return-table *ngIf="isr" [values]="isr.annualisedPerformance.annualisedYears"
+                                            class="tabletree"
+                                            [mainCurrency]="isr.annualisedPerformance.mainCurrency">
+        </instrument-annualised-return-table>
+        <instrument-statistics-summary *ngIf="isr" [statisticsSummary]="isr.statisticsSummary" class="tabletree"
+                                       [mainCurrency]="isr.annualisedPerformance.mainCurrency">
+        </instrument-statistics-summary>
+      </div>
     </div>
   `,
   styles: [`
