@@ -15,7 +15,7 @@ export class InstrumentYearPerformanceTableComponent extends TableConfigBase imp
   @Input() values: LastYears[];
   @Input() mainCurrency: string;
   datakey = 'year';
-  groupTitle = 'CALENDAR_YEAR_PERFORMANCE';
+  groupTitle = 'CALENDAR_YEAR_RETURN';
   sortOrder = -1;
 
   constructor(filterService: FilterService,
