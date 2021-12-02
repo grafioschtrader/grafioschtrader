@@ -59,7 +59,6 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
         this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(changedViewSizeType =>
           this.plotOrRePlot());
       }
-
     });
 
     this.routeSubscribe = this.activatedRoute.params.subscribe(params => {
@@ -90,7 +89,9 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
     this.subscriptionChartDataChanged && this.subscriptionChartDataChanged.unsubscribe();
     this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
+    this.chartDataService.clearShownChart();
     this.activePanelService.destroyPanel(this);
+
   }
 
   private plotOrRePlot(): void {

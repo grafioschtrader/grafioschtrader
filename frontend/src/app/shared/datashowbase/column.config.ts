@@ -54,6 +54,8 @@ export class ColumnConfig {
    */
   export?: boolean;
 
+  frozenColumn?: boolean;
+
   /**
    * Any value
    */
@@ -82,6 +84,7 @@ export class ColumnConfig {
       this.filterValues = optionalsParams.filterValues;
       this.headerTranslated = optionalsParams.headerTranslated;
       this.export = optionalsParams.export;
+      this.frozenColumn = optionalsParams.frozenColumn;
       this.userValue = optionalsParams.userValue;
 
       this.fieldsetName = optionalsParams.fieldsetName;
@@ -107,6 +110,7 @@ export interface OptionalParams {
   fieldsetName?: string;
   headerTranslated?: string;
   export?: boolean;
+  frozenColumn?: boolean;
   userValue?: any;
 }
 
