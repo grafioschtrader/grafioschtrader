@@ -76,7 +76,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
             <instrument-statistics-result [idSecuritycurrency]="securitycrrency.idSecuritycurrency"
-            [dateFrom]="correlationSet.dateFrom" [dateTo]="correlationSet.dateTo">
+                                          [dateFrom]="correlationSet.dateFrom" [dateTo]="correlationSet.dateTo">
             </instrument-statistics-result>
           </td>
         </tr>
@@ -285,7 +285,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   public refreshChartWhenCorrelationSetChanges(): void {
     if (SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS
-      && this.subscriptionRequestFromChart) {
+      && this.isChartShow()) {
       const idsPairs: number[][] = [];
       Object.keys(this.traceShow).filter(key => {
         const ids: string[] = key.split(',');
@@ -307,14 +307,14 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * Used when correlation chart is already show. Reset chart or add another correlation line
    */
   private changeToOpenChart(): void {
-    this.subscriptionRequestFromChart && this.getAndSetRollingCorrelation();
+    this.isChartShow() && this.getAndSetRollingCorrelation();
   }
 
   /**
    * Open chart line or reset existing chart.
    */
   private navigateToChartRoute(): void {
-    if (this.subscriptionRequestFromChart) {
+    if (this.isChartShow()) {
       this.traceShow = {};
       this.getAndSetRollingCorrelation();
     } else {
@@ -325,6 +325,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
         }
       }]);
     }
+  }
+
+  private isChartShow(): boolean {
+    return !!this.subscriptionRequestFromChart || this.chartDataService.isChartOfIdShown(AppSettings.CORRELATION_CHART);
   }
 
   /**

@@ -276,7 +276,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   protected addBaseColumns(): void {
     this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
-      {width: 200, templateName: AppSettings.OWNER_TEMPLATE});
+      {width: 200, frozenColumn: true, templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumnFeqH(DataType.String, 'securitycurrency.isin', true, true, {width: 90});

@@ -13,7 +13,9 @@ import {ChartData} from '../plotly.helper';
 @Injectable()
 export class ChartDataService {
 
-  lastCallBackFN: (traceIndex: number, dataPointIndex: number) => void;
+  // lastCallBackFN: (traceIndex: number, dataPointIndex: number) => void;
+  private idShownChart: string = null;
+
 
   private requestFromChart = new Subject<string>();
   requestFromChart$ = this.requestFromChart.asObservable();
@@ -21,12 +23,21 @@ export class ChartDataService {
   private chartDataChanged = new Subject<Partial<ChartData>>();
   chartDataChanged$ = this.chartDataChanged.asObservable();
 
+  clearShownChart(): void {
+    this.idShownChart = null;
+  }
+
+  isChartOfIdShown(idShownChart: string): boolean {
+    return this.idShownChart === idShownChart;
+  }
+
   /**
    * Request data for chart.
    *
    * @param id Identification which allows to recognize whether the data of this component is requested.
    */
   requestDataForChart(id: string) {
+    this.idShownChart = id;
     this.requestFromChart.next(id);
   }
 
