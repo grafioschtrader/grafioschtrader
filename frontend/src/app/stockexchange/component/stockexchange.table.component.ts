@@ -24,6 +24,7 @@ import {AppSettings} from '../../shared/app.settings';
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple"
+               responsiveLayout="scroll"
                [multiSortMeta]="multiSortMeta"
                [dataKey]="entityKeyName" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
@@ -32,7 +33,8 @@ import {AppSettings} from '../../shared/app.settings';
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -45,7 +47,8 @@ import {AppSettings} from '../../shared/app.settings';
                 <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
               </a>
             </td>
-            <td *ngFor="let field of fields">
+            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'owner'">
                   <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>

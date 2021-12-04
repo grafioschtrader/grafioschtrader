@@ -19,6 +19,7 @@ import {FilterService} from 'primeng/api';
     <p-table [columns]="fields" [value]="securities" selectionMode="single"
              [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
              (onRowUnselect)="onRowUnselect($event)"
+             responsiveLayout="scroll"
              dataKey="idSecuritycurrency" [responsive]="true" (sortFunction)="customSort($event)" [customSort]="true"
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
@@ -27,7 +28,8 @@ import {FilterService} from 'primeng/api';
       </ng-template>
       <ng-template pTemplate="header" let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
+          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
             {{field.headerTranslated}}
             <p-sortIcon [field]="field.field"></p-sortIcon>
           </th>
@@ -37,7 +39,9 @@ import {FilterService} from 'primeng/api';
         <tr [pSelectableRow]="el"
             [ngClass]="selectedDayIdSecurities.indexOf(el.idSecuritycurrency)>= 0 ? 'rowgroup-total' : null">
           <td *ngFor="let field of fields"
-              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
+              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+              [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
             <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{getValueByPath(el, field)}}</span>
           </td>
         </tr>

@@ -16,6 +16,9 @@ import {AppSettings} from '../../app.settings';
 import {FilterType} from '../../datashowbase/filter.type';
 import {combineLatest} from 'rxjs';
 
+/**
+ * Shows the batch Jobs in a table.
+ */
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
@@ -24,6 +27,7 @@ import {combineLatest} from 'rxjs';
       <p-table [columns]="fields" [value]="taskDataChangeList" selectionMode="single"
                [(selection)]="selectedEntity" dataKey="idTaskDataChange"
                sortMode="multiple" [multiSortMeta]="multiSortMeta"
+               responsiveLayout="scroll"
                (sortFunction)="customSort($event)" [customSort]="true"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
@@ -33,7 +37,8 @@ import {combineLatest} from 'rxjs';
           <tr>
             <th style="width:24px"></th>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                [style.width.px]="field.width">
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -70,7 +75,8 @@ import {combineLatest} from 'rxjs';
               </a>
             </td>
             <td *ngFor="let field of fields" [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'check'">
                   <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>

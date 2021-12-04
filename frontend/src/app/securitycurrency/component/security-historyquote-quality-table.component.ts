@@ -18,7 +18,7 @@ import {FilterService} from 'primeng/api';
     <p-table [columns]="fields" [value]="hqwspList" selectionMode="single"
              [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
              (onRowUnselect)="onRowUnselect($event)"
-             dataKey="idSecurity" [responsive]="true"
+             dataKey="idSecurity" responsiveLayout="scroll"
              (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
       <ng-template pTemplate="caption">

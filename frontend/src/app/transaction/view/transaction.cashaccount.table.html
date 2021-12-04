@@ -8,7 +8,7 @@
              [rows]="50"
              [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single" sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-      <ng-template let-fields pTemplate="header">
+      <ng-template pTemplate="header" let-fields>
         <tr>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
             {{field.headerTranslated}}
@@ -41,7 +41,7 @@
         </tr>
       </ng-template>
 
-      <ng-template let-columns="fields" let-el pTemplate="body">
+      <ng-template pTemplate="body" let-columns="fields" let-el>
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
 

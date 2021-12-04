@@ -65,13 +65,14 @@ interface Traces {
       <div class="input-w">
         <label for="fromDate">{{'FROM_DATE' | translate}}</label>
         <p-calendar #cal appendTo="body"
-                    monthNavigator="true" yearNavigator="true" [yearRange]="yearRange"
+                    baseZIndex="100"
+                    [yearRange]="yearRange"
                     [(ngModel)]="fromDate" id="fromDate"
                     [dateFormat]="dateFormat"
                     [disabledDays]="[0,6]"
                     (onBlur)="onBlurFromDate($event)"
                     (onSelect)="onBlurFromDate($event)"
-                    [minDate]="oldestDate" [maxDate]="youngestDate">
+                    [minDate]="startDate" [maxDate]="endDate">
         </p-calendar>
         <i class="fa fa-undo fa-border fa-lg" (click)="onResetOldestDate($event)"></i>
         <button type="button" (click)="fiveDays($event)">5{{"D" | translate}}</button>
@@ -112,6 +113,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   @ViewChild('container', {static: true}) container: ElementRef;
   @ViewChild('chart', {static: true}) chartElement: ElementRef;
 
+  startDate = new Date('2000-01-03');
+  endDate = new Date();
   fromDate: Date;
   usePercentage: boolean;
   connectGaps = true;
@@ -681,6 +684,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     if (!this.fromDate || this.loadedData.length === 1 || this.oldestDate.getTime() > this.fromDate.getTime()) {
       this.fromDate = this.oldestDate;
     }
+    this.startDate = this.oldestDate ? new Date(this.oldestDate) : new Date('2000-01-03');
+    this.endDate = this.youngestDate ? new Date(this.youngestDate) : new Date();
   }
 
   private matchEveryHistoryquotesYoungestDate(): void {

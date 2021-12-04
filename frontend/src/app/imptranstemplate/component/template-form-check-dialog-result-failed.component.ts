@@ -17,14 +17,15 @@ import {FilterService} from 'primeng/api';
     <div class="datatable">
       <p-table [columns]="fields" [value]="failedParsedTemplateStateList" selectionMode="single"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
-               [responsive]="true" sortField="security.name">
+               responsiveLayout="scroll" sortField="security.name">
         <ng-template pTemplate="caption">
           <h4>{{'IMPORT_POS_CHECK_FAILED' | translate}}</h4>
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-                [pTooltip]="field.headerTooltipTranslated" [style.width.px]="field.width">
+                [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -32,7 +33,8 @@ import {FilterService} from 'primeng/api';
         </ng-template>
         <ng-template pTemplate="body" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td *ngFor="let field of fields" [style.width.px]="field.width"
+            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                 [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
               {{getValueByPath(el, field)}}

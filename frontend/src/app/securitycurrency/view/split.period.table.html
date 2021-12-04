@@ -1,20 +1,22 @@
 <p-table [(selection)]="selectedRow" [columns]="fields" [dataKey]="dataSortKey" [multiSortMeta]="multiSortMeta" [paginator]="true"
-         [rows]="10" [value]="_dataList" responsive="true" selectionMode="single" sortMode="multiple"
+         [rows]="10" [value]="_dataList" responsiveLayout="scroll" selectionMode="single" sortMode="multiple"
          styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-  <ng-template let-fields pTemplate="header">
+  <ng-template pTemplate="header" let-fields >
     <tr>
-      <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
+      <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+          [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
         {{field.headerTranslated}}
         <p-sortIcon [field]="field.field"></p-sortIcon>
       </th>
     </tr>
   </ng-template>
-  <ng-template let-columns="fields" let-el pTemplate="body">
+  <ng-template pTemplate="body" let-columns="fields" let-el>
     <tr [pSelectableRow]="el">
       <ng-container *ngFor="let field of fields">
         <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''"
-            [style.width.px]="field.width">
+            [style.max-width.px]="field.width"
+            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
           <ng-container [ngSwitch]="field.templateName">
             <ng-container *ngSwitchCase="'icon'">
               <svg-icon [name]="getValueByPath(el, field)"

@@ -27,7 +27,7 @@
         </div>
       </ng-template>
 
-      <ng-template let-fields pTemplate="header">
+      <ng-template pTemplate="header" let-fields>
         <tr>
           <th *ngFor="let field of fields" [pTooltip]="field.headerTooltipTranslated" [style.width.px]="field.width">
             {{field.headerTranslated}}
@@ -35,7 +35,7 @@
         </tr>
       </ng-template>
 
-      <ng-template let-columns="fields" let-el let-rowIndex="rowIndex" pTemplate="body">
+      <ng-template pTemplate="body" let-columns="fields" let-el let-rowIndex="rowIndex">
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
             <td *ngIf="field.visible"

@@ -50,6 +50,7 @@ import {AppSettings} from '../../shared/app.settings';
 
       <p-table [columns]="fields" [value]="proposeChangeEntityWithEntityList" selectionMode="single"
                [(selection)]="selectedEntity"
+               responsiveLayout="scroll"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
                dataKey="proposeChangeEntity.idProposeRequest">
         <ng-template pTemplate="caption">
