@@ -7,7 +7,10 @@ import {TenantDividendAccountSelectionComponent} from './tenant-dividend-account
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {IdsAccounts} from '../model/ids.accounts';
 
-
+/**
+ * Thie dialog allows to select certain cash or security accounts. It includes two tree table one for cash the other
+ * for security accounts.
+ */
 @Component({
   selector: 'tenant-dividend-security-account-selection-dialog',
   template: `

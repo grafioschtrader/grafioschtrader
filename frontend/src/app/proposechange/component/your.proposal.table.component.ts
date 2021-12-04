@@ -25,7 +25,7 @@ import {AppSettings} from '../../shared/app.settings';
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               [dataKey]="entityKeyName"
+               [dataKey]="entityKeyName" responsiveLayout="scroll"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{'YOUR_CHANGE_REQUESTS' | translate}}</h4>

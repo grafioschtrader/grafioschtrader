@@ -27,7 +27,7 @@ import {TranslateHelper} from '../helper/translate.helper';
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
       <p-table [columns]="fields" [value]="globalparametersList" selectionMode="single"
-               [(selection)]="selectedEntity" dataKey="propertyName"
+               [(selection)]="selectedEntity" dataKey="propertyName" responsiveLayout="scroll"
                (sortFunction)="customSort($event)" [customSort]="true"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
@@ -36,7 +36,8 @@ import {TranslateHelper} from '../helper/translate.helper';
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                [style.width.px]="field.width">
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -44,7 +45,8 @@ import {TranslateHelper} from '../helper/translate.helper';
         </ng-template>
         <ng-template pTemplate="body" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td *ngFor="let field of fields">
+            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'check'">
                   <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>

@@ -23,11 +23,12 @@ import {FilterService} from 'primeng/api';
 
       <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single" [(selection)]="selectedSecurity"
                dataKey="idSecuritycurrency" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20,30]"
-               sortField="name" sortMode="multiple"
+               sortField="name" sortMode="multiple" responsiveLayout="scroll"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="header" let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -37,7 +38,8 @@ import {FilterService} from 'primeng/api';
         <ng-template pTemplate="body" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <ng-container *ngFor="let field of fields">
-              <td *ngIf="field.visible" [style.width.px]="field.width"
+              <td *ngIf="field.visible" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                   [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
                 {{getValueByPath(el, field)}}

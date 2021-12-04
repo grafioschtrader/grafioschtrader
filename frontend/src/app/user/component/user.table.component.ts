@@ -34,6 +34,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                sortField="nickname" [dataKey]="entityKeyName"
+               responsiveLayout="scroll"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{entityNameUpper | translate}}</h4>
@@ -41,7 +42,8 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width"
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                 [pTooltip]="field.headerTooltipTranslated">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
@@ -57,7 +59,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
               </a>
             </td>
 
-            <td *ngFor="let field of fields"
+            <td *ngFor="let field of fields" [style.max-width.px]="field.width" [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                 [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric  || field.dataType===DataType.NumericInteger)? 'text-right': ''">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'check'">

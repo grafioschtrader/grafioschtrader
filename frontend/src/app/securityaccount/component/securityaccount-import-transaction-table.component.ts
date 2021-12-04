@@ -40,7 +40,7 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
     <div class="datatable">
       <p-table [columns]="fields" [value]="entityList" [(selection)]="selectedEntities"
                dataKey="importTransactionPos.idTransactionPos" [paginator]="true" [rows]="50"
-               [rowsPerPageOptions]="[20,30,50,80]"
+               [rowsPerPageOptions]="[20,30,50,80]" responsiveLayout="scroll"
                selectionMode="multiple" (onRowExpand)="onRowExpand($event)" sortMode="multiple"
                [multiSortMeta]="multiSortMeta"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
@@ -52,7 +52,8 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
             </th>
             <ng-container *ngFor="let field of fields">
               <th *ngIf="field.visible" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                  [style.width.px]="field.width">
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
                 {{field.headerTranslated}}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
@@ -71,7 +72,8 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
               <p-tableCheckbox [value]="el"></p-tableCheckbox>
             </td>
             <ng-container *ngFor="let field of fields">
-              <td *ngIf="field.visible" [style.width.px]="field.width"
+              <td *ngIf="field.visible" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                   [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
                 <ng-container [ngSwitch]="field.templateName">

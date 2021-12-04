@@ -13,19 +13,20 @@ import {TransactionSecurityOptionalParam} from '../../transaction/model/transact
 import {FilterService} from 'primeng/api';
 
 /**
- * Shows the dividends an other information of securities for one year in a table. One row per security.
+ * Shows the dividends and other information of securities for one year in a table. One row per security.
  */
 @Component({
   selector: 'tenant-dividends-extended',
   template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="securityDividendsPositions" selectionMode="single"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
+               styleClass="sticky-table p-datatable-striped p-datatable-gridlines" responsiveLayout="scroll"
                dataKey="idSecuritycurrency" [responsive]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta">
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width"
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                 [pTooltip]="field.headerTooltipTranslated">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
@@ -39,7 +40,8 @@ import {FilterService} from 'primeng/api';
                 <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
               </a>
             </td>
-            <td *ngFor="let field of fields" [style.width.px]="field.width"
+            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                 [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
               <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{getValueByPath(el, field)}}</span>

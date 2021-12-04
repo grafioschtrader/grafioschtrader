@@ -24,7 +24,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
 
 /**
- * It is implemented as a nested table.
+ * For a user it is possible to set a limit cf changes for a certain entity. It is implemented as a nested table.
  */
 @Component({
   selector: 'user-entity-change-limit-table',
@@ -37,10 +37,12 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
                  (onPage)="onPage($event)" dataKey="idUserEntityChangeLimit" [paginator]="true" [rows]="20"
                  (sortFunction)="customSort($event)" [customSort]="true"
                  sortMode="multiple" [multiSortMeta]="multiSortMeta"
+                 responsiveLayout="scroll"
                  styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
           <ng-template pTemplate="header" let-fields>
             <tr>
-              <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width"
+              <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                   [pTooltip]="field.headerTooltipTranslated">
                 {{field.headerTranslated}}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
@@ -52,7 +54,8 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
             <tr [pSelectableRow]="el">
               <ng-container *ngFor="let field of fields">
 
-                <td *ngIf="field.visible" [style.width.px]="field.width"
+                <td *ngIf="field.visible" [style.max-width.px]="field.width"
+                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                     [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)?
                                       'text-right': ''">
                   <ng-container [ngSwitch]="field.templateName">

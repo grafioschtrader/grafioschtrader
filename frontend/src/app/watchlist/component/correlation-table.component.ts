@@ -40,12 +40,14 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
     <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single"
              [(selection)]="selectedEntity" dataKey="idSecuritycurrency"
              (sortFunction)="customSort($event)" [customSort]="true"
+             responsiveLayout="scroll"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
       <ng-template pTemplate="header" let-fields>
         <tr>
           <th style="width:24px"></th>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-              [style.width.px]="field.width">
+              [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
             {{field.headerTranslated}}
             <p-sortIcon [field]="field.field"></p-sortIcon>
           </th>
@@ -60,7 +62,9 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
           </td>
           <td *ngFor="let field of fields" [style.background-color]="getBackgroundColor(el, field)"
               [ngClass]="field.dataType===DataType.NumericShowZero ? 'text-right': ''"
-              (click)="cellClick(field)">
+              (click)="cellClick(field)"
+              [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
             <ng-container [ngSwitch]="field.templateName">
               <ng-container *ngSwitchCase="'check'">
                 <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>

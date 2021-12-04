@@ -35,11 +35,13 @@ import {FilterService, MenuItem} from 'primeng/api';
         <p-table #dataTable [columns]="fields" [value]="transactionCostGroupSummaries" selectionMode="single"
                  [(selection)]="selectedRow" dataKey="securityaccount.idSecuritycashAccount"
                  [expandedRowKeys]="expandedTCGSid" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+                 responsiveLayout="scroll"
                  styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
           <ng-template pTemplate="header" let-fields>
             <tr>
               <th style="width:24px"></th>
-              <th *ngFor="let field of fields" [pSortableColumn]="field.field">
+              <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
                 {{field.headerTranslated}}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
@@ -48,14 +50,14 @@ import {FilterService, MenuItem} from 'primeng/api';
 
           <ng-template pTemplate="body" let-el let-expanded="expanded" let-columns="fields">
             <tr [pSelectableRow]="el">
-
               <td style="width:24px">
                 <a href="#" [pRowToggler]="el">
                   <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
                 </a>
               </td>
               <ng-container *ngFor="let field of fields">
-                <td *ngIf="field.visible" [style.width.px]="field.width"
+                <td *ngIf="field.visible" [style.max-width.px]="field.width"
+                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                     [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                      || field.dataType===DataType.NumericInteger)? 'text-right': ''">
                   {{getValueByPath(el, field)}}

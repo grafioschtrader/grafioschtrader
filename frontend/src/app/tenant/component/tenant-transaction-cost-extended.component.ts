@@ -34,13 +34,15 @@ import {AppSettings} from '../../shared/app.settings';
         <p-table [columns]="fields" [value]="transactionCostPositions" selectionMode="single"
                  [(selection)]="baseSelectedRow" #dataTable [first]="firstRowIndex" (onRowSelect)="onRowSelect($event)"
                  (onRowUnselect)="onRowUnselect($event)" (onPage)="onPage($event)"
+                 responsiveLayout="scroll"
                  sortMode="multiple" [multiSortMeta]="multiSortMeta"
                  dataKey="transaction.idTransaction" [paginator]="true" [rows]="20"
                  styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
 
           <ng-template pTemplate="header" let-fields>
             <tr>
-              <th *ngFor="let field of fields" [pSortableColumn]="field.field">
+              <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
                 {{field.headerTranslated}}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
@@ -50,7 +52,8 @@ import {AppSettings} from '../../shared/app.settings';
           <ng-template pTemplate="body" let-el let-columns="fields">
             <tr [pSelectableRow]="el">
               <ng-container *ngFor="let field of fields">
-                <td *ngIf="field.visible" [style.width.px]="field.width"
+                <td *ngIf="field.visible" [style.max-width.px]="field.width"
+                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                     [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
                   <span [pTooltip]="getValueByPath(el, field)"
                         tooltipPosition="top">{{getValueByPath(el, field)}}</span>

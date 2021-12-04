@@ -19,7 +19,7 @@ import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.con
 import {AppSettings} from '../../shared/app.settings';
 
 /**
- * This table is controlled by a master data selection view.
+ * Component for import transaction template, one row one template. This table is controlled by a master data selection view.
  * TODO: Change to DatatableCRUDSupportMenu
  */
 @Component({
@@ -28,10 +28,12 @@ import {AppSettings} from '../../shared/app.settings';
     <p-table [columns]="fields" [value]="entityList"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
              selectionMode="single" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+             responsiveLayout="scroll"
              [dataKey]="entityKeyName" [(selection)]="selectedEntity">
       <ng-template pTemplate="header" let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field">
+          <th *ngFor="let field of fields" [pSortableColumn]="field.field"
+              [style.max-width.px]="field.width" [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
             {{field.headerTranslated}}
             <p-sortIcon [field]="field.field"></p-sortIcon>
           </th>
@@ -40,7 +42,8 @@ import {AppSettings} from '../../shared/app.settings';
       <ng-template pTemplate="body" let-el let-columns="fields">
         <tr [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [style.width.px]="field.width"
+            <td *ngIf="field.visible" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                 [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
               <ng-container [ngSwitch]="field.templateName">

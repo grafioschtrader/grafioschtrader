@@ -4,14 +4,15 @@
            [columns]="fields"
            [customSort]="true" [loading]="loading"
            [multiSortMeta]="multiSortMeta"
-           [responsive]="true" [selectionMode]="selectMultiMode" [value]="securityPositionList"
-           dataKey="securitycurrency.idSecuritycurrency" loadingIcon="fa fa-circle-o-notch fa-5x" sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+           responsiveLayout="scroll" [selectionMode]="selectMultiMode" [value]="securityPositionList"
+           dataKey="securitycurrency.idSecuritycurrency" loadingIcon="fa fa-circle-o-notch fa-5x" sortMode="multiple"
+           styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
     <ng-template pTemplate="caption">
       <h4>{{'WATCHLIST' | translate}}: "{{watchlist.name}}" {{securitycurrencyGroup?.lastTimestamp
         | date: 'HH:mm dd.MM.yy'}}</h4>
     </ng-template>
 
-    <ng-template let-fields pTemplate="header">
+    <ng-template pTemplate="header" let-fields>
       <tr>
         <th style="width:24px"></th>
         <th *ngIf="selectMultiMode === 'multiple'" style="width: 2.25em">
@@ -20,15 +21,16 @@
         <ng-container *ngFor="let field of fields">
           <th *ngIf="field.visible" [pSortableColumn]="field.field"
               [pTooltip]="field.headerTooltipTranslated"
-              [style.width.px]="field.width" >
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
+              [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              {{field.headerTranslated}}
+          <p-sortIcon [field]="field.field"></p-sortIcon>
           </th>
         </ng-container>
       </tr>
     </ng-template>
 
-    <ng-template let-columns="fields" let-expanded="expanded" let-spl pTemplate="body">
+    <ng-template pTemplate="body" let-columns="fields" let-expanded="expanded" let-spl>
       <tr [pSelectableRow]="spl">
         <td style="width:24px">
           <a *ngIf="spl.watchlistSecurityHasEver || watchlistType == WatchListType.PRICE_FEED" [pRowToggler]="spl"
@@ -41,11 +43,15 @@
         </td>
 
         <ng-container *ngFor="let field of fields">
-          <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
+          <td *ngIf="field.visible"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+              [style.max-width.px]="field.width"
+              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
             <ng-container [ngSwitch]="field.templateName">
               <ng-container *ngSwitchCase="'owner'">
                 <span [pTooltip]="getValueByPath(spl, field)"
-                      [style]='isNotSingleModeAndOwner(field, spl.securitycurrency)? "font-weight:500": null' tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
+                      [style]='isNotSingleModeAndOwner(field, spl.securitycurrency)? "font-weight:500": null'
+                      tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
               </ng-container>
               <ng-container *ngSwitchCase="'greenRed'">
                 <span [style.color]='isValueByPathMinus(spl, field)? "red": "green"'>{{getValueByPath(spl, field)}}</span>
@@ -54,7 +60,8 @@
                 <span><i [ngClass]="{'fa fa-check': getValueByPath(spl, field)}" aria-hidden="true"></i></span>
               </ng-container>
               <ng-container *ngSwitchCase="'icon'">
-                <svg-icon (dragend)="dragEnd($event, spl)" (dragstart)="dragStart($event, spl)" [name]="getValueByPath(spl, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"
+                <svg-icon (dragend)="dragEnd($event, spl)" (dragstart)="dragStart($event, spl)"
+                          [name]="getValueByPath(spl, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"
                           class="cell-move" draggable="true"></svg-icon>
               </ng-container>
               <ng-container *ngSwitchDefault>
@@ -66,7 +73,7 @@
       </tr>
     </ng-template>
 
-    <ng-template let-columns="fields" let-spl pTemplate="rowexpansion">
+    <ng-template pTemplate="rowexpansion" let-columns="fields" let-spl>
       <tr *ngIf="spl.watchlistSecurityHasEver || watchlistType != WatchListType.PERFORMANCE">
         <td [attr.colspan]="numberOfVisibleColumns + 1">
           <transaction-security-table (dateChanged)="handleCloseTransactionDialog($event)"
