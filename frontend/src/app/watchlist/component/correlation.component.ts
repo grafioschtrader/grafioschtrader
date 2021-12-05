@@ -107,6 +107,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
   override readData(): void {
     this.correlationSetService.getCorrelationSetByTenant().subscribe((correlationSets: CorrelationSet[]) => {
       this.entityList = correlationSets;
+      this.correlationLimit.tenantLimit.actual = this.entityList.length;
       this.configObject[CorrelationComponent.MAIN_FIELD].valueKeyHtmlOptions =
         SelectOptionsHelper.createValueKeyHtmlSelectOptions(CorrelationComponent.MAIN_FIELD, 'name',
           correlationSets, false);
@@ -172,7 +173,6 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
 
   override prepareEditMenu(): MenuItem[] {
     const menuItems = this.getBaseEditMenu('CORRELATION_SET');
-
     menuItems.push(...this.correlationTableComponent.prepareEditMenu());
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
