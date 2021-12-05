@@ -19,6 +19,7 @@ export class CorrelationEditingSupport {
   private changeOnDateFromSub: Subscription;
   private periodMoment: Base = 'M';
   private requiredMinPeriods = 3;
+  private actualSamplinPeriod: SamplingPeriodType;
 
 
   getCorrelationFieldDefinition(mainField: string, usedLayoutColumns: number, submitTextKey: string = null): FieldConfig[] {
@@ -53,26 +54,30 @@ export class CorrelationEditingSupport {
 
   private valueChangedOnSamplingPeriod(configObject: { [name: string]: FieldConfig }, correlationLimit: CorrelationLimit): void {
     this.changeOnSamplingPeriodSub = configObject[this.samplingPeriod].formControl.valueChanges.subscribe((key: string) => {
-      configObject[this.rolling].formControl.enable();
-      switch (SamplingPeriodType[key]) {
-        case SamplingPeriodType.DAILY_RETURNS:
-          this.periodMoment = 'd';
-          this.createOptionsForRolling(configObject, correlationLimit.dailyConfiguration);
-          break;
-        case SamplingPeriodType.MONTHLY_RETURNS:
-          this.periodMoment = 'M';
-          this.createOptionsForRolling(configObject, correlationLimit.monthlyConfiguration);
-          break;
-        default:
-          this.periodMoment = 'y';
-          this.createOptionsForRolling(configObject, correlationLimit.annualConfiguration);
+
+      if (this.actualSamplinPeriod !== SamplingPeriodType[key]) {
+        this.actualSamplinPeriod = SamplingPeriodType[key];
+        configObject[this.rolling].formControl.enable();
+        switch (this.actualSamplinPeriod) {
+          case SamplingPeriodType.DAILY_RETURNS:
+            this.periodMoment = 'd';
+            this.createOptionsForRolling(configObject, correlationLimit.dailyConfiguration);
+            break;
+          case SamplingPeriodType.MONTHLY_RETURNS:
+            this.periodMoment = 'M';
+            this.createOptionsForRolling(configObject, correlationLimit.monthlyConfiguration);
+            break;
+          default:
+            this.periodMoment = 'y';
+            this.createOptionsForRolling(configObject, correlationLimit.annualConfiguration);
+        }
       }
       this.setDateToMin(configObject);
     });
   }
 
   public getPeriodAndRollingWithParamPrefix(configObject: { [name: string]: FieldConfig }): string[] {
-    return ['p0@' + configObject[this.samplingPeriod].formControl.value, 'p1@' + configObject[this.rolling].formControl.value ];
+    return ['p0@' + configObject[this.samplingPeriod].formControl.value, 'p1@' + configObject[this.rolling].formControl.value];
   }
 
   private valueChangedOnDateFrom(configObject: { [name: string]: FieldConfig }): void {

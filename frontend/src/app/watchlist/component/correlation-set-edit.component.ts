@@ -56,10 +56,10 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
   protected override initialize(): void {
     this.configObject.samplingPeriod.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
       SamplingPeriodType);
+    this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit);
     if (this.callParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
     }
-    this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit);
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): CorrelationSet {

@@ -41,7 +41,7 @@
     "primeicons": "^5.0.0",
     "primeng": "13.0.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "~6.6.0",
+    "rxjs": "^7.4.0",
     "split.js": "^1.6.2",
     "tslib": "^2.1.0",
     "zone.js": "~0.11.3"
