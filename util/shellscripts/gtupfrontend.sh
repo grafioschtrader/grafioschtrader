@@ -6,7 +6,7 @@ memorytotal="$(free -m | awk '/^Mem|Speicher/ { print $2}')"
 if [ $memorytotal -lt 2001 ]
   then
     sudo systemctl stop grafioschtrader.service
-    export NODE_OPTIONS="--max_old_space_size=2400"
+    export NODE_OPTIONS="--max_old_space_size=3200"
   fi
 ng build --configuration production --base-href /$basehref
 rm -r $docroot/${basehref}assets
