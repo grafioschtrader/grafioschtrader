@@ -215,15 +215,19 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.correlationSetService.removeInstrumentFromCorrelationSet(this.correlationSet.idCorrelationSet,
       idSecuritycurrency).subscribe(correlationSet => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_INSTRUMENT_FROM_CORRELATIONSET');
-      // this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new CorrelationSet()));
+      this.selectedEntity = null;
       this.childToParent.refreshData(correlationSet);
     });
   }
 
   getCorrelation(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
-    const ci: CorrelationInstrument = this.correlationResult.correlationInstruments.find(correlationResult =>
-      correlationResult.idSecuritycurrency === dataobject.idSecuritycurrency);
-    return ci ? ci.correlations[field.userValue] : null;
+    if (this.correlationResult) {
+      const ci: CorrelationInstrument = this.correlationResult.correlationInstruments.find(correlationResult =>
+        correlationResult.idSecuritycurrency === dataobject.idSecuritycurrency);
+      return ci ? ci.correlations[field.userValue] : null;
+    } else {
+      return null;
+    }
   }
 
   getBackgroundColor(dataobject: Securitycurrency, field: ColumnConfig): string {
