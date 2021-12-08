@@ -38,7 +38,7 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
                      appendTo="body"></p-contextMenu>
       <br/>
       <p
-        *ngIf="timePeriod">{{'SAMPLING_PERIOD' | translate}} {{timePeriod}} {{'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate}}</p>
+        *ngIf="timePeriod">{{'TIME_PERIOD' | translate}} {{timePeriod}} {{'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate}}</p>
       <correlation-table [childToParent]="this">
       </correlation-table>
     </div>

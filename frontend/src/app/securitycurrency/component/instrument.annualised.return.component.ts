@@ -16,6 +16,7 @@ export class InstrumentAnnualisedReturnComponent extends TableConfigBase impleme
   @Input() mainCurrency: string;
   datakey = 'numberOfYears';
   groupTitle = 'ANNUALISED_RETURN';
+  titleRemark = 'WITHOUT_CURRENT_YEAR';
   sortOrder = 1;
 
   constructor(filterService: FilterService,

@@ -16,6 +16,7 @@ export class InstrumentYearPerformanceTableComponent extends TableConfigBase imp
   @Input() mainCurrency: string;
   datakey = 'year';
   groupTitle = 'CALENDAR_YEAR_RETURN';
+  titleRemark = 'ALL_EOD_AND_DIVIDEND';
   sortOrder = -1;
 
   constructor(filterService: FilterService,
