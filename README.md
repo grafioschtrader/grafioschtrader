@@ -11,6 +11,7 @@
 + **Different financial instruments**: Stocks, Bonds, ETF, securities without price data, short ETF, CFD, Forex.
 + **Import of transactions**: An import of single or multiple PDFs with securities transactions Via CSV file, account transactions can also be loaded.
 + **Evaluations by asset classes**: Evaluations by common asset classes such as stocks, bonds, real estate, commodities, etc.
++ **Correlation matrices**: Support for rolling correlations with different time windows.
 
 ## Test Drive GT
 * Check the user [manual](//grafioschtrader.github.io/gt-user-manual/de/intro/) and a [YouTube channel](//www.youtube.com/channel/UCpogJM4KxrZGOyPoQx1xVKQ) in German language which are in progress.
