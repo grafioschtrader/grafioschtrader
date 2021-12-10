@@ -97,8 +97,8 @@ export class PlotlyHelper {
     }
   }
 
-  public static attachTooltip(plotlyService: PlotlyService, legendTooltipMap = new Map<string, string>()): void {
-    const legendLayer = plotlyService.getPlotly().d3.select('g.legend');
+  public static attachTooltip(plotly: any, legendTooltipMap = new Map<string, string>()): void {
+    const legendLayer = plotly.d3.select('g.legend');
     const items = legendLayer.selectAll('g.traces');
     let tooltip: any;
     legendLayer.selectAll('.tooltip-line-graphics').remove();
