@@ -35,7 +35,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private subscriptionChartDataChanged: Subscription;
   private routeSubscribe: Subscription;
   private chartData: ChartData;
-
+  private plotly: any;
   constructor(private plotlyService: PlotlyService,
               private gps: GlobalparameterService,
               private translateService: TranslateService,
@@ -43,11 +43,12 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
               private viewSizeChangedService: ViewSizeChangedService,
               private activePanelService: ActivePanelService,
               private activatedRoute: ActivatedRoute) {
+    plotlyService.getPlotly().then(plotly => this.plotly = plotly, () => alert('Plotly Graphing Library not working'));
   }
 
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);
-    const config = PlotlyLocales.setPlotyLocales(this.plotlyService.getPlotly(), this.gps);
+    const config = PlotlyLocales.setPlotyLocales(this.plotly, this.gps);
     config.displaylogo = false;
 
     this.subscriptionChartDataChanged = this.chartDataService.chartDataChanged$.subscribe((chartData: ChartData) => {
@@ -96,13 +97,13 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
 
   private plotOrRePlot(): void {
     // Plotly.Plots.resize(this.el.nativeElement));
-    this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
+    this.plotly.purge(this.chartElement.nativeElement);
     if (this.chartData.legendTooltipMap) {
-      this.plotlyService.getPlotly().newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
+      this.plotly.newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
         this.chartData.options).then(this.attachTooltip.bind(this));
       this.chartElement.nativeElement.on('plotly_afterplot', this.attachTooltip.bind(this));
     } else {
-      this.plotlyService.getPlotly().newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
+      this.plotly.newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
         this.chartData.options);
     }
     if (this.chartData.callBackFN) {
@@ -112,6 +113,6 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(this.plotlyService, this.chartData.legendTooltipMap);
+    PlotlyHelper.attachTooltip(this.plotly, this.chartData.legendTooltipMap);
   }
 }

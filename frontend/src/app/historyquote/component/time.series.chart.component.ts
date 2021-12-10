@@ -140,6 +140,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private crossRateMap = new TwoKeyMap<CurrenciesAndClosePrice>();
   private mainCurrency: string;
   private legendTooltipMap = new Map<string, string>();
+  private plotly: any;
 
   constructor(private plotlyService: PlotlyService,
               private messageToastService: MessageToastService,
@@ -156,6 +157,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
     this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();
+    plotlyService.getPlotly().then(plotly => this.plotly = plotly, () => alert('Plotly Graphing Library not working'));
   }
 
   get oldestDate(): Date {
@@ -595,7 +597,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       iDef.menuItem.icon = AppSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
       const traceIndices: number[] = iDef.taTraceIndicatorDataList.map(taT => taT.traceIndex).reverse();
-      this.plotlyService.getPlotly().deleteTraces(this.chartElement.nativeElement, traceIndices);
+      this.plotly.deleteTraces(this.chartElement.nativeElement, traceIndices);
       iDef.taTraceIndicatorDataList.forEach(taT => taT.traceIndex = undefined);
       this.adjustTATraceIndices(traceIndices);
     }
@@ -616,7 +618,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     iDef.taTraceIndicatorDataList.forEach((taTraceIndicatorData: TaTraceIndicatorData) => {
       const foundStartIndex = AppHelper.binarySearch(taTraceIndicatorData.taIndicatorData,
         moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
-      this.plotlyService.getPlotly().addTraces(this.chartElement.nativeElement, {
+      this.plotly.addTraces(this.chartElement.nativeElement, {
         type: 'scatter',
         mode: 'lines',
         name: `${taTraceIndicatorData.traceName} (${taTraceIndicatorData.period})`,
@@ -726,17 +728,17 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private plot(element: any, traces: any, layout: any): void {
-    const config = PlotlyLocales.setPlotyLocales(this.plotlyService.getPlotly(), this.gps);
+    const config = PlotlyLocales.setPlotyLocales(this.plotly, this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.displaylogo = false;
-    this.plotlyService.getPlotly().purge(this.chartElement.nativeElement);
-    this.plotlyService.getPlotly().newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
+    this.plotly.purge(this.chartElement.nativeElement);
+    this.plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
       this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(changedViewSizeType =>
-        this.plotlyService.getPlotly().Plots.resize(element));
+        this.plotly.Plots.resize(element));
     }
   }
 
@@ -753,7 +755,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(this.plotlyService, this.legendTooltipMap);
+    PlotlyHelper.attachTooltip(this.plotly, this.legendTooltipMap);
   }
 
   private getLayout(): any {
