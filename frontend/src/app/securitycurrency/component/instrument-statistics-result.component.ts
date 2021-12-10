@@ -34,8 +34,8 @@ import {SecurityService} from '../service/security.service';
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
   @Input() idSecuritycurrency: number;
-  @Input() dateFrom: Date;
-  @Input() dateTo: Date;
+  @Input() dateFrom: Date | string;
+  @Input() dateTo: Date | string;
   isr: InstrumentStatisticsResult;
 
   constructor(private securityService: SecurityService) {

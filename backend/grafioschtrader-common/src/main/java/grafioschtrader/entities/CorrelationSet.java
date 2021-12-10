@@ -106,8 +106,10 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   public CorrelationSet() {
   }
 
-  public CorrelationSet(Integer idCorrelationSet, LocalDate dateFrom, LocalDate dateTo, byte samplingPeriod,
+  public CorrelationSet(Integer idTenant, String name, Integer idCorrelationSet, LocalDate dateFrom, LocalDate dateTo, byte samplingPeriod,
       Byte rolling, boolean adjustCurrency) {
+    this.name = name;
+    this.idTenant = idTenant;
     this.idCorrelationSet = idCorrelationSet;
     this.dateFrom = dateFrom;
     this.dateTo = dateTo;

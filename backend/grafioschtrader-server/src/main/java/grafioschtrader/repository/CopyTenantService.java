@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.Cashaccount;
+import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycashaccount;
@@ -45,12 +46,13 @@ public class CopyTenantService {
         securityaccountMap);
     Map<Integer, Watchlist> watchlistMap = copyWatchlist(sourceIdTenant, targetIdTenant);
     copyTransaction(sourceIdTenant, targetIdTenant, securityaccountMap, cashaccoutMap);
+    copyCorrelationSet(sourceIdTenant, targetIdTenant);
     updateTenantReference(sourceIdTenant, targetIdTenant, watchlistMap);
   }
 
   private void deleteData(Integer targetIdTenant) {
     String[] tables = new String[] { Transaction.TABNAME, Watchlist.TABNAME, Securitycashaccount.TABNAME,
-        Portfolio.TABNAME };
+        Portfolio.TABNAME, CorrelationSet.TABNAME };
     for (String table : tables) {
       String deleteSQL = "DELETE FROM " + table + " WHERE id_tenant=?";
       jdbcTemplate.update(deleteSQL, targetIdTenant);
@@ -134,6 +136,21 @@ public class CopyTenantService {
     return watchlistMap;
   }
 
+  
+  private void copyCorrelationSet(Integer sourceIdTenant, Integer targetIdTenant) {
+    TypedQuery<CorrelationSet> q = em.createQuery("SELECT c from CorrelationSet c where c.idTenant = ?1", CorrelationSet.class);
+    List<CorrelationSet> correlationSetList = q.setParameter(1, sourceIdTenant).getResultList();
+    for (CorrelationSet cs : correlationSetList) {
+      CorrelationSet correlationSetNew = new CorrelationSet(targetIdTenant, cs.getName(), null, cs.getDateFrom(), cs.getDateTo(),
+          cs.getSamplingPeriod().getValue(), cs.getRolling(), cs.isAdjustCurrency());
+      List<Securitycurrency<?>> securities = new ArrayList<>();
+      securities.addAll(cs.getSecuritycurrencyList());
+      correlationSetNew.setSecuritycurrencyList(securities);
+      em.persist(correlationSetNew);
+    }
+    em.flush();
+  }
+  
   private void copyTransaction(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityaccountMap, Map<Integer, Cashaccount> cashaccoutMap) {
     Map<Integer, Transaction> transactionReMap = new HashMap<>();
