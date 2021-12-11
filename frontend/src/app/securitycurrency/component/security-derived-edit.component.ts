@@ -37,6 +37,7 @@ import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {SecurityDerivedLink} from '../../entities/security.derived.link';
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
 import {AppSettings} from '../../shared/app.settings';
+import {FormHelper} from '../../dynamic-form/components/FormHelper';
 
 /**
  * To create a derived instrument a base instrument is required. Additional a formula can be added. Prices depend on other instrument,
@@ -203,7 +204,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
         this.securityCallParam, this.form, this.configObject, this.proposeChangeEntityWithEntity);
       this.securityCallParam && this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[data.length - 1]);
-
+      this.disableEnableInputForExisting(!!this.securityCallParam);
     });
   }
 
@@ -269,6 +270,10 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     } else {
       this.form.transferBusinessObjectToForm(security);
     }
+  }
+
+  private disableEnableInputForExisting(disable: boolean): void {
+    FormHelper.disableEnableFieldConfigsWhenAlreadySet(disable, [this.configObject.currency]);
   }
 
   private translateFormulaFromUserLanguage(security: Security): void {
