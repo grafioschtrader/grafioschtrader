@@ -132,8 +132,8 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     if (cs.getSamplingPeriod() == SamplingPeriodType.ANNUAL_RETURNS) {
       throw new IllegalArgumentException("Rolling correlation not possible for annual!");
     }
-    var correlationSetDummy = new CorrelationSet(cs.getIdTenant(), cs.getName(), cs.getIdCorrelationSet(), cs.getDateFrom(), cs.getDateTo(),
-        cs.getSamplingPeriod().getValue(), cs.getRolling(), cs.isAdjustCurrency());
+    var correlationSetDummy = new CorrelationSet(cs.getIdTenant(), cs.getName(), cs.getIdCorrelationSet(),
+        cs.getDateFrom(), cs.getDateTo(), cs.getSamplingPeriod().getValue(), cs.getRolling(), cs.isAdjustCurrency());
 
     Set<Integer> ids = Stream.of(securityIdsPairs).flatMap(Stream::of).collect(Collectors.toSet());
     correlationSetDummy.setSecuritycurrencyList(cs.getSecuritycurrencyList().stream()

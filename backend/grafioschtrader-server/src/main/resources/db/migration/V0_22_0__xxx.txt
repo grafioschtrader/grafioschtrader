@@ -1,3 +1,7 @@
 # All securities with divvydiary need to be read. The field amount_adjusted must be set
 UPDATE security SET div_earliest_next_check=current_date() WHERE id_connector_dividend = "gt.datafeed.divvydiary";
 DELETE d FROM dividend d JOIN security s ON d.id_securitycurrency = s.id_securitycurrency WHERE s.id_connector_dividend = "gt.datafeed.divvydiary";
+
+
+# Maybe the internal messages should also be sent to the user's email? Change the user table accordingly.
+# ?

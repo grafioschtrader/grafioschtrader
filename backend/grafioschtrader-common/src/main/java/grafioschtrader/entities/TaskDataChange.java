@@ -21,11 +21,7 @@ import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- *
- * @author Hugo Graf
- *
- */
+
 @Entity
 @Table(name = TaskDataChange.TABNAME)
 @Schema(description = "Entity that contains the information for background processing")

@@ -24,7 +24,7 @@ import {TransactionSecurityOptionalParam} from '../model/transaction.security.op
 import {HelpIds} from '../../shared/help/help.ids';
 
 /**
- * It shows margin transactions as a tree. It supports editing existing transaction and close a open position.
+ * It shows margin transactions as a tree. It supports editing existing transaction and close an open position.
  */
 @Component({
   selector: 'transaction-security-margin-treetable',
@@ -96,7 +96,6 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   securityTransactionSummary: SecurityTransactionSummary = new SecurityTransactionSummary(null, null);
   transactionPositionList: SecurityTransactionPosition[] = [];
 
-
   constructor(private securityService: SecurityService,
               parentChildRegisterService: ParentChildRegisterService,
               activePanelService: ActivePanelService,
@@ -110,7 +109,6 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
       filterService, translateService, gps, usersettingsService);
   }
-
 
   ngOnInit(): void {
     this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(this, this.idTenant, true,

@@ -4,13 +4,15 @@
     <p-table #table (onPage)="onPage($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
              (sortFunction)="customSort($event)" [(selection)]="pageFirstRowSelectedRow.selectedRow"
              [columns]="fields" [customSort]="true"
-             [first]="pageFirstRowSelectedRow.topPageRow" [multiSortMeta]="multiSortMeta" [paginator]="true" [rowsPerPageOptions]="[20,30,50,100]"
+             [first]="pageFirstRowSelectedRow.topPageRow" [multiSortMeta]="multiSortMeta" [paginator]="true"
+             [rowsPerPageOptions]="[20,30,50,100]" responsiveLayout="scroll"
              [rows]="50"
              [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single" sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
       <ng-template pTemplate="header" let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
+          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
             {{field.headerTranslated}}
             <p-sortIcon [field]="field.field"></p-sortIcon>
           </th>
@@ -45,8 +47,8 @@
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
 
-            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
-                [style.width.px]="field.width">
+            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'greenRed'">
                   <span [pTooltip]="getValueByPath(el, field)" [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
