@@ -39,12 +39,9 @@ import grafioschtrader.types.TransactionType;
 import grafioschtrader.validation.AfterEqual;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- *
- * @author Hugo Graf
- */
 @Entity
 @Table(name = Transaction.TABNAME)
+@Schema(description = "Entity that contains the information for a single transaction. There are cash and securities transaction.")
 public class Transaction extends TenantBaseID implements Serializable, Comparable<Transaction> {
 
   public static final String TABNAME = "transaction";
@@ -56,7 +53,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Column(name = "id_transaction")
   private Integer idTransaction;
 
-  @Schema(description = "Units for transacton on security")
+  @Schema(description = "Quantity when buying and selling securities or the number of days when financing costs")
   @Basic(optional = true)
   @Column(name = "units")
   @NotNull(groups = { SecurityTransaction.class })
@@ -64,22 +61,20 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Null(groups = { CashTransaction.class })
   private Double units;
 
-  @Schema(description = "Quotation/price for a single unit used for transacton on security")
+  @Schema(description = "Instrument price or dividend per unit respectively the financing costs per day")
   @Basic(optional = true)
   @Column(name = "quotation")
   @NotNull(groups = { SecurityTransaction.class })
   @Null(groups = { CashTransaction.class })
   private Double quotation;
 
+  @Schema(description = "The transaction type")
   @Basic(optional = false)
   @Column(name = "transaction_type")
   @NotNull
   private byte transactionType;
 
-  /**
-   * Account transfer transaction point to each other.</br>
-   * Margin product close and finance cost position to margin open position.
-   */
+  @Schema(description = "Account transfer transaction point to each other. Margin product close and finance cost position to margin open position.")
   @Column(name = "con_id_transaction")
   private Integer connectedIdTransaction;
 
@@ -622,6 +617,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     case REDUCE:
     case DIVIDEND:
     case FINANCE_COST:
+      checkNegativeQuoataion();
       if (this.security.isMarginInstrument()) {
         calcCashaccountAmount = validateSecurityMarginCashaccountAmount(openPositionMarginTransaction);
       } else {
@@ -643,6 +639,13 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     } else {
       throw new DataViolationException("cashaccount.amount", "gt.cashaccount.amount.calc",
           new Object[] { calcCashaccountAmount, roundCashaccountAmount, cashaccountAmount });
+    }
+  }
+
+  private void checkNegativeQuoataion() {
+    if (getTransactionType() != TransactionType.DIVIDEND && getTransactionType() != TransactionType.FINANCE_COST
+        && quotation < 0.0) {
+      throw new IllegalArgumentException("Only dividend allows negative value for quotation!");
     }
   }
 

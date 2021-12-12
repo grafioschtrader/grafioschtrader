@@ -95,7 +95,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     this.fields.forEach(field => {
       if (field.filterType && field.filterType === FilterType.withOptions) {
         const valueLabelHtmlSelectOptions: ValueLabelHtmlSelectOptions[] = [];
-        valueLabelHtmlSelectOptions.push(new ValueLabelHtmlSelectOptions('', null));
+        valueLabelHtmlSelectOptions.push(new ValueLabelHtmlSelectOptions('', ' '));
         if (field.translateValues && field.translatedValueMap) {
           Object.keys(field.translatedValueMap).sort((a, b) => field.translatedValueMap[a] < field.translatedValueMap[b]
             ? -1 : field.translatedValueMap[a] > field.translatedValueMap[b] ? 1 : 0)

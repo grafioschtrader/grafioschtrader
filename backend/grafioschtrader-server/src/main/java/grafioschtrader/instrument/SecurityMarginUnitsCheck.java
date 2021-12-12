@@ -129,6 +129,12 @@ public class SecurityMarginUnitsCheck {
       pMFC.untilDate = dayUnit.getKey();
       rollingUnit = dayUnit.getValue();
     }
+    if (pMFC.daysToPay == 0 && LocalDate.now().isAfter(dayUnitsMap.lastEntry().getKey())) {
+      pMFC.untilDate = LocalDate.now();
+      pMFC.daysToPay = (int) ChronoUnit.DAYS.between(dayUnitsMap.lastEntry().getKey(), pMFC.untilDate);
+      pMFC.financeCost += pMFC.daysToPay * rollingUnit * unitDailyCost;
+
+    }
     return pMFC;
   }
 

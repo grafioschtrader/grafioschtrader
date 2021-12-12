@@ -27,12 +27,10 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- *
- * @author Hugo Graf
- */
+
 @Entity
 @Table(name = Portfolio.TABNAME)
+@Schema(description = "Entity containing the information of a portfolio")
 public class Portfolio extends TenantBaseID implements Serializable {
 
   public static final String TABNAME = "portfolio";

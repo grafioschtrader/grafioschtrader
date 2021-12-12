@@ -46,7 +46,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
       filterType: FilterType.withOptions
     });
     this.addColumn(DataType.String, 'cashaccount.currency', 'ACCOUNT_CURRENCY', true, false,
-      {filterType: FilterType.withOptions});
+      {width: 40, filterType: FilterType.withOptions});
     this.addColumn(DataType.String, 'transactionType', 'TRANSACTION_TYPE', true, false,
       {width: 100, translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
     this.addColumn(DataType.String, 'security.name', AppSettings.SECURITY.toUpperCase(), true, false,
@@ -63,10 +63,10 @@ export abstract class TransactionTable extends TransactionContextMenu {
     this.addColumnFeqH(DataType.Numeric, 'taxCost', true, false,
       {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumnFeqH(DataType.Numeric, 'transactionCost', true, false,
-      {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {width: 60, filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
     this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false,
       {
-        width: 60, filterType: FilterType.likeDataType, templateName: 'greenRed',
+        width: 70, filterType: FilterType.likeDataType, templateName: 'greenRed',
         maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
       });
   }

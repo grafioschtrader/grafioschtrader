@@ -53,8 +53,8 @@ import {AbstractControl} from '@angular/forms';
 import {AppSettings} from '../../shared/app.settings';
 
 /**
- * Edit transaction for a investment product, also margin product. The transaction type (buy, dividend, sell,
- * finance cost) can not be changed in this form, it hat to be set in advance.
+ * Edit transaction for an investment product, also margin product. The transaction type (buy, dividend, sell,
+ * finance cost) can not be changed in this form, it has to be set in advance.
  */
 @Component({
   selector: 'transaction-security-edit',
@@ -162,8 +162,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.createQuotationField(),
       DynamicFieldHelper.createFieldCurrencyNumber('quotation', 'QUOTATION_DIV', true,
         AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
-        AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(), true,
-        {userDefinedValue: 'S', usedLayoutColumns: 8}),
+        AppSettings.FID_MAX_FRACTION_DIGITS, this.transactionCallParam.transactionType === TransactionType.DIVIDEND
+        || this.transactionCallParam.transactionType === TransactionType.FINANCE_COST,
+        this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
       DynamicFieldHelper.createFieldCurrencyNumber('quotationCA', '_CA', false,
         AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
         AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(),
@@ -216,10 +217,10 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', false,
         9, 2, true, this.gps.getNumberCurrencyMask(),
         true, {readonly: true, userDefinedValue: 'C', usedLayoutColumns: 8}),
-     /*
-      DynamicFieldHelper.createFieldInputString('cashaccountAmountExact', '_exact',
-        15, false, { dataproperty: 'cashaccountAmount', readonly: true,  usedLayoutColumns: 4}),
-*/
+      /*
+       DynamicFieldHelper.createFieldInputString('cashaccountAmountExact', '_exact',
+         15, false, { dataproperty: 'cashaccountAmount', readonly: true,  usedLayoutColumns: 4}),
+ */
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
@@ -422,7 +423,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       }
       const amount = this.calcPosTotal(data, false);
       this.setValueToControl(this.configObject.cashaccountAmount, amount);
-     // this.setValueToControl(this.configObject.cashaccountAmountExact, this.gps.getNumberFormatRaw().format(amount));
+      // this.setValueToControl(this.configObject.cashaccountAmountExact, this.gps.getNumberFormatRaw().format(amount));
     }
   }
 
@@ -774,7 +775,6 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       }
     }
   }
-
 
   private enableDisableCurrencyExRate(enable: boolean): void {
     if (enable) {
