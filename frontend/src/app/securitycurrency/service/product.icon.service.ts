@@ -9,7 +9,7 @@ import {Assetclass} from '../../entities/assetclass';
 @Injectable()
 export class ProductIconService {
 
-  readonly icons = ['bo', 'c', 'cc', 'cb', 'co', 'd', 'cfd_c', 'cfd_i', 'd', 'eq', 'etf_c', 'etf_i', 'f', 'fr', 'fx', 'i', 'ir', 'm'];
+  readonly icons = ['bo', 'c', 'cc', 'cb', 'co', 'd', 'cfd_c', 'cfd_i', 'd', 'eq', 'etf_c', 'etf_crypto', 'etf_i', 'f', 'fr', 'fx', 'i', 'ir', 'm'];
 
   constructor(private iconReg: SvgIconRegistryService) {
     this.icons.forEach(icon => this.iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + icon + '.svg', icon));
@@ -48,7 +48,8 @@ export class ProductIconService {
         icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'cfd_c' : 'cfd_i';
         break;
       case SpecialInvestmentInstruments.ETF:
-        icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'etf_c' : 'etf_i';
+        icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'etf_c' :
+          assetclass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR] ? 'etf_crypto' : 'etf_i';
         break;
       case SpecialInvestmentInstruments.FOREX:
         icon = 'fx';
