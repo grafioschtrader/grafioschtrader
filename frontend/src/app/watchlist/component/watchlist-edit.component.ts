@@ -47,7 +47,7 @@ export class WatchlistEditComponent extends SimpleEntityEditBase<Watchlist> impl
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.form.setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);

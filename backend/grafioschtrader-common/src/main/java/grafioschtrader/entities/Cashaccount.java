@@ -16,14 +16,12 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.validation.ValidCurrencyCode;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- *
- * @author Hugo Graf
- */
 @Entity
 @Table(name = Cashaccount.TABNAME)
 @DiscriminatorValue("C")
+@Schema(description = "Contains the base data of a security or cash account")
 public class Cashaccount extends Securitycashaccount implements Serializable {
 
   public static final String TABNAME = "cashaccount";

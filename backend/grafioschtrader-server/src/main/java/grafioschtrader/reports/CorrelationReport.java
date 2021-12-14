@@ -109,21 +109,10 @@ public class CorrelationReport {
       crrList.add(new CorrelationRollingResult(Arrays.asList(correlationSet.getSecuritycurrencyList().get(sc1),
           correlationSet.getSecuritycurrencyList().get(sc2)), dates, correlation));
     }
-//    checkWithA(0, correlationSet, realMatrix);
-//    checkWithA(realMatrix.getRowDimension() - correlationSet.getRolling() - 2, correlationSet, realMatrix);
-//    checkWithA(realMatrix.getRowDimension() - correlationSet.getRolling() - 1, correlationSet, realMatrix);
-//    checkWithA(realMatrix.getRowDimension() - correlationSet.getRolling(), correlationSet, realMatrix);
     return crrList;
   }
 
-  private void checkWithA(int startindex, CorrelationSet correlationSet, RealMatrix realMatrix) {
-    RealMatrix rc = realMatrix.getSubMatrix(startindex, startindex + correlationSet.getRolling() - 1, 0, 1);
-    PearsonsCorrelation corrObj = new PearsonsCorrelation(rc);
-    RealMatrix result = corrObj.getCorrelationMatrix();
-    System.out.println(result.getRow(0)[1]);
-    System.out.println(result.getRow(1)[0]);
-  }
-
+  
   private LocalDate substractRollingPeriodFromDateFrom(LocalDate dateFrom, SamplingPeriodType samplingPeriodType,
       Byte rolling) {
     switch (samplingPeriodType) {
