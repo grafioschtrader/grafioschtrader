@@ -60,6 +60,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
     if (this.callParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
     }
+    setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): CorrelationSet {

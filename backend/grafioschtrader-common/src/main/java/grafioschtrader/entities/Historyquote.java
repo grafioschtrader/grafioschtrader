@@ -30,10 +30,6 @@ import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.validation.AfterEqual;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- *
- * @author Hugo Graf
- */
 @Entity
 @Table(name = Historyquote.TABNAME)
 @Schema(description = "Contains a single qoute for end of day data")

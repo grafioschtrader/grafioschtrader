@@ -29,10 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- *
- * @author Hugo Graf
- */
+
 @Schema(description = "A watchlist is a personal compilation of instruments with price performance and other details.")
 @Entity
 @Table(name = Watchlist.TABNAME)
