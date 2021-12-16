@@ -20,6 +20,7 @@ import {AppSettings} from '../../shared/app.settings';
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
+               responsiveLayout="scroll"
                [dataKey]="entityKeyName" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{entityNameUpper | translate}}</h4>

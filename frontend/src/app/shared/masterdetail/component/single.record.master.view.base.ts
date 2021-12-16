@@ -103,8 +103,9 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
       disabled: !this.canCreate()
     });
     menuItems.push({
-      label: 'EDIT_RECORD|' + entityName + AppSettings.DIALOG_MENU_SUFFIX, disabled: !this.selectedEntity,
-      command: (event) => this.handleEditEntityOpenDialog(this.selectedEntity)
+      label: 'EDIT_RECORD|' + entityName + AppSettings.DIALOG_MENU_SUFFIX,
+      command: (event) => this.handleEditEntityOpenDialog(this.selectedEntity),
+      disabled: !this.selectedEntity
     });
     menuItems.push({
       label: 'DELETE_RECORD|' + entityName, disabled: !this.selectedEntity || !this.childEntityList

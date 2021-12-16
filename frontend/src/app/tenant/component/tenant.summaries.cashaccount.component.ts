@@ -25,8 +25,8 @@ import {FilterService, MenuItem, SelectItem} from 'primeng/api';
 
 
 /**
- * Shows all cash account of a tenants portfolios, it also includes the value of securities. It is grouped by currencies or
- * portfolios.
+ * Shows all cash account of a tenants portfolios, it also includes the value of securities. It is grouped by
+ * urrencies or portfolios.
  */
 @Component({
   templateUrl: '../view/tenant.summaries.cashaccount.table.html'

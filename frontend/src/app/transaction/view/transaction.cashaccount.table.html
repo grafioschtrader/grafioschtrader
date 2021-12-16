@@ -5,8 +5,7 @@
              (sortFunction)="customSort($event)" [(selection)]="pageFirstRowSelectedRow.selectedRow"
              [columns]="fields" [customSort]="true"
              [first]="pageFirstRowSelectedRow.topPageRow" [multiSortMeta]="multiSortMeta" [paginator]="true"
-             [rowsPerPageOptions]="[20,30,50,100]" responsiveLayout="scroll"
-             [rows]="50"
+             [rowsPerPageOptions]="[20,30,50,100]" responsiveLayout="scroll" [rows]="50"
              [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single" sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
       <ng-template pTemplate="header" let-fields>
@@ -23,10 +22,12 @@
               <ng-container [ngSwitch]="field.dataType">
 
                 <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
-                              ? field.dataType : ''" [field]="field.field" [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'"
+                              ? field.dataType : ''" [field]="field.field" [matchModeOptions]="customMatchModeOptions"
+                                [matchMode]="'gtNoFilter'"
                                 [showOperator]="true" display="menu">
                   <ng-template let-filter="filterCallback" let-value pTemplate="filter">
-                    <p-calendar #cal (onInput)="filter(cal.value)" (onSelect)="filter($event)" [dateFormat]="baseLocale.dateFormat"
+                    <p-calendar #cal (onInput)="filter(cal.value)" (onSelect)="filter($event)"
+                                [dateFormat]="baseLocale.dateFormat"
                                 [ngModel]="value">
                     </p-calendar>
                   </ng-template>
@@ -47,7 +48,9 @@
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
 
-            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''" [style.max-width.px]="field.width"
+            <td *ngIf="field.visible"
+                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'greenRed'">
