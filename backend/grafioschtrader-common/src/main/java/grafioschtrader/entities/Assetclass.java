@@ -34,18 +34,17 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.Language;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.validation.ValidMultilanguage;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- *
- *
- *
- * @author Hugo Graf
- * @rights Every property can be updated by authorized user.
- */
+
 @Entity
 @Table(name = Assetclass.TABNAME)
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Schema(description = """
+Each security must have an asset class. The selection of an asset class has a significant impact on the characteristics
+of an instrument when it is recorded. It also influences the reporting and the type of transaction that can be applied to an instrument.
+""")
 public class Assetclass extends Auditable implements Serializable {
 
   public static final String TABNAME = "assetclass";
