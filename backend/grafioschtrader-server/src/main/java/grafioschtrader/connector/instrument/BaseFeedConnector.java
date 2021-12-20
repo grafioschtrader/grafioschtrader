@@ -198,8 +198,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   @Override
   public <S extends Securitycurrency<S>> void checkAndClearSecuritycurrencyUrlExtend(
       Securitycurrency<S> securitycurrency, FeedSupport feedSupport) {
-    SpecialInvestmentInstruments specInst = securitycurrency instanceof Security
-        ? ((Security) securitycurrency).getAssetClass().getSpecialInvestmentInstrument()
+    SpecialInvestmentInstruments specInst = securitycurrency instanceof Security security
+        ? security.getAssetClass().getSpecialInvestmentInstrument()
         : null;
     AssetclassType assetclassType = specInst == null ? null
         : ((Security) securitycurrency).getAssetClass().getCategoryType();

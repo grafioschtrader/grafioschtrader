@@ -129,8 +129,8 @@ public class SwissquoteFeedConnector extends BaseFeedConnector {
             securitycurrency.setSPrevClose(NumberFormat.getNumberInstance(SQ_LOCALE).parse(numberString).doubleValue());
             break;
           case "Volume":
-            if (securitycurrency instanceof Security) {
-              ((Security) securitycurrency)
+            if (securitycurrency instanceof Security security) {
+              security
                   .setSVolume(NumberFormat.getNumberInstance(SQ_LOCALE).parse(numberString).longValue());
             }
             break;
