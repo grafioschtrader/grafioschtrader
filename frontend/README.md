@@ -10,5 +10,5 @@ For deployment the [Angular CLI](//cli.angular.io/) is required
 ```
 # Directory frontend
 sudo npm install -g @angular/cli
-ng build --prod --base-href /grafioschtrader/ --deploy-url /grafioschtrader/
+ng build --prod --base-href /grafioschtrader/ 
 ```
