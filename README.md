@@ -1,5 +1,5 @@
 
-## Achtung! ##
+## Attention!##
 **With version 0.22.1 we have changed from Java 11 to Java 17. For the update of GT, please switch to Java 17 before.** 
 
 ## Preface
