@@ -9,7 +9,7 @@ cd $builddir
 cp grafioschtrader/backend/grafioschtrader-server/src/main/resources/application.properties .
 cd grafioschtrader
 git reset --hard origin/master
-git pull
+git pull --rebase
 cd $builddir
 if [ -f application.properties ]; then
         mv grafioschtrader/backend/grafioschtrader-server/src/main/resources/application.properties application.properties.new
