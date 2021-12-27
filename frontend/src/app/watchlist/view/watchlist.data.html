@@ -23,8 +23,8 @@
               [pTooltip]="field.headerTooltipTranslated"
               [style.max-width.px]="field.width"
               [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{field.headerTranslated}}
-          <p-sortIcon [field]="field.field"></p-sortIcon>
+            {{field.headerTranslated}}
+            <p-sortIcon [field]="field.field"></p-sortIcon>
           </th>
         </ng-container>
       </tr>
@@ -140,4 +140,6 @@
                        [securityCallParam]="securityCallParam"
                        [visibleDialog]="visibleEditSecurityDerivedDialog">
 </security-derived-edit>
+
+
 

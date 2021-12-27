@@ -203,6 +203,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   }
 
   addExistingSecurity(event) {
+    this.tenantLimits[0].actual = this.securitycurrencyList.length;
     this.visibleAddInstrumentDialog = true;
   }
 
@@ -287,6 +288,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
         && processedActionData.action === ProcessedAction.UPDATED) {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ADDED_SECURITY_TO_WATCHLIST');
         this.childToParent.refreshData(processedActionData.data);
+        this.tenantLimits[0].actual = this.securitycurrencyList.length;
       }
     });
   }

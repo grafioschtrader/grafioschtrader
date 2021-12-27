@@ -66,6 +66,13 @@ label {
   width: 100%;
 }
 
+
+
+.data-container-full {
+  height: 100%;
+}
+
+
 .p-dialog-buttonpane button, .p-dialog-buttonpane button {
   margin: 3px;
 }
@@ -543,8 +550,10 @@ Classes that Bootstrap 4 hat but Hootstrap 3
   float: right;
 }
 
+
 .text-right {
   text-align: right !important;
+  justify-content: end;
 }
 
 .ml-1 {
