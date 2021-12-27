@@ -1,7 +1,7 @@
 {
   "name": "grafioschtrader-client",
   "version": "0.22.1",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
@@ -39,7 +39,7 @@
     "plotly.js-locales": "^1.58.4",
     "primeflex": "^3.1.0",
     "primeicons": "^5.0.0",
-    "primeng": "13.0.1",
+    "primeng": "^13.0.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
     "split.js": "^1.6.2",

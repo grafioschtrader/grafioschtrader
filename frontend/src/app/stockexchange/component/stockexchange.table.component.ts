@@ -20,21 +20,20 @@ import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
+    <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple"
-               responsiveLayout="scroll"
+               responsiveLayout="scroll" scrollHeight="flex" [scrollable]="true"
                [multiSortMeta]="multiSortMeta"
-               [dataKey]="entityKeyName" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               [dataKey]="entityKeyName" styleClass="p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
-            <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            <th style="max-width:24px"></th>
+            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.min-width.px]="field.width">
               {{field.headerTranslated}}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -42,13 +41,12 @@ import {AppSettings} from '../../shared/app.settings';
         </ng-template>
         <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td>
+            <td style="max-width:24px">
               <a *ngIf="!el.noMarketValue" href="#" [pRowToggler]="el">
                 <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
               </a>
             </td>
-            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            <td *ngFor="let field of fields" [style.min-width.px]="field.width">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'owner'">
                   <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>

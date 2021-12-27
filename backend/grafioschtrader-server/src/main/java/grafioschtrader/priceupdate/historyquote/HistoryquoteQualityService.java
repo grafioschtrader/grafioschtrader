@@ -140,7 +140,7 @@ public class HistoryquoteQualityService {
     double startPrice = 0;
     if (firstLastPrice[0] != null && firstLastPrice[1] != null) {
       // Price before and after gap is available
-      slope = (firstLastPrice[0] - firstLastPrice[1]) / (missingDays.size() + 1);
+      slope = (firstLastPrice[1] - firstLastPrice[0]) / (missingDays.size() + 1);
       startPrice = firstLastPrice[0];
     } else if (firstLastPrice[0] != null && firstLastPrice[1] == null
         || firstLastPrice[0] == null && firstLastPrice[1] != null) {

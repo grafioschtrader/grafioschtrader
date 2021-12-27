@@ -349,6 +349,7 @@
   "MARGIN_CLOSE_GAIN": "Gewinn offene Margin Position",
   "MARGIN_FINANCE_COST": "Finazierungskosten",
   "MAX": "Maximaler Gewinn %",
+  "MAX_CORRELATION_INSTRUMENTS": "Instrumente von maximal",
   "MAX_DATE": "Jüngste vorhandene Kursdaten",
   "MAX_LIMIT": "Maximal {{limit}} {{i18nEntity}} erlaubt!",
   "MAX_SECURITIES_CURRENCIES": "Positionen in allen Watchlist von maximal",

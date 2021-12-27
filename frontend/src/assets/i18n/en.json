@@ -348,6 +348,7 @@
   "MARGIN_CLOSE_GAIN": "Profit open margin position",
   "MARGIN_FINANCE_COST": "Finance cost",
   "MAX": "Maximum profit %",
+  "MAX_CORRELATION_INSTRUMENTS": "Instruments from a maximum of",
   "MAX_DATE": "Oldest available price data",
   "MAX_LIMIT": "Maximum {{limit}} {{i18nEntity}} allowed!",
   "MAX_SECURITIES_CURRENCIES": "Positions in all watchlists of maximum",

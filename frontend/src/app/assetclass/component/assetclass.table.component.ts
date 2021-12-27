@@ -23,7 +23,7 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
+    <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
