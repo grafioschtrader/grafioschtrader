@@ -29,24 +29,26 @@ Some propertis are encrypted with **Jasypt**. Those properties values starts wit
 # In directory backend/grafioschtrader-server
 mvn jasypt:encrypt -Djasypt.encryptor.password="YOUR_Jasypt_PASSWORD"
 ```
-All properties values with "DEC(...)" are now encrypted with "ENC(...).
+All properties values with "DEC(...)" are now encrypted with "ENC(...). **If you follow the installation path of Wiki, then go back to the main path.**
 
-### Build executable backend
+### Build and execute without scripts
+GT provides some shell scripts which make the following manual creation of the backend unnecessary. We recommend you to use these shell scripts.
+#### Build executable backend
 Everytime the **application.properties** are changed the executable must be rebuild:
 ```
 # In directory backend
 mvn package -Dmaven.test.skip=true
 ```
-### Start the backend
-Since we use **Jasypt**, the enviroment variable **JASYPT_ENCRYPTOR_PASSWORD** must be set before the backend of GT can launched properly.  The first time the start of GT may take longer since the database is initialized.
+#### Start the backend
+Since we use **Jasypt**, the enviroment variable **JASYPT_ENCRYPTOR_PASSWORD** must be set before the backend of GT can launched properly. The first time the start of GT may take longer since the database is initialized.
 ```
 # On Windows SET JASYPT_ENCRYPTOR_PASSWORD=YOUR_Jasypt_PASSWORD 
 # On Linux export JASYPT_ENCRYPTOR_PASSWORD=YOUR_Jasypt_PASSWORD
 # In directory backend
-java -jar ./grafioschtrader-server/target/grafioschtrader-server-0.10.0.jar
+java -jar ./grafioschtrader-server/target/grafioschtrader-server-0.XX.X.jar
 ```
 ### Optimize mariadb
-MariaDB deserves a lot of memory resources to operate GT well. Please adjust the following system variables of InnoDB to your system needs.
+MariaDB deserves a lot of memory resources to operate GT well. Please adjust the following system variables of InnoDB to your system needs. The following settings are rather minimal:
 ```
 innodb_buffer_pool_size=1GB
 tmp_table_size=128MB
