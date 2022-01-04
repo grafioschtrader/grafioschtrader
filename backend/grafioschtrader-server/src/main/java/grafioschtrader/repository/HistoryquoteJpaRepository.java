@@ -14,6 +14,7 @@ import grafioschtrader.dto.HistoryquoteDateClose;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
+import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
@@ -36,6 +37,10 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<Historyquote> findByIdSecuritycurrencyAndDateBetweenOrderByDate(Integer idSecuritycurrency, Date fromDate,
       Date toDate);
 
+  List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency, Date date,
+      Pageable pageable);
+
+  void removeByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
   /**
    * For user interface, do not show history quotes which fills day holes.
    *
@@ -48,25 +53,19 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND DAYOFWEEK(h.date) IN (1, 6, 7) ORDER BY h.date DESC", nativeQuery = false)
   List<Historyquote> findByIdFridayAndWeekend(Integer idSecuritycurrency);
 
-  @Query(value = "SELECT new grafioschtrader.dto.HistoryquoteDateClose(h.date, h.close) FROM Historyquote h "
-      + "WHERE h.idSecuritycurrency = ?1 AND h.createType != 1 ORDER BY h.date ASC", nativeQuery = false)
-  List<HistoryquoteDateClose> findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(
-      Integer idSecuritycurrency);
-
   @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.createType != 1 ORDER BY h.date DESC", nativeQuery = false)
   List<Historyquote> findByIdSecuritycurrencyAndCreateTypeFalseOrderByDateDesc(Integer idSecuritycurrency);
-
-  List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency, Date date,
-      Pageable pageable);
 
   @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.date = ?2 AND h.createType = 1", nativeQuery = false)
   Historyquote findByIdSecuritycurrencyAndDateAndCreateTypeFilled(Integer idSecuritycurrency, Date date);
 
-  void removeByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
-
   @Query(value = "DELETE FROM historyquote WHERE id_securitycurrency = ?1", nativeQuery = true)
   void removeAllSecurityHistoryquote(Integer idSecuritycurrency);
 
+  @Query(nativeQuery = false)
+  List<HistoryquoteDateClose> findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(
+      Integer idSecuritycurrency);
+  
   @Query(nativeQuery = true)
   IHistoryquoteQuality getMissingsDaysCountByIdSecurity(Integer idSecuritycurrency);
 
@@ -86,6 +85,9 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<Historyquote> getHistoryquoteFromDerivedLinksByIdSecurityAndDate(Integer idSecurity, Date fromDate, Date toDate,
       int requiredDayCount);
 
+  @Query(nativeQuery = true)
+  List<IMinMaxDateHistoryquote> getMinMaxDateByIdSecuritycurrencyIds(List<Integer> idsSecuritycurrency);
+  
   /**
    * Return of historical prices based on the trading calendar of the security.
    * That means a closed price can be null.

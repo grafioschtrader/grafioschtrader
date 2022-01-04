@@ -9,6 +9,7 @@ import {
   CorrelationResult,
   CorrelationRollingResult,
   CorrelationSet,
+  MinMaxDateHistoryquote,
   SamplingPeriodType
 } from '../../entities/correlation.set';
 import {DataType} from '../../dynamic-form/models/data.type';
@@ -29,6 +30,7 @@ import {Router} from '@angular/router';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import * as moment from 'moment';
 import {BusinessHelper} from '../../shared/helper/business.helper';
+import {AppHelper} from '../../shared/helper/app.helper';
 
 /**
  * Component to add and remove instruments to the correlation matrix. It supports also creation of line graph
@@ -106,6 +108,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   private readonly nameHeader = 'name';
   private readonly tickerSymbol = 'tickerSymbol';
+  private readonly minDate = 'minDate';
   private correlationResult: CorrelationResult;
   private correlationSet: CorrelationSet;
   private subscriptionInstrumentAdded: Subscription;
@@ -136,6 +139,9 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       ? (<Security>sc)[this.tickerSymbol] : sc.name) === columnHeader);
   }
 
+  /**
+   * Called from the parent component
+   */
   parentSelectionChanged(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
     this.createDynamicTableDefinition(correlationSet, correlationResult);
     this.readListLimitOnce(correlationSet);
@@ -223,9 +229,19 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   getCorrelation(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
     if (this.correlationResult) {
-      const ci: CorrelationInstrument = this.correlationResult.correlationInstruments.find(correlationResult =>
-        correlationResult.idSecuritycurrency === dataobject.idSecuritycurrency);
+      const ci: CorrelationInstrument = this.correlationResult.correlationInstruments.find(cIn =>
+        cIn.idSecuritycurrency === dataobject.idSecuritycurrency);
       return ci ? ci.correlations[field.userValue] : null;
+    } else {
+      return null;
+    }
+  }
+
+  getMinMaxDate(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
+    if (this.correlationResult) {
+      const mmdh: MinMaxDateHistoryquote = this.correlationResult.mmdhList.find(mmdHist =>
+        mmdHist.idSecuritycurrency === dataobject.idSecuritycurrency);
+      return AppHelper.getValueByPathWithField(this.gps, this.translateService, mmdh, field, field.field);
     } else {
       return null;
     }
@@ -259,14 +275,20 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.addColumnFeqH(DataType.String, 'currency', true, false);
 
     if (correlationSet) {
-      this.addCorrelationDefinition(correlationSet);
+      if (correlationResult.mmdhList.length === 0) {
+        this.addTickerAndCorrelationColumnDefinition(correlationSet);
+      } else {
+        this.addMinMaxColumnDefinition();
+      }
+      this.securitycurrencyList = correlationSet.securitycurrencyList;
+      this.correlationSet = correlationSet;
     } else {
       this.securitycurrencyList = [];
     }
     this.translateHeadersAndColumns();
   }
 
-  private addCorrelationDefinition(correlationSet: CorrelationSet): void {
+  private addTickerAndCorrelationColumnDefinition(correlationSet: CorrelationSet): void {
     this.addColumnFeqH(DataType.String, this.tickerSymbol, true, false);
     let i = 0;
     correlationSet.securitycurrencyList.forEach(sc => {
@@ -278,8 +300,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       this.addColumnFeqH(DataType.NumericShowZero, label,
         true, false, {fieldValueFN: this.getCorrelation.bind(this), userValue: i++});
     });
-    this.securitycurrencyList = correlationSet.securitycurrencyList;
-    this.correlationSet = correlationSet;
+  }
+
+  private addMinMaxColumnDefinition(): void {
+    this.addColumnFeqH(DataType.DateString, this.minDate, true, false, {fieldValueFN: this.getMinMaxDate.bind(this)});
+    this.addColumnFeqH(DataType.DateString, 'maxDate', true, false, {fieldValueFN: this.getMinMaxDate.bind(this)});
   }
 
   private addInstrumentsToCorrelationSet(): void {

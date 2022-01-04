@@ -23,7 +23,7 @@ public interface AssetclassJpaRepository
     extends JpaRepository<Assetclass, Integer>, AssetclassJpaRepositoryCustom, UpdateCreateJpaRepository<Assetclass> {
 
   @Query("SELECT DISTINCT(a) FROM Watchlist w JOIN w.securitycurrencyList s JOIN s.assetClass a WHERE w.idTenant = ?1 "
-      + "AND w.idWatchlist = ?2 AND a.specialInvestmentInstrument != 4")
+      + "AND w.idWatchlist = ?2 AND a.specialInvestmentInstrument NOT IN (4,10)")
   List<Assetclass> getInvestableAssetclassesByWatchlist(Integer idTenant, Integer idWatchlist);
 
   @Query(value = "SELECT a.*, s.* FROM assetclass a, multilinguestrings s "

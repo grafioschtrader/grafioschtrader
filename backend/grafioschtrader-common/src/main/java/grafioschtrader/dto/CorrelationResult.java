@@ -1,19 +1,29 @@
 package grafioschtrader.dto;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "The calculated result of correlation set")
 public class CorrelationResult {
 
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
-  public LocalDate firstAvailableDate;
+  @Schema(description = "Oldest date which all instruments have a closing price.")
+  public final LocalDate firstAvailableDate;
+  
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
-  public LocalDate lastAvailableDate;
+  @Schema(description = "Latest date which all instruments have a closing price.")
+  public final LocalDate lastAvailableDate;
+  
+  @Schema(description = "The instruments of this correlation set.")
   public CorrelationInstrument correlationInstruments[];
+  public List<MinMaxDateHistoryquote> mmdhList = new ArrayList<>(); 
 
   public CorrelationResult(LocalDate firstAvailableDate, LocalDate lastAvailableDate) {
     this.firstAvailableDate = firstAvailableDate;
@@ -21,14 +31,9 @@ public class CorrelationResult {
   }
 
   public static class CorrelationInstrument {
-    public Integer idSecuritycurrency;
-    public double correlations[];
-    public double annualizedReturn;
-    public String name;
-    public double standardDeviationDay;
-    public double standardDeviationMonth;
-    public double standardDeviationYear;
-    public double maxPercentageChange;
+    public final Integer idSecuritycurrency;
+    public final double correlations[];
+    
 
     public CorrelationInstrument(Integer idSecuritycurrency, double[] correlations) {
       this.idSecuritycurrency = idSecuritycurrency;
@@ -37,5 +42,20 @@ public class CorrelationResult {
         this.correlations[i] = DataHelper.round(correlations[i], 3);
       }
     }
+  }
+  
+  public static class MinMaxDateHistoryquote {
+    public final Integer idSecuritycurrency;
+    @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+    public final LocalDate minDate;
+    @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+    public final LocalDate maxDate;
+    
+    public MinMaxDateHistoryquote(Integer idSecuritycurrency, LocalDate minDate, LocalDate maxDate) {
+      this.idSecuritycurrency = idSecuritycurrency;
+      this.minDate = minDate;
+      this.maxDate = maxDate;
+    }
+    
   }
 }

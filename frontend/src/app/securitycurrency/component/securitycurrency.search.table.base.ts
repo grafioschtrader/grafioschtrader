@@ -23,14 +23,17 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
               gps: GlobalparameterService) {
     super(filterService, usersettingsService, translateService, gps);
 
+    this.addFieldDefinition();
+    this.prepareTableAndTranslate();
+  }
+
+  protected addFieldDefinition(): void {
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.String, 'isin', true, false);
     this.addColumnFeqH(DataType.String, 'tickerSymbol', true, false);
     this.addColumn(DataType.String, 'assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
       {translateValues: TranslateValue.NORMAL, width: 60});
     this.addColumnFeqH(DataType.String, 'currency', true, false);
-
-    this.prepareTableAndTranslate();
   }
 
   transformCurrencypairToCurrencypairWatchlist(currencypairs: Currencypair[]): void {

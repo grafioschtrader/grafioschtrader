@@ -413,8 +413,8 @@ public class WatchlistReport {
               securityPositionSummary.reCalculateOpenPosition = true;
               securityCalcService.createHypotheticalSellTransaction(securityPositionSummary, lastPrice,
                   securitysplitMap, dateCurrencyMap, null);
-              securitycurrencyPosition.valueSecurity = securityPositionSummary.valueSecurity;
-              securitycurrencyPosition.units = securityPositionSummary.units;
+              securitycurrencyPosition.valueSecurity = securityPositionSummary.getValueSecurity();
+              securitycurrencyPosition.units = securityPositionSummary.getUnits();
               securitycurrencyPosition.positionGainLossPercentage = securityPositionSummary
                   .getPositionGainLossPercentage();
             }
@@ -445,7 +445,6 @@ public class WatchlistReport {
 
     });
     return securityPositionList;
-
   }
 
   private <S extends Securitycurrency<S>> void setDailyChangeByUsingHistoryquote(

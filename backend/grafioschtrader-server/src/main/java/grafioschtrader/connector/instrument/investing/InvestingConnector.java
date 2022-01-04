@@ -1,5 +1,6 @@
 package grafioschtrader.connector.instrument.investing;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -84,10 +85,8 @@ public class InvestingConnector extends BaseFeedConnector {
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-
     final Connection investingConnection = Jsoup.connect(getCurrencypairIntradayDownloadLink(currencypair));
-    final Document doc = investingConnection.timeout(10000).get();
-    updateSecuritycurrency(currencypair, doc.select("#last_last").parents().first());
+    updateSecuritycurrency(currencypair, investingConnection);
   }
 
   private String getCryptoMapping(final Currencypair currencypair) {
@@ -107,15 +106,15 @@ public class InvestingConnector extends BaseFeedConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     final Connection investingConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
+    updateSecuritycurrency(security, investingConnection);
+  }
+
+  private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, final Connection investingConnection) throws IOException {
     final Document doc = investingConnection.timeout(10000).get();
     Element div = doc.select("#last_last").parents().first();
     if (div == null) {
       div = doc.select("div[class^=instrument-price_instrument-price]").first();
     }
-    updateSecuritycurrency(security, div);
-  }
-
-  private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, Element div) {
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
         .split(" ");
     securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0]));

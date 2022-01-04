@@ -62,6 +62,7 @@ class InvestingConnectorTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
+      System.out.println(currencyPair.getFromCurrency() +  "/" + currencyPair.getToCurrency() + ":" + currencyPair.getSLast()); 
       assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
     });
   }

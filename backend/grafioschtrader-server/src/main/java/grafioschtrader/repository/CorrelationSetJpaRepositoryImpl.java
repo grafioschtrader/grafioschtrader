@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -14,12 +15,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DateHelper;
 import grafioschtrader.dto.CorrelationLimits;
 import grafioschtrader.dto.CorrelationResult;
 import grafioschtrader.dto.CorrelationRollingResult;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Globalparameters;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.User;
 import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.reports.CorrelationReport;
@@ -41,6 +44,9 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
+  
+  @Autowired
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -63,7 +69,7 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   public CorrelationResult getCalculationByCorrelationSet(Integer idCorrelationSet) {
     var correlationSet = getCorrelationSetById(idCorrelationSet);
     if (correlationSet.getSecuritycurrencyList().size() >= 2) {
-      var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository);
+      var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository, historyquoteJpaRepository);
       return correlationReport.calcCorrelationForMatrix(correlationSet);
     } else {
       throw new GeneralNotTranslatedWithArgumentsException("gt.correlation.needs.twoormore", null);
@@ -74,13 +80,29 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   public SecuritycurrencyLists searchByCriteria(final Integer idCorrelationSet,
       final SecuritycurrencySearch securitycurrencySearch) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    var correlationSet = getCorrelationSetById(idCorrelationSet);
-
+    setMinMaxDateForInstrumentSelection(idCorrelationSet, securitycurrencySearch,
+        getCorrelationSetById(idCorrelationSet));
     securitycurrencySearch.setNoMarketValue(true);
     return new SecuritycurrencyLists(
         securityJpaRepository.searchBuilderWithExclusion(null, idCorrelationSet, securitycurrencySearch,
             user.getIdTenant()),
         currencypairJpaRepository.searchBuilderWithExclusion(null, idCorrelationSet, securitycurrencySearch));
+  }
+
+  private void setMinMaxDateForInstrumentSelection(final Integer idCorrelationSet,
+      final SecuritycurrencySearch securitycurrencySearch, CorrelationSet correlationSet) {
+
+    List<Security> securities = correlationSet.getSecurityList();
+    securitycurrencySearch.setMaxFromDate(DateHelper.getDateFromLocalDate(correlationSet.getDateFrom()));
+    securitycurrencySearch.setMinToDate(DateHelper.getDateFromLocalDate(correlationSet.getDateTo()));
+    if (!securities.isEmpty()) {
+      securitycurrencySearch.setMaxFromDate(
+          DateHelper.getMaxMinDate(securities.stream().map(Security::getActiveFromDate).max(Date::compareTo).get(),
+              securitycurrencySearch.getMaxFromDate(), true));
+      securitycurrencySearch.setMinToDate(
+          DateHelper.getMaxMinDate(securities.stream().map(Security::getActiveToDate).min(Date::compareTo).get(),
+              securitycurrencySearch.getMinToDate(), false));
+    }
   }
 
   @Override
@@ -138,7 +160,7 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     Set<Integer> ids = Stream.of(securityIdsPairs).flatMap(Stream::of).collect(Collectors.toSet());
     correlationSetDummy.setSecuritycurrencyList(cs.getSecuritycurrencyList().stream()
         .filter(sc -> ids.contains(sc.getIdSecuritycurrency())).collect(Collectors.toList()));
-    var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository);
+    var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository, historyquoteJpaRepository);
     return correlationReport.getRollingCorrelation(correlationSetDummy, securityIdsPairs);
   }
 

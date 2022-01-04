@@ -3,21 +3,29 @@ package grafioschtrader.reports;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
-import org.apache.commons.math3.stat.descriptive.MultivariateSummaryStatistics;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import grafioschtrader.dto.CorrelationResult;
 import grafioschtrader.dto.CorrelationResult.CorrelationInstrument;
+import grafioschtrader.dto.CorrelationResult.MinMaxDateHistoryquote;
 import grafioschtrader.dto.CorrelationRollingResult;
+import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.entities.CorrelationSet;
+import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.reports.ReportHelper.ClosePricesCurrencyClose;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.types.SamplingPeriodType;
 
 /**
@@ -28,10 +36,13 @@ public class CorrelationReport {
 
   private final JdbcTemplate jdbcTemplate;
   private final CurrencypairJpaRepository currencypairJpaRepository;
+  private final HistoryquoteJpaRepository historyquoteJpaRepository;
 
-  public CorrelationReport(JdbcTemplate jdbcTemplate, CurrencypairJpaRepository currencypairJpaRepository) {
+  public CorrelationReport(JdbcTemplate jdbcTemplate, CurrencypairJpaRepository currencypairJpaRepository,
+      HistoryquoteJpaRepository historyquoteJpaRepository) {
     this.jdbcTemplate = jdbcTemplate;
     this.currencypairJpaRepository = currencypairJpaRepository;
+    this.historyquoteJpaRepository = historyquoteJpaRepository;
   }
 
   public CorrelationResult calcCorrelationForMatrix(CorrelationSet correlationSet) {
@@ -39,6 +50,14 @@ public class CorrelationReport {
         correlationSet.getSecuritycurrencyList(), correlationSet.getSamplingPeriod(), correlationSet.getDateFrom(),
         correlationSet.getDateTo(), correlationSet.isAdjustCurrency());
 
+    if (closePrices.dateCloseTree.isEmpty()) {
+      return nonMatchingEODData(correlationSet);
+    }
+    return calcCorrelationForMatrix(correlationSet, closePrices);
+  }
+
+  private CorrelationResult calcCorrelationForMatrix(CorrelationSet correlationSet,
+      ClosePricesCurrencyClose closePrices) {
     ReportHelper.adjustCloseToSameCurrency(correlationSet.getSecuritycurrencyList(), closePrices);
     RealMatrix realMatrix = new Array2DRowRealMatrix(ReportHelper.transformToPercentageChange(closePrices.dateCloseTree,
         correlationSet.getSecuritycurrencyList().size()));
@@ -53,34 +72,28 @@ public class CorrelationReport {
       ci[i] = new CorrelationInstrument(correlationSet.getSecuritycurrencyList().get(i).getIdSecuritycurrency(),
           corr.getRow(i));
     }
-    calcMultivariateSummary(realMatrix, ci, correlationSet.getSamplingPeriod(),
-        correlationSet.getSecuritycurrencyList());
     return cr;
   }
 
-  private void calcMultivariateSummary(RealMatrix realMatrix, CorrelationInstrument[] ci,
-      SamplingPeriodType samplingPeriodType, List<Securitycurrency<?>> securitycurrencyList) {
-    var mss = new MultivariateSummaryStatistics(realMatrix.getColumnDimension(), true);
+  private CorrelationResult nonMatchingEODData(CorrelationSet correlationSet) {
+    final Comparator<IMinMaxDateHistoryquote> mmdhComparator = (h1, h2) -> h1.getIdSecuritycurrency()
+        .compareTo(h2.getIdSecuritycurrency());
+    CorrelationResult cr = new CorrelationResult(null, null);
+    List<IMinMaxDateHistoryquote> mmdhList = historyquoteJpaRepository
+        .getMinMaxDateByIdSecuritycurrencyIds(correlationSet.getSecuritycurrencyList().stream()
+            .map(Securitycurrency::getIdSecuritycurrency).collect(Collectors.toList()));
+    Map<Integer, IMinMaxDateHistoryquote> mmdhMap = mmdhList.stream()
+        .collect(Collectors.toMap(IMinMaxDateHistoryquote::getIdSecuritycurrency, Function.identity()));
 
-    for (int i = 0; i < realMatrix.getRowDimension(); i++) {
-      mss.addValue(realMatrix.getRow(i));
-    }
-
-    for (int i = 0; i < realMatrix.getColumnDimension(); i++) {
-      ci[i].name = securitycurrencyList.get(i).getName();
-      ci[i].maxPercentageChange = mss.getMax()[i];
-
-      switch (samplingPeriodType) {
-      case DAILY_RETURNS:
-        ci[i].standardDeviationDay = mss.getStandardDeviation()[i];
-        ci[i].standardDeviationMonth = mss.getStandardDeviation()[i] * Math.sqrt(21);
-        ci[i].standardDeviationYear = mss.getStandardDeviation()[i] * Math.sqrt(252);
-        break;
-      case MONTHLY_RETURNS:
-        ci[i].standardDeviationMonth = mss.getStandardDeviation()[i];
-        ci[i].standardDeviationYear = mss.getStandardDeviation()[i] * Math.sqrt(12);
+    for (Securitycurrency<?> sc : correlationSet.getSecuritycurrencyList()) {
+      IMinMaxDateHistoryquote mmdh = mmdhMap.get(sc.getIdSecuritycurrency());
+      if (mmdh != null) {
+        cr.mmdhList.add(new MinMaxDateHistoryquote(sc.getIdSecuritycurrency(), mmdh.getMinDate(), mmdh.getMaxDate()));
+      } else {
+        cr.mmdhList.add(new MinMaxDateHistoryquote(sc.getIdSecuritycurrency(), null, null));
       }
     }
+    return cr;
   }
 
   public List<CorrelationRollingResult> getRollingCorrelation(CorrelationSet correlationSet,
@@ -112,7 +125,6 @@ public class CorrelationReport {
     return crrList;
   }
 
-  
   private LocalDate substractRollingPeriodFromDateFrom(LocalDate dateFrom, SamplingPeriodType samplingPeriodType,
       Byte rolling) {
     switch (samplingPeriodType) {

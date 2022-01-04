@@ -89,7 +89,7 @@ public abstract class ReportHelper {
 
     String query = qSelect.append(qFrom).append(WHERE_WORD.endsWith(qWhere.toString()) ? "" : qWhere).append(qGroup)
         .append(" ORDER BY h0.date").toString();
-    // System.out.println(query);
+    System.out.println(query);
     return new ClosePricesCurrencyClose(getQueryDateCloseAsTreeMap(jdbcTemplate, query, securityCurrencyIds.size()),
         cr);
   }
@@ -192,6 +192,7 @@ public abstract class ReportHelper {
         }
       }
       completeCurrencyAvailableRequired(cr, currencypairJpaRepository.getPairsByFromAndToCurrency(cpairList));
+      createMissingCurrencypair(currencypairJpaRepository, cr);
     }
   }
 
@@ -206,6 +207,14 @@ public abstract class ReportHelper {
     }
   }
 
+  
+  private static void createMissingCurrencypair(CurrencypairJpaRepository currencypairJpaRepository, CurrencyRequired cr) {
+    for(CurrencyAvailableRequired car: cr.getMissingCurrencypair()) {
+      Currencypair cp = currencypairJpaRepository.createNonExistingCurrencypair(car.formCurrency, car.toCurrency, false);
+      car.adjust(cp.getIdSecuritycurrency(), cp.getFromCurrency(), cp.getToCurrency());
+    }
+  }
+  
   private static void addDateBoundry(LocalDate date, StringBuilder qWhere, String lessMore) {
     if (date != null) {
       qWhere.append(" AND h0.date " + lessMore + "= \"" + date + "\" ");
@@ -277,6 +286,11 @@ public abstract class ReportHelper {
     public boolean needCurrencyAdjustment() {
       return adjustCurrency != null;
     }
+    
+    public List<CurrencyAvailableRequired> getMissingCurrencypair() {
+      return carList.stream().filter(car -> car.idSecuritycurrency.equals(-1)).collect(Collectors.toList());
+    }
+    
   }
 
   public static class ClosePricesCurrencyClose {

@@ -26,6 +26,18 @@ public class DateHelper {
     return format.parse(GlobalConstants.OLDEST_TRADING_DAY);
   }
 
+  public static Date getMaxMinDate(Date d1, Date d2, boolean max) {
+    if (d1 == null && d2 != null) {
+      return d2;
+    } else if (d2 == null) {
+      return d1;
+    } else if (max) {
+      return d1.compareTo(d2) > 0 ? d1 : d2;
+    } else {
+      return d1.compareTo(d2) < 0 ? d1 : d2;
+    }
+  }
+
   public static long getDateDiff(Date from, Date to, TimeUnit timeUnit) {
     long diffInMillies = to.getTime() - from.getTime();
     return timeUnit.convert(diffInMillies, TimeUnit.MILLISECONDS);
@@ -135,7 +147,7 @@ public class DateHelper {
   }
 
   public static Date getDateFromLocalDate(LocalDate localDate) {
-    return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    return localDate == null ? null : Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
   public static long LocalDateToEpocheSeconds(LocalDate localDate) {

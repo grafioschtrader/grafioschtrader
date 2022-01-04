@@ -7,6 +7,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {CorrelationSet} from '../../entities/correlation.set';
+import {DataType} from '../../dynamic-form/models/data.type';
 
 /**
  * Table part of the search dialog, which is used to select instruments for the correlation set.
@@ -24,6 +25,12 @@ export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTabl
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(null, dataChangedService, correlationSetService, filterService, translateService, gps, usersettingsService);
+  }
+
+  protected override addFieldDefinition(): void {
+    super.addFieldDefinition();
+    this.insertColumnFeqH(1, DataType.DateString, 'activeFromDate', true, false);
+    this.insertColumnFeqH(2, DataType.DateString, 'activeToDate', true, false);
   }
 
 }

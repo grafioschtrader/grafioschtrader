@@ -2,12 +2,14 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -106,8 +108,8 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   public CorrelationSet() {
   }
 
-  public CorrelationSet(Integer idTenant, String name, Integer idCorrelationSet, LocalDate dateFrom, LocalDate dateTo, byte samplingPeriod,
-      Byte rolling, boolean adjustCurrency) {
+  public CorrelationSet(Integer idTenant, String name, Integer idCorrelationSet, LocalDate dateFrom, LocalDate dateTo,
+      byte samplingPeriod, Byte rolling, boolean adjustCurrency) {
     this.name = name;
     this.idTenant = idTenant;
     this.idCorrelationSet = idCorrelationSet;
@@ -194,6 +196,13 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
     return securitycurrencyList;
   }
 
+  @JsonIgnore
+  public List<Security> getSecurityList() {
+    return securitycurrencyList == null ? Collections.emptyList()
+        : securitycurrencyList.stream().filter(sc -> sc instanceof Security).map(Security.class::cast)
+            .collect(Collectors.toList());
+  }
+
   public void setSecuritycurrencyList(List<Securitycurrency<?>> securitycurrencyList) {
     this.securitycurrencyList = securitycurrencyList;
   }
@@ -253,7 +262,7 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   }
 
   private void validateFromToDateMinPeriods(LocalDate minDateTo) {
-    
+
     if ((dateTo != null && dateTo.isBefore(minDateTo)) || LocalDate.now().isBefore(minDateTo)) {
       throw new DataViolationException("date.to", "gt.dateto.min.period",
           new Object[] { GlobalConstants.REQUIRED_MIN_PERIODS });

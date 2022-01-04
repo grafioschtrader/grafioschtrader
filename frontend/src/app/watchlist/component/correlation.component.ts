@@ -39,6 +39,7 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
       <br/>
       <p
         *ngIf="timePeriod">{{'TIME_PERIOD' | translate}} {{timePeriod}} {{'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate}}</p>
+      <p *ngIf="nonOverlappingDates" style="color:tomato;">{{'NON_OVERLAPPING_DATES' | translate}}</p>
       <correlation-table [childToParent]="this">
       </correlation-table>
     </div>
@@ -56,6 +57,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
   private static readonly MAIN_FIELD = 'idCorrelationSet';
 
   timePeriod: string = null;
+  nonOverlappingDates = false;
   @ViewChild(CorrelationTableComponent, {static: true}) correlationTableComponent: CorrelationTableComponent;
   private readonly tickerSymbol = 'tickerSymbol';
   private correlationLimit: CorrelationLimit;
@@ -94,7 +96,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
   refreshData(correlationSet: CorrelationSet): void {
     if (correlationSet) {
       this.selectedEntity.securitycurrencyList = correlationSet.securitycurrencyList;
-      this.setChildDataAndCalculateWhenPossible(correlationSet, !correlationSet);
+      this.setChildDataAndCalculateWhenPossible(correlationSet, this.nonOverlappingDates);
     } else {
       this.readData();
     }
@@ -144,6 +146,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
 
   setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet, calculate: boolean): void {
     this.timePeriod = null;
+    this.nonOverlappingDates = false;
     if (selectedEntity) {
 
       this.childEntityList = selectedEntity.securitycurrencyList;
@@ -152,9 +155,13 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
           (correlationResult: CorrelationResult) => {
             this.correlationResult = correlationResult;
             this.correlationTableComponent.parentSelectionChanged(selectedEntity, correlationResult);
-            this.timePeriod = AppHelper.getDateByFormat(this.gps, correlationResult.firstAvailableDate) +
-              ' - ' + AppHelper.getDateByFormat(this.gps, correlationResult.lastAvailableDate);
-            this.correlationTableComponent.refreshChartWhenCorrelationSetChanges();
+            if (correlationResult.firstAvailableDate) {
+              this.timePeriod = AppHelper.getDateByFormat(this.gps, correlationResult.firstAvailableDate) +
+                ' - ' + AppHelper.getDateByFormat(this.gps, correlationResult.lastAvailableDate);
+              this.correlationTableComponent.refreshChartWhenCorrelationSetChanges();
+            } else {
+              this.nonOverlappingDates = true;
+            }
           });
       } else {
         this.correlationTableComponent.parentSelectionChanged(selectedEntity, this.correlationResult);
