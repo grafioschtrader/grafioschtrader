@@ -125,6 +125,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
       }
 
       addActiveDate(securityRoot, builder, mainPredicates);
+      addFromToActiveDate(securityRoot, builder, mainPredicates);
       addAssetclassPredicate(securityRoot, builder, mainPredicates);
       addStockexchangePredicate(securityRoot, builder, mainPredicates);
 
@@ -144,6 +145,18 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
           securitycurrencySearch.getActiveDate())));
     }
   }
+  
+  private void addFromToActiveDate(final Root<Security> securityRoot, final CriteriaBuilder builder,
+      final List<Predicate> mainPredicates) {
+    if(securitycurrencySearch.getMaxFromDate() != null && securitycurrencySearch.getMinToDate() != null) {
+      mainPredicates.add(builder.and(builder.lessThanOrEqualTo(securityRoot.<Date>get(Security_.activeFromDate),
+          securitycurrencySearch.getMinToDate())));
+      mainPredicates.add(builder.and(builder.greaterThanOrEqualTo(securityRoot.<Date>get(Security_.activeToDate),
+          securitycurrencySearch.getMaxFromDate())));
+      
+    }
+  }
+  
 
   private void addAssetclassPredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {

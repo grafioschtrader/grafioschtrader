@@ -391,6 +391,7 @@
   "NICKNAME_LOCALE_CHANGE": "Spitzname und Land/Sprache ändern",
   "NICKNAME_TOOLTIP": "Wird möglicherweise für Ihre Kennung statt der internen Benutzer-ID zu anderen Benutzer genutzt",
   "NO": "Nein",
+  "NON_OVERLAPPING_DATES": "Berechnung nicht möglich, da Instrumente keine überlappende Schlusskurse haben!",
   "NOTE": "Bemerkung",
   "NOTE_REQUEST": "Bemerkung Datenänderung",
   "NO_MARKET_VALUE": "Keine Kursdaten",

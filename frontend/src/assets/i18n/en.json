@@ -390,6 +390,7 @@
   "NICKNAME_LOCALE_CHANGE": "Change Nickname and language/country",
   "NICKNAME_TOOLTIP": "May be used for your identifier instead of the internal user ID to other users",
   "NO": "no",
+  "NON_OVERLAPPING_DATES": "Calculation not possible, because instruments have no overlapping closing prices!",
   "NOTE": "Note",
   "NOTE_REQUEST": "Remark data change",
   "NO_MARKET_VALUE": "No market value",

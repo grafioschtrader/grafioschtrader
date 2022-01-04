@@ -43,26 +43,26 @@ export enum TimePeriodType {
   ANNUAL = 2
 }
 
-export class CorrelationResultSet {
-  correlationResult: CorrelationResult[];
-}
-
-export class CorrelationResult {
+export interface CorrelationResult {
   firstAvailableDate: string;
   lastAvailableDate: string;
   correlationInstruments: CorrelationInstrument[];
+  mmdhList: MinMaxDateHistoryquote[];
 }
 
-export class CorrelationRollingResult {
+export interface CorrelationRollingResult {
   securitycurrencyList: Securitycurrency[];
   dates: string[];
   correlation: number[];
 }
 
-export class CorrelationInstrument {
+export interface MinMaxDateHistoryquote {
+  idSecuritycurrency: number;
+  minDate: string;
+  maxDate: string;
+}
+
+export interface CorrelationInstrument {
   idSecuritycurrency: number;
   correlations: number[];
-  annualizedReturn: number;
-  standardDeviation: number;
-  maxPercentageChange: number;
 }

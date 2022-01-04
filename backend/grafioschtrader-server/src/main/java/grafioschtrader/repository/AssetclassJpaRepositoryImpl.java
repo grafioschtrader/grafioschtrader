@@ -51,7 +51,6 @@ public class AssetclassJpaRepositoryImpl extends BaseRepositoryImpl<Assetclass>
         .map(assetclass -> assetclass.getSubCategoryByLanguage(language)).distinct().sorted()
         .collect(Collectors.toList());
     subCategories.forEach(sb -> dropdownValues.add(new ValueKeyHtmlSelectOptions(sb, sb)));
-
     return dropdownValues;
   }
 

@@ -2,6 +2,7 @@ package grafioschtrader.reportviews.securitycurrency;
 
 import java.util.Date;
 
+import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Securitycurrency;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -40,5 +41,5 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
 
   @Schema(description = "Youngest historical data")
   public Date youngestHistoryDate;
-
+  
 }

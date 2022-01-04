@@ -66,6 +66,11 @@ export abstract class ShowRecordConfigBase {
     return columnConfig;
   }
 
+  insertColumnFeqH(index: number, dataType: DataType, field: string, visible: boolean, changeVisibility: boolean,
+                   optionalParams ?: OptionalParams): ColumnConfig {
+    return this.insertColumn(index, dataType, field, AppHelper.convertPropertyForLabelOrHeaderKey(field), visible,
+      changeVisibility, optionalParams);
+  }
 
   insertColumn(index: number, dataType: DataType, field: string, header: string, visible: boolean, changeVisibility: boolean,
                optionalParams ?: OptionalParams): ColumnConfig {
@@ -73,7 +78,6 @@ export abstract class ShowRecordConfigBase {
     this.fields = [...this.fields.slice(0, index), columnConfig, ...this.fields.slice(index)];
     return columnConfig;
   }
-
 
   /**
    * Translate table header and text in the row footer or total footer. It is done by

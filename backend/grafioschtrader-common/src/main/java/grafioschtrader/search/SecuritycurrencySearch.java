@@ -30,7 +30,7 @@ public class SecuritycurrencySearch implements Serializable {
   private String idConnectorHistory;
 
   private String idConnectorIntra;
-
+  
   @DateTimeFormat(pattern = "yyyyMMdd")
   private Date activeDate;
 
@@ -39,6 +39,13 @@ public class SecuritycurrencySearch implements Serializable {
   @JsonIgnore
   private boolean noMarketValue;
 
+  @JsonIgnore
+  private Date maxFromDate;
+  
+  @JsonIgnore
+  private Date minToDate;
+  
+  
   public String getIsin() {
     return isin;
   }
@@ -173,6 +180,25 @@ public class SecuritycurrencySearch implements Serializable {
 
   public void setNoMarketValue(boolean noMarketValue) {
     this.noMarketValue = noMarketValue;
+  }
+  
+  
+  
+
+  public Date getMaxFromDate() {
+    return maxFromDate;
+  }
+
+  public void setMaxFromDate(Date maxFromDate) {
+    this.maxFromDate = maxFromDate;
+  }
+
+  public Date getMinToDate() {
+    return minToDate;
+  }
+
+  public void setMinToDate(Date minToDate) {
+    this.minToDate = minToDate;
   }
 
   @Override
