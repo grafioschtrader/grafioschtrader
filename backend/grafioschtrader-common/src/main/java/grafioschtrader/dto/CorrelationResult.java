@@ -23,6 +23,7 @@ public class CorrelationResult {
   
   @Schema(description = "The instruments of this correlation set.")
   public CorrelationInstrument correlationInstruments[];
+  @Schema(description = "If there are no overlapping closing prices, these objects will be created.")
   public List<MinMaxDateHistoryquote> mmdhList = new ArrayList<>(); 
 
   public CorrelationResult(LocalDate firstAvailableDate, LocalDate lastAvailableDate) {
@@ -44,10 +45,15 @@ public class CorrelationResult {
     }
   }
   
+  @Schema(description = "Contains the most recent and oldest closing prices of the instruments.")
   public static class MinMaxDateHistoryquote {
     public final Integer idSecuritycurrency;
+    
+    @Schema(description = "The oldest date of the closing price.")
     @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
     public final LocalDate minDate;
+    
+    @Schema(description = "The date of the most recent closing price.")
     @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
     public final LocalDate maxDate;
     
