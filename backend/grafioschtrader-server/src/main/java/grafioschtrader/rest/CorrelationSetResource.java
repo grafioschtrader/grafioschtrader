@@ -60,6 +60,8 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Add one or more instruments to the correlation set", description = "", tags = {
+      RequestMappings.CORRELATION_SET })
   @PutMapping(value = "{idCorrelationSet}/addSecuritycurrency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CorrelationSet> addSecuritycurrenciesToWatchlist(@PathVariable final Integer idCorrelationSet,
       @RequestBody final SecuritycurrencyLists securitycurrencyLists) {
