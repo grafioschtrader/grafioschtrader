@@ -31,12 +31,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- *
- * @author Hugo Graf
- *
- *         S-OK
- */
 @RestController
 @RequestMapping(RequestMappings.CURRENCYPAIR_MAP)
 @Tag(name = Currencypair.TABNAME, description = "Controller for the currency pair")
@@ -63,9 +57,13 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairJpaRepository.findAll(), HttpStatus.OK);
   }
 
+  
+  @Operation(summary = "Return of an existing or newly created currency pair.", description = "If the currency pair does not exist yet, it will be created. Possibly helpful for transactions.", tags = {
+      Currencypair.TABNAME })
   @GetMapping(value = "/{baseCurrency}/{quoteCurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Currencypair> findOrCreateCurrencypairByFromAndToCurrency(
-      @PathVariable final String baseCurrency, @PathVariable final String quoteCurrency) {
+      @Parameter(description = "Base currency as three-letter ISO currency code", required = true) @PathVariable final String baseCurrency, 
+      @Parameter(description = "Quote currency as three-letter ISO currency code", required = true) @PathVariable final String quoteCurrency) {
     return new ResponseEntity<>(
         currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(baseCurrency, quoteCurrency, true),
         HttpStatus.OK);
@@ -94,6 +92,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairJpaRepository.getFeedConnectors(true), HttpStatus.OK);
   }
 
+  
   @GetMapping(value = "/usedCurrencypairs", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> getUsedCurrencypairs() {
     return new ResponseEntity<>(currencypairJpaRepository.getAllUsedCurrencypairs(), HttpStatus.OK);
