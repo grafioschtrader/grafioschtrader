@@ -89,7 +89,7 @@ public abstract class ReportHelper {
 
     String query = qSelect.append(qFrom).append(WHERE_WORD.endsWith(qWhere.toString()) ? "" : qWhere).append(qGroup)
         .append(" ORDER BY h0.date").toString();
-    System.out.println(query);
+   // System.out.println(query);
     return new ClosePricesCurrencyClose(getQueryDateCloseAsTreeMap(jdbcTemplate, query, securityCurrencyIds.size()),
         cr);
   }

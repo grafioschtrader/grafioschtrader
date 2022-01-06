@@ -571,7 +571,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private loadAndShowIndicatorData(taIndicators: string, iDef: IndicatorDefinition): void {
-    const dataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators)
+    const dataModel: string = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators)
       || this.taFormDefinitions[taIndicators].defaultDataModel;
     this.indicatorDefinitions.idSecuritycurrency = this.loadedData[0].idSecuritycurrency;
     this.historyquoteService.getTaWithShortMediumLongInputPeriod(taIndicators, this.indicatorDefinitions.idSecuritycurrency,

@@ -66,13 +66,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.5.11</version>
-		</dependency>
-
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -113,6 +107,19 @@
 			<artifactId>pdfbox</artifactId>
 			<version>2.0.25</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.6.3</version>
+		</dependency>
+		
+		 <dependency>
+      		<groupId>org.springdoc</groupId>
+      		<artifactId>springdoc-openapi-javadoc</artifactId>
+      		<version>1.6.3</version>
+   		</dependency>
+		
 <!-- 		
 		<dependency>
     		<groupId>org.hibernate</groupId>

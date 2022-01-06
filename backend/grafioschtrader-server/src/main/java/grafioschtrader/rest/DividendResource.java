@@ -23,7 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class DividendResource {
 
   @Autowired
-  DividendJpaRepository dividendJpaRepository;
+  private DividendJpaRepository dividendJpaRepository;
 
   @Operation(summary = "Returns all dividends of a security which is identified by ID", description = "", tags = {
       Dividend.TABNAME })

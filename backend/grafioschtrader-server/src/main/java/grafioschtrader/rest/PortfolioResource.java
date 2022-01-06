@@ -101,15 +101,19 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
         new GroupCurrency(), untilDate), HttpStatus.OK);
   }
 
+  @Operation(summary = "Returns a summary of dividends and interest grouped by year", description = "As a detail it contains the dividends per year and instrument", tags = {
+      Portfolio.TABNAME })
   @GetMapping(value = "/dividends", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityDividendsGrandTotal> getDividenInterestByTenant(
-      @RequestParam() final List<Integer> idsSecurityaccount, @RequestParam() final List<Integer> idsCashaccount) {
-
+      @Parameter(description = "List of security accounts Ids", required = true) @RequestParam() final List<Integer> idsSecurityaccount, 
+      @Parameter(description = "List of cash accounts Ids", required = true) @RequestParam() final List<Integer> idsCashaccount) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(securityDividendsReport.getSecurityDividendsGrandTotalByTenant(user.getIdTenant(),
         idsSecurityaccount, idsCashaccount), HttpStatus.OK);
   }
 
+  @Operation(summary = "Return of transaction costs including transaction tax per trading platform.", description = "In detail, the costs of each transaction are included. ", tags = {
+      Portfolio.TABNAME })
   @GetMapping(value = "/transactioncost", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TransactionCostGrandSummary> getTransactionCostGrandSummaryByTenant() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
