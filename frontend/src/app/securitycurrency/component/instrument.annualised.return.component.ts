@@ -7,6 +7,9 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 
+/**
+ * Shows the annualised return for an instrument.
+ */
 @Component({
   selector: 'instrument-annualised-return-table',
   templateUrl: '../view/instrument.statistic.table.html'

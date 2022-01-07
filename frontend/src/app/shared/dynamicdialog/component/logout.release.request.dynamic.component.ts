@@ -20,7 +20,7 @@ import {AppSettings} from '../../app.settings';
   template: `
       {{'RESET_USER_MISUSED_QUESTiON' | translate}}
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>`
 })
 export class LogoutReleaseRequestDynamicComponent extends FormBase implements OnInit {

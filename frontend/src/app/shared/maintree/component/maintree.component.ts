@@ -37,7 +37,7 @@ import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {AlgoTop} from '../../../entities/algo.top';
 import {GlobalSessionNames} from '../../global.session.names';
 
-@Injectable()
+
 @Component({
   selector: 'portfolio-tree',
   templateUrl: '../view/maintree.html',
@@ -265,7 +265,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  ngOnInit() {
+  ngOnInit(): void {
     this.portfolioTrees = new Array(this.ADMINDATA_INDEX + (AuditHelper.hasAdminRole(this.globalParamService) ? 1 : 0));
     this.addFirstLevelNode();
   }
@@ -357,7 +357,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
             label: 'EDIT_RECORD|CLIENT' + AppSettings.DIALOG_MENU_SUFFIX,
             command: (event) => {
               this.onlyCurrency = false;
-              this.handleEdit(DialogVisible.Tenant,
+              this.handleEdit(DialogVisible.DvTenant,
                 null, selectedNodeData);
             }
           },
@@ -365,21 +365,21 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
             label: 'CLIENT_CHANGE_CURRENCY' + AppSettings.DIALOG_MENU_SUFFIX,
             command: (event) => {
               this.onlyCurrency = true;
-              this.handleEdit(DialogVisible.Tenant,
+              this.handleEdit(DialogVisible.DvTenant,
                 null, selectedNodeData);
             }
           });
         menuItems.push({separator: true});
         menuItems.push({
           label: 'CREATE|PORTFOLIO' + AppSettings.DIALOG_MENU_SUFFIX,
-          command: (event) => this.handleNew(DialogVisible.Portfolio,
+          command: (event) => this.handleNew(DialogVisible.DvPortfolio,
             selectedNodeData, null, TenantLimitTypes.MAX_PORTFOLIO)
         });
         break;
       case TreeNodeType.Portfolio:
         menuItems.push({
           label: 'EDIT_RECORD|PORTFOLIO' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleEdit(DialogVisible.Portfolio, parentNodeData, selectedNodeData)
+            this.handleEdit(DialogVisible.DvPortfolio, parentNodeData, selectedNodeData)
         });
         menuItems.push({
           label: 'DELETE|PORTFOLIO', command: (event) =>
@@ -390,14 +390,14 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       case TreeNodeType.SecurityaccountRoot:
         menuItems.push({
           label: 'CREATE|SECURITYACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
-          command: (event) => this.handleNew(DialogVisible.Securityaccount, selectedNodeData, null,
+          command: (event) => this.handleNew(DialogVisible.DvSecurityaccount, selectedNodeData, null,
             TenantLimitTypes.MAX_SECURITY_ACCOUNT)
         });
         break;
       case TreeNodeType.SecurityAccount:
         menuItems.push({
           label: 'EDIT_RECORD|SECURITYACCOUNT', command: (event) =>
-            this.handleEdit(DialogVisible.Securityaccount, parentNodeData, selectedNodeData)
+            this.handleEdit(DialogVisible.DvSecurityaccount, parentNodeData, selectedNodeData)
         });
         menuItems.push({
           label: 'DELETE|SECURITYACCOUNT', command: (event) =>
@@ -408,11 +408,11 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       case TreeNodeType.AlgoRoot:
         menuItems.push({
           label: 'CREATE|ALGO_PORTFOLIO_STRATEGY' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleNew(DialogVisible.AlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategy.RS_STRATEGY), null)
+            this.handleNew(DialogVisible.DvAlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategy.RS_STRATEGY), null)
         });
         menuItems.push({
           label: 'CREATE|ALGO_RULE_BASED' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleNew(DialogVisible.AlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategy.RS_RULE), null)
+            this.handleNew(DialogVisible.DvAlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategy.RS_RULE), null)
         });
         break;
       case TreeNodeType.Strategy:
@@ -424,14 +424,14 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       case TreeNodeType.WatchlistRoot:
         menuItems.push({
           label: 'CREATE|WATCHLIST' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleNew(DialogVisible.Watchlist, parentNodeData, selectedNodeData, TenantLimitTypes.MAX_WATCHLIST)
+            this.handleNew(DialogVisible.DvWatchlist, parentNodeData, selectedNodeData, TenantLimitTypes.MAX_WATCHLIST)
         });
 
         break;
       case TreeNodeType.Watchlist:
         menuItems.push({
           label: 'EDIT_RECORD|WATCHLIST' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleEdit(DialogVisible.Watchlist, parentNodeData, selectedNodeData)
+            this.handleEdit(DialogVisible.DvWatchlist, parentNodeData, selectedNodeData)
         });
         menuItems.push({
           label: 'DELETE|WATCHLIST', command: (event) =>
@@ -637,7 +637,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.translateService.get(key).subscribe(translated => target.label = translated + sufix);
   }
 
-  private addMainRoute(sufix: String): string {
+  private addMainRoute(sufix: string): string {
     return AppSettings.MAINVIEW_KEY + '/' + sufix;
   }
 

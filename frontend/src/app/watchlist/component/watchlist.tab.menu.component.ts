@@ -53,7 +53,6 @@ export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
-
   /**
    * Is needed for the default navigation
    */

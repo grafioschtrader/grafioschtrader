@@ -5,7 +5,7 @@ export class TransformedError {
   public errorClass: GetTransformedError;
   public bringUpDialog: boolean;
 
-  constructor(public msg: string = '', public interpolateParams: Object = {}) {
+  constructor(public msg: string = '', public interpolateParams: any = {}) {
   }
 
   isEmtpy(): boolean {

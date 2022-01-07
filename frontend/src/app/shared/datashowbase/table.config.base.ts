@@ -174,7 +174,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   getStyle(field: ColumnConfig): any {
-    return (field.width) ? {'width': field.width + 'px'} : {};
+    return (field.width) ? {width: field.width + 'px'} : {};
   }
 
   /**
@@ -250,7 +250,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
 
   getMenuShowOptions(): MenuItem[] {
     const items = this.getColumnsShow();
-    return items.length > 0 ? [{label: 'ON_OFF_COLUMNS', items: items}] : null;
+    return items.length > 0 ? [{label: 'ON_OFF_COLUMNS', items}] : null;
   }
 
   private registerFilter(): void {

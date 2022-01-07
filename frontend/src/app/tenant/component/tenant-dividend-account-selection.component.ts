@@ -31,8 +31,8 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
       <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
         <tr>
           <td *ngFor="let field of fields; let i = index">
-            <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
-            <p-treeTableCheckbox [value]="rowNode" *ngIf="i == 0"></p-treeTableCheckbox>
+            <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+            <p-treeTableCheckbox [value]="rowNode" *ngIf="i === 0"></p-treeTableCheckbox>
             {{getValueByPath(rowData, field)}}
           </td>
         </tr>

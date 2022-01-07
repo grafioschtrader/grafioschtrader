@@ -153,8 +153,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
   handleTransaction(transactionType: TransactionType, security: Security) {
     this.transactionCallParam = Object.assign(new TransactionCallParam(), {
-      transactionType: transactionType,
-      security: security
+      transactionType,
+      security
     });
     this.extendTransactionParamData(this.transactionCallParam);
     this.visibleSecurityTransactionDialog = true;

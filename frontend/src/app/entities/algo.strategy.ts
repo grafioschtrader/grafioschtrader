@@ -9,7 +9,7 @@ export class AlgoStrategy extends AlgoRuleStrategy implements AlgoTreeName {
   algoStrategyImplementations: AlgoStrategyImplementations | string = null;
 
   @Exclude()
-  getNameByLanguage(language: String): string {
+  getNameByLanguage(language: string): string {
     return this['algoStrategyImplementations$'];
   }
 

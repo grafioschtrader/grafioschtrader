@@ -20,7 +20,7 @@ import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-i
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #dynamicFormComponent="dynamicForm" (submit)="submit($event)">
+                    #dynamicFormComponent="dynamicForm" (submitBt)="submit($event)">
       </dynamic-form>
       <br/>
       <correlation-set-add-instrument-table [tenantLimits]="tenantLimits">

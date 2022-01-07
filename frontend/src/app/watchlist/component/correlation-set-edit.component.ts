@@ -28,7 +28,7 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`
 })

@@ -10,6 +10,9 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
+/**
+ * Shows statistical data about an instrument.
+ */
 @Component({
   selector: 'instrument-statistics-summary',
   template: `
@@ -33,7 +36,7 @@ import {AppSettings} from '../../shared/app.settings';
               <td *ngIf="field.visible"
                   [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
                   [style.width.px]="field.width">
-                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
+                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
                 <ng-container [ngSwitch]="field.templateName">
                   <ng-container *ngSwitchCase="'greenRed'">
                   <span [pTooltip]="getValueByPath(rowData, field)"
@@ -80,10 +83,10 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
     const sptKeys = Object.keys(mainTree.data);
     sptKeys.forEach(sptKey => {
       const data = {property: sptKey};
-      mainTree.children.push({data: data, children: this.getChildren(mainTree, sptKey), expanded: true, leaf: false});
+      mainTree.children.push({data, children: this.getChildren(mainTree, sptKey), expanded: true, leaf: false});
     });
     this.rootNodes = mainTree.children;
-    this.createTRanslateValusStoreForTranslation(this.rootNodes);
+    this.createTranslateValuesStoreForTranslation(this.rootNodes);
   }
 
   private getChildren(mainTree: TreeNode, spt: string): TreeNode[] {

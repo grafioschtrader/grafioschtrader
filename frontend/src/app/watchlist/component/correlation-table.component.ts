@@ -415,7 +415,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       data: chartData,
       layout: this.getChartLayout(minDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE),
         maxDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE)),
-      legendTooltipMap: legendTooltipMap,
+      legendTooltipMap,
       options: {
         modeBarButtonsToRemove: ['hoverCompareCartesian', 'hoverClosestCartesian']
       },

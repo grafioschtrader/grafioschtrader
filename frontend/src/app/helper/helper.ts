@@ -8,7 +8,7 @@ import {AppSettings} from '../shared/app.settings';
 export abstract class Helper {
 
   public static readonly CALENDAR_LANG = {
-    'en': {
+    en: {
       firstDayOfWeek: 0,
       dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
       dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -19,7 +19,7 @@ export abstract class Helper {
       today: 'Today',
       clear: 'Clear'
     },
-    'de': {
+    de: {
       firstDayOfWeek: 1,
       dayNames: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
       dayNamesShort: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
@@ -29,7 +29,7 @@ export abstract class Helper {
       today: 'Heute',
       clear: 'Löschen'
     },
-    'fr': {
+    fr: {
       firstDayOfWeek: 1,
       dayNames: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
       dayNamesShort: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],

@@ -21,6 +21,6 @@ export const myRxStompConfig: InjectableRxStompConfig = {
   debug: (msg: string): void => {
     console.log(new Date(), msg);
   },
-}
+};
 
 

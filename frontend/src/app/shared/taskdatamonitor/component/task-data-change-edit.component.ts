@@ -26,7 +26,7 @@ import {Validators} from '@angular/forms';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `
@@ -39,9 +39,9 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   private entitySubscribe: Subscription;
 
   constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              private taskDataChangeService: TaskDataChangeService) {
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    private taskDataChangeService: TaskDataChangeService) {
     super(HelpIds.HELP_TASK_DATA_CHANGE_MONITOR, AppSettings.TASK_DATE_CHANGE.toUpperCase(), translateService, gps,
       messageToastService, taskDataChangeService);
   }
@@ -108,7 +108,8 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
 
   protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {
     const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
-    taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).add(moment().utcOffset() * -1, 'm').format('yyyy-MM-DD HH:mm:ss');
+    taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).add(moment().utcOffset() * -1,
+      'm').format('yyyy-MM-DD HH:mm:ss');
     return taskDataChange;
   }
 }

@@ -2,7 +2,6 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 import {TreeNode} from 'primeng/api';
-import {ColumnConfig} from './column.config';
 import {TranslateHelper} from '../helper/translate.helper';
 import {AppSettings} from '../app.settings';
 
@@ -12,8 +11,8 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
     super(translateService, gps);
   }
 
-  createTRanslateValusStoreForTranslation(root: TreeNode[]): void {
-    const columnConfigs = this. fields.filter(columnConfig => !!columnConfig.translateValues);
+  createTranslateValuesStoreForTranslation(root: TreeNode[]): void {
+    const columnConfigs = this.fields.filter(columnConfig => !!columnConfig.translateValues);
     if (root === null) {
       return;
     }
@@ -26,9 +25,7 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
         q.shift();
         TranslateHelper.createTranslatedValueStoreForTranslation(this.translateService, columnConfigs, p.data);
         if (p.children) {
-          for (let i = 0; i < p.children.length; i++) {
-            q.push(p.children[i]);
-          }
+            q.push(...p.children);
         }
         n--;
       }

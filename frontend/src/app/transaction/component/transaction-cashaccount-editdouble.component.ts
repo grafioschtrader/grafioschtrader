@@ -41,7 +41,7 @@ import {AppSettings} from '../../shared/app.settings';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `,
@@ -168,7 +168,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   valueChangedOnDebitCashaccount(): void {
     this.debitChashaccountChangedSub = this.configObject.idDebitCashaccount.formControl.valueChanges.subscribe((data: string) => {
       if (Helper.hasValue(data)) {
-        const cp: { cashaccount: Cashaccount, portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
+        const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
           this.portfolios, +data);
         this.debitCashaccount = cp.cashaccount;
         this.filterCreditHtmlOptions(this.configObject.idDebitCashaccount.valueKeyHtmlOptions,
@@ -186,7 +186,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   valueChangedOnCreditCashaccount(): void {
     this.creditChashaccountChangedSub = this.configObject.idCreditCashaccount.formControl.valueChanges.subscribe((data: string) => {
       if (data) {
-        const cp: { cashaccount: Cashaccount, portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
+        const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
           this.portfolios, +data);
         this.creditCashaccount = cp.cashaccount;
         this.configObject.creditAmount.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.creditCashaccount.currency);

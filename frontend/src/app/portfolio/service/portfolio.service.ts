@@ -39,8 +39,8 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
       + `${AppSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getGroupedAccountsSecuritiesTenantSummary(untilDate: Date, tenantPortfolioSummary: TenantPortfolioSummary)
-    : Observable<AccountPositionGrandSummary> {
+  getGroupedAccountsSecuritiesTenantSummary(untilDate: Date, tenantPortfolioSummary: TenantPortfolioSummary):
+    Observable<AccountPositionGrandSummary> {
     const urlPart = tenantPortfolioSummary === TenantPortfolioSummary.GROUP_BY_CURRENCY
       ? AppSettings.CURRENCY_KEY : AppSettings.PORTFOLIO_KEY;
     return <Observable<AccountPositionGrandSummary>>this.httpClient.get(

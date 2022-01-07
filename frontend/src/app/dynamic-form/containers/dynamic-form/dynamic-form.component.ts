@@ -90,7 +90,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   @Input() formGroupDefinition: FormGroupDefinition;
   @Input() translateService: TranslateService;
 
-  @Output() submit: EventEmitter<any> = new EventEmitter<any>();
+  @Output() submitBt: EventEmitter<any> = new EventEmitter<any>();
 
   form: FormGroup;
 
@@ -247,7 +247,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
     this.submitButton.disabled = true;
     event.preventDefault();
     event.stopPropagation();
-    this.submit.emit(this.value);
+    this.submitBt.emit(this.value);
   }
 
   setDisableAll(disable: boolean) {

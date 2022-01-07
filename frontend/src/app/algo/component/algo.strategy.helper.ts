@@ -11,8 +11,8 @@ export class AlgoStrategyHelper {
   public static readonly FIELD_STRATEGY_IMPL = 'algoStrategyImplementations';
 
   public static createAndSetValuesInDynamicModel(algoStrategy: AlgoStrategy,
-                                                 fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-                                                 addStrategyImplField = false): any {
+    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
+    addStrategyImplField = false): any {
     const dynamicModel: any = {};
     if (addStrategyImplField) {
       dynamicModel[this.FIELD_STRATEGY_IMPL] = algoStrategy.algoStrategyImplementations;
@@ -36,8 +36,8 @@ export class AlgoStrategyHelper {
     return dynamicModel;
   }
 
-  public static getFieldDescriptorInputAndShowByLevel<T extends AlgoTopAssetSecurity>
-  (algoTopAssetSecurity: T, inputAndShowDefinition: InputAndShowDefinitionStrategy): FieldDescriptorInputAndShow[] {
+  public static getFieldDescriptorInputAndShowByLevel<T extends AlgoTopAssetSecurity>(algoTopAssetSecurity: T,
+    inputAndShowDefinition: InputAndShowDefinitionStrategy): FieldDescriptorInputAndShow[] {
     if (algoTopAssetSecurity instanceof AlgoTop) {
       return inputAndShowDefinition.topFormDefintionList;
     } else if (algoTopAssetSecurity instanceof AlgoAssetclass) {

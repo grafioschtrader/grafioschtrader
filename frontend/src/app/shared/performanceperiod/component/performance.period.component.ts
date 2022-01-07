@@ -36,7 +36,7 @@ import {FormHelper} from '../../../dynamic-form/components/FormHelper';
         | date:dateFormatPipe}}</p>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
       <div *ngIf="loading" class="progress-bar-box">
         <h4>{{'LOADING' | translate}}</h4>
@@ -113,8 +113,6 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
         this.valueChangedOnDateTo();
         this.valueChangedOnDateFrom();
         this.setMonthWeekPeriod();
-
-
       } else {
         // There are no trades -> performance calculation not possible
         FormHelper.disableEnableFieldConfigs(true, this.config);

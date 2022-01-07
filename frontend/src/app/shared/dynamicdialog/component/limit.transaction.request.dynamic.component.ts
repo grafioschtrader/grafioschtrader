@@ -26,7 +26,7 @@ import {AppSettings} from '../../app.settings';
   template: `
       {{'APPLY_LIMIT_TEXT' | translate}}
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>`
 })
 export class LimitTransactionRequestDynamicComponent extends FormBase implements OnInit {

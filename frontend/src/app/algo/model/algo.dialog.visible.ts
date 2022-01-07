@@ -7,9 +7,9 @@ import {AlgoStrategy} from '../../entities/algo.strategy';
 import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 
 export enum AlgoDialogVisible {
-  AlgoAssetclass = 1,
-  AlgoSecurity = 2,
-  AlgoStrategy = 3
+  ALGO_ASSETCLASS = 1,
+  ALGO_SECURITY = 2,
+  ALGO_STRATEGY = 3
 }
 
 export class AlgoStrategyDefinitionForm {

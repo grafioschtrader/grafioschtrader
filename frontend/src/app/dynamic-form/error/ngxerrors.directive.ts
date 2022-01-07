@@ -14,7 +14,6 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
 
   @Input('ngxErrors') control: AbstractControl;
 
-
   subject = new BehaviorSubject<ErrorDetails>(null);
 
   // control: AbstractControl;
@@ -94,6 +93,5 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
       this.subject.next({control, errorName});
     }
   }
-
 
 }

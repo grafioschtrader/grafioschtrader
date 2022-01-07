@@ -48,9 +48,9 @@ import {AppSettings} from '../../shared/app.settings';
 })
 export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBase implements OnInit {
   @Input() securitycurrency: Security | Currencypair;
-  @Input() intradayUrl: String;
-  @Input() historicalUrl: String;
-  @Input() dividendUrl: String;
+  @Input() intradayUrl: string;
+  @Input() historicalUrl: string;
+  @Input() dividendUrl: string;
 
   readonly SECURITYCURRENCY = 'securitycurrency.';
   readonly PERFORMANCE = 'PERFORMANCE';
@@ -85,7 +85,6 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
     } else {
       return this.additionalInstruments[field.field] ? this.additionalInstruments[field.field].name : '';
     }
-    return '';
   }
 
   private addSecurityFields(security: Security): void {
@@ -214,7 +213,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
 }
 
 class Content {
-  constructor(public securitycurrency: Securitycurrency, public intradayUrl: String, public historicalUrl: String,
+  constructor(public securitycurrency: Securitycurrency, public intradayUrl: string, public historicalUrl: string,
               public dividendUrl) {
   }
 }

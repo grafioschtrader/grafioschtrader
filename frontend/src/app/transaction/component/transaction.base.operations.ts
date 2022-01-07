@@ -26,12 +26,12 @@ export abstract class TransactionBaseOperations {
   abstract isVisibleDialog(): boolean;
 
   getCashaccountByIdCashaccountFormPortfolios(portfolios: Portfolio[], idSecuritycashaccount: number): {
-    cashaccount: Cashaccount,
-    portfolio: Portfolio
+    cashaccount: Cashaccount;
+    portfolio: Portfolio;
   } {
     if (idSecuritycashaccount != null) {
       for (const portfolio of portfolios) {
-        const found: { cashaccount: Cashaccount, portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolio(portfolio,
+        const found: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolio(portfolio,
           idSecuritycashaccount);
         if (found) {
           return found;
@@ -42,7 +42,7 @@ export abstract class TransactionBaseOperations {
   }
 
   getCashaccountByIdCashaccountFromPortfolios(portfolios: Portfolio[], idSecuritycashaccount: number): {
-    cashaccount: Cashaccount, portfolio: Portfolio
+    cashaccount: Cashaccount; portfolio: Portfolio;
   } {
     for (const portfolio of portfolios) {
       const found = this.getCashaccountByIdCashaccountFromPortfolio(portfolio, idSecuritycashaccount);
@@ -54,11 +54,11 @@ export abstract class TransactionBaseOperations {
   }
 
   getCashaccountByIdCashaccountFromPortfolio(portfolio: Portfolio, idSecuritycashaccount: number): {
-    cashaccount: Cashaccount, portfolio: Portfolio
+    cashaccount: Cashaccount; portfolio: Portfolio;
   } {
     for (const cashaccount of portfolio.cashaccountList) {
       if (cashaccount.idSecuritycashAccount === idSecuritycashaccount) {
-        return {cashaccount: cashaccount, portfolio: portfolio};
+        return {cashaccount, portfolio};
       }
     }
     return null;

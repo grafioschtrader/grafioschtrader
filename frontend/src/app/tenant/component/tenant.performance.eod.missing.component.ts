@@ -37,7 +37,7 @@ import {AppSettings} from '../../shared/app.settings';
         <p-dropdown id="idYearSelect" [options]="possibleYears" [(ngModel)]="selectedYear"
                     (onChange)="yearChanged($event)">
         </p-dropdown>
-        <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [value]="yearCalendarData">
+        <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [yearCalendarData]="yearCalendarData">
         </ng-fullyearcalendar-lib>
         <p-footer>
           <div class="ui-dialog-buttonpane ui-widget-content flexRight">
@@ -72,7 +72,6 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   selectedDayIdSecurities: number[] = [];
   foundDayMarkedRange: boolean;
   selectedSecurity: Security;
-
 
   private subscriptionHistoryquoteChanged: Subscription;
 
@@ -112,7 +111,6 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
         }
       });
   }
-
 
   markGroundDays(days: Date[]): void {
     this.yearCalendarData.dates = [];

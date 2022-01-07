@@ -17,7 +17,6 @@ export class TradingDaysMinusService extends AuthServiceWithLogout<TradingDaysMi
     super(loginService, httpClient, messageToastService);
   }
 
-
   getTradingDaysMinusByStockexchangeAndYear(idStockexchange: number, year: number): Observable<TradingDaysWithDateBoundaries> {
     return <Observable<TradingDaysWithDateBoundaries>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.TRADING_DAYS_MINUS_KEY}/${idStockexchange}/${year}`,
@@ -30,8 +29,8 @@ export class TradingDaysMinusService extends AuthServiceWithLogout<TradingDaysMi
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
-  copyAllTradingDaysMinusToOtherStockexchange(copyTradingDaysFromSourceToTarget: CopyTradingDaysFromSourceToTarget)
-    : Observable<TradingDaysWithDateBoundaries> {
+  copyAllTradingDaysMinusToOtherStockexchange(copyTradingDaysFromSourceToTarget: CopyTradingDaysFromSourceToTarget):
+    Observable<TradingDaysWithDateBoundaries> {
     return <Observable<TradingDaysWithDateBoundaries>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.TRADING_DAYS_MINUS_KEY}/copytradingdays`, copyTradingDaysFromSourceToTarget,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));

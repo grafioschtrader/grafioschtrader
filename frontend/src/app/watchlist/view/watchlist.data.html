@@ -33,7 +33,7 @@
     <ng-template pTemplate="body" let-columns="fields" let-expanded="expanded" let-spl>
       <tr [pSelectableRow]="spl">
         <td style="width:24px">
-          <a *ngIf="spl.watchlistSecurityHasEver || watchlistType == WatchListType.PRICE_FEED" [pRowToggler]="spl"
+          <a *ngIf="spl.watchlistSecurityHasEver || watchlistType === WatchListType.PRICE_FEED" [pRowToggler]="spl"
              href="#">
             <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
           </a>
@@ -74,7 +74,7 @@
     </ng-template>
 
     <ng-template pTemplate="rowexpansion" let-columns="fields" let-spl>
-      <tr *ngIf="spl.watchlistSecurityHasEver || watchlistType != WatchListType.PERFORMANCE">
+      <tr *ngIf="spl.watchlistSecurityHasEver || watchlistType !== WatchListType.PERFORMANCE">
         <td [attr.colspan]="numberOfVisibleColumns + 1">
           <transaction-security-table (dateChanged)="handleCloseTransactionDialog($event)"
                                       *ngIf="watchlistType === WatchListType.PERFORMANCE && !isMarginProduct(spl)"

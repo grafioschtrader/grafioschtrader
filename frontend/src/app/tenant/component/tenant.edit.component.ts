@@ -87,7 +87,6 @@ export abstract class TenantEditComponent {
         } else {
           this.configObject.currency.elementRef.nativeElement.focus();
         }
-
       }
     );
   }

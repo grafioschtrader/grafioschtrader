@@ -33,12 +33,11 @@ export class StockexchangeService extends AuthServiceWithLogout <Stockexchange> 
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   public stockexchangesHasSecurity(): Observable<StockexchangeHasSecurity[]> {
-    return <Observable<StockexchangeHasSecurity[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}/hassecurity`,
+    return <Observable<StockexchangeHasSecurity[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.STOCKEXCHANGE_KEY}/hassecurity`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   update(stockexchange: Stockexchange): Observable<Stockexchange> {
     return this.updateEntity(stockexchange, stockexchange.idStockexchange, AppSettings.STOCKEXCHANGE_KEY);

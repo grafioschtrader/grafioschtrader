@@ -46,7 +46,7 @@ export class SecurityService extends SecurityCurrencyService<Security> {
   }
 
   getOpenPositionByIdSecuritycurrencyAndIdTenant(idSecuritycurrency: number, dateString: string, before: boolean,
-                                                 idTransaction: number, idOpenMarginTransaction: number):
+    idTransaction: number, idOpenMarginTransaction: number):
     Observable<SecurityOpenPositionPerSecurityaccount> {
     return <Observable<SecurityOpenPositionPerSecurityaccount>>
       this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/date/`
@@ -76,14 +76,14 @@ export class SecurityService extends SecurityCurrencyService<Security> {
   }
 
   getTransactionsByIdPortfolioAndIdSecurity(idPortfolio: number, idSecuritycurrency: number,
-                                            forChart: boolean): Observable<SecurityTransactionSummary> {
+    forChart: boolean): Observable<SecurityTransactionSummary> {
     return <Observable<SecurityTransactionSummary>>this.httpClient.get(
       `${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idPortfolio}/portfoliosecurity/${idSecuritycurrency}`,
       this.getOptionsWithIncludeForChart(forChart)).pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionsByIdSecurityaccountsAndIdSecurity(idsSecurityaccount: number[], idSecuritycurrency: number,
-                                                   forChart: boolean): Observable<SecurityTransactionSummary> {
+    forChart: boolean): Observable<SecurityTransactionSummary> {
     const options = this.getOptionsWithIncludeForChart(forChart);
     options.params = options.params.append('idsSecurityaccount', idsSecurityaccount.join(','));
     return <Observable<SecurityTransactionSummary>>this.httpClient.get(
@@ -120,7 +120,8 @@ export class SecurityService extends SecurityCurrencyService<Security> {
       moveWeekendToFriday, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getSecurityStatisticsReturnResult(idSecuritycurrency: number, dateFrom: Date | string, dateTo: Date | string): Observable<InstrumentStatisticsResult> {
+  getSecurityStatisticsReturnResult(idSecuritycurrency: number, dateFrom: Date | string, dateTo: Date | string):
+    Observable<InstrumentStatisticsResult> {
     return <Observable<InstrumentStatisticsResult>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/securitystatistics`,
       this.getDateFromAndTo(dateFrom, dateTo, this.prepareHeaders())).pipe(catchError(this.handleError.bind(this)));
@@ -129,7 +130,7 @@ export class SecurityService extends SecurityCurrencyService<Security> {
   private getDateFromAndTo(dateFrom: Date | string, dateTo: Date | string, httpHeaders: HttpHeaders) {
     let httpParams = new HttpParams();
     dateFrom && (httpParams = httpParams.append('dateFrom', moment(dateFrom).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)));
-    dateTo &&  (httpParams = httpParams.append('dateTo', moment(dateTo).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)));
+    dateTo && (httpParams = httpParams.append('dateTo', moment(dateTo).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)));
     return {headers: httpHeaders, params: httpParams};
   }
 

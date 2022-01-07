@@ -26,7 +26,7 @@ import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propos
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                        (submit)="submit($event)">
+                        (submitBt)="submit($event)">
           </dynamic-form>
       </p-dialog>`
 })

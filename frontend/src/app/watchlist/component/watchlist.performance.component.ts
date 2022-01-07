@@ -148,7 +148,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.stompService.publish({
       destination: '/app/ws/watchlist',
       headers: this.stompConfig.connectHeaders,
-      body: JSON.stringify({idWatchlist: idWatchlist, daysFrameDate: daysFrameDate})
+      body: JSON.stringify({idWatchlist, daysFrameDate})
     });
   }
 

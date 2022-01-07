@@ -24,7 +24,7 @@ import {AppHelper} from '../helper/app.helper';
       <h5>{{globalparameters.propertyName}}</h5>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`
 })

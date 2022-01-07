@@ -83,8 +83,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
 
   callParam: AssetclassCallParam = new AssetclassCallParam();
 
-  readonly CATEGORY_TYPE = 'categoryType';
-  readonly CATEGORY_TYPE_TRANS = this.CATEGORY_TYPE + AppSettings.FIELD_SUFFIX;
+  readonly categoryType = 'categoryType';
 
   constructor(private assetclassService: AssetclassService,
               private productIconService: ProductIconService,
@@ -99,7 +98,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
     super(AppSettings.ASSETCLASS, assetclassService, confirmationService, messageToastService,
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
 
-    this.addColumn(DataType.String, this.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true, false,
+    this.addColumn(DataType.String, this.categoryType, AppSettings.ASSETCLASS.toUpperCase(), true, false,
       {translateValues: TranslateValue.NORMAL, templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'assetclassIcon', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getAssetclassIcon.bind(this), templateName: 'icon', width: 25});
@@ -108,7 +107,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> i
     this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false,
       {translateValues: TranslateValue.NORMAL});
 
-    this.multiSortMeta.push({field: this.CATEGORY_TYPE, order: 1});
+    this.multiSortMeta.push({field: this.categoryType, order: 1});
     this.prepareTableAndTranslate();
   }
 

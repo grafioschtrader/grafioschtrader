@@ -11,7 +11,6 @@ export class ParentChildRegisterService {
     this.pageServerMap = new Map();
   }
 
-
   public registerChildComponent(childPreservePage: ChildPreservePage): void {
     this.childPreservePages.push(childPreservePage);
   }
@@ -29,8 +28,8 @@ export class ParentChildRegisterService {
 
   /**
    *
-   * @param {number} id ID of the parent
-   * @param {PageFirstRowSelectedRow} pageFirstRowSelectedRow Position of the child record
+   * @param id ID of the parent
+   * @param pageFirstRowSelectedRow Position of the child record
    */
   public saveRowPosition(id: number, pageFirstRowSelectedRow: PageFirstRowSelectedRow) {
     this.pageServerMap.set(id, pageFirstRowSelectedRow);

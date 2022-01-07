@@ -39,10 +39,10 @@ export class LoginService extends BaseAuthService<User> {
 
   login(email: string, password: string, note?: string): Observable<Response> {
     const date = new Date();
-    const loginRequest = {email: email, password: password, timezoneOffset: date.getTimezoneOffset(), note: note};
-    const headers = new HttpHeaders({'Content-Type': 'application/json', 'Accept': 'application/json'});
+    const loginRequest = {email, password, timezoneOffset: date.getTimezoneOffset(), note};
+    const headers = new HttpHeaders({'Content-Type': 'application/json', Accept: 'application/json'});
 
-    return this.httpClient.post('/api/login', loginRequest, {headers: headers, observe: 'response'})
+    return this.httpClient.post('/api/login', loginRequest, {headers, observe: 'response'})
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -104,7 +104,7 @@ export class LoginService extends BaseAuthService<User> {
     return this.updateEntity(user, user.idUser, AppSettings.USER_KEY);
   }
 
-  getNicknameLocale(): Observable<UserOwnProjection> {
+  getOwnUser(): Observable<UserOwnProjection> {
     return <Observable<UserOwnProjection>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_KEY}/own`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

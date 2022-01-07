@@ -82,8 +82,12 @@ import {PortfolioTransactionTableComponent} from './portfolio/component/portfoli
 import {FormInputSuggestionComponent} from './dynamic-form/components/form-input/form-input-suggestion.component';
 import {FormFileUploadComponent} from './dynamic-form/components/form-input-file/form-file-upload.component';
 import {FormInputSelectComponent} from './dynamic-form/components/form-input/form-input-select.component';
-import {TransactionCashaccountEditDoubleComponent} from './transaction/component/transaction-cashaccount-editdouble.component';
-import {TransactionCashaccountEditSingleComponent} from './transaction/component/transaction-cashaccount-editsingle.component';
+import {
+  TransactionCashaccountEditDoubleComponent
+} from './transaction/component/transaction-cashaccount-editdouble.component';
+import {
+  TransactionCashaccountEditSingleComponent
+} from './transaction/component/transaction-cashaccount-editsingle.component';
 import {SecurityEditComponent} from './securitycurrency/component/security-edit.component';
 import {CurrencypairEditComponent} from './securitycurrency/component/currencypair-edit.component';
 import {WatchlistAddInstrumentComponent} from './watchlist/component/watchlist-add-instrument.component';
@@ -107,31 +111,57 @@ import {ImportTransactionHeadService} from './securityaccount/service/import.tra
 import {LoginComponent} from './shared/login/component/login.component';
 import {PasswordEditComponent} from './shared/login/component/password-edit.component';
 import {UploadFileDialogComponent} from './shared/generaldialog/upload-file-dialog.component';
-import {SecurityaccountImportTransactionEditHeadComponent} from './securityaccount/component/securityaccount-import-transaction-edit-head.component';
-import {SecurityaccountImportTransactionComponent} from './securityaccount/component/securityaccount.import.transaction.component';
-import {SecurityaccountImportTransactionTableComponent} from './securityaccount/component/securityaccount-import-transaction-table.component';
+import {
+  SecurityaccountImportTransactionEditHeadComponent
+} from './securityaccount/component/securityaccount-import-transaction-edit-head.component';
+import {
+  SecurityaccountImportTransactionComponent
+} from './securityaccount/component/securityaccount.import.transaction.component';
+import {
+  SecurityaccountImportTransactionTableComponent
+} from './securityaccount/component/securityaccount-import-transaction-table.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
 import {ImportTransactionTemplateService} from './imptranstemplate/service/import.transaction.template.service';
 import {ImportTransactionPlatformService} from './imptranstemplate/service/import.transaction.platform.service';
-import {ImportTransactionEditTemplateComponent} from './imptranstemplate/component/import-transaction-edit-template.component';
-import {ImportTransactionEditPlatformComponent} from './imptranstemplate/component/import-transaction-edit-platform.component';
-import {ImportTransactionTemplateTableComponent} from './imptranstemplate/component/import-transaction-template-table.component';
+import {
+  ImportTransactionEditTemplateComponent
+} from './imptranstemplate/component/import-transaction-edit-template.component';
+import {
+  ImportTransactionEditPlatformComponent
+} from './imptranstemplate/component/import-transaction-edit-platform.component';
+import {
+  ImportTransactionTemplateTableComponent
+} from './imptranstemplate/component/import-transaction-template-table.component';
 import {TransformPdfToTxtDialogComponent} from './imptranstemplate/component/transform-pdf-to-txt-dialog.component';
 import {TemplateFormCheckDialogComponent} from './imptranstemplate/component/template-form-check-dialog.component';
-import {TemplateFormCheckDialogResultSuccessComponent} from './imptranstemplate/component/template-form-check-dialog-result-success.component';
-// tslint:disable-next-line:max-line-length
-import {TemplateFormCheckDialogResultFailedComponent} from './imptranstemplate/component/template-form-check-dialog-result-failed.component';
+import {
+  TemplateFormCheckDialogResultSuccessComponent
+} from './imptranstemplate/component/template-form-check-dialog-result-success.component';
+// eslint-disable-next-line max-len
+import {
+  TemplateFormCheckDialogResultFailedComponent
+} from './imptranstemplate/component/template-form-check-dialog-result-failed.component';
 import {ImportTransactionPosService} from './securityaccount/service/import.transaction.pos.service';
-import {SecuritycurrencySearchAndSetComponent} from './securitycurrency/component/securitycurrency-search-and-set.component';
-import {SecuritycurrencySearchAndSetTableComponent} from './securitycurrency/component/securitycurrency-search-and-set-table.component';
-import {SecurityaccountImportSetCashaccountComponent} from './securityaccount/component/securityaccount-import-set-cashaccount.component';
-import {SecurityaccountImportExtendedInfoComponent} from './securityaccount/component/securityaccount-import-extended-info.component';
+import {
+  SecuritycurrencySearchAndSetComponent
+} from './securitycurrency/component/securitycurrency-search-and-set.component';
+import {
+  SecuritycurrencySearchAndSetTableComponent
+} from './securitycurrency/component/securitycurrency-search-and-set-table.component';
+import {
+  SecurityaccountImportSetCashaccountComponent
+} from './securityaccount/component/securityaccount-import-set-cashaccount.component';
+import {
+  SecurityaccountImportExtendedInfoComponent
+} from './securityaccount/component/securityaccount-import-extended-info.component';
 import {ToastrModule} from 'ngx-toastr';
 import {ProposeChangeTabMenuComponent} from './proposechange/component/propose.change.tab.menu.component';
 import {YourProposalTableComponent} from './proposechange/component/your.proposal.table.component';
 import {RequestForYouTableComponent} from './proposechange/component/request.for.you.table.component';
 import {ProposeChangeEntityService} from './proposechange/service/propose.change.entity.service';
-import {TransactionCashaccountConnectDebitCreditComponent} from './transaction/component/transaction-cashaccount-connect-debit-credit-component';
+import {
+  TransactionCashaccountConnectDebitCreditComponent
+} from './transaction/component/transaction-cashaccount-connect-debit-credit-component';
 import {AlgoTopService} from './algo/service/algo.top.service';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
@@ -148,7 +178,9 @@ import {AlgoSecurityService} from './algo/service/algo.security.service';
 import {AlgoStrategyEditComponent} from './algo/component/algo-strategy-edit.component';
 import {IndicatorEditComponent} from './historyquote/component/indicator-edit.component';
 import {AlgoRuleStrategyCreateComponent} from './algo/component/algo-rule-strategy-create.component';
-import {TenantDividendSecurityAccountSelectionDialogComponent} from './tenant/component/tenant-dividend-security-account-selection-dialog.component';
+import {
+  TenantDividendSecurityAccountSelectionDialogComponent
+} from './tenant/component/tenant-dividend-security-account-selection-dialog.component';
 import {TenantDividendAccountSelectionComponent} from './tenant/component/tenant-dividend-account-selection.component';
 import {MailInboxTableComponent} from './mail/component/mail.inbox.table.component';
 import {UserAdminService} from './user/service/user.admin.service';
@@ -159,32 +191,52 @@ import {AdminGuard} from './shared/service/admin.guard';
 import {NicknameLangEditComponent} from './shared/login/component/nickname-lang-edit.component';
 import {UserEntityChangeLimitService} from './user/service/user.entity.change.limit.service';
 import {UserEntityChangeLimitEditComponent} from './user/component/user-entity-change-limit-edit.component';
-import {LimitTransactionRequestDynamicComponent} from './shared/dynamicdialog/component/limit.transaction.request.dynamic.component';
+import {
+  LimitTransactionRequestDynamicComponent
+} from './shared/dynamicdialog/component/limit.transaction.request.dynamic.component';
 import {DynamicDialogModule} from 'primeng/dynamicdialog';
-import {LogoutReleaseRequestDynamicComponent} from './shared/dynamicdialog/component/logout.release.request.dynamic.component';
+import {
+  LogoutReleaseRequestDynamicComponent
+} from './shared/dynamicdialog/component/logout.release.request.dynamic.component';
 import {ProposeUserTaskService} from './shared/dynamicdialog/service/propose.user.task.service';
 import {ActuatorService} from './shared/service/actuator.service';
 import {ApplicationInfoComponent} from './shared/login/component/application-info.component';
 import {MultiTranslateHttpLoader} from './shared/translator/multi.translate.http.loader';
-import {SecurityaccountImportExtendedInfoFilenameComponent} from './securityaccount/component/securityaccount-import-extended-info-filename.component';
+import {
+  SecurityaccountImportExtendedInfoFilenameComponent
+} from './securityaccount/component/securityaccount-import-extended-info-filename.component';
 import {TradingCalendarGlobalComponent} from './tradingcalendar/component/trading.calendar.global.component';
 import {FullyearcalendarLibModule} from './fullyearcalendar/fullyearcalendar-lib.module';
 import {TradingDaysPlusService} from './tradingcalendar/service/trading.days.plus.service';
 import {TradingDaysMinusService} from './stockexchange/service/trading.days.minus.service';
-import {TradingCalendarStockexchangeComponent} from './stockexchange/component/trading-calendar-stockexchange.component';
+import {
+  TradingCalendarStockexchangeComponent
+} from './stockexchange/component/trading-calendar-stockexchange.component';
 import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
 import {PerformancePeriodComponent} from './shared/performanceperiod/component/performance.period.component';
 import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.performance.eod.missing.component';
 import {HoldingService} from './shared/performanceperiod/service/holding.service';
-import {TenantPerformanceTreetableComponent} from './shared/performanceperiod/component/performance-period-treetable.component';
-import {TradingCalendarOtherExchangeDynamicComponent} from './stockexchange/component/trading.calendar.other.exchange.dynamic.component';
-import {TenantPerformanceEodMissingTableComponent} from './tenant/component/tenant-performance-eod-missing-table.component';
+import {
+  TenantPerformanceTreetableComponent
+} from './shared/performanceperiod/component/performance-period-treetable.component';
+import {
+  TradingCalendarOtherExchangeDynamicComponent
+} from './stockexchange/component/trading.calendar.other.exchange.dynamic.component';
+import {
+  TenantPerformanceEodMissingTableComponent
+} from './tenant/component/tenant-performance-eod-missing-table.component';
 import {HistoryquoteQualityComponent} from './historyquote/component/historyquote-quality.component';
-// tslint:disable-next-line:max-line-length
-import {SecurityHistoryquoteQualityTreetableComponent} from './securitycurrency/component/security.historyquote.quality.treetable.component';
-import {SecurityHistoryquoteQualityTableComponent} from './securitycurrency/component/security-historyquote-quality-table.component';
+// eslint-disable-next-line max-len
+import {
+  SecurityHistoryquoteQualityTreetableComponent
+} from './securitycurrency/component/security.historyquote.quality.treetable.component';
+import {
+  SecurityHistoryquoteQualityTableComponent
+} from './securitycurrency/component/security-historyquote-quality-table.component';
 import {HistoryquoteQualityFillGapsComponent} from './historyquote/component/historyquote-quality-fill-gaps.component';
-import {TenantPerformanceFromToDiffComponent} from './shared/performanceperiod/component/performance-period-from-to-diff.component';
+import {
+  TenantPerformanceFromToDiffComponent
+} from './shared/performanceperiod/component/performance-period-from-to-diff.component';
 import {NgxFileDropModule} from 'ngx-file-drop';
 import {ButtonModule} from 'primeng/button';
 import {CalendarModule} from 'primeng/calendar';
@@ -203,12 +255,16 @@ import {TabViewModule} from 'primeng/tabview';
 import {StepsModule} from 'primeng/steps';
 import {TooltipModule} from 'primeng/tooltip';
 import {ConfirmationService, SharedModule} from 'primeng/api';
-import {TransactionSecurityMarginTreetableComponent} from './transaction/component/transaction-security-margin-treetable.component';
+import {
+  TransactionSecurityMarginTreetableComponent
+} from './transaction/component/transaction-security-margin-treetable.component';
 import {SecurityDerivedEditComponent} from './securitycurrency/component/security-derived-edit.component';
 import {FormInputButtonComponent} from './dynamic-form/components/form-input/form-input-button.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {ProductIconService} from './securitycurrency/service/product.icon.service';
-import {SecurityHistoryquotePeriodEditTableComponent} from './securitycurrency/component/security-historyquote-period-edit-table.component';
+import {
+  SecurityHistoryquotePeriodEditTableComponent
+} from './securitycurrency/component/security-historyquote-period-edit-table.component';
 import {HistoryquotePeriodService} from './securitycurrency/service/historyquote.period.service';
 import {HistoryquoteDeleteDialogComponent} from './historyquote/component/historyquote-delete-dialog.component';
 
@@ -244,20 +300,23 @@ import {CorrelationSetService} from './watchlist/service/correlation.set.service
 import {CorrelationTableComponent} from './watchlist/component/correlation-table.component';
 import {CorrelationSetEditComponent} from './watchlist/component/correlation-set-edit.component';
 import {WatchlistAddInstrumentTableComponent} from './watchlist/component/watchlist-add-instrument-table.component';
-import {CorrelationSetAddInstrumentTableComponent} from './watchlist/component/correlation-set-add-instrument-table.component';
+import {
+  CorrelationSetAddInstrumentTableComponent
+} from './watchlist/component/correlation-set-add-instrument-table.component';
 import {CorrelationAddInstrumentComponent} from './watchlist/component/correlation-add-instrument.component';
 import {InstrumentStatisticsResultComponent} from './securitycurrency/component/instrument-statistics-result.component';
 import {InstrumentAnnualisedReturnComponent} from './securitycurrency/component/instrument.annualised.return.component';
-import {InstrumentYearPerformanceTableComponent} from './securitycurrency/component/instrument-year-performance-table.component';
-import {InstrumentStatisticsSummaryComponent} from './securitycurrency/component/instrument.statistics.summary.component';
+import {
+  InstrumentYearPerformanceTableComponent
+} from './securitycurrency/component/instrument-year-performance-table.component';
+import {
+  InstrumentStatisticsSummaryComponent
+} from './securitycurrency/component/instrument.statistics.summary.component';
 
-
-export function createTranslateLoader(http: HttpClient) {
-  return new MultiTranslateHttpLoader(http, [
-    {prefix: './assets/i18n/', suffix: '.json'},
-    {prefix: '/api/globalparameters/properties/', suffix: ''}
-  ]);
-}
+const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
+  {prefix: './assets/i18n/', suffix: '.json'},
+  {prefix: '/api/globalparameters/properties/', suffix: ''}
+]);
 
 @NgModule({
   declarations: [

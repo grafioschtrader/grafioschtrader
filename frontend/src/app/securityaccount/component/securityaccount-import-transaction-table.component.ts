@@ -353,6 +353,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   /**
    * Save for one or more the selected security to the importtransactionpos.
+   *
    * @param security Chosen security
    */
   setSecurity(security: Security, afterSetSecurity: AfterSetSecurity): void {
@@ -370,7 +371,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   showMessageAndReadData(messageKey: string, noRecord: number): void {
     this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-      messageKey, {noRecord: noRecord});
+      messageKey, {noRecord});
     this.readData();
   }
 

@@ -74,7 +74,8 @@ import {combineLatest} from 'rxjs';
                 <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
               </a>
             </td>
-            <td *ngFor="let field of fields" [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric
+            <td *ngFor="let field of fields"
+                [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
@@ -126,14 +127,14 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   private tdcFormConstraints: TaskDataChangeFormConstraints;
 
   constructor(private taskDataChangeService: TaskDataChangeService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(AppSettings.TASK_DATE_CHANGE, taskDataChangeService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService,
       gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,

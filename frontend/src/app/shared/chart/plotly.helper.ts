@@ -23,7 +23,7 @@ export interface ChartTrace {
 export class PlotlyHelper {
 
   public static initializeChartTrace(name: string, type: string, mode?: string): Partial<ChartTrace> {
-    const trace: Partial<ChartTrace> = {x: [], y: [], name: name, type: type, mode: mode};
+    const trace: Partial<ChartTrace> = {x: [], y: [], name, type, mode};
     return trace;
   }
 

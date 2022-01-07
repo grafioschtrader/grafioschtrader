@@ -14,7 +14,7 @@ import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `
@@ -33,14 +33,10 @@ export class TransactionCashaccountConnectDebitCreditComponent extends SimpleEdi
     ];
   }
 
-
   initialize(): void {
-
   }
 
-
   submit(value: { [name: string]: any }): void {
-
   }
 
 }

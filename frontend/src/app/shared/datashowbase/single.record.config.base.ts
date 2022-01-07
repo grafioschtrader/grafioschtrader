@@ -25,14 +25,13 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
   }
 
   addFieldProperty(dataType: DataType, field: string, headerKey: string,
-                   optionalParams ?: OptionalParams): ColumnConfig {
+                   optionalParams?: OptionalParams): ColumnConfig {
     return this.addColumn(dataType, field, headerKey, true, true, optionalParams);
   }
 
-  addFieldPropertyFeqH(dataType: DataType, field: string, optionalParams ?: OptionalParams): ColumnConfig {
+  addFieldPropertyFeqH(dataType: DataType, field: string, optionalParams?: OptionalParams): ColumnConfig {
     return this.addColumnFeqH(dataType, field, true, true, optionalParams);
   }
-
 
   group(list, prop) {
     return list.reduce((grouped, item) => {

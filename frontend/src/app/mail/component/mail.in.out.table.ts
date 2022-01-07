@@ -56,7 +56,7 @@ export abstract class MailInOutTable<T extends MailInOut> extends TableCrudSuppo
     message = message || '';
     this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
       outlets: {
-        mainbottom: [AppSettings.MAIL_SHOW_MESSAGE_KEY, {'message': message}]
+        mainbottom: [AppSettings.MAIL_SHOW_MESSAGE_KEY, {message}]
       }
     }]);
   }

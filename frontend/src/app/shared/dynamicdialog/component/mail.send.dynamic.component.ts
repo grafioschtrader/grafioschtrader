@@ -21,7 +21,7 @@ import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dyna
 @Component({
   template: `
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>`
 })
 export class MailSendDynamicComponent extends FormBase implements OnInit, AfterViewInit {

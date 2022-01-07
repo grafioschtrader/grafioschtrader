@@ -71,7 +71,7 @@ import {AppSettings} from '../../shared/app.settings';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `
@@ -710,6 +710,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   /**
    * Gets the history price for a security at transaction time and set it to the form.
+   *
    * @param security Security for which historical price is determined
    */
   private getAndSetQuotationSecurity(security: Security): void {

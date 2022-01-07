@@ -1,10 +1,11 @@
 import {AbstractControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 
+const isPresent = (obj: any): boolean => obj !== undefined && obj !== null;
 
 /**
  * At least one input value of a FormGroup must be filled in.
  */
-export function atLeastOneFieldValidator(group: FormGroup): { [key: string]: any } {
+export const atLeastOneFieldValidator = (group: FormGroup): { [key: string]: any } => {
   let isAtLeastOne = false;
   if (group && group.controls) {
     for (const control in group.controls) {
@@ -14,49 +15,43 @@ export function atLeastOneFieldValidator(group: FormGroup): { [key: string]: any
       }
     }
   }
-  return isAtLeastOne ? null : {'required': true};
-}
-
-export const gtWithMask = (gt: number): ValidatorFn => {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!isPresent(gt)) {
-      return null;
-    }
-    if (isPresent(Validators.required(control))) {
-      return null;
-    }
-
-    const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
-    return v > +gt ? null : {'gt': {'requiredGt': gt, 'actualValue': v}};
-  };
+  return isAtLeastOne ? null : {required: true};
 };
 
-export const gteWithMask = (gte: number): ValidatorFn => {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!isPresent(gte)) {
-      return null;
-    }
-    if (isPresent(Validators.required(control))) {
-      return null;
-    }
+export const gtWithMask = (gt: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
+  if (!isPresent(gt)) {
+    return null;
+  }
+  if (isPresent(Validators.required(control))) {
+    return null;
+  }
 
-    const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
-    return v >= +gte ? null : {'gte': {'requiredGt': gte, 'actualValue': v}};
-  };
+  const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
+  return v > +gt ? null : {gt: {requiredGt: gt, actualValue: v}};
+};
+
+export const gteWithMask = (gte: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
+  if (!isPresent(gte)) {
+    return null;
+  }
+  if (isPresent(Validators.required(control))) {
+    return null;
+  }
+
+  const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
+  return v >= +gte ? null : {gte: {requiredGt: gte, actualValue: v}};
 };
 
 
-export const gteWithMaskIncludeNegative = (gte: number): ValidatorFn => {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!isPresent(gte)) {
-      return null;
-    }
-    if (isPresent(Validators.required(control))) {
-      return null;
-    }
-    const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
-    return v >= +gte || v <= -gte ? null : {'gteWithMaskIncludeNegative': {'requiredGt': gte, 'actualValue': v}};
-  };
+export const gteWithMaskIncludeNegative = (gte: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
+  if (!isPresent(gte)) {
+    return null;
+  }
+  if (isPresent(Validators.required(control))) {
+    return null;
+  }
+  const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
+  return v >= +gte || v <= -gte ? null : {gteWithMaskIncludeNegative: {requiredGt: gte, actualValue: v}};
 };
 
 export const webUrl: ValidatorFn = (control: AbstractControl): { [key: string]: boolean } => {
@@ -106,28 +101,22 @@ export const webUrl: ValidatorFn = (control: AbstractControl): { [key: string]: 
     '(?:[/?#]\\S*)?' +
     '$', 'i'
   );
-  return webUrlRegex.test(v) ? null : {'webUrl': true};
+  return webUrlRegex.test(v) ? null : {webUrl: true};
 };
 
 
-export const rangeLength = (rangeLengthParam: Array<number>): ValidatorFn => {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!isPresent(rangeLength)) {
-      return null;
-    }
-    if (isPresent(Validators.required(control))) {
-      return null;
-    }
-    const v: string = control.value;
-    return v.length >= rangeLengthParam[0] && v.length <= rangeLengthParam[1] ? null :
-      {'rangeLength': {'param1': rangeLengthParam[0], 'param2': rangeLengthParam[1]}};
-  };
+export const rangeLength = (rangeLengthParam: Array<number>): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
+  if (!isPresent(rangeLength)) {
+    return null;
+  }
+  if (isPresent(Validators.required(control))) {
+    return null;
+  }
+  const v: string = control.value;
+  return v.length >= rangeLengthParam[0] && v.length <= rangeLengthParam[1] ? null :
+    {rangeLength: {param1: rangeLengthParam[0], param2: rangeLengthParam[1]}};
 };
 
-
-export function isPresent(obj: any): boolean {
-  return obj !== undefined && obj !== null;
-}
 
 export const email: ValidatorFn = (control: AbstractControl): ValidationErrors => {
   if (isPresent(Validators.required(control))) {
@@ -135,23 +124,21 @@ export const email: ValidatorFn = (control: AbstractControl): ValidationErrors =
   }
 
   const v: string = control.value;
-  /* tslint:disable */
+  /* eslint-disable */
   return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) ? null : {'email': true};
-  /* tslint:enable */
+  /* eslint-enable */
 };
 
-export const maxValue = (value: number): ValidatorFn => {
-  return (control: AbstractControl): ValidationErrors => {
-    if (!isPresent(value)) {
-      return null;
-    }
-    if (isPresent(Validators.required(control))) {
-      return null;
-    }
+export const maxValue = (value: number): ValidatorFn => (control: AbstractControl): ValidationErrors => {
+  if (!isPresent(value)) {
+    return null;
+  }
+  if (isPresent(Validators.required(control))) {
+    return null;
+  }
 
-    const v: number = +control.value;
-    return v <= +value ? null : {max: {value: value}};
-  };
+  const v: number = +control.value;
+  return v <= +value ? null : {max: {value}};
 };
 
 export const equalTo = (equalControl: AbstractControl): ValidatorFn => {
@@ -172,18 +159,16 @@ export const equalTo = (equalControl: AbstractControl): ValidatorFn => {
 };
 
 
-export const range = (value: Array<number>): ValidatorFn => {
-  return (control: AbstractControl): ValidationErrors => {
-    if (!isPresent(value)) {
-      return null;
-    }
-    if (isPresent(Validators.required(control))) {
-      return null;
-    }
+export const range = (value: Array<number>): ValidatorFn => (control: AbstractControl): ValidationErrors => {
+  if (!isPresent(value)) {
+    return null;
+  }
+  if (isPresent(Validators.required(control))) {
+    return null;
+  }
 
-    const v: number = +control.value;
-    return v >= value[0] && v <= value[1] ? null : {range: {value: value}};
-  };
+  const v: number = +control.value;
+  return v >= value[0] && v <= value[1] ? null : {range: {value}};
 };
 
 
@@ -205,17 +190,18 @@ export const validISIN: ValidatorFn = (control: AbstractControl): { [key: string
   const match = regex.exec(isin);
   // validate the check digit
   return match && match.length === 4 && (+match[3] === calcISINCheck(match[1] + match[2])) ? null
-    : {'validISIN': true};
+    : {validISIN: true};
 };
 
 /**
  * /**
  * Calculates a check digit for an isin
+ *
  * @param code code an ISIN code with country code, but without check digit
  * @return number {Integer} The check digit for this code
  */
 
-function calcISINCheck(code): number {
+const calcISINCheck = (code): number => {
 
   let conv = '';
   let digits = '';
@@ -230,11 +216,12 @@ function calcISINCheck(code): number {
     digits += (parseInt(conv[i], 10) * ((i % 2) === (conv.length % 2 !== 0 ? 0 : 1) ? 2 : 1)).toString();
   }
   // sum all digits
-  for (let i = 0; i < digits.length; i++) {
-    sd += parseInt(digits[i], 10);
+  for (const digit of digits) {
+    sd += parseInt(digit, 10);
   }
   // subtract mod 10 of the sum from 10, return mod 10 of result
   return (10 - (sd % 10)) % 10;
-}
+};
+
 
 

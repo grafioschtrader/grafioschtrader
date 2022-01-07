@@ -25,7 +25,7 @@ export class HistoryquotePeriodService extends AuthServiceWithLogout<Historyquot
   deleteAndCreateMultiple(idSecuritycurrency: number, historyquotePeriods: HistoryquotePeriod[],
                           noteRequest: string): Observable<HistoryquotePeriod[]> {
     return <Observable<HistoryquotePeriod[]>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_PERIOD_KEY}/`,
-      {idSecuritycurrency, historyquotePeriods: historyquotePeriods, noteRequest: noteRequest},
+      {idSecuritycurrency, historyquotePeriods, noteRequest},
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 }

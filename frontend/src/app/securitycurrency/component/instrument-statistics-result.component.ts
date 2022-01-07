@@ -2,6 +2,9 @@ import {Component, Input, OnInit} from '@angular/core';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 import {SecurityService} from '../service/security.service';
 
+/**
+ * Shows the yield and statistical data about an instrument.
+ */
 @Component({
   selector: 'instrument-statistics-result',
   template: `

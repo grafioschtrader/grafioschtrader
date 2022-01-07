@@ -16,7 +16,7 @@ export class TwoKeyMap<T> {
     if (!this.map[key]) {
       this.map[key] = new Object();
     }
-    Object.defineProperty(this.map[key], nestedKey, {value: value, configurable: true, enumerable: true});
+    Object.defineProperty(this.map[key], nestedKey, {value, configurable: true, enumerable: true});
   }
 
   public remove(key, nestedKey): void {

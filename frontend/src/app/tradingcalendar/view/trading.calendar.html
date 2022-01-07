@@ -9,8 +9,8 @@
                 [options]="possibleYears"
                 id="idYearSelect">
     </p-dropdown>
-    <ng-fullyearcalendar-lib (onDaySelect)="onDaySelect($event)" [locale]="locale" [underline]="underline"
-                             [value]="yearCalendarData"></ng-fullyearcalendar-lib>
+    <ng-fullyearcalendar-lib (daySelect)="onDaySelect($event)" [locale]="locale" [underline]="underline"
+                             [yearCalendarData]="yearCalendarData"></ng-fullyearcalendar-lib>
     <p-footer>
       <div class="ui-dialog-buttonpane ui-widget-content flexRight">
         <button (click)="addMinusYear(-1)" *ngIf="containsYear(yearCalendarData.year - 1)" [disabled]="addRemoveDaysMap.size > 0" class="btn"

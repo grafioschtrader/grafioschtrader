@@ -55,10 +55,10 @@ export class NgxErrorDirective implements OnInit, OnDestroy, DoCheck, AfterViewI
     this.states = this._states.asObservable().pipe(distinctUntilChanged());
 
     const errorsObservable = this.ngxErrors.subject.pipe(
-      filter(Boolean), filter((obj: any) => !!~this.errorNames.indexOf(obj.errorName)));
+      filter(Boolean), filter((obj: any) => !!~this.errorNames.indexOf(obj.errorName))); //eslint-disable-line no-bitwise
 
     const statesObserable: Observable<boolean> = this.states.pipe(
-      map(states => this.rules.every(rule => !!~states.indexOf(rule))));
+      map(states => this.rules.every(rule => !!~states.indexOf(rule)))); //eslint-disable-line no-bitwise
 
     this.subscription = combineLatest([statesObserable, errorsObservable])
       .subscribe(([states, errors]) => {

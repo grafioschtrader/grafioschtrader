@@ -65,8 +65,8 @@ export class DynamicFieldHelper {
       dataType: DataType.None,
       inputType: InputType.Pbutton,
       field: fieldName,
-      labelKey: labelKey,
-      buttonFN: buttonFN
+      labelKey,
+      buttonFN
     };
     fieldOptions && Object.assign(fieldConfig, fieldOptions);
     return fieldConfig;
@@ -81,14 +81,14 @@ export class DynamicFieldHelper {
       dataType: DataType.None,
       inputType: InputType.Pbutton,
       field: fieldName,
-      labelKey: labelKey
+      labelKey
     };
   }
 
   public static createFileUpload(dataType: DataType.File | DataType.Files, fieldName: string, labelKey: string,
                                  acceptFileUploadType: string, required: boolean, fieldOptions?: FieldOptions): FieldConfig {
     const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
-        dataType: dataType,
+        dataType,
         inputType: InputType.FileUpload,
         acceptFileUploadType: '.' + acceptFileUploadType
       },
@@ -208,7 +208,7 @@ export class DynamicFieldHelper {
   public static createFieldPcalendar(dataType: DataType.DateString | DataType.DateNumeric | DataType.DateTimeNumeric
                                        | DataType.DateStringShortUS, fieldName: string, labelKey: string, required: boolean,
                                      fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = this.setFieldBaseAndOptions({dataType: dataType, inputType: InputType.Pcalendar},
+    const fieldConfig = this.setFieldBaseAndOptions({dataType, inputType: InputType.Pcalendar},
       fieldName, labelKey,
       required ? [Validators.required] : null,
       required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
@@ -244,7 +244,7 @@ export class DynamicFieldHelper {
         inputType: InputType.InputNumber
       },
       fieldName, labelKey, required ? [Validators.required] : null, required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
-    fieldConfig.inputNumberSettings = {maxFractionDigits: maxFractionDigits};
+    fieldConfig.inputNumberSettings = {maxFractionDigits};
     fieldConfig.max = Number('9'.repeat(integerLimit) + '.' + '9'.repeat(maxFractionDigits));
     fieldConfig.min = allowNegative ? fieldConfig.max * -1 : required ? 1 / Math.pow(10, maxFractionDigits) : 0;
     return fieldConfig;
@@ -299,7 +299,7 @@ export class DynamicFieldHelper {
     fieldConfig.currencyMaskConfig = {
       ...defaultCurrencyMaskConfig,
       ...{
-        precision: maxFractionDigits, allowNegative: allowNegative, min: fieldConfig.min, max: fieldConfig.max
+        precision: maxFractionDigits, allowNegative, min: fieldConfig.min, max: fieldConfig.max
       }
     };
 
@@ -369,11 +369,11 @@ export class DynamicFieldHelper {
     (fieldOptions = fieldOptions || {}).inputWidth = maxLength + 2;
 
     return this.setFieldBaseAndOptions({
-        dataType: dataType,
+        dataType,
         inputType: InputType.Input,
-        min: min,
-        max: max,
-        maxLength: maxLength
+        min,
+        max,
+        maxLength
       },
       fieldName, labelKey, validations, errorMessageRules, fieldOptions);
   }
@@ -511,7 +511,7 @@ export class DynamicFieldHelper {
   private static createFieldSelectNumberString(dataType: DataType, fieldName: string, labelKey: string, required: boolean,
                                                fieldOptions?: FieldOptions): FieldConfig {
     return this.setFieldBaseAndOptions({
-        dataType: dataType,
+        dataType,
         inputType: InputType.Select
       },
       fieldName, labelKey,
@@ -523,9 +523,9 @@ export class DynamicFieldHelper {
                                              maxLength: number, required: boolean,
                                              fieldOptions?: FieldOptions): FieldConfig {
     const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
-        dataType: dataType,
-        inputType: inputType,
-        maxLength: maxLength
+        dataType,
+        inputType,
+        maxLength
       },
       fieldName, labelKey,
       required ? [Validators.required] : null,
@@ -579,7 +579,7 @@ export interface FieldOptions {
   upperCase?: boolean;
   userDefinedValue?: number | string;
   minLength?: number;
-  suggestionsFN?: Function;
+  suggestionsFN?: (any) => void;
   invisible?: boolean;
   valueKeyHtmlOptions?: ValueKeyHtmlSelectOptions[];
   buttonInForm?: boolean;
@@ -589,10 +589,5 @@ export interface FieldOptions {
 
 export interface FieldOptionsCc extends FieldOptions {
   targetField?: string;
-}
-
-export interface CurrencyOptions {
-  currencyMask?: Function;
-  maskCurrencyPrefix?: string;
 }
 

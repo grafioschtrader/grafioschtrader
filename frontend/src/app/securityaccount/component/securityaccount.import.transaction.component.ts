@@ -190,7 +190,8 @@ export class SecurityaccountImportTransactionComponent
         fieldConfig[0].defaultValue = vkhso[0].key;
       }
       fieldConfig[0].valueKeyHtmlOptions = vkhso;
-      this.handleUploadFiles(new AdditionalFieldConfig(fieldConfig, this.submitPrepareFN.bind(this)), this.selectedEntity, 'UPLOAD_CSV', 'csv', false);
+      this.handleUploadFiles(new AdditionalFieldConfig(fieldConfig, this.submitPrepareFN.bind(this)), this.selectedEntity,
+        'UPLOAD_CSV', 'csv', false);
     });
   }
 

@@ -47,8 +47,8 @@ export class DynamicDialogHelper {
     this.translateService.get(this.titleKey).subscribe(msg => {
       dynamicDialogRef = this.dialogService.open(this.componentType, {
         header: msg, width: widthPx + 'px',
-        contentStyle: contentStyle,
-        data: data
+        contentStyle,
+        data
       });
     });
   }

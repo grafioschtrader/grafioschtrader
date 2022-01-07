@@ -33,7 +33,7 @@ import {GlobalSessionNames} from '../../global.session.names';
           <h2>{{'REGISTRATION' | translate}}</h2>
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                         #form="dynamicForm"
-                        (submit)="submit($event)">
+                        (submitBt)="submit($event)">
           </dynamic-form>
 
           <div *ngIf="progressValue">

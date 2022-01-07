@@ -212,16 +212,16 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
 
   handleSingleAccountTransaction(transactionType: TransactionType, cashaccount: Cashaccount): void {
     this.transactionCallParam = Object.assign(new TransactionCallParam(), {
-      transactionType: transactionType,
+      transactionType,
       portfolio: this.portfolio,
-      cashaccount: cashaccount
+      cashaccount
     });
     this.visibleCashaccountTransactionSingleDialog = true;
   }
 
   handleDoubleAccountTransaction(cashaccount: Cashaccount): void {
     this.transactionCallParam = Object.assign(new TransactionCallParam(), {
-      cashaccount: cashaccount
+      cashaccount
     });
     this.visibleCashaccountTransactionDoubleDialog = true;
   }

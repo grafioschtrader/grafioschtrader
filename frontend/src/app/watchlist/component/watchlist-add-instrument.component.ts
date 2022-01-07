@@ -21,7 +21,7 @@ import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-t
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #dynamicFormComponent="dynamicForm" (submit)="submit($event)">
+                    #dynamicFormComponent="dynamicForm" (submitBt)="submit($event)">
       </dynamic-form>
       <br/>
       <add-instrument-table [tenantLimits]="tenantLimits">

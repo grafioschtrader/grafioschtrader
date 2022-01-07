@@ -43,6 +43,7 @@ export class ChartDataService {
 
   /**
    * Send data to the chart when the showing chart data schuld be changed
+   *
    * @param chartData Chart data
    */
   sentToChart(chartData: Partial<ChartData>) {

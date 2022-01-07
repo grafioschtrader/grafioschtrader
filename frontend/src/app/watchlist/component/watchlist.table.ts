@@ -98,7 +98,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       this.singleMultiSelection = [];
     }
     this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
-
   }
 
   createSecurityPositionList(data: SecuritycurrencyGroup) {
@@ -150,7 +149,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         this.watchlistService.removeMultipleFromWatchlist(this.idWatchlist,
           selectedSecurityCurrencies.map(sc => sc.securitycurrency.idSecuritycurrency)).subscribe(count => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST',
-            {count: count});
+            {count});
           this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
         });
       });
@@ -194,7 +193,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   handleTransaction(transactionType: TransactionType, security: Security) {
     this.transactionCallParam = Object.assign(new TransactionCallParam(), {
-      transactionType: transactionType,
+      transactionType,
       idSecuritycurrency: security.idSecuritycurrency,
       security: transactionType !== TransactionType.ACCUMULATE ? security : null
     });
