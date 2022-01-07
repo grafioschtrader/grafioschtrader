@@ -27,7 +27,6 @@ export class ActuatorService extends BaseService {
 
 export interface ActuatorHealth {
   status: 'UP' | 'DOWN';
-
 }
 
 export class Users {

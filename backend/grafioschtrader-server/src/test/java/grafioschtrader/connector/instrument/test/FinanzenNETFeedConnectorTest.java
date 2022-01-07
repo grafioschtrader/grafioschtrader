@@ -93,7 +93,21 @@ class FinanzenNETFeedConnectorTest {
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-  
+
+    securities
+    .add(createSecurityHistorical("etf/historisch/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
+        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "CH0398013778", "FSX"));
+
+    /* 
+    securities.add(createSecurityHistorical("historische-kurse/Daimler", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE0007100000", "FSX"));
+    
+    securities.add(createSecurityHistorical("index/S&P_500/Historisch", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "US78378X1072", "NYSE"));
+   
+    securities.add(createSecurityHistorical("anleihen/historisch/a19jgw-grande-dixence-anleihe",
+        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0361532952", "SIX"));
+   
     securities.add(createSecurityHistorical("etf/kurse/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
  
@@ -115,16 +129,13 @@ class FinanzenNETFeedConnectorTest {
     securities.add(createSecurityHistorical("historische-kurse/unicredit", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "IT0005239360", "MIL"));
    
-    securities.add(createSecurityHistorical("historische-kurse/Daimler", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE0007100000", "FSX"));
+  
 
     
     securities.add(createSecurityHistorical("rohstoffe/oelpreis/historisch|oelpreis/USD", AssetclassType.COMMODITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, "---"));
 
-    securities.add(createSecurityHistorical("anleihen/historisch/a19jgw-grande-dixence-anleihe",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0361532952", "SIX"));
-
+   
     securities.add(createSecurityHistorical("etf/kurse/ishares-atx-etf-de000a0d8q23", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.ETF, "DE000A0D8Q23", "FSX"));
 
@@ -139,20 +150,13 @@ class FinanzenNETFeedConnectorTest {
 
     securities.add(createSecurityHistorical("anleihen/historisch/a19vaz-rallye-anleihe", AssetclassType.FIXED_INCOME,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "SIX"));
-
-    securities
-        .add(createSecurityHistorical("etf/historisch/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
-            AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "CH0398013778", "FSX"));
-
-    securities.add(createSecurityHistorical("index/S&P_500/Historisch", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "US78378X1072", "NYSE"));
-
+   
     securities.add(createSecurityHistorical("index/FTSE_MIB/Historisch", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", "MTA"));
 
     securities.add(createSecurityHistorical("etf/historisch/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
-
+*/
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {

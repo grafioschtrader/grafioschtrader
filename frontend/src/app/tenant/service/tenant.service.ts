@@ -17,7 +17,6 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
     super(loginService, httpClient, messageToastService);
   }
 
-
   getTenantAndPortfolio(): Observable<Tenant> {
     return <Observable<Tenant>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
@@ -27,13 +26,11 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
     return this.updateEntity(tenant, tenant.idTenant, AppSettings.TENANT_KEY);
   }
 
-
   public setWatchlistForPerformance(idWatchlist: number): Observable<Tenant> {
     return this.httpClient.patch(
       `${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/watchlistforperformance/${idWatchlist}`, null,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   public async getExportPersonalDataAsZip(): Promise<Blob> {
     return await this.httpClient.get<Blob>(
@@ -41,7 +38,6 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
       {headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json'})
       .toPromise();
   }
-
 
   public deleteMyDataAndUserAccount() {
     return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/`, this.getHeaders())

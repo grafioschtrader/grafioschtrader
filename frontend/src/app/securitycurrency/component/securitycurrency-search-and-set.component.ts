@@ -21,7 +21,7 @@ import {MultipleRequestToOneService} from '../../shared/service/multiple.request
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
           <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                        (submit)="submit($event)">
+                        (submitBt)="submit($event)">
           </dynamic-form>
           <br/>
           <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria">

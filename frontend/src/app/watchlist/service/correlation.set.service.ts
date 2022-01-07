@@ -49,8 +49,9 @@ export class CorrelationSetService extends AuthServiceWithLogout<CorrelationSet>
   }
 
   addSecuritycurrenciesToList(idCorrelationSet: number, securitycurrencyLists: SecuritycurrencyLists): Observable<CorrelationSet> {
-    return <Observable<CorrelationSet>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/${idCorrelationSet}`
-      + `/addSecuritycurrency`, securitycurrencyLists, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<CorrelationSet>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/`
+      + `${idCorrelationSet}/addSecuritycurrency`, securitycurrencyLists,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   removeInstrumentFromCorrelationSet(idCorrelationSet: number, idSecuritycurrency: number): Observable<CorrelationSet> {
@@ -79,7 +80,7 @@ export class CorrelationSetService extends AuthServiceWithLogout<CorrelationSet>
     return <Observable<CorrelationRollingResult[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}`
       + `/corrrolling/${idCorrelationSet}`, {
       headers: this.prepareHeaders(),
-      params: params
+      params
     }).pipe(catchError(this.handleError.bind(this)));
   }
 

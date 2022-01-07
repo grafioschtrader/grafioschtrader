@@ -13,11 +13,9 @@ export class ViewSizeChangedService {
   private viewSizeChanged = new Subject<ChangedViewSizeType>();
   viewSizeChanged$ = this.viewSizeChanged.asObservable();
 
-
   viewPanelChanged(changedViewSizeType: ChangedViewSizeType) {
     this.viewSizeChanged.next(changedViewSizeType);
   }
-
 
   setMainTreeSplit(splitTreeMain): void {
     this.splitTreeMain = splitTreeMain;

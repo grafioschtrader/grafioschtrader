@@ -8,7 +8,7 @@ export abstract class BaseService {
   prepareHeaders(contentType = 'application/json'): HttpHeaders {
     const header = {
       'Content-Type': 'application/json',
-      'Accept': contentType
+      Accept: contentType
     };
     this.addToken(header);
     return new HttpHeaders(header);
@@ -21,7 +21,7 @@ export abstract class BaseService {
   prepareMultipartHeaders(): HttpHeaders {
     const header = {
       // 'Content-Type': 'multipart/form-data',
-      'Accept': 'application/json'
+      Accept: 'application/json'
     };
     this.addToken(header);
     return new HttpHeaders(header);

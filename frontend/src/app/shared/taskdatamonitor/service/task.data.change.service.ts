@@ -23,7 +23,8 @@ export class TaskDataChangeService extends AuthServiceWithLogout<TaskDataChange>
   }
 
   getFormConstraints(): Observable<TaskDataChangeFormConstraints> {
-    return <Observable<TaskDataChangeFormConstraints>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}/taskdatachangeconstraints/`,
+    return <Observable<TaskDataChangeFormConstraints>>this.httpClient.get(
+      `${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}/taskdatachangeconstraints/`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

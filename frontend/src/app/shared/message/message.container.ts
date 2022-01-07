@@ -6,6 +6,6 @@ export class MessageContainer {
   enableHtml: boolean;
 
   constructor(public i8n: boolean, public infoLevelType: InfoLevelType,
-              public key: string | Array<string>, public interpolateParams?: Object) {
+              public key: string | Array<string>, public interpolateParams?: any) {
   }
 }

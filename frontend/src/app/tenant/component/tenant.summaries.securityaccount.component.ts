@@ -68,7 +68,6 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
   protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {
   }
 
-
   protected getOptionalParameters(): OptionalParameters {
     return null;
   }

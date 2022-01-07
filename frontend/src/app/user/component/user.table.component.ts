@@ -59,8 +59,10 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
               </a>
             </td>
 
-            <td *ngFor="let field of fields" [style.max-width.px]="field.width" [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric  || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType === DataType.DateTimeNumeric
+              || field.dataType===DataType.NumericInteger)? 'text-right': ''">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'check'">
                   <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
@@ -130,16 +132,16 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   };
 
   constructor(private iconReg: SvgIconRegistryService,
-              private userAdminService: UserAdminService,
-              private proposeUserTaskService: ProposeUserTaskService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private userAdminService: UserAdminService,
+    private proposeUserTaskService: ProposeUserTaskService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(AppSettings.USER, userAdminService, confirmationService, messageToastService, activePanelService, dialogService,
       filterService, translateService, gps, usersettingsService, [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);

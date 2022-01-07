@@ -18,7 +18,7 @@ import {LoginService} from '../../shared/login/service/log-in.service';
         <h4>{{'CLIENT_REGISTER' | translate}}</h4>
         <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                       #form="dynamicForm"
-                      (submit)="submit($event)">
+                      (submitBt)="submit($event)">
         </dynamic-form>
       </div>
     </div>

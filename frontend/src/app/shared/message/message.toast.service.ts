@@ -17,11 +17,11 @@ export class MessageToastService {
    * @param message Translated message.
    * @param interpolateParams Parameters which will not be translated.
    */
-  showMessage(infoLevelType: InfoLevelType, message: string | Array<string>, interpolateParams?: Object) {
+  showMessage(infoLevelType: InfoLevelType, message: string | Array<string>, interpolateParams?: any) {
     this.showMessageSource.next(new MessageContainer(false, infoLevelType, message, interpolateParams));
   }
 
-  showMessageTitle(infoLevelType: InfoLevelType, title: string, key: string | Array<string>, interpolateParams?: Object) {
+  showMessageTitle(infoLevelType: InfoLevelType, title: string, key: string | Array<string>, interpolateParams?: any) {
     const mc = new MessageContainer(false, infoLevelType, key, interpolateParams);
     mc.title = title;
     this.showMessageSource.next(mc);
@@ -35,17 +35,17 @@ export class MessageToastService {
    * @param key Message key of the untranslated message.
    * @param interpolateParams Parameters which will be translated when parameter name starts with 'i18n'.
    */
-  showMessageI18n(infoLevelType: InfoLevelType, key: string | Array<string>, interpolateParams?: Object) {
+  showMessageI18n(infoLevelType: InfoLevelType, key: string | Array<string>, interpolateParams?: any) {
     this.showMessageSource.next(new MessageContainer(true, infoLevelType, key, interpolateParams));
   }
 
-  showMessageI18nEnableHtml(infoLevelType: InfoLevelType, key: string | Array<string>, interpolateParams?: Object) {
+  showMessageI18nEnableHtml(infoLevelType: InfoLevelType, key: string | Array<string>, interpolateParams?: any) {
     const messageContainer: MessageContainer = new MessageContainer(true, infoLevelType, key, interpolateParams);
     messageContainer.enableHtml = true;
     this.showMessageSource.next(messageContainer);
   }
 
-  showMessageI18nTitle(infoLevelType: InfoLevelType, titleKey: string, key: string | Array<string>, interpolateParams?: Object) {
+  showMessageI18nTitle(infoLevelType: InfoLevelType, titleKey: string, key: string | Array<string>, interpolateParams?: any) {
     const mc = new MessageContainer(true, infoLevelType, key, interpolateParams);
     mc.titleKey = titleKey;
     this.showMessageSource.next(mc);

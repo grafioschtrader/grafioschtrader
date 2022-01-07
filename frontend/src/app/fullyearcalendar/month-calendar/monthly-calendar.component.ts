@@ -58,10 +58,10 @@ export class MonthlyCalendarComponent implements OnDestroy {
   @Input() disabledDaysOfWeek: string[];
 
   @Output()
-  onDayClicked: EventEmitter<Date> = new EventEmitter<Date>();
+  dayClicked: EventEmitter<Date> = new EventEmitter<Date>();
 
   ngOnDestroy(): void {
-    this.onDayClicked.unsubscribe();
+    this.dayClicked.unsubscribe();
   }
 
   dayClick(day: Day): void {
@@ -70,7 +70,7 @@ export class MonthlyCalendarComponent implements OnDestroy {
         r.select(day.ranges);
       }
     } else {
-      this.onDayClicked.emit(day.day);
+      this.dayClicked.emit(day.day);
     }
   }
 

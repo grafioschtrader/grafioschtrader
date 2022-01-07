@@ -52,7 +52,7 @@ import {FormHelper} from '../../dynamic-form/components/FormHelper';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
 
       <securitycurrency-search-and-set *ngIf="visibleSetSecurityDialog"

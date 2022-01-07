@@ -11,7 +11,7 @@ import {DayOfWeek} from './model/day.of.week';
   template: `
     <div *ngIf="year" class="flex-container">
       <div *ngFor="let month of year.months" class="grid-item">
-        <month-calendar [underline]="underline" (onDayClicked)="onDayClicked($event)" [month]="month"
+        <month-calendar [underline]="underline" (dayClicked)="dayClicked($event)" [month]="month"
                         [disabledDaysOfWeek]="disabledDaysOfWeek" [locale]="locale"></month-calendar>
       </div>
     </div>
@@ -20,16 +20,13 @@ import {DayOfWeek} from './model/day.of.week';
 })
 export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
 
-  @Input()
-  underline = false;
-  @Input()
-  locale: LocaleSettings = {
+  @Input() underline = false;
+  @Input() locale: LocaleSettings = {
     dayNamesMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
     monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
   };
-  value: YearCalendarData;
-  @Output()
-  onDaySelect: EventEmitter<Date> = new EventEmitter<Date>();
+  _yearCalendarData: YearCalendarData;
+  @Output() daySelect: EventEmitter<Date> = new EventEmitter<Date>();
   public year: Year;
   disabledDaysOfWeek: string[];
   private initial_data: string;
@@ -38,30 +35,29 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
   constructor() {
   }
 
-  @Input('value')
-  set _initValue(val: YearCalendarData) {
+  @Input() set yearCalendarData(val: YearCalendarData) {
     if (val.disableWeekDays) {
       this.disabledDaysOfWeek = [];
       val.disableWeekDays.forEach((dayOfWeek: DayOfWeek) =>
         this.disabledDaysOfWeek.push(this.locale.dayNamesMin[Year.getDayNumberByDayOfWeek(dayOfWeek)]));
     }
-    this.value = val;
+    this._yearCalendarData = val;
 
     this.initValue(val);
   }
 
   ngOnDestroy(): void {
-    this.onDaySelect.unsubscribe();
+    this.daySelect.unsubscribe();
   }
 
   /**
    * from on push in values, comparing if there is any difference
    */
   ngDoCheck(): void {
-    const stringData = JSON.stringify(this.value);
+    const stringData = JSON.stringify(this._yearCalendarData);
     if (this.initial_data !== stringData) {
       this.initial_data = stringData;
-      this.initValue(this.value, stringData);
+      this.initValue(this._yearCalendarData, stringData);
     }
   }
 
@@ -74,8 +70,8 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
     return daysOfWeek && daysOfWeek.indexOf(dayOfWeek) >= 0;
   }
 
-  onDayClicked(day: Date): void {
-    this.onDaySelect.emit(day);
+  dayClicked(day: Date): void {
+    this.daySelect.emit(day);
   }
 
   getForegroundColorByBackgroundColor(backgroundColor: string): string {
@@ -114,8 +110,8 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
     for (const m of this.year.months) {
       for (const w of m.weeks) {
         for (const day of w.daysOfWeek) {
-          if (this.value.dates && this.value.dates.length > 0) {
-            for (const d of this.value.dates) {
+          if (this._yearCalendarData.dates && this._yearCalendarData.dates.length > 0) {
+            for (const d of this._yearCalendarData.dates) {
 
               if (day.day >= d.start && day.day <= d.end) {
                 const range = new Range();
@@ -138,8 +134,8 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
               }
             }
           }
-          day.isDisabled = this.isDisabled(day.day, this.value.disabledDays)
-            || this.isWeekdayDisabled(day.dayOfWeek, this.value.disableWeekDays);
+          day.isDisabled = this.isDisabled(day.day, this._yearCalendarData.disabledDays)
+            || this.isWeekdayDisabled(day.dayOfWeek, this._yearCalendarData.disableWeekDays);
         }
       }
     }

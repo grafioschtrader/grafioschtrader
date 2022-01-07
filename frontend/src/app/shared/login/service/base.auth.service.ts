@@ -16,9 +16,9 @@ import {BaseService} from './base.service';
 export abstract class BaseAuthService<T> extends BaseService {
 
   private static readonly classNameClassMap = {
-    'LimitEntityTransactionError': LimitEntityTransactionError,
-    'SingleNativeMsgError': SingleNativeMsgError,
-    'ValidationError': ValidationError
+    LimitEntityTransactionError,
+    SingleNativeMsgError,
+    ValidationError
   };
 
   constructor(protected httpClient: HttpClient, protected messageToastService: MessageToastService) {
@@ -79,7 +79,7 @@ export abstract class BaseAuthService<T> extends BaseService {
 
     if (BaseAuthService.classNameClassMap[errorWrapper.className] != null) {
       BaseAuthService.classNameClassMap[errorWrapper.className];
-      const getTransformedError: GetTransformedError = Object.assign(new BaseAuthService.classNameClassMap[errorWrapper.className],
+      const getTransformedError: GetTransformedError = Object.assign(new BaseAuthService.classNameClassMap[errorWrapper.className](),
         errorWrapper.error);
       transformedError = getTransformedError.getTransformedError();
     } else if (errorWrapper.className === 'ErrorWithLogout') {

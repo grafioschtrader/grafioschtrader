@@ -47,7 +47,7 @@ export class ColumnConfig {
   /**
    * IFields are displayed grouped visibly for the user
    */
-  fieldsetName: String;
+  fieldsetName: string;
 
   /**
    * If true this field will be exported when export functionality is available
@@ -62,7 +62,7 @@ export class ColumnConfig {
   userValue: any;
 
   constructor(dataType: DataType, field: string, headerKey: string, visible: boolean,
-              changeVisibility: boolean, optionalsParams?: OptionalParams) {
+    changeVisibility: boolean, optionalsParams?: OptionalParams) {
     this.dataType = dataType;
     this.field = field;
     this.headerKey = headerKey;
@@ -121,8 +121,9 @@ export class ColumnGroupConfig {
   textValueTranslated: string;
   colspan: number;
 
-  constructor(public fieldValue: string, public textValueKey?: string, public fieldTextFN?: Function,
-              optionalsGropuParams?: OptionalGroupParams) {
+  constructor(public fieldValue: string, public textValueKey?: string, public fieldTextFN?: (columnConfig: ColumnConfig,
+      arrIndex: number, groupChangeIndexMap: any, rowIndex: number) => any,
+    optionalsGropuParams?: OptionalGroupParams) {
     if (optionalsGropuParams) {
       this.colspan = optionalsGropuParams.colspan;
     }

@@ -50,7 +50,7 @@ import {Moment} from 'moment/moment';
 
 
 interface Traces {
-  [key: string]: { x: string[], y: number[], text: string[] };
+  [key: string]: { x: string[]; y: number[]; text: string[] };
 }
 
 

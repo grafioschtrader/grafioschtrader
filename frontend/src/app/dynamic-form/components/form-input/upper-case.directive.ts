@@ -1,21 +1,15 @@
-import {Directive, ElementRef, Input} from '@angular/core';
+import {Directive, ElementRef, HostListener, Input} from '@angular/core';
 
 @Directive({
-  selector: '[upperCase]',
-  host: {
-    '(input)': 'toUpperCase($event.target.value)',
-  }
-
+  selector: '[upperCase]'
 })
 export class UpperCaseDirective {
   @Input('upperCase') allowUpperCase: boolean;
+  constructor(public ref: ElementRef) { }
 
-  constructor(private ref: ElementRef) {
-  }
-
-  toUpperCase(value: any) {
-    if (this.allowUpperCase) {
-      this.ref.nativeElement.value = value.toUpperCase();
+  @HostListener('input', ['$event']) onInput(event) {
+    if(this.allowUpperCase) {
+      this.ref.nativeElement.value = event.target.value.toUpperCase();
     }
   }
 

@@ -25,7 +25,7 @@ import {TranslateHelper} from '../../helper/translate.helper';
               [responsive]="true" [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`
 })
@@ -66,7 +66,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
   }
 
   protected initialize(): void {
-    combineLatest([this.gps.getSupportedLocales(), this.loginService.getNicknameLocale()])
+    combineLatest([this.gps.getSupportedLocales(), this.loginService.getOwnUser()])
       .subscribe(data => {
         this.configObject.localeStr.valueKeyHtmlOptions = data[0];
         this.form.transferBusinessObjectToForm(data[1]);

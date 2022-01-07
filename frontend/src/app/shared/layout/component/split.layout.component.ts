@@ -30,11 +30,9 @@ export class SplitLayoutComponent implements OnInit {
   @ViewChild('split', {static: true}) splitElementRef: ElementRef;
 
   constructor(private viewSizeChangedService: ViewSizeChangedService) {
-
   }
 
   ngOnInit() {
-
     const splitTreeMain = Split(['#tree', '#mainpanel'], {
       sizes: [20, 80],
       minSize: 0,

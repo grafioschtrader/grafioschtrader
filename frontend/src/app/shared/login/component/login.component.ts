@@ -32,7 +32,7 @@ import {GlobalSessionNames} from '../../global.session.names';
           <h2>{{'SIGN_IN' | translate}}</h2>
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                         #form="dynamicForm"
-                        (submit)="submit($event)">
+                        (submitBt)="submit($event)">
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">

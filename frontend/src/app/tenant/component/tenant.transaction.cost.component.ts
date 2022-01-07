@@ -112,7 +112,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
 
   transactionCostGrandSummary: TransactionCostGrandSummary;
   transactionCostGroupSummaries: TransactionCostGroupSummary[];
-  expandedTCGSid: { [s: string]: boolean; } = {};
+  expandedTCGSid: { [s: string]: boolean } = {};
   baseSelectedRow: TransactionCostPosition;
   firstRowIndex = 0;
   private chartIdNumberToTransactionCostPosition: TransactionCostPosition[];

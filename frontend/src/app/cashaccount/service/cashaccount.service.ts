@@ -31,7 +31,6 @@ export class CashaccountService extends AuthServiceWithLogout<Cashaccount> imple
     return this.updateEntity(cashaccount, cashaccount.idSecuritycashAccount, AppSettings.CASHACCOUNT_KEY);
   }
 
-
   deleteCashaccount(idSecuritycashaccount: number): Observable<any> {
     return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.CASHACCOUNT_KEY}/${idSecuritycashaccount}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));

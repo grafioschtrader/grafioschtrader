@@ -52,7 +52,6 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
       });
   }
 
-
   getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
     if (this.hasRightsToModify()) {

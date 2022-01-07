@@ -31,7 +31,7 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
         </p-header>
       </p-panel>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submit)="saveAndCalculate($event)">
+                    #form="dynamicForm" (submitBt)="saveAndCalculate($event)">
       </dynamic-form>
 
       <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
@@ -55,10 +55,10 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
   implements AfterViewInit, OnDestroy, ChildToParent {
 
   private static readonly MAIN_FIELD = 'idCorrelationSet';
-
+  @ViewChild(CorrelationTableComponent, {static: true}) correlationTableComponent: CorrelationTableComponent;
   timePeriod: string = null;
   nonOverlappingDates = false;
-  @ViewChild(CorrelationTableComponent, {static: true}) correlationTableComponent: CorrelationTableComponent;
+
   private readonly tickerSymbol = 'tickerSymbol';
   private correlationLimit: CorrelationLimit;
   private correlationResult: CorrelationResult;
@@ -175,7 +175,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     const editMenu = this.prepareEditMenu();
     const showMenu = this.prepareShowMenu();
     this.contextMenuItems = [...editMenu, ...showMenu];
-    this.activePanelService.activatePanel(this, {editMenu: editMenu, showMenu: showMenu});
+    this.activePanelService.activatePanel(this, {editMenu, showMenu});
   }
 
   override prepareEditMenu(): MenuItem[] {

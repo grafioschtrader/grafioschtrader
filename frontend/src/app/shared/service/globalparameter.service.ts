@@ -156,6 +156,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   /**
    * Gets the key property name by the entity name from session storge
+   *
    * @param entityName Name of entity
    */
   public getKeyNameByEntityName(entityName: string): string {

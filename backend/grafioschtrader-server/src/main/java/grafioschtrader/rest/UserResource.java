@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafioschtrader.common.PropertyChangePassword;
 import grafioschtrader.dto.ChangePasswordDTO;
 import grafioschtrader.dto.UserDTO;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.VerificationToken;
 import grafioschtrader.entities.projection.SuccessfullyChanged;
@@ -34,12 +35,7 @@ import grafioschtrader.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * Every user can access and edit some of its user data.
- *
- * @author Hugo Graf
- *
- */
+
 @RestController
 @RequestMapping(RequestMappings.USER_MAP)
 @Tag(name = User.TABNAME, description = "Controller for chaning user properites. Accesible by every user.")
@@ -58,6 +54,8 @@ public class UserResource {
   @Autowired
   private UserJpaRepository userJpaRepository;
 
+  @Operation(summary = "Return of the own user.", description = "Return without password", tags = {
+      User.TABNAME })
   @GetMapping(value = "/own", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<UserOwnProjection> getOwnUser() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

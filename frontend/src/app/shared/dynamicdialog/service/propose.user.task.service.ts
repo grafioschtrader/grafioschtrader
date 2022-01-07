@@ -23,7 +23,7 @@ export class ProposeUserTaskService extends AuthServiceWithLogout<ProposeUserTas
     super(loginService, httpClient, messageToastService);
   }
 
-  public rejectUserTask(idProposeRequest: number, rejectNote: String): Observable<StringResponse> {
+  public rejectUserTask(idProposeRequest: number, rejectNote: string): Observable<StringResponse> {
     return <Observable<StringResponse>>this.httpClient.post(
       `${AppSettings.API_ENDPOINT}${AppSettings.PROPOSE_USER_TASK_KEY}/reject/${idProposeRequest}`,
       rejectNote, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));

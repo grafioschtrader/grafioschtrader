@@ -9,7 +9,8 @@ import {Assetclass} from '../../entities/assetclass';
 @Injectable()
 export class ProductIconService {
 
-  readonly icons = ['bo', 'c', 'cc', 'cb', 'co', 'd', 'cfd_c', 'cfd_i', 'd', 'eq', 'etf_c', 'etf_crypto', 'etf_i', 'f', 'fr', 'fx', 'i', 'ir', 'm'];
+  readonly icons = ['bo', 'c', 'cc', 'cb', 'co', 'd', 'cfd_c', 'cfd_i', 'd', 'eq', 'etf_c', 'etf_crypto', 'etf_i',
+    'f', 'fr', 'fx', 'i', 'ir', 'm'];
 
   constructor(private iconReg: SvgIconRegistryService) {
     this.icons.forEach(icon => this.iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + icon + '.svg', icon));

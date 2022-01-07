@@ -41,7 +41,7 @@ import {AppSettings} from '../../app.settings';
               'cell-holiday': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HOLIDAY],
               'cell-data-missing': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HISTORY_DATA_MISSING]}"
                       [style.width.px]="field.width">
-                      <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
+                      <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
                       <ng-container [ngSwitch]="field.templateName">
                           <ng-container *ngSwitchCase="'greenRed'">
                 <span [style.color]='isValueByPathMinusWithEmptyColor(rowData, field)? "red": "green"'>
@@ -98,7 +98,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
 
   periodWindowsNodes: TreeNode[] = [];
   selectedNodes: TreeNode[] = [];
-  translatedTexts: { [s: string]: string; };
+  translatedTexts: { [s: string]: string };
   lastPeriodSplit: WeekYear | string;
 
   constructor(translateService: TranslateService,

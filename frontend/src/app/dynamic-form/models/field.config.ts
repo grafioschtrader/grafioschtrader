@@ -155,7 +155,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
    * Only for the input suggestion
    */
   suggestions?: string[];
-  suggestionsFN?: Function;
+  suggestionsFN?: (any) => void;
 
   /**
    * Accepted file upload type
@@ -163,6 +163,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
   acceptFileUploadType?: string;
   /**
    * Sometimes it is required to get die file list directly after choosing the file/s
+   *
    * @param fileList List of files
    */
   handleChangeFileInputFN?: (fileList: FileList) => void;
@@ -173,7 +174,6 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
   // See https://github.com/nbfontana/ngx-currency/blob/master/src/currency-mask.config.ts
   currencyMaskConfig?: CurrencyMaskConfig;
 }
-
 
 export interface InputNumberSetting {
   maxFractionDigits?: number;

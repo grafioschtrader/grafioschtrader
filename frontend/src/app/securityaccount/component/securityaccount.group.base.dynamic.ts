@@ -97,7 +97,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
     };
     const circleChartGross = {
       values: valuesGross,
-      labels: labels,
+      labels,
       type: 'pie',
       domain: {
         x: [0.52, 1],
@@ -110,7 +110,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
     const data = [barChartNet, circleChartGross];
 
     const layout = {
-      title: title,
+      title,
       grid: {rows: 1, columns: 2},
       yaxis: {
         automargin: true
@@ -119,7 +119,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
 
     this.translateService.get(SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER).subscribe(
       translated => barChartNet.name = translated);
-    return {data: data, layout: layout};
+    return {data, layout};
   }
 
   protected abstract getGroupFieldAsString(enumType: S): string;

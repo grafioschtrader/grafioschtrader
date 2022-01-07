@@ -9,9 +9,9 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 })
 export class FileValueAccessorDirective implements ControlValueAccessor {
   @HostListener('change', ['$event.target.files']) onChange = (_) => {
-  }
+  };
   @HostListener('blur') onTouched = () => {
-  }
+  };
 
   writeValue(value) {
   }

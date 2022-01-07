@@ -37,7 +37,7 @@ import {AppSettings} from '../../shared/app.settings';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`
 })
@@ -54,7 +54,6 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, AppSettings.STOCKEXCHANGE.toUpperCase(), translateService, gps,
       messageToastService, stockexchangeService);
   }
-
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,

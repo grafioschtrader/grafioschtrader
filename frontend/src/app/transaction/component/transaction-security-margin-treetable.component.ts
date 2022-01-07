@@ -50,7 +50,7 @@ import {HelpIds} from '../../shared/help/help.ids';
               <td *ngFor="let field of fields; let i = index"
                   [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
               || field.dataType===DataType.DateTimeNumeric)}" [style.width.px]="field.width">
-                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
+                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
                 <ng-container [ngSwitch]="field.templateName">
                   <ng-container *ngSwitchCase="'greenRed'">
                 <span [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'>
@@ -188,7 +188,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
         data: stp,
         children: leaf ? null : [],
         expanded: !leaf,
-        leaf: leaf,
+        leaf,
         parent: parentNode
       };
       if (parentNode && stp.transaction.connectedIdTransaction

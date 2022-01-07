@@ -52,12 +52,12 @@ import {AppSettings} from '../../shared/app.settings';
       <p-tabView>
         <p-tabPanel header="{{'SECURITY' | translate}}">
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                        #dynamicFieldsetForm="dynamicForm" (submit)="submit($event)">
+                        #dynamicFieldsetForm="dynamicForm" (submitBt)="submit($event)">
           </dynamic-form>
         </p-tabPanel>
         <p-tabPanel header="{{'SECURITY_SPLITS' | translate}}" *ngIf="canHaveSplits || !dataLoaded">
           <dynamic-form [config]="configSplit" [formConfig]="formConfig" [translateService]="translateService"
-                        #splitForm="dynamicForm" (submit)="addSplit($event)">
+                        #splitForm="dynamicForm" (submitBt)="addSplit($event)">
           </dynamic-form>
           <securitysplit-edit-table (editData)="onSelectedSecuritysplit($event)"
                                     (savedData)="onDependingDialogSave($event)"
@@ -68,7 +68,7 @@ import {AppSettings} from '../../shared/app.settings';
         || !dataLoaded">
           <p>{{'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate}}</p>
           <dynamic-form [config]="periodPrices" [formConfig]="formConfig" [translateService]="translateService"
-                        #periodPriceForm="dynamicForm" (submit)="addHistoryquotePeriod($event)">
+                        #periodPriceForm="dynamicForm" (submitBt)="addHistoryquotePeriod($event)">
           </dynamic-form>
           <security-historyquote-period-edit-table (editData)="onSelectedHistoryquote($event)"
                                                    (savedData)="onDependingDialogSave($event)"

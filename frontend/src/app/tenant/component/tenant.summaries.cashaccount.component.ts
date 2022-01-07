@@ -143,7 +143,6 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     SelectOptionsHelper.createSelectItemForEnum(translateService, TenantPortfolioSummary, this.groupOptions);
   }
 
-
   ngOnInit(): void {
     this.translateService.get(this.CHART_TITLE).subscribe(translated => this.CHART_TITLE = translated);
     this.idTenant = this.gps.getIdTenant();
@@ -268,7 +267,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     cashBalance.x = securityBar.x;
 
     const layout = {barmode: 'stack', title: {text: this.CHART_TITLE}};
-    return {data: data, layout: layout};
+    return {data, layout};
   }
 }
 

@@ -28,7 +28,7 @@ import {ProcessedAction} from '../../shared/types/processed.action';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`
 })
@@ -65,7 +65,7 @@ export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements 
     this.userAdminService.moveCreatedByUserToOtherUser(this.fromUser.idUser, values.toIdUser).subscribe(
       numberOfChangedEntities => {
         this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.SUCCESS,
-          'CHANGED_OWNER_OF_ENTITIES', {numberOfChangedEntities: numberOfChangedEntities});
+          'CHANGED_OWNER_OF_ENTITIES', {numberOfChangedEntities});
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null));
       });
   }

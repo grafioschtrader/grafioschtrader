@@ -14,11 +14,11 @@ import {Globalparameters} from '../../../entities/globalparameters';
 import {CorrelationSet} from '../../../entities/correlation.set';
 
 export enum DialogVisible {
-  Tenant,
-  Portfolio,
-  Securityaccount,
-  Watchlist,
-  AlgoRuleStrategy
+  DvTenant,
+  DvPortfolio,
+  DvSecurityaccount,
+  DvWatchlist,
+  DvAlgoRuleStrategy
 }
 
 export class CallParam {

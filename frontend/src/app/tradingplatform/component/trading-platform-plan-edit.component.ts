@@ -25,7 +25,7 @@ import {AppSettings} from '../../shared/app.settings';
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`
 })
@@ -78,7 +78,6 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
         this.configObject.en.elementRef.nativeElement.focus();
       });
   }
-
 
   protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingPlatformPlan {
     const tradingPlatformPlan = new TradingPlatformPlan();

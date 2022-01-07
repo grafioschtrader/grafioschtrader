@@ -19,7 +19,7 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 @Component({
   template: `
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                  (submit)="submit($event)">
+                  (submitBt)="submit($event)">
     </dynamic-form>`
 })
 export class TradingCalendarOtherExchangeDynamicComponent extends FormBase implements OnInit {

@@ -73,28 +73,29 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
             <td *ngFor="let field of fields; let i = index"
                 [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
               || field.dataType===DataType.DateTimeNumeric) || field.dataType===DataType.NumericShowZero}">
-              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
+              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
               {{getValueByPath(rowData, field)}}
             </td>
           </tr>
         </ng-template>
       </p-treeTable>
       <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body"></p-contextMenu>
-      <strategy-detail *ngIf="algoStrategyShowParamCall.algoStrategy" [algoStrategyParamCall]="algoStrategyShowParamCall">
+      <strategy-detail *ngIf="algoStrategyShowParamCall.algoStrategy"
+                       [algoStrategyParamCall]="algoStrategyShowParamCall">
       </strategy-detail>
     </div>
-    <algo-assetclass-edit *ngIf="visibleDialogs[AlgoDialogVisible.AlgoAssetclass]"
-                          [visibleDialog]="visibleDialogs[AlgoDialogVisible.AlgoAssetclass]"
+    <algo-assetclass-edit *ngIf="visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]"
+                          [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]"
                           [algoCallParam]="algoCallParam"
                           (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
     </algo-assetclass-edit>
-    <algo-security-edit *ngIf="visibleDialogs[AlgoDialogVisible.AlgoSecurity]"
-                        [visibleDialog]="visibleDialogs[AlgoDialogVisible.AlgoSecurity]"
+    <algo-security-edit *ngIf="visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]"
+                        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]"
                         [algoCallParam]="algoCallParam"
                         (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
     </algo-security-edit>
-    <algo-strategy-edit *ngIf="visibleDialogs[AlgoDialogVisible.AlgoStrategy]"
-                        [visibleDialog]="visibleDialogs[AlgoDialogVisible.AlgoStrategy]"
+    <algo-strategy-edit *ngIf="visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]"
+                        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]"
                         [algoCallParam]="algoCallParam"
                         (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
     </algo-strategy-edit>
@@ -197,7 +198,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   extendMenuWithAlgoStrategy(menuItems: MenuItem[], parent: AlgoTop | AlgoAssetclass | AlgoSecurity, algoStrategy: AlgoStrategy): void {
     menuItems.push({separator: true});
     const algoStrategyMenuItem: MenuItem = {
-      label: 'CREATE|ALGO_STRATEGY', command: (e) => this.addEdit(AlgoDialogVisible.AlgoStrategy, parent, algoStrategy,
+      label: 'CREATE|ALGO_STRATEGY', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_STRATEGY, parent, algoStrategy,
         this.algoStrategyDefinitionForm)
     };
     menuItems.push(algoStrategyMenuItem);
@@ -331,13 +332,13 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     const menuItems: MenuItem[] = [];
     if (selectedNode instanceof TreeAlgoTop) {
       menuItems.push({
-        label: 'ADD_RECORD|ASSETCLASS', command: (e) => this.addEdit(AlgoDialogVisible.AlgoAssetclass,
+        label: 'ADD_RECORD|ASSETCLASS', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS,
           this.algoTop, null)
       });
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoAssetclass) {
       menuItems.push({
-        label: 'EDIT_RECORD|ASSETCLASS', command: (e) => this.addEdit(AlgoDialogVisible.AlgoAssetclass,
+        label: 'EDIT_RECORD|ASSETCLASS', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS,
           this.algoTop, selectedNode.data)
       });
       menuItems.push({
@@ -347,13 +348,13 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       });
       menuItems.push({separator: true});
       menuItems.push({
-        label: 'ADD_RECORD|SECURITY', command: (e) => this.addEdit(AlgoDialogVisible.AlgoSecurity,
+        label: 'ADD_RECORD|SECURITY', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_SECURITY,
           <AlgoAssetclass>selectedNode.data, null)
       });
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoSecurity) {
       menuItems.push({
-        label: 'EDIT_RECORD|SECURITY', command: (e) => this.addEdit(AlgoDialogVisible.AlgoSecurity,
+        label: 'EDIT_RECORD|SECURITY', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_SECURITY,
           (<TreeNode>selectedNode).parent.data, <AlgoSecurity>selectedNode.data)
       });
       menuItems.push({
@@ -363,7 +364,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoStrategy) {
       menuItems.push({
-        label: 'EDIT', command: (e) => this.addEdit(AlgoDialogVisible.AlgoStrategy,
+        label: 'EDIT', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_STRATEGY,
           (<TreeNode>selectedNode).parent.data, selectedNode.data, this.algoStrategyDefinitionForm)
       });
       menuItems.push({

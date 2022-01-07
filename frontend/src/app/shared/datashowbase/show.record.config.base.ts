@@ -37,7 +37,7 @@ export abstract class ShowRecordConfigBase {
   }
 
   addColumn(dataType: DataType, field: string, headerKey: string, visible: boolean = true, changeVisibility: boolean = true,
-            optionalParams ?: OptionalParams): ColumnConfig {
+            optionalParams?: OptionalParams): ColumnConfig {
 
     return this.addColumnToFields(this.fields, dataType, field, headerKey, visible, changeVisibility, optionalParams);
   }
@@ -52,7 +52,7 @@ export abstract class ShowRecordConfigBase {
    * @param optionalParams Addional parameters.
    */
   addColumnFeqH(dataType: DataType, field: string, visible: boolean = true, changeVisibility: boolean = true,
-                optionalParams ?: OptionalParams): ColumnConfig {
+                optionalParams?: OptionalParams): ColumnConfig {
 
     return this.addColumnToFields(this.fields, dataType, field, AppHelper.convertPropertyForLabelOrHeaderKey(field), visible,
       changeVisibility, optionalParams);
@@ -60,20 +60,20 @@ export abstract class ShowRecordConfigBase {
 
 
   addColumnToFields(fields: ColumnConfig[], dataType: DataType, field: string, header: string,
-                    visible: boolean = true, changeVisibility: boolean = true, optionalParams ?: OptionalParams): ColumnConfig {
+                    visible: boolean = true, changeVisibility: boolean = true, optionalParams?: OptionalParams): ColumnConfig {
     const columnConfig = new ColumnConfig(dataType, field, header, visible, changeVisibility, optionalParams);
     fields.push(columnConfig);
     return columnConfig;
   }
 
   insertColumnFeqH(index: number, dataType: DataType, field: string, visible: boolean, changeVisibility: boolean,
-                   optionalParams ?: OptionalParams): ColumnConfig {
+                   optionalParams?: OptionalParams): ColumnConfig {
     return this.insertColumn(index, dataType, field, AppHelper.convertPropertyForLabelOrHeaderKey(field), visible,
       changeVisibility, optionalParams);
   }
 
   insertColumn(index: number, dataType: DataType, field: string, header: string, visible: boolean, changeVisibility: boolean,
-               optionalParams ?: OptionalParams): ColumnConfig {
+               optionalParams?: OptionalParams): ColumnConfig {
     const columnConfig: ColumnConfig = new ColumnConfig(dataType, field, header, visible, changeVisibility, optionalParams);
     this.fields = [...this.fields.slice(0, index), columnConfig, ...this.fields.slice(index)];
     return columnConfig;

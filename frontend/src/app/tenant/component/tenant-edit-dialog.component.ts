@@ -22,7 +22,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `

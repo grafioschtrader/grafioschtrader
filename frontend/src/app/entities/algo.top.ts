@@ -15,7 +15,7 @@ export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {
   addedPercentage: number;
 
   @Exclude()
-  getNameByLanguage(language: String): string {
+  getNameByLanguage(language: string): string {
     return this.name;
   }
 

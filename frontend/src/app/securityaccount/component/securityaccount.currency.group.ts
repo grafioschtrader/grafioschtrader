@@ -69,15 +69,15 @@ export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<Secur
     });
 
     const data = [{
-      values: values,
-      labels: labels,
+      values,
+      labels,
       type: 'pie'
     }];
 
     const layout = {
-      title: title
+      title
     };
 
-    return {data: data, layout: layout};
+    return {data, layout};
   }
 }

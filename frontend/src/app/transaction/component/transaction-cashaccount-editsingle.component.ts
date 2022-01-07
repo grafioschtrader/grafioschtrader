@@ -40,7 +40,7 @@ import {AppSettings} from '../../shared/app.settings';
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `
@@ -119,7 +119,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
           case TransactionType.FEE:
             AppHelper.enableAndVisibleInput(this.configObject.idSecurityaccount);
             if (this.configObject.idCashaccount.formControl.value) {
-              const cp: { cashaccount: Cashaccount, portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
+              const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
                 this.portfolios, +this.configObject.idCashaccount.formControl.value);
               this.prepareSecurityaccount(cp.portfolio);
             }
@@ -152,7 +152,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    */
   valueChangedOnCashaccount(): void {
     this.chashaccountChangedSub = this.configObject.idCashaccount.formControl.valueChanges.subscribe((data: string) => {
-      const cp: { cashaccount: Cashaccount, portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
+      const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
         this.portfolios, +data);
       this.prepareSecurityaccount(cp.portfolio);
       this.cashaccountCurrency = cp.cashaccount.currency;

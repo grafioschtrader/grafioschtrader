@@ -21,7 +21,7 @@ import {AppSettings} from '../../shared/app.settings';
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submit)="submit($event)">
+                    (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`
 })
@@ -54,7 +54,6 @@ export class WatchlistEditComponent extends SimpleEntityEditBase<Watchlist> impl
     }
     setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
   }
-
 
   protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Watchlist {
     const watchlist: Watchlist = new Watchlist();

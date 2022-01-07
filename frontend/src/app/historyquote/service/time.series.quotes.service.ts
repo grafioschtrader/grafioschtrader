@@ -72,7 +72,7 @@ export class TimeSeriesQuotesService {
     this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
       outlets: {
         mainbottom: [routeKey, {
-          'allParam': JSON.stringify(this.timeSeriesParams)
+          allParam: JSON.stringify(this.timeSeriesParams)
         }]
       }
     }]);

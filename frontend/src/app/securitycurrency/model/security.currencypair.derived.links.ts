@@ -14,8 +14,8 @@ export class SecurityCurrencypairDerivedLinks {
   securities: Security[];
   currencypairs: Currencypair[];
 
-  public static getBaseInstrument(scdl: SecurityCurrencypairDerivedLinks, idLinkSecuritycurrency: number)
-    : Security | CurrencypairWatchlist {
+  public static getBaseInstrument(scdl: SecurityCurrencypairDerivedLinks, idLinkSecuritycurrency: number):
+    Security | CurrencypairWatchlist {
     let baseInstrument: Security | CurrencypairWatchlist = scdl.securities.find(s => s.idSecuritycurrency === idLinkSecuritycurrency);
     if (!baseInstrument) {
       const currencypair = scdl.currencypairs.find(c => c.idSecuritycurrency === idLinkSecuritycurrency);

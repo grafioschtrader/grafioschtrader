@@ -30,7 +30,7 @@ export class StepsComponent implements AfterContentInit, OnChanges {
   @Input() styleClass: string;
   @Input() stepClass: string;
   @Output() activeIndexChange: EventEmitter<any> = new EventEmitter();
-  @Output() change = new EventEmitter();
+  @Output() activeLabelChange = new EventEmitter();
 
   items: MenuItem[] = [];
 
@@ -61,7 +61,7 @@ export class StepsComponent implements AfterContentInit, OnChanges {
           // emit currently selected index (two-way binding)
           this.activeIndexChange.emit(index);
           // emit currently selected label
-          this.change.next(step.label);
+          this.activeLabelChange.next(step.label);
         }
       };
     });
@@ -83,7 +83,7 @@ export class StepsComponent implements AfterContentInit, OnChanges {
 
           if (selected) {
             // emit currently selected label
-            this.change.next(step.label);
+            this.activeLabelChange.next(step.label);
           }
         });
       }

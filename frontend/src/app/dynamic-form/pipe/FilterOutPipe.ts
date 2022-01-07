@@ -7,7 +7,7 @@ export class FilterOutPipe implements PipeTransform {
   constructor() {
   }
 
-  transform(inputStr: String, filterOutValue: String): any {
+  transform(inputStr: string, filterOutValue: string): any {
     return inputStr === filterOutValue ? null : inputStr;
   }
 }

@@ -10,7 +10,7 @@ export class AlgoSecurity extends AlgoAssetclassSecurity implements AlgoTreeName
   security: Security = null;
 
   @Exclude()
-  getNameByLanguage(language: String): string {
+  getNameByLanguage(language: string): string {
     return this.security.name + ', ' + this.security.currency;
   }
 

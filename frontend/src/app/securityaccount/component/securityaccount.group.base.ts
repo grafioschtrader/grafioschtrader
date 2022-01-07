@@ -25,6 +25,7 @@ export abstract class SecurityaccountGroupBase<T extends SecurityPositionGroupSu
 
   /**
    * Add some columns to the base definition
+   *
    * @param {ColumnConfig[]} internalColumnConfigs
    */
   public abstract extendColumns(internalColumnConfigs: ColumnConfig[]);
