@@ -446,8 +446,10 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       addTransactionsForChart(idTenant, currencypair, cwt);
       final Currencypair currencypairReverse = currencypairJpaRepository
           .findByFromCurrencyAndToCurrency(currencypair.getToCurrency(), currencypair.getFromCurrency());
-      cwt.cwtReverse = new CurrencypairWithTransaction(currencypairReverse);
-      addTransactionsForChart(idTenant, currencypairReverse, cwt.cwtReverse);
+      if (currencypairReverse != null) {
+        cwt.cwtReverse = new CurrencypairWithTransaction(currencypairReverse);
+        addTransactionsForChart(idTenant, currencypairReverse, cwt.cwtReverse);
+      }
     }
 
     return cwt;

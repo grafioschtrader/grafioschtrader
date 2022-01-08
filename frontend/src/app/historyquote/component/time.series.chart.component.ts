@@ -325,7 +325,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
     const cptv = new CurrencyPairTraceValues();
     this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.transactionList, cptv, false);
-    this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.cwtReverse.transactionList, cptv, true);
+    currencypairWithTransaction.cwtReverse && this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.cwtReverse.transactionList, cptv, true);
 
     if (this.loadedData.length === 1 && !this.usePercentage) {
       const maxAmountSqrt = Math.sqrt(cptv.maxAmount);

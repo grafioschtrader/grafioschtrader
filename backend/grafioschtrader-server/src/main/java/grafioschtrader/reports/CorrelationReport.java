@@ -3,7 +3,6 @@ package grafioschtrader.reports;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -74,8 +73,6 @@ public class CorrelationReport {
   }
 
   private CorrelationResult nonMatchingEODData(CorrelationSet correlationSet) {
-    final Comparator<IMinMaxDateHistoryquote> mmdhComparator = (h1, h2) -> h1.getIdSecuritycurrency()
-        .compareTo(h2.getIdSecuritycurrency());
     CorrelationResult cr = new CorrelationResult(null, null);
     List<IMinMaxDateHistoryquote> mmdhList = historyquoteJpaRepository
         .getMinMaxDateByIdSecuritycurrencyIds(correlationSet.getSecuritycurrencyList().stream()

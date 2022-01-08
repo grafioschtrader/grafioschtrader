@@ -118,14 +118,14 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
 
   constructor(private router: Router,
-              private correlationSetService: CorrelationSetService,
-              private messageToastService: MessageToastService,
-              private dataChangedService: DataChangedService,
-              private chartDataService: ChartDataService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private correlationSetService: CorrelationSetService,
+    private messageToastService: MessageToastService,
+    private dataChangedService: DataChangedService,
+    private chartDataService: ChartDataService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
     this.createDynamicTableDefinition(null, null);
     this.addInstrumentsToCorrelationSet();
@@ -275,10 +275,12 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.addColumnFeqH(DataType.String, 'currency', true, false);
 
     if (correlationSet) {
-      if (correlationResult.mmdhList.length === 0) {
-        this.addTickerAndCorrelationColumnDefinition(correlationSet);
-      } else {
-        this.addMinMaxColumnDefinition();
+      if (correlationResult) {
+        if (correlationResult.mmdhList.length === 0) {
+          this.addTickerAndCorrelationColumnDefinition(correlationSet);
+        } else {
+          this.addMinMaxColumnDefinition();
+        }
       }
       this.securitycurrencyList = correlationSet.securitycurrencyList;
       this.correlationSet = correlationSet;

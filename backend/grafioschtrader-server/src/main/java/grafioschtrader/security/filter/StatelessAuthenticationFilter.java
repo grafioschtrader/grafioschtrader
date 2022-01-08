@@ -30,7 +30,6 @@ import grafioschtrader.security.UserRightLimitCounter;
 import grafioschtrader.service.UserService;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
 import io.jsonwebtoken.JwtException;
 
@@ -60,7 +59,7 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
         Refill.greedy(GlobalConstants.BANDWITH_MINUTE_REFILL, Duration.ofMinutes(1)));
     Bandwidth limitHour = Bandwidth.classic(GlobalConstants.BANDWITH_HOOUR_BUCKET_SIZE,
         Refill.greedy(GlobalConstants.BANDWITH_HOUR_REFILL, Duration.ofHours((1))));
-    return Bucket4j.builder().addLimit(limitMinute).addLimit(limitHour).build();
+    return Bucket.builder().addLimit(limitMinute).addLimit(limitHour).build();
   }
 
   @Override
