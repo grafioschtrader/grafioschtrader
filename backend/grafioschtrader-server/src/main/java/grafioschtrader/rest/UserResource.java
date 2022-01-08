@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 import grafioschtrader.common.PropertyChangePassword;
 import grafioschtrader.dto.ChangePasswordDTO;
 import grafioschtrader.dto.UserDTO;
-import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.VerificationToken;
 import grafioschtrader.entities.projection.SuccessfullyChanged;
