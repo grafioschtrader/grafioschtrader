@@ -89,16 +89,13 @@ class FinanzenNETFeedConnectorTest {
         .withLocale(Locale.GERMAN);
    // final LocalDate from = LocalDate.parse("04.01.2000", germanFormatter);
     final LocalDate from = LocalDate.parse("24.04.2020", germanFormatter);
-    final LocalDate to = LocalDate.parse("04.05.2021", germanFormatter);
+    final LocalDate to = LocalDate.parse("04.05.2022", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    securities
-    .add(createSecurityHistorical("etf/historisch/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
-        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "CH0398013778", "FSX"));
-
-    /* 
+   
+   
     securities.add(createSecurityHistorical("historische-kurse/Daimler", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE0007100000", "FSX"));
     
@@ -107,10 +104,7 @@ class FinanzenNETFeedConnectorTest {
    
     securities.add(createSecurityHistorical("anleihen/historisch/a19jgw-grande-dixence-anleihe",
         AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0361532952", "SIX"));
-   
-    securities.add(createSecurityHistorical("etf/kurse/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
- 
+  
     securities.add(createSecurityHistorical("rohstoffe/goldpreis/historisch|goldpreis/CHF",
         AssetclassType.COMMODITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, "---"));
     
@@ -128,17 +122,10 @@ class FinanzenNETFeedConnectorTest {
 
     securities.add(createSecurityHistorical("historische-kurse/unicredit", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "IT0005239360", "MIL"));
-   
-  
-
     
     securities.add(createSecurityHistorical("rohstoffe/oelpreis/historisch|oelpreis/USD", AssetclassType.COMMODITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, "---"));
-
-   
-    securities.add(createSecurityHistorical("etf/kurse/ishares-atx-etf-de000a0d8q23", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.ETF, "DE000A0D8Q23", "FSX"));
-
+    
     securities.add(createSecurityHistorical("rohstoffe/oelpreis/historisch|oelpreis/USD|?type=Brent",
         AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD, null, "---"));
 
@@ -153,10 +140,27 @@ class FinanzenNETFeedConnectorTest {
    
     securities.add(createSecurityHistorical("index/FTSE_MIB/Historisch", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", "MTA"));
+    
+    // Since 2021-12-28 - ETF data is not available anymore. A maximum of only two months of historical 
+    // data is still available. In addition, the existing adapter no longer works.
 
+/*
+    securities.add(createSecurityHistorical("etf/kurse/ishares-atx-etf-de000a0d8q23", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.ETF, "DE000A0D8Q23", "FSX"));
+    
     securities.add(createSecurityHistorical("etf/historisch/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
-*/
+         securities
+
+    .add(createSecurityHistorical("etf/historisch/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
+        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "CH0398013778", "FSX"));
+
+     securities.add(createSecurityHistorical("etf/kurse/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581", AssetclassType.EQUITIES,
+        SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
+*/ 
+
+
+
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
