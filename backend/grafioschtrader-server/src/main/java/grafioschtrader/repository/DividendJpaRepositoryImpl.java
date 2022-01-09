@@ -96,9 +96,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
         securityJpaRepository.save(security);
         return errorMessages;
       }
-      if (!connector.isDividendSplitAdjusted()) {
-        splitAdjustDividends(security.getIdSecuritycurrency(), dividendsRead);
-      }
+      splitAdjustDividends(security.getIdSecuritycurrency(), dividendsRead, connector.isDividendSplitAdjusted());
       updateDividendData(security, dividendsRead, existingDividends);
     } catch (ParseException pe) {
       log.error(pe.getMessage() + "Offset: " + pe.getErrorOffset(), pe);
@@ -121,14 +119,19 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
         this.dividendJpaRepository);
   }
 
-  private void splitAdjustDividends(Integer idSecurity, List<Dividend> dividendsRead) {
+  private void splitAdjustDividends(Integer idSecurity, List<Dividend> dividendsRead,
+      boolean isSplitAdjusted) {
     List<Securitysplit> securitysplitList = securitysplitJpaRepository
         .findByIdSecuritycurrencyOrderBySplitDateAsc(idSecurity);
 
     for (Dividend dividend : dividendsRead) {
       double factor = Securitysplit.calcSplitFatorForFromDate(securitysplitList,
           DateHelper.getDateFromLocalDate(dividend.getExDate()));
-      dividend.setAmountAdjusted(dividend.getAmount() / factor);
+      if(isSplitAdjusted) {
+        dividend.setAmount(dividend.getAmountAdjusted() * factor);
+      } else {
+        dividend.setAmountAdjusted(dividend.getAmount() / factor);
+      }
     }
   }
 }

@@ -39,9 +39,17 @@ public class Dividend extends DividendSplit implements Serializable {
   @Column(name = "pay_date")
   private LocalDate payDate;
 
+  @Schema(description = """
+    A data source may only provide real dividends. In such a case, the split-adjusted amount is calculated from this"
+    Even if the dividend were automatically transferred into transactions, this amount would be relevant..
+  """)
   @Column(name = "amount")
   private Double amount;
 
+  @Schema(description = """
+     Since GT always works with split-adjusted data, the dividends must also be split-adjusted, 
+     otherwise an addition with price data would lead to incorrect results.
+    """)
   @Column(name = "amount_adjusted")
   private Double amountAdjusted;
 
