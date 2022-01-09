@@ -401,7 +401,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
       throws Exception {
     List<S> records = new ArrayList<>();
     CookieStore cookieStore = new BasicCookieStore();
-    HttpClient client = HttpClientBuilder.create().build();
+    HttpClient client = HttpClientBuilder.create()
+        .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
 

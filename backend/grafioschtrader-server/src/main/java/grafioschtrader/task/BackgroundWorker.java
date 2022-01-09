@@ -90,7 +90,8 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
     } catch (Exception e) {
       StringWriter errors = new StringWriter();
       e.printStackTrace(new PrintWriter(errors));
-      taskDataChange.setFailedStackTrace(errors.toString().substring(0, TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE));
+      taskDataChange.setFailedStackTrace(errors.toString().substring(0,
+          Math.min(TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE, errors.toString().length())));
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
     }
   }
