@@ -161,7 +161,7 @@
       </ng-template>
     </p-table>
 
-    <p-contextMenu #contextMenu *ngIf="contextMenuItems" [model]="contextMenuItems" [target]="cmDiv"
+    <p-contextMenu #contextMenu *ngIf="contextMenuItems && isActivated()" [model]="contextMenuItems" [target]="cmDiv"
                    appendTo="body"></p-contextMenu>
 
   </div>

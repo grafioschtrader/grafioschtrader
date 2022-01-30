@@ -207,10 +207,10 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   private void checkCurrencypair(final Transaction transaction, final String sourceCurrency,
       final String targetCurrency) {
 
-    transaction.clearCurrencypairExRate();
     if (sourceCurrency.equals(targetCurrency)) {
       transaction.setIdCurrencypair(null);
     }
+    transaction.clearCurrencypairExRate();
 
     if (transaction.getIdCurrencypair() != null) {
       Currencypair currencypairRequried = DataHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency, targetCurrency);

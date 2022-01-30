@@ -190,7 +190,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   onRightClick(event): void {
-    this.resetMenu();
+    this.isActivated() && this.resetMenu();
   }
 
   onResetToDay(event): void {
