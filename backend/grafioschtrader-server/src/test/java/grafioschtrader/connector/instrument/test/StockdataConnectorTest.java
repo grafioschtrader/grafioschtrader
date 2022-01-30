@@ -44,7 +44,7 @@ public class StockdataConnectorTest {
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
   
     // securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares European Property Yield UCITS ETF (Dist) (EUR) ", "IQQP.DE"));
+    
     
     
       securities.parallelStream().forEach(security -> {

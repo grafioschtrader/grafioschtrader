@@ -58,8 +58,8 @@ public class InvestingConnector extends BaseFeedConnector {
   private static final String DATE_FORMAT_FORM = "MM/dd/yyyy";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int MAX_ROWS_DELIVERD = 5000;
-  private static final String URL_HISTORICAL_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\-\\.]+\\,\\d+\\,\\d+$";
-  private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\-\\.]+$";
+  private static final String URL_HISTORICAL_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+\\,\\d+\\,\\d+$";
+  private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
   private static final String INVESTING = "investing";
 
   Map<String, String> cryptoCurrencyMap = Map.of("BTC", "bitcoin", "BNB", "binance-coin", "ETH", "ethereum", "ETC",
