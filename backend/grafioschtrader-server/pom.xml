@@ -241,7 +241,7 @@
 			<groupId>com.github.ulisesbocchio</groupId>
 			<artifactId>jasypt-spring-boot-starter</artifactId>
 			<!--  adjust maven plugin as well -->
-			<version>3.0.4</version>
+			<version>3.0.3</version>
 		</dependency>
 
  		<dependency>
@@ -298,7 +298,7 @@
 			<plugin>
 				<groupId>com.github.ulisesbocchio</groupId>
 				<artifactId>jasypt-maven-plugin</artifactId>
-				<version>3.0.4</version>
+				<version>3.0.3</version>
 			</plugin>
 			<plugin>
 			    <!-- see https://springdoc.org/ -->  

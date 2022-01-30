@@ -3,9 +3,9 @@
   <p-table (onColResize)="onColResize($event)" (sortFunction)="customSort($event)" [(selection)]="singleMultiSelection"
            [columns]="fields"
            [customSort]="true" [loading]="loading"
-           [multiSortMeta]="multiSortMeta"
-           responsiveLayout="scroll" [selectionMode]="selectMultiMode" [value]="securityPositionList"
+           [multiSortMeta]="multiSortMeta" [selectionMode]="selectMultiMode" [value]="securityPositionList"
            dataKey="securitycurrency.idSecuritycurrency" loadingIcon="fa fa-circle-o-notch fa-5x" sortMode="multiple"
+           responsiveLayout="scroll"
            styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
     <ng-template pTemplate="caption">
       <h4>{{'WATCHLIST' | translate}}: "{{watchlist.name}}" {{securitycurrencyGroup?.lastTimestamp

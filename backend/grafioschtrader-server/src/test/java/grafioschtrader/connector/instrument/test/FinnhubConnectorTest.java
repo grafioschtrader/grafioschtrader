@@ -32,7 +32,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 class FinnhubConnectorTest {
 
   @Autowired
-  FinnhubConnector finnhubConnector;
+  private FinnhubConnector finnhubConnector;
   
   final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
       .withLocale(Locale.GERMAN);
