@@ -148,7 +148,7 @@ public class FinnhubConnector extends BaseFeedConnector {
     return securitysplits;
   }
 
-  static class CandleData {
+  private static class CandleData {
     /**
      * List of close prices for returned candles.
      */
@@ -182,7 +182,7 @@ public class FinnhubConnector extends BaseFeedConnector {
 
   }
 
-  static class Quote {
+  private static class Quote {
     public double o;
     public double h;
     public double d;
@@ -194,7 +194,7 @@ public class FinnhubConnector extends BaseFeedConnector {
 
   }
 
-  static class Split {
+  private static class Split {
     public String symbol;
     public Date date;
     public int fromFactor;

@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import grafioschtrader.connector.instrument.stockdata.StockdataConnector;
+import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.test.start.GTforTest;
@@ -37,16 +38,14 @@ public class StockdataConnectorTest {
   
     final List<Security> securities = new ArrayList<>();
     
-    final LocalDate from = LocalDate.parse("03.01.2010", germanFormatter);
+    final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
     final LocalDate to = LocalDate.parse("26.01.2022", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-  
-    // securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco"));
-    
-    
-    
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "CSSMIM.SW"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "ZGLD.SW"));
       securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -58,5 +57,63 @@ public class StockdataConnectorTest {
       assertThat(historyquote.size()).isGreaterThan(300);
     });
   }
+  
+  @Test
+  void updateSecurityLastPriceTest() {
+    final List<Security> securities = new ArrayList<>();
+    securities.add(ConnectorTestHelper.createIntraSecurity("Cisco Systems", "csco"));
+    securities.parallelStream().forEach(security -> {
+      try {
+        stockdataConnector.updateSecurityLastPrice(security);
+        System.out.println(security);
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+      assertThat(security.getSLast()).isNotNull().isGreaterThan(0.0);
+    });
+  }
+  
+  @Test
+  void getEodCurrencyHistoryTest() {
+    final LocalDate from = LocalDate.parse("2000-01-01");
+    final LocalDate to = LocalDate.parse("2022-01-28");
+    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+  
+    
+    final List<Currencypair> currencies = new ArrayList<>();
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "SEK"));
+    currencies.parallelStream().forEach(currencyPair -> {
+      List<Historyquote> historyquote = new ArrayList<>();
+      try {
+        historyquote = stockdataConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      System.out.println(historyquote.size());
+      assertThat(historyquote.size()).isGreaterThan(3400);
+    });
+  }
+  
+  
+  @Test
+  void updateCurrencyPairLastPriceTest() {
+    final List<Currencypair> currencies = new ArrayList<>();
+    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "CHF"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "GBP"));
+    currencies.parallelStream().forEach(currencyPair -> {
+      try {
+        stockdataConnector.updateCurrencyPairLastPrice(currencyPair);
+        System.out.println(currencyPair);
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+      assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
+    });
+  }
+  
   
 }
