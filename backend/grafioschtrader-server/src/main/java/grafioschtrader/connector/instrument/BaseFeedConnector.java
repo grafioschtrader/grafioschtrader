@@ -112,7 +112,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     }
 
     if (resource.exists()) {
-      try (InputStreamReader isr = new InputStreamReader(resource.getInputStream(), StandardCharsets.ISO_8859_1);
+      try (InputStreamReader isr = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
           BufferedReader br = new BufferedReader(isr)) {
         String line;
         while ((line = br.readLine()) != null) {
