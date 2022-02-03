@@ -158,7 +158,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
       throws IOException {
     final Quote quote = objectMapper.readValue(url, Quote.class);
     if (quote.quoteResponse.result.length == 1) {
-      double divider = this.getGBXLondonDivider(securitycurrency);
+      double divider = FeedConnectorHelper.getGBXLondonDivider(securitycurrency);
       final Result result = quote.quoteResponse.result[0];
       securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - result.sourceInterval * 60 * 1000));
       securitycurrency.setSLast(result.regularMarketPrice / divider);
@@ -177,17 +177,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
-    return this.getEodHistory(security.getUrlHistoryExtend(), from, to, false, getGBXLondonDivider(security));
-  }
-
-  private <T extends Securitycurrency<T>> double getGBXLondonDivider(T securitycurrency) {
-    if (securitycurrency instanceof Security) {
-      return ((Security) securitycurrency).getAssetClass()
-          .getSpecialInvestmentInstrument() != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES
-          && ((Security) securitycurrency).getStockexchange().getSymbol().equals("LSE")
-          && ((Security) securitycurrency).getCurrency().equals("GBP") ? 100.0 : 1.0;
-    }
-    return 1.0;
+    return this.getEodHistory(security.getUrlHistoryExtend(), from, to, false,
+        FeedConnectorHelper.getGBXLondonDivider(security));
   }
 
   @Override
@@ -207,8 +198,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         specialInvestmentInstruments, assetclassType);
     if (!clear) {
       switch (specialInvestmentInstruments) {
-      case CFD:
-      case NON_INVESTABLE_INDICES:
+      case CFD, NON_INVESTABLE_INDICES:
         checkUrlExtendsionWithRegex(new String[] { URL_NORMAL_REGEX, URL_COMMODITIES }, urlExtend);
         break;
       case FOREX:
@@ -346,7 +336,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
-    double divider = this.getGBXLondonDivider(security);
+    double divider = FeedConnectorHelper.getGBXLondonDivider(security);
     return getDividendSplitHistory(security, fromDate, DIVDEND_EVENT, (in, idSecurity, dividends, currency) -> {
       String inputLine = in.readLine();
       while ((inputLine = in.readLine()) != null) {

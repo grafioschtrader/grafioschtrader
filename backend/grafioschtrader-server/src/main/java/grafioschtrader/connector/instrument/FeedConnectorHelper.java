@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public class FeedConnectorHelper {
 
@@ -61,7 +64,16 @@ public class FeedConnectorHelper {
       }
     }
     return historyquotes;
-
+  }
+  
+  public static <T extends Securitycurrency<T>> double getGBXLondonDivider(T securitycurrency) {
+    if (securitycurrency instanceof Security security) {
+      return security.getAssetClass()
+          .getSpecialInvestmentInstrument() != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES
+          && security.getStockexchange().getSymbol().equals("LSE")
+          && security.getCurrency().equals("GBP") ? 100.0 : 1.0;
+    }
+    return 1.0;
   }
 
 }

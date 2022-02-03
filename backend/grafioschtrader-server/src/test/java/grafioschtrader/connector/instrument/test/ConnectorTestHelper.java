@@ -33,21 +33,54 @@ public class ConnectorTestHelper {
   }
 
   public static Security createIntraSecurity(final String name, final String urlIntraExtend) {
-    return createIntraHistoricalSecurity(name, urlIntraExtend, null);
+    return createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA);
   }
   
   
   public static Security createHistoricalSecurity(final String name, final String urlHistoryExtend) {
-    return createIntraHistoricalSecurity(name, null, urlHistoryExtend);
+    return createIntraHistoricalSecurity(name, urlHistoryExtend, ExtendKind.EOD);
+  }
+  
+  public static Security createDividendSecurity(final String name, final String urlDividendExtend) {
+    return createIntraHistoricalSecurity(name, urlDividendExtend, ExtendKind.DIVIDEND);
+  }
+  
+  public static Security createSplitSecurity(final String name, final String urlSplitExtend) {
+    return createIntraHistoricalSecurity(name, urlSplitExtend, ExtendKind.SPLIT);
   }
   
   
-  private static Security createIntraHistoricalSecurity(final String name, String urlIntraExtend, String urlHistoryExtend) {
+  private static Security createIntraHistoricalSecurity(final String name, String urlExtend, ExtendKind extendKind) {
     final Security security = new Security();
     security.setName(name);
-    security.setUrlIntraExtend(urlIntraExtend);
-    security.setUrlHistoryExtend(urlHistoryExtend);
+    switch(extendKind) {
+    case EOD:
+      security.setUrlHistoryExtend(urlExtend);
+      break;
+      
+    case INTRA:
+      security.setUrlIntraExtend(urlExtend);
+      break;
+      
+    case DIVIDEND:
+      security.setUrlDividendExtend(urlExtend);
+      break;
+      
+    case SPLIT:
+      security.setUrlSplitExtend(urlExtend);
+      break; 
+    }
+
+  
     return security;
   }
   
+  private static enum ExtendKind {
+     EOD,
+     INTRA,
+     DIVIDEND,
+     SPLIT;
+  }
+
+
 }
