@@ -262,7 +262,7 @@ public class InvestingConnector extends BaseFeedConnector {
   }
 
   /**
-   * Mappging between histroy quote and html import data.
+   * Mappging between history quote and html import data.
    *
    * String literal is the property name of the "data-col-name"</br>
    * Enum is upper case of history quote property</br>

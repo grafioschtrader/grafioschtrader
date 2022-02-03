@@ -82,7 +82,10 @@ public class StockdataConnector extends BaseFeedConnector {
     return DOMAIN_NAME_WITH_VERSION + "data/eod?symbols=" + ticker + "&date_from="
         + dateFormat.format(from) + "&date_to=" + dateFormat.format(to) + getApiKeyString();
   }
-  
+ 
+  private String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, Date from, Date to) {
+    return getSecurityCurrencyHistoricalDownloadLink(getCurrencyPairSymbol(currencypair), from, to);
+  }
  
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
@@ -95,10 +98,6 @@ public class StockdataConnector extends BaseFeedConnector {
     Date toDate = new Date();
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
     return getCurrencypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate), toDate);
-  }
-  
-  private String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, Date from, Date to) {
-    return getSecurityCurrencyHistoricalDownloadLink(getCurrencyPairSymbol(currencypair), from, to);
   }
   
 
