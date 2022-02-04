@@ -53,11 +53,11 @@ class FinnhubConnectorTest {
     // securities.add(createSecurity("^GSPC", "NYSE", "USD", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
 
     securities.add(createSecurity("csco", "NYSE", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-    securities.add(createSecurity("XSGL.MI", "MTA", "EUR", SpecialInvestmentInstruments.ETF));
-    securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-    securities.add(createSecurity("XSGL.MI", "MTA", "EUR", SpecialInvestmentInstruments.ETF));
-    securities.add(createSecurity("CAC.PA", "Euronext", "EUR", SpecialInvestmentInstruments.ETF));
-    securities.add(createSecurity("OILUSA.SW", "SIX", "USD", SpecialInvestmentInstruments.ETF));
+   // securities.add(createSecurity("XSGL.MI", "MTA", "EUR", SpecialInvestmentInstruments.ETF));
+   // securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+   //  securities.add(createSecurity("XSGL.MI", "MTA", "EUR", SpecialInvestmentInstruments.ETF));
+   // securities.add(createSecurity("CAC.PA", "Euronext", "EUR", SpecialInvestmentInstruments.ETF));
+   // securities.add(createSecurity("OILUSA.SW", "SIX", "USD", SpecialInvestmentInstruments.ETF));
 
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
@@ -78,9 +78,13 @@ class FinnhubConnectorTest {
     
     // Indices may not be supported anymore
     //  securities.add(createSecurity("^GSPC", "NYSE", "USD", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
-    securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    
+    // Not supporting for free
+    // securities.add(createSecurity("LYHLT.SW", "SIX", "EUR", SpecialInvestmentInstruments.ETF)); 
+    // securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+
+    // Only US Market for free
     securities.add(createSecurity("csco", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-    securities.add(createSecurity("LYHLT.SW", "SIX", "EUR", SpecialInvestmentInstruments.ETF));
    
     securities.parallelStream().forEach(security -> {
       try {
