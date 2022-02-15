@@ -41,7 +41,7 @@ public class Dividend extends DividendSplit implements Serializable {
 
   @Schema(description = """
     A data source may only provide real dividends. In such a case, the split-adjusted amount is calculated from this"
-    Even if the dividend were automatically transferred into transactions, this amount would be relevant..
+    Even if the dividend were automatically transferred into transactions, this amount would be relevant.
   """)
   @Column(name = "amount")
   private Double amount;
