@@ -144,7 +144,7 @@ public class GlobalparametersResource {
     return new ResponseEntity<>(globalparametersJpaRepository.getAllZoneIds(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Change a property value of existing global parameter", description = "Only admin can change this calendar", tags = {
+  @Operation(summary = "Change a property value of existing global parameter", description = "Only admin can change values of exiting global parameters", tags = {
       Globalparameters.TABNAME })
   @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Globalparameters> replacePropertyValue(

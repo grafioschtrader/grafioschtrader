@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.23.0</version>
+		<version>0.24.0</version>
 	</parent>
 
 
@@ -119,6 +119,15 @@
       		<artifactId>springdoc-openapi-javadoc</artifactId>
       		<version>1.6.3</version>
    		</dependency>
+		
+		<!-- Jasypt (Java Simplified Encryption) -->
+		<dependency>
+			<groupId>com.github.ulisesbocchio</groupId>
+			<artifactId>jasypt-spring-boot-starter</artifactId>
+			<!--  adjust maven plugin as well -->
+			<version>3.0.3</version>
+		</dependency>
+		
 		
 <!-- 		
 		<dependency>
