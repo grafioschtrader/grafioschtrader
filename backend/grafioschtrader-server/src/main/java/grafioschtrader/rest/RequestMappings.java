@@ -2,6 +2,7 @@ package grafioschtrader.rest;
 
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
+import grafioschtrader.entities.ConnectorApiKey;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Globalparameters;
@@ -35,6 +36,9 @@ public interface RequestMappings {
 
   public static final String CASHACCOUNT_MAP = API + Cashaccount.TABNAME;
 
+  public static final String CONNECTOR_API_KEY = "connectorapikey";
+  public static final String CONNECTOR_API_KEY_MAP = API + CONNECTOR_API_KEY;
+  
   public static final String CORRELATION_SET = "correlationset";
   public static final String CORRELATION_SET_MAP = API + CORRELATION_SET;
 
