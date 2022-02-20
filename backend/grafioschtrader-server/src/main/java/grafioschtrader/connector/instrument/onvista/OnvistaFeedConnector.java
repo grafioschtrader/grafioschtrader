@@ -37,7 +37,7 @@ import grafioschtrader.entities.Security;
  *
  */
 @Component
-public class OnVistaFeedConnector extends BaseFeedConnector {
+public class OnvistaFeedConnector extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int MAX_YEAR_DOWNLOAD = 5;
@@ -57,7 +57,7 @@ public class OnVistaFeedConnector extends BaseFeedConnector {
         new MonthToString(60, "Y5") };
   }
 
-  public OnVistaFeedConnector() {
+  public OnvistaFeedConnector() {
     super(supportedFeed, "onvista", "onvista", null);
   }
 
