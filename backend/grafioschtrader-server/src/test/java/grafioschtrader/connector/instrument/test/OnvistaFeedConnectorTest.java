@@ -13,14 +13,14 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.connector.instrument.onvista.OnVistaFeedConnector;
+import grafioschtrader.connector.instrument.onvista.OnvistaFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
-class OnVistaFeedConnectorTest {
+class OnvistaFeedConnectorTest {
 
-  private OnVistaFeedConnector onVistaConnector = new OnVistaFeedConnector();
+  private OnvistaFeedConnector onvistaConnector = new OnvistaFeedConnector();
   
   @Test
   void getEodCurrencyHistoryTest() {
@@ -36,7 +36,7 @@ class OnVistaFeedConnectorTest {
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
-        historyquote = onVistaConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
+        historyquote = onvistaConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -66,7 +66,7 @@ class OnVistaFeedConnectorTest {
 
       List<Historyquote> historyquote = new ArrayList<>();
       try {
-        historyquote = onVistaConnector.getEodSecurityHistory(security, fromDate, toDate);
+        historyquote = onvistaConnector.getEodSecurityHistory(security, fromDate, toDate);
       } catch (final Exception e) {
         e.printStackTrace();
       }
