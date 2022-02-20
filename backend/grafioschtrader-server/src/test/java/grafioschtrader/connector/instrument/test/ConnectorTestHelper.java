@@ -6,11 +6,19 @@ import grafioschtrader.entities.Security;
 public class ConnectorTestHelper {
 
   public static Currencypair createCurrencyPair(final String fromCurrency, final String toCurrency) {
+    return createCurrencyPair(fromCurrency, toCurrency, null);
+  }
+  
+  public static Currencypair createCurrencyPair(final String fromCurrency, final String toCurrency, final String urlHistoryExtend) {
     final Currencypair currencyPair = new Currencypair();
     currencyPair.setFromCurrency(fromCurrency);
     currencyPair.setToCurrency(toCurrency);
+    currencyPair.setUrlHistoryExtend(urlHistoryExtend);
     return currencyPair;
   }
+  
+ 
+  
 
   public static Currencypair createIntraCurrencyPair(final String fromCurrency, final String toCurrency,
       final String urlIntraExtend) {

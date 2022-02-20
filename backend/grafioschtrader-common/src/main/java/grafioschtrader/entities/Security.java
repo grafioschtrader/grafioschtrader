@@ -523,7 +523,14 @@ public class Security extends Securitycurrency<Security> implements Serializable
     if (this.stockexchange.isNoMarketValue()) {
       this.shortSecurity = false;
     }
-
+    
+  }
+  
+  @Override
+  public void clearUnusedFields() {
+    if (this.isMarginInstrument()) {
+      this.isin= null;
+    }
   }
 
   @JsonIgnore
