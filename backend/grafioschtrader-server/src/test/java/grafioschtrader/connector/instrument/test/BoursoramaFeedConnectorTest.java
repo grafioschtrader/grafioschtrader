@@ -22,13 +22,13 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.test.start.GTforTest;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = GTforTest.class)
+
 public class BoursoramaFeedConnectorTest {
 
-  @Autowired
-  private BoursoramaFeedConnector boursoramaFeedConnector;
+
+  private BoursoramaFeedConnector boursoramaFeedConnector = new BoursoramaFeedConnector();
 
   @Test
   void getEodSecurityHistoryTest() {
@@ -42,9 +42,9 @@ public class BoursoramaFeedConnectorTest {
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "CSCO"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "2aCSSMIM"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "2aZGLD"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "CSCO", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "2aCSSMIM", SpecialInvestmentInstruments.ETF, "SIX"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "2aZGLD", SpecialInvestmentInstruments.ETF, "SIX"));
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -87,9 +87,9 @@ public class BoursoramaFeedConnectorTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core CHF Corporate Bond ETF (CH)", "2aCHCORP"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("iShares SMIM ETF (CH)", "2aCSSMIM"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("ZKB Gold ETF (CHF)", "2aZGLD"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core CHF Corporate Bond ETF (CH)", "2aCHCORP",  SpecialInvestmentInstruments.ETF, "SIX"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("iShares SMIM ETF (CH)", "2aCSSMIM",  SpecialInvestmentInstruments.ETF, "SIX"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("ZKB Gold ETF (CHF)", "2aZGLD",  SpecialInvestmentInstruments.ETF, "SIX"));
 
     securities.parallelStream().forEach(security -> {
       try {
@@ -105,9 +105,9 @@ public class BoursoramaFeedConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "USD", "3fJPY_USD"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("CAD", "EUR", "3fCAD_EUR"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("CHF", "GBP", "3fCHF_GBP"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("JPY", "USD", "3fJPY_USD"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("CAD", "EUR", "3fCAD_EUR"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("CHF", "GBP", "3fCHF_GBP"));
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         boursoramaFeedConnector.updateCurrencyPairLastPrice(currencyPair);
