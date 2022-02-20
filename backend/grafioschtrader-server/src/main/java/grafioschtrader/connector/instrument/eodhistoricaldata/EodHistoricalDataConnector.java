@@ -183,7 +183,7 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     var quote = objectMapper.readValue(new URL(getSecurityIntradayDownloadLink(security)), Quote.class);
-    quote.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security));
+    quote.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security), getIntradayDelayedSeconds());
   }
 
   @Override
@@ -194,12 +194,12 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
     var quote = objectMapper.readValue(new URL(getCurrencypairIntradayDownloadLink(currencypair)), Quote.class);
-    quote.setValues(currencypair, 1.0);
+    quote.setValues(currencypair, 1.0, getIntradayDelayedSeconds());
   }
 
   @Override
   public int getIntradayDelayedSeconds() {
-    return 0;
+    return 900;
   }
 
   private String getSecurityCurrencyIntradayDownloadLink(final String ticker) {
@@ -265,14 +265,14 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
     public double change;
     public double change_p;
 
-    public void setValues(Securitycurrency<?> securitycurrency, double divider) {
+    public void setValues(Securitycurrency<?> securitycurrency, double divider, int delaySeconds) {
       securitycurrency.setSLast(close / divider);
       securitycurrency.setSOpen(open / divider);
       securitycurrency.setSLow(low / divider);
       securitycurrency.setSHigh(high / divider);
       securitycurrency.setSChangePercentage(change_p);
       securitycurrency.setSPrevClose(previousClose / divider);
-      securitycurrency.setSTimestamp(new Date());
+      securitycurrency.setSTimestamp(new Date(new Date().getTime() - delaySeconds * 1000));
     }
   }
 
