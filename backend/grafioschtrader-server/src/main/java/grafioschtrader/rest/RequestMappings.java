@@ -2,7 +2,6 @@ package grafioschtrader.rest;
 
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
-import grafioschtrader.entities.ConnectorApiKey;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Globalparameters;

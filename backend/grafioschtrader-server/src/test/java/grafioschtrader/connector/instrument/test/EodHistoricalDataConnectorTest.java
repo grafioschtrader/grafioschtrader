@@ -47,9 +47,9 @@ public class EodHistoricalDataConnectorTest {
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "CSSMIM.SW"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "ZGLD.SW"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "CSSMIM.SW", SpecialInvestmentInstruments.ETF, "SIX"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "ZGLD.SW", SpecialInvestmentInstruments.ETF, "SIX"));
       securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -91,7 +91,7 @@ public class EodHistoricalDataConnectorTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-    securities.add(ConnectorTestHelper.createIntraSecurity("Cisco Systems", "csco"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("Cisco Systems", "csco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
     securities.parallelStream().forEach(security -> {
       try {
         eodHistoricalDataConnector.updateSecurityLastPrice(security);
@@ -152,8 +152,6 @@ public class EodHistoricalDataConnectorTest {
     final List<Security> securities = new ArrayList<>();
     securities.add(ConnectorTestHelper.createSplitSecurity("Nestlé", "NESN.SW"));
     securities.add(ConnectorTestHelper.createSplitSecurity("Apple", "AAPL"));
-    securities.add(ConnectorTestHelper.createSplitSecurity("United Utilities Group PLC", "UU.LSE"));
-
 
     securities.parallelStream().forEach(security -> {
       List<Securitysplit> seucritysplitList = new ArrayList<>();

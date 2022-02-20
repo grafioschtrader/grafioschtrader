@@ -13,8 +13,8 @@ import org.springframework.stereotype.Repository;
 import grafioschtrader.dto.HistoryquoteDateClose;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
-import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
+import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 

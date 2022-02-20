@@ -22,6 +22,7 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.test.start.GTforTest;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)
@@ -43,9 +44,9 @@ public class StockdataConnectorTest {
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "CSSMIM.SW"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "ZGLD.SW"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "CSSMIM.SW", SpecialInvestmentInstruments.ETF, "SIX"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "ZGLD.SW", SpecialInvestmentInstruments.ETF, "SIX"));
       securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -61,7 +62,7 @@ public class StockdataConnectorTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-    securities.add(ConnectorTestHelper.createIntraSecurity("Cisco Systems", "csco"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("Cisco Systems", "csco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
     securities.parallelStream().forEach(security -> {
       try {
         stockdataConnector.updateSecurityLastPrice(security);
