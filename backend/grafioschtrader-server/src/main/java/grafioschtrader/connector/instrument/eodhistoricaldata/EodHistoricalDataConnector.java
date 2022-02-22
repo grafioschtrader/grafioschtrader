@@ -84,6 +84,16 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
         dateFormat);
   }
 
+  @Override
+  public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
+    Date toDate = new Date();
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
+    return getCurrencypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
+        dateFormat);
+  }
+
+  
   private String getSecurityHistoricalDownloadLink(final Security security, Date from, Date to,
       final SimpleDateFormat dateFormat) {
     return getSecurityCurrencyHistoricalDownloadLink(security.getUrlHistoryExtend().toUpperCase(), from, to,
@@ -102,10 +112,10 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
   }
 
   private String getCurrencyPairSymbol(final Currencypair currencypair) {
-    if(currencypair.getIsCryptocurrency()) {
+    if (currencypair.getIsCryptocurrency()) {
       return currencypair.getFromCurrency() + "-" + currencypair.getToCurrency() + ".CC";
     } else {
-     return currencypair.getFromCurrency() + currencypair.getToCurrency() + ".FOREX";
+      return currencypair.getFromCurrency() + currencypair.getToCurrency() + ".FOREX";
     }
   }
 
@@ -113,21 +123,20 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
-    return getEodSecurityCurrencypairHistory(from, to,
-        new URL(getSecurityHistoricalDownloadLink(security, from, to, dateFormat)), dateFormat,
-        FeedConnectorHelper.getGBXLondonDivider(security));
+    return getEodSecurityCurrencypairHistory(new URL(getSecurityHistoricalDownloadLink(security, from, to, dateFormat)),
+        dateFormat, FeedConnectorHelper.getGBXLondonDivider(security));
   }
 
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws Exception {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
-    return getEodSecurityCurrencypairHistory(from, to,
+    return getEodSecurityCurrencypairHistory(
         new URL(getCurrencypairHistoricalDownloadLink(currencyPair, from, to, dateFormat)), dateFormat, 1.0);
   }
 
-  private List<Historyquote> getEodSecurityCurrencypairHistory(final Date from, final Date to, URL url,
-      SimpleDateFormat dateFormat, double divider) throws Exception {
+  private List<Historyquote> getEodSecurityCurrencypairHistory(URL url, SimpleDateFormat dateFormat, double divider)
+      throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
 
     URLConnection connection = url.openConnection();
@@ -144,7 +153,6 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
         if (items.length == 7) {
           historyquotes.add(parseResponseLineItems(items, dateFormat, divider));
         }
-
       }
     }
     return historyquotes;

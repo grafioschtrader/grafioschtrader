@@ -17,7 +17,11 @@ public enum SubscriptionType {
   CRYPTOCOMPARE_FREE((short) 51),
   CRYPTOCOMPARE_OTHERS((short) 52),
   CURRENCY_CONVERTER_FREE((short) 61),
-  CURRENCY_CONVERTER__OTHERS((short) 62);
+  CURRENCY_CONVERTER_OTHERS((short) 62),
+  TWELVEDATA_FREE((short) 71),
+  TWELVEDATA_GROW_55((short) 72),
+  TWELVEDATA_GROW_144((short) 73),
+  TWELVEDATA_GROW_377((short) 74);
   
   private final Short value;
   
