@@ -57,7 +57,6 @@ export class AssetclassService extends AuthServiceWithLogout<Assetclass> impleme
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   public update(assetclass: Assetclass): Observable<Assetclass> {
     return this.updateEntity(assetclass, assetclass.idAssetClass, AppSettings.ASSETCLASS_KEY);
   }
