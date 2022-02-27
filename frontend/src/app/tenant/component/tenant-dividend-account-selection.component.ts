@@ -92,7 +92,6 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
     this.portfolioAccounts = psa;
   }
 
-
   getSelectedAccountIds(): number[] {
     return this.selectedNodes.filter(treeNode => treeNode.leaf).map(treeNode => treeNode.data.idSecuritycashAccount);
   }
