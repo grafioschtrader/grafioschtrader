@@ -86,5 +86,4 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
       false, this.gps.getNumberCurrencyMask(), true, {readonly: true});
   }
 
-
 }
