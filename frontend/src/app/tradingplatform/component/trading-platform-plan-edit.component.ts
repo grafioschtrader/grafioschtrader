@@ -62,7 +62,6 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-
   protected initialize(): void {
     this.importTransactionPlatformService.getAllImportTransactionPlatforms().subscribe(
       (importTransactionPlatforms: ImportTransactionPlatform[]) => {
