@@ -2,7 +2,7 @@ on:
   push:
     paths:
     - 'frontend/**'
-   workflow_dispatch:
+  workflow_dispatch:
     branches:
     - master   
 name: Build Angular
