@@ -22,14 +22,15 @@ import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propos
 @Component({
   selector: 'user-entity-change-limit-edit',
   template: `
-      <p-dialog header="{{'USER_ENTITY_CHANGE_LIMIT' | translate}}" [(visible)]="visibleDialog"
-                [responsive]="true" [style]="{width: '500px'}"
-                (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+    <p-dialog header="{{'USER_ENTITY_CHANGE_LIMIT' | translate}}" [(visible)]="visibleDialog"
+              [responsive]="true" [style]="{width: '500px'}"
+              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                        (submitBt)="submit($event)">
-          </dynamic-form>
-      </p-dialog>`
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
+                    (submitBt)="submit($event)">
+      </dynamic-form>
+    </p-dialog>`
 })
 export class UserEntityChangeLimitEditComponent extends SimpleEntityEditBase<UserEntityChangeLimit> implements OnInit {
   @Input() user: User;
@@ -37,13 +38,12 @@ export class UserEntityChangeLimitEditComponent extends SimpleEntityEditBase<Use
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              userEntityChangeLimitService: UserEntityChangeLimitService) {
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    userEntityChangeLimitService: UserEntityChangeLimitService) {
     super(HelpIds.HELP_USER, 'USER_ENTITY_CHANGE_LIMIT', translateService, gps, messageToastService,
       userEntityChangeLimitService);
   }
-
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
