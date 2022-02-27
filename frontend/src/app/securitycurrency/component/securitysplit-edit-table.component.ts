@@ -39,7 +39,6 @@ export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securi
     DividendSplitSvgCreator.registerIcons(iconReg);
   }
 
-
   public addDataRow(rowData: Securitysplit): void {
     rowData.createType = CreateType.ADD_MODIFIED_USER;
     rowData.createModifyTime = new Date();
