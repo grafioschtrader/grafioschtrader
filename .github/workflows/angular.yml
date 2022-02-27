@@ -37,7 +37,7 @@ jobs:
       - name: Push Build to Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "latest.tar.gz"
+          artifacts: "frontend/latest.tar.gz"
           token: "${{ secrets.GITHUB_TOKEN}}"
           tag: "Latest"
           allowUpdates: true
