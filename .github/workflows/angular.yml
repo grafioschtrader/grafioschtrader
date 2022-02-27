@@ -8,7 +8,7 @@ on:
 name: Build Angular
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: bullseye
     defaults:
       run:
         working-directory: ./frontend
