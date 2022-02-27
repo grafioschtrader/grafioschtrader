@@ -34,7 +34,6 @@ jobs:
           npm i
           npm run build -- --configuration production
           tar -czvf latest.tar.gz dist/*
-          ls 
       - name: Push Build to Releases
         uses: ncipollo/release-action@v1
         with:
