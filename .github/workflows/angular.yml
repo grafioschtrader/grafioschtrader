@@ -8,7 +8,7 @@ on:
 name: Build Angular
 jobs:
   build:
-    runs-on: bullseye
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./frontend
@@ -33,7 +33,8 @@ jobs:
         run: |
           npm i
           npm run build -- --configuration production --base-href /grafioschtrader
-          tar -czvf latest.tar.gz dist/*
+          tar -czf latest.tar.gz dist/*
+          ls -l dist
       - name: Push Build to Releases
         uses: ncipollo/release-action@v1
         with:
