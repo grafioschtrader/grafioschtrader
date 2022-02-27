@@ -37,3 +37,4 @@ jobs:
           artifacts: "frontend/dist/angular-githubaction/*"
           token: "${{ secrets.GITHUB_TOKEN}}"
           tag: "Latest"
+          allowUpdates: true

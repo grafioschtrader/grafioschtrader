@@ -87,7 +87,6 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   private readonly FORMULA_PRICES = 'formulaPrices';
   private usedFormulaVars: string[];
 
-
   constructor(public translateService: TranslateService,
               private messageToastService: MessageToastService,
               private loginService: LoginService,
