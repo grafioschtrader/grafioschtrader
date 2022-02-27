@@ -30,10 +30,10 @@ jobs:
       - name: npm install and npm run build
         run: |
           npm i
-          npm run build -- --prod
+          npm run build -- --configuration production
       - name: Push Build to Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "dist/angular-githubaction/*"
+          artifacts: "frontend/dist/angular-githubaction/*"
           token: "${{ secrets.GITHUB_TOKEN}}"
           tag: "Latest"

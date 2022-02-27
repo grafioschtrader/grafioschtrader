@@ -152,7 +152,6 @@ export class SecurityEditSupport {
     return fc;
   }
 
-
   assignLoadedValues(configObject: { [name: string]: FieldConfig }, stockexchanges: Stockexchange[],
                      vksoCurrency: ValueKeyHtmlSelectOptions[], assetclasses: Assetclass[]): void {
     configObject.stockexchange.referencedDataObject = stockexchanges;
