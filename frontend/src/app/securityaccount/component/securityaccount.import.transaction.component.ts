@@ -207,7 +207,6 @@ export class SecurityaccountImportTransactionComponent
     formData.append(fieldConfig[0].field, fieldConfig[0].formControl.value);
   }
 
-
   handleCloseImportUploadDialog(processedActionData: ProcessedActionData): void {
     this.visibleUploadFileDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
