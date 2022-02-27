@@ -143,16 +143,16 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private plotly: any;
 
   constructor(private plotlyService: PlotlyService,
-              private messageToastService: MessageToastService,
-              private usersettingsService: UserSettingsService,
-              private viewSizeChangedService: ViewSizeChangedService,
-              private securityService: SecurityService,
-              private currencypairService: CurrencypairService,
-              private gps: GlobalparameterService,
-              private historyquoteService: HistoryquoteService,
-              private activatedRoute: ActivatedRoute,
-              private translateService: TranslateService,
-              private activePanelService: ActivePanelService) {
+    private messageToastService: MessageToastService,
+    private usersettingsService: UserSettingsService,
+    private viewSizeChangedService: ViewSizeChangedService,
+    private securityService: SecurityService,
+    private currencypairService: CurrencypairService,
+    private gps: GlobalparameterService,
+    private historyquoteService: HistoryquoteService,
+    private activatedRoute: ActivatedRoute,
+    private translateService: TranslateService,
+    private activePanelService: ActivePanelService) {
 
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
     this.yearRange = `2000:${new Date().getFullYear()}`;
@@ -325,7 +325,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
     const cptv = new CurrencyPairTraceValues();
     this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.transactionList, cptv, false);
-    currencypairWithTransaction.cwtReverse && this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.cwtReverse.transactionList, cptv, true);
+    currencypairWithTransaction.cwtReverse && this.addBuySellDivMarkForCurrency(traces, historicalLine,
+      currencypairWithTransaction.cwtReverse.transactionList, cptv, true);
 
     if (this.loadedData.length === 1 && !this.usePercentage) {
       const maxAmountSqrt = Math.sqrt(cptv.maxAmount);
@@ -342,7 +343,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private addBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, transactions: Transaction[],
-                                       cptv: CurrencyPairTraceValues, reverse: boolean): void {
+    cptv: CurrencyPairTraceValues, reverse: boolean): void {
     transactions.filter(transaction => transaction.transactionTime >= this.fromDate.getTime())
       .forEach(transaction => {
         const transactionType: TransactionType = TransactionType[transaction.transactionType];
@@ -386,7 +387,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         transactionType === TransactionType.WITHDRAWAL ? TransactionType[TransactionType.REDUCE] : transaction.transactionType;
     }
   }
-
 
   getBuySellDivMarkForSecurity(traces: Traces, loadedData: LoadedData, securityTransactionSummary: SecurityTransactionSummary): Traces {
     securityTransactionSummary.transactionPositionList.filter(stp => stp.transaction.transactionTime >= this.fromDate.getTime())
@@ -487,7 +487,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private addCurrencyCrossRateObservable(timeSeriesParams: TimeSeriesParam[], currencySecurity: string,
-                                         observable: Observable<any>[]): void {
+    observable: Observable<any>[]): void {
     if (timeSeriesParams[timeSeriesParams.length - 1].currencySecurity != null) {
       const currencypairList: string[] = [];
       this.crossRateMap.getValues().forEach(crossRateResponse => currencypairList.push(
@@ -583,7 +583,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private deleteShownTaTraceWhenInputDataHasChanged(taIndicator: string, iDef: IndicatorDefinition, newDataModel: any,
-                                                    taFormDefinition: TaFormDefinition): void {
+    taFormDefinition: TaFormDefinition): void {
     if (iDef.shown) {
       const existingDataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicator);
       if (!DynamicFieldHelper.isDataModelEqual(existingDataModel, newDataModel, taFormDefinition.taFormList)) {
@@ -827,7 +827,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private calculateHistoryquotes(loadedData: LoadedData, currenciesAndClosePrice: CurrenciesAndClosePrice[],
-                                 multiple: boolean[]) {
+    multiple: boolean[]) {
     const map2Loop: { [date: string]: HistoryquoteDateClose } = {};
     loadedData.historyquotesNorm = [];
 
@@ -869,7 +869,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
 export class TimeSeriesParam {
   constructor(public idSecuritycurrency: number, public currencySecurity: string,
-              public idPortfolio: number, public idSecurityaccount: number, fileGaps = true) {
+    public idPortfolio: number, public idSecurityaccount: number, fileGaps = true) {
   }
 }
 
@@ -879,7 +879,7 @@ class LoadedData {
   public historyquotesNorm: HistoryquoteDateClose[];
 
   constructor(public idSecuritycurrency: number, public nameSecuritycurrency: (CurrencypairWithTransaction | SecurityTransactionSummary),
-              public historyquotes: HistoryquoteDateClose[], public currencySecurity: string) {
+    public historyquotes: HistoryquoteDateClose[], public currencySecurity: string) {
     this.historyquotesNorm = historyquotes;
   }
 }
