@@ -11,11 +11,12 @@ if (($memorytotal>=4000 && memorytotal<=4048))
 if [ $memorytotal -lt 4000 ]
    then
     cd $builddir/grafioschtrader/frontend
+    rm -f latest.tar.gz
     wget https://github.com/grafioschtrader/grafioschtrader/releases/download/Latest/latest.tar.gz
     tar -xf latest.tar.gz
     cd
    else
     ng build --configuration production --base-href /$basehref
    fi
-rm -r $docroot/${basehref}assets
+rm -rf $docroot/${basehref}assets
 rm $docroot/${basehref}*
