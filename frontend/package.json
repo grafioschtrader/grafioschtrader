@@ -8,7 +8,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "buildprod": "ng build --configuration production --base-href /grafioschtrader",
+    "buildprod": "ng build --configuration production --base-href /grafioschtrader/",
     "lint": "ng lint"
   },
   "private": true,
