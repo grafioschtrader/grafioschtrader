@@ -2,7 +2,9 @@ on:
   push:
     paths:
     - 'frontend/**'
-
+   workflow_dispatch:
+    branches:
+    - master   
 name: Build Angular
 jobs:
   build:
@@ -31,11 +33,12 @@ jobs:
         run: |
           npm i
           npm run build -- --configuration production
-          tar -czf latest.tar.gz dist/*
+          tar -czvf latest.tar.gz dist/*
+          ls 
       - name: Push Build to Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "dist/latest.tar.gz"
+          artifacts: "latest.tar.gz"
           token: "${{ secrets.GITHUB_TOKEN}}"
           tag: "Latest"
           allowUpdates: true
