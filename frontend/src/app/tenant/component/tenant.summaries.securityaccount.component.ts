@@ -25,7 +25,6 @@ import {FilterService} from 'primeng/api';
 })
 export class TenantSummariesSecurityaccountComponent extends SecurityaccountTable implements OnInit, OnDestroy {
 
-
   constructor(timeSeriesQuotesService: TimeSeriesQuotesService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService,
