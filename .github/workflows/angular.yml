@@ -36,3 +36,4 @@ jobs:
         with:
           artifacts: "dist/angular-githubaction/*"
           token: "${{ secrets.GITHUB_TOKEN}}"
+          tag: "Latest"
