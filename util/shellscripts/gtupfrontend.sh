@@ -19,4 +19,5 @@ if [ $memorytotal -lt 4000 ]
     ng build --configuration production --base-href /$basehref
    fi
 rm -rf $docroot/${basehref}assets
-rm $docroot/${basehref}*
+rm -f $docroot/${basehref}*
+cp -r $builddir/grafioschtrader/frontend/dist/* $docroot/$basehref
