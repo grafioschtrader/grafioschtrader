@@ -1,3 +1,3 @@
 export interface BaseID {
-  getId(): number;
+  getId(): number | string;
 }

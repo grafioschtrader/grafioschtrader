@@ -9,6 +9,7 @@ export class AppSettings {
   public static readonly ALGO_STRATEGY = 'AlgoStrategy';
   public static readonly ASSETCLASS = 'Assetclass';
   public static readonly CASHACCOUNT = 'Cashaccount';
+  public static readonly CONNECTOR_API_KEY = 'ConnectorApiKey';
   public static readonly CURRENCYPAIR = 'Currencypair';
   public static readonly DIVIDEND = 'Dividend';
   public static readonly GLOBALPARAMETERS = 'Globalparameters';
@@ -51,6 +52,7 @@ export class AppSettings {
   public static readonly ASSETCLASS_KEY = AppSettings.ASSETCLASS.toLowerCase();
   public static readonly CORRELATION_SET_KEY = 'correlationset';
   public static readonly CORRELATION_CHART = 'correlationchart';
+  public static readonly CONNECTOR_API_KEY_KEY = 'connectorapikey';
   public static readonly WATCHLIST_KEY = AppSettings.WATCHLIST.toLowerCase();
   public static readonly SECURITY_DIVIDEND_KEY = AppSettings.DIVIDEND.toLowerCase();
   public static readonly MAIL_INBOX_KEY = AppSettings.MAIL_INBOX.toLowerCase();

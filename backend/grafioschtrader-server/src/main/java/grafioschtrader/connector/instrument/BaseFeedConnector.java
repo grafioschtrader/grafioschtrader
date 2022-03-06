@@ -46,14 +46,14 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   protected ResourceLoader resourceLoader;
 
   protected Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  protected String id;
+  private String shortId;
   protected String readableName;
   protected String regexStrPattern;
 
   public BaseFeedConnector(final Map<FeedSupport, FeedIdentifier[]> supportedFeed, final String id,
       final String readableNameKey, String regexStrPattern) {
     this.supportedFeed = supportedFeed;
-    this.id = ID_PREFIX + id;
+    this.shortId = id;
     this.readableName = readableNameKey;
     this.regexStrPattern = regexStrPattern;
   }
@@ -70,7 +70,12 @@ public abstract class BaseFeedConnector implements IFeedConnector {
 
   @Override
   public String getID() {
-    return id;
+    return ID_PREFIX + shortId;
+  }
+  
+  @Override
+  public String getShortID() {
+    return shortId;
   }
 
   @Override
@@ -190,7 +195,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     }
     if (!oneMatches) {
       throw new GeneralNotTranslatedWithArgumentsException("gt.connector.regex.url",
-          new Object[] { id, notMatchingPattern });
+          new Object[] { shortId, notMatchingPattern });
     }
 
   }

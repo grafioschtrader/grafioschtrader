@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -16,7 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
@@ -31,13 +30,11 @@ import grafioschtrader.types.CreateType;
  *
  */
 @Component
-public class FinnhubConnector extends BaseFeedConnector {
+public class FinnhubConnector extends BaseFeedApiKeyConnector {
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-
-  private String apiKey;
 
   static {
     supportedFeed = new HashMap<>();
@@ -53,16 +50,6 @@ public class FinnhubConnector extends BaseFeedConnector {
     super(supportedFeed, "finnhub", "Finnhub", null);
   }
 
-  @Value("${gt.connector.finnhub.apikey}")
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
-  }
-
-  @Override
-  public boolean isActivated() {
-    return !apiKey.isEmpty();
-  }
-
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     Date toDate = new Date();
@@ -72,12 +59,13 @@ public class FinnhubConnector extends BaseFeedConnector {
 
   private String getSecurityHistoricalDownloadLink(final Security security, Date from, Date to) {
     return DOMAIN_NAME_WITH_VERSION + "stock/candle?symbol=" + security.getUrlHistoryExtend().toUpperCase() + "&from="
-        + (from.getTime() / 1000) + "&to=" + (to.getTime() / 1000) + "&resolution=D&token=" + apiKey;
+        + (from.getTime() / 1000) + "&to=" + (to.getTime() / 1000) + "&resolution=D&token=" + getApiKey();
   }
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return DOMAIN_NAME_WITH_VERSION + "quote?symbol=" + security.getUrlIntraExtend().toUpperCase() + "&token=" + apiKey;
+    return DOMAIN_NAME_WITH_VERSION + "quote?symbol=" + security.getUrlIntraExtend().toUpperCase() + "&token="
+        + getApiKey();
   }
 
   @Override
@@ -131,7 +119,7 @@ public class FinnhubConnector extends BaseFeedConnector {
 
   private String getSplitHistoricalDownloadLink(Security security, LocalDate from) {
     return DOMAIN_NAME_WITH_VERSION + "stock/split?symbol=" + security.getUrlSplitExtend().toUpperCase() + "&from="
-        + from + "&to=" + LocalDate.now() + "&token=" + apiKey;
+        + from + "&to=" + LocalDate.now() + "&token=" + this.getApiKey();
   }
 
   @Override
@@ -185,7 +173,7 @@ public class FinnhubConnector extends BaseFeedConnector {
   private static class Quote {
     public double o;
     public double h;
-    public double d;
+  //  public double d;
     public double dp;
     public double l;
     public double c;
@@ -195,7 +183,7 @@ public class FinnhubConnector extends BaseFeedConnector {
   }
 
   private static class Split {
-    public String symbol;
+  //  public String symbol;
     public Date date;
     public int fromFactor;
     public int toFactor;

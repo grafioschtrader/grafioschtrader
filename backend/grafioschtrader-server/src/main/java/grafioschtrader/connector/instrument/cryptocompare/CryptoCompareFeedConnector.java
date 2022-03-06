@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,7 +18,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 
@@ -28,7 +27,7 @@ import grafioschtrader.entities.Historyquote;
  *
  */
 @Component
-public class CryptoCompareFeedConnector extends BaseFeedConnector {
+public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
 
   private static final String DOMAIN_NAME = "https://min-api.cryptocompare.com/data/";
   private static final int MAX_ROWS = 2000;
@@ -37,8 +36,7 @@ public class CryptoCompareFeedConnector extends BaseFeedConnector {
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  private String apiKey;
-
+ 
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
@@ -49,20 +47,11 @@ public class CryptoCompareFeedConnector extends BaseFeedConnector {
     super(supportedFeed, "cryptocompare", "CryptoCompare", null);
   }
 
-  @Value("${gt.connector.cryptocompare.apikey}")
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
-  }
-
-  @Override
-  public boolean isActivated() {
-    return !apiKey.isEmpty();
-  }
-
+  
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
     return DOMAIN_NAME + "price?fsym=" + currencypair.getFromCurrency() + "&tsyms=" + currencypair.getToCurrency()
-        + "&api_key=" + apiKey;
+        + "&api_key=" + getApiKey();
   }
 
   @Override
@@ -88,7 +77,7 @@ public class CryptoCompareFeedConnector extends BaseFeedConnector {
 
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, int limit, Date toDate) {
     return DOMAIN_NAME + "v2/histoday?fsym=" + currencypair.getFromCurrency() + "&tsym=" + currencypair.getToCurrency()
-        + "&limit=" + limit + "&toTs=" + (toDate.getTime() / 1000) + "&api_key=" + apiKey;
+        + "&limit=" + limit + "&toTs=" + (toDate.getTime() / 1000) + "&api_key=" + getApiKey();
   }
 
   @Override

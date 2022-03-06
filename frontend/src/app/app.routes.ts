@@ -52,6 +52,7 @@ import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
 import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
+import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
 
 
 const APP_ROUTES: Routes = [
@@ -239,6 +240,7 @@ const APP_ROUTES: Routes = [
         canActivate: [AuthGuard]
       },
 
+      {path: AppSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [AdminGuard]},
       {path: AppSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [AdminGuard]}
     ]
   },

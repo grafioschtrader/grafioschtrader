@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class TradingPlatformPlanResource extends UpdateCreateDeleteAuditResource<TradingPlatformPlan> {
 
   @Autowired
-  TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
+  private TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
 
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TradingPlatformPlan>> getAllTradingPlatform() {

@@ -17,16 +17,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -38,7 +36,7 @@ import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Refill;
 
 @Component
-public class TwelvedataFeedConnector extends BaseFeedConnector {
+public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   private static final int MAX_DATA_POINTS = 5000;
   private static final String DOMAIN_NAME = "https://api.twelvedata.com/";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
@@ -47,8 +45,6 @@ public class TwelvedataFeedConnector extends BaseFeedConnector {
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   private final Bucket bucket;
-
-  private String apiKey;
 
   static {
     supportedFeed = new HashMap<>();
@@ -63,24 +59,13 @@ public class TwelvedataFeedConnector extends BaseFeedConnector {
     this.bucket = Bucket.builder().addLimit(limit).build();
   }
 
-  @Value("${gt.connector.twelvedata.apikey}")
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
-  }
-
   @Override
-  public boolean isActivated() {
-    return !apiKey.isEmpty();
-  }
-  
-  @Override
-
   public int getIntradayDelayedSeconds() {
     return 900;
   }
 
   private String getApiKeyString() {
-    return "&apikey=" + apiKey;
+    return "&apikey=" + getApiKey();
   }
 
   private void waitForTokenOrGo() {
@@ -204,20 +189,19 @@ public class TwelvedataFeedConnector extends BaseFeedConnector {
     }
     return historyquote;
   }
-  
+
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     return getSecurityCurrencyIntradayDownloadLink(security.getUrlIntraExtend());
   }
-  
+
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     waitForTokenOrGo();
     var quote = objectMapper.readValue(new URL(getSecurityIntradayDownloadLink(security)), Quote.class);
     quote.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security), getIntradayDelayedSeconds());
   }
-  
-  
+
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
     return getSecurityCurrencyIntradayDownloadLink(getCurrencypairSymbol(currencypair));
@@ -226,25 +210,24 @@ public class TwelvedataFeedConnector extends BaseFeedConnector {
   private String getSecurityCurrencyIntradayDownloadLink(final String ticker) {
     return DOMAIN_NAME + "quote/?symbol=" + ticker.toUpperCase() + getApiKeyString();
   }
-  
+
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
     waitForTokenOrGo();
     var quote = objectMapper.readValue(new URL(getCurrencypairIntradayDownloadLink(currencypair)), Quote.class);
     quote.setValues(currencypair, 1.0, getIntradayDelayedSeconds());
   }
-  
 
   private static class Quote {
-    public String symbol;
+    // public String symbol;
     public double open;
     public double high;
     public double low;
     public double close;
     public double previous_close;
-    public double change;
+    // public double change;
     public double percent_change;
-    
+
     public void setValues(Securitycurrency<?> securitycurrency, double divider, int delaySeconds) {
       securitycurrency.setSLast(close / divider);
       securitycurrency.setSOpen(open / divider);
@@ -254,8 +237,7 @@ public class TwelvedataFeedConnector extends BaseFeedConnector {
       securitycurrency.setSPrevClose(previous_close / divider);
       securitycurrency.setSTimestamp(new Date(new Date().getTime() - delaySeconds * 1000));
     }
-    
+
   }
-  
-  
+
 }

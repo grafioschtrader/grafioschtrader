@@ -60,6 +60,7 @@ export enum HelpIds {
   HELP_HISTORYQUOTE_QUALITY = 'admindata/historyquotequality/',
   HELP_GLOBAL_SETTINGS = 'admindata/tradingcalendar',
   HELP_TASK_DATA_CHANGE_MONITOR = 'admindata/taskdatachangemonitor',
+  HELP_CONNECTOR_API_KEY = 'admindata/connectorapikey',
   HELP_USER = 'admindata/user'
 
 }

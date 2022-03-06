@@ -19,7 +19,6 @@ import java.util.Map;
 
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -29,7 +28,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
@@ -40,7 +39,7 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 
 @Component
-public class EodHistoricalDataConnector extends BaseFeedConnector {
+public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
 
   private static final String DOMAIN_NAME_API = "https://eodhistoricaldata.com/api/";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
@@ -50,8 +49,6 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule());
-
-  private String apiKey;
 
   static {
     supportedFeed = new HashMap<>();
@@ -66,13 +63,8 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
     super(supportedFeed, "eodhistoricaldata", "EOD Historical Data", null);
   }
 
-  @Value("${gt.connector.eodhistoricaldata.apikey}")
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
-  }
-
   private String getApiKeyString() {
-    return "&api_token=" + apiKey;
+    return "&api_token=" + getApiKey();
   }
 
   @Override
@@ -93,7 +85,6 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
         dateFormat);
   }
 
-  
   private String getSecurityHistoricalDownloadLink(final Security security, Date from, Date to,
       final SimpleDateFormat dateFormat) {
     return getSecurityCurrencyHistoricalDownloadLink(security.getUrlHistoryExtend().toUpperCase(), from, to,
@@ -259,15 +250,15 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
   }
 
   private static class Quote {
-    public String code;
-    public long timestamp;
-    public int gmtoffset;
+   // public String code;
+   // public long timestamp;
+   // public int gmtoffset;
     public double open;
     public double high;
     public double low;
     public double close;
     public double previousClose;
-    public double change;
+   // public double change;
     public double change_p;
 
     public void setValues(Securitycurrency<?> securitycurrency, double divider, int delaySeconds) {
@@ -284,10 +275,10 @@ public class EodHistoricalDataConnector extends BaseFeedConnector {
   private static class DividendRead {
     @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
     public LocalDate date;
-    public LocalDate declarationDate;
-    public LocalDate recordDate;
+    // public LocalDate declarationDate;
+    // public LocalDate recordDate;
     public LocalDate paymentDate;
-    public String period;
+    // public String period;
     public double value;
     public double unadjustedValue;
     public String currency;

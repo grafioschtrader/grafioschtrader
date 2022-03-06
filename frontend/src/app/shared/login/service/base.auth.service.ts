@@ -32,7 +32,7 @@ export abstract class BaseAuthService<T> extends BaseService {
    * @param id Id of existing entity or null
    * @param pathApi Resource path.
    */
-  updateEntity(entity: T, id: number, pathApi: string): Observable<T> {
+  updateEntity(entity: T, id: number | string, pathApi: string): Observable<T> {
     if (id != null) {
       return <Observable<T>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${pathApi}/`, entity,
         {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));

@@ -216,15 +216,11 @@ public class WatchlistReport {
         .supplyAsync(() -> this.watchlistJpaRepository
             .watchlistSecuritiesHasOpenOrClosedTransactionForThisTenant(idWatchlist, idTenant));
 
-    final CompletableFuture<SecuritycurrencyGroup> cf = CompletableFuture
-        .allOf(securityCurrencyCF, historyquoteMaxDayCF, historyquoteLastDayYearCF, historyquoteTimeFrameCF,
-            securitiesIsUsedElsewhereCF)
-        .thenApply(ignoredVoid -> combineLastPriceHistoryquote(tenant, securityCurrencyCF.join(),
+    
+    final SecuritycurrencyGroup securitycurrencyGroup = combineLastPriceHistoryquote(tenant, securityCurrencyCF.join(),
             historyquoteMaxDayCF.join(), historyquoteLastDayYearCF.join(), historyquoteTimeFrameCF.join(),
             securitiesIsUsedElsewhereCF.join(), currencypairIsUsedElsewhereCF.join(),
-            watchlistSecurtiesTransactionCF.join(), watchlist, daysTimeFrame, securitysplitMap, dateCurrencyMap));
-
-    final SecuritycurrencyGroup securitycurrencyGroup = cf.join();
+            watchlistSecurtiesTransactionCF.join(), watchlist, daysTimeFrame, securitysplitMap, dateCurrencyMap);
     securitycurrencyGroup.idWatchlist = idWatchlist;
 
     return securitycurrencyGroup;
@@ -311,7 +307,7 @@ public class WatchlistReport {
       final int[] currencypairIsUsedElsewhereIds, final int[] watchlistSecuritesHasTransactionIds,
       final Watchlist watchlist, final Integer daysTimeFrame, final Map<Integer, List<Securitysplit>> securitysplitMap,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
-
+    
     final SecuritycurrencyGroup securitycurrencyGroup = new SecuritycurrencyGroup(
         setOpenPositions(tenant, watchlist,
             setDailyChangeAndTimeFrameChange(securityCurrency.securities, historyquoteMaxDateMap,

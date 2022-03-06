@@ -9,7 +9,7 @@ export class TradingPlatformPlan extends Auditable implements BaseID {
   transactionFeePlan: string = null;
   importTransactionPlatform: ImportTransactionPlatform;
 
-  public getId() {
+  public getId(): number {
     return this.idTradingPlatformPlan;
   }
 

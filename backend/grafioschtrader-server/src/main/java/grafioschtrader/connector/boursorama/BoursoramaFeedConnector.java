@@ -171,9 +171,9 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   private static class HeaderInstrumentEOD {
-    public String Name;
-    public String SymbolId;
-    public int Xperiod;
+    // public String Name;
+    // public String SymbolId;
+    // public int Xperiod;
     public QuoteTabEOD[] QuoteTab;
   }
 
@@ -195,9 +195,9 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     public double h;
     public double l;
     public double c;
-    public long v;
+    // public long v;
     public double var;
-    public QtIntra[] qt;
+    // public QtIntra[] qt;
 
     public void setValues(Securitycurrency<?> securitycurrency, int delaySeconds, double divider) {
       securitycurrency.setSLast(c / divider);
@@ -210,8 +210,8 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   private static class QtIntra {
-    public double d;
-    public double o;
+    // public double d;
+    // public double o;
   }
 
 }

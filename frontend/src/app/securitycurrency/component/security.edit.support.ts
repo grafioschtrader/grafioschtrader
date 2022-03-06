@@ -155,7 +155,7 @@ export class SecurityEditSupport {
   assignLoadedValues(configObject: { [name: string]: FieldConfig }, stockexchanges: Stockexchange[],
                      vksoCurrency: ValueKeyHtmlSelectOptions[], assetclasses: Assetclass[]): void {
     configObject.stockexchange.referencedDataObject = stockexchanges;
-    configObject.stockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idStockexchange', 'name',
+    configObject.stockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idStockexchange', 'name',
       configObject.stockexchange.referencedDataObject, true);
 
     configObject.currency.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')].concat(vksoCurrency);

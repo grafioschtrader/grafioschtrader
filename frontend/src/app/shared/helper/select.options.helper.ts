@@ -93,12 +93,21 @@ export class SelectOptionsHelper {
       disabledEnums);
   }
 
-  public static createValueKeyHtmlSelectOptions(key: string, value: string, values: any[], addEmpty: boolean): ValueKeyHtmlSelectOptions[] {
+  public static createValueKeyHtmlSelectOptionsFromArray(key: string, propertyName: string, values: any[],
+    addEmpty: boolean): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     addEmpty && valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions('', ''));
     values.forEach(element => {
-      valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(element[key], element[value]));
+      valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(element[key], element[propertyName]));
     });
+    return valueKeyHtmlSelectOptions;
+  }
+
+  public static createValueKeyHtmlSelectOptionsFromObject(propertyName: string, values: { [keySN: string | number]: any },
+    addEmpty: boolean, excludeKeys: string[] = []): ValueKeyHtmlSelectOptions[] {
+    const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
+    addEmpty && valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions('', ''));
+    Object.keys(values).filter(value => excludeKeys.indexOf(value) < 0).forEach(k => valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(k, values[k][propertyName])));
     return valueKeyHtmlSelectOptions;
   }
 
@@ -149,7 +158,8 @@ export class SelectOptionsHelper {
     for (const n in e) {
       if (typeof e[n] === 'number') {
         const stringType: string = e[e[n]];
-        if (!allowedEnums || (allowedEnums.indexOf(e[stringType]) >= 0 && !deny || allowedEnums.indexOf(e[stringType]) < 0 && deny)) {
+        if (!allowedEnums || (allowedEnums.indexOf(e[stringType]) >= 0 && !deny
+          || allowedEnums.indexOf(e[stringType]) < 0 && deny)) {
           const valueKeyHtmlSelectOption = this.translateValueKeyHtmlSelectOptions(translateService, stringType, stringType);
           if (disabledEnums && disabledEnums.indexOf(e[stringType]) >= 0) {
             valueKeyHtmlSelectOption.disabled = true;

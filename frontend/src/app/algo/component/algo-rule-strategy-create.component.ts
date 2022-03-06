@@ -101,7 +101,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
     this.valueChangedOnWatchlist();
     this.watchlistService.getWatchlistsByIdTenant().subscribe(watchlists => {
       // this.configObject.idWatchlist.referencedDataObject = watchlists;
-      this.configObject.idWatchlist.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idWatchlist', 'name',
+      this.configObject.idWatchlist.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idWatchlist', 'name',
         watchlists, true);
     });
   }
