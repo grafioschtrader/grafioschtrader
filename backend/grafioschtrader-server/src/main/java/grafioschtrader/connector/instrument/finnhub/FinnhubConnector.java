@@ -34,7 +34,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   static {
     supportedFeed = new HashMap<>();
