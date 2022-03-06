@@ -1,12 +1,4 @@
 ## Build backend
-### Data Provider for Investment data
-GT obtains price, dividend and split data from various sources. For some of them it needs an API key, but only **CryptoCompare** is required if you want to use crypto currencies. Please get the following:  
-- [Alpha Vantage](//www.alphavantage.co/): The free API Key has some data access limits. 5 API requests per minute and 500 API requests per day. Take look at [Alpha Vantage Premium API Key](//www.alphavantage.co/premium/)
-- [The Free Currency Converter API](//free.currencyconverterapi.com/): Please note the limits of "[Free Version](//free.currencyconverterapi.com)".
-- [Finnhub Stock API](//finnhub.io/): I made the experience that the access of the free API key is more and more restricted. Otherwise, the Finnhub compared to other providers very expensive and therefore less and less atractive.
-- [CryptoCompare API](//min-api.cryptocompare.com/): This is the standard data provider for cryptocurrency. If a currency pair is required, GT creates it automatically. In a such case the standard data provider is involved.
-- [EOD Historical Data](//eodhistoricaldata.com/): GT uses the services of the subscription "[EOD Historical Data - All World](//eodhistoricaldata.com/pricing)". The free package does not make sense for GT.
-- [StockData.org](https://www.stockdata.org/): GT uses the services of the [paid subscriptions](//eodhistoricaldata.com/pricing). The free package does not make sense for GT.  
 
 ### GT dependencies
 GT depends heavily on other libraries, to get them. Execute the following:
@@ -24,7 +16,6 @@ GT has some properties in the configuration file **backend/grafioschtrader-serve
 - gt.allowed.users
 - spring.mail.*
 - app.jwt.secret
-- gt.connector.*
 
 Some propertis are encrypted with **Jasypt**. Those properties values starts with "ENC(" replace it with your secrect value like "spring.datasource.password = DEC(YOUR_DB_PASSWORD)" and when your propties are all set, execute the following:
 
