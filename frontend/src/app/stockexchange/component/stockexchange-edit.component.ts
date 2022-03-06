@@ -91,7 +91,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.noMarketValue,
         this.configObject.countryCode, this.configObject.timeZone]);
       if (data.length > 1) {
-        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions(
+        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
           'idSecuritycurrency', 'name', data[1], true);
       }
       this.configObject.name.elementRef.nativeElement.focus();

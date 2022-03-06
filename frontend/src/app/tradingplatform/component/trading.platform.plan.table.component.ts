@@ -89,7 +89,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     this.prepareTableAndTranslate();
   }
 
-  prepareCallParm(entity: TradingPlatformPlan) {
+  override prepareCallParm(entity: TradingPlatformPlan) {
     this.callParam = entity;
   }
 
@@ -97,12 +97,11 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     this.activePanelService.destroyPanel(this);
   }
 
-  getHelpContextId(): HelpIds {
+  override getHelpContextId(): HelpIds {
     return HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN;
   }
 
-  protected readData(): void {
-
+  protected override readData(): void {
     this.tradingPlatformPlanService.getAllTradingPlatform().subscribe(result => {
       this.createTranslatedValueStoreAndFilterField(result);
       this.entityList = result;

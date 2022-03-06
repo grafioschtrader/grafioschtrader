@@ -110,7 +110,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
     this.importTransactionPlatformService.getPlatformTransactionImport().subscribe(
       (platformTransactionImports: IPlatformTransactionImport[]) => {
         this.platformTransactionImportHtmlOptions =
-          SelectOptionsHelper.createValueKeyHtmlSelectOptions('id', 'readableName', platformTransactionImports, true);
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('id', 'readableName', platformTransactionImports, true);
         this.configObject.idCsvImportImplementation.valueKeyHtmlOptions = this.platformTransactionImportHtmlOptions;
         setTimeout(() => {
           this.valueChangedMainField();
@@ -124,7 +124,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
       (importTransactionPlatforms: ImportTransactionPlatform[]) => {
         this.entityList = plainToClass(ImportTransactionPlatform, importTransactionPlatforms);
         this.configObject.idTransactionImportPlatform.valueKeyHtmlOptions =
-          SelectOptionsHelper.createValueKeyHtmlSelectOptions('idTransactionImportPlatform',
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idTransactionImportPlatform',
             'name', importTransactionPlatforms,
             true);
         setTimeout(() => this.setFieldValues());

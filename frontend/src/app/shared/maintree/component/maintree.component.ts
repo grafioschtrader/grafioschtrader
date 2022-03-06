@@ -229,6 +229,11 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
     if (AuditHelper.hasAdminRole(this.globalParamService)) {
       this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
+        label: 'CONNECTORAPIKEY',
+        data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.CONNECTOR_API_KEY_KEY), null, null, null)
+      });
+
+      this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
         label: 'USER_SETTINGS',
         data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.USER_ENTITY_LIMIT_KEY), null, null, null)
       });

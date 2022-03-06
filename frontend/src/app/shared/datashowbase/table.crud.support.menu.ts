@@ -44,7 +44,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     CrudMenuOptions.Allow_Delete];
 
   entityList: T[] = [];
-  hasSecurityObject: { [key: number]: number } = {};
 
   // For the component Edit-Menu, it shows the same menu items as the context menu
   contextMenuItems: MenuItem[];
@@ -54,16 +53,16 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   entityKeyName: string;
 
   constructor(protected entityName: string,
-              protected deleteService: DeleteService,
-              protected confirmationService: ConfirmationService,
-              protected messageToastService: MessageToastService,
-              protected activePanelService: ActivePanelService,
-              protected dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
+    protected deleteService: DeleteService,
+    protected confirmationService: ConfirmationService,
+    protected messageToastService: MessageToastService,
+    protected activePanelService: ActivePanelService,
+    protected dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
     super(filterService, usersettingsService, translateService, gps);
     this.entityNameUpper = this.entityName.toUpperCase();
     this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
@@ -209,8 +208,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   }
 
   protected isDeleteDisabled(entity: T): boolean {
-    return Object.keys(this.hasSecurityObject).length > 0 && this.hasSecurityObject[this.getId(entity)] !== 0
-      || !this.hasRightsForDeleteEntity(entity);
+    return true;
   }
 
   protected hasRightsForDeleteEntity(entity: T): boolean {

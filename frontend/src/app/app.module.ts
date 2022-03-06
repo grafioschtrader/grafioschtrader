@@ -312,6 +312,9 @@ import {
 import {
   InstrumentStatisticsSummaryComponent
 } from './securitycurrency/component/instrument.statistics.summary.component';
+import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
+import {ConnectorApiKeyEditComponent} from './connectorapikey/component/connector.api.key.edit.component';
+import {ConnectorApiKeyService} from './connectorapikey/service/connector.api.key.service';
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
   {prefix: './assets/i18n/', suffix: '.json'},
@@ -322,7 +325,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
   declarations: [
     AlgoAssetclassEditComponent, AlgoRuleStrategyCreateComponent, AlgoRuleStrategyCreateWizardComponent,
     AlgoSecurityEditComponent, GlobalSettingsEditComponent, CorrelationTableComponent,
-    AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent,
+    AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent, ConnectorApiKeyTableComponent, ConnectorApiKeyEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
     HistoryquoteEditComponent, HistoryquoteTableComponent, ImportTransactionEditPlatformComponent, HistoryquoteQualityComponent,
@@ -444,7 +447,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
     ImportTransactionTemplateService, ImportTransactionPosService, ImportTransactionHeadService, LoginService,
     MainDialogService, MessageToastService, ParentChildRegisterService, MailInboxService, MailSendboxService,
-    MultipleRequestToOneService, TaskDataChangeService, CorrelationSetService,
+    MultipleRequestToOneService, TaskDataChangeService, CorrelationSetService, ConnectorApiKeyService,
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,
     TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UserAdminService,

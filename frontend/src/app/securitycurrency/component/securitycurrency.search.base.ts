@@ -132,7 +132,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       this.setValueKeyHtmlOptions(this.configObject.subCategoryNLS, dfcss.assetclasses);
       this.setValueKeyHtmlOptions(this.configObject.idConnectorHistory, dfcss.feedConnectorsHistory);
       this.setValueKeyHtmlOptions(this.configObject.idConnectorIntra, dfcss.feedConnectorsIntra);
-      this.configObject.idStockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idStockexchange', 'name',
+      this.configObject.idStockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idStockexchange', 'name',
         dfcss.stockexchanges, true);
       this.dynamicFormComponent.setDefaultValuesAndEnableSubmit();
       this.valueChangedOnForm();

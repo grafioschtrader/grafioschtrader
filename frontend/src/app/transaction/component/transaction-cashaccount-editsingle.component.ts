@@ -277,7 +277,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private prepareSecurityaccount(portfolio: Portfolio) {
     if (!this.configObject.idSecurityaccount.invisible) {
       this.configObject.idSecurityaccount.valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptions('idSecuritycashAccount', 'name',
+        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycashAccount', 'name',
           portfolio.securityaccountList, true);
       this.selectSingleOptions(this.configObject.idSecurityaccount, true);
     }

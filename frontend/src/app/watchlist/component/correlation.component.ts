@@ -111,7 +111,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
       this.entityList = correlationSets;
       this.correlationLimit.tenantLimit.actual = this.entityList.length;
       this.configObject[CorrelationComponent.MAIN_FIELD].valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptions(CorrelationComponent.MAIN_FIELD, 'name',
+        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(CorrelationComponent.MAIN_FIELD, 'name',
           correlationSets, false);
       this.selectedEntity && (this.selectedEntity = this.entityList.find(entity => entity[CorrelationComponent.MAIN_FIELD]
         === this.selectedEntity[CorrelationComponent.MAIN_FIELD]));

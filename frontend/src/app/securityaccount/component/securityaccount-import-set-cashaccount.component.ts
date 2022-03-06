@@ -59,7 +59,7 @@ export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase
 
   protected initialize(): void {
     this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount).subscribe(portfolio => {
-        this.configObject.idCashaccount.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions(
+        this.configObject.idCashaccount.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
           'idSecuritycashAccount', 'name', portfolio.cashaccountList, false);
       }
     );

@@ -140,9 +140,8 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     const historyProvider: IFeedConnector[] = this.feedPriceConnectors.filter(feedConnector =>
       !!feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]]
       && this.checkCurrencySecurityProvider(feedConnector, filterType, isCurrency));
-    fieldConfig.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('id', 'readableName', historyProvider,
+    fieldConfig.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('id', 'readableName', historyProvider,
       !isCurrency);
-
   }
 
   private checkCurrencySecurityProvider(feedConnector: IFeedConnector, filterType: FeedSupport, isCurrency: boolean): boolean {

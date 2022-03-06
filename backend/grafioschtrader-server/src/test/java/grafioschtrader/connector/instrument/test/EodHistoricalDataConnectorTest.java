@@ -18,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import grafioschtrader.connector.instrument.eodhistoricaldata.EodHistoricalDataConnector;
-import grafioschtrader.connector.instrument.stockdata.StockdataConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;

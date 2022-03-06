@@ -17,7 +17,7 @@ export class ImportTransactionPlatformPrepareEdit extends BasePrepareEdit implem
     this.importTransactionPlatformService.getPlatformTransactionImport().subscribe(
       (platformTransactionImports: IPlatformTransactionImport[]) => {
         entityMapping.option =
-          SelectOptionsHelper.createValueKeyHtmlSelectOptions('id', 'readableName', platformTransactionImports, true);
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('id', 'readableName', platformTransactionImports, true);
         entityMapping.callParam = new CallParam(null, entity);
         entityMapping.visibleDialog = true;
       });

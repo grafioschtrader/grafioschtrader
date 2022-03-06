@@ -126,6 +126,8 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         .getSecuritycurrencyIntraDownloadLinkAsUrlStr(securitycurrencyPosition.securitycurrency);
   }
 
+  
+  
   ////////////////////////////////////////////////////////////////
   // Gain and loose calculation
   ////////////////////////////////////////////////////////////////

@@ -72,7 +72,7 @@ export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements 
 
   protected initialize(): void {
     this.configObject.fromIdUser.formControl.setValue(this.fromUser.nickname);
-    this.configObject.toIdUser.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('idUser', 'nickname',
+    this.configObject.toIdUser.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idUser', 'nickname',
       this.allUsers.filter(u => u.nickname !== this.fromUser.nickname && u.enabled), false);
   }
 }

@@ -57,6 +57,9 @@ public interface IFeedConnector {
 
   @Schema(description = "Id of the connector as it is used in the database")
   String getID();
+  
+  @Schema(description = "Id of the connector without prefix")
+  String getShortID();
 
   @Schema(description = "The display name of the connector ")
   String getReadableName();

@@ -17,6 +17,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
+import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud.support.menu.security';
 
 /**
  * Shows the asset class as a table.
@@ -79,7 +80,7 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
   `,
   providers: [DialogService]
 })
-export class AssetclassTableComponent extends TableCrudSupportMenu<Assetclass> implements OnDestroy {
+export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> implements OnDestroy {
 
   callParam: AssetclassCallParam = new AssetclassCallParam();
 

@@ -343,7 +343,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private splitDividendCreateValueKeyHtmlSelectOptions(fieldConfig: FieldConfig, filterType: FeedSupport): void {
     const provider: IFeedConnector[] = this.feedPriceConnectors.filter(feedConnector =>
       !!feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]]);
-    fieldConfig.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('id', 'readableName', provider, true);
+    fieldConfig.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('id', 'readableName', provider, true);
   }
 
 }

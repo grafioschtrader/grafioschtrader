@@ -17,6 +17,7 @@ import {ConfirmationService, FilterService} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
+import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud.support.menu.security';
 
 @Component({
   template: `
@@ -83,7 +84,7 @@ import {AppSettings} from '../../shared/app.settings';
   `,
   providers: [DialogService]
 })
-export class StockexchangeTableComponent extends TableCrudSupportMenu<Stockexchange> implements OnDestroy {
+export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> implements OnDestroy {
 
   callParam: StockexchangeCallParam = new StockexchangeCallParam();
 

@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -23,22 +22,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 
 @Component
-public class StockdataConnector extends BaseFeedConnector {
+public class StockdataConnector extends BaseFeedApiKeyConnector {
 
   private static final String DOMAIN_NAME_WITH_VERSION = "https://api.stockdata.org/v1/";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-  private String apiKey;
 
   static {
     supportedFeed = new HashMap<>();
@@ -51,20 +48,9 @@ public class StockdataConnector extends BaseFeedConnector {
     super(supportedFeed, "stockdata", "Stockdata", null);
   }
 
-  @Value("${gt.connector.stockdata.apikey}")
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
-  }
-
-  @Override
-  public boolean isActivated() {
-    return !apiKey.isEmpty();
-  }
-  
   private String getApiKeyString() {
-    return "&api_token=" + apiKey;
+    return "&api_token=" + getApiKey();
   }
-
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
@@ -76,17 +62,17 @@ public class StockdataConnector extends BaseFeedConnector {
   private String getSecurityHistoricalDownloadLink(final Security security, Date from, Date to) {
     return getSecurityCurrencyHistoricalDownloadLink(security.getUrlHistoryExtend().toUpperCase(), from, to);
   }
-  
+
   private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
-    return DOMAIN_NAME_WITH_VERSION + "data/eod?symbols=" + ticker + "&date_from="
-        + dateFormat.format(from) + "&date_to=" + dateFormat.format(to) + getApiKeyString();
+    return DOMAIN_NAME_WITH_VERSION + "data/eod?symbols=" + ticker + "&date_from=" + dateFormat.format(from)
+        + "&date_to=" + dateFormat.format(to) + getApiKeyString();
   }
- 
+
   private String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, Date from, Date to) {
     return getSecurityCurrencyHistoricalDownloadLink(getCurrencyPairSymbol(currencypair), from, to);
   }
- 
+
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
@@ -99,12 +85,12 @@ public class StockdataConnector extends BaseFeedConnector {
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
     return getCurrencypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate), toDate);
   }
-  
 
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws IOException, ParseException, URISyntaxException {
-     return getEodSecurityCurrencypairHistory(from, to, new URL(getCurrencypairHistoricalDownloadLink(currencyPair, from, to)));
+    return getEodSecurityCurrencypairHistory(from, to,
+        new URL(getCurrencypairHistoricalDownloadLink(currencyPair, from, to)));
   }
 
   private List<Historyquote> getEodSecurityCurrencypairHistory(final Date from, final Date to, URL url)
@@ -125,13 +111,12 @@ public class StockdataConnector extends BaseFeedConnector {
     }
     return historyquotes;
   }
-  
+
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     return DOMAIN_NAME_WITH_VERSION + "data/quote?symbols=" + security.getUrlIntraExtend().toUpperCase()
         + getApiKeyString();
   }
-
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
@@ -167,9 +152,9 @@ public class StockdataConnector extends BaseFeedConnector {
   }
 
   private static class EODMetaData {
-    public String ticker;
-    public String name;
-    public String timezone_name;
+    // public String ticker;
+    // public String name;
+    // public String timezone_name;
     public EODData[] data;
   }
 
@@ -185,18 +170,13 @@ public class StockdataConnector extends BaseFeedConnector {
   }
 
   private static class QuoteSecurity {
-    public QuoteMeta meta;
+    // public QuoteMeta meta;
     public QuoteDataSecurity[] data;
   }
 
   private static class QuoteCurrencypair {
-    public QuoteMeta meta;
+    // public QuoteMeta meta;
     public QuoteDataCurrencypair[][] data;
-  }
-
-  private static class QuoteMeta {
-    public int requested;
-    public int returned;
   }
 
   private static class QuoteData {
@@ -205,7 +185,7 @@ public class StockdataConnector extends BaseFeedConnector {
     public double day_low;
     public double day_open;
     public double previous_close_price;
-  
+
     public void setValues(Securitycurrency<?> securitycurrency) {
       securitycurrency.setSLast(price);
       securitycurrency.setSOpen(day_open);
@@ -218,7 +198,7 @@ public class StockdataConnector extends BaseFeedConnector {
   }
 
   private static class QuoteDataSecurity extends QuoteData {
-    public String ticker;
+    // public String ticker;
     public double day_change;
 
     public void setValues(Security securitycurrency) {
@@ -228,7 +208,7 @@ public class StockdataConnector extends BaseFeedConnector {
   }
 
   private static class QuoteDataCurrencypair extends QuoteData {
-    public String symbol;
+    // public String symbol;
     public double change_percent;
 
     public void setValues(Currencypair currencypair) {

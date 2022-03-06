@@ -12,6 +12,7 @@ import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
 import {User} from '../../../entities/user';
 import {Globalparameters} from '../../../entities/globalparameters';
 import {CorrelationSet} from '../../../entities/correlation.set';
+import {ConnectorApiKey} from '../../../entities/connector.api.key';
 
 export enum DialogVisible {
   DvTenant,
@@ -25,7 +26,7 @@ export class CallParam {
   constructor(public parentObject: Tenant | Portfolio | Securityaccount | ImportTransactionPlatform | AlgoTop | AlgoAssetclass | User,
               public thisObject: Tenant | Portfolio | Cashaccount | Securityaccount | ImportTransactionHead | Globalparameters
                 | CorrelationSet | ImportTransactionPlatform | ImportTransactionTemplate | AlgoAssetclass | AlgoSecurity
-                | AlgoTopCreate | User,
+                | AlgoTopCreate | User | ConnectorApiKey,
               public optParam?: { [key: string]: any }) {
   }
 }

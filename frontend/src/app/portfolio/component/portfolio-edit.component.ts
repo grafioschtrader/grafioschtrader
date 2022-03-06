@@ -54,7 +54,7 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
 
   protected initialize(): void {
     this.gps.getCurrencies().subscribe(data => {
-        this.configObject.currency.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions('key',
+        this.configObject.currency.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('key',
           'value', data, false);
         this.form.setDefaultValuesAndEnableSubmit();
         if (this.callParam.thisObject != null) {

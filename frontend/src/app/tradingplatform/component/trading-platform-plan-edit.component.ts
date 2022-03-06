@@ -44,7 +44,6 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
       messageToastService, tradingPlatformPlanService);
   }
 
-
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
@@ -62,11 +61,11 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.importTransactionPlatformService.getAllImportTransactionPlatforms().subscribe(
       (importTransactionPlatforms: ImportTransactionPlatform[]) => {
         this.importTransactionPlatformList = importTransactionPlatforms;
-        this.configObject.idTransactionImportPlatform.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptions(
+        this.configObject.idTransactionImportPlatform.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
           'idTransactionImportPlatform', 'name', importTransactionPlatforms, true);
         this.form.setDefaultValuesAndEnableSubmit();
         this.configObject.transactionFeePlan.valueKeyHtmlOptions =
@@ -78,7 +77,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
       });
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingPlatformPlan {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingPlatformPlan {
     const tradingPlatformPlan = new TradingPlatformPlan();
     this.copyFormToPublicBusinessObject(tradingPlatformPlan, this.callParam, this.proposeChangeEntityWithEntity);
     /*

@@ -93,14 +93,18 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   @Override
   public String getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = getConnectorHistoricalForSecuritycurrency(securitycurrency);
-    if (securitycurrency instanceof Security) {
-      return (feedConnector == null) ? null
-          : feedConnector.getSecurityHistoricalDownloadLink((Security) securitycurrency);
+    if (ConnectorHelper.canAccessConnectorApiKey(feedConnector)) {
+      if (securitycurrency instanceof Security security) {
+        return (feedConnector == null) ? null : feedConnector.getSecurityHistoricalDownloadLink(security);
+      } else {
+        return (feedConnector == null) ? null
+            : feedConnector.getCurrencypairHistoricalDownloadLink((Currencypair) securitycurrency);
+      }
     } else {
-      return (feedConnector == null) ? null
-          : feedConnector.getCurrencypairHistoricalDownloadLink((Currencypair) securitycurrency);
+      return null;
     }
   }
+  
 
   private IFeedConnector getConnectorHistoricalForSecuritycurrency(final Securitycurrency<?> securitycurrency) {
     return ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, securitycurrency.getIdConnectorHistory(),

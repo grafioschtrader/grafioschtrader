@@ -39,17 +39,16 @@ export class ActivePanelService {
    * If a panel use ChangeDetectionStrategy.OnPush, then is should register to be informet when the panel
    * gets deactivated.
    */
-  registerPanel(componentClass: IGlobalMenuAttach) {
+  registerPanel(componentClass: IGlobalMenuAttach): void {
     this.registeredPanel.push(componentClass);
   }
 
 
-  destroyPanel(componentClass: IGlobalMenuAttach) {
+  destroyPanel(componentClass: IGlobalMenuAttach): void {
     if (componentClass === this._activatedPanel) {
       this._activatedPanel = null;
       this.setMenuItems(TopMenuTypes.SHOW, null);
       this.setMenuItems(TopMenuTypes.EDIT, null);
-
     }
 
     const index = this.registeredPanel.indexOf(componentClass);

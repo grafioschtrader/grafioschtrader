@@ -1,5 +1,5 @@
 import {Observable} from 'rxjs';
 
 export interface DeleteService {
-  deleteEntity(id: number): Observable<any>;
+  deleteEntity(id: number | string): Observable<any>;
 }

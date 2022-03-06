@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
@@ -37,7 +37,7 @@ import grafioschtrader.entities.Security;
  */
 @Component
 @ConfigurationProperties(prefix = "gt.connector.alphavantage")
-public class AlphaVantageFeedConnector extends BaseFeedConnector {
+public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
 
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final int TIMEOUT = 15000;
@@ -47,7 +47,7 @@ public class AlphaVantageFeedConnector extends BaseFeedConnector {
    * returns only the latest 100 data points
    */
   private static final String COMPACT = "compact";
-  private String apiKey;
+ 
 
   /**
    * returns the full-length time series of up to 20 years of historical data
@@ -64,14 +64,7 @@ public class AlphaVantageFeedConnector extends BaseFeedConnector {
     super(supportedFeed, "alphavantage", "Alpha Vantage", URL_NORMAL_REGEX);
   }
 
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
-  }
-
-  @Override
-  public boolean isActivated() {
-    return !apiKey.isEmpty();
-  }
+  
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
@@ -80,7 +73,7 @@ public class AlphaVantageFeedConnector extends BaseFeedConnector {
 
   public String getSecurityHistoricalDownloadLink(final Security security, String outputsize) {
     return "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&datatype=csv&symbol="
-        + security.getUrlHistoryExtend() + "&outputsize=" + outputsize + "&apikey=" + apiKey;
+        + security.getUrlHistoryExtend() + "&outputsize=" + outputsize + "&apikey=" + getApiKey();
   }
 
   @Override

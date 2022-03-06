@@ -134,7 +134,7 @@ export class SecurityaccountImportTransactionComponent
       (importTransactionHeads: ImportTransactionHead[]) => {
         this.entityList = plainToClass(ImportTransactionHead, importTransactionHeads);
         this.configObject.idTransactionHead.valueKeyHtmlOptions =
-          SelectOptionsHelper.createValueKeyHtmlSelectOptions('idTransactionHead', 'name', importTransactionHeads, true);
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idTransactionHead', 'name', importTransactionHeads, true);
 
         if (!this.selectedEntity && this.successFailedDirectImportTransaction) {
           this.selectedEntity = this.entityList.find(imporTtransactionHead =>

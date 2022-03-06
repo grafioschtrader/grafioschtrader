@@ -6,20 +6,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Currencypair;
 
 @Component
-public class CurrencyconverterFeedConnector extends BaseFeedConnector {
+public class CurrencyconverterFeedConnector extends BaseFeedApiKeyConnector {
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  private String apiKey;
+
 
   static {
     supportedFeed = new HashMap<>();
@@ -29,20 +28,11 @@ public class CurrencyconverterFeedConnector extends BaseFeedConnector {
   public CurrencyconverterFeedConnector() {
     super(supportedFeed, "currencyconverter", "Free Currency Converter", null);
   }
-
-  @Value("${gt.connector.currencyconverter.apikey}")
-  public void setApiKey(String apiKey) {
-    this.apiKey = apiKey;
-  }
-
-  @Override
-  public boolean isActivated() {
-    return !apiKey.isEmpty();
-  }
-
+  
+  
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return "https://free.currconv.com/api/v7/convert?q=" + getQueryString(currencypair) + "&apiKey=" + apiKey;
+    return "https://free.currconv.com/api/v7/convert?q=" + getQueryString(currencypair) + "&apiKey=" + getApiKey();
   }
 
   @Override

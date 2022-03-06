@@ -64,12 +64,16 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   public String getSecuritycurrencyIntraDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.INTRA);
-    if (securitycurrency instanceof Security) {
-      return (feedConnector == null) ? null
-          : feedConnector.getSecurityIntradayDownloadLink((Security) securitycurrency);
+    if (ConnectorHelper.canAccessConnectorApiKey(feedConnector)) {
+      if (securitycurrency instanceof Security) {
+        return (feedConnector == null) ? null
+            : feedConnector.getSecurityIntradayDownloadLink((Security) securitycurrency);
+      } else {
+        return (feedConnector == null) ? null
+            : feedConnector.getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency);
+      }
     } else {
-      return (feedConnector == null) ? null
-          : feedConnector.getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency);
+      return null;
     }
   }
 

@@ -1,16 +1,17 @@
-
-
 package grafioschtrader.entities;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import org.jasypt.encryption.StringEncryptor;
-import org.springframework.core.env.StandardEnvironment;
-
-import com.ulisesbocchio.jasyptspringboot.encryptor.DefaultLazyEncryptor;
+import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
 
 import grafioschtrader.types.SubscriptionType;
 
@@ -19,22 +20,28 @@ import grafioschtrader.types.SubscriptionType;
 @Table(name = ConnectorApiKey.TABNAME)
 public class ConnectorApiKey {
 
-  
-
   public static final String TABNAME = "connector_apikey";
-  private static StringEncryptor stringEncryptor = new DefaultLazyEncryptor(new StandardEnvironment());
+  private static StringEncryptor stringEncryptor =  stringEncryptor();
+    
   
   @Id
+  @Basic(optional = false)
   @Column(name = "id_provider")
   private String idProvider;
 
- 
+  @NotBlank
+  @Basic(optional = false)
+  @Size(min = 10, max = 255)
   @Column(name = "api_key")
   private String apiKey;
   
+  @Basic(optional = false)
   @Column(name = "subscription_type")
   private Short subscriptionType;
  
+  @Transient
+  private String apiKeyDecrypt;
+  
   public String getIdProvider() {
     return idProvider;
   }
@@ -44,10 +51,14 @@ public class ConnectorApiKey {
   }
 
   public String getApiKey() {
-    return stringEncryptor.decrypt(apiKey);
+    if(apiKeyDecrypt == null) {
+      apiKeyDecrypt = stringEncryptor.decrypt(apiKey);
+    }
+    return apiKeyDecrypt;
   }
 
   public void setApiKey(String apiKey) {
+    apiKeyDecrypt = null;
     this.apiKey = stringEncryptor.encrypt(apiKey);
   }
 
@@ -90,5 +101,22 @@ public class ConnectorApiKey {
     return "ConnectorApiKey [idProvider=" + idProvider + ", apiKey=" + this.getApiKey() + ", subscriptionType=" + subscriptionType
         + "]";
   }
+ 
+  
+  public static  StringEncryptor stringEncryptor() {
+    PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+    SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+    config.setPassword(System.getenv("JASYPT_ENCRYPTOR_PASSWORD"));
+    config.setAlgorithm("PBEWITHHMACSHA512ANDAES_256");
+    config.setKeyObtentionIterations("1000");
+    config.setPoolSize("1");
+    config.setProviderName("SunJCE");
+    config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
+    config.setIvGeneratorClassName("org.jasypt.iv.RandomIvGenerator");
+    config.setStringOutputType("base64");
+    encryptor.setConfig(config);
+    return encryptor;
+}
+  
   
 }
