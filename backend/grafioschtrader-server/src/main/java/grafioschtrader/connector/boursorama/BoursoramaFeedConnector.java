@@ -36,8 +36,9 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   private static List<BoursoramaPeriodEOD> boursoramaPeriods;
   private static String BASE_URL = "https://www.boursorama.com/bourse/action/graph/ws/";
 
+  // Intraday main contain only a empty array when there was no trading. Because of that ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT is enabled
   private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
 
   static {
     supportedFeed = new HashMap<>();
@@ -150,10 +151,21 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String urlStr, double divider)
       throws IOException {
+   
     final HeaderIntra header = objectMapper.readValue(new URL(urlStr), HeaderIntra.class);
-    header.d[0].setValues(securitycurrency, getIntradayDelayedSeconds(), divider);
+    if (header != null) {
+      header.d[0].setValues(securitycurrency, divider);
+    } else {
+      securitycurrency.setSChangePercentage(0.0);
+    }
+      
+    setSTimestamp(securitycurrency);
   }
 
+  private void setSTimestamp(Securitycurrency<?> securitycurrency) {
+    securitycurrency.setSTimestamp(new Date(new Date().getTime() - getIntradayDelayedSeconds() * 1000));
+  }
+  
   private static class BoursoramaPeriodEOD {
     public int maxDays;
     public int lengthParam;
@@ -199,19 +211,23 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     public double var;
     // public QtIntra[] qt;
 
-    public void setValues(Securitycurrency<?> securitycurrency, int delaySeconds, double divider) {
+    public void setValues(Securitycurrency<?> securitycurrency, double divider) {
       securitycurrency.setSLast(c / divider);
       securitycurrency.setSOpen(o / divider);
       securitycurrency.setSLow(l / divider);
       securitycurrency.setSHigh(h / divider);
-      securitycurrency.setSChangePercentage(DataHelper.roundStandard(var / o * 100));
-      securitycurrency.setSTimestamp(new Date(new Date().getTime() - delaySeconds * 1000));
+      if(o > 0 && var != 0.0) {
+         securitycurrency.setSChangePercentage(DataHelper.roundStandard(var / o * 100));
+      } else {
+        securitycurrency.setSChangePercentage(DataHelper.roundStandard(var / o * 100));
+      }
     }
+   
   }
-
+/*
   private static class QtIntra {
     // public double d;
     // public double o;
   }
-
+*/
 }

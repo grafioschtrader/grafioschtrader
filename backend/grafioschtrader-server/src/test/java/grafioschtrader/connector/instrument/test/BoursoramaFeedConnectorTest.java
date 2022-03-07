@@ -82,6 +82,8 @@ public class BoursoramaFeedConnectorTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
+    securities.add(ConnectorTestHelper.createIntraSecurity("2 AEVIS 22 BDS", "2aAEV16",  SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("Xtrackers II Eurozone Government Bond UCITS ETF 1C", "1zDBXN",  SpecialInvestmentInstruments.ETF, "FSX"));
     securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core CHF Corporate Bond ETF (CH)", "2aCHCORP",  SpecialInvestmentInstruments.ETF, "SIX"));
     securities.add(ConnectorTestHelper.createIntraSecurity("iShares SMIM ETF (CH)", "2aCSSMIM",  SpecialInvestmentInstruments.ETF, "SIX"));
     securities.add(ConnectorTestHelper.createIntraSecurity("ZKB Gold ETF (CHF)", "2aZGLD",  SpecialInvestmentInstruments.ETF, "SIX"));
@@ -93,7 +95,8 @@ public class BoursoramaFeedConnectorTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      assertThat(security.getSLast()).isNotNull().isGreaterThan(0.0);
+      // A price is not always set
+      assertThat(security.getSTimestamp()).isNotNull();
     });
   }
 
