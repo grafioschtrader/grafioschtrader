@@ -219,7 +219,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
       if(o > 0 && var != 0.0) {
          securitycurrency.setSChangePercentage(DataHelper.roundStandard(var / o * 100));
       } else {
-        securitycurrency.setSChangePercentage(DataHelper.roundStandard(var / o * 100));
+        securitycurrency.setSChangePercentage(0.0);
       }
     }
    
