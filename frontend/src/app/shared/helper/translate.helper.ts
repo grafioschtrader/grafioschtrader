@@ -9,6 +9,11 @@ import {AppSettings} from '../app.settings';
 
 export class TranslateHelper {
 
+  public static camelToUnderscoreCase(camelCaseStr: string): string {
+    return camelCaseStr.replace(/(.)([A-Z][a-z]+)/, '$1_$2')
+      .replace(/([a-z0-9])([A-Z])/, '$1_$2').toUpperCase();
+  }
+
   public static prepareFieldsAndErrors(translateService: TranslateService,
                                        fieldFormGroup: FieldFormGroup[]): { [name: string]: FieldConfig } {
     const fieldConfigs = FormHelper.flattenConfigMap(fieldFormGroup);
@@ -33,7 +38,6 @@ export class TranslateHelper {
       }
     });
   }
-
 
   public static translateLabelHelpText(translateService: TranslateService, fieldConfig: FieldConfig) {
     translateService.get(fieldConfig.labelHelpText).subscribe(transText => fieldConfig.labelHelpText

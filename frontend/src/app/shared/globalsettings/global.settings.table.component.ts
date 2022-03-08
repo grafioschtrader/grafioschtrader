@@ -92,7 +92,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
       {fieldValueFN: this.getProperty.bind(this)});
     this.addColumnFeqH(DataType.Boolean, 'changedBySystem', true, false,
       {templateName: 'check'});
-    this.addColumn(DataType.String, this.PROPERTY_NAME + '1', this.PROPERTY_NAME, true, false,
+    this.addColumn(DataType.String, this.PROPERTY_NAME + '1', TranslateHelper.camelToUnderscoreCase(this.PROPERTY_NAME), true, false,
       {width: 200, fieldValueFN: this.getPropertyName1.bind(this)});
     this.editMenu = {
       label: 'EDIT_RECORD|GLOBAL_SETTINGS' + AppSettings.DIALOG_MENU_SUFFIX,
