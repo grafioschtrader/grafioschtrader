@@ -17,7 +17,7 @@ public abstract class Security_ extends grafioschtrader.entities.Securitycurrenc
   public static volatile SingularAttribute<Security, String> formulaPrices;
   public static volatile SingularAttribute<Security, Stockexchange> stockexchange;
   public static volatile SingularAttribute<Security, Integer> idTenantPrivate;
-  public static volatile SingularAttribute<Security, Boolean> shortSecurity;
+  public static volatile SingularAttribute<Security, Float> leverageFactor;
   public static volatile SingularAttribute<Security, String> urlSplitExtend;
   public static volatile SingularAttribute<Security, String> tickerSymbol;
   public static volatile SingularAttribute<Security, Assetclass> assetClass;

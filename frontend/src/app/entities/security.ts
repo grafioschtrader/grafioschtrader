@@ -23,7 +23,7 @@ export class Security extends Securitycurrency implements BaseID {
   activeFromDate = null;
   activeToDate = null;
   distributionFrequency: string = null;
-  shortSecurity?: boolean = null;
+  leverageFactor?: number = null;
   idLinkSecuritycurrency?: number = null;
   formulaPrices?: string = null;
   idConnectorDividend?: string = null;

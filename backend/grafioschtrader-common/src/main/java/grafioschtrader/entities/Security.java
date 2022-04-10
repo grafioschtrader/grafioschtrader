@@ -134,11 +134,11 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @PropertyAlwaysUpdatable
   private byte distributionFrequency;
 
-  @Schema(description = "A security rises if the underlying instrument falls, for example short ETF. "
+  @Schema(description = "Certain instruments are short and may still be leveraged, this is mapped with this."
       + "Used, for example, to correctly calculate the equity ratio for the portfolio.")
-  @Column(name = "short_security")
+  @Column(name = "leverage_factor")
   @PropertyAlwaysUpdatable
-  private boolean shortSecurity;
+  private float leverageFactor;
 
   @Schema(description = "Contains Id of tenant if it is a private security which belongs to this tenant")
   @Column(name = "id_tenant_private")
@@ -308,12 +308,13 @@ public class Security extends Securitycurrency<Security> implements Serializable
     this.distributionFrequency = distributionFrequency.getValue();
   }
 
-  public boolean isShortSecurity() {
-    return shortSecurity;
+ 
+  public float getLeverageFactor() {
+    return leverageFactor;
   }
 
-  public void setShortSecurity(boolean shortSecurity) {
-    this.shortSecurity = shortSecurity;
+  public void setLeverageFactor(float leverageFactor) {
+    this.leverageFactor = leverageFactor;
   }
 
   public String getProductLink() {
@@ -521,7 +522,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
       this.retryDividendLoad = 0;
     }
     if (this.stockexchange.isNoMarketValue()) {
-      this.shortSecurity = false;
+      this.leverageFactor = 1;
     }
     
   }
@@ -563,8 +564,8 @@ public class Security extends Securitycurrency<Security> implements Serializable
     return "Security [currency=" + currency + ", isin=" + isin + ", tickerSymbol=" + tickerSymbol + ", sVolume="
         + sVolume + ", name=" + name + ", assetClass=" + assetClass + ", denomination=" + denomination
         + ", stockexchange=" + stockexchange + ", productLink=" + productLink + ", activeFromDate=" + activeFromDate
-        + ", activeToDate=" + activeToDate + ", distributionFrequency=" + distributionFrequency + ", shortSecurity="
-        + shortSecurity + ", idTenantPrivate=" + idTenantPrivate + ", formulaPrices=" + formulaPrices
+        + ", activeToDate=" + activeToDate + ", distributionFrequency=" + distributionFrequency + ", leverageFactor="
+        + leverageFactor + ", idTenantPrivate=" + idTenantPrivate + ", formulaPrices=" + formulaPrices
         + ", idLinkSecuritycurrency=" + idLinkSecuritycurrency + ", securityDerivedLinks="
         + Arrays.toString(securityDerivedLinks) + ", splitPropose=" + Arrays.toString(splitPropose) + ", hpPropose="
         + Arrays.toString(hpPropose) + ", price=" + price + ", idSecuritycurrency=" + idSecuritycurrency

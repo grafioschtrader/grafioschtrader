@@ -7,6 +7,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dynamic';
+import {BusinessHelper} from '../../shared/helper/business.helper';
 
 /**
  * Show securities grouped by currency.
@@ -19,17 +20,17 @@ export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<Secur
   }
 
   public extendColumns(internalColumnConfigs: ColumnConfig[]) {
-    // It is possible a grand total for group, because it is grupped by currency
+    // It is possible a grand total for group, because it is grouped by currency
     internalColumnConfigs.push(
-      this.datatableConfigBase.insertColumn(7, DataType.Numeric, 'valueSecurityMC',
+      this.datatableConfigBase.insertColumn(7, DataType.Numeric, 'securityRiskMC',
         SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER, true, true,
         {
           width: 75,
           columnGroupConfigs: [new ColumnGroupConfig('groupSecurityRiskMC'),
             new ColumnGroupConfig('grandSecurityRiskMC')]
         }));
-    this.datatableConfigBase.insertColumn(8, DataType.Boolean, 'security.shortSecurity', 'SHORT_SECURITY', true, true,
-      {templateName: 'check', width: 30});
+    this.datatableConfigBase.insertColumnFeqH(8, DataType.NumericRaw, 'security.leverageFactor',  true, true,
+      {templateName: 'greenRed', fieldValueFN:  BusinessHelper.getDisplayLeverageFactor.bind(this), width: 30});
   }
 
   public getGroupValue(security: Security) {

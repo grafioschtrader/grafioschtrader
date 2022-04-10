@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import grafioschtrader.connector.twelvedata.TwelvedataFeedConnector;
+import grafioschtrader.connector.instrument.twelvedata.TwelvedataFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;

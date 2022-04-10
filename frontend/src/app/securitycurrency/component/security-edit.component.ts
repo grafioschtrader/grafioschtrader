@@ -245,7 +245,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SECURITY);
   }
 
-  protected loadHelperData(): void {
+  protected override loadHelperData(): void {
     this.securityEditSupport.registerValueOnChanged(SecurityDerived.Security, this.configObject);
     this.valueChangedOnStockexchange();
     this.valueChangedOnDistributionFrequency();
@@ -306,6 +306,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           }
         }
         this.dataLoaded = true;
+        this.securityEditSupport.disableEnableFieldsOnAssetclass(SecurityDerived.Security, this.configObject, this.configObject.assetClass.formControl.value);
       });
   }
 

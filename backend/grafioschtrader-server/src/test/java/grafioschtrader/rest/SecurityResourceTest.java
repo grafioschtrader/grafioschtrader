@@ -180,7 +180,7 @@ class SecurityResourceTest {
       s.setActiveToDate(DateHelper.getDateFromLocalDate(accessor.get(5, LocalDate.class)));
       s.setDistributionFrequency(DistributionFrequency.getDistributionFrequency(accessor.getByte(6)));
       s.setDenomination(accessor.getInteger(7));
-      s.setShortSecurity(accessor.getBoolean(8));
+      s.setLeverageFactor(accessor.getFloat(8));
       searchStockexchange.setName(accessor.getString(9));
       int index = Collections.binarySearch(stockexchanges, searchStockexchange, comparatorSE);
       s.setStockexchange(stockexchanges.get(index));

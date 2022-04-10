@@ -25,7 +25,8 @@ import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {InjectableRxStompConfig, RxStompService} from '@stomp/ng2-stompjs';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {BusinessHelper} from '../../shared/helper/business.helper';
 
 /**
  * Shows the performance watchlist. It has no special function implemented.
@@ -99,8 +100,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.String, 'securitycurrency.assetClass.subCategoryNLS.map.' + this.gps.getUserLang(),
       'SUB_ASSETCLASS', true, true, {width: 80});
 
-    this.addColumn(DataType.Boolean, 'securitycurrency.shortSecurity', 'SHORT_SECURITY', true, true, {
-      templateName: 'check'
+    this.addColumnFeqH(DataType.NumericRaw, 'securitycurrency.leverageFactor', true, true, {
+      templateName: 'greenRed', fieldValueFN: BusinessHelper.getDisplayLeverageFactor.bind(this)
     });
 
     this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {width: 80});
@@ -144,7 +145,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   }
 
   sendMessage(idWatchlist: number, daysFrameDate: number) {
-
     this.stompService.publish({
       destination: '/app/ws/watchlist',
       headers: this.stompConfig.connectHeaders,

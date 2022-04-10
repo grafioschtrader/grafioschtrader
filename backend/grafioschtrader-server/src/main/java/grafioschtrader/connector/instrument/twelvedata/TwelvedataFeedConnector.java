@@ -1,4 +1,4 @@
-package grafioschtrader.connector.twelvedata;
+package grafioschtrader.connector.instrument.twelvedata;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -102,9 +102,6 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
-    System.out
-        .println(DOMAIN_NAME + "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
-            + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + getApiKeyString());
     return DOMAIN_NAME + "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
         + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + getApiKeyString();
   }

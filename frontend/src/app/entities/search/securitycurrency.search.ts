@@ -9,7 +9,7 @@ export class SecuritycurrencySearch {
   specialInvestmentInstruments: string = null;
   subCategoryNLS: string = null;
   onlyTenantPrivate: boolean = null;
-  shortSecurity: boolean = null;
+  leverageFactor: number = null;
   activeDate = null;
   excludeDerivedSecurity: boolean = null;
   idConnectorHistory: string = null;

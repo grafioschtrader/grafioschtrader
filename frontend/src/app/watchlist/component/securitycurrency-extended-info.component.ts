@@ -30,7 +30,7 @@ import {AppSettings} from '../../shared/app.settings';
             <ng-container [ngSwitch]="field.templateName">
               <ng-container *ngSwitchCase="'greenRed'">
                               <span [style.color]='isValueByPathMinus(content, field)? "red": "green"'>
-                                  {{getValueByPath(securitycurrency, field)}}
+                                  {{getValueByPath(content, field)}}
                               </span>
               </ng-container>
               <ng-container *ngSwitchCase="'check'">
@@ -121,8 +121,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SingleRecordConfigBas
       {fieldsetName: 'BASE_DATA'});
     this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'distributionFrequency',
       {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
-    this.addFieldPropertyFeqH(DataType.Boolean, this.SECURITYCURRENCY + 'shortSecurity', {
-      fieldsetName: 'BASE_DATA', templateName: 'check'
+    this.addFieldPropertyFeqH(DataType.NumericRaw, this.SECURITYCURRENCY + 'leverageFactor', {
+      fieldsetName: 'BASE_DATA', templateName: 'greenRed', fieldValueFN: BusinessHelper.getDisplayLeverageFactor.bind(this)
     });
     this.addNoteField();
     !security.idLinkSecuritycurrency && this.addHistoricalIntraday();
