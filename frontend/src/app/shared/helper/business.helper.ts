@@ -22,6 +22,7 @@ import {AssetclassType} from '../types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../types/special.investment.instruments';
 import {Assetclass} from '../../entities/assetclass';
 import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
+import {ColumnConfig} from '../datashowbase/column.config';
 
 export class BusinessHelper {
 
@@ -187,6 +188,10 @@ export class BusinessHelper {
   public static isMarginProduct(security: Security): boolean {
     return security.assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD]
       || security.assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.FOREX];
+  }
+
+  public static getDisplayLeverageFactor(dataobject: any, field: ColumnConfig, valueField: any): string {
+    return Number(+valueField) === 1? '': valueField;
   }
 
 }

@@ -24,7 +24,7 @@ public class SecuritycurrencySearch implements Serializable {
   private SpecialInvestmentInstruments specialInvestmentInstruments;
   private String subCategoryNLS;
   private boolean onlyTenantPrivate;
-  private Boolean shortSecurity;
+  private Float leverageFactor;
   private boolean excludeDerivedSecurity;
 
   private String idConnectorHistory;
@@ -133,13 +133,14 @@ public class SecuritycurrencySearch implements Serializable {
   public void setActiveDate(Date activeDate) {
     this.activeDate = activeDate;
   }
+  
 
-  public Boolean getShortSecurity() {
-    return shortSecurity;
+  public Float getLeverageFactor() {
+    return leverageFactor;
   }
 
-  public void setShortSecurity(Boolean shortSecurity) {
-    this.shortSecurity = shortSecurity;
+  public void setLeverageFactor(Float leverageFactor) {
+    this.leverageFactor = leverageFactor;
   }
 
   public String getIdConnectorHistory() {
@@ -182,8 +183,6 @@ public class SecuritycurrencySearch implements Serializable {
     this.noMarketValue = noMarketValue;
   }
   
-  
-  
 
   public Date getMaxFromDate() {
     return maxFromDate;
@@ -206,7 +205,7 @@ public class SecuritycurrencySearch implements Serializable {
     return "SecuritycurrencySearch [isin=" + isin + ", name=" + name + ", tickerSymbol=" + tickerSymbol + ", currency="
         + currency + ", assetclassType=" + assetclassType + ", specialInvestmentInstruments="
         + specialInvestmentInstruments + ", subCategoryNLS=" + subCategoryNLS + ", onlyTenantPrivate="
-        + onlyTenantPrivate + ", shortSecurity=" + shortSecurity + ", activeDate=" + activeDate + "]";
+        + onlyTenantPrivate + ", leverageFactor=" + leverageFactor + ", activeDate=" + activeDate + "]";
   }
 
 }

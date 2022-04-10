@@ -49,8 +49,8 @@ export class SecurityEditSupport {
 
 
   constructor(private translateService: TranslateService,
-              private gps: GlobalparameterService,
-              private callbackValueChanged: CallbackValueChanged) {
+    private gps: GlobalparameterService,
+    private callbackValueChanged: CallbackValueChanged) {
   }
 
 
@@ -94,7 +94,7 @@ export class SecurityEditSupport {
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('distributionFrequency', true,
       {fieldsetName: 'BASE_DATA'}));
 
-    fc.push(DynamicFieldHelper.createFieldCheckboxHeqF('shortSecurity', {fieldsetName: 'BASE_DATA'}),
+    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99, {fieldsetName: 'BASE_DATA'}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
         {fieldsetName: 'BASE_DATA'}));
     if (securityDerived === SecurityDerived.Security) {
@@ -153,7 +153,7 @@ export class SecurityEditSupport {
   }
 
   assignLoadedValues(configObject: { [name: string]: FieldConfig }, stockexchanges: Stockexchange[],
-                     vksoCurrency: ValueKeyHtmlSelectOptions[], assetclasses: Assetclass[]): void {
+    vksoCurrency: ValueKeyHtmlSelectOptions[], assetclasses: Assetclass[]): void {
     configObject.stockexchange.referencedDataObject = stockexchanges;
     configObject.stockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idStockexchange', 'name',
       configObject.stockexchange.referencedDataObject, true);
@@ -188,15 +188,22 @@ export class SecurityEditSupport {
 
   valueChangedOnAssetClass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
     this.assetClassSubscribe = configObject.assetClass.formControl.valueChanges.subscribe((idAssetclass: number) => {
-      let assetClass: Assetclass;
-      if (idAssetclass) {
-        assetClass = Helper.getReferencedDataObject(configObject.assetClass, null);
-        this.enableDisableDenomination(configObject, assetClass, this.hasMarketValue);
-        this.hideShowSomeFields(securityDerived, configObject, assetClass);
-      }
+      const assetClass: Assetclass = this.disableEnableFieldsOnAssetclass(securityDerived, configObject, idAssetclass);
       this.callbackValueChanged && this.callbackValueChanged.valueChangedOnAssetClassExtend(assetClass);
     });
   }
+
+   disableEnableFieldsOnAssetclass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig },
+    idAssetclass: number): Assetclass {
+    let assetClass: Assetclass;
+    if (idAssetclass) {
+      assetClass = Helper.getReferencedDataObject(configObject.assetClass, null);
+      this.enableDisableDenomination(configObject, assetClass, this.hasMarketValue);
+      this.hideShowSomeFields(securityDerived, configObject, assetClass);
+    }
+    return assetClass;
+  }
+
 
   public enableDisableDenominationStockexchangeAssetclass(configObject: { [name: string]: FieldConfig }): void {
     const assetClass = Helper.getReferencedDataObject(configObject.assetClass, null);
@@ -228,7 +235,7 @@ export class SecurityEditSupport {
   }
 
   prepareForSave(formBase: FormBase, proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity, existingSecurity: Security,
-                 dynamicForm: DynamicFormComponent, value: { [name: string]: any }): Security {
+    dynamicForm: DynamicFormComponent, value: { [name: string]: any }): Security {
     const security: Security = new Security();
     if (existingSecurity) {
       Object.assign(security, existingSecurity);
@@ -248,8 +255,8 @@ export class SecurityEditSupport {
   }
 
   private getIsinTickerShortFields(securityDerived: SecurityDerived,
-                                   configObject: { [name: string]: FieldConfig }): FieldConfig[] {
-    const fieldConfigs: FieldConfig[] = [configObject.shortSecurity];
+    configObject: { [name: string]: FieldConfig }): FieldConfig[] {
+    const fieldConfigs: FieldConfig[] = [configObject.leverageFactor];
     if (securityDerived === SecurityDerived.Security) {
       fieldConfigs.push(configObject.tickerSymbol);
       fieldConfigs.push(configObject.isin);
@@ -261,7 +268,7 @@ export class SecurityEditSupport {
    * Only fixed income and similar can have denomination property.
    */
   private enableDisableDenomination(configObject: { [name: string]: FieldConfig }, assetClass: Assetclass,
-                                    hasMarkedPrice: boolean): void {
+    hasMarkedPrice: boolean): void {
     if (configObject.denomination) {
       const hsd = BusinessHelper.hasSecurityDenomination(assetClass, hasMarkedPrice);
       AppHelper.invisibleAndHide(configObject.denomination, !hsd);
@@ -271,9 +278,15 @@ export class SecurityEditSupport {
   }
 
   private hideShowSomeFields(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig },
-                             assetClass: Assetclass): void {
+    assetClass: Assetclass): void {
     FormHelper.hideVisibleFieldConfigs(assetClass.specialInvestmentInstrument
       === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD], this.getIsinTickerShortFields(securityDerived, configObject));
+    console.log('in', assetClass.specialInvestmentInstrument
+      !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF] && assetClass.specialInvestmentInstrument
+      !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT]);
+    FormHelper.hideVisibleFieldConfigs(assetClass.specialInvestmentInstrument
+      !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF] && assetClass.specialInvestmentInstrument
+      !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT], [configObject.leverageFactor]);
   }
 }
 

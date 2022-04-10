@@ -6,6 +6,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
 import {SecurityPositionDynamicGrandSummary} from '../../entities/view/security.position.dynamic.grand.summary';
 import {AssetclassType} from '../../shared/types/assetclass.type';
+import {BusinessHelper} from '../../shared/helper/business.helper';
 
 /**
  * Allow dynamic grouping, but is general a base class of asset class grouping.
@@ -29,15 +30,15 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
 
   public extendColumns(internalColumnConfigs: ColumnConfig[]) {
     internalColumnConfigs.push(
-      this.datatableConfigBase.insertColumn(7, DataType.Numeric, 'valueSecurityMC',
+      this.datatableConfigBase.insertColumn(7, DataType.Numeric, 'securityRiskMC',
         SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER, true, true,
         {
           width: 75,
           columnGroupConfigs: [new ColumnGroupConfig('groupSecurityRiskMC'),
             new ColumnGroupConfig('grandSecurityRiskMC')]
         }));
-    this.datatableConfigBase.insertColumn(8, DataType.Boolean, 'security.shortSecurity', 'SHORT_SECURITY', true, true,
-      {templateName: 'check', width: 30});
+    this.datatableConfigBase.insertColumnFeqH(8, DataType.NumericRaw, 'security.leverageFactor',  true, true,
+      {templateName: 'greenRed', fieldValueFN:  BusinessHelper.getDisplayLeverageFactor.bind(this)});
   }
 
   public getGroupValueFromGroupRow(securityPositionGroupSummary: SecurityPositionDynamicGroupSummary<S>) {

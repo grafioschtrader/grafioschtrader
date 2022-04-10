@@ -88,9 +88,9 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
         mainPredicates.add(builder.and(builder.isNull(securityRoot.get(Security_.idLinkSecuritycurrency))));
       }
 
-      if (securitycurrencySearch.getShortSecurity() != null) {
+      if (securitycurrencySearch.getLeverageFactor() != null) {
         mainPredicates.add(builder
-            .and(builder.equal(securityRoot.get(Security_.shortSecurity), securitycurrencySearch.getShortSecurity())));
+            .and(builder.equal(securityRoot.get(Security_.leverageFactor), securitycurrencySearch.getLeverageFactor())));
       }
 
       if (securitycurrencySearch.isOnlyTenantPrivate()) {

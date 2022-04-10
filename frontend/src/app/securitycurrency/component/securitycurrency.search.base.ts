@@ -70,8 +70,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
         {userDefinedValue: <string>this.secondGroup}),
       DynamicFieldHelper.createFieldTriStateCheckbox('onlyTenantPrivate', 'PRIVATE_SECURITY',
         {userDefinedValue: this.secondGroup}),
-      DynamicFieldHelper.createFieldTriStateCheckboxHeqF('shortSecurity',
-        {userDefinedValue: this.secondGroup}),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99, {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectString('assetclassType', AppSettings.ASSETCLASS.toUpperCase(), false,
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectString('subCategoryNLS', 'SUB_ASSETCLASS', false,
@@ -159,7 +158,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
           AppHelper.invisibleAndHide(this.configObject.name, this.configObject.name.invisible || this.isExactCurrecny());
           AppHelper.invisibleAndHide(this.configObject.tickerSymbol, this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.onlyTenantPrivate, this.isCurrency());
-          AppHelper.invisibleAndHide(this.configObject.shortSecurity, this.isCurrency());
+          AppHelper.invisibleAndHide(this.configObject.leverageFactor, this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.activeDate, this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.idStockexchange, this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.specialInvestmentInstruments, this.isCurrency());

@@ -51,7 +51,7 @@ public class StockworldFeedConnector extends BaseFeedConnector {
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    return "http://www.stock-world.de/detail/" + security.getUrlHistoryExtend() + "-Historisch.html";
+    return "https://www.stock-world.de/detail/" + security.getUrlHistoryExtend() + "-Historisch.html";
   }
 
   @Override
@@ -169,34 +169,45 @@ public class StockworldFeedConnector extends BaseFeedConnector {
     final NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMAN);
     final Connection stockworldConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security)).timeout(8_000);
     final Document doc = stockworldConnection.get();
-    final Element table = doc.select("#inhaltALLES div table").get(1);
-
+    final Elements tables = doc.select("#inhaltALLES div table");
+    System.out.println("Tables-Nr:" + tables.size());
+    final Element table = tables.get(tables.size()-4);
     final Elements rows = table.select("tr");
-    final Elements headerCols = rows.get(1).select("td");
-    if (headerCols.get(1).text().equals("Letzter")) {
+    final Elements headerCols = rows.get(0).select("td");
+    if (headerCols.get(0).text().startsWith("letzter")) {
       scanLast(security, numberFormat, rows);
-    } else {
+    } else if (headerCols.get(0).text().startsWith("Bid")){
       scanBidAsk(security, numberFormat, rows);
+    } else {
+      scanRuecknamepreis(security, numberFormat, rows); 
     }
   }
 
   private void scanLast(Security security, final NumberFormat numberFormat, final Elements rows) throws ParseException {
-    final Elements cols = rows.get(2).select("td");
+    final Elements cols = rows.get(1).select("td");
 
-    security.setSLast(parseDouble(numberFormat, 1, cols));
+    security.setSLast(parseDouble(numberFormat, 0, cols));
     security.setSChangePercentage(parseDouble(numberFormat, 2, cols));
     security.setSPrevClose(parseDouble(numberFormat, 3, cols));
-    parseDateTime(security, cols.get(4).text());
+   // parseDateTime(security, cols.get(4).text());
   }
 
   private void scanBidAsk(Security security, final NumberFormat numberFormat, final Elements rows)
       throws ParseException {
-    final Elements cols = rows.get(2).select("td");
+    final Elements cols = rows.get(1).select("td");
 
     security.setSLast((parseDouble(numberFormat, 1, cols) + parseDouble(numberFormat, 2, cols)) / 2);
     security.setSChangePercentage(parseDouble(numberFormat, 3, cols));
     security.setSPrevClose(parseDouble(numberFormat, 4, cols));
-    parseDateTime(security, cols.get(5).text());
+   // parseDateTime(security, cols.get(5).text());
+  }
+  
+  private void scanRuecknamepreis(Security security, final NumberFormat numberFormat, final Elements rows) {
+    final Elements cols = rows.get(1).select("td");
+
+    security.setSLast(parseDouble(numberFormat, 1, cols));
+    security.setSChangePercentage(parseDouble(numberFormat, 3, cols));
+    security.setSPrevClose(parseDouble(numberFormat, 4, cols));
   }
 
   private void parseDateTime(Security security, String dateTime) throws ParseException {

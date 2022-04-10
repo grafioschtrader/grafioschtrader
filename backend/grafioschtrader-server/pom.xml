@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.24.0</version>
+		<version>0.25.0</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.24.0</version>
+			<version>0.25.0</version>
 		</dependency>
 
 
@@ -160,7 +160,7 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20211205</version>
+			<version>20220320</version>
 		</dependency>
 
 		<dependency>
@@ -184,7 +184,7 @@
 		<dependency>
 			<groupId>com.github.vladimir-bukhtoyarov</groupId>
 			<artifactId>bucket4j-core</artifactId>
-			<version>7.2.0</version>
+			<version>7.3.0</version>
 		</dependency>
 
 		<dependency>

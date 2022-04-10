@@ -66,6 +66,9 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    */
   public double gainLossSecurityMC;
 
+  
+  public double securityRiskMC;
+  
   /**
    * Value of this position. It is also set when there is no relevance to the cash
    * account balance
@@ -205,6 +208,11 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
   public double getValueSecurityMC() {
     return DataHelper.round(valueSecurityMC, precisionMC);
+  }
+    
+
+  public double getSecurityRiskMC() {
+    return DataHelper.round(securityRiskMC, precisionMC);
   }
 
   public double getCurrencyGainLossMC() {

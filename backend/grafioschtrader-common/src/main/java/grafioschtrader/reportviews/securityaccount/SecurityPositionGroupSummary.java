@@ -39,9 +39,11 @@ public abstract class SecurityPositionGroupSummary {
     groupAccountValueSecurityMC += securityPositionSummary.accountValueSecurityMC;
 
     groupValueSecurityShort += securityPositionSummary.valueSecurity
-        * (securityPositionSummary.securitycurrency.isShortSecurity() ? -1 : 1);
-    groupSecurityRiskMC += securityPositionSummary.valueSecurityMC
-        * (securityPositionSummary.securitycurrency.isShortSecurity() ? -1 : 1);
+        * securityPositionSummary.securitycurrency.getLeverageFactor();
+    securityPositionSummary.securityRiskMC = securityPositionSummary.valueSecurityMC
+        * securityPositionSummary.securitycurrency.getLeverageFactor();
+    
+    groupSecurityRiskMC += securityPositionSummary.securityRiskMC;
 
   }
 
