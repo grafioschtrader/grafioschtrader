@@ -14,6 +14,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.types.TransactionType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * One for every single security. It contain also data of a single transaction,
@@ -56,23 +57,16 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public double taxCost;
   public double taxCostMC;
 
-  /**
-   * Gain or loss in the currency of the security over all transaction
-   */
+  @Schema(description = "Gain or loss in the currency of the security over all transaction.")
   public double gainLossSecurity;
 
-  /**
-   * Amount of gain or loss in the main currency
-   */
+  @Schema(description = "Amount of gain or loss in the main currency.")
   public double gainLossSecurityMC;
 
-  
+  @Schema(description = "The value of a security need not be equal to the risk of the security if it is leveraged or inverse.")
   public double securityRiskMC;
-  
-  /**
-   * Value of this position. It is also set when there is no relevance to the cash
-   * account balance
-   */
+
+  @Schema(description = "Value of this position. It is also set when there is no relevance to the cash account balance.")
   public double valueSecurity;
   public double valueSecurityMC;
 

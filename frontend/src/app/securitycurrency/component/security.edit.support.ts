@@ -94,7 +94,7 @@ export class SecurityEditSupport {
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('distributionFrequency', true,
       {fieldsetName: 'BASE_DATA'}));
 
-    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99, {fieldsetName: 'BASE_DATA'}),
+    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99, {fieldsetName: 'BASE_DATA', defaultValue: 1}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
         {fieldsetName: 'BASE_DATA'}));
     if (securityDerived === SecurityDerived.Security) {
