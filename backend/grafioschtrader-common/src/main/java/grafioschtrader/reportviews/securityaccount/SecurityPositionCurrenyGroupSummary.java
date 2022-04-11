@@ -1,6 +1,7 @@
 package grafioschtrader.reportviews.securityaccount;
 
 import grafioschtrader.common.DataHelper;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Summary of securities grouped by currency. A single security account may
@@ -22,9 +23,7 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
    */
   public String currency;
 
-  /**
-   * Total Gain/Loss for all Position of a currency
-   */
+  @Schema(description = "Total Gain/Loss for all Position of a currency")
   public double groupGainLossSecurity = 0.0;
 
   public double groupTransactionCost = 0.0;

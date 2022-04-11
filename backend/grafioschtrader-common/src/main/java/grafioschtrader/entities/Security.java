@@ -23,6 +23,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -39,6 +41,7 @@ import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.validation.AfterEqual;
 import grafioschtrader.validation.DateRange;
+import grafioschtrader.validation.NonZeroFloatConstraint;
 import grafioschtrader.validation.ValidCurrencyCode;
 import grafioschtrader.validation.ValidISIN;
 import grafioschtrader.validation.WebUrl;
@@ -138,6 +141,9 @@ public class Security extends Securitycurrency<Security> implements Serializable
       + "Used, for example, to correctly calculate the equity ratio for the portfolio.")
   @Column(name = "leverage_factor")
   @PropertyAlwaysUpdatable
+  @DecimalMin("-9.99")
+  @DecimalMax("9.99")
+  @NonZeroFloatConstraint
   private float leverageFactor;
 
   @Schema(description = "Contains Id of tenant if it is a private security which belongs to this tenant")
@@ -484,6 +490,9 @@ public class Security extends Securitycurrency<Security> implements Serializable
 
   @JsonIgnore
   public boolean canHaveDividendConnector() {
+    if(isDerivedInstrument()) {
+      return false;
+    }
     boolean canHaveDividend = false;
     if (distributionFrequency != DistributionFrequency.DF_NONE.getValue()) {
       canHaveDividend = this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF
@@ -521,7 +530,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
       this.urlDividendExtend = null;
       this.retryDividendLoad = 0;
     }
-    if (this.stockexchange.isNoMarketValue()) {
+    if (this.stockexchange.isNoMarketValue() || leverageFactor == 0f) {
       this.leverageFactor = 1;
     }
     

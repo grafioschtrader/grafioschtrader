@@ -1,6 +1,7 @@
 package grafioschtrader.reportviews.securityaccount;
 
 import grafioschtrader.common.DataHelper;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class SecurityPositionDynamicGrandSummary<S extends SecurityPositionGroupSummary>
     extends SecurityPositionGrandSummary {
