@@ -198,6 +198,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private Date dividendEarliestNextCheck;
 
   @Transient
+  @PropertyAlwaysUpdatable
   private SecurityDerivedLink securityDerivedLinks[];
 
   /**
