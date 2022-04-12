@@ -37,6 +37,7 @@ import {HistoryquotePeriodService} from '../service/historyquote.period.service'
 import {Securitysplit} from '../../entities/dividend.split';
 import {Helper} from '../../helper/helper';
 import {AppSettings} from '../../shared/app.settings';
+import {FormConfig} from '../../dynamic-form/models/form.config';
 
 /**
  * Edit a security with possible security split and history quote period
@@ -67,7 +68,7 @@ import {AppSettings} from '../../shared/app.settings';
         <p-tabPanel header="{{'HISTORYQUOTE_FOR_PERIOD' | translate}}" *ngIf="!this.securityEditSupport?.hasMarketValue
         || !dataLoaded">
           <p>{{'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate}}</p>
-          <dynamic-form [config]="periodPrices" [formConfig]="formConfig" [translateService]="translateService"
+          <dynamic-form [config]="periodPrices" [formConfig]="formConfigPeriod" [translateService]="translateService"
                         #periodPriceForm="dynamicForm" (submitBt)="addHistoryquotePeriod($event)">
           </dynamic-form>
           <security-historyquote-period-edit-table (editData)="onSelectedHistoryquote($event)"
@@ -92,7 +93,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   @Input() visibleEditSecurityDialog: boolean;
 
   securityEditSupport: SecurityEditSupport;
-
+  formConfigPeriod: FormConfig;
   configSplit: FieldConfig[] = [];
   periodPrices: FieldConfig[] = [];
   configSplitObject: { [name: string]: FieldConfig };
@@ -104,13 +105,13 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private distributionFrequencySubscribe: Subscription;
 
   constructor(private messageToastService: MessageToastService,
-              private stockexchangeService: StockexchangeService,
-              private assetclassService: AssetclassService,
-              private securityService: SecurityService,
-              private securitysplitService: SecuritysplitService,
-              private historyquotePeriodService: HistoryquotePeriodService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private stockexchangeService: StockexchangeService,
+    private assetclassService: AssetclassService,
+    private securityService: SecurityService,
+    private securitysplitService: SecuritysplitService,
+    private historyquotePeriodService: HistoryquotePeriodService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(translateService, gps);
   }
 
@@ -118,6 +119,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, this);
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
+    this.formConfigPeriod = AppHelper.getDefaultFormConfig(this.gps,
+      2, this.helpLinkPeriod.bind(this));
 
     this.config = SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Security);
     this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Security);
@@ -192,7 +195,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.dynamicPeriodPriceForm.setDefaultValuesAndEnableSubmit();
   }
 
- submit(value: { [name: string]: any }): void {
+  submit(value: { [name: string]: any }): void {
     const security = this.securityEditSupport.prepareForSave(this, this.proposeChangeEntityWithEntity,
       <Security>this.securityCurrencypairCallParam, this.dynamicForm, value);
     this.securityService.update(security).subscribe(newSecurity => {
@@ -241,8 +244,12 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     super.onHide(event);
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SECURITY);
+  }
+
+  helpLinkPeriod(): void {
+    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_WITHOUT_PRICE_DATA);
   }
 
   protected override loadHelperData(): void {
@@ -306,7 +313,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           }
         }
         this.dataLoaded = true;
-        this.securityEditSupport.disableEnableFieldsOnAssetclass(SecurityDerived.Security, this.configObject, this.configObject.assetClass.formControl.value);
+        this.securityEditSupport.disableEnableFieldsOnAssetclass(SecurityDerived.Security,
+          this.configObject, this.configObject.assetClass.formControl.value);
       });
   }
 

@@ -110,7 +110,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.queryParams && this.queryParams.unsubscribe();
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO_REGISTER);
   }
 

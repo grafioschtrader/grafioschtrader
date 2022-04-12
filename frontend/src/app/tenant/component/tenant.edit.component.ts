@@ -69,7 +69,7 @@ export abstract class TenantEditComponent {
     }, () => this.configObject.submit.disabled = false);
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_CLIENT);
   }
 

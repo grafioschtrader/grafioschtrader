@@ -73,7 +73,7 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
     });
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_USER);
   }
 
