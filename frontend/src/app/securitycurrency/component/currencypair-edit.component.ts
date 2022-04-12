@@ -109,7 +109,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     super.onHide(event);
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_CURRENCYPAIR);
   }
 

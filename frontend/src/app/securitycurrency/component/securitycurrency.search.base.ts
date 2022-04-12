@@ -107,7 +107,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   closeSearchDialog(event): void {
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SEARCHDIALOG);
   }
 

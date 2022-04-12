@@ -400,7 +400,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     );
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(),
       this.isMarginInstrument ? HelpIds.HELP_TRANSACTION_MARGIN_BASED : HelpIds.HELP_TRANSACTION_CASH_BASED);
   }

@@ -98,7 +98,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
     this.queryParams.unsubscribe();
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO);
   }
 

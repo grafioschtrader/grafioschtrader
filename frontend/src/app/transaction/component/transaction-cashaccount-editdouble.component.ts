@@ -195,7 +195,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     });
   }
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 

@@ -33,7 +33,7 @@ export abstract class SimpleEditBase extends FormBase {
   }
 
 
-  helpLink() {
+  helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), this.helpId);
   }
 
