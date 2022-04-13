@@ -16,8 +16,8 @@ import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-t
 @Component({
   selector: 'watchlist-add-instrument',
   template: `
-    <p-dialog header="{{'ADD_EXISTING_SECURITY' | translate}}" [(visible)]="visibleAddInstrumentDialog"
-              [responsive]="true" [style]="{width: '720px'}"
+    <p-dialog styleClass="big-dialog" header="{{'ADD_EXISTING_SECURITY' | translate}}" [(visible)]="visibleAddInstrumentDialog"
+              [responsive]="true" [style]="{width: '720px'}" [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
