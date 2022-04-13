@@ -44,9 +44,9 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   private monitor: boolean;
 
   constructor(protected multiplyAddClose: boolean,
-              protected gps: GlobalparameterService,
-              protected multipleRequestToOneService: MultipleRequestToOneService,
-              public translateService: TranslateService) {
+    protected gps: GlobalparameterService,
+    protected multipleRequestToOneService: MultipleRequestToOneService,
+    public translateService: TranslateService) {
   }
 
   abstract childClearList(): void;
@@ -60,7 +60,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
     this.config = [
       DynamicFieldHelper.createFieldInputStringVSHeqF('isin', 12, false,
         [VALIDATION_SPECIAL.ISIN], {userDefinedValue: this.firstGroup}),
-      DynamicFieldHelper.createFieldTriStateCheckboxHeqF('withHoldings',
+      DynamicFieldHelper.createFieldCheckboxHeqF('withHoldings',
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldInputStringHeqF('name', 80, false,
         {userDefinedValue: this.secondGroup}),
@@ -70,7 +70,8 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
         {userDefinedValue: <string>this.secondGroup}),
       DynamicFieldHelper.createFieldTriStateCheckbox('onlyTenantPrivate', 'PRIVATE_SECURITY',
         {userDefinedValue: this.secondGroup}),
-      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99, {userDefinedValue: this.secondGroup}),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99,
+        {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectString('assetclassType', AppSettings.ASSETCLASS.toUpperCase(), false,
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldSelectString('subCategoryNLS', 'SUB_ASSETCLASS', false,
@@ -89,7 +90,6 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       this.config.push(DynamicFieldHelper.createFunctionButton('EXIT', (e) => this.closeSearchDialog(e)));
     }
     this.config.push(DynamicFieldHelper.createSubmitButton('SEARCH'));
-
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
