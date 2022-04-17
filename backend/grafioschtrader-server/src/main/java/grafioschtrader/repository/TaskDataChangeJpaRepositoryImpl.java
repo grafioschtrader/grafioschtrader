@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafioschtrader.dto.TaskDataChangeFormConstraints;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.task.ITask;
@@ -40,6 +42,10 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
         .filter(
             t -> t.getTaskType().getValue() <= taskDataChangeConfig.maxUserCreateTask && t.getAllowedEntities() != null)
         .forEach(t -> taskDataChangeConfig.taskTypeConfig.put(t.getTaskType(), t.getAllowedEntities()));
+    taskDataChangeConfig.canBeInterruptedList= tasks.stream()
+    .filter(
+        t -> t.getTaskType().getValue() <= taskDataChangeConfig.maxUserCreateTask && t.canBeInterrupted())
+    .map(t -> t.getTaskType()).collect(Collectors.toList());
     return taskDataChangeConfig;
   }
 

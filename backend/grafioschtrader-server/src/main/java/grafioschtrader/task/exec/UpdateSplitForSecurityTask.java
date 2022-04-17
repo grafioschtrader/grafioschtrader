@@ -21,8 +21,8 @@ import grafioschtrader.types.TaskType;
 
 /**
  * Normally called when the split data connector is changed or thru split
- * calendar a possible update was detected.
- *
+ * calendar a possible update was detected. It reloads all splits for a
+ * specified security.
  */
 @Component
 public class UpdateSplitForSecurityTask implements ITask {

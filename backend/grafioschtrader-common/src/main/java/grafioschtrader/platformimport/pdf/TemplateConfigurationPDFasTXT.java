@@ -127,7 +127,6 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
         case "Nc":
           propertyWithOptions.nextConcatenatedString = getNextConcatenatedString(rowSplitSpace, propteryColumn,
               propertyWithOptionsAndBraces);
-          System.out.println(propertyWithOptions.nextConcatenatedString);
           break;
         case "PL":
           if (startRow > 0) {

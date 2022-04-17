@@ -37,4 +37,9 @@ export class TaskDataChangeService extends AuthServiceWithLogout<TaskDataChange>
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
+
+  interruptingRunningJob(idTaskDataChange: number): Observable<boolean> {
+    return this.httpClient.patch(`${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}/interruptingrunningjob`
+      + `/${idTaskDataChange}`, null, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
 }

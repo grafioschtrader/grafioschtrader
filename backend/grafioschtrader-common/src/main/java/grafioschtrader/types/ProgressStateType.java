@@ -12,7 +12,9 @@ public enum ProgressStateType {
   // Task cannot be found
   PROG_TASK_NOT_FOUND((byte) 3),
   // Task ist started but finished
-  PROG_RUNNING((byte) 4);
+  PROG_RUNNING((byte) 4),
+  // Task was interrupted
+  PROG_INTERRUPTED((byte) 5);
 
   private final Byte value;
 

@@ -26,7 +26,10 @@ export enum ProgressStateType {
   PROG_WAITING = 0,
   PROG_PROCESSED = 1,
   PROG_FAILED = 2,
-  PROG_TASK_NOT_FOUND = 3
+  PROG_TASK_NOT_FOUND = 3,
+  PROG_RUNNING = 4,
+  PROG_INTERRUPTED = 5
+
 }
 
 export enum TaskDataExecPriority {
@@ -60,6 +63,7 @@ export enum TaskType {
 
 export class TaskDataChangeFormConstraints {
   taskTypeConfig: { [key: string]: string[] };
+  canBeInterruptedList: string[];
   maxUserCreateTask: number;
   maxDaysInFuture: number;
 }
