@@ -66,6 +66,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.POST, "/api/login").permitAll()
         // Only for Admin
         .antMatchers(HttpMethod.PUT, RequestMappings.TRADINGDAYSPLUS_MAP + "/").hasRole(Role.ADMIN)
+        .antMatchers(HttpMethod.PATCH, RequestMappings.TASK_DATA_CHANGE_MAP + "/**").hasRole(Role.ADMIN)
         .antMatchers(HttpMethod.POST, RequestMappings.TASK_DATA_CHANGE_MAP + "/").hasRole(Role.ADMIN)
         .antMatchers(HttpMethod.PUT, RequestMappings.TASK_DATA_CHANGE_MAP + "/").hasRole(Role.ADMIN)
         .antMatchers(HttpMethod.DELETE, RequestMappings.TASK_DATA_CHANGE_MAP + "/*").hasRole(Role.ADMIN)

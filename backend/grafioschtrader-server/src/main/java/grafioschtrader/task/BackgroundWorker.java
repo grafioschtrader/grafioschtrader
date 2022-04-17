@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -19,11 +21,12 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
+import grafioschtrader.exceptions.TaskInterruptException;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.types.ProgressStateType;
 
 @Component
-class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<ApplicationReadyEvent> {
+public class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<ApplicationReadyEvent> {
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
@@ -31,17 +34,20 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
   @Autowired(required = false)
   private List<ITask> tasks = new ArrayList<>();
 
-  private Thread thread;
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
+  
+  private Thread backgroundThread;
   private volatile boolean someCondition;
+  private RunningTask runningTask;
 
   BackgroundWorker() {
-    this.thread = new Thread(this);
+    this.backgroundThread = new Thread(this);
   }
 
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
     someCondition = true;
-    this.thread.start();
+    backgroundThread.start();
   }
 
   @Override
@@ -61,20 +67,23 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
 
         }
         TimeUnit.SECONDS.sleep(15);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
+      } catch (InterruptedException ie) {
+        log.info("Backgroud thread was interrupted, Failed to complete operation");
       }
     }
   }
 
   private void executeJob(final ITask task, TaskDataChange taskDataChange, LocalDateTime startTime) {
     try {
+      runningTask = new RunningTask(task, taskDataChange);
       taskDataChange = startJob(taskDataChange, startTime);
       task.doWork(cloneTaskDataChange(taskDataChange));
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_PROCESSED);
       if (task.removeAllOtherJobsOfSameTask()) {
         taskDataChangeRepository.removeByIdTask(task.getTaskType().getValue());
       }
+    } catch (TaskInterruptException tie) {
+      finishedJob(taskDataChange, startTime, ProgressStateType.PROG_INTERRUPTED);
     } catch (TaskBackgroundException tbe) {
       if (tbe.getErrorMsgOfSystem() != null) {
         StringBuilder failure = new StringBuilder("");
@@ -93,6 +102,8 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
       taskDataChange.setFailedStackTrace(errors.toString().substring(0,
           Math.min(TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE, errors.toString().length())));
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_FAILED);
+    } finally {
+      runningTask = null;
     }
   }
 
@@ -118,6 +129,27 @@ class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<
   @Override
   public void destroy() {
     someCondition = false;
+    interruptingRunningJob(null);
+  }
+
+  public boolean interruptingRunningJob(Integer idTaskDataChange) {
+    if (idTaskDataChange == null || runningTask != null && runningTask.taskType.canBeInterrupted() 
+        && runningTask.taskDataChange.getIdTaskDataChange().equals(idTaskDataChange)) {
+      backgroundThread.interrupt();
+      return backgroundThread.isInterrupted();
+    }
+    return false;
+  }
+  
+  private static class RunningTask {
+    public ITask taskType;
+    public TaskDataChange taskDataChange;
+
+    public RunningTask(ITask taskType, TaskDataChange taskDataChange) {
+      this.taskType = taskType;
+      this.taskDataChange = taskDataChange;
+    }
+    
   }
 
 }

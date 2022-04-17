@@ -170,7 +170,6 @@ public class StockworldFeedConnector extends BaseFeedConnector {
     final Connection stockworldConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security)).timeout(8_000);
     final Document doc = stockworldConnection.get();
     final Elements tables = doc.select("#inhaltALLES div table");
-    System.out.println("Tables-Nr:" + tables.size());
     final Element table = tables.get(tables.size()-4);
     final Elements rows = table.select("tr");
     final Elements headerCols = rows.get(0).select("td");

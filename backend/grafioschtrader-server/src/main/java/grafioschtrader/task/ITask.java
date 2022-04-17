@@ -19,5 +19,9 @@ public interface ITask {
   default List<String> getAllowedEntities() {
     return null;
   }
+  
+  default boolean canBeInterrupted() {
+    return false;
+  }
 
 }

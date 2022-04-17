@@ -144,7 +144,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     return menuItems;
   }
 
-  protected isDeleteDisabled(entity: ImportTransactionTemplate): boolean {
+  protected override isDeleteDisabled(entity: ImportTransactionTemplate): boolean {
     return !super.hasRightsForDeleteEntity(entity);
   }
 }

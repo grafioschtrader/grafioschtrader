@@ -15,6 +15,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {AppSettings} from '../../app.settings';
 import {FilterType} from '../../datashowbase/filter.type';
 import {combineLatest} from 'rxjs';
+import {InfoLevelType} from '../../message/info.leve.type';
 
 /**
  * Shows the batch Jobs in a table.
@@ -23,7 +24,6 @@ import {combineLatest} from 'rxjs';
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-
       <p-table [columns]="fields" [value]="taskDataChangeList" selectionMode="single"
                [(selection)]="selectedEntity" dataKey="idTaskDataChange"
                sortMode="multiple" [multiSortMeta]="multiSortMeta"
@@ -32,6 +32,7 @@ import {combineLatest} from 'rxjs';
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{'TASK_DATA_MONITOR' | translate}}</h4>
+          <p>{{'NO_DATA_REFRESCH' | translate}}</p>
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
@@ -171,7 +172,6 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     return Math.min((text.match(/\n/g) || '').length + 1, 15);
   }
 
-
   prepareCallParm(entity: TaskDataChange): void {
     this.callParam = entity;
   }
@@ -196,6 +196,14 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
         command: (event) => this.copyTaskDataChange(taskDataChange),
         disabled: taskDataChange.idTask > this.tdcFormConstraints.maxUserCreateTask
       });
+
+      menuItems.push({
+        label: 'TASK_INTERRUPT|' + this.entityNameUpper,
+        command: (event) => this.interruptingRunningJob(taskDataChange.idTaskDataChange),
+        disabled: !(typeof taskDataChange.idTask === 'string' && this.tdcFormConstraints.canBeInterruptedList.includes
+          (taskDataChange.idTask) && ProgressStateType[taskDataChange.progressStateType]
+          === ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING]])
+      });
     }
   }
 
@@ -206,6 +214,21 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     });
     this.prepareCallParm(taskDataChangeNew);
     this.visibleDialog = true;
+  }
+
+  private interruptingRunningJob(idTaskDataChange: number): void {
+    this.taskDataChangeService.interruptingRunningJob(idTaskDataChange).subscribe(interrupted => {
+      if (interrupted) {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TASK_INTERRUPTED', null);
+      } else {
+        this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'TASK_NOT_INTERRUPTED', null);
+      }
+      this.readData();
+    });
+  }
+
+  protected override isDeleteDisabled(entity: TaskDataChange): boolean {
+    return ProgressStateType[entity.progressStateType] === ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING]];
   }
 
 }

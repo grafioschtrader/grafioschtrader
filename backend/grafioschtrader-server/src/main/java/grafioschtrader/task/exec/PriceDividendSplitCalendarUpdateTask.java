@@ -70,4 +70,9 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
     return TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU;
   }
 
+  @Override
+  public boolean canBeInterrupted() {
+    return true;
+  }
+  
 }
