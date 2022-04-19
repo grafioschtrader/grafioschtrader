@@ -104,11 +104,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   @Override
   public void adjustSecurityHoldingForSecurityaccountAndSecurity(Securityaccount securityaccount,
-      Transaction transaction) {
+      Transaction transaction, boolean isAdded) {
     long startTime = System.currentTimeMillis();
     Tenant tenant = tenantJpaRepository.getById(securityaccount.getIdTenant());
     loadForSecurityHoldingsBySecurityaccountAndSecurity(securityaccount, transaction, tenant.getCurrency(),
-        securityaccount.getPortfolio().getCurrency(), loadCurrencypairSecuritySplit(securityaccount.getIdTenant()));
+        securityaccount.getPortfolio().getCurrency(), loadCurrencypairSecuritySplit(securityaccount.getIdTenant()),
+        isAdded);
     log.debug("End - HoldSecurityaccountSecurity: {}", System.currentTimeMillis() - startTime);
   }
 
@@ -160,8 +161,8 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
         idSecurityaccount = hstbs.getIdSecurityaccount();
         idPortfolio = hstbs.getIdPortfolio();
       }
-      TransactionSecuritySplit transactionSecuritySplit = new TransactionSecuritySplit(security.getIdSecuritycurrency(),
-          hstbs.getTsDate(), hstbs.getFactorUnits(), hstbs.getIdTransactionMargin(),
+      TransactionSecuritySplit transactionSecuritySplit = new TransactionSecuritySplit(null,
+          security.getIdSecuritycurrency(), hstbs.getTsDate(), hstbs.getFactorUnits(), hstbs.getIdTransactionMargin(),
           hstbs.getIdPortfolio() == null ? null : security.getCurrency());
 
       boolean isNextMarginSameDate = security.isMarginInstrument() && (i + 1) < hstbsList.size()
@@ -305,7 +306,8 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   }
 
   private void loadForSecurityHoldingsBySecurityaccountAndSecurity(Securityaccount securityaccount,
-      Transaction transaction, String tenantCurrency, String portfolioCurrency, CurrencypairSecuritySplit css) {
+      Transaction transaction, String tenantCurrency, String portfolioCurrency, CurrencypairSecuritySplit css,
+      boolean isAdded) {
 
     CompletableFuture<Map<Integer, Transaction>> marginTransactionCF = null;
 
@@ -322,7 +324,8 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     try {
       createSecurityHoldingsForSecurityaccountAndSecurity(securityaccount, transaction, tenantCurrency,
-          portfolioCurrency, css, transSplitCF.get(), (marginTransactionCF == null) ? null : marginTransactionCF.get());
+          portfolioCurrency, css, transSplitCF.get(), (marginTransactionCF == null) ? null : marginTransactionCF.get(),
+          isAdded);
     } catch (InterruptedException | ExecutionException ex) {
       ex.printStackTrace();
       throw new RuntimeException(ex);
@@ -347,7 +350,8 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   private void createSecurityHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount,
       Transaction transaction, String tenantCurrency, String portfolioCurrency, CurrencypairSecuritySplit css,
-      List<ITransactionSecuritySplit> iTransactionSecuritySplitList, Map<Integer, Transaction> marginTransactionMap) {
+      List<ITransactionSecuritySplit> iTransactionSecuritySplitList, Map<Integer, Transaction> marginTransactionMap,
+      boolean isAdded) {
 
     HoldPositionTimeFrameSecurity holdPositionTimeFrameSecurity = new HoldPositionTimeFrameSecurity(
         currencypairJpaRepository, tenantCurrency, portfolioCurrency, css, marginTransactionMap);
@@ -358,17 +362,21 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
     List<ITransactionSecuritySplit> transactionSecuritySplitList = new ArrayList<>();
 
     // Add existing transactions
-    iTransactionSecuritySplitList
-        .forEach(itss -> transactionSecuritySplitList.add(new TransactionSecuritySplit(itss.getIdSecuritycurrency(),
-            itss.getTsDate(), itss.getFactorUnits(), itss.getIdTransactionMargin(), itss.getCurrency())));
+    iTransactionSecuritySplitList.forEach(itss -> transactionSecuritySplitList
+        .add(new TransactionSecuritySplit(itss.getIdTransaction(), itss.getIdSecuritycurrency(), itss.getTsDate(),
+            itss.getFactorUnits(), itss.getIdTransactionMargin(), itss.getCurrency())));
 
-    TransactionSecuritySplit tssNew = new TransactionSecuritySplit(transaction.getSecurity().getIdSecuritycurrency(),
+    TransactionSecuritySplit tssNew = new TransactionSecuritySplit(transaction.getIdTransaction(),
+        transaction.getSecurity().getIdSecuritycurrency(),
         transaction.getTransactionTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
         (transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1 : -1) * transaction.getUnits(), null,
         transaction.getSecurity().getCurrency());
 
-    // Insert new transaction
-    transactionSecuritySplitList.add(tssNew);
+    transactionSecuritySplitList.removeIf(t -> transaction.getIdTransaction().equals(t.getIdTransaction()));
+    // Insert new or modified transaction
+    if (isAdded) {
+      transactionSecuritySplitList.add(tssNew);
+    }
     Collections.sort(transactionSecuritySplitList, transactionTimeComparator);
     if (transaction.isMarginInstrument()) {
       marginTransactionMap.put(transaction.getIdTransaction(), transaction);
