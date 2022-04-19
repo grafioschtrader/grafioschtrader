@@ -111,6 +111,8 @@ public interface HoldSecurityaccountSecurityJpaRepository
       @Param("idSecurity") Integer idSecurity);
 
   public static interface ITransactionSecuritySplit {
+    public Integer getIdTransaction();
+
     public Integer getIdSecuritycurrency();
 
     public LocalDateTime getTsDate();
@@ -137,6 +139,8 @@ public interface HoldSecurityaccountSecurityJpaRepository
 
   public static class TransactionSecuritySplit implements ITransactionSecuritySplit {
 
+    private Integer idTransaction;
+
     private Integer idSecuritycurrency;
 
     private LocalDateTime tsDate;
@@ -154,13 +158,19 @@ public interface HoldSecurityaccountSecurityJpaRepository
 
     private String currency;
 
-    public TransactionSecuritySplit(Integer idSecuritycurrency, LocalDateTime tsDate, Double factorUnits,
-        Integer idTransactionMargin, String currency) {
+    public TransactionSecuritySplit(Integer idTransaction, Integer idSecuritycurrency, LocalDateTime tsDate,
+        Double factorUnits, Integer idTransactionMargin, String currency) {
+      this.idTransaction = idTransaction;
       this.idSecuritycurrency = idSecuritycurrency;
       this.tsDate = tsDate;
       this.factorUnits = factorUnits;
       this.idTransactionMargin = idTransactionMargin;
       this.currency = currency;
+    }
+
+    @Override
+    public Integer getIdTransaction() {
+      return idTransaction;
     }
 
     @Override

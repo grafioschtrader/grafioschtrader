@@ -316,7 +316,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     Transaction transactioinNew = saveTransactionAndCorrectCashaccountBalance(transaction, existingEntity,
         adjustHoldings, false);
     if (adjustHoldings) {
-      adjustSecurityaccountHoldings(transactioinNew, securityaccount);
+      adjustSecurityaccountHoldings(transactioinNew, securityaccount, true);
     }
     return transactioinNew;
   }
@@ -348,7 +348,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return transactionsMargin;
   }
 
-  private void adjustSecurityaccountHoldings(Transaction transaction, Securityaccount securityaccount) {
+  private void adjustSecurityaccountHoldings(Transaction transaction, Securityaccount securityaccount, boolean isAdded) {
     if (transaction.getTransactionType() == TransactionType.ACCUMULATE
         || transaction.getTransactionType() == TransactionType.REDUCE) {
       holdSecurityaccountSecurityRepository.adjustSecurityHoldingForSecurityaccountAndSecurity(
@@ -356,7 +356,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
               ? securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(transaction.getIdSecurityaccount(),
                   transaction.getIdTenant())
               : securityaccount,
-          transaction);
+          transaction, isAdded);
     }
   }
 
@@ -407,7 +407,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
     checkUnitsIntegrity(OperationType.DELETE, transactions, transaction, transaction.getSecurity());
     removeTransaction(transaction);
-    adjustSecurityaccountHoldings(transaction, null);
+    adjustSecurityaccountHoldings(transaction, null, false);
   }
 
   private void checkUnitsIntegrity(final OperationType operationyType, final List<Transaction> transactions,
@@ -428,6 +428,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   private void removeTransaction(final Transaction transaction) {
     importTransactionPosJpaRepository.setTrasactionIdToNullWhenExists(transaction.getIdTransaction());
     transactionJpaRepository.delete(transaction);
+    transactionJpaRepository.flush();
     holdCashaccountBalanceJpaRepository.adjustCashaccountBalanceByIdCashaccountAndFromDate(transaction);
   }
 

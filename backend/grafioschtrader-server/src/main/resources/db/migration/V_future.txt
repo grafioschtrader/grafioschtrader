@@ -2,3 +2,5 @@
 
 # Perhaps the user should be redirected to an appropriate page after login. Save this user-selectable setting in the user table.
 # ? 
+# Delete some zombies in task_data_change?
+DELETE FROM task_data_change WHERE progress_state = 4;
