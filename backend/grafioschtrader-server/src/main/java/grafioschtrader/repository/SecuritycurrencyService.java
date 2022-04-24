@@ -209,7 +209,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
       createEditSecuritycurrency.clearUnusedFields();
     } else {
       createEditSecuritycurrency = securitycurrency;
-//      createEditSecuritycurrency.setCreateUserId(user.getIdUser());
     }
 
     S beforSaveSecuritycurrency = SerializationUtils.clone(createEditSecuritycurrency);

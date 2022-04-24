@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.types.AssetclassType;
@@ -148,7 +149,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
 
   @Schema(description = "Contains Id of tenant if it is a private security which belongs to this tenant")
   @Column(name = "id_tenant_private")
-  @PropertyAlwaysUpdatable
+  @PropertyOnlyCreation
   private Integer idTenantPrivate;
 
   @Schema(description = "Used for derived security, which depends on other security")
@@ -534,13 +535,17 @@ public class Security extends Securitycurrency<Security> implements Serializable
     if (this.stockexchange.isNoMarketValue() || leverageFactor == 0f) {
       this.leverageFactor = 1;
     }
-    
   }
   
   @Override
   public void clearUnusedFields() {
-    if (this.isMarginInstrument()) {
-      this.isin= null;
+    super.clearUnusedFields();
+    if (isMarginInstrument()) {
+      isin= null;
+    }
+    if (idTenantPrivate != null) {
+      isin = null;
+      tickerSymbol = null;
     }
   }
 

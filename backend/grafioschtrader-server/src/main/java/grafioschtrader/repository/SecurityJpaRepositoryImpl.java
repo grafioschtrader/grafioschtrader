@@ -411,9 +411,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     if (security.getIdTenantPrivate() != null && !user.getIdTenant().equals(security.getIdTenantPrivate())) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
-
     security.clearProperties();
-
     ThruCalculationHelper.checkFormulaAgainstInstrumetLinks(security, user.getLocaleStr());
     if (existingSecurity != null && existingSecurity.isDerivedInstrument()) {
       setSecurityDerivedLinks(security, existingSecurity);

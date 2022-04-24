@@ -297,13 +297,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         this.prepareFeedConnectors(data[3], false);
         this.prepareSplitDividendConnector(data[3]);
         this.prepareExistingSecuritycurrency(this.configObject.name);
-        if (this.securityCurrencypairCallParam) {
-          this.configObject.isTenantPrivate.formControl.setValue(
-            (<Security>this.securityCurrencypairCallParam).idTenantPrivate !== null);
-          this.disableEnableInputForExisting(true);
-        } else {
-          this.disableEnableInputForExisting(false);
-        }
+        const isPrivatePaper = this.securityCurrencypairCallParam
+          && (<Security>this.securityCurrencypairCallParam).idTenantPrivate !== null;
+        this.configObject.isTenantPrivate.formControl.setValue(isPrivatePaper);
 
         if (data.length === 5) {
           if (this.securityEditSupport.hasMarketValue) {
@@ -313,8 +309,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           }
         }
         this.dataLoaded = true;
+        this.disableEnableInputForExisting();
         this.securityEditSupport.disableEnableFieldsOnAssetclass(SecurityDerived.Security,
           this.configObject, this.configObject.assetClass.formControl.value);
+        this.securityEditSupport.setPrivatePaper(SecurityDerived.Security, isPrivatePaper, this.configObject);
       });
   }
 
@@ -345,8 +343,11 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           stockexchange.idStockexchange === +idStockexchange).noMarketValue;
   }
 
-  private disableEnableInputForExisting(disable: boolean): void {
-    FormHelper.disableEnableFieldConfigsWhenAlreadySet(disable, [this.configObject.isin, this.configObject.currency]);
+  private disableEnableInputForExisting(): void {
+    if (this.securityCurrencypairCallParam !== null) {
+      FormHelper.disableEnableFieldConfigsWhenAlreadySet(true,
+        [this.configObject.isTenantPrivate, this.configObject.isin, this.configObject.currency]);
+    }
   }
 
   private splitDividendCreateValueKeyHtmlSelectOptions(fieldConfig: FieldConfig, filterType: FeedSupport): void {
