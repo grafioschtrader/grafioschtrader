@@ -94,7 +94,8 @@ export class SecurityEditSupport {
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('distributionFrequency', true,
       {fieldsetName: 'BASE_DATA'}));
 
-    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99, {fieldsetName: 'BASE_DATA', defaultValue: 1}),
+    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false,
+        -9.99, 9.99, {fieldsetName: 'BASE_DATA', defaultValue: 1}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
         {fieldsetName: 'BASE_DATA'}));
     if (securityDerived === SecurityDerived.Security) {
@@ -183,7 +184,7 @@ export class SecurityEditSupport {
   registerValueOnChanged(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
     this.valueChangedOnAssetClass(securityDerived, configObject);
     this.valueChangedOnaActiveFromDate(configObject);
-    this.valueChangedOnPrivateSecurity(securityDerived, configObject);
+    !configObject.isTenantPrivate.formControl.disabled && this.valueChangedOnPrivateSecurity(securityDerived, configObject);
   }
 
   valueChangedOnAssetClass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
@@ -193,7 +194,7 @@ export class SecurityEditSupport {
     });
   }
 
-   disableEnableFieldsOnAssetclass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig },
+  disableEnableFieldsOnAssetclass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig },
     idAssetclass: number): Assetclass {
     let assetClass: Assetclass;
     if (idAssetclass) {
@@ -203,7 +204,6 @@ export class SecurityEditSupport {
     }
     return assetClass;
   }
-
 
   public enableDisableDenominationStockexchangeAssetclass(configObject: { [name: string]: FieldConfig }): void {
     const assetClass = Helper.getReferencedDataObject(configObject.assetClass, null);
@@ -226,12 +226,15 @@ export class SecurityEditSupport {
    * Private security has no ISIN, ticker symbol and can not be short
    */
   valueChangedOnPrivateSecurity(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
-    this.securitySubscribe = configObject.isTenantPrivate.formControl.valueChanges.subscribe(isPrivate => {
-        if (isPrivate != null) {
-          FormHelper.hideVisibleFieldConfigs(isPrivate, this.getIsinTickerShortFields(securityDerived, configObject));
-        }
-      }
-    );
+    this.securitySubscribe = configObject.isTenantPrivate.formControl.valueChanges.subscribe(isPrivate => this
+      .setPrivatePaper(securityDerived, isPrivate, configObject));
+  }
+
+  setPrivatePaper(securityDerived: SecurityDerived, isPrivate: boolean, configObject: { [name: string]: FieldConfig }): void {
+    if (isPrivate != null) {
+      FormHelper.hideVisibleFieldConfigs(this.isHideIsinAndTicker(configObject),
+        this.getIsinTickerLeverageFields(securityDerived, configObject));
+    }
   }
 
   prepareForSave(formBase: FormBase, proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity, existingSecurity: Security,
@@ -254,9 +257,9 @@ export class SecurityEditSupport {
     this.securitySubscribe && this.securitySubscribe.unsubscribe();
   }
 
-  private getIsinTickerShortFields(securityDerived: SecurityDerived,
+  private getIsinTickerLeverageFields(securityDerived: SecurityDerived,
     configObject: { [name: string]: FieldConfig }): FieldConfig[] {
-    const fieldConfigs: FieldConfig[] = [configObject.leverageFactor];
+    const fieldConfigs: FieldConfig[] = [];
     if (securityDerived === SecurityDerived.Security) {
       fieldConfigs.push(configObject.tickerSymbol);
       fieldConfigs.push(configObject.isin);
@@ -279,14 +282,17 @@ export class SecurityEditSupport {
 
   private hideShowSomeFields(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig },
     assetClass: Assetclass): void {
-    FormHelper.hideVisibleFieldConfigs(assetClass.specialInvestmentInstrument
-      === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD], this.getIsinTickerShortFields(securityDerived, configObject));
-    console.log('in', assetClass.specialInvestmentInstrument
-      !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF] && assetClass.specialInvestmentInstrument
-      !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT]);
+    FormHelper.hideVisibleFieldConfigs(this.isHideIsinAndTicker(configObject),
+      this.getIsinTickerLeverageFields(securityDerived, configObject));
     FormHelper.hideVisibleFieldConfigs(assetClass.specialInvestmentInstrument
       !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF] && assetClass.specialInvestmentInstrument
       !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT], [configObject.leverageFactor]);
+  }
+
+  private isHideIsinAndTicker(configObject: { [name: string]: FieldConfig }): boolean {
+    const assetClass: Assetclass = Helper.getReferencedDataObject(configObject.assetClass, null);
+    return assetClass && assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD]
+      || configObject.isTenantPrivate.formControl.value;
   }
 }
 
