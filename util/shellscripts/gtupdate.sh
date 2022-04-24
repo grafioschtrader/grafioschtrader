@@ -8,6 +8,7 @@ sudo systemctl stop grafioschtrader.service
 cd $builddir
 cp grafioschtrader/backend/grafioschtrader-server/src/main/resources/application.properties .
 cd grafioschtrader
+rm -fr frontend
 git reset --hard origin/master
 git pull --rebase
 cd $builddir
