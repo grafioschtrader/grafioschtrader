@@ -3,12 +3,12 @@
 cd $builddir/grafioschtrader/frontend
 npm install
 memorytotal="$(free -m | awk '/^Mem|Speicher/ { print $2}')"
-if (($memorytotal>=3700 && memorytotal<=4048))
+if (($memorytotal>=5700 && memorytotal<=6048))
   then
     sudo systemctl stop grafioschtrader.service
     export NODE_OPTIONS="--max_old_space_size=4071"
   fi
-if [ $memorytotal -lt 3700 ]
+if [ $memorytotal -lt 5700 ]
    then
     cd $builddir/grafioschtrader/frontend
     rm -f latest.tar.gz
