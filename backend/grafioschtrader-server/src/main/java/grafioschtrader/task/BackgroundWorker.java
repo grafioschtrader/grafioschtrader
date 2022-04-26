@@ -37,22 +37,22 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
   private final Logger log = LoggerFactory.getLogger(this.getClass());
   
   private Thread backgroundThread;
-  private volatile boolean someCondition;
+  private volatile boolean runningLoop;
   private RunningTask runningTask;
 
   BackgroundWorker() {
-    this.backgroundThread = new Thread(this);
+    backgroundThread = new Thread(this);
   }
 
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
-    someCondition = true;
+    runningLoop = true;
     backgroundThread.start();
   }
 
   @Override
   public void run() {
-    while (someCondition) {
+    while (runningLoop) {
       try {
         Optional<TaskDataChange> taskDataChangeOpt = taskDataChangeRepository
             .findTopByProgressStateTypeAndEarliestStartTimeLessThanEqualOrderByExecutionPriorityAscCreationTimeAsc(
@@ -128,7 +128,7 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
 
   @Override
   public void destroy() {
-    someCondition = false;
+    runningLoop = false;
     interruptingRunningJob(null);
   }
 

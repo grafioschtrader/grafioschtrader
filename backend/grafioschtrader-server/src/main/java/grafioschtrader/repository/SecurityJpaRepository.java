@@ -88,6 +88,10 @@ public interface SecurityJpaRepository extends JpaRepository<Security, Integer>,
       + "GROUP BY h.idSecuritycurrency HAVING s.activeToDate >= MAX(h.date) ORDER BY s.idSecuritycurrency", nativeQuery = false)
   List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithConnector(short maxHistoryRetry);
 
+  @Query(nativeQuery = false)
+  List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithConnectorForExchange(short maxHistoryRetry,
+      List<Integer> idsStockexchange);
+
   @Query(value = "SELECT s as securityCurrency, MAX(h.date) AS date FROM Security s JOIN s.historyquoteList h "
       + "WHERE s.retryHistoryLoad < ?1 AND s.idLinkSecuritycurrency IS NOT NULL "
       + "GROUP BY h.idSecuritycurrency HAVING s.activeToDate >= MAX(h.date) ORDER BY s.idSecuritycurrency", nativeQuery = false)

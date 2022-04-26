@@ -14,7 +14,7 @@ public interface IHistoryqouteEntityBaseAccess<S extends Securitycurrency<S>> {
    * @return
    */
   List<SecurityCurrencyMaxHistoryquoteData<S>> getMaxHistoryquoteResult(short maxHistoryRetry,
-      BaseHistoryquoteThru<S> baseHisotryquote);
+      BaseHistoryquoteThru<S> baseHisotryquote, List<Integer> idsStockexchange);
 
   /**
    * Load security or currency pair with its history quotes and call method for

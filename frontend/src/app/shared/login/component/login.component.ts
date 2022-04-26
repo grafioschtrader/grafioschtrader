@@ -36,12 +36,12 @@ import {GlobalSessionNames} from '../../global.session.names';
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.26.0</h4>
+          {{'V_0_26_0' | translate}}
           <h4>0.25.0</h4>
           {{'V_0_25_0' | translate}}
           <h4>0.24.0</h4>
           {{'V_0_24_0' | translate}}
-          <h4>0.23.0</h4>
-          {{'V_0_23_0' | translate}}
         </p-card>
       </div>
     </div>

@@ -143,6 +143,13 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   }
 
   @Override
+  public int getUpdatePriceByStockexchange() {
+    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE)
+        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_UPDATE_PRICE_BY_EXCHANGE);
+  }
+  
+  
+  @Override
   public List<ValueKeyHtmlSelectOptions> getAllZoneIds() {
     final List<ValueKeyHtmlSelectOptions> dropdownValues = new ArrayList<>();
     final LocalDateTime dt = LocalDateTime.now();
@@ -201,5 +208,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
   }
+
+ 
 
 }

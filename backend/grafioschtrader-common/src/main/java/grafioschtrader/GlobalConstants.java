@@ -59,9 +59,22 @@ public class GlobalConstants {
   public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
   public static final String STANDARD_LOCAL_DATE_TIME = "yyyy-MM-dd HH:mm";
   public static final String STANDARD_LOCAL_DATE_TIME_SECOND = "yyyy-MM-dd HH:mm:ss";
+  public static final String STARNDARD_LOCAL_TIME = "HH:mm";
   public static final String OLDEST_TRADING_DAY = "2000-01-01";
   public static final int OLDEST_TRADING_YEAR = 2000;
   public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2025-12-31";
+
+  /**
+   * The amount of time in minutes after the close of the relevant stock exchange
+   * that is waited before an update of historical prices is made.
+   */
+  public static final int WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES = 90;
+
+  /**
+   * Time that had to elapse before the next obtainment of historical prices from
+   * the external data source.
+   */
+  public static final int TiME_MUST_HAVE_PASSED_SINCE_LAST_UPDATE_IN_MINUTES = 20 * 60;
 
   public static final int MAX_LOGIN_ATTEMPT = 5;
   /**

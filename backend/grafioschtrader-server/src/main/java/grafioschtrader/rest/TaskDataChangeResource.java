@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.dto.TaskDataChangeFormConstraints;
 import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.entities.Watchlist;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.task.BackgroundWorker;
 import grafioschtrader.types.ProgressStateType;

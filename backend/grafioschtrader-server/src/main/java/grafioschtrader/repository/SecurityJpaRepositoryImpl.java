@@ -129,9 +129,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   ////////////////////////////////////////////////////////////////
 
   @Override
-  public List<Security> catchAllUpSecurityHistoryquote() {
-    List<Security> securities = historyquoteThruConnector.catchAllUpSecuritycurrencyHistoryquote();
-    securities.addAll(historyquoteThruCalculation.catchAllUpSecuritycurrencyHistoryquote());
+  public List<Security> catchAllUpSecurityHistoryquote(List<Integer> idsStockexchange) {
+    List<Security> securities = historyquoteThruConnector.catchAllUpSecuritycurrencyHistoryquote(idsStockexchange);
+    securities.addAll(historyquoteThruCalculation.catchAllUpSecuritycurrencyHistoryquote(null));
     return securities;
   }
 
@@ -307,11 +307,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   public List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteResult(final short maxHistoryRetry,
-      BaseHistoryquoteThru<Security> baseHistoryquoteThru) {
+      BaseHistoryquoteThru<Security> baseHistoryquoteThru, List<Integer> idsStockexchange) {
     if (baseHistoryquoteThru instanceof HistoryquoteThruCalculation) {
       return securityJpaRepository.getMaxHistoryquoteWithCalculation(maxHistoryRetry);
     } else {
-      return securityJpaRepository.getMaxHistoryquoteWithConnector(maxHistoryRetry);
+      return idsStockexchange != null && idsStockexchange.size() > 0
+          ? securityJpaRepository.getMaxHistoryquoteWithConnectorForExchange(maxHistoryRetry, idsStockexchange)
+          : securityJpaRepository.getMaxHistoryquoteWithConnector(maxHistoryRetry);
     }
   }
 
@@ -516,8 +518,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  public InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom, LocalDate dateTo)
-      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  public InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom,
+      LocalDate dateTo) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var securityStatisticsSummary = new InstrumentStatisticsSummary(securityJpaRepository, tenantJpaRepository,
         currencypairJpaRepository);
     securityStatisticsSummary.prepareSecurityCurrencypairs(idSecuritycurrency);

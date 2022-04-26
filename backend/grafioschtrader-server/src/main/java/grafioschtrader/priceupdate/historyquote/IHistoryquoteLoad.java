@@ -30,7 +30,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    *
    * @return
    */
-  List<S> catchAllUpSecuritycurrencyHistoryquote();
+  List<S> catchAllUpSecuritycurrencyHistoryquote(List<Integer> idsStockexchange);
 
   /**
    * It gets history quotes of a security or currency pair for certain time period

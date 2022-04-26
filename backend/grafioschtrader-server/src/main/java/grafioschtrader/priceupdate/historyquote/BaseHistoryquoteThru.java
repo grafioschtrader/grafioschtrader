@@ -41,9 +41,9 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
   }
 
   @Override
-  public List<S> catchAllUpSecuritycurrencyHistoryquote() {
+  public List<S> catchAllUpSecuritycurrencyHistoryquote(List<Integer> idsStockexchange) {
     final List<S> catchUp = fillEmptyHistoryquote();
-    catchUp.addAll(particialFillHistoryquote());
+    catchUp.addAll(particialFillHistoryquote(idsStockexchange));
     return catchUp;
   }
 
@@ -64,20 +64,26 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
    *
    * @return
    */
-  private List<S> particialFillHistoryquote() {
+  private List<S> particialFillHistoryquote(List<Integer> idsStockexchange) {
 
-    final Calendar currentCalendar = DateHelper.getCalendar(new Date());
-
-    if (currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-        || currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
-      currentCalendar.add(Calendar.DATE, currentCalendar.get(Calendar.DAY_OF_WEEK) * -1);
-    }
+    final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(idsStockexchange == null || idsStockexchange.size() == 0);
     final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList = historyqouteEntityBaseAccess
-        .getMaxHistoryquoteResult(globalparametersJpaRepository.getMaxHistoryRetry(), this);
+        .getMaxHistoryquoteResult(globalparametersJpaRepository.getMaxHistoryRetry(), this, idsStockexchange);
 
     return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar);
   }
 
+  private Calendar corretToCalendarForDayAfterUpdate(boolean adjustForDayAfterUpd) {
+    final Calendar currentCalendar = DateHelper.getCalendar(new Date());
+
+    if (adjustForDayAfterUpd && (currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
+        || currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)) {
+      currentCalendar.add(Calendar.DATE, currentCalendar.get(Calendar.DAY_OF_WEEK) * -1);
+    }
+    return currentCalendar;
+  }
+  
+  
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar) {
