@@ -104,7 +104,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Transactional
   @Modifying
   public List<Currencypair> catchAllUpCurrencypairHistoryquote() {
-    return historyquoteThruConnector.catchAllUpSecuritycurrencyHistoryquote();
+    return historyquoteThruConnector.catchAllUpSecuritycurrencyHistoryquote(null);
   }
 
   @Override
@@ -210,7 +210,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Override
   public List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> getMaxHistoryquoteResult(final short maxHistoryRetry,
-      BaseHistoryquoteThru<Currencypair> baseHistoryquoteThru) {
+      BaseHistoryquoteThru<Currencypair> baseHistoryquoteThru, List<Integer> idsStockexchange) {
     return this.currencypairJpaRepository.getMaxHistoryquote(maxHistoryRetry);
   }
 

@@ -109,7 +109,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
   getProperty(entity: Globalparameters, field: ColumnConfig): string {
     if (entity.propertyDate) {
       return AppHelper.getDateByFormat(this.gps, entity.propertyDate);
-    } else if (entity.propertyInt) {
+    } else if (entity.propertyInt != null) {
       return AppHelper.numberIntegerFormat(this.gps, entity.propertyInt);
     } else {
       return entity.propertyString;

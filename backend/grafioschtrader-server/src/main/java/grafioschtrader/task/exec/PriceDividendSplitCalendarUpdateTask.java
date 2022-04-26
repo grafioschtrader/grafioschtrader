@@ -9,6 +9,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.calendar.SplitCalendarAppender;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquotePeriodJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
@@ -45,6 +46,9 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
 
   @Autowired
   private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
+    
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Scheduled(cron = "${gt.eod.cron.quotation}", zone = GlobalConstants.TIME_ZONE)
   public void catchAllUpSecuritycurrencyHistoryquote() {
@@ -57,7 +61,10 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   public void doWork(TaskDataChange taskDataChange) {
     currencypairJpaRepository.catchAllUpCurrencypairHistoryquote();
     currencypairJpaRepository.allCurrenciesFillEmptyDaysInHistoryquote();
-    securityJpaRepository.catchAllUpSecurityHistoryquote();
+    
+    if(globalparametersJpaRepository.getUpdatePriceByStockexchange() == 0) {
+       securityJpaRepository.catchAllUpSecurityHistoryquote(null);
+    }
     historyquotePeriodJpaRepository.updatLastPrice();
     securityJpaRepository.deleteUpdateHistoryQuality();
     splitCalendarAppender.appendSecuritySplitsUntilToday();

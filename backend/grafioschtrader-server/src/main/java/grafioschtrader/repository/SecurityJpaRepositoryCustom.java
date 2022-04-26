@@ -26,7 +26,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    *
    * @return
    */
-  List<Security> catchAllUpSecurityHistoryquote();
+  List<Security> catchAllUpSecurityHistoryquote(List<Integer> idsStockexchange);
 
   List<Security> updateLastPriceByList(List<Security> securyties);
 

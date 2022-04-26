@@ -80,6 +80,9 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_MAX_CORRELATION_SET = GT_PREFIX + MAX + "correlation.set";
   public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GT_PREFIX + MAX + "correlation.instruments";
 
+  
+  public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GT_PREFIX + "update.price.by.exchange";
+  
   // User day entity limits
   public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
 
@@ -146,6 +149,8 @@ public class Globalparameters implements Serializable {
   public static final Date DEFAULT_START_FEED_DATE = new GregorianCalendar(2000, Calendar.JANUARY, 1).getTime();
 
   public static final int DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY = 5;
+  
+  public static final int DEFAULT_UPDATE_PRICE_BY_EXCHANGE = 0;
 
   private static final long serialVersionUID = 1L;
 

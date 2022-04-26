@@ -27,6 +27,8 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
 
   List<Stockexchange> findAllByOrderByNameAsc();
 
+  List<Stockexchange> findByNoMarketValueFalse();
+  
   Optional<Stockexchange> findByIdStockexchangeAndNoMarketValueFalse(int idStockexchange);
 
   Stockexchange findByName(String name);

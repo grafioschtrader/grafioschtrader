@@ -63,7 +63,7 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
       this.selectedPropertyField = 'propertyDate';
       return DynamicFieldHelper.createFieldPcalendar(DataType.DateString, this.selectedPropertyField,
         globalparameters.propertyName, true);
-    } else if (globalparameters.propertyInt) {
+    } else if (globalparameters.propertyInt !== null) {
       this.selectedPropertyField = 'propertyInt';
       return DynamicFieldHelper.createFieldMinMaxNumber(DataType.Numeric,
         this.selectedPropertyField, globalparameters.propertyName, true, 0, 9999);

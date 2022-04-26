@@ -7,7 +7,13 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import javax.persistence.Basic;
 import javax.persistence.Cacheable;
@@ -25,7 +31,9 @@ import javax.validation.constraints.Size;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
@@ -106,6 +114,10 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   @Column(name = "id_index_upd_calendar")
   private Integer idIndexUpdCalendar;
+
+  @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME)
+  @Column(name = "last_direct_price_update")
+  private LocalDateTime lastDirectPriceUpdate;
 
   @Transient
   private String nameIndexUpdCalendar;
@@ -211,16 +223,57 @@ public class Stockexchange extends Auditable implements Serializable {
     this.nameIndexUpdCalendar = nameIndexUpdCalendar;
   }
 
+  public LocalDateTime getLastDirectPriceUpdate() {
+    return lastDirectPriceUpdate;
+  }
+
+  public void setLastDirectPriceUpdate(LocalDateTime lastDirectPriceUpdate) {
+    this.lastDirectPriceUpdate = lastDirectPriceUpdate;
+  }
+
   @Override
   public Integer getId() {
     return this.idStockexchange;
   }
+  
+  @JsonFormat(pattern = GlobalConstants.STARNDARD_LOCAL_TIME)
+  public LocalTime getLocalTime() {
+    return LocalTime.now( ZoneId.of(timeZone));
+  }
+
+  @JsonIgnore
+  public boolean isNowOpenExchange() {
+    ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of(timeZone));
+    if (zonedDateTime.getDayOfWeek() != DayOfWeek.SATURDAY && zonedDateTime.getDayOfWeek() != DayOfWeek.SUNDAY) {
+      LocalTime lcMpw = zonedDateTime.toLocalTime();
+      boolean isBetweenOpenAndCloseStrictlySpeaking = !lcMpw.isBefore(timeOpen) && lcMpw.isBefore(timeClose);
+      if (timeOpen.isAfter(timeClose)) {
+        return !isBetweenOpenAndCloseStrictlySpeaking;
+      } else {
+        return isBetweenOpenAndCloseStrictlySpeaking;
+      }
+    }
+    return false;
+  }
+
+  @JsonIgnore
+  public int getClosedMinuntes() {
+
+    LocalDateTime nowTimeZone = LocalDateTime.now(ZoneId.of(timeZone));
+    int closedMinutes = (int) Duration.between(timeClose, LocalTime.now()).toMinutes()
+        + ZoneId.of(timeZone).getRules().getOffset(Instant.now()).getTotalSeconds() / 60;
+    // TODO Saturday and Sunday
+    return !isNowOpenExchange() && closedMinutes > 0 ? closedMinutes
+        : isNowOpenExchange() ? closedMinutes : 24 * 60 + closedMinutes;
+  }
 
   @Override
   public String toString() {
-    return "Stockexchange [idStockexchange=" + idStockexchange + ", name=" + name + ", noMarketValue=" + noMarketValue
-        + ", secondaryMarket=" + secondaryMarket + ", timeClose=" + timeClose + ", symbol=" + symbol + ", timeZone="
-        + timeZone + "]";
+    return "Stockexchange [idStockexchange=" + idStockexchange + ", name=" + name + ", countryCode=" + countryCode
+        + ", noMarketValue=" + noMarketValue + ", secondaryMarket=" + secondaryMarket + ", timeOpen=" + timeOpen
+        + ", timeClose=" + timeClose + ", symbol=" + symbol + ", timeZone=" + timeZone + ", idIndexUpdCalendar="
+        + idIndexUpdCalendar + ", lastDirectPriceUpdate=" + lastDirectPriceUpdate + ", nameIndexUpdCalendar="
+        + nameIndexUpdCalendar + "]";
   }
 
 }

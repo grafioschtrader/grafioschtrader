@@ -64,5 +64,7 @@ public interface GlobalparametersJpaRepositoryCustom {
   Globalparameters saveOnlyAttributes(Globalparameters globalparameters);
 
   List<ValueKeyHtmlSelectOptions> getCurrencies();
+  
+  int getUpdatePriceByStockexchange();
 
 }

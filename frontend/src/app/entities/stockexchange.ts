@@ -14,7 +14,7 @@ export class Stockexchange extends Auditable implements BaseID {
   noMarketValue: boolean = null;
   idIndexUpdCalendar: number = null;
   nameIndexUpdCalendar: string = null;
-
+  lastDirectPriceUpdate: number;
   @Exclude()
   public getId(): number {
     return this.idStockexchange;
