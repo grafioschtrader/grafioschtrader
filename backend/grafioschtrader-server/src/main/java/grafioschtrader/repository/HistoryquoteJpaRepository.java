@@ -40,6 +40,8 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency, Date date,
       Pageable pageable);
 
+  
+  
   void removeByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
   /**
    * For user interface, do not show history quotes which fills day holes.
@@ -62,6 +64,9 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   @Query(value = "DELETE FROM historyquote WHERE id_securitycurrency = ?1", nativeQuery = true)
   void removeAllSecurityHistoryquote(Integer idSecuritycurrency);
 
+  @Query(value = "SELECT MAX(date) FROM Historyquote h WHERE h.idSecuritycurrency = ?1")
+  Date getMaxDateByIdSecurity(Integer idSecuritycurrency);
+  
   @Query(nativeQuery = false)
   List<HistoryquoteDateClose> findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(
       Integer idSecuritycurrency);

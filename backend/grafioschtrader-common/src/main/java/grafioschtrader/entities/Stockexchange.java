@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import javax.persistence.Basic;
@@ -235,10 +236,10 @@ public class Stockexchange extends Auditable implements Serializable {
   public Integer getId() {
     return this.idStockexchange;
   }
-  
+
   @JsonFormat(pattern = GlobalConstants.STARNDARD_LOCAL_TIME)
   public LocalTime getLocalTime() {
-    return LocalTime.now( ZoneId.of(timeZone));
+    return LocalTime.now(ZoneId.of(timeZone));
   }
 
   @JsonIgnore
@@ -256,15 +257,42 @@ public class Stockexchange extends Auditable implements Serializable {
     return false;
   }
 
+  /**
+   * Return of minutes since the exchange is closed. If stock exchange is open,
+   * then negative number of minutes until the next closing.
+   * 
+   * @return
+   */
   @JsonIgnore
   public int getClosedMinuntes() {
-
     LocalDateTime nowTimeZone = LocalDateTime.now(ZoneId.of(timeZone));
     int closedMinutes = (int) Duration.between(timeClose, LocalTime.now()).toMinutes()
         + ZoneId.of(timeZone).getRules().getOffset(Instant.now()).getTotalSeconds() / 60;
-    // TODO Saturday and Sunday
-    return !isNowOpenExchange() && closedMinutes > 0 ? closedMinutes
-        : isNowOpenExchange() ? closedMinutes : 24 * 60 + closedMinutes;
+    closedMinutes = isNowOpenExchange() || closedMinutes > 0 ? closedMinutes : 24 * 60 + closedMinutes;
+    closedMinutes += nowTimeZone.getDayOfWeek() == DayOfWeek.SUNDAY ? 24 * 60 : 0;
+    closedMinutes += nowTimeZone.getDayOfWeek() == DayOfWeek.MONDAY && nowTimeZone.toLocalTime().isBefore(timeOpen)
+        ? 24 * 60
+        : 0;
+    System.out.println("Name:" + name + ", Day:" + nowTimeZone.getDayOfWeek() + ", closed:" + closedMinutes);
+    return closedMinutes;
+  }
+
+  @JsonIgnore
+  public boolean mayHavePriceUpdateSinceLastClose() {
+    LocalDateTime nowTimeZone = LocalDateTime.now(ZoneId.of(timeZone));
+    ZoneId zoneLocal = ZoneId.of(timeZone);
+    LocalDateTime ldpuDateTimeLocal = lastDirectPriceUpdate.atZone(ZoneOffset.UTC).withZoneSameInstant(zoneLocal)
+        .toLocalDateTime();
+    long minusDays = nowTimeZone.getDayOfWeek() == DayOfWeek.SUNDAY ? 2
+        : nowTimeZone.getDayOfWeek() == DayOfWeek.MONDAY ? 3 : 1;
+    LocalDateTime lastEspectedUpdateDateTime = nowTimeZone.minusDays(minusDays);
+    boolean hasPriceUpdate = lastEspectedUpdateDateTime.toLocalDate().isAfter(ldpuDateTimeLocal.toLocalDate())
+        || lastEspectedUpdateDateTime.toLocalDate().isEqual(ldpuDateTimeLocal.toLocalDate())
+            && lastEspectedUpdateDateTime.toLocalTime().isBefore(timeClose)
+        || nowTimeZone.getDayOfWeek() == DayOfWeek.MONDAY && nowTimeZone.toLocalTime().isAfter(timeClose)
+            && lastDirectPriceUpdate.getDayOfWeek() != DayOfWeek.MONDAY;
+    System.out.println("May Have Price Update: " + hasPriceUpdate);
+    return hasPriceUpdate;
   }
 
   @Override
