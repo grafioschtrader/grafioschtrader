@@ -68,7 +68,7 @@ public class GlobalConstants {
    * The amount of time in minutes after the close of the relevant stock exchange
    * that is waited before an update of historical prices is made.
    */
-  public static final int WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES = 90;
+  public static final int WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES = 180;
 
   /**
    * Time that had to elapse before the next obtainment of historical prices from

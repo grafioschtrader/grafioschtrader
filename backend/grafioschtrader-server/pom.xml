@@ -236,7 +236,10 @@
 			<version>0.14</version>
 		</dependency>
 
-		
+		<dependency>
+    		<groupId>org.flywaydb</groupId>
+    		<artifactId>flyway-mysql</artifactId>
+		</dependency>
 
  		<dependency>
         	<groupId>com.github.albfernandez</groupId>

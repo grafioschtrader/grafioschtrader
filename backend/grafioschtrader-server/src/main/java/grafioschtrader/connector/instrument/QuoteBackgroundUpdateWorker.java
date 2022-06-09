@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +24,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
+import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 
@@ -38,6 +40,9 @@ public class QuoteBackgroundUpdateWorker
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -64,8 +69,7 @@ public class QuoteBackgroundUpdateWorker
         List<Stockexchange> stockexchanges = stockexchangeJpaRepository.findByNoMarketValueFalse();
         List<Stockexchange> stockexchangesUpd = stockexchanges.stream()
             .filter(se -> se.getClosedMinuntes() >= GlobalConstants.WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES
-                && Duration.between(se.getLastDirectPriceUpdate(), LocalDateTime.now()).getSeconds()
-                    / 60 >= GlobalConstants.TiME_MUST_HAVE_PASSED_SINCE_LAST_UPDATE_IN_MINUTES)
+                && se.mayHavePriceUpdateSinceLastClose())
             .toList();
         updatePriceForStockexchange(stockexchangesUpd);
 
@@ -80,11 +84,16 @@ public class QuoteBackgroundUpdateWorker
     List<Security> securities = securityJpaRepository
         .catchAllUpSecurityHistoryquote(stockexchanges.stream().map(Stockexchange::getIdStockexchange).toList());
     for (Stockexchange stockexchange : stockexchanges) {
-      log.info("Namen {}, time since close: {}, number of securties {}", stockexchange.getName(),
-          stockexchange.getClosedMinuntes(), securities.size());
+      log.info("Namen {}, time since close: {}, number of securties {}, stock-Index-upd: {}", stockexchange.getName(),
+          stockexchange.getClosedMinuntes(), securities.size(), getIndexOfStockexchange(stockexchange));
       stockexchange.setLastDirectPriceUpdate(LocalDateTime.now());
     }
     stockexchangeJpaRepository.saveAll(stockexchanges);
+  }
+
+  private Date getIndexOfStockexchange(Stockexchange stockexchange) {
+    return stockexchange.getIdIndexUpdCalendar() == null ? null
+        : historyquoteJpaRepository.getMaxDateByIdSecurity(stockexchange.getIdIndexUpdCalendar());
   }
 
   /**

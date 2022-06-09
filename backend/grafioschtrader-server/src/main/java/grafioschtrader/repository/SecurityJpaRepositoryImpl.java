@@ -370,7 +370,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     if (!maxSecuritysplitOpt.isEmpty()) {
       Securitysplit maxSplit = maxSecuritysplitOpt.get();
       if (maxSplit.getFactor() < 1.0 && maxSplit.getFactor() >= 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
-          || maxSplit.getFactor() > 1.0 && maxSplit.getFactor() <= GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP) {
+          || maxSplit.getFactor() > 1.0 && maxSplit.getFactor() >= 1 + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP) {
 
         Date fromDate = DateHelper.setTimeToZeroAndAddDay(maxSplit.getSplitDate(),
             GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC * -1);

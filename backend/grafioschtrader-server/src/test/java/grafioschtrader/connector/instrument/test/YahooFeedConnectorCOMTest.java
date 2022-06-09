@@ -100,7 +100,9 @@ class YahooFeedConnectorCOMTest {
     securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.add(createSecurity("CAC.PA", "Euronext", "EUR", SpecialInvestmentInstruments.ETF));
     securities.add(createSecurity("OILUSA.SW", "SIX", "USD", SpecialInvestmentInstruments.ETF));
-
+    securities.add(createSecurity("AMZN", "NYSE", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    
+    
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
