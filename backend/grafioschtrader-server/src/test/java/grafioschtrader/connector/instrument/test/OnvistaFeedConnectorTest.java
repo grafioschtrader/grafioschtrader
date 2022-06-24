@@ -53,14 +53,16 @@ class OnvistaFeedConnectorTest {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-    final LocalDate to = LocalDate.parse("21.05.2021", germanFormatter);
+    final LocalDate to = LocalDate.parse("10.06.2021", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    securities.add(createSecurity("Siemens", "1929749", 5428));
-    securities.add(createSecurity("iShares Core DAX", "2027396", 5173));
-    securities.add(createSecurity("green benefit Global Impact Fund I", "125961454", 1565));
+    securities.add(createSecurity("Siemens", "1929749", 5441));
+    securities.add(createSecurity("iShares Core DAX", "2027396", 5186));
+    securities.add(createSecurity("green benefit Global Impact Fund I", "125961454", 1578));
+    securities.add(createSecurity("Amazon", "9386187", 4246));
+    
     
     securities.parallelStream().forEach(security -> {
 

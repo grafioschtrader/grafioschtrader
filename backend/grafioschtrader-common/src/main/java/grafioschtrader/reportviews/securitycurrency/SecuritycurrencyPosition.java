@@ -14,9 +14,12 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
 
   public T securitycurrency;
 
+  @Schema(description = "The return since the beginning of the year.")
   public Double ytdChangePercentage;
 
+  @Schema(description = "The return on investment in the specified period.")
   public Double timeFrameChangePercentage;
+  @Schema(description = "The annualized return for the specified time frame.")
   public Double timeFrameAnnualChangePercentage;
 
   // units after transaction

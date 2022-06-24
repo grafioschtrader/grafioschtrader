@@ -111,13 +111,13 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.6.8</version>
+			<version>1.6.9</version>
 		</dependency>
 		
 		 <dependency>
       		<groupId>org.springdoc</groupId>
       		<artifactId>springdoc-openapi-javadoc</artifactId>
-      		<version>1.6.8</version>
+      		<version>1.6.9</version>
    		</dependency>
 		
 		<!-- Jasypt (Java Simplified Encryption) -->

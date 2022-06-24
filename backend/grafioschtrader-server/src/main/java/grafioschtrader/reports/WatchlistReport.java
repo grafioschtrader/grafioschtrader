@@ -311,10 +311,10 @@ public class WatchlistReport {
     final SecuritycurrencyGroup securitycurrencyGroup = new SecuritycurrencyGroup(
         setOpenPositions(tenant, watchlist,
             setDailyChangeAndTimeFrameChange(securityCurrency.securities, historyquoteMaxDateMap,
-                historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame, securitysplitMap),
+                historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame),
             securitysplitMap, dateCurrencyMap),
         setDailyChangeAndTimeFrameChange(securityCurrency.currencypairs, historyquoteMaxDateMap,
-            historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame, securitysplitMap),
+            historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame),
         watchlist.getLastTimestamp(), watchlist.getIdWatchlist());
 
     markForUsedSecurityCurrencypairs(securitycurrencyGroup, securitiesIsUsedElsewhereIds,
@@ -352,17 +352,16 @@ public class WatchlistReport {
   private <S extends Securitycurrency<S>> List<SecuritycurrencyPosition<S>> setDailyChangeAndTimeFrameChange(
       final List<S> securitycurrenyList, final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDateMap,
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayPrevYear,
-      final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame, final Integer daysTimeFrame,
-      final Map<Integer, List<Securitysplit>> securitysplitMap) {
+      final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame, final Integer daysTimeFrame) {
     final List<SecuritycurrencyPosition<S>> securitycurrencyPositionList = createSecuritycurrencyPositionList(
         securitycurrenyList);
     securitycurrencyPositionList.stream()
         .filter(securitycurrency -> securitycurrency.securitycurrency.getSChangePercentage() == null)
         .forEach(securitycurrency -> setDailyChangeByUsingHistoryquote(historyquoteMaxDateMap, securitycurrency));
     securitycurrencyPositionList.stream()
-        .forEach(securitycurrency -> setYtdGainLoss(historyquoteLastDayPrevYear, securitycurrency, securitysplitMap));
+        .forEach(securitycurrency -> setYtdGainLoss(historyquoteLastDayPrevYear, securitycurrency));
     securitycurrencyPositionList.stream().forEach(securitycurrency -> setTimeFrameGainLoss(historyquoteTimeFrame,
-        securitycurrency, daysTimeFrame, securitysplitMap));
+        securitycurrency, daysTimeFrame));
     return securitycurrencyPositionList;
   }
 
@@ -459,44 +458,26 @@ public class WatchlistReport {
 
   private <S extends Securitycurrency<S>> void setYtdGainLoss(
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame,
-      final SecuritycurrencyPosition<S> securitycurrencyPosition,
-      final Map<Integer, List<Securitysplit>> securitysplitMap) {
+      final SecuritycurrencyPosition<S> securitycurrencyPosition) {
     final ISecuritycurrencyIdDateClose historyquote = historyquoteTimeFrame
         .get(securitycurrencyPosition.securitycurrency.getIdSecuritycurrency());
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
-      SplitFactorAfterBefore splitFactorAfterBefore = new SplitFactorAfterBefore();
       final double histroyClose = historyquote.getClose();
-
-      if (securitycurrencyPosition.securitycurrency instanceof Security) {
-        splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
-            securitycurrencyPosition.securitycurrency.getIdSecuritycurrency(), historyquote.getDate(), new Date(),
-            securitysplitMap);
-      }
-      final double historyCloseAdjusted = histroyClose / splitFactorAfterBefore.fromToDateFactor;
       securitycurrencyPosition.ytdChangePercentage = DataHelper.roundStandard(
-          (securitycurrencyPosition.securitycurrency.getSLast() - historyCloseAdjusted) / historyCloseAdjusted * 100);
+          (securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
     }
   }
 
   private <S extends Securitycurrency<S>> void setTimeFrameGainLoss(
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayPrevYear,
-      final SecuritycurrencyPosition<S> securitycurrencyPosition, final Integer daysTimeFrame,
-      final Map<Integer, List<Securitysplit>> securitysplitMap) {
+      final SecuritycurrencyPosition<S> securitycurrencyPosition, final Integer daysTimeFrame) {
     final ISecuritycurrencyIdDateClose historyquote = historyquoteLastDayPrevYear
         .get(securitycurrencyPosition.securitycurrency.getIdSecuritycurrency());
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
       final double histroyClose = historyquote.getClose();
-      SplitFactorAfterBefore splitFactorAfterBefore = new SplitFactorAfterBefore();
-
-      if (securitycurrencyPosition.securitycurrency instanceof Security) {
-        splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
-            securitycurrencyPosition.securitycurrency.getIdSecuritycurrency(), historyquote.getDate(), new Date(),
-            securitysplitMap);
-      }
       final int years = daysTimeFrame / 365;
-      final double historyCloseAdjusted = histroyClose / splitFactorAfterBefore.fromToDateFactor;
       securitycurrencyPosition.timeFrameChangePercentage = DataHelper.roundStandard(
-          (securitycurrencyPosition.securitycurrency.getSLast() - historyCloseAdjusted) / historyCloseAdjusted * 100);
+          (securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
       if (years >= 1) {
         securitycurrencyPosition.timeFrameAnnualChangePercentage = DataHelper.roundStandard(
             (Math.pow(securitycurrencyPosition.timeFrameChangePercentage / 100 + 1, 1.0 / years) - 1.0) * 100);
