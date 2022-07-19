@@ -1,5 +1,6 @@
 package grafioschtrader.connector.instrument.finanzench;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -98,36 +99,60 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     boolean useStockSelector = security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES
         && security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
 
-    updateLastPrice(security, url, useStockSelector);
-
+    if(security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF) {
+      updateLstPriceETF(security, url);
+    } else {  
+      updateLastPrice(security, url, useStockSelector);
+    }
+    
   }
 
   private <S extends Securitycurrency<S>> void updateLastPrice(Securitycurrency<S> securitycurrency, String url,
       boolean useStockSelector) throws Exception {
-    HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL).build();
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
-
-    HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-
-    final Document doc = Jsoup.parse(response.body());
+   
+    final Document doc = getDoc(url);
     final Elements elementPrices = useStockSelector ? doc.select("table.drop-up-enabled td")
         : doc.select("table.pricebox th");
 
     final Iterator<Element> iter = elementPrices.iterator();
-
     final double lastPrice = NumberFormat.getNumberInstance(FC_LOCALE).parse(iter.next().text().replace("'", ""))
         .doubleValue();
-    final double dalyChange = NumberFormat.getNumberInstance(FC_LOCALE).parse(iter.next().text().replace("'", ""))
+    final double dailyChange = NumberFormat.getNumberInstance(FC_LOCALE).parse(iter.next().text().replace("'", ""))
         .doubleValue();
     final double changePercentage = NumberFormat.getNumberInstance(FC_LOCALE)
         .parse(iter.next().text().replaceAll("[ %]", "")).doubleValue();
 
+    setLastPrice(securitycurrency, lastPrice, dailyChange, changePercentage);
+  }
+  
+  private void updateLstPriceETF(Security security, final String url) throws Exception {
+    final Document doc = getDoc(url);
+    final Elements elementPrices = doc.select("div.snapshot__values");
+    String[] splited = elementPrices.text().split("\\s+");
+    final double lastPrice = NumberFormat.getNumberInstance(FC_LOCALE).parse(splited[0].replace("'", ""))
+        .doubleValue();
+    final double dailyChange = NumberFormat.getNumberInstance(FC_LOCALE).parse(splited[2].replace("'", ""))
+            .doubleValue();   
+    final double changePercentage = NumberFormat.getNumberInstance(FC_LOCALE)
+        .parse(splited[4].replaceAll("[ %]", "")).doubleValue();
+    setLastPrice(security, lastPrice, dailyChange, changePercentage);
+  }
+  
+  private Document getDoc(String url) throws IOException, InterruptedException {
+    HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL).build();
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+    HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+    return Jsoup.parse(response.body());
+  }
+  
+  private <S extends Securitycurrency<S>> void setLastPrice(Securitycurrency<S> securitycurrency, double lastPrice, double dailyChange, double changePercentage) {
     securitycurrency.setSLast(lastPrice);
-    securitycurrency.setSPrevClose(lastPrice - dalyChange);
+    securitycurrency.setSPrevClose(lastPrice - dailyChange);
     securitycurrency.setSChangePercentage(changePercentage);
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
-
+  
+  
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     return domain + security.getUrlHistoryExtend();

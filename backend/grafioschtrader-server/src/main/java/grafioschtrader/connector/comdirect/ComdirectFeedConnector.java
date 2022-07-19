@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -69,9 +70,10 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
     final Element div = doc.select("#keyelement_kurs_update").first();
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "")).split(" ");
     securitycurrency.setSLast(FeedConnectorHelper.parseDoubleGE(numbers[0].replaceAll("[A-Z]*$", "")));
-    securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleGE(numbers[1]));
+    var offset = FeedConnectorHelper.isCreatableGE(numbers[1])? 0: 1;
+    securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleGE(numbers[1 + offset]));
     securitycurrency
-        .setSOpen(DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleGE(numbers[2])));
+        .setSOpen(DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleGE(numbers[2 + offset])));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
 }
