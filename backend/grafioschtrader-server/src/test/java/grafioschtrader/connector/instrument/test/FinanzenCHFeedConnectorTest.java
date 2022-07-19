@@ -37,14 +37,15 @@ class FinanzenCHFeedConnectorTest {
     final List<Security> securities = new ArrayList<>();
 
     final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
+    securities.add(createSecurityIntra("etf/zkb-gold-etf-aa-chf-klasse", AssetclassType.COMMODITIES,
+        SpecialInvestmentInstruments.ETF, "CH0139101593"));
     securities.add(createSecurityIntra("aktien/swiss_re-aktie", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0126881561"));
     securities.add(createSecurityIntra("obligationen/swiss_life_holdingsf-anl_201323-obligation-2023-ch0212184078",
         AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0212184078"));
-    securities.add(createSecurityIntra("etf/zkb-gold-etf-aa-chf-klasse", AssetclassType.COMMODITIES,
-        SpecialInvestmentInstruments.ETF, "CH0139101593"));
     securities.add(createSecurityIntra("index/SLI", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "CH0030252883"));
+
     securities.parallelStream().forEach(security -> {
       try {
         finanzenCHFeedConnector.updateSecurityLastPrice(security);

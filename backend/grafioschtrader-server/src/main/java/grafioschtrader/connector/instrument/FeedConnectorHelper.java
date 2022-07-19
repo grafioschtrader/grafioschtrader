@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,11 @@ public class FeedConnectorHelper {
   public static Double parseDoubleGE(String item) {
     final String text = item.replace(".", "").replace(",", ".");
     return text.trim().length() > 0 ? Double.parseDouble(text) : null;
+  }
+  
+  public static boolean isCreatableGE(String item) {
+    final String text = item.replace(".", "").replace(",", ".");
+    return NumberUtils.isCreatable(text);
   }
 
   public static Double parseDoubleUS(String item) {
