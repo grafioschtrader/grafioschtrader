@@ -1,11 +1,11 @@
-import {AbstractControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {AbstractControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 
 const isPresent = (obj: any): boolean => obj !== undefined && obj !== null;
 
 /**
  * At least one input value of a FormGroup must be filled in.
  */
-export const atLeastOneFieldValidator = (group: FormGroup): { [key: string]: any } => {
+export const atLeastOneFieldValidator = (group: UntypedFormGroup): { [key: string]: any } => {
   let isAtLeastOne = false;
   if (group && group.controls) {
     for (const control in group.controls) {

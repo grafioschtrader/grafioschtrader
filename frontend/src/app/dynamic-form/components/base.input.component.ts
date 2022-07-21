@@ -2,7 +2,7 @@ import {FieldFormFormGroupConfig} from '../models/field.form.form.group.config';
 import {AfterViewInit, Directive, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {FieldConfig} from '../models/field.config';
 import {FormConfig} from '../models/form.config';
-import {FormGroup, Validators} from '@angular/forms';
+import {UntypedFormGroup, Validators} from '@angular/forms';
 import {DataType} from '../models/data.type';
 
 @Directive()
@@ -16,7 +16,7 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
 
   config: FieldConfig;
   formConfig: FormConfig;
-  group: FormGroup;
+  group: UntypedFormGroup;
 
   isRequired = false;
 

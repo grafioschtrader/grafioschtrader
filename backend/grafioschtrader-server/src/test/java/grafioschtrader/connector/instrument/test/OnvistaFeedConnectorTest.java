@@ -62,8 +62,7 @@ class OnvistaFeedConnectorTest {
     securities.add(createSecurity("iShares Core DAX", "2027396", 5186));
     securities.add(createSecurity("green benefit Global Impact Fund I", "125961454", 1578));
     securities.add(createSecurity("Amazon", "9386187", 4246));
-    
-    
+        
     securities.parallelStream().forEach(security -> {
 
       List<Historyquote> historyquote = new ArrayList<>();

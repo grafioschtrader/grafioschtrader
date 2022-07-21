@@ -1,4 +1,4 @@
-import {FormGroup} from '@angular/forms';
+import {UntypedFormGroup} from '@angular/forms';
 import {FieldConfig} from './field.config';
 import {FormConfig} from './form.config';
 
@@ -8,6 +8,6 @@ import {FormConfig} from './form.config';
 export interface FieldFormFormGroupConfig {
   config: FieldConfig;
   formConfig: FormConfig;
-  group: FormGroup;
+  group: UntypedFormGroup;
 
 }

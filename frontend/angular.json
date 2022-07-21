@@ -40,6 +40,14 @@
               "node_modules/plotly.js/dist/plotly.min.js",
               "node_modules/reflect-metadata/Reflect.js",
               "src/app/shared/filesaver/filesaver.js"
+            ],
+            "allowedCommonJsDependencies": [
+              "moment",
+              "deepmerge",
+              "angular2-uuid",
+              "plotly.js-locales/de-ch",
+              "plotly.js-locales/fr"
+
             ]
           },
           "configurations": {
@@ -130,9 +138,10 @@
       }
     }
   },
-  "defaultProject": "frontend",
 
   "cli": {
-    "defaultCollection": "@angular-eslint/schematics"
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
   }
 }
