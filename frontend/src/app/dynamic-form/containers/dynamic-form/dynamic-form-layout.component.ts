@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {FormGroup} from '@angular/forms';
+import {UntypedFormGroup} from '@angular/forms';
 
 
 import {FieldConfig} from '../../models/field.config';
@@ -47,7 +47,7 @@ import {FormConfig} from '../../models/form.config';
 export class DynamicFormLayoutComponent {
   @Input() config: FieldConfig;
   @Input() formConfig: FormConfig;
-  @Input() group: FormGroup;
+  @Input() group: UntypedFormGroup;
 
   onHelpClick(event) {
     this.config.labelShowText = (this.config.labelShowText) ? null : this.config.labelHelpText;

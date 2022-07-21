@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import {AbstractControl, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
 
 
 import {FieldConfig} from '../../models/field.config';
@@ -92,12 +92,12 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
   @Output() submitBt: EventEmitter<any> = new EventEmitter<any>();
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   fieldsetConfigs: FieldsetConfig[];
   showWithFieldset: boolean;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
   }
 
   get formGroups(): FormGroupDefinition[] {
@@ -162,7 +162,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   /**
    * Buttons are not created here!
    */
-  createGroupAndControl(): FormGroup {
+  createGroupAndControl(): UntypedFormGroup {
     const childGroups = {};
 
     this.formGroups.forEach(formGroupDefinition => {

@@ -8,7 +8,7 @@ import {
   Type,
   ViewContainerRef
 } from '@angular/core';
-import {FormGroup} from '@angular/forms';
+import {UntypedFormGroup} from '@angular/forms';
 
 import {FormButtonComponent} from '../form-button/form-button.component';
 import {FormInputComponent} from '../form-input/form-input.component';
@@ -54,7 +54,7 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
 export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChanges, OnInit {
   @Input() config: FieldConfig;
   @Input() formConfig: FormConfig;
-  @Input() group: FormGroup;
+  @Input() group: UntypedFormGroup;
 
   component: ComponentRef<FieldFormFormGroupConfig>;
 

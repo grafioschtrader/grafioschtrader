@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {FormGroup} from '@angular/forms';
+import {UntypedFormGroup} from '@angular/forms';
 
 import {FieldFormFormGroupConfig} from '../../models/field.form.form.group.config';
 import {FieldConfig} from '../../models/field.config';
@@ -39,6 +39,6 @@ import {FormConfig} from '../../models/form.config';
 export class FormPButtonComponent implements FieldFormFormGroupConfig {
   config: FieldConfig;
   formConfig: FormConfig;
-  group: FormGroup;
+  group: UntypedFormGroup;
 }
 

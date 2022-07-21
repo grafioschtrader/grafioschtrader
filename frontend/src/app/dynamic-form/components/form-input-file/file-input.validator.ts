@@ -1,5 +1,5 @@
 import {Directive} from '@angular/core';
-import {FormControl, NG_VALIDATORS, Validator} from '@angular/forms';
+import {UntypedFormControl, NG_VALIDATORS, Validator} from '@angular/forms';
 
 @Directive({
   selector: '[requiredFile]',
@@ -8,11 +8,11 @@ import {FormControl, NG_VALIDATORS, Validator} from '@angular/forms';
   ]
 })
 export class FileRequiredValidator implements Validator {
-  static validate(c: FormControl): { [key: string]: any } {
+  static validate(c: UntypedFormControl): { [key: string]: any } {
     return c.value == null || c.value.length === 0 ? {required: true} : null;
   }
 
-  validate(c: FormControl): { [key: string]: any } {
+  validate(c: UntypedFormControl): { [key: string]: any } {
     return FileRequiredValidator.validate(c);
   }
 }
