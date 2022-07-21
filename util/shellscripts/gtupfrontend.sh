@@ -16,6 +16,7 @@ if [ $memorytotal -lt 3700 ]
     tar -xf latest.tar.gz
     cd
    else
+    ng v
     ng build --configuration production --base-href /$basehref
    fi
 rm -rf $docroot/${basehref}assets
