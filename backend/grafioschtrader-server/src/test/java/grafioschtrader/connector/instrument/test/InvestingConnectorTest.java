@@ -26,7 +26,10 @@ class InvestingConnectorTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
+    
 
+    securities.add(ConnectorTestHelper.createIntraSecurity("MOEX Russia (IMOEX)",
+        "indices/mcx"));
     securities.add(ConnectorTestHelper.createIntraSecurity("Bitcoin Tracker EUR XBT Provider (SE0007525332)",
         "etfs/bitcoin-tracker-eur-xbt-provider"));
     securities.add(ConnectorTestHelper.createIntraSecurity("Apple Inc (AAPL)", "equities/apple-computer-inc"));

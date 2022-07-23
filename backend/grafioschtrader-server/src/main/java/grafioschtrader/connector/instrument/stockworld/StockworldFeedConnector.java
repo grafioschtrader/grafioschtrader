@@ -42,7 +42,6 @@ public class StockworldFeedConnector extends BaseFeedConnector {
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
-    supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
   }
 
   public StockworldFeedConnector() {
@@ -70,10 +69,8 @@ public class StockworldFeedConnector extends BaseFeedConnector {
     int lastPage = 0;
     Date date = null;
     do {
-
       final Connection stockWorldConnection = Jsoup
           .connect(getSecurityHistoricalDownloadLink(security) + "?page=" + pageCounter++);
-
       final Document doc = stockWorldConnection.get();
 
       final Element table = doc.select("table").get(1);
@@ -154,72 +151,6 @@ public class StockworldFeedConnector extends BaseFeedConnector {
     return null;
   }
 
-  @Override
-  public String getSecurityIntradayDownloadLink(final Security security) {
-    return "http://www.stock-world.de/detail/index.m?secu=" + security.getUrlIntraExtend();
-  }
-
-  @Override
-  public int getIntradayDelayedSeconds() {
-    return 900;
-  }
-
-  @Override
-  public void updateSecurityLastPrice(final Security security) throws Exception {
-    final NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMAN);
-    final Connection stockworldConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security)).timeout(8_000);
-    final Document doc = stockworldConnection.get();
-    final Elements tables = doc.select("#inhaltALLES div table");
-    final Element table = tables.get(tables.size()-4);
-    final Elements rows = table.select("tr");
-    final Elements headerCols = rows.get(0).select("td");
-    if (headerCols.get(0).text().startsWith("letzter")) {
-      scanLast(security, numberFormat, rows);
-    } else if (headerCols.get(0).text().startsWith("Bid")){
-      scanBidAsk(security, numberFormat, rows);
-    } else {
-      scanRuecknamepreis(security, numberFormat, rows); 
-    }
-  }
-
-  private void scanLast(Security security, final NumberFormat numberFormat, final Elements rows) throws ParseException {
-    final Elements cols = rows.get(1).select("td");
-
-    security.setSLast(parseDouble(numberFormat, 0, cols));
-    security.setSChangePercentage(parseDouble(numberFormat, 2, cols));
-    security.setSPrevClose(parseDouble(numberFormat, 3, cols));
-   // parseDateTime(security, cols.get(4).text());
-  }
-
-  private void scanBidAsk(Security security, final NumberFormat numberFormat, final Elements rows)
-      throws ParseException {
-    final Elements cols = rows.get(1).select("td");
-
-    security.setSLast((parseDouble(numberFormat, 1, cols) + parseDouble(numberFormat, 2, cols)) / 2);
-    security.setSChangePercentage(parseDouble(numberFormat, 3, cols));
-    security.setSPrevClose(parseDouble(numberFormat, 4, cols));
-   // parseDateTime(security, cols.get(5).text());
-  }
-  
-  private void scanRuecknamepreis(Security security, final NumberFormat numberFormat, final Elements rows) {
-    final Elements cols = rows.get(1).select("td");
-
-    security.setSLast(parseDouble(numberFormat, 1, cols));
-    security.setSChangePercentage(parseDouble(numberFormat, 3, cols));
-    security.setSPrevClose(parseDouble(numberFormat, 4, cols));
-  }
-
-  private void parseDateTime(Security security, String dateTime) throws ParseException {
-    if (dateTime.contains(":")) {
-      SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
-      Date time = timeFormat.parse(dateTime);
-      Calendar cal = Calendar.getInstance();
-      cal.setTime(time);
-      security.setSTimestamp(cal.getTime());
-    } else {
-      SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy");
-      security.setSTimestamp(dateFormat.parse(dateTime));
-    }
-  }
-
+ 
+ 
 }

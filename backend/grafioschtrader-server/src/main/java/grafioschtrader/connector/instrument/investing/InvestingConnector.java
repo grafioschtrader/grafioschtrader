@@ -112,15 +112,17 @@ public class InvestingConnector extends BaseFeedConnector {
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, final Connection investingConnection) throws IOException {
     final Document doc = investingConnection.timeout(10000).get();
     Element div = doc.select("#last_last").parents().first();
+    
     if (div == null) {
       div = doc.select("div[class^=instrument-price_instrument-price]").first();
     }
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
         .split(" ");
-    securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0]));
+    var offset = FeedConnectorHelper.isCreatableGE(numbers[0])? 0: 1;
+    securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]));
     securitycurrency
-        .setSOpen(DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1])));
-    securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2]));
+        .setSOpen(DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
+    securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
 

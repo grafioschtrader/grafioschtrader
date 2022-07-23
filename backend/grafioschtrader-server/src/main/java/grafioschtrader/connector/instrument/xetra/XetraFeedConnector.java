@@ -1,4 +1,4 @@
-package grafioschtrader.connector.xetra;
+package grafioschtrader.connector.instrument.xetra;
 
 import java.net.URL;
 import java.sql.Timestamp;
