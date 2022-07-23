@@ -29,6 +29,10 @@ class AlphaVantageFeedConnectorTest {
   @Autowired
   private AlphaVantageFeedConnector alphaVantageConnector;
 
+  
+  /**
+   * NEEDS Premium Membership!
+   */
   @Test
   void getEodSecurityHistoryTest() {
 
@@ -45,8 +49,7 @@ class AlphaVantageFeedConnectorTest {
   
     securities.add(createSecurity("AAPL"));
     securities.add(createSecurity("MSFT"));
-    securities.add(createSecurity("DAI.FRK"));
-    // securities.add(createSecurity("NESN.SW"));
+    securities.add(createSecurity("NESN.SW"));
     securities.parallelStream().forEach(security -> {
 
       List<Historyquote> historyquote = new ArrayList<>();

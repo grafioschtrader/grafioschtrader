@@ -13,7 +13,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.connector.xetra.XetraFeedConnector;
+import grafioschtrader.connector.instrument.xetra.XetraFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
@@ -35,6 +35,7 @@ public class XetraFeedConnectorTest {
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("NORIS-FONDS", "DE0008492356"));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("Deutsche Lufthansa AG 4,382% 15/75", "XS1271836600"));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("Beiersdorf Aktiengesellschaft", "DE0005200000"));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares Core MSCI World UCITS ETF", "IE00B4L5Y983"));
