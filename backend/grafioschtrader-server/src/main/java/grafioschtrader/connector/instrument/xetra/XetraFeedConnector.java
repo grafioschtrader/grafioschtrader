@@ -67,7 +67,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
     return historyquotes;
   }
 
-  static class Quotes {
+  private static class Quotes {
     public String s;
     @JsonFormat(shape=JsonFormat.Shape.NUMBER, pattern="s")
     public Timestamp[] t;

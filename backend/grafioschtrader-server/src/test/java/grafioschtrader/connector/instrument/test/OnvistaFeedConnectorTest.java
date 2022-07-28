@@ -28,10 +28,10 @@ class OnvistaFeedConnectorTest {
         .withLocale(Locale.GERMAN);
    
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("EUR", "USD", "8381868"));
-    final LocalDate from = LocalDate.parse("01.12.2017", germanFormatter);
+    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("GBP", "USD", "CURRENCY/GBPUSD/eod_history?idNotation=1305587"));
+    final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final LocalDate to = LocalDate.parse("21.05.2021", germanFormatter);
+    final LocalDate to = LocalDate.parse("27.07.2022", germanFormatter);
     Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
@@ -40,8 +40,7 @@ class OnvistaFeedConnectorTest {
       } catch (Exception e) {
         e.printStackTrace();
       }
-     
-      assertThat(historyquote.size()).isEqualByComparingTo(1268);
+      assertThat(historyquote.size()).isEqualByComparingTo(7043);
     });
   }
 
@@ -53,15 +52,16 @@ class OnvistaFeedConnectorTest {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-    final LocalDate to = LocalDate.parse("10.06.2021", germanFormatter);
+    final LocalDate to = LocalDate.parse("27.07.2022", germanFormatter);
 
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    securities.add(createSecurity("Siemens", "1929749", 5441));
-    securities.add(createSecurity("iShares Core DAX", "2027396", 5186));
-    securities.add(createSecurity("green benefit Global Impact Fund I", "125961454", 1578));
-    securities.add(createSecurity("Amazon", "9386187", 4246));
+    securities.add(createSecurity("Siemens", "STOCK/82902/eod_history?idNotation=1929749", 5731));
+    securities.add(createSecurity("iShares Core DAX", "FUND/3567527/eod_history?idNotation=28520648", 3381));
+    securities.add(createSecurity("BGF World Energy Fund I2 USD", "FUND/20982583/eod_history?idNotation=26071169", 3049));
+    securities.add(createSecurity("Amazon", "STOCK/90929/eod_history?idNotation=9386187", 4536));
+    securities.add(createSecurity("Autoneum Holding AG SF-Anl. 2017(25)", "BOND/130304815/eod_history?idNotation=202439144", 1012));
         
     securities.parallelStream().forEach(security -> {
 

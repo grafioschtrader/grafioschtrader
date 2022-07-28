@@ -1,9 +1,5 @@
-<p>Onvista liefert nur zwei Nachkommastellen, für Preise weniger 10 ist dies ungeeignet.</p>
-Auf <a target="_blank" href="//www.onvista.de">onvista</a> das entsprechende Wertpapier suchen.</br>
-<b>Falls Menüpunkt "T&S/Historie" vorhanden:</b><br>
-Für die Ermittlung von <b>notationId</b> muss Menüpunkt "Kurse|T&S/Historie" gewählt werden.  
-Optional wählen der ensprechenden Börse und "Anzeigen" klicken.</br> 
-Im geöffneten Fenster kann aus der URL die <b>notationId</b> gelesen werden. Für die Aktie <a target="_blank" href="//www.onvista.de/aktien/times+sales/Merck-Aktie-DE0006599905">Merck (DE0006599905)</a> ist dies der Wert 158463, dieser wird in das Eingabefeld eintragen.</b>
-<b>Falls Menüpunkt "T&S/Historie" nicht vohanden:</b><br>
-Die Entwicklertools aktivieren und Reiter "Network" wählen.<br> 
-Die <b>notationId</b> wird mit dem Klicken des CSV dowonload in der Anfrage enthalten sein.
+Auf <a target="_blank" href="//www.onvista.de">onvista</a> das entsprechende Wertpapier suchen bzw selektieren.</br>
+Über die Schaltflächte "Alle Kurse" bzw. "Historische Kurse" gelangt Sie zur Schaltfläche "Download als CSV".</br>
+Aktivieren Sie die <b>Entwicklertools</b> des Webbrowsers und wählen in diesen den Menüpunt "<b>Netzwerk</b>".</br>
+Drücken Sie die Schaltfläche "Download als CSV". Der <b>Anfrage-URL</b> entnehmen wir über die Entwicklertools des Netzwerkes einen bestimmten Teil.</br> 
+Beispielsweise für die Aktie Amazon beim Handelsplatz "Nasdaq" ergibt sich folgende <b>URL-Anfrage</b>: "https://api.onvista.de/api/v1/instruments/<b>STOCK/90929/eod_history?idNotation=252992</b>&range=M1&startDate=2022-06-28" wir benötigen den Teil zwischen "https://api.onvista.de/api/v1/instruments/" und "&range=M1&startDate=2022-06-28"". Daher tragen wir "<b>STOCK/90929/eod_history?idNotation=252992</b>" ein.

@@ -1,5 +1,5 @@
 import {Security} from '../../entities/security';
-import {ChangeDetectorRef, Directive, OnDestroy, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Directive, HostListener, OnDestroy, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {WatchlistService} from '../service/watchlist.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
@@ -76,29 +76,30 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   private subscriptionWatchlistAdded: Subscription;
 
   constructor(public watchlistType: WatchListType,
-              protected storeKey: string,
-              protected dialogService: DialogService,
-              protected timeSeriesQuotesService: TimeSeriesQuotesService,
-              protected dataChangedService: DataChangedService,
-              protected activePanelService: ActivePanelService,
-              protected watchlistService: WatchlistService,
-              protected router: Router,
-              protected activatedRoute: ActivatedRoute,
-              protected confirmationService: ConfirmationService,
-              protected messageToastService: MessageToastService,
-              protected productIconService: ProductIconService,
-              protected changeDetectionStrategy: ChangeDetectorRef,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              public selectMultiMode: string) {
+    protected storeKey: string,
+    protected dialogService: DialogService,
+    protected timeSeriesQuotesService: TimeSeriesQuotesService,
+    protected dataChangedService: DataChangedService,
+    protected activePanelService: ActivePanelService,
+    protected watchlistService: WatchlistService,
+    protected router: Router,
+    protected activatedRoute: ActivatedRoute,
+    protected confirmationService: ConfirmationService,
+    protected messageToastService: MessageToastService,
+    protected productIconService: ProductIconService,
+    protected changeDetectionStrategy: ChangeDetectorRef,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    public selectMultiMode: string) {
     super(filterService, usersettingsService, translateService, gps);
     if (selectMultiMode === WatchlistTable.MULTIPLE) {
       this.singleMultiSelection = [];
     }
     this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
   }
+
 
   createSecurityPositionList(data: SecuritycurrencyGroup) {
     this.createTranslatedValueStoreAndFilterField(data.securityPositionList);
@@ -117,7 +118,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   getInstrumentIcon(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig,
-                    valueField: any): string {
+    valueField: any): string {
     const currencypair: Currencypair = securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ?
       securitycurrencyPosition.securitycurrency : null;
     return this.productIconService.getIconForInstrument(currencypair ? null : <Security>securitycurrencyPosition.securitycurrency,
@@ -331,7 +332,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   protected getShowContextMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
-                                    translate: boolean): MenuItem[] {
+    translate: boolean): MenuItem[] {
     let menuItems: MenuItem[] = [];
 
     if (securitycurrencyPosition) {
