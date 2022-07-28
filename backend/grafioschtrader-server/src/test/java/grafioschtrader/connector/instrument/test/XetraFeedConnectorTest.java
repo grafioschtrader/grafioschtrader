@@ -17,19 +17,17 @@ import grafioschtrader.connector.instrument.xetra.XetraFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
-
 public class XetraFeedConnectorTest {
 
   private XetraFeedConnector xetraFeedConnector = new XetraFeedConnector();
-  
+
   @Test
   void getEodSecurityHistoryTest() {
-  
+
     final List<Security> securities = new ArrayList<>();
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
-    
-    
+
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
     final LocalDate to = LocalDate.parse("26.01.2022", germanFormatter);
 
@@ -40,9 +38,8 @@ public class XetraFeedConnectorTest {
     securities.add(ConnectorTestHelper.createHistoricalSecurity("Beiersdorf Aktiengesellschaft", "DE0005200000"));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares Core MSCI World UCITS ETF", "IE00B4L5Y983"));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("Delivery Hero SE", "DE000A2E4K43"));
-    
-    
-      securities.parallelStream().forEach(security -> {
+
+    securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
         historyquote = xetraFeedConnector.getEodSecurityHistory(security, fromDate, toDate);
