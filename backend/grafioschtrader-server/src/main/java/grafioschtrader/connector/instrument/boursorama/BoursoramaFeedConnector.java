@@ -1,4 +1,4 @@
-package grafioschtrader.connector.boursorama;
+package grafioschtrader.connector.instrument.boursorama;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

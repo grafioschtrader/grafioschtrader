@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.connector.consorsbank.ConsorsbankFeedConnector;
+import grafioschtrader.connector.instrument.consorsbank.ConsorsbankFeedConnector;
 import grafioschtrader.entities.Security;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 

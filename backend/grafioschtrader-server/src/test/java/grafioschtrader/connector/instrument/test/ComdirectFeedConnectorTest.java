@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.connector.comdirect.ComdirectFeedConnector;
+import grafioschtrader.connector.instrument.comdirect.ComdirectFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 
