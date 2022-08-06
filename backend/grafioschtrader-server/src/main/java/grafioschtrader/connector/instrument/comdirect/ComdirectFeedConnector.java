@@ -1,4 +1,4 @@
-package grafioschtrader.connector.comdirect;
+package grafioschtrader.connector.instrument.comdirect;
 
 import java.io.IOException;
 import java.util.Date;

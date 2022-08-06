@@ -1,4 +1,4 @@
-package grafioschtrader.connector.consorsbank;
+package grafioschtrader.connector.instrument.consorsbank;
 
 import java.net.URI;
 import java.net.http.HttpClient;

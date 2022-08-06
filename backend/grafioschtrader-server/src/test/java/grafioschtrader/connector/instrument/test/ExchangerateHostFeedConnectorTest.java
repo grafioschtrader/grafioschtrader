@@ -44,21 +44,5 @@ class ExchangerateHostFeedConnectorTest {
     });
   }
   
-  
-  @Test
-  void updateCurrencyPairLastPriceTest() {
-    final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ETH", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "GBP"));
-    currencies.parallelStream().forEach(currencyPair -> {
-      try {
-        exchangerateHostFeedConnector.updateCurrencyPairLastPrice(currencyPair);
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
-      assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
-    });
-  }
+ 
 }

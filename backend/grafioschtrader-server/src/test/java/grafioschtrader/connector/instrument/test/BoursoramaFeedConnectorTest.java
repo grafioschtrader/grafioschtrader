@@ -13,7 +13,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.connector.boursorama.BoursoramaFeedConnector;
+import grafioschtrader.connector.instrument.boursorama.BoursoramaFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
