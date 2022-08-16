@@ -20,6 +20,7 @@ import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -109,19 +110,20 @@ public class InvestingConnector extends BaseFeedConnector {
     updateSecuritycurrency(security, investingConnection);
   }
 
-  private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, final Connection investingConnection) throws IOException {
+  private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency,
+      final Connection investingConnection) throws IOException {
     final Document doc = investingConnection.timeout(10000).get();
     Element div = doc.select("#last_last").parents().first();
-    
+
     if (div == null) {
       div = doc.select("div[class^=instrument-price_instrument-price]").first();
     }
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
         .split(" ");
-    var offset = FeedConnectorHelper.isCreatableGE(numbers[0])? 0: 1;
+    var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;
     securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]));
-    securitycurrency
-        .setSOpen(DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
+    securitycurrency.setSOpen(
+        DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
@@ -223,16 +225,20 @@ public class InvestingConnector extends BaseFeedConnector {
 
     for (Element row : rows) {
       Elements cols = row.select("td");
-      Historyquote historyquote = new Historyquote();
-      for (int c = 0; c < cols.size(); c++) {
-        Element col = cols.get(c);
-        FieldColumnMapping fcm = fieldColumnMappings.get(c);
-        if (fcm.field != null) {
-          String value = col.attr("data-real-value");
-          valueFormatConverter.convertAndSetValue(historyquote, fcm.field.getName(), value, fcm.field.getType(), true);
+
+      if (cols.size() > 4) {
+        Historyquote historyquote = new Historyquote();
+        for (int c = 0; c < cols.size(); c++) {
+          Element col = cols.get(c);
+          FieldColumnMapping fcm = fieldColumnMappings.get(c);
+          if (fcm.field != null) {
+            String value = col.attr("data-real-value");
+            valueFormatConverter.convertAndSetValue(historyquote, fcm.field.getName(), value, fcm.field.getType(),
+                true);
+          }
         }
+        historyquotes.add(historyquote);
       }
-      historyquotes.add(historyquote);
     }
     return historyquotes;
   }
