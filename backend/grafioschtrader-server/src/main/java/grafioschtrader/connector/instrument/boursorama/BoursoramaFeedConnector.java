@@ -43,7 +43,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.HISTORY,
-        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
     supportedFeed.put(FeedSupport.INTRA,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
 
@@ -61,7 +61,6 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     long daysUntilNow = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS);
     BoursoramaPeriodEOD boursoramaPeriod = boursoramaPeriods.stream().filter(bp -> daysUntilNow <= bp.maxDays)
         .findFirst().orElse(boursoramaPeriods.get(boursoramaPeriods.size() - 1));
-
     return BASE_URL + "GetTicksEOD?symbol=" + securitycurrency.getUrlHistoryExtend() + "&length="
         + boursoramaPeriod.lengthParam + "&period=" + boursoramaPeriod.period + "guid=";
   }
