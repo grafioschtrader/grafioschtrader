@@ -1,18 +1,23 @@
 package grafioschtrader.connector.instrument.comdirect;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -61,11 +66,13 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
     updateSecuritycurrency(currencypair, getCurrencypairIntradayDownloadLink(currencypair));
   }
 
-  private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String url)
-      throws IOException {
+  private synchronized <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String url)
+      throws Exception {
 
-    final Connection comdirectConnection = Jsoup.connect(url);
-    final Document doc = comdirectConnection.timeout(10000).get();
+   //  final Connection comdirectConnection = Jsoup.connect(url);
+  //   final Document doc = comdirectConnection.userAgent(GlobalConstants.USER_AGENT).timeout(2000).get();
+    
+    Document doc = Jsoup.parseBodyFragment(getResponseByHttpClient(url));
 
     final Element div = doc.select("#keyelement_kurs_update").first();
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "")).split(" ");
@@ -75,5 +82,18 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
     securitycurrency
         .setSOpen(DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleGE(numbers[2 + offset])));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+  }
+  
+  private String getResponseByHttpClient(String url) throws IOException, InterruptedException {
+    HttpClient client = HttpClient.newHttpClient();
+    HttpRequest request = HttpRequest.newBuilder()
+        .timeout(Duration.ofSeconds(2))
+        .setHeader("User-Agent", GlobalConstants.USER_AGENT)
+            .uri(URI.create(url)).GET().build();
+
+    HttpResponse<String> response = client.send(request,
+            HttpResponse.BodyHandlers.ofString());
+    return response.body();
+
   }
 }

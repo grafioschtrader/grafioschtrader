@@ -14,6 +14,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
+import grafioschtrader.GlobalConstants;
+
 public class FinanzenNl {
 
   // ETF -> Keine Unterstützung
@@ -36,8 +38,7 @@ public class FinanzenNl {
 
     HeaderCollector headerCollector = new HeaderCollector();
     HttpClientBuilder builder = HttpClientBuilder.create();
-    builder.setUserAgent(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+    builder.setUserAgent(GlobalConstants.USER_AGENT);
     HttpClient httpClient = builder.build();
 
     HttpGet httpGet = new HttpGet(url);

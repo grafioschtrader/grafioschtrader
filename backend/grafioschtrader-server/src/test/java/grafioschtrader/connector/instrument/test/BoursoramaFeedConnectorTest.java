@@ -64,9 +64,13 @@ public class BoursoramaFeedConnectorTest {
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
     final List<Currencypair> currencies = new ArrayList<>();
+   /*
     currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "USD", "3fJPY_USD"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("CAD", "EUR", "3fCAD_EUR"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("CHF", "GBP", "3fCHF_GBP"));
+    */
+    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD", "9xXBTUSDSPOT"));
+    
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -106,6 +110,7 @@ public class BoursoramaFeedConnectorTest {
     currencies.add(ConnectorTestHelper.createIntraCurrencyPair("JPY", "USD", "3fJPY_USD"));
     currencies.add(ConnectorTestHelper.createIntraCurrencyPair("CAD", "EUR", "3fCAD_EUR"));
     currencies.add(ConnectorTestHelper.createIntraCurrencyPair("CHF", "GBP", "3fCHF_GBP"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("BTC", "USD", "9xXBTUSDSPOT"));
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         boursoramaFeedConnector.updateCurrencyPairLastPrice(currencyPair);

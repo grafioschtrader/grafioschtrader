@@ -33,6 +33,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import grafioschtrader.GlobalConstants;
+
 public class FinanzenNet {
 
   private static String domain = "https://www.finanzen.net/";
@@ -89,7 +91,7 @@ public class FinanzenNet {
 
   private void collectData(String pkBHTs, CookieStore cookieStore) throws IOException {
 
-    Response response = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(10 * 1000).method(Method.POST)
+    Response response = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT).timeout(10 * 1000).method(Method.POST)
         .header("Cookie", getCookiesAsString(cookieStore)).data("inTag1", "1").data("inMonat1", "1")
         .data("inJahr1", "2018").data("inTag2", "7").data("inMonat2", "10").data("inJahr2", "2018")
         .data("stBoerse", "FSE").data("pkBHTs", pkBHTs).execute();
@@ -108,8 +110,7 @@ public class FinanzenNet {
   public void readData() {
     CookieStore cookieStore = new BasicCookieStore();
     HttpClientBuilder builder = HttpClientBuilder.create();
-    builder.setUserAgent(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+    builder.setUserAgent(GlobalConstants.USER_AGENT);
     HttpClient httpClient = builder.build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);

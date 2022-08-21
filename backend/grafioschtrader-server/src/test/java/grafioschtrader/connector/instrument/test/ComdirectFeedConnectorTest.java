@@ -23,6 +23,7 @@ public class ComdirectFeedConnectorTest {
     securities.add(ConnectorTestHelper.createIntraSecurity("Xtrackers MSCI Japan UCITS ETF - 7C CHF ACC H ETF", "etfs/detail/uebersicht.html?ID_NOTATION=169541045&SEARCH_REDIRECT=true&REFERER=search.general&REDIRECT_TYPE=ISIN&SEARCH_VALUE=LU1215827756"));
 
     securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40 Index", "indizes/werte/FR0003500008"));
+
     securities.add(ConnectorTestHelper.createIntraSecurity("Xtrackers MSCI Japan UCITS ETF", "etfs/detail/uebersicht.html?ID_NOTATION=169541045&SEARCH_REDIRECT=true&REFERER=search.general&REDIRECT_TYPE=ISIN&SEARCH_VALUE=LU1215827756"));
     securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40 Index", "indizes/werte/FR0003500008"));
     securities.add(ConnectorTestHelper.createIntraSecurity("WIG INDEX (PLN)", "indizes/PL9999999995"));
