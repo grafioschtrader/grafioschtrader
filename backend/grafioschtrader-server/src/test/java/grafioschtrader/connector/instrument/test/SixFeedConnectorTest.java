@@ -55,10 +55,10 @@ class SixFeedConnectorTest {
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
 
+    securities.add(createSecurity("ZKB Silver ETF - A (CHF)", "CH0183135976CHF4", true));
     securities.add(createSecurity("SMI PR", "CH0009980894CHF9", true));
     securities.add(createSecurity("1 HOLCIM 15-25", "CH0306179125CHF4", true));
     securities.add(createSecurity("ABB Ltd", "CH0012221716CHF4", true));
-
     securities.parallelStream().forEach(security -> {
       try {
         swissquoteConnector.updateSecurityLastPrice(security);

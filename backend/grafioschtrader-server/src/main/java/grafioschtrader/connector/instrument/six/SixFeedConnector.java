@@ -135,6 +135,7 @@ public class SixFeedConnector extends BaseFeedConnector {
 
     final String dateTimeString = obj.getString("delayedDateTime").replace('T', ' ').substring(0, 17);
     final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_SIX);
+    dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Zurich"));
     security.setSTimestamp(dateFormat.parse(dateTimeString));
 
     // Set performance data
