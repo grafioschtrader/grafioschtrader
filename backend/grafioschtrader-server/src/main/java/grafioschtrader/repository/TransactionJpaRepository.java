@@ -18,10 +18,11 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   // TODO remove it after usage
 
-  @Query(value = "SELECT t.* FROM transaction t JOIN cashaccount c ON t.id_cash_account = c.id_securitycash_account"
-      + " JOIN security s ON t.id_securitycurrency = s.id_securitycurrency"
-      + " JOIN currencypair cp ON t.id_currency_pair = cp.id_securitycurrency"
-      + " WHERE cp.from_currency = s.currency", nativeQuery = true)
+  @Query(value = """
+      SELECT t.* FROM transaction t JOIN cashaccount c ON t.id_cash_account = c.id_securitycash_account
+      JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
+      JOIN currencypair cp ON t.id_currency_pair = cp.id_securitycurrency
+      WHERE cp.from_currency = s.currency""", nativeQuery = true)
   List<Transaction> findWrongCurrencypairTransaction();
 
   Stream<Transaction> findBySecurity_idSecuritycurrency(Integer idSecuritycurrency);

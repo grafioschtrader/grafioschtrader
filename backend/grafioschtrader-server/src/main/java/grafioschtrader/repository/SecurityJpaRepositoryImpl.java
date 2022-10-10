@@ -68,11 +68,6 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
-/**
- *
- * @author Hugo Graf
- */
-
 public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security, SecurityPositionSummary>
     implements IPositionCloseOnLatestPrice<Security, SecurityPositionSummary>, SecurityJpaRepositoryCustom {
 
@@ -246,7 +241,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList())));
     return securitiesRc;
   }
-
+/*
   @Override
   public void updateAllLastPrice() {
     List<Security> securities = securityJpaRepository.findAll();
@@ -255,6 +250,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     intradayThruCalculation.updateLastPriceOfSecuritycurrency(
         securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()));
   }
+*/
 
   @Override
   protected Security updateLastPriceSecurityCurrency(final Security security, final short maxIntraRetry,

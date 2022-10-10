@@ -33,7 +33,6 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
-import grafioschtrader.entities.Securitysplit.SplitFactorAfterBefore;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.User;
@@ -52,6 +51,7 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
+import grafioschtrader.service.GTNetLastpriceService;
 
 /**
  * Prepares the Data for every kind of Watchlists.
@@ -91,6 +91,10 @@ public class WatchlistReport {
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
+  @Autowired
+  private GTNetLastpriceService gTNetLastpriceService;
+  
+  
   /**
    * Returns the watchlist with the youngest date of history quote. This should
    * help to detect non working historical data feeds.
@@ -200,7 +204,7 @@ public class WatchlistReport {
 
     final LocalDate dateTimeFrame = LocalDate.now().minusDays(daysTimeFrame);
     Tenant tenant = tenantJpaRepository.getById(watchlist.getIdTenant());
-    final CompletableFuture<SecurityCurrency> securityCurrencyCF = CompletableFuture
+    final CompletableFuture<GTNetLastpriceService.SecurityCurrency> securityCurrencyCF = CompletableFuture
         .supplyAsync(() -> updateLastPrice(tenant, watchlist));
     final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateClose>> historyquoteMaxDayCF = CompletableFuture
         .supplyAsync(() -> getMaxDayHistoryquotesByIdWatchlist(idWatchlist));
@@ -216,11 +220,10 @@ public class WatchlistReport {
         .supplyAsync(() -> this.watchlistJpaRepository
             .watchlistSecuritiesHasOpenOrClosedTransactionForThisTenant(idWatchlist, idTenant));
 
-    
     final SecuritycurrencyGroup securitycurrencyGroup = combineLastPriceHistoryquote(tenant, securityCurrencyCF.join(),
-            historyquoteMaxDayCF.join(), historyquoteLastDayYearCF.join(), historyquoteTimeFrameCF.join(),
-            securitiesIsUsedElsewhereCF.join(), currencypairIsUsedElsewhereCF.join(),
-            watchlistSecurtiesTransactionCF.join(), watchlist, daysTimeFrame, securitysplitMap, dateCurrencyMap);
+        historyquoteMaxDayCF.join(), historyquoteLastDayYearCF.join(), historyquoteTimeFrameCF.join(),
+        securitiesIsUsedElsewhereCF.join(), currencypairIsUsedElsewhereCF.join(),
+        watchlistSecurtiesTransactionCF.join(), watchlist, daysTimeFrame, securitysplitMap, dateCurrencyMap);
     securitycurrencyGroup.idWatchlist = idWatchlist;
 
     return securitycurrencyGroup;
@@ -247,7 +250,8 @@ public class WatchlistReport {
         watchlist.getIdWatchlist());
   }
 
-  private SecurityCurrency updateLastPrice(Tenant tenant, Watchlist watchlist) {
+  
+  private GTNetLastpriceService.SecurityCurrency updateLastPrice(Tenant tenant, Watchlist watchlist) {
     final List<Security> securities = watchlist.getSecuritycurrencyListByType(Security.class);
     final List<Currencypair> currencypairs = watchlist.getSecuritycurrencyListByType(Currencypair.class);
 
@@ -257,25 +261,26 @@ public class WatchlistReport {
       watchlist.setLastTimestamp(new Date(System.currentTimeMillis()));
       watchlist = watchlistJpaRepository.save(watchlist);
       log.info("Intraday update for {}", watchlist.getName());
-      updateDependingCurrencyWhenPerformanceWatchlist(tenant, watchlist, currencypairs);
-      return new SecurityCurrency(
-          securityJpaRepository.updateLastPriceByList(watchlist.getSecuritycurrencyListByType(Security.class)),
-          currencypairJpaRepository.updateLastPriceByList(watchlist.getSecuritycurrencyListByType(Currencypair.class)));
+      List<Currencypair> currenciesNotInList = updateDependingCurrencyWhenPerformanceWatchlist(tenant, watchlist, currencypairs);
+      return gTNetLastpriceService.updateLastpriceIncludeSupplier(watchlist.getSecuritycurrencyListByType(Security.class),
+          watchlist.getSecuritycurrencyListByType(Currencypair.class), currenciesNotInList);
+    
     } else {
       log.info("No intraday update for {} because last update was at {} and is not after {}", watchlist.getName(),
           watchlist.getLastTimestamp(), timeframe);
-      return new SecurityCurrency(securities, currencypairs);
+      return new GTNetLastpriceService.SecurityCurrency(securities, currencypairs);
     }
   }
 
-  private void updateDependingCurrencyWhenPerformanceWatchlist(final Tenant tenant, Watchlist watchlist,
-      List<Currencypair> currencypairs) {
+  private List<Currencypair> updateDependingCurrencyWhenPerformanceWatchlist(final Tenant tenant, Watchlist watchlist,
+      List<Currencypair> currencypairsInWatchlist) {
     if (watchlist.getIdWatchlist().equals(tenant.getIdWatchlistPerformance())) {
       List<Currencypair> currenciesNotInList = currencypairJpaRepository
           .getAllCurrencypairsForTenantByTenant(tenant.getIdTenant());
-      currenciesNotInList.removeAll(currencypairs);
-      currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
+      currenciesNotInList.removeAll(currencypairsInWatchlist);
+      return currenciesNotInList;
     }
+    return Collections.emptyList();
   }
 
   private Map<Integer, ISecuritycurrencyIdDateClose> getLastDayOfLastYearHistoryquotesByIdWatchlist(
@@ -301,13 +306,13 @@ public class WatchlistReport {
   }
 
   private <S extends Securitycurrency<?>> SecuritycurrencyGroup combineLastPriceHistoryquote(final Tenant tenant,
-      final SecurityCurrency securityCurrency, final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDateMap,
+      final GTNetLastpriceService.SecurityCurrency securityCurrency, final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDateMap,
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayPrevYear,
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame, final int[] securitiesIsUsedElsewhereIds,
       final int[] currencypairIsUsedElsewhereIds, final int[] watchlistSecuritesHasTransactionIds,
       final Watchlist watchlist, final Integer daysTimeFrame, final Map<Integer, List<Securitysplit>> securitysplitMap,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
-    
+
     final SecuritycurrencyGroup securitycurrencyGroup = new SecuritycurrencyGroup(
         setOpenPositions(tenant, watchlist,
             setDailyChangeAndTimeFrameChange(securityCurrency.securities, historyquoteMaxDateMap,
@@ -360,8 +365,8 @@ public class WatchlistReport {
         .forEach(securitycurrency -> setDailyChangeByUsingHistoryquote(historyquoteMaxDateMap, securitycurrency));
     securitycurrencyPositionList.stream()
         .forEach(securitycurrency -> setYtdGainLoss(historyquoteLastDayPrevYear, securitycurrency));
-    securitycurrencyPositionList.stream().forEach(securitycurrency -> setTimeFrameGainLoss(historyquoteTimeFrame,
-        securitycurrency, daysTimeFrame));
+    securitycurrencyPositionList.stream()
+        .forEach(securitycurrency -> setTimeFrameGainLoss(historyquoteTimeFrame, securitycurrency, daysTimeFrame));
     return securitycurrencyPositionList;
   }
 
@@ -463,8 +468,8 @@ public class WatchlistReport {
         .get(securitycurrencyPosition.securitycurrency.getIdSecuritycurrency());
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
       final double histroyClose = historyquote.getClose();
-      securitycurrencyPosition.ytdChangePercentage = DataHelper.roundStandard(
-          (securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
+      securitycurrencyPosition.ytdChangePercentage = DataHelper
+          .roundStandard((securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
     }
   }
 
@@ -476,25 +481,13 @@ public class WatchlistReport {
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
       final double histroyClose = historyquote.getClose();
       final int years = daysTimeFrame / 365;
-      securitycurrencyPosition.timeFrameChangePercentage = DataHelper.roundStandard(
-          (securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
+      securitycurrencyPosition.timeFrameChangePercentage = DataHelper
+          .roundStandard((securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
       if (years >= 1) {
         securitycurrencyPosition.timeFrameAnnualChangePercentage = DataHelper.roundStandard(
             (Math.pow(securitycurrencyPosition.timeFrameChangePercentage / 100 + 1, 1.0 / years) - 1.0) * 100);
       }
     }
-  }
-
-  private static class SecurityCurrency {
-    List<Security> securities;
-    List<Currencypair> currencypairs;
-
-    public SecurityCurrency(final List<Security> securities, final List<Currencypair> currencypairs) {
-      super();
-      this.securities = securities;
-      this.currencypairs = currencypairs;
-    }
-
   }
 
 }

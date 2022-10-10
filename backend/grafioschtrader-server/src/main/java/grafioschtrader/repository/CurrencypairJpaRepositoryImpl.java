@@ -256,14 +256,14 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
     if (currencypairNew.getIsCryptocurrency()) {
       currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
-          .getById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
+          .getReferenceById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
-          .getById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR).getPropertyString());
+          .getReferenceById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR).getPropertyString());
     } else {
       currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
-          .getById(Globalparameters.GLOB_KEY_CURRENCY_INTRA_CONNECTOR).getPropertyString());
+          .getReferenceById(Globalparameters.GLOB_KEY_CURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
-          .getById(Globalparameters.GLOB_KEY_CURRENCY_HISTORY_CONNECTOR).getPropertyString());
+          .getReferenceById(Globalparameters.GLOB_KEY_CURRENCY_HISTORY_CONNECTOR).getPropertyString());
     }
     Currencypair currencypair = currencypairJpaRepository.save(currencypairNew);
     log.info("Create non existing currencypair from {}, to {}", fromCurrency, toCurrency);
@@ -295,12 +295,12 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
               LocalDateTime.now().plusMinutes(i), ids.get(i), Currencypair.class.getSimpleName()));
     }
   }
-
+/*
   @Override
   public void updateAllLastPrice() {
     intradayThruConnector.updateLastPriceOfSecuritycurrency(currencypairJpaRepository.findAll());
   }
-
+*/
   @Override
   public void updateIntraSecurityCurrency(final Currencypair securitycurrency, final IFeedConnector feedConnector)
       throws Exception {

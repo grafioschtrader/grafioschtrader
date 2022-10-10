@@ -1,10 +1,8 @@
 [historical] 
 Zuerst das entsprechende Instrument (Wahrung, ETF, CFD, usw.) bei <a target="_blank" href="https://www.investing.com/">Investing</a> finden.<br>
-Danach "Historical Data" klicken, bspw. <a target="_blank" href="//www.investing.com/indices/us-spx-500-historical-data">S&P 500 (SPX)</a><br>
-Für die Ermittlung der beiden Werte <b>curr_id</b>, <b>smlID</b> muss das Network der Entwicklertools im Webbrowser aktiviert werden.<br>
-Mit der Eingabe eines Datumbereichs wird ein XHR request https://www.investing.com/instruments/HistoricalDataAjax ausgelöst.</br>
-Unter "Form Data" kann <b>curr_id</b> und <b>smlID</b> ausgelesen werden, beispielsweise bspw. curr_id: 166 und smlID: 2030167 für dem S&P 500.</br>
-Nachflogend kann die <b>URL ohne Domain Name</b> des Instruments, <b>curr_id</b> und <b>smlID</b> durch Kommas getrennt eingeben werden, bspw. "indices/us-spx-500,166,2030167 für den S&P 500".
+Für die Ermittlung des gesuchten Symbols muss die Funktion Network der Entwicklertools im Webbrowser aktiviert werden. Zusätzlich sollte  nach XHR-Aufrufen gefiltert werden.</br>
+Danach klicken Sie <b>Chart</b> und suchen in den Entwicklertools die Request URL mit https://tvc4.investing.com oder https://tvc6.investing.com. Aus dieser kann der <b>symbol</b>-Parameter gelesen werden.</br>
+Beispielweise wird für den Index S&P 500 (SPX) das Symbol "166" ermittelt, dieser Wert wird danach eingetragen</br>
 [intra] 
 Das entsprechende Instrument (Wahrung, ETF, CFD, usw.) bei <a target="_blank" href="https://www.investing.com/">Investing</a> finden.<br>
 Danach den Teil ohne "https://www.investing.com/" von der URL übernehmen. Beispielsweise wird aus "https://www.investing.com/equities/dropbox-inc" für die Aktie Dropbox Inc (DBX) nur "equities/dropbox-inc" übernommen.

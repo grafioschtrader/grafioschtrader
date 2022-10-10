@@ -52,8 +52,10 @@ public class ConnectorTestHelper {
     return security;
   }
 
-  public static Security createIntraSecurity(final String name, final String urlIntraExtend, SpecialInvestmentInstruments specialInvestmentInstrument, String symbolStockexchange) {
-    return setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA), specialInvestmentInstrument, symbolStockexchange);
+  public static Security createIntraSecurity(final String name, final String urlIntraExtend,
+      SpecialInvestmentInstruments specialInvestmentInstrument, String symbolStockexchange) {
+    return setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA),
+        specialInvestmentInstrument, symbolStockexchange);
   }
 
   public static Security createIntraSecurity(final String name, final String urlIntraExtend) {
@@ -62,7 +64,8 @@ public class ConnectorTestHelper {
 
   public static Security createHistoricalSecurity(final String name, final String urlHistoryExtend,
       SpecialInvestmentInstruments specialInvestmentInstrument, String symbolStockexchange) {
-    return setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlHistoryExtend, ExtendKind.EOD), specialInvestmentInstrument, symbolStockexchange);
+    return setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlHistoryExtend, ExtendKind.EOD),
+        specialInvestmentInstrument, symbolStockexchange);
   }
 
   public static Security createHistoricalSecurity(final String name, final String urlHistoryExtend) {

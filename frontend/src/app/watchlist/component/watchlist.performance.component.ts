@@ -78,11 +78,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, gps,
       usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();
-    // Update StompJs configuration.
-    this.stompConfig = {...this.stompConfig, ...this.updatedStompConfig};
-    console.log('stomconfig', this.stompConfig);
-    this.stompService.configure(this.stompConfig);
 
+    this.updateStompJs();
     this.timeFrames.push(new TimeFrame('THIS_WEEK', moment().weekday()));
     this.timeFrames.push(new TimeFrame('DAYS_30', 30));
     this.timeFrames.push(new TimeFrame('DAYS_90', 90));
@@ -142,6 +139,15 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   ngOnInit(): void {
     this.init();
     this.getWatchlistWithoutUpdate();
+  }
+
+  private updateStompJs(): void {
+    // Update StompJs configuration.
+    if (this.gps.useWebsocket()) {
+      this.stompConfig = {...this.stompConfig, ...this.updatedStompConfig};
+      console.log('stomconfig', this.stompConfig);
+      this.stompService.configure(this.stompConfig);
+    }
   }
 
   sendMessage(idWatchlist: number, daysFrameDate: number) {

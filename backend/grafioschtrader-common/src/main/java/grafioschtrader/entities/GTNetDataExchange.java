@@ -13,16 +13,16 @@ import grafioschtrader.types.MessageCodesGTNetwork;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
-@Table(name = GTDataExchange.TABNAME)
+@Table(name = GTNetDataExchange.TABNAME)
 @Schema(description = "Contains definition which data will be exchanged. It works only for existing data")
-public class GTDataExchange {
+public class GTNetDataExchange extends BaseID {
 
-  public static final String TABNAME = "gt_network_exchange";
+  public static final String TABNAME = "gt_net_exchange";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id_gt_network_exchange")
-  private Integer idGtNetworkExchange;
+  @Column(name = "id_gt_net_exchange")
+  private Integer idGtNetExchange;
 
   @Schema(description = "Give or receive Data")
   @Column(name = "id_out")
@@ -82,6 +82,11 @@ public class GTDataExchange {
 
   public void setRecvMsgCode(MessageCodesGTNetwork recvMsgCode) {
     this.recvMsgCode = recvMsgCode.getValue();
+  }
+
+  @Override
+  public Integer getId() {
+    return idGtNetExchange;
   }
 
 }

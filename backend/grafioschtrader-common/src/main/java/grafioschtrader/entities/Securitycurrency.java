@@ -38,6 +38,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.validation.WebUrl;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * It is not mapped to transaction, because the right way goes from
@@ -111,21 +112,26 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @Column(name = "s_change_percentage")
   protected Double sChangePercentage;
 
+  @Schema(description = "Time of the last instraday price update")
   @Basic(optional = false)
   @Column(name = "s_timestamp")
   // @NotNull
   @Temporal(TemporalType.TIMESTAMP)
   protected Date sTimestamp;
 
+  @Schema(description = "Opening price for the last or current trading day")
   @Column(name = "s_open")
   protected Double sOpen;
 
+  @Schema(description = "The most current price - possibly with after hour trade.")
   @Column(name = "s_last")
   protected Double sLast;
 
+  @Schema(description = "Lowest price for the last or current trading day.")
   @Column(name = "s_low")
   protected Double sLow;
 
+  @Schema(description = "Higest price for the last or current trading day.")
   @Column(name = "s_high")
   protected Double sHigh;
 
@@ -136,6 +142,9 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   protected List<Historyquote> historyquoteList;
 
   public abstract String getName();
+  @JsonIgnore
+  public abstract boolean exspectVolume();
+  
 
   public Securitycurrency() {
   }
@@ -329,4 +338,6 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
     return true;
   }
 
+  
+  
 }

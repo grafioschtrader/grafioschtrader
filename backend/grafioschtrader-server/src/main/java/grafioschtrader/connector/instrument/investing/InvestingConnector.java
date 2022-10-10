@@ -1,22 +1,16 @@
 package grafioschtrader.connector.instrument.investing;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,16 +19,14 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.GlobalConstants;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.common.FieldColumnMapping;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertyOnlyCreation;
-import grafioschtrader.common.ValueFormatConverter;
 import grafioschtrader.connector.IConnectorNames;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -45,27 +37,23 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-/**
- * www.investing.com used manly a single ajax-call to load the data.
- *
- */
 @Component
 public class InvestingConnector extends BaseFeedConnector {
 
-  private static final String URL_EXTENDED_SEPARATOR = ",";
-  private static final char DECIMAL_SEPARATOR = '.';
-  private static final char THOUSAND_SEPARATOR = ',';
-  private static final String URL_ENDPOINT_AJAX = IConnectorNames.DOMAIN_INVESTING + "instruments/HistoricalDataAjax";
-  private static final String DATE_FORMAT_FORM = "MM/dd/yyyy";
-  private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int MAX_ROWS_DELIVERD = 5000;
-  private static final String URL_HISTORICAL_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+\\,\\d+\\,\\d+$";
-  private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
+  private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final String INVESTING = "investing";
+  private static final String INVESTING_DOMAIN_HISTORYICAL = "https://tvc4.investing.com/";
+  private static final ObjectMapper objectMapper = new ObjectMapper()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final String URL_HISTORICAL_REGEX = "^\\d+$";
+  private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
 
+  
   Map<String, String> cryptoCurrencyMap = Map.of("BTC", "bitcoin", "BNB", "binance-coin", "ETH", "ethereum", "ETC",
       "ethereum-classic", "LTC", "litecoin", "XPR", "xrp");
 
+  
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
@@ -77,71 +65,7 @@ public class InvestingConnector extends BaseFeedConnector {
     super(supportedFeed, INVESTING, "Investing.com", null);
   }
 
-  @Override
-  public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return IConnectorNames.DOMAIN_INVESTING
-        + (currencypair.isFromCryptocurrency() ? getCryptoMapping(currencypair) : "currencies") + "/"
-        + currencypair.getFromCurrency().toLowerCase() + "-" + currencypair.getToCurrency().toLowerCase();
-  }
-
-  @Override
-  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-    final Connection investingConnection = Jsoup.connect(getCurrencypairIntradayDownloadLink(currencypair));
-    updateSecuritycurrency(currencypair, investingConnection);
-  }
-
-  private String getCryptoMapping(final Currencypair currencypair) {
-    return "crypto/" + cryptoCurrencyMap.get(currencypair.getFromCurrency());
-  }
-
-  @Override
-  public String getSecurityIntradayDownloadLink(final Security security) {
-    return IConnectorNames.DOMAIN_INVESTING + security.getUrlIntraExtend();
-  }
-
-  @Override
-  public int getIntradayDelayedSeconds() {
-    return 900;
-  }
-
-  @Override
-  public void updateSecurityLastPrice(final Security security) throws Exception {
-    final Connection investingConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
-    updateSecuritycurrency(security, investingConnection);
-  }
-
-  private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency,
-      final Connection investingConnection) throws IOException {
-    final Document doc = investingConnection.timeout(10000).get();
-    Element div = doc.select("#last_last").parents().first();
-
-    if (div == null) {
-      div = doc.select("div[class^=instrument-price_instrument-price]").first();
-    }
-    String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
-        .split(" ");
-    var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;
-    securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]));
-    securitycurrency.setSOpen(
-        DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
-    securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
-    securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
-  }
-
-  @Override
-  public String getSecurityHistoricalDownloadLink(final Security security) {
-    return getHistoricalLink(security);
-  }
-
-  @Override
-  public String getCurrencypairHistoricalDownloadLink(Currencypair currencypair) {
-    return getHistoricalLink(currencypair);
-  }
-
-  private <T extends Securitycurrency<T>> String getHistoricalLink(final Securitycurrency<T> securitycurreny) {
-    return IConnectorNames.DOMAIN_INVESTING + securitycurreny.getUrlHistoryExtend().split(URL_EXTENDED_SEPARATOR)[0];
-  }
-
+  
   @Override
   protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
       String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
@@ -160,11 +84,87 @@ public class InvestingConnector extends BaseFeedConnector {
     }
     return clear;
   }
+  
+  
+  @Override
+  public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
+    return IConnectorNames.DOMAIN_INVESTING
+        + (currencypair.isFromCryptocurrency() ? getCryptoMapping(currencypair) : "currencies") + "/"
+        + currencypair.getFromCurrency().toLowerCase() + "-" + currencypair.getToCurrency().toLowerCase();
+  }
 
+  private String getCryptoMapping(final Currencypair currencypair) {
+    return "crypto/" + cryptoCurrencyMap.get(currencypair.getFromCurrency());
+  }
+  
+  @Override
+  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
+    final Connection investingConnection = Jsoup.connect(getCurrencypairIntradayDownloadLink(currencypair));
+    updateSecuritycurrency(currencypair, investingConnection);
+  }
+
+  @Override
+  public String getSecurityIntradayDownloadLink(final Security security) {
+    return IConnectorNames.DOMAIN_INVESTING + security.getUrlIntraExtend();
+  }
+  
+  @Override
+  public void updateSecurityLastPrice(final Security security) throws Exception {
+    final Connection investingConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
+    updateSecuritycurrency(security, investingConnection);
+  }
+  
+  @Override
+  public int getIntradayDelayedSeconds() {
+    return 1;
+  }
+  
+  private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency,
+      final Connection investingConnection) throws IOException {
+    final Document doc = investingConnection.timeout(10000).get();
+    Element div = doc.select("#last_last").parents().first();
+
+    if (div == null) {
+      div = doc.select("div[class^=instrument-price_instrument-price]").first();
+    }
+    String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
+        .split(" ");
+    var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;
+    securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]));
+    securitycurrency.setSOpen(
+        DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
+    securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
+    securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+  }
+  
+  
+  @Override
+  public String getSecurityHistoricalDownloadLink(final Security security) {
+    return getSecurityCurrencyHistoricalDownloadLink(security);
+  }
+
+  private <T extends Securitycurrency<T>> String getHistoricalLink(final Securitycurrency<T> securitycurreny, Date from,
+      Date to, String guid) {
+    return INVESTING_DOMAIN_HISTORYICAL + guid + "/0/0/0/0/history?symbol=" + securitycurreny.getUrlHistoryExtend() + "&resolution=D&from="
+        + (new Timestamp(from.getTime()).getTime() / 1000) + "&to=" + (new Timestamp(to.getTime()).getTime() / 1000);
+  }
+
+  @Override
+  public String getCurrencypairHistoricalDownloadLink(Currencypair currencypair) {
+    return getSecurityCurrencyHistoricalDownloadLink(currencypair);
+  }
+  
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws Exception {
     return getEodHistory(currencyPair, from, to);
+  }
+
+  private <T extends Securitycurrency<T>> String getSecurityCurrencyHistoricalDownloadLink(
+      final Securitycurrency<T> securitycurreny) {
+    Date to = new Date();
+    Date from = DateHelper.setTimeToZeroAndAddDay(to, -10);
+    return getHistoricalLink(securitycurreny, from, to, DataHelper.generateGUID());
   }
 
   @Override
@@ -175,130 +175,53 @@ public class InvestingConnector extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> List<Historyquote> getEodHistory(final Securitycurrency<T> securitycurreny,
       final Date from, final Date to) throws Exception {
-    List<Historyquote> historyquotes = getEodHistoryLimitedRows(securitycurreny, from, to);
+    String guid = DataHelper.generateGUID();
+    boolean expectVolume = securitycurreny.exspectVolume();
+    List<Historyquote> historyquotes = getEodHistoryLimitedRows(securitycurreny, from, to, guid, expectVolume);
+
     if (historyquotes.size() >= MAX_ROWS_DELIVERD - 1
         && DateHelper.getDateDiff(historyquotes.get(0).getDate(), to, TimeUnit.DAYS) > 2) {
       historyquotes.addAll(getEodHistoryLimitedRows(securitycurreny,
-          DateHelper.setTimeToZeroAndAddDay(historyquotes.get(0).getDate(), 1), to));
+          DateHelper.setTimeToZeroAndAddDay(historyquotes.get(0).getDate(), 1), to, guid, expectVolume));
     }
     return historyquotes;
   }
 
   private <T extends Securitycurrency<T>> List<Historyquote> getEodHistoryLimitedRows(
-      final Securitycurrency<T> securitycurreny, final Date from, final Date to) throws Exception {
-    final SimpleDateFormat dateFormatUS = new SimpleDateFormat(DATE_FORMAT_FORM);
-    HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
-
-    String[] ids = securitycurreny.getUrlHistoryExtend().split(URL_EXTENDED_SEPARATOR);
-
-    Map<String, String> arguments = new HashMap<>();
-    arguments.put("curr_id", ids[1]);
-    arguments.put("smlID", ids[2]);
-    // arguments.put("header", "SMI Historical Data");
-    arguments.put("st_date", dateFormatUS.format(from));
-    arguments.put("end_date", dateFormatUS.format(to));
-    arguments.put("interval_sec", "Daily");
-    arguments.put("sort_col", "date");
-    arguments.put("sort_ord", "DESC");
-    arguments.put("action", "historical_data");
-
-    StringJoiner sj = new StringJoiner("&");
-    for (Map.Entry<String, String> entry : arguments.entrySet())
-      sj.add(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "="
-          + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
-
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(URL_ENDPOINT_AJAX))
-        .headers("Content-Type", "application/x-www-form-urlencoded", "x-requested-with", "XMLHttpRequest",
-            "User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .POST(HttpRequest.BodyPublishers.ofString(sj.toString())).build();
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    List<FieldColumnMapping> fieldColumnMappings = parseTableHeader(Jsoup.parse(response.body()));
-
-    return parseTableContent(Jsoup.parse(response.body()), fieldColumnMappings);
-  }
-
-  private List<Historyquote> parseTableContent(Document doc, List<FieldColumnMapping> fieldColumnMappings)
+      final Securitycurrency<T> securitycurreny, final Date from, final Date to, String guid, boolean expectVolume)
       throws Exception {
-    ValueFormatConverter valueFormatConverter = new ValueFormatConverter(DECIMAL_SEPARATOR, THOUSAND_SEPARATOR);
+    HttpClient client = HttpClient.newHttpClient();
+    HttpRequest request = HttpRequest.newBuilder().GET().header("accept", "application/json")
+        .header("Referer", "https://tvc-invdn-com.investing.com/")
+        .uri(URI.create(getHistoricalLink(securitycurreny, from, to, guid))).build();
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    final Quotes quotes = objectMapper.readValue(response.body(), Quotes.class);
     final List<Historyquote> historyquotes = new ArrayList<>();
-    Elements rows = getHtmlTablePart(doc, "tbody", "tr");
-
-    for (Element row : rows) {
-      Elements cols = row.select("td");
-
-      if (cols.size() > 4) {
-        Historyquote historyquote = new Historyquote();
-        for (int c = 0; c < cols.size(); c++) {
-          Element col = cols.get(c);
-          FieldColumnMapping fcm = fieldColumnMappings.get(c);
-          if (fcm.field != null) {
-            String value = col.attr("data-real-value");
-            valueFormatConverter.convertAndSetValue(historyquote, fcm.field.getName(), value, fcm.field.getType(),
-                true);
-          }
-        }
-        historyquotes.add(historyquote);
+    for (int i = 0; i < quotes.t.length; i++) {
+      final Historyquote historyquote = new Historyquote();
+      historyquotes.add(historyquote);
+      historyquote.setDate(new Date(quotes.t[i].getTime() * 1000));
+      historyquote.setClose(quotes.c[i]);
+      historyquote.setOpen(quotes.o[i]);
+      historyquote.setHigh(quotes.h[i]);
+      historyquote.setLow(quotes.l[i]);
+      if (expectVolume) {
+        historyquote.setVolume(Long.parseLong(quotes.v[i]));
       }
     }
     return historyquotes;
   }
 
-  private List<FieldColumnMapping> parseTableHeader(Document doc) {
-    List<FieldColumnMapping> fieldColumnMappings = new ArrayList<>();
-    List<Field> fields = DataHelper.getFieldByPropertiesAnnotation(Historyquote.class,
-        Set.of(PropertyAlwaysUpdatable.class, PropertyOnlyCreation.class));
-    Elements headerRows = getHtmlTablePart(doc, "thead", "th");
-
-    for (int i = 0; i < headerRows.size(); i++) {
-      final int k = i;
-      String propertyName = headerRows.get(i).attr("data-col-name");
-      ColumnMapping cm = ColumnMapping.getColumnMapping(propertyName);
-      if (cm != null) {
-        fields.stream().filter(field -> field.getName().toUpperCase().equals(cm.name())).findFirst()
-            .ifPresent(field -> fieldColumnMappings.add(new FieldColumnMapping(k, field)));
-      } else {
-        fieldColumnMappings.add(new FieldColumnMapping(k, null));
-      }
-    }
-    return fieldColumnMappings;
+  private static class Quotes {
+    public String s;
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "s")
+    public Timestamp[] t;
+    public double[] c;
+    public double[] o;
+    public double[] h;
+    public double[] l;
+    public String[] v;
   }
 
-  private Elements getHtmlTablePart(Document doc, String headBodySelector, String rowSelector) {
-    Element table = doc.select("table").get(0);
-    Elements tbody = table.select(headBodySelector);
-    return tbody.select(rowSelector);
-  }
-
-  /**
-   * Mappging between history quote and html import data.
-   *
-   * String literal is the property name of the "data-col-name"</br>
-   * Enum is upper case of history quote property</br>
-   *
-   * @author Hugo Graf
-   *
-   */
-  enum ColumnMapping {
-    DATE("date"), CLOSE("price"), OPEN("open"), VOLUME("vol"), HIGH("high"), LOW("low");
-
-    private String property;
-
-    ColumnMapping(String property) {
-      this.property = property;
-    }
-
-    public String getProperty() {
-      return property;
-    }
-
-    public static ColumnMapping getColumnMapping(String propertyName) {
-      for (ColumnMapping property : ColumnMapping.values()) {
-        if (property.getProperty().equals(propertyName)) {
-          return property;
-        }
-      }
-      return null;
-    }
-
-  }
 }

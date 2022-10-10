@@ -18,6 +18,7 @@ import grafioschtrader.entities.Watchlist;
 
 public interface RequestMappings {
   public static final String API = "/api/";
+  public static final String M2M_API = "/m2m/";
 
   public static final String ASSETCLASS_MAP = API + Assetclass.TABNAME;
 
@@ -47,6 +48,9 @@ public interface RequestMappings {
 
   public static final String GLOBALPARAMETERS_MAP = API + Globalparameters.TABNAME;
 
+  public static final String GTNET = "gtnet";
+  public static final String GTNET_MAP = API + GTNET;
+  
   public static final String HISTORYQUOTE_MAP = API + Historyquote.TABNAME;
 
   public static final String HISTORYQUOTE_PERIOD = "historyquoteperiod";
@@ -89,6 +93,7 @@ public interface RequestMappings {
   public static final String STOCKEXCHANGE_MAP = API + Stockexchange.TABNAME;
 
   public static final String SECURITY_MAP = API + Security.TABNAME;
+  public static final String SECURITY_M2M_MAP = M2M_API + Security.TABNAME;
 
   public static final String SECURITYSPLIT_MAP = API + Securitysplit.TABNAME;
 

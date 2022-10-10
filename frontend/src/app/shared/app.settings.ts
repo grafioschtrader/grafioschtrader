@@ -13,6 +13,7 @@ export class AppSettings {
   public static readonly CURRENCYPAIR = 'Currencypair';
   public static readonly DIVIDEND = 'Dividend';
   public static readonly GLOBALPARAMETERS = 'Globalparameters';
+  public static readonly GTNET= 'GTNet';
   public static readonly HISTORYQUOTE = 'Historyquote';
   public static readonly HISTORYQUOTE_PERIOD = 'HistoryquotePeriod';
   public static readonly IMPORT_TRANSACTION_HEAD = 'ImportTransactionHead';
@@ -76,6 +77,9 @@ export class AppSettings {
   public static readonly GLOBAL_SETTINGS_KEY = 'globalsettings';
   public static readonly TASK_DATA_CHANGE_KEY = 'taskdatachange';
   public static readonly TASK_DATA_CHANGE_MONITOR_KEY = 'taskdatachangemonitor';
+  public static readonly GTNET_CONSUME_MONITOR_KEY = 'gtnetconsumemonitor'
+  public static readonly GTNET_SETUP_KEY = 'gtnetsetup'
+  public static readonly GTNET_PROVIDER_MONITOR_KEY = 'gtnetprovidermonitor'
   public static readonly TRADING_DAYS_MINUS_KEY = AppSettings.TRADING_DAYS_MINUS.toLowerCase();
   public static readonly TRADING_DAYS_PLUS_KEY = AppSettings.TRADING_DAYS_PLUS.toLowerCase();
   public static readonly IMPORT_TRANSACTION_HEAD_KEY = AppSettings.IMPORT_TRANSACTION_HEAD.toLowerCase();
