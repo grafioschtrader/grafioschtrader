@@ -67,10 +67,11 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
       final FilterChain chain) throws IOException, ServletException {
 
     try {
+      // System.out.println(((HttpServletRequest) servletRequest).getRequestURL().toString());
+      
       Authentication authentication = tokenAuthenticationService
           .generateAuthenticationFromRequest((HttpServletRequest) servletRequest);
       SecurityContextHolder.getContext().setAuthentication(authentication);
-
       if (authentication != null) {
         if (limitRequest) {
           doFilterWithlimitWatcher(servletRequest, servletResponse, chain, authentication);
@@ -81,7 +82,8 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
       } else {
         chain.doFilter(servletRequest, servletResponse);
       }
-      SecurityContextHolder.getContext().setAuthentication(null);
+
+//      SecurityContextHolder.getContext().setAuthentication(null);
     } catch (RequestLimitAndSecurityBreachException lee) {
       // User has to many times misused the limits of GT
       SecurityContextHolder.clearContext();
@@ -109,5 +111,6 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
           HttpStatus.TOO_MANY_REQUESTS, new SingleNativeMsgError(message));
     }
   }
+ 
 
 }

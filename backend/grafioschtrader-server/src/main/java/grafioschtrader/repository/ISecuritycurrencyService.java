@@ -17,7 +17,7 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
   /**
    * Update the last price of every currency pair
    */
-  void updateAllLastPrice();
+//  void updateAllLastPrice();
 
   /**
    * Returns a list of IFeedConnector which supports currency or security

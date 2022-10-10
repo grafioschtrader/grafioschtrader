@@ -221,6 +221,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         null, null, null)
     });
 
+    // this.addGTNetToTree();
+
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
       label: 'TASK_DATA_MONITOR',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.TASK_DATA_CHANGE_MONITOR_KEY),
@@ -239,6 +241,30 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       });
     }
     this.setLangTransNode(this.portfolioTrees[this.ADMINDATA_INDEX]);
+  }
+
+  private  addGTNetToTree(): void {
+    const gtNetNode: TreeNode = {
+      expanded: true, children: [],
+      label: 'GTNET_CONSUME_MONITOR',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_CONSUME_MONITOR_KEY),
+        null, null, null)
+    }
+
+    gtNetNode.children.push({
+      label: 'GTNET_SETUP',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_SETUP_KEY),
+        null, null, null)
+    })
+
+    gtNetNode.children.push({
+      label: 'GTNET_PROVIDER_MONITOR',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_PROVIDER_MONITOR_KEY),
+        null, null, null)
+    })
+
+    this.portfolioTrees[this.ADMINDATA_INDEX].children.push(gtNetNode);
+
   }
 
   addSecurityaccountToTree(portfolio: Portfolio): TreeNode {

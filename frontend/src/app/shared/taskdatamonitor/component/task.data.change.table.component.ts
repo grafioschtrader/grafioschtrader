@@ -24,7 +24,7 @@ import {InfoLevelType} from '../../message/info.leve.type';
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-table [columns]="fields" [value]="taskDataChangeList" selectionMode="single"
+      <p-table #table [columns]="fields" [value]="taskDataChangeList" selectionMode="single"
                [(selection)]="selectedEntity" dataKey="idTaskDataChange"
                sortMode="multiple" [multiSortMeta]="multiSortMeta"
                responsiveLayout="scroll"
@@ -45,6 +45,7 @@ import {InfoLevelType} from '../../message/info.leve.type';
             </th>
           </tr>
           <tr *ngIf="hasFilter">
+            <th style="width:24px"></th>
             <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
               <ng-container *ngSwitchCase="FilterType.likeDataType">
                 <ng-container [ngSwitch]="field.dataType">
@@ -59,10 +60,14 @@ import {InfoLevelType} from '../../message/info.leve.type';
                       </p-calendar>
                     </ng-template>
                   </p-columnFilter>
-                  <p-columnFilter *ngSwitchCase="DataType.Numeric" type="numeric" [field]="field.field"
+                  <p-columnFilter *ngSwitchCase="DataType.NumericShowZero" type="numeric" [field]="field.field"
                                   [locale]="formLocale"
-                                  minFractionDigits="2" display="menu"></p-columnFilter>
+                                  minFractionDigits="0" display="menu"></p-columnFilter>
                 </ng-container>
+              </ng-container>
+              <ng-container *ngSwitchCase="FilterType.withOptions">
+                <p-dropdown [options]="field.filterValues" [style]="{'width':'100%'}"
+                            (onChange)="table.filter($event.value, field.field, 'equals')"></p-dropdown>
               </ng-container>
             </th>
           </tr>
@@ -142,11 +147,12 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
         CrudMenuOptions.Allow_Delete] : []);
 
     this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, false,
-      {filterType: FilterType.likeDataType});
+      {});
     this.addColumnFeqH(DataType.NumericShowZero, 'taskAsId', true, false,
-      {width: 40, maxFractionDigits: 0});
+      {width: 40, maxFractionDigits: 0, filterType: FilterType.likeDataType});
+
     this.addColumnFeqH(DataType.String, 'idTask', true, false,
-      {translateValues: TranslateValue.NORMAL, width: 300});
+      {translateValues: TranslateValue.NORMAL, width: 300, filterType: FilterType.likeDataType});
     this.addColumnFeqH(DataType.DateTimeSecondString, 'earliestStartTime', true, false);
     this.addColumnFeqH(DataType.String, 'entity', true, false,
       {translateValues: TranslateValue.UPPER_CASE});
@@ -165,14 +171,14 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.multiSortMeta.push({field: 'creationTime', order: -1});
     this.multiSortMeta.push({field: 'taskAsId', order: 1});
 
-    this.prepareTableAndTranslate();
+   // this.prepareTableAndTranslate();
   }
 
   getShowLines(text: string): number {
     return Math.min((text.match(/\n/g) || '').length + 1, 15);
   }
 
-  prepareCallParm(entity: TaskDataChange): void {
+  override prepareCallParm(entity: TaskDataChange): void {
     this.callParam = entity;
   }
 
@@ -180,7 +186,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     return HelpIds.HELP_TASK_DATA_CHANGE_MONITOR;
   }
 
-  protected readData(): void {
+  protected override readData(): void {
     combineLatest([this.taskDataChangeService.getAllTaskDataChange(), this.taskDataChangeService.getFormConstraints()]).subscribe(data => {
       this.taskDataChangeList = data[0];
       this.tdcFormConstraints = data[1];

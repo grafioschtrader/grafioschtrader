@@ -63,7 +63,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   @Autowired
   protected HistoryquoteJpaRepository historyquoteJpaRepository;
-
+ 
   @PersistenceContext
   protected EntityManager entityManager;
 
@@ -75,7 +75,8 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   public List<IFeedConnector> feedConnectorbeans = new ArrayList<>();
 
   public abstract JpaRepository<S, Integer> getJpaRepository();
-
+  
+  
   /**
    * Checks if the data provider was changed by the user and the EOD must be
    * reloaded.
@@ -100,6 +101,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         null);
   }
 
+ 
   protected void reloadAsyncHistoryquotes(S createEditSecuritycurrency) {
     getHistorquoteLoad(createEditSecuritycurrency).reloadAsyncFullHistoryquote(securityServiceAsyncExectuion, this,
         createEditSecuritycurrency);
@@ -126,8 +128,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         .getSecuritycurrencyIntraDownloadLinkAsUrlStr(securitycurrencyPosition.securitycurrency);
   }
 
-  
-  
   ////////////////////////////////////////////////////////////////
   // Gain and loose calculation
   ////////////////////////////////////////////////////////////////
@@ -253,5 +253,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     return existingSecurity == null ? Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class)
         : Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class);
   }
-
+  
+  
 }

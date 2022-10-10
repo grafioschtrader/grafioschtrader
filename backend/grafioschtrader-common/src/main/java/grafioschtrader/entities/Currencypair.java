@@ -16,7 +16,6 @@ import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -31,7 +30,6 @@ import grafioschtrader.validation.ValidCurrencyCode;
 @Entity
 @Table(name = Currencypair.TABNAME)
 @DiscriminatorValue("C")
-@XmlRootElement
 @NamedEntityGraph(name = "graph.currency.historyquote", attributeNodes = @NamedAttributeNode("historyquoteList"))
 public class Currencypair extends Securitycurrency<Currencypair> implements Serializable {
 
@@ -98,6 +96,11 @@ public class Currencypair extends Securitycurrency<Currencypair> implements Seri
         + idConnectorIntra + ", retryHistoryLoad=" + retryHistoryLoad + ", retryIntraLoad=" + retryIntraLoad
         + ", sPrevClose=" + sPrevClose + ", sChangePercentage=" + sChangePercentage + ", sTimestamp=" + sTimestamp
         + ", sOpen=" + sOpen + ", sLast=" + sLast + "]";
+  }
+
+  @Override
+  public boolean exspectVolume() {
+    return GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(fromCurrency);
   }
 
 }

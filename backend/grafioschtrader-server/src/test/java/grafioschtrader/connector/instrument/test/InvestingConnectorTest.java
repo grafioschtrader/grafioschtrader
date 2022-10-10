@@ -18,6 +18,7 @@ import grafioschtrader.connector.instrument.investing.InvestingConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class InvestingConnectorTest {
 
@@ -26,10 +27,9 @@ class InvestingConnectorTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-    
 
-    securities.add(ConnectorTestHelper.createIntraSecurity("MOEX Russia (IMOEX)",
-        "indices/mcx"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40", "indices/france-40-chart"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("MOEX Russia (IMOEX)", "indices/mcx"));
     securities.add(ConnectorTestHelper.createIntraSecurity("Bitcoin Tracker EUR XBT Provider (SE0007525332)",
         "etfs/bitcoin-tracker-eur-xbt-provider"));
     securities.add(ConnectorTestHelper.createIntraSecurity("Apple Inc (AAPL)", "equities/apple-computer-inc"));
@@ -65,7 +65,8 @@ class InvestingConnectorTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      System.out.println(currencyPair.getFromCurrency() +  "/" + currencyPair.getToCurrency() + ":" + currencyPair.getSLast()); 
+      System.out
+          .println(currencyPair.getFromCurrency() + "/" + currencyPair.getToCurrency() + ":" + currencyPair.getSLast());
       assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
     });
   }
@@ -82,11 +83,9 @@ class InvestingConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("CNY", "CHF",
-        "currencies/cny-chf-historical-data,9495,111486"));
-    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("BTC", "CHF",
-        "indices/investing.com-btc-chf-historical-data,1117720,2207960"));
-    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("USD", "CHF", "currencies/usd-chf,4,106685"));
+    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("CNY", "CHF", "9495"));
+    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("BTC", "CHF", "1117720"));
+    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("USD", "CHF", "4"));
 
     currencies.parallelStream().forEach(currencypair -> {
       List<Historyquote> historyquote = new ArrayList<>();
@@ -112,13 +111,14 @@ class InvestingConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("Enel", "equities/enel-historical-data,6963,1160404"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("S&P 500 (SPX)",
-        "indices/us-spx-500-historical-data,166,2030167"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("SMI Futures - Jun 19",
-        "indices/switzerland-20-futures,8837,500048"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("USA 30-Year Bond Yiel",
-        "rates-bonds/u.s.-30-year-bond-yield,23706,200657"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("Enel", "6963",
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, ""));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("S&P 500 (SPX)", "166",
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, ""));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("SMI Futures - Jun 19", "8837",
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, ""));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("USA 30-Year Bond Yiel", "23706",
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, ""));
 
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();

@@ -316,7 +316,6 @@ public class Security extends Securitycurrency<Security> implements Serializable
     this.distributionFrequency = distributionFrequency.getValue();
   }
 
- 
   public float getLeverageFactor() {
     return leverageFactor;
   }
@@ -492,7 +491,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
 
   @JsonIgnore
   public boolean canHaveDividendConnector() {
-    if(isDerivedInstrument()) {
+    if (isDerivedInstrument()) {
       return false;
     }
     boolean canHaveDividend = false;
@@ -536,12 +535,12 @@ public class Security extends Securitycurrency<Security> implements Serializable
       this.leverageFactor = 1;
     }
   }
-  
+
   @Override
   public void clearUnusedFields() {
     super.clearUnusedFields();
     if (isMarginInstrument()) {
-      isin= null;
+      isin = null;
     }
     if (idTenantPrivate != null) {
       isin = null;
@@ -586,6 +585,12 @@ public class Security extends Securitycurrency<Security> implements Serializable
         + Arrays.toString(hpPropose) + ", price=" + price + ", idSecuritycurrency=" + idSecuritycurrency
         + ", sPrevClose=" + sPrevClose + ", sChangePercentage=" + sChangePercentage + ", sTimestamp=" + sTimestamp
         + ", sOpen=" + sOpen + ", sLast=" + sLast + ", sLow=" + sLow + ", sHigh=" + sHigh + "]";
+  }
+
+  @Override
+  public boolean exspectVolume() {
+    return !(isDerivedInstrument()
+        || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES);
   }
 
 }

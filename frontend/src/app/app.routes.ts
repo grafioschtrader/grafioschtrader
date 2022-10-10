@@ -53,6 +53,9 @@ import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchli
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
 import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
 import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
+import {GTNetConsumerMonitorComponent} from "./gtnet/component/gtnet.consumer.monitor.component";
+import {GTNetSetupTableComponent} from "./gtnet/component/gtnet.setup.table.component";
+import {GTNetProviderMonitorComponent} from "./gtnet/component/gtnet.provider.monitor.component";
 
 
 const APP_ROUTES: Routes = [
@@ -232,6 +235,21 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.GLOBAL_SETTINGS_KEY,
         component: GlobalSettingsTableComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: AppSettings.GTNET_CONSUME_MONITOR_KEY,
+        component: GTNetConsumerMonitorComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: AppSettings.GTNET_SETUP_KEY,
+        component: GTNetSetupTableComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: AppSettings.GTNET_PROVIDER_MONITOR_KEY,
+        component: GTNetProviderMonitorComponent,
         canActivate: [AuthGuard]
       },
       {

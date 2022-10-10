@@ -255,6 +255,9 @@
   "GROUP_BY_FINANCIAL_INSTRUMENT": "Grouped by Financial instrument",
   "GROUP_BY_PORTFOLIO": "Grouped by portfolio",
   "GROUP_BY_SUB_CATEGORY": "Grouped by Sub-asset class",
+  "GTNET_CONSUME_MONITOR": "GT Net consumer monitor",
+  "GTNET_SETUP": "Setup GT Net",
+  "GTNET_PROVIDER_MONITOR": "GT Net provider monitor",
   "GT_FILTER": {
     "gtNoFilter": "No Filter",
     "gtIS": "Equals",
@@ -673,9 +676,9 @@
   "VALUE_SECURITY": "Total Position",
   "VALUE_SECURITY_TOOLTIP": "Total of the open position in the corresponding currency",
   "VERIFYING_TOKEN": "Verifying token...",
-  "V_0_24_0": "Data source EOD Historical Data and Stockdata.org added",
   "V_0_25_0": "Better support for inverse and leveraged ETF and ETN.",
   "V_0_26_0": "Batch monitor improvements",
+  "V_0_27_0": "Repair data source EOD Historical Data Investing.com"
   "WACHTLIST_DIVIDEND_SPLIT_FEED": "Dividends/Split feed",
   "WACHTLIST_PRICE_FEED": "Quote data feed",
   "WARNING": "Warning",
