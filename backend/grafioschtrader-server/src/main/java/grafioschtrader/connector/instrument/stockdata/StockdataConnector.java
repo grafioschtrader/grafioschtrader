@@ -1,6 +1,7 @@
 package grafioschtrader.connector.instrument.stockdata;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
@@ -48,8 +49,8 @@ public class StockdataConnector extends BaseFeedApiKeyConnector {
     super(supportedFeed, "stockdata", "Stockdata", null);
   }
 
-  private String getApiKeyString() {
-    return "&api_token=" + getApiKey();
+  private String getApiKeyString(boolean firstArgument) {
+    return (firstArgument? "": "&") +  "api_token=" + getApiKey();
   }
 
   @Override
@@ -66,7 +67,7 @@ public class StockdataConnector extends BaseFeedApiKeyConnector {
   private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
     return DOMAIN_NAME_WITH_VERSION + "data/eod?symbols=" + ticker + "&date_from=" + dateFormat.format(from)
-        + "&date_to=" + dateFormat.format(to) + getApiKeyString();
+        + "&date_to=" + dateFormat.format(to) + getApiKeyString(false);
   }
 
   private String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, Date from, Date to) {
@@ -115,7 +116,7 @@ public class StockdataConnector extends BaseFeedApiKeyConnector {
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     return DOMAIN_NAME_WITH_VERSION + "data/quote?symbols=" + security.getUrlIntraExtend().toUpperCase()
-        + getApiKeyString();
+        + getApiKeyString(false);
   }
 
   @Override
@@ -135,7 +136,7 @@ public class StockdataConnector extends BaseFeedApiKeyConnector {
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
     return DOMAIN_NAME_WITH_VERSION + "data/currency/latest?symbols=" + getCurrencyPairSymbol(currencypair)
-        + getApiKeyString();
+        + getApiKeyString(false);
   }
 
   @Override
@@ -145,6 +146,12 @@ public class StockdataConnector extends BaseFeedApiKeyConnector {
     for (QuoteDataCurrencypair data : quote.data[0]) {
       data.setValues(currencypair);
     }
+  }
+
+  public StockexchangeAllStockdata getAllStockexchanges()
+      throws StreamReadException, DatabindException, MalformedURLException, IOException {
+    return objectMapper.readValue(new URL(DOMAIN_NAME_WITH_VERSION + "entity/exchange/list?" + getApiKeyString(true)),
+        StockexchangeAllStockdata.class);
   }
 
   private String getCurrencyPairSymbol(final Currencypair currencypair) {
@@ -215,5 +222,30 @@ public class StockdataConnector extends BaseFeedApiKeyConnector {
       super.setValues(currencypair);
       currencypair.setSChangePercentage(change_percent);
     }
+  }
+
+  public static class StockexchangeAllStockdata {
+    public List<StockexchangeStockdata> data;
+  }
+
+  public static class StockexchangeStockdata {
+    public String mic_code;
+    public String exchange;
+    public String stock_exchange_long;
+    public String country;
+    public String append;
+    public String timezone;
+    public String timezone_dst;
+    public String timezone_name;
+    public byte is_dst;
+    @Override
+    public String toString() {
+      return "StockexchangeStockdata [mic_code=" + mic_code + ", exchange=" + exchange + ", stock_exchange_long="
+          + stock_exchange_long + ", country=" + country + ", append=" + append + ", timezone=" + timezone
+          + ", timezone_dst=" + timezone_dst + ", timezone_name=" + timezone_name + ", is_dst=" + is_dst + "]";
+    }
+    
+    
+    
   }
 }

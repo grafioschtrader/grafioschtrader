@@ -13,11 +13,15 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {plainToClass} from 'class-transformer';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud.support.menu.security';
+import {StockexchangeBaseData, StockexchangeMic} from "../model/stockexchange.base.data";
+import {StockexchangeHasSecurity} from "../model/stockexchange.has.security";
+import {BusinessHelper} from "../../shared/helper/business.helper";
+import {StockexchangeHelper} from "./stockexchange.helper";
 
 /**
  * Shows stock exchanges in a table
@@ -93,7 +97,8 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
   callParam: StockexchangeCallParam = new StockexchangeCallParam();
 
   private countriesAsHtmlOptions: ValueKeyHtmlSelectOptions[];
-  private countriesAsKeyValue: { [key: string]: string } = {};
+  private countriesAsKeyValue: { [cc: string]: string } = {};
+  private stockexchangeMics: StockexchangeMic[];
 
   constructor(private stockexchangeService: StockexchangeService,
               confirmationService: ConfirmationService,
@@ -107,13 +112,14 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     super(AppSettings.STOCKEXCHANGE, stockexchangeService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService);
 
-    this.addColumnFeqH(DataType.String, 'name', true, false, {
-      width: 180,
+    this.addColumnFeqH(DataType.String, 'mic', true, false, {
+      width: 40,
       templateName: AppSettings.OWNER_TEMPLATE
     });
+    this.addColumnFeqH(DataType.String, 'name', true, false, {
+      width: 180,});
     this.addColumnFeqH(DataType.String, 'countryCode', true, false,
       {fieldValueFN: this.getDisplayNameForCounty.bind(this)});
-    this.addColumnFeqH(DataType.String, 'symbol', true, false);
     this.addColumnFeqH(DataType.Boolean, 'secondaryMarket', true, false,
       {templateName: 'check'});
     this.addColumnFeqH(DataType.Boolean, 'noMarketValue', true, false,
@@ -123,13 +129,13 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
     this.addColumn(DataType.String, 'nameIndexUpdCalendar', 'ID_INDEX_UPD_CALENDAR', true, false, {width: 180});
     this.addColumnFeqH(DataType.TimeString, 'localTime', true, false);
-    this.addColumnFeqH(DataType.DateTimeString, 'lastDirectPriceUpdate',  true, false,
+    this.addColumnFeqH(DataType.DateTimeString, 'lastDirectPriceUpdate', true, false,
       {width: 100});
     this.multiSortMeta.push({field: 'name', order: 1});
     this.prepareTableAndTranslate();
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_BASEDATA_STOCKEXCHANGE;
   }
 
@@ -154,22 +160,46 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
       .map(stockexchange => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
   }
 
-  protected readData(): void {
-    combineLatest([this.stockexchangeService.getAllStockexchanges(true),
-      this.stockexchangeService.stockexchangesHasSecurity(), this.gps.getCountries()]).subscribe(data => {
-      this.entityList = plainToClass(Stockexchange, data[0]);
-      data[1].forEach(keyvalue => this.hasSecurityObject[keyvalue.id] = keyvalue.s);
-      this.callParam.countriesAsHtmlOptions = data[2];
-      data[2].forEach(o => {
-        this.countriesAsKeyValue.key = <string>o.key;
-        this.countriesAsKeyValue[o.key] = o.value;
+  protected override readData(): void {
+    if (this.callParam.countriesAsHtmlOptions) {
+      combineLatest([this.stockexchangeService.getAllStockexchanges(true),
+        this.stockexchangeService.stockexchangesHasSecurity()]).subscribe(data => {
+        this.prepareStockexchanges(data[0], data[1]);
       });
-      this.refreshSelectedEntity();
-    });
+    } else {
+      this.stockexchangeService.getAllStockexchangesBaseData().subscribe((sbd: StockexchangeBaseData) => {
+        this.stockexchangeMics = sbd.stockexchangeMics;
+        this.prepareCountiesSelect(sbd.countries);
+        this.prepareStockexchanges(sbd.stockexchanges, sbd.hasSecurity);
+      });
+    }
   }
 
-  protected prepareCallParm(entity: Stockexchange) {
+  private prepareStockexchanges(stockexchanges: Stockexchange[], shs: StockexchangeHasSecurity[]): void {
+    this.entityList = plainToClass(Stockexchange, stockexchanges);
+    shs.forEach(keyvalue => this.hasSecurityObject[keyvalue.id] = keyvalue.s);
+    this.refreshSelectedEntity();
+  }
+
+  private prepareCountiesSelect(vkhso: ValueKeyHtmlSelectOptions[]): void {
+    this.callParam.countriesAsHtmlOptions = vkhso;
+    this.countriesAsKeyValue = StockexchangeHelper.transform(vkhso);
+  }
+
+  public override getEditMenuItems(): MenuItem[] {
+    const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
+    menuItems.push({separator: true});
+    menuItems.push({
+      label: 'WEBSITE', command: (e) => BusinessHelper.toExternalWebpage(this.selectedEntity.website, 'stockexchange'),
+      disabled: !this.selectedEntity || !this.selectedEntity.website
+    });
+    return menuItems;
+  }
+
+  protected override prepareCallParm(entity: Stockexchange) {
     this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
     this.callParam.stockexchange = entity;
+    this.callParam.stockexchangeMics = this.stockexchangeMics;
+    this.callParam.existingMic = new Set(this.entityList.map(se => se.mic));
   }
 }

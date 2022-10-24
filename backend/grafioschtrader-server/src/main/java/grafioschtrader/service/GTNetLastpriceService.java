@@ -11,12 +11,12 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetLastpriceCurrencypair;
 import grafioschtrader.entities.Security;
+import grafioschtrader.gtnet.GTNetServerStateTypes;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetLastpriceCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetLastpriceSecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.types.LastpriceRightsCapabilityType;
 
 @Service
 public class GTNetLastpriceService {
@@ -41,8 +41,8 @@ public class GTNetLastpriceService {
   public GTNetLastpriceService.SecurityCurrency updateLastpriceIncludeSupplier(List<Security> securyties,
       List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
   
-    List<GTNet> gtNetsOpen = gtNetJpaRepository.findByLastpriceConsumerUsageAndLastpriceSupplierCapability(
-        LastpriceRightsCapabilityType.OPEN.getValue(), LastpriceRightsCapabilityType.OPEN.getValue());
+    List<GTNet> gtNetsOpen = gtNetJpaRepository.findByLastpriceConsumerUsageAndLastpriceServerState(
+        GTNetServerStateTypes.OPEN.getValue(), GTNetServerStateTypes.OPEN.getValue());
     currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
 
     return new GTNetLastpriceService.SecurityCurrency(securityJpaRepository.updateLastPriceByList(securyties),

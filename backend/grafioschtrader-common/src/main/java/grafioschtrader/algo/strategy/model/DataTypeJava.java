@@ -1,9 +1,18 @@
 package grafioschtrader.algo.strategy.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public enum DataTypeJava {
-  IntegerC(Integer.class), StringC(String.class), LocalDate(LocalDate.class), UNKNOWN(null);
+  Boolean(boolean.class),
+  BooleanC(Boolean.class),
+  Byte(byte.class),
+  ByteC(Byte.class),
+  IntegerC(Integer.class), 
+  StringC(String.class), 
+  LocalDate(LocalDate.class), 
+  LccalDateTime(LocalDateTime.class),
+  UNKNOWN(null);
 
   private final Class<?> targetClass;
 

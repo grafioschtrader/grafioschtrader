@@ -41,6 +41,8 @@ import {NgxCurrencyModule} from 'ngx-currency';
 import {FormInputCurrencyNumberComponent} from './components/form-input/form-input-currency-number.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {HttpClientModule} from '@angular/common/http';
+import {FormInputDropdownComponent} from "./components/form-input/form-input-dropdown.component";
+import {DropdownModule} from "primeng/dropdown";
 
 
 @NgModule({
@@ -50,6 +52,7 @@ import {HttpClientModule} from '@angular/common/http';
     InputNumberModule,
     NgxCurrencyModule,
     CommonModule,
+    DropdownModule,
     ReactiveFormsModule,
     TriStateCheckboxModule,
     ButtonModule,
@@ -78,6 +81,7 @@ import {HttpClientModule} from '@angular/common/http';
     FormFileUploadComponent,
     FormInputComponent,
     FormInputButtonComponent,
+    FormInputDropdownComponent,
     FormInputSuggestionComponent,
     FormInputSelectComponent,
     FormPCalendarComponent,

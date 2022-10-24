@@ -11,8 +11,8 @@ export class FieldDescriptorInputAndShow {
   fieldName: string;
   dynamicFormPropertyHelps: string[] | DynamicFormPropertyHelps[];
   dataType: string | DataType;
+  enumType: string;
   required: boolean;
   min: number;
   max: number;
-
 }

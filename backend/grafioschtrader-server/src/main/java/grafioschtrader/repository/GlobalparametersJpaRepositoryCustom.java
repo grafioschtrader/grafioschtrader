@@ -53,6 +53,10 @@ public interface GlobalparametersJpaRepositoryCustom {
 
   Date getStartFeedDate() throws ParseException;
 
+  List<ValueKeyHtmlSelectOptions> getCountriesForSelectBox();
+  
+  String getLanguageProperties(final String language);
+  
   int getMaxLimitExceededCount();
 
   int getMaxSecurityBreachCount();

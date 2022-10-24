@@ -9,6 +9,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -76,7 +77,7 @@ public class FeedConnectorHelper {
     if (securitycurrency instanceof Security security) {
       return security.getAssetClass()
           .getSpecialInvestmentInstrument() != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES
-          && security.getStockexchange().getSymbol().equals("LSE")
+          && GlobalConstants.STOCK_EX_MIC_UK.equals(security.getStockexchange().getMic())
           && security.getCurrency().equals("GBP") ? 100.0 : 1.0;
     }
     return 1.0;

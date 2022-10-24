@@ -21,6 +21,4 @@ import {BaseInputComponent} from '../base.input.component';
 })
 
 export class FormInputSelectComponent extends BaseInputComponent {
-
-
 }

@@ -174,6 +174,9 @@ export class BusinessHelper {
   }
 
   public static toExternalWebpage(url: string, target: string = 'blank'): void {
+    if (!url.match(/^https?:\/\//i)) {
+      url = 'http://' + url;
+    }
     window.open(url, target);
   }
 

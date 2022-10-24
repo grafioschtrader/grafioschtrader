@@ -1,8 +1,10 @@
-package grafioschtrader.types;
+package grafioschtrader.gtnet;
 
 public enum SendReceivedType {
 
+  // Message was send
   SEND((byte) 0),
+  // Message was received
   RECEIVED((byte) 1);
   
   private final Byte value;

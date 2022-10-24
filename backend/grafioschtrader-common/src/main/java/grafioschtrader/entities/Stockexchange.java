@@ -38,12 +38,11 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
+import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Stockexchange
- *
- * @author Hugo Graf
  */
 @Schema(description = "Contains a stock exchange")
 @Entity
@@ -60,6 +59,11 @@ public class Stockexchange extends Auditable implements Serializable {
   @Column(name = "id_stockexchange")
   private Integer idStockexchange;
 
+  @Column(name = "mic")
+  @Size(min = 4, max = 4)
+  @PropertySelectiveUpdatableOrWhenNull
+  private String mic;
+  
   @Basic(optional = false)
   @Column(name = "name")
   @NotBlank
@@ -69,7 +73,7 @@ public class Stockexchange extends Auditable implements Serializable {
 
   @NotBlank
   @Column(name = "country_code")
-  @PropertyOnlyCreation
+  @PropertyAlwaysUpdatable
   private String countryCode;
 
   @Basic(optional = false)
@@ -98,11 +102,8 @@ public class Stockexchange extends Auditable implements Serializable {
 
   @Schema(description = "Symbol of the stock exchange")
   @Basic(optional = false)
-  @NotNull
   @Column(name = "symbol")
-  @NotBlank
   @Size(min = 3, max = 8)
-  @PropertyAlwaysUpdatable
   private String symbol;
 
   @Basic(optional = false)
@@ -119,6 +120,12 @@ public class Stockexchange extends Auditable implements Serializable {
   @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME)
   @Column(name = "last_direct_price_update")
   private LocalDateTime lastDirectPriceUpdate;
+  
+  @Schema(description = "HTML link to the website of the exchange")
+  @Column(name = "website")
+  @WebUrl
+  @PropertyAlwaysUpdatable
+  private String website;
 
   @Transient
   private String nameIndexUpdCalendar;
@@ -134,6 +141,14 @@ public class Stockexchange extends Auditable implements Serializable {
     this.timeZone = timeZone;
     this.noMarketValue = noMarketValue;
     this.secondaryMarket = secondaryMarket;
+  }
+
+  public String getMic() {
+    return mic;
+  }
+
+  public void setMic(String mic) {
+    this.mic = mic;
   }
 
   public String getTimeZone() {
@@ -231,6 +246,14 @@ public class Stockexchange extends Auditable implements Serializable {
   public void setLastDirectPriceUpdate(LocalDateTime lastDirectPriceUpdate) {
     this.lastDirectPriceUpdate = lastDirectPriceUpdate;
   }
+  
+  public String getWebsite() {
+    return website;
+  }
+
+  public void setWebsite(String website) {
+    this.website = website;
+  }
 
   @Override
   public Integer getId() {
@@ -297,11 +320,13 @@ public class Stockexchange extends Auditable implements Serializable {
 
   @Override
   public String toString() {
-    return "Stockexchange [idStockexchange=" + idStockexchange + ", name=" + name + ", countryCode=" + countryCode
-        + ", noMarketValue=" + noMarketValue + ", secondaryMarket=" + secondaryMarket + ", timeOpen=" + timeOpen
-        + ", timeClose=" + timeClose + ", symbol=" + symbol + ", timeZone=" + timeZone + ", idIndexUpdCalendar="
-        + idIndexUpdCalendar + ", lastDirectPriceUpdate=" + lastDirectPriceUpdate + ", nameIndexUpdCalendar="
-        + nameIndexUpdCalendar + "]";
+    return "Stockexchange [idStockexchange=" + idStockexchange + ", mic=" + mic + ", name=" + name + ", countryCode="
+        + countryCode + ", noMarketValue=" + noMarketValue + ", secondaryMarket=" + secondaryMarket + ", timeOpen="
+        + timeOpen + ", timeClose=" + timeClose + ", symbol=" + symbol + ", timeZone=" + timeZone
+        + ", idIndexUpdCalendar=" + idIndexUpdCalendar + ", lastDirectPriceUpdate=" + lastDirectPriceUpdate
+        + ", website=" + website + ", nameIndexUpdCalendar=" + nameIndexUpdCalendar + "]";
   }
+
+  
 
 }

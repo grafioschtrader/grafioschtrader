@@ -59,7 +59,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  valueChangedOnAlgoStrategyImplemtation(): void {
+  valueChangedOnAlgoStrategyImplementation(): void {
     this.algoStrategyImplementationsChangedSub = this.configObject.algoStrategyImplementations.formControl.valueChanges
       .subscribe((asi: AlgoStrategyImplementations) => {
         if (!this.ignoreValueChanged) {
@@ -68,7 +68,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       });
   }
 
-  onHide(event): void {
+  override onHide(event): void {
     this.algoStrategyImplementationsChangedSub && this.algoStrategyImplementationsChangedSub.unsubscribe();
     super.onHide(event);
   }
@@ -76,7 +76,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   protected initialize(): void {
     this.config = [this.config[0], this.config[this.config.length - 1]];
     this.configObject.algoStrategyImplementations.formControl.enable();
-    this.valueChangedOnAlgoStrategyImplemtation();
+    this.valueChangedOnAlgoStrategyImplementation();
     if (this.algoCallParam.thisObject) {
       // Existing strategy can not be changed
       this.ignoreValueChanged = false;

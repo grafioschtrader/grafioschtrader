@@ -38,6 +38,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
@@ -101,7 +102,7 @@ class SecurityResourceTest {
         RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null), Stockexchange[].class);
 
     Optional<Stockexchange> stockexchangeOpt = Arrays.stream(response.getBody())
-        .filter(s -> s.getSymbol().equals("SIX")).findFirst();
+        .filter(s -> s.getMic().equals(GlobalConstants.STOCK_EX_MIC_SIX)).findFirst();
     assertThat(stockexchangeOpt).isPresent();
     stockexchange = stockexchangeOpt.get();
     stockexchanges = Arrays.asList(response.getBody());

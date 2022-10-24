@@ -61,7 +61,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.portfolio = <Portfolio>this.callParam.parentObject;
     this.gps.getCurrencies().subscribe(data => {
       this.configObject.currency.valueKeyHtmlOptions = data;
@@ -75,7 +75,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     });
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Cashaccount {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Cashaccount {
     const cashaccount: Cashaccount = this.copyFormToPrivateBusinessObject(new Cashaccount(), <Cashaccount>this.callParam.thisObject);
     cashaccount.portfolio = this.portfolio;
     return cashaccount;

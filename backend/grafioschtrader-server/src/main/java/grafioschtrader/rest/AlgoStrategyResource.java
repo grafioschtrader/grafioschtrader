@@ -26,13 +26,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<AlgoStrategy> {
 
   @Autowired
-  AlgoStrategyJpaRepository algoStrategyJpaRepository;
+  private AlgoStrategyJpaRepository algoStrategyJpaRepository;
 
   public AlgoStrategyResource() {
     super(AlgoStrategy.class);
   }
 
-  @Operation(summary = "", description = "", tags = { RequestMappings.ALGOSTRATEGY })
+  @Operation(summary = """
+  Return the field properties so that they can be used as an input form. 
+  There is one definition each for the corresponding level like security, asset class etc.""", 
+  description = "", tags = { RequestMappings.ALGOSTRATEGY })
   @GetMapping(value = "/form/{algoStrategyImplementations}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<InputAndShowDefinitionStrategy> getFormDefinitionsByAlgoStrategy(
       @PathVariable final byte algoStrategyImplementations) {

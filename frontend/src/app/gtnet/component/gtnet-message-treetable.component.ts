@@ -1,16 +1,21 @@
-import {Component, Input, OnInit} from "@angular/core";
+import {Component, Input, OnInit, ViewChild} from "@angular/core";
 import {TreeTableConfigBase} from "../../shared/datashowbase/tree.table.config.base";
 import {DataType} from "../../dynamic-form/models/data.type";
 import {TranslateValue} from "../../shared/datashowbase/column.config";
 import {GTNetMessage} from "../model/gtnet.message";
-import {TreeNode} from "primeng/api";
+import {MenuItem, TreeNode} from "primeng/api";
 import {TranslateService} from "@ngx-translate/core";
 import {GlobalparameterService} from "../../shared/service/globalparameter.service";
+import {IGlobalMenuAttach} from "../../shared/mainmenubar/component/iglobal.menu.attach";
+import {HelpIds} from "../../shared/help/help.ids";
+import {ActivePanelService} from "../../shared/mainmenubar/service/active.panel.service";
 
 @Component({
   selector: 'gtnet-message-treetable',
   template: `
-    <div class="datatable nestedtable" style="min-width: 200px; max-width: 400px;">
+    <div #cmDiv class="data-container" (click)="onComponentClick($event)"
+         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+      <div class="datatable nestedtable">
       <p-treeTable [value]="rootNode.children" [columns]="fields">
         <ng-template pTemplate="header" let-fields>
           <tr>
@@ -43,22 +48,31 @@ import {GlobalparameterService} from "../../shared/service/globalparameter.servi
           </tr>
         </ng-template>
       </p-treeTable>
+        <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length >0" #cm
+                       [target]="cmDiv" [model]="contextMenuItems" appendTo="body">
+        </p-contextMenu>
+      </div>
     </div>
   `
 })
 
-export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit {
+export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   @Input() gtNetMessages: GTNetMessage[];
-  rootNode: TreeNode = {children: []};
+  @ViewChild('cm') contextMenu: any;
 
-  constructor(translateService: TranslateService,
+  public static consumedGT = 'consumedGT';
+
+  rootNode: TreeNode = {children: []};
+  contextMenuItems: MenuItem[] = [];
+
+  constructor(private activePanelService: ActivePanelService,
+              translateService: TranslateService,
               gps: GlobalparameterService) {
     super(translateService, gps);
   }
 
   ngOnInit(): void {
-    this.addColumn(DataType.String, 'property', 'PROPERTY_PERIOD', true, false,
-      {translateValues: TranslateValue.UPPER_CASE});
+    this.addColumnFeqH(DataType.String, 'sendRecv',  true);
 
     this.prepareData();
   }
@@ -79,5 +93,38 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       addNode.children.push(node);
     })
   }
+
+  isActivated(): boolean {
+    return this.activePanelService.isActivated(this);
+  }
+
+  onComponentClick(event): void {
+    event[GTNetMessageTreeTableComponent.consumedGT] = true;
+    this.contextMenu && this.contextMenu.hide();
+    this.setMenuItemsToActivePanel();
+  }
+
+  hideContextMenu(): void {
+    this.contextMenu && this.contextMenu.hide();
+  }
+
+  callMeDeactivate(): void {
+  }
+
+  setMenuItemsToActivePanel(): void {
+    this.activePanelService.activatePanel(this,
+      {editMenu: this.getMenuItems()});
+    this.contextMenuItems = this.getMenuItems();
+  }
+
+  public getHelpContextId(): HelpIds {
+    return HelpIds.HELP_GTNET;
+  }
+
+  getMenuItems(): MenuItem[] {
+    const menuItems: MenuItem[] = [];
+    return menuItems;
+  }
+
 
 }

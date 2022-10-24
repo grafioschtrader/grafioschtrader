@@ -115,9 +115,7 @@ public class DateTransactionCurrencypairMap {
   public Double getPriceByDateAndFromCurrency(Date date, String fromCurrency, boolean requried) {
 
     Double closePrice = getExactDateAndFromCurrency(date, fromCurrency);
-
     if (closePrice == null) {
-
       if (closePrice == null && requried) {
         log.warn("Missing close price for date {} and currency pair from {} to {}", searchDateCurrency.date,
             fromCurrency, mainCurrency);
@@ -130,7 +128,8 @@ public class DateTransactionCurrencypairMap {
   }
 
   public Double getExactDateAndFromCurrency(Date date, String fromCurrency) {
-    searchDateCurrency.date = DateHelper.setTimeToZeroAndAddDay(date, 0);
+    // searchDateCurrency.date = DateHelper.setTimeToZeroAndAddDay(date, 0);
+    searchDateCurrency.date = date;
     searchDateCurrency.fromCurrency = fromCurrency;
     Double closePrice = dateFromCurrencyMap.get(searchDateCurrency);
     if (closePrice == null && !hasTradingDaysBetweenUntilDateAndYesterday && DateHelper.isSameDay(date, untilDate)) {

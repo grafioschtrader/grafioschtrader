@@ -1,0 +1,2 @@
+-- DROP symbol in stockexchange - not used anymore`
+-- DROP symbol in stockexchange_mic - not used anymore

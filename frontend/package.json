@@ -31,6 +31,7 @@
     "class-transformer": "^0.5.1",
     "copee": "^1.0.6",
     "deepmerge": "^4.2.2",
+    "flag-icons": "^6.6.6",
     "font-awesome": "^4.7.0",
     "moment": "^2.29.1",
     "ngx-currency": "^2.5.3",

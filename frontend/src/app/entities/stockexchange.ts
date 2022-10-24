@@ -4,6 +4,7 @@ import {Exclude} from 'class-transformer';
 
 export class Stockexchange extends Auditable implements BaseID {
   idStockexchange?: number = null;
+  mic: string = null;
   name: string = null;
   countryCode: string = null;
   symbol: string = null;
@@ -15,6 +16,7 @@ export class Stockexchange extends Auditable implements BaseID {
   idIndexUpdCalendar: number = null;
   nameIndexUpdCalendar: string = null;
   lastDirectPriceUpdate: number;
+  website: string = null;
   @Exclude()
   public getId(): number {
     return this.idStockexchange;

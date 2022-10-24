@@ -332,6 +332,11 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return transactionDate;
   }
 
+  @JsonIgnore
+  public java.sql.Date getTransactionDateAsDate() {
+    return java.sql.Date.valueOf(transactionDate);
+  }
+  
   public Date getExDate() {
     return exDate;
   }
@@ -504,7 +509,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
       exchangeRateToMC = dateTransactionCurrencyMap.getPriceByDateAndFromCurrency(
           dateTransactionCurrencyMap.isUseUntilDateForFeeAndInterest() ? dateTransactionCurrencyMap.getUntilDate()
-              : getTransactionTime(),
+              : getTransactionDateAsDate(),
           getCashaccount().getCurrency(), true);
     }
     return exchangeRateToMC;

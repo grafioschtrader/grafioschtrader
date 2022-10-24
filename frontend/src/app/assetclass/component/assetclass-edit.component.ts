@@ -99,7 +99,7 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
     super.onHide(event);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     (<AssetclassService>this.serviceEntityUpdate).getPossibleAssetclassInstrumentMap().subscribe(assetclassSpezInstMap => {
       this.assetclassSpezInstMap = assetclassSpezInstMap;
       this.form.setDefaultValuesAndEnableSubmit();
@@ -121,7 +121,7 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
     });
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Assetclass {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Assetclass {
     const assetclass: Assetclass = new Assetclass();
     this.copyFormToPublicBusinessObject(assetclass, this.callParam.assetclass, this.proposeChangeEntityWithEntity);
 

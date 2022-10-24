@@ -16,7 +16,7 @@ import {GTNetMessage} from "../model/gtnet.message";
 
 @Component({
   template: `
-
+     Consumer Monitor
   `,
 })
 export class GTNetConsumerMonitorComponent {

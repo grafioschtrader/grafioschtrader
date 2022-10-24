@@ -5,6 +5,18 @@ import java.util.List;
 
 public class GlobalConstants {
 
+  public static final String STOCK_EX_MIC_UK = "XLON";
+  public static final String STOCK_EX_MIC_NASDAQ = "XNAS";
+  public static final String STOCK_EX_MIC_SIX = "XSWX";
+  public static final String STOCK_EX_MIC_XETRA = "XSWX";
+  public static final String STOCK_EX_MIC_SPAIN = "XMAD";
+  public static final String STOCK_EX_MIC_ITALY = "XMIL";
+  public static final String STOCK_EX_MIC_JAPAN = "XTKS";
+  public static final String STOCK_EX_MIC_AUSTRIA = "XVIE";
+  public static final String STOCK_EX_MIC_ZKB = "ZKBX";
+  public static final String STOCK_EX_MIC_STUTTGART = "XSTU";
+  
+  
   /**
    * Supported languages in this application
    */

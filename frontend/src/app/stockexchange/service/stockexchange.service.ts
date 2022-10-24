@@ -10,6 +10,7 @@ import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {StockexchangeHasSecurity} from '../model/stockexchange.has.security';
+import {StockexchangeBaseData} from "../model/stockexchange.base.data";
 
 @Injectable()
 export class StockexchangeService extends AuthServiceWithLogout <Stockexchange> implements ServiceEntityUpdate<Stockexchange>,
@@ -17,6 +18,13 @@ export class StockexchangeService extends AuthServiceWithLogout <Stockexchange> 
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
+  }
+
+
+  public getAllStockexchangesBaseData(): Observable<StockexchangeBaseData> {
+    return <Observable<StockexchangeBaseData>>this.httpClient.get(
+      `${AppSettings.API_ENDPOINT}${AppSettings.STOCKEXCHANGE_KEY}/basedata`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getAllStockexchanges(includeNameOfCalendarIndex: boolean): Observable<Stockexchange[]> {

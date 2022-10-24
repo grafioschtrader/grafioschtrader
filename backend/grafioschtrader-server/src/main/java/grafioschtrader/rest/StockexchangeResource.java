@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafioschtrader.dto.StockexchangeBaseData;
 import grafioschtrader.dto.StockexchangeHasSecurity;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.StockexchangeJpaRepository;
@@ -27,7 +28,15 @@ public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stock
 
   @Autowired
   private StockexchangeJpaRepository stockexchangeJpaRepository;
-
+  
+  
+  @Operation(summary = "Returns all stock exchanges and other base data", description = "", tags = { Stockexchange.TABNAME })
+  @GetMapping(value = "/basedata", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<StockexchangeBaseData> getAllStockexchangesBaseData() {
+    return new ResponseEntity<>(stockexchangeJpaRepository.getAllStockexchangesBaseData(),
+        HttpStatus.OK);
+  }
+  
   @Operation(summary = "Returns all stock exchanges sorted by name", description = "", tags = { Stockexchange.TABNAME })
   @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Stockexchange>> getAllStockexchanges(
