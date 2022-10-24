@@ -43,11 +43,10 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
-import {PlotlyService} from 'angular-plotly.js';
 import {TwoKeyMap} from '../../shared/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {Moment} from 'moment/moment';
-
+declare let Plotly: any;
 
 interface Traces {
   [key: string]: { x: string[]; y: number[]; text: string[] };
@@ -142,8 +141,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private legendTooltipMap = new Map<string, string>();
   private plotly: any;
 
-  constructor(private plotlyService: PlotlyService,
-    private messageToastService: MessageToastService,
+  constructor(private messageToastService: MessageToastService,
     private usersettingsService: UserSettingsService,
     private viewSizeChangedService: ViewSizeChangedService,
     private securityService: SecurityService,
@@ -157,7 +155,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
     this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();
-    plotlyService.getPlotly().then(plotly => this.plotly = plotly, () => alert('Plotly Graphing Library not working'));
+
   }
 
   get oldestDate(): Date {
@@ -597,7 +595,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       iDef.menuItem.icon = AppSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
       const traceIndices: number[] = iDef.taTraceIndicatorDataList.map(taT => taT.traceIndex).reverse();
-      this.plotly.deleteTraces(this.chartElement.nativeElement, traceIndices);
+      Plotly.deleteTraces(this.chartElement.nativeElement, traceIndices);
       iDef.taTraceIndicatorDataList.forEach(taT => taT.traceIndex = undefined);
       this.adjustTATraceIndices(traceIndices);
     }
@@ -618,7 +616,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     iDef.taTraceIndicatorDataList.forEach((taTraceIndicatorData: TaTraceIndicatorData) => {
       const foundStartIndex = AppHelper.binarySearch(taTraceIndicatorData.taIndicatorData,
         moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
-      this.plotly.addTraces(this.chartElement.nativeElement, {
+      Plotly.addTraces(this.chartElement.nativeElement, {
         type: 'scatter',
         mode: 'lines',
         name: `${taTraceIndicatorData.traceName} (${taTraceIndicatorData.period})`,

@@ -277,7 +277,6 @@ import {MailSendDynamicComponent} from './shared/dynamicdialog/component/mail.se
 import {MailSendboxService} from './mail/service/mail.sendbox.service';
 import {ScrollPanelModule} from 'primeng/scrollpanel';
 import {CommonModule} from '@angular/common';
-import {PlotlyViaWindowModule} from 'angular-plotly.js';
 import {InputNumberModule} from 'primeng/inputnumber';
 import {FormInputNumberComponent} from './dynamic-form/components/form-input/form-input-number.component';
 import {NgxCurrencyModule} from 'ngx-currency';
@@ -442,8 +441,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
       }
     }),
     TreeModule,
-    CommonModule,
-    PlotlyViaWindowModule
+    CommonModule
   ],
   providers: [ActivePanelService, AllEditGuard, ActuatorService, AdminGuard, AlgoTopService, AlgoAssetclassService,
     AssetclassService, AuthGuard, CashaccountService, ChartDataService, AlgoStrategyService, AlgoSecurityService,
