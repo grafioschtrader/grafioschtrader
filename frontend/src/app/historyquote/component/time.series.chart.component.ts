@@ -139,7 +139,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private crossRateMap = new TwoKeyMap<CurrenciesAndClosePrice>();
   private mainCurrency: string;
   private legendTooltipMap = new Map<string, string>();
-  private plotly: any;
+
 
   constructor(private messageToastService: MessageToastService,
     private usersettingsService: UserSettingsService,
@@ -726,17 +726,17 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private plot(element: any, traces: any, layout: any): void {
-    const config = PlotlyLocales.setPlotyLocales(this.plotly, this.gps);
+    const config = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.displaylogo = false;
-    this.plotly.purge(this.chartElement.nativeElement);
-    this.plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
+    Plotly.purge(this.chartElement.nativeElement);
+    Plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
       this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(changedViewSizeType =>
-        this.plotly.Plots.resize(element));
+        Plotly.Plots.resize(element));
     }
   }
 
@@ -753,7 +753,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(this.plotly, this.legendTooltipMap);
+    PlotlyHelper.attachTooltip(Plotly, this.legendTooltipMap);
   }
 
   private getLayout(): any {
