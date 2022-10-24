@@ -96,7 +96,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
     return domain + security.getUrlIntraExtend()
         + (security.getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME
             || security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF
-                ? "/" + FinanzenHelper.getNormalMappedStockexchangeSymbol(security.getStockexchange().getSymbol())
+                ? "/" + FinanzenHelper.getNormalMappedStockexchangeSymbol(security.getStockexchange().getMic())
                 : "");
   }
 

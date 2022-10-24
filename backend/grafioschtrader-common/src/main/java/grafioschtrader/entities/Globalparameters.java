@@ -69,6 +69,9 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE = GT_PREFIX + "historyquote.quality.update.date";
   public static final String GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE = GT_PREFIX + "securitysplit.append.date";
 
+  public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GT_PREFIX + "gtnet.my.entry.id";
+  
+  
   // Tenant data entity limits
   private static final String MAX = "max.";
   public static final String GLOB_KEY_MAX_CASH_ACCOUNT = GT_PREFIX + MAX + "cash.account";

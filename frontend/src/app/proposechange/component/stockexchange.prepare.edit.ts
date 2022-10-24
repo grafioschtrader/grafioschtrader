@@ -5,6 +5,7 @@ import {StockexchangeCallParam} from '../../stockexchange/component/stockexchang
 import {BasePrepareEdit} from './base.prepare.edit';
 import {combineLatest} from 'rxjs';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {StockexchangeBaseData} from "../../stockexchange/model/stockexchange.base.data";
 
 export class StockexchangePrepareEdit extends BasePrepareEdit implements PrepareCallParam {
   constructor(private stockexchangeService: StockexchangeService,
@@ -13,13 +14,15 @@ export class StockexchangePrepareEdit extends BasePrepareEdit implements Prepare
   }
 
   prepareForEditEntity(entity: Stockexchange, entityMapping: EntityMapping): void {
-    combineLatest([this.stockexchangeService.stockexchangeHasSecurity(entity.idStockexchange),
-      this.gps.getCountries()]).subscribe(data => {
+    this.stockexchangeService.getAllStockexchangesBaseData().subscribe((sbd: StockexchangeBaseData) => {
       entityMapping.callParam = new StockexchangeCallParam();
       entityMapping.callParam.stockexchange = new Stockexchange();
       Object.assign(entityMapping.callParam.stockexchange, entity);
-      entityMapping.callParam.hasSecurity = data[0];
-      entityMapping.callParam.countriesAsHtmlOptions = data[1];
+      entityMapping.callParam.hasSecurity = sbd.hasSecurity;
+      entityMapping.callParam.countriesAsHtmlOptions = sbd.countries;
+      entityMapping.callParam.stockexchangeMics = sbd.stockexchangeMics;
+      entityMapping.callParam.existingMic = new Set(sbd.stockexchanges.map(se => se.mic));
+      entityMapping.callParam.proposeChange = true;
       entityMapping.visibleDialog = true;
     });
   }

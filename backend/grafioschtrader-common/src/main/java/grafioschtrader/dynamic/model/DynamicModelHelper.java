@@ -2,6 +2,7 @@ package grafioschtrader.dynamic.model;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,26 +28,29 @@ public abstract class DynamicModelHelper {
     List<FieldDescriptorInputAndShow> fieldDescriptorInputAndShowList = new ArrayList<>();
     if (modelClass != null) {
       for (Field field : modelClass.getDeclaredFields()) {
-        Annotation[] annotations = field.getDeclaredAnnotations();
-        if (possibleAnnotationSet.isEmpty()
-            || Arrays.stream(annotations).anyMatch(a -> possibleAnnotationSet.contains(a.annotationType()))) {
-          FieldDescriptorInputAndShow fieldDescriptorInputAndShow = new FieldDescriptorInputAndShow(field.getName(),
-              field.getType());
-          for (Annotation annotation : annotations) {
-            if (annotation.annotationType() == NotNull.class || annotation.annotationType() == NotNull.List.class) {
-              fieldDescriptorInputAndShow.required = true;
-            } else if (annotation instanceof Min) {
-              fieldDescriptorInputAndShow.min = ((Min) annotation).value();
-            } else if (annotation instanceof Max) {
-              fieldDescriptorInputAndShow.max = ((Max) annotation).value();
-            } else if (annotation instanceof DynamicFormPropertySupport) {
-              fieldDescriptorInputAndShow.dynamicFormPropertyHelps = ((DynamicFormPropertySupport) annotation).value();
-            } else if (annotation instanceof Size) {
-              fieldDescriptorInputAndShow.min = (long) ((Size) annotation).min();
-              fieldDescriptorInputAndShow.max = (long) ((Size) annotation).max();
+        if (!Modifier.isStatic(field.getModifiers())) {
+          Annotation[] annotations = field.getDeclaredAnnotations();
+          if (possibleAnnotationSet.isEmpty()
+              || Arrays.stream(annotations).anyMatch(a -> possibleAnnotationSet.contains(a.annotationType()))) {
+            FieldDescriptorInputAndShow fieldDescriptorInputAndShow = new FieldDescriptorInputAndShow(field.getName(),
+                field.getType());
+            for (Annotation annotation : annotations) {
+              if (annotation.annotationType() == NotNull.class || annotation.annotationType() == NotNull.List.class) {
+                fieldDescriptorInputAndShow.required = true;
+              } else if (annotation instanceof Min) {
+                fieldDescriptorInputAndShow.min = ((Min) annotation).value();
+              } else if (annotation instanceof Max) {
+                fieldDescriptorInputAndShow.max = ((Max) annotation).value();
+              } else if (annotation instanceof DynamicFormPropertySupport) {
+                fieldDescriptorInputAndShow.dynamicFormPropertyHelps = ((DynamicFormPropertySupport) annotation)
+                    .value();
+              } else if (annotation instanceof Size) {
+                fieldDescriptorInputAndShow.min = (long) ((Size) annotation).min();
+                fieldDescriptorInputAndShow.max = (long) ((Size) annotation).max();
+              }
             }
+            fieldDescriptorInputAndShowList.add(fieldDescriptorInputAndShow);
           }
-          fieldDescriptorInputAndShowList.add(fieldDescriptorInputAndShow);
         }
       }
     }

@@ -1,8 +1,12 @@
 import {Stockexchange} from '../../entities/stockexchange';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {StockexchangeMic} from "../model/stockexchange.base.data";
 
 export class StockexchangeCallParam {
-  stockexchange: Stockexchange;
-  hasSecurity: boolean;
-  countriesAsHtmlOptions: ValueKeyHtmlSelectOptions[];
+  public stockexchange: Stockexchange;
+  public hasSecurity: boolean;
+  public countriesAsHtmlOptions: ValueKeyHtmlSelectOptions[];
+  public stockexchangeMics: StockexchangeMic[];
+  public existingMic: Set<string>;
+  public proposeChange: boolean = false;
 }

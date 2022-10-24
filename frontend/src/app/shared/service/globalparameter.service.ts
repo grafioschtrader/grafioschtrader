@@ -217,7 +217,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  public getCountries(): Observable<ValueKeyHtmlSelectOptions[]> {
+  public getCountriesForSelectBox(): Observable<ValueKeyHtmlSelectOptions[]> {
     return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/countries`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

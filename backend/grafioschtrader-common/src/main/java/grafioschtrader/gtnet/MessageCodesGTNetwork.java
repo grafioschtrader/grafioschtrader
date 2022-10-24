@@ -1,4 +1,4 @@
-package grafioschtrader.types;
+package grafioschtrader.gtnet;
 
 public enum MessageCodesGTNetwork {
 

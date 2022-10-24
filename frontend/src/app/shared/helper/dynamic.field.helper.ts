@@ -105,6 +105,26 @@ export class DynamicFieldHelper {
       maxLength, required, fieldOptions);
   }
 
+  public static createFieldDropdownStringHeqF(fieldName: string, required: boolean,
+                                            fieldOptions?: FieldOptions): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldDropdownNumberString(DataType.String, fieldName,
+      AppHelper.convertPropertyForLabelOrHeaderKey(fieldName), required, fieldOptions);
+    fieldConfig.defaultValue = fieldConfig.defaultValue || '';
+    return fieldConfig;
+  }
+
+  private static createFieldDropdownNumberString(dataType: DataType, fieldName: string, labelKey: string, required: boolean,
+                                               fieldOptions?: FieldOptions): FieldConfig {
+    return this.setFieldBaseAndOptions({
+        dataType,
+        inputType: InputType.InputDropdown
+      },
+      fieldName, labelKey,
+      required ? [Validators.required] : null,
+      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
+  }
+
+
   public static createFieldTextareaInputStringHeqF(fieldName: string, maxLength: number, required: boolean,
                                                    fieldOptions?: FieldOptions): FieldConfig {
     return DynamicFieldHelper.createFieldInputAndTeString(DataType.String, InputType.Pinputtextarea, fieldName,
@@ -575,6 +595,7 @@ export interface FieldOptions {
   dataproperty?: string;
   disabled?: boolean;
   readonly?: boolean;
+  groupItemUse?: boolean;
   inputWidth?: number;
   upperCase?: boolean;
   userDefinedValue?: number | string;

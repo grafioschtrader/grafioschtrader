@@ -18,6 +18,7 @@ import grafioschtrader.entities.Watchlist;
 
 public interface RequestMappings {
   public static final String API = "/api/";
+  public static final String M2M = "_m2m";
   public static final String M2M_API = "/m2m/";
 
   public static final String ASSETCLASS_MAP = API + Assetclass.TABNAME;
@@ -50,6 +51,13 @@ public interface RequestMappings {
 
   public static final String GTNET = "gtnet";
   public static final String GTNET_MAP = API + GTNET;
+  
+  public static final String GTNET_M2M = GTNET + M2M;
+  public static final String GTNET_M2M_MAP = M2M_API + GTNET;
+ 
+  
+  public static final String GTNET_MESSAGE = "gtnetmessage";
+  public static final String GTNET_MESSAGE_MAP = API + GTNET_MESSAGE;
   
   public static final String HISTORYQUOTE_MAP = API + Historyquote.TABNAME;
 
@@ -93,6 +101,7 @@ public interface RequestMappings {
   public static final String STOCKEXCHANGE_MAP = API + Stockexchange.TABNAME;
 
   public static final String SECURITY_MAP = API + Security.TABNAME;
+  public static final String SECURITY_M2M = Security.TABNAME + M2M;
   public static final String SECURITY_M2M_MAP = M2M_API + Security.TABNAME;
 
   public static final String SECURITYSPLIT_MAP = API + Securitysplit.TABNAME;

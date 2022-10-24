@@ -111,7 +111,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     this.readData();
   }
 
-  readData(): void {
+  override readData(): void {
     if (this.selectImportTransactionPlatform) {
       combineLatest([this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(
         this.selectImportTransactionPlatform.idTransactionImportPlatform, false),
@@ -131,11 +131,11 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     }
   }
 
-  prepareCallParm(entity: ImportTransactionTemplate) {
+  override prepareCallParm(entity: ImportTransactionTemplate) {
     this.callParam = new CallParam(this.selectImportTransactionPlatform, entity);
   }
 
-  public prepareEditMenu(): MenuItem[] {
+  public override prepareEditMenu(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     menuItems.push({separator: true});
     if (this.selectImportTransactionPlatform) {

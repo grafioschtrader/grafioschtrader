@@ -13,6 +13,7 @@ public abstract class Stockexchange_ extends grafioschtrader.entities.Auditable_
 
   public static volatile SingularAttribute<Stockexchange, Boolean> secondaryMarket;
   public static volatile SingularAttribute<Stockexchange, Integer> idStockexchange;
+  public static volatile SingularAttribute<Stockexchange, String> mic;
   public static volatile SingularAttribute<Stockexchange, String> symbol;
   public static volatile SingularAttribute<Stockexchange, String> countryCode;
   public static volatile SingularAttribute<Stockexchange, String> name;
@@ -22,5 +23,6 @@ public abstract class Stockexchange_ extends grafioschtrader.entities.Auditable_
   public static volatile SingularAttribute<Stockexchange, Boolean> noMarketValue;
   public static volatile SingularAttribute<Stockexchange, Integer> idIndexUpdCalendar;
   public static volatile SingularAttribute<Stockexchange, LocalDateTime> lastDirectPriceUpdate;
+  public static volatile SingularAttribute<Stockexchange, String> website;
 
 }

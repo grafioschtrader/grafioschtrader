@@ -5,5 +5,6 @@ export class GTNetMessage {
   sendRecv: number;
   replyTo: number;
   messageCode: number;
+  messageCodeValue: string;
   message: string;
 }

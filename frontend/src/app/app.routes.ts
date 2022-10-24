@@ -243,7 +243,7 @@ const APP_ROUTES: Routes = [
         canActivate: [AuthGuard]
       },
       {
-        path: AppSettings.GTNET_SETUP_KEY,
+        path: AppSettings.GTNET_KEY,
         component: GTNetSetupTableComponent,
         canActivate: [AuthGuard]
       },

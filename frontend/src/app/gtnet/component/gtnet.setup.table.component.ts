@@ -1,6 +1,6 @@
 import {Component} from "@angular/core";
 import {CrudMenuOptions, TableCrudSupportMenu} from "../../shared/datashowbase/table.crud.support.menu";
-import {GTNet} from "../model/gtnet";
+import {GTNet, GTNetWithMessages} from "../model/gtnet";
 import {GTNetMessage} from "../model/gtnet.message";
 import {GTNwtService} from "../service/gtnet.service";
 import {ConfirmationService, FilterService} from "primeng/api";
@@ -11,6 +11,14 @@ import {TranslateService} from "@ngx-translate/core";
 import {GlobalparameterService} from "../../shared/service/globalparameter.service";
 import {UserSettingsService} from "../../shared/service/user.settings.service";
 import {AppSettings} from "../../shared/app.settings";
+import {DataType} from "../../dynamic-form/models/data.type";
+import {TranslateValue} from "../../shared/datashowbase/column.config";
+import {FilterType} from "../../shared/datashowbase/filter.type";
+import {HelpIds} from "../../shared/help/help.ids";
+import {GTNetMessageTreeTableComponent} from "./gtnet-message-treetable.component";
+import {combineLatest} from "rxjs";
+import {GTNetMessageService} from "../service/gtnet.message.service";
+import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
 
 @Component({
   template: `
@@ -61,7 +69,7 @@ import {AppSettings} from "../../shared/app.settings";
         <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td>
-              <a *ngIf="gtNetMessageMap.has(el.idGtNet)" href="#"
+              <a *ngIf="gtNetMessageMap[el.idGtNet]" href="#"
                  [pRowToggler]="el">
                 <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
               </a>
@@ -85,7 +93,7 @@ import {AppSettings} from "../../shared/app.settings";
         <ng-template pTemplate="rowexpansion" let-el let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-              <gtnet-message-treetable gtNetMessages="gtNetMessageMap[el.idGtNet]"></gtnet-message-treetable>
+              <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[el.idGtNet]"></gtnet-message-treetable>
             </td>
           </tr>
         </ng-template>
@@ -93,14 +101,29 @@ import {AppSettings} from "../../shared/app.settings";
       <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
                      appendTo="body"></p-contextMenu>
     </div>
+
+    <gtnet-edit *ngIf="visibleDialog"
+                [visibleDialog]="visibleDialog"
+                [callParam]="callParam"
+                (closeDialog)="handleCloseDialog($event)">
+    </gtnet-edit>
+    <gtnet-message-edit *ngIf="visibleDialogMsg"
+                        [visibleDialog]="visibleDialogMsg"
+                        [formDefinitions]="formDefinitions"
+                        (closeDialog)="handleCloseDialogMsg($event)">
+    </gtnet-message-edit>
   `,
+  providers: [DialogService]
 })
-export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet>  {
+export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   callParam: GTNet;
   gtNetList: GTNet[];
-  gtNetMessageMap: { [key: number]: GTNetMessage[]};
+  gtNetMessageMap: { [key: number]: GTNetMessage[] };
+  formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] };
+  visibleDialogMsg = false;
 
   constructor(private gtNetService: GTNwtService,
+              private gtNetMessageService: GTNetMessageService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
@@ -113,6 +136,10 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet>  {
       dialogService, filterService, translateService, gps, usersettingsService,
       gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
+
+    this.addColumnFeqH(DataType.String, 'domainRemoteName', true, false,
+      {width: 200});
+
   }
 
   override prepareCallParm(entity: GTNet): void {
@@ -120,10 +147,31 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet>  {
   }
 
   protected override readData(): void {
-    this.gtNetService.getAllGTNetsWithMessages().subscribe(gtNetWithMessages => {
-      this.gtNetList = gtNetWithMessages.gtNetList;
-      this.gtNetMessageMap = gtNetWithMessages.gtNetMessageMap;
+    const observable = [this.gtNetService.getAllGTNetsWithMessages(),
+      ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitions()] : [])];
+
+    combineLatest(observable).subscribe((data,) => {
+      this.gtNetList = (<GTNetWithMessages>data[0]).gtNetList;
+      this.gtNetMessageMap = (<GTNetWithMessages>data[0]).gtNetMessageMap;
+      this.formDefinitions ??= <{ [type: string]: FieldDescriptorInputAndShow[] }>data[1];
+      this.prepareTableAndTranslate();
     })
+  }
+
+  override onComponentClick(event): void {
+    if (!event[GTNetMessageTreeTableComponent.consumedGT]) {
+      this.resetMenu(this.selectedEntity);
+    }
+
+  }
+
+
+  public override getHelpContextId(): HelpIds {
+    return HelpIds.HELP_GTNET;
+  }
+
+  handleCloseDialogMsg(dynamicMsg: any) : void {
+
   }
 
 }

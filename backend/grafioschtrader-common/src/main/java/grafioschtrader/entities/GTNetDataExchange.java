@@ -9,7 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import grafioschtrader.types.MessageCodesGTNetwork;
+import grafioschtrader.gtnet.MessageCodesGTNetwork;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity

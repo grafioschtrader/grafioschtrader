@@ -6,6 +6,7 @@ export enum InputType {
   Input,
   InputButton,
   InputSuggestion,
+  InputDropdown,
   Select,
   Pcalendar,
   Pinputtextarea,

@@ -320,6 +320,9 @@ import {GTNetSetupTableComponent} from "./gtnet/component/gtnet.setup.table.comp
 import {GTNetProviderMonitorComponent} from "./gtnet/component/gtnet.provider.monitor.component";
 import {GTNwtService} from "./gtnet/service/gtnet.service";
 import {GTNetMessageTreeTableComponent} from "./gtnet/component/gtnet-message-treetable.component";
+import {GTNetEditComponent} from "./gtnet/component/gtnet-edit.component";
+import {GTNetMessageEditComponent} from "./gtnet/component/gtnet-message-edit.component";
+import {GTNetMessageService} from "./gtnet/service/gtnet.message.service";
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
   {prefix: './assets/i18n/', suffix: '.json'},
@@ -333,6 +336,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent, ConnectorApiKeyTableComponent, ConnectorApiKeyEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
+    GTNetEditComponent, GTNetMessageEditComponent,
     GTNetConsumerMonitorComponent, GTNetSetupTableComponent, GTNetProviderMonitorComponent, GTNetMessageTreeTableComponent,
     HistoryquoteEditComponent, HistoryquoteTableComponent, ImportTransactionEditPlatformComponent, HistoryquoteQualityComponent,
     SecurityHistoryquoteQualityTreetableComponent, SecurityHistoryquoteQualityTableComponent, InstrumentStatisticsSummaryComponent,
@@ -443,8 +447,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
   ],
   providers: [ActivePanelService, AllEditGuard, ActuatorService, AdminGuard, AlgoTopService, AlgoAssetclassService,
     AssetclassService, AuthGuard, CashaccountService, ChartDataService, AlgoStrategyService, AlgoSecurityService,
-    ConfirmationService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService, GTNwtService,
-    HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
+    ConfirmationService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService, GTNetMessageService,
+    GTNwtService, HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
     ImportTransactionTemplateService, ImportTransactionPosService, ImportTransactionHeadService, LoginService,
     MainDialogService, MessageToastService, ParentChildRegisterService, MailInboxService, MailSendboxService,
     MultipleRequestToOneService, TaskDataChangeService, CorrelationSetService, ConnectorApiKeyService,

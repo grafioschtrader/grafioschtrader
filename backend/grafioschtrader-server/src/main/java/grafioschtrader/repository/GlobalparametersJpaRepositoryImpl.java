@@ -6,18 +6,22 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
+import grafioschtrader.config.ExposedResourceBundleMessageSource;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
@@ -148,6 +153,31 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_UPDATE_PRICE_BY_EXCHANGE);
   }
   
+  @Override
+  public List<ValueKeyHtmlSelectOptions> getCountriesForSelectBox() {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    String[] locales = Locale.getISOCountries();
+    List<ValueKeyHtmlSelectOptions> valueKeyHtmlSelectOptions = new ArrayList<>();
+    Locale userLocale = user.createAndGetJavaLocale();
+    for (String countryCode : locales) {
+      Locale obj = new Locale("", countryCode);
+      valueKeyHtmlSelectOptions.add(new ValueKeyHtmlSelectOptions(obj.getCountry(), obj.getDisplayCountry(userLocale)));
+    }
+    Collections.sort(valueKeyHtmlSelectOptions);
+    return valueKeyHtmlSelectOptions;
+  }
+
+  @Override
+  public String getLanguageProperties(final String language) {
+    Locale locale = Locale.forLanguageTag(language);
+    Properties properties = ((ExposedResourceBundleMessageSource) messages).getMessages(locale);
+    JSONObject jsonObject = new JSONObject();
+    for (Entry<Object, Object> entry : properties.entrySet()) {
+      String key = entry.getKey().toString();
+      jsonObject.put(key.startsWith("gt.") ? key : key.toUpperCase().replaceAll("\\.", "_"), entry.getValue());
+    }
+    return jsonObject.toString();
+  }
   
   @Override
   public List<ValueKeyHtmlSelectOptions> getAllZoneIds() {
@@ -208,7 +238,5 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
   }
-
- 
 
 }

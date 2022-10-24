@@ -5,12 +5,13 @@ import {BaseInputComponent} from '../base.input.component';
   selector: 'form-input-suggestion',
   template: `
     <ng-container [formGroup]="group">
-      <p-autoComplete [id]="config.field" [formControlName]="config.field"
+      <p-autoComplete #input
+                      [id]="config.field" [formControlName]="config.field"
                       [inputStyleClass]="'form-control ' + (isRequired? 'required-input': '')"
                       class="p-autocomplete"
                       [style]="{'width':'100%'}" [inputStyle]="{'width':'100%'}"
                       [suggestions]="config.suggestions" (completeMethod)="callSuggestionsFN($event)"
-                      #input>
+                      pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}">
       </p-autoComplete>
     </ng-container>
   `

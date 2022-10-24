@@ -1,4 +1,4 @@
-import {ValueKeyHtmlSelectOptions} from './value.key.html.select.options';
+import {GroupItem, ValueKeyHtmlSelectOptions} from './value.key.html.select.options';
 import {InputType} from './input.type';
 import {DataType} from './data.type';
 import {BaseInputComponent} from '../components/base.input.component';
@@ -66,10 +66,22 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
    * Property name of the field
    */
   field?: string;
+
   /**
    * Contains the options for a html select
    */
   valueKeyHtmlOptions?: ValueKeyHtmlSelectOptions[];
+
+
+  /**
+   * PrimeNG Dropdown may have children
+   */
+  groupItemUse?: boolean;
+
+  /**
+   * Contains the items for a PrimeNG Dropdown
+   */
+  groupItem?: GroupItem[];
 
   /**
    * A short hint that describes the expected value of an input field.
@@ -109,6 +121,9 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
    */
   inputWidth?: number;
 
+  /**
+   * Number of rows in a text area
+   */
   textareaRows?: number;
 
   /**
@@ -161,17 +176,22 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
    * Accepted file upload type
    */
   acceptFileUploadType?: string;
+
   /**
    * Sometimes it is required to get die file list directly after choosing the file/s
    *
    * @param fileList List of files
    */
   handleChangeFileInputFN?: (fileList: FileList) => void;
+
   /**
    * Used for proposed data changes
    */
   labelTitle?: string;
-  // See https://github.com/nbfontana/ngx-currency/blob/master/src/currency-mask.config.ts
+
+  /**
+   * See https://github.com/nbfontana/ngx-currency/blob/master/src/currency-mask.config.ts
+   */
   currencyMaskConfig?: CurrencyMaskConfig;
 }
 

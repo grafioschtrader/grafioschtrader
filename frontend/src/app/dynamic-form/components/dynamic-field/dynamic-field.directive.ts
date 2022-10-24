@@ -29,6 +29,7 @@ import {FormTriStateCheckboxComponent} from '../form-input/form-tri-state-checkb
 import {FormInputButtonComponent} from '../form-input/form-input-button.component';
 import {FormInputNumberComponent} from '../form-input/form-input-number.component';
 import {FormInputCurrencyNumberComponent} from '../form-input/form-input-currency-number.component';
+import {FormInputDropdownComponent} from "../form-input/form-input-dropdown.component";
 
 
 const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
@@ -41,6 +42,7 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
   [InputType.InputNumber]: FormInputNumberComponent,
   [InputType.InputCurrencyNumber]: FormInputCurrencyNumberComponent,
   [InputType.InputSuggestion]: FormInputSuggestionComponent,
+  [InputType.InputDropdown]: FormInputDropdownComponent,
   [InputType.Select]: FormInputSelectComponent,
   [InputType.Pcalendar]: FormPCalendarComponent,
   [InputType.Pinputtextarea]: FormPInputTextareaComponent,

@@ -4,14 +4,15 @@ import {GTNetMessage} from "./gtnet.message";
 export class GTNet implements BaseID {
   idGtNet: number;
   domainRemoteName: string;
+  timeZone: string = null;
   spreadCapability: boolean;
-  allowGiveAway: boolean;
-  acceptRequest: boolean;
+  entityServerState: number;
+  acceptEntityRequest: boolean;
   dailyRequestLimit: number;
   dailyRequestLimitCount: number;
   dailyRequestLimitRemote: number;
   dailyRequestLimitRemoteCount: number;
-  lastpriceSupplierCapability: number;
+  lastpriceServerState: number;
   lastpriceConsumerUsage: number;
   lastpriceUseDetailLog: number;
 

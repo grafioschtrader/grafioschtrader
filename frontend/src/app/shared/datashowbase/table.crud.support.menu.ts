@@ -165,8 +165,13 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   }
 
   protected prepareEditMenu(entity: T): MenuItem[] {
-    const menuItems: MenuItem[] = [];
+    const menuItems: MenuItem[] = this.getEditMenuItems(entity);
+    TranslateHelper.translateMenuItems(menuItems, this.translateService);
+    return menuItems.length > 0 ? menuItems : null;
+  }
 
+  protected getEditMenuItems(entity: T): MenuItem[] {
+    const menuItems: MenuItem[] = [];
     if (this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Create) >= 0) {
       menuItems.push({
         label: 'CREATE|' + this.entityNameUpper + AppSettings.DIALOG_MENU_SUFFIX,
@@ -191,9 +196,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
       }
       this.addCustomMenusToSelectedEntity(entity, menuItems);
     }
-    TranslateHelper.translateMenuItems(menuItems, this.translateService);
-
-    return menuItems.length > 0 ? menuItems : null;
+    return menuItems;
   }
 
   protected addCustomMenusToSelectedEntity(entity: T, menuItems: MenuItem[]): void {

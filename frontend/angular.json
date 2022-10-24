@@ -30,6 +30,7 @@
               "node_modules/font-awesome/css/font-awesome.min.css",
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/primeflex/primeflex.css",
+              "node_modules/flag-icons/css/flag-icons.min.css",
               "src/assets/theme.css",
               "src/styles.css"
             ],

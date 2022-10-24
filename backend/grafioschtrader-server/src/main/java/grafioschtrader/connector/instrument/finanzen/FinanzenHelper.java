@@ -1,29 +1,33 @@
 package grafioschtrader.connector.instrument.finanzen;
 
+import grafioschtrader.GlobalConstants;
+
 public class FinanzenHelper {
   private static final String[][] stockexchangeNormalMapperArray = {
-      // NASDAQ
-      { "NASDAQ", "NAS" },
-      // Six Exchange
-      { "SIX", "SWX" },
+      // NASDAQ Stock Exchange)
+      { GlobalConstants.STOCK_EX_MIC_NASDAQ, "NAS" },
+      // SIX Exchange
+      { GlobalConstants.STOCK_EX_MIC_SIX, "SWX" },
       // Frankfurt
-      { "FSX", "FSE" },
+      { GlobalConstants.STOCK_EX_MIC_XETRA, "FSE" },
       // Madrid
-      { "MCE", "STN" },
+      { GlobalConstants.STOCK_EX_MIC_SPAIN, "STN" },
       // Milano -> Take global market
-      { "MIL", "GVIE" },
+      { GlobalConstants.STOCK_EX_MIC_ITALY, "GVIE" },
       // Japan / Tokio
-      { "JPX", "TOKIO" },
+      { GlobalConstants.STOCK_EX_MIC_JAPAN, "TOKIO" },
       // Austria / Wien
-      { "VIE", "WIEN" },
+      { GlobalConstants.STOCK_EX_MIC_AUSTRIA, "WIEN" },
       // Zürcher Kantonalbank
-      { "ZKB", "ZKK" } };
+      { GlobalConstants.STOCK_EX_MIC_ZKB, "ZKK" } };
 
-  private static final String[][] stockexchangeCertificateMapperArray = { { "SIX", "QMH" },
+  private static final String[][] stockexchangeCertificateMapperArray = { 
+      // GlobalConstants 
+      { GlobalConstants.STOCK_EX_MIC_SIX, "QMH" },
       // Stuttgart
-      { "STU", "EUWAX" },
+      { GlobalConstants.STOCK_EX_MIC_STUTTGART, "EUWAX" },
       // Frankfurt
-      { "FSX", "SCE" } };
+      { GlobalConstants.STOCK_EX_MIC_XETRA, "SCE" } };
 
   public static String getNormalMappedStockexchangeSymbol(String stockexchangeSymbol) {
     return geMappedStockexchangeSymbol(stockexchangeSymbol, stockexchangeNormalMapperArray);

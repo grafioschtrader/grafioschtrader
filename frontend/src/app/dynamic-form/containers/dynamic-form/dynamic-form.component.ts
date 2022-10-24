@@ -109,7 +109,6 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       fieldFormGroup.buttonInForm || !(fieldFormGroup.inputType === InputType.Button || fieldFormGroup.inputType === InputType.Pbutton));
   }
 
-
   get controlsFlatten(): FieldConfig[] {
     return FormHelper.flattenConfigMap(this.config).filter(({inputType}) =>
       inputType !== InputType.Button && inputType !== InputType.Pbutton);
@@ -119,7 +118,6 @@ export class DynamicFormComponent implements OnChanges, OnInit {
     return FormHelper.getFieldConfigs(this.config).filter(({inputType}) =>
       inputType !== InputType.Button && inputType !== InputType.Pbutton);
   }
-
 
   get buttons(): FieldConfig[] {
     return FormHelper.getFieldConfigs(this.config).filter((config) =>
@@ -154,7 +152,6 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
   ngOnChanges(): void {
     this.form = this.createGroupAndControl();
-
     this.fieldsetConfigs = this.createFieldsetConfigs();
     this.showWithFieldset = this.hasFieldset();
   }
@@ -177,7 +174,6 @@ export class DynamicFormComponent implements OnChanges, OnInit {
     this.controls.forEach(control => group.addControl(control.field, this.createControl(control)));
     return group;
   }
-
 
   createControl(config: FieldConfig): AbstractControl {
     if (!config.formControl) {
@@ -241,7 +237,6 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       }
     });
   }
-
 
   handleSubmit(event: Event) {
     this.submitButton.disabled = true;

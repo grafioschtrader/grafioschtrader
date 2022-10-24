@@ -135,7 +135,7 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
       if (sii == SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT) {
         url = getAjaxController(security, from, to, sii,
             security.getIsin() + "/"
-                + FinanzenHelper.getCertificateMappedStockexchangeSymbol(security.getStockexchange().getSymbol()) + "/",
+                + FinanzenHelper.getCertificateMappedStockexchangeSymbol(security.getStockexchange().getMic()) + "/",
             "");
       } else {
         url = getOnePartAjaxUrl(security, from, to, sii);
@@ -166,7 +166,7 @@ public class FinanzenWithAjaxControllerCallSecurity extends FinanzenWithAjaxCont
     } else {
       // TODO Not working for Funds
       stockExchange = (sii != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES)
-          ? (FinanzenHelper.getNormalMappedStockexchangeSymbol(security.getStockexchange().getSymbol()) + "/")
+          ? (FinanzenHelper.getNormalMappedStockexchangeSymbol(security.getStockexchange().getMic()) + "/")
           : "";
     }
     String suffix = (sii == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) ? "/false" : "";

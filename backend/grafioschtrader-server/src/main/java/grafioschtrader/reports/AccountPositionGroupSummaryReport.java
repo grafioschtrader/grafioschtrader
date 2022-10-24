@@ -312,7 +312,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
             || transaction.getTransactionType() == TransactionType.WITHDRAWAL)) {
       // it is a deposit or withdrawal on foreign cash account without currency
       // exchange
-      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionTime(),
+      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsDate(),
           accountPositionSummary.securitycurrency.getFromCurrency(), true);
 
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
@@ -346,7 +346,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       Double exchangeRate = acps.exchangeRateConnectedTransactionMap.get(transaction.getIdTransaction());
       if (exchangeRate == null) {
         // different currency, for example USD/GBP when USD nor GBP is main currency
-        exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionTime(),
+        exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsDate(),
             accountPositionSummary.securitycurrency.getFromCurrency(), true);
 
         double normalizedExchangeRate = currencypair.getFromCurrency()
@@ -363,7 +363,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
       accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
     } else {
-      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionTime(),
+      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsDate(),
           accountPositionSummary.securitycurrency.getFromCurrency(), true);
       // Transaction between to currencies when main currency is not involved.
       // TODO Fix many currency should not be involved
