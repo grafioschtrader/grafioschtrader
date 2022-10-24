@@ -1,7 +1,7 @@
 import {TranslateService} from '@ngx-translate/core';
 import {Helper} from '../../helper/helper';
 import {Legend} from 'plotly.js';
-import {PlotlyService} from 'angular-plotly.js';
+
 
 export interface ChartData {
   data: any;
