@@ -3,13 +3,13 @@ package grafioschtrader.gtnet;
 public enum GTNetServerStateTypes {
 
   // There is no support for last price
-  NONE((byte) 0), 
+  SS_NONE((byte) 0), 
   // There is support for last price, but no more remote domain is allowed
-  CLOSED((byte) 1), 
+  SS_CLOSED((byte) 1), 
   // The system is in maintenance but will come back
-  MAINTENANCE((byte) 3), 
+  SS_MAINTENANCE((byte) 2), 
   // There is support for last price, but no more remote domain is allowed
-  OPEN((byte) 4);
+  SS_OPEN((byte) 3);
 
   private final Byte value;
 

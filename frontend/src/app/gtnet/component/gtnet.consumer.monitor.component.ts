@@ -10,7 +10,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {GlobalparameterService} from "../../shared/service/globalparameter.service";
 import {UserSettingsService} from "../../shared/service/user.settings.service";
 import {AppSettings} from "../../shared/app.settings";
-import {GTNwtService} from "../service/gtnet.service";
+import {GTNetService} from "../service/gtnet.service";
 import {TaskDataChange} from "../../entities/task.data.change";
 import {GTNetMessage} from "../model/gtnet.message";
 

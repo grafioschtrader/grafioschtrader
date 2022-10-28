@@ -1,6 +1,9 @@
 import {TranslateService} from '@ngx-translate/core';
 import {Helper} from '../../helper/helper';
 import {Legend} from 'plotly.js';
+import {ElementRef} from "@angular/core";
+declare let Plotly: any;
+import tippy from 'tippy.js';
 
 
 export interface ChartData {
@@ -97,23 +100,18 @@ export class PlotlyHelper {
     }
   }
 
-  public static attachTooltip(plotly: any, legendTooltipMap = new Map<string, string>()): void {
-    const legendLayer = plotly.d3.select('g.legend');
-    const items = legendLayer.selectAll('g.traces');
-    let tooltip: any;
-    legendLayer.selectAll('.tooltip-line-graphics').remove();
-    items.on('mouseover', (d) => {
-      const fullName = legendTooltipMap.get(d[0].trace.name);
-      tooltip = legendLayer.append('text')
-        .classed('tooltip-line-graphics', true)
-        .text(fullName ? fullName : d[0].trace.name);
+
+   public static attachTooltip(plotly: any, legendTooltipMap = new Map<string, string>(),
+      chartElement: ElementRef): void {
+      const legendLayer = chartElement.nativeElement.querySelector('g.legend')
+      const items: any[] = legendLayer.querySelectorAll('g.traces');
+
+    items.forEach(i => {
+      tippy(i, {content: legendTooltipMap.get(i.textContent)});
     });
-    items.on('mouseout', () => {
-      if (tooltip) {
-        tooltip.remove();
-      }
-    });
+
   }
+
 
   public static getLegendUnderChart(fontSize: number): Partial<Legend> {
     return {

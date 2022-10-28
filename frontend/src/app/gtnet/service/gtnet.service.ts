@@ -8,9 +8,10 @@ import {catchError} from "rxjs/operators";
 import {LoginService} from "../../shared/login/service/log-in.service";
 import {HttpClient} from "@angular/common/http";
 import {MessageToastService} from "../../shared/message/message.toast.service";
+import {ApplicationInfo} from "../../shared/service/actuator.service";
 
 @Injectable()
-export class GTNwtService extends AuthServiceWithLogout<GTNet> implements ServiceEntityUpdate<GTNet> {
+export class GTNetService extends AuthServiceWithLogout<GTNet> implements ServiceEntityUpdate<GTNet> {
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
@@ -20,6 +21,12 @@ export class GTNwtService extends AuthServiceWithLogout<GTNet> implements Servic
     return <Observable<GTNetWithMessages>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.GTNET_KEY}`
       + `/gtnetwithmessage`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
+
+  checkRemoteDomainWithApplicationInfo(remoteDomainName: string): Observable<ApplicationInfo> {
+    return <Observable<ApplicationInfo>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.GTNET_KEY}`
+      + `/remotetest/${remoteDomainName}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
 
   update(gtNet: GTNet): Observable<GTNet> {
     return this.updateEntity(gtNet, gtNet.idGtNet, AppSettings.GTNET_KEY);

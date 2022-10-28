@@ -57,14 +57,14 @@ export class ImportTransactionEditPlatformComponent extends SimpleEntityEditBase
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.form.setDefaultValuesAndEnableSubmit();
     AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
       <Auditable>this.callParam.thisObject, this.form, this.configObject, this.proposeChangeEntityWithEntity);
     setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionPlatform {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionPlatform {
     const importTransactionPlatform = new ImportTransactionPlatform();
     if (this.callParam.thisObject) {
       Object.assign(importTransactionPlatform, this.callParam.thisObject);

@@ -753,7 +753,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(Plotly, this.legendTooltipMap);
+    PlotlyHelper.attachTooltip(Plotly, this.legendTooltipMap, this.chartElement);
   }
 
   private getLayout(): any {

@@ -13,6 +13,7 @@ import {GlobalparameterService} from '../../service/globalparameter.service';
 declare let Plotly: any;
 
 
+
 /**
  * This general purpose chart does not have a certain layout, it can be a pie or other type of chart. After the
  * creation it makes a call back to requested the data for the registered id. Advantage: once open it can
@@ -96,6 +97,8 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private plotOrRePlot(): void {
     // Plotly.Plots.resize(this.el.nativeElement));
     Plotly.purge(this.chartElement.nativeElement);
+
+
     if (this.chartData.legendTooltipMap) {
       Plotly.newPlot(this.chartElement.nativeElement, this.chartData.data, this.chartData.layout,
         this.chartData.options).then(this.attachTooltip.bind(this));
@@ -111,6 +114,6 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   }
 
   private attachTooltip(): void {
-    PlotlyHelper.attachTooltip(Plotly, this.chartData.legendTooltipMap);
+    PlotlyHelper.attachTooltip(Plotly, this.chartData.legendTooltipMap, this.chartElement);
   }
 }

@@ -2,7 +2,7 @@ import {Component} from "@angular/core";
 import {CrudMenuOptions, TableCrudSupportMenu} from "../../shared/datashowbase/table.crud.support.menu";
 import {GTNet, GTNetWithMessages} from "../model/gtnet";
 import {GTNetMessage} from "../model/gtnet.message";
-import {GTNwtService} from "../service/gtnet.service";
+import {GTNetService} from "../service/gtnet.service";
 import {ConfirmationService, FilterService} from "primeng/api";
 import {MessageToastService} from "../../shared/message/message.toast.service";
 import {ActivePanelService} from "../../shared/mainmenubar/service/active.panel.service";
@@ -122,7 +122,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] };
   visibleDialogMsg = false;
 
-  constructor(private gtNetService: GTNwtService,
+  constructor(private gtNetService: GTNetService,
               private gtNetMessageService: GTNetMessageService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
@@ -132,6 +132,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
+
     super(AppSettings.GTNET, gtNetService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService,
       gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
@@ -139,7 +140,6 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
     this.addColumnFeqH(DataType.String, 'domainRemoteName', true, false,
       {width: 200});
-
   }
 
   override prepareCallParm(entity: GTNet): void {
@@ -162,9 +162,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     if (!event[GTNetMessageTreeTableComponent.consumedGT]) {
       this.resetMenu(this.selectedEntity);
     }
-
   }
-
 
   public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_GTNET;
