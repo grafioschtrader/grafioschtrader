@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.gtnet.GTNetServerStateTypes;
+import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
@@ -27,8 +28,10 @@ public class GTNet extends BaseID {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_gt_net")
   private Integer idGtNet;
-
+  
   @Schema(description = "Name or ip address of this remote domain")
+  @NotNull
+  @WebUrl
   @Column(name = "domain_remote_name")
   private String domainRemoteName;
 
@@ -60,7 +63,7 @@ public class GTNet extends BaseID {
   @Column(name = "entity_server_state")
   private byte entityServerState;
 
-  @Schema(description = "That this remote domain accepts requests from this server.")
+  @Schema(description = "Double-sided stamping of entity data")
   @Column(name = "accept_entity_request")
   private boolean acceptEntityRequest;
 
@@ -84,11 +87,11 @@ public class GTNet extends BaseID {
   @Column(name = "lastprice_server_state")
   private byte lastpriceServerState;
 
-  @Schema(description = "Should this provider be used by this server. 0 -> not using, Greater than 0 means priority")
+  @Schema(description = "Should this provider be used by this server for last price. 0 -> not using, Greater than 0 means priority")
   @Column(name = "lastprice_consumer_usage")
   private byte lastpriceConsumerUsage;
 
-  @Schema(description = "Shall be used the last price detail log.")
+  @Schema(description = "Shall be used the last price detail log. It records which client changed last prices")
   @Column(name = "lastprice_use_detail_log")
   private boolean lastpriceUseDetailLog;
 

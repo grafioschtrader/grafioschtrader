@@ -10,6 +10,7 @@ import javax.persistence.EntityManager;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
+import grafioschtrader.gtnet.model.msg.ApplicationInfo;
 
 public interface GlobalparametersJpaRepositoryCustom {
 
@@ -70,5 +71,7 @@ public interface GlobalparametersJpaRepositoryCustom {
   List<ValueKeyHtmlSelectOptions> getCurrencies();
   
   int getUpdatePriceByStockexchange();
+  
+ 
 
 }

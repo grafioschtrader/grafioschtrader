@@ -46,7 +46,6 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
       messageToastService, historyquoteService);
   }
 
-
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
@@ -75,7 +74,7 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
     TranslateHelper.translateMessageErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     if (this.callParam.historyquote) {
       this.form.transferBusinessObjectToForm(this.callParam.historyquote);
       FormHelper.disableEnableFieldConfigs(true, [this.configObject.date]);
@@ -87,7 +86,7 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
       this.callParam.securitycurrency, this.form, this.configObject, this.proposeChangeEntityWithEntity, false);
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Historyquote {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Historyquote {
     const historyquote = new Historyquote();
     this.copyFormToPublicBusinessObject(historyquote, this.callParam.historyquote, this.proposeChangeEntityWithEntity);
     historyquote.idSecuritycurrency = this.callParam.securitycurrency.idSecuritycurrency;

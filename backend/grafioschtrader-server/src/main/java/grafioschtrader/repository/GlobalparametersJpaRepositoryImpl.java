@@ -34,6 +34,7 @@ import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
+import grafioschtrader.gtnet.model.msg.ApplicationInfo;
 
 public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRepositoryCustom {
 
@@ -238,5 +239,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
   }
+
+ 
 
 }

@@ -29,13 +29,13 @@ export interface ActuatorHealth {
   status: 'UP' | 'DOWN';
 }
 
-export class Users {
+export interface Users {
   allowed: number;
   active: number;
 }
 
 
-export class ApplicationInfo {
+export interface ApplicationInfo {
   name: string;
   descriptiones: string;
   version: string;

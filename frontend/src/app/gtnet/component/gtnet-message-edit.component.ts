@@ -6,7 +6,7 @@ import {GTNetMessage} from "../model/gtnet.message";
 import {TranslateService} from "@ngx-translate/core";
 import {GlobalparameterService} from "../../shared/service/globalparameter.service";
 import {MessageToastService} from "../../shared/message/message.toast.service";
-import {GTNwtService} from "../service/gtnet.service";
+import {GTNetService} from "../service/gtnet.service";
 import {HelpIds} from "../../shared/help/help.ids";
 import {AppSettings} from "../../shared/app.settings";
 import {AppHelper} from "../../shared/helper/app.helper";

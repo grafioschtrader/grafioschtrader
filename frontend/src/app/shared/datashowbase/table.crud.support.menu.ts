@@ -63,6 +63,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
     private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
+
     super(filterService, usersettingsService, translateService, gps);
     this.entityNameUpper = this.entityName.toUpperCase();
     this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);

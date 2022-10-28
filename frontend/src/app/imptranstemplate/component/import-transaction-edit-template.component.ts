@@ -65,7 +65,7 @@ export class ImportTransactionEditTemplateComponent extends SimpleEntityEditBase
 
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.importTransactionTemplateService.getPossibleLanguagesForTemplate().subscribe(data => {
         this.configObject.templateFormatType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
           TemplateFormatType);
@@ -80,8 +80,7 @@ export class ImportTransactionEditTemplateComponent extends SimpleEntityEditBase
     );
   }
 
-
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionTemplate {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionTemplate {
     const importTransactionTemplate = new ImportTransactionTemplate();
     if (this.callParam.thisObject) {
       Object.assign(importTransactionTemplate, this.callParam.thisObject);

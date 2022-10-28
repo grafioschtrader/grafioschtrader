@@ -96,7 +96,7 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
     return valueKeyHtmlSelectOptions;
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.tradingPlatformPlanService.getAllTradingPlatform().subscribe((tradingPlatformPlans: TradingPlatformPlan[]) => {
       this.configObject.tradingPlatformPlan.valueKeyHtmlOptions =
         this.tradingPlatformPlanCreateValueKeyHtmlSelectOptions(tradingPlatformPlans);
@@ -110,7 +110,7 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
     });
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Securityaccount {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Securityaccount {
     const securityaccount: Securityaccount = this.copyFormToPrivateBusinessObject(new Securityaccount(),
       <Securityaccount>this.callParam.thisObject);
     securityaccount.portfolio = <Portfolio>this.callParam.parentObject;

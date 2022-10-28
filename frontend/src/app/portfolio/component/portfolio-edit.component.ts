@@ -52,7 +52,7 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.gps.getCurrencies().subscribe(data => {
         this.configObject.currency.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('key',
           'value', data, false);
@@ -67,7 +67,7 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
     );
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Portfolio {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Portfolio {
     return this.copyFormToPrivateBusinessObject(new Portfolio(), <Portfolio>this.callParam.thisObject);
   }
 

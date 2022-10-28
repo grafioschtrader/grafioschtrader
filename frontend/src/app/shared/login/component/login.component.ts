@@ -50,7 +50,7 @@ import {GlobalSessionNames} from '../../global.session.names';
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
-  applicationInfo: ApplicationInfo = new ApplicationInfo();
+  applicationInfo: ApplicationInfo;
   queryParams: any;
   successLastRegistration: string;
 

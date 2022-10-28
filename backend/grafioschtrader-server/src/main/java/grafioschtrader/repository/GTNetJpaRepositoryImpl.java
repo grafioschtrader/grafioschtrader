@@ -20,6 +20,8 @@ import grafioschtrader.gtnet.m2m.model.IMsgDetails;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.GTNetWithMessages;
 import grafioschtrader.gtnet.model.MsgRequest;
+import grafioschtrader.gtnet.model.msg.ApplicationInfo;
+import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.rest.RequestMappings;
 import reactor.core.publisher.Mono;
 
@@ -33,6 +35,9 @@ public class GTNetJpaRepositoryImpl implements GTNetJpaRepositoryCustom {
 
   @Autowired
   private ObjectMapper objectMapper;
+  
+  @Autowired
+  private BaseDataClient baseDataClient;
 
   @Override
   @Transactional
@@ -62,7 +67,6 @@ public class GTNetJpaRepositoryImpl implements GTNetJpaRepositoryCustom {
           SendReceivedType.SEND.getValue(), msgRequest.replyTo, msgRequest.messageCode.getValue(), msgRequest.message),
           msgDetails);
     }
-
   }
 
   private void sendToMachine(GTNet gtNet, MsgRequest msgRequest, IMsgDetails msgDetails) {
@@ -73,6 +77,11 @@ public class GTNetJpaRepositoryImpl implements GTNetJpaRepositoryCustom {
         .body(Mono.just(messageEnvelope), MessageEnvelope.class)
         .retrieve()
         .bodyToMono(MessageEnvelope.class).block();
+  }
+
+  @Override
+  public ApplicationInfo checkRemoteDomainWithActuatorInfo(String remoteDomainName) {
+    return baseDataClient.getActuatorInfo(remoteDomainName);
   }
 
 }

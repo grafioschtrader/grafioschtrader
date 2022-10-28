@@ -50,10 +50,9 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   @Input() callParam: StockexchangeCallParam;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   private readonly nameMaxLength = 32;
-  countriesAsKeyValue: { [cc: string]: string } = {};
-
-  onlyMainStockexchangeSubscribe: Subscription;
-  micSubscribe: Subscription;
+  private countriesAsKeyValue: { [cc: string]: string } = {};
+  private onlyMainStockexchangeSubscribe: Subscription;
+  private micSubscribe: Subscription;
 
   constructor(translateService: TranslateService,
               gps: GlobalparameterService,
@@ -82,7 +81,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', false),
       DynamicFieldHelper.createFieldInputStringVSHeqF('website', 128, false,
-        [VALIDATION_SPECIAL.WEB_URL], {fieldsetName: 'BASE_DATA'}),
+        [VALIDATION_SPECIAL.WEB_URL], ),
       ...
         AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ]
@@ -95,7 +94,6 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private canAssignMic(): boolean {
     return this.callParam.stockexchange && (!this.callParam.stockexchange.mic || this.callParam.proposeChange) || !this.callParam.stockexchange;
   }
-
 
   protected override initialize(): void {
     const obserables: Observable<any>[] = [this.gps.getTimezones()];

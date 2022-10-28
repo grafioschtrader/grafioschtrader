@@ -72,7 +72,6 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
    */
   valueKeyHtmlOptions?: ValueKeyHtmlSelectOptions[];
 
-
   /**
    * PrimeNG Dropdown may have children
    */

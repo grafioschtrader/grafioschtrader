@@ -42,7 +42,7 @@ public class GTNetLastpriceService {
       List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
   
     List<GTNet> gtNetsOpen = gtNetJpaRepository.findByLastpriceConsumerUsageAndLastpriceServerState(
-        GTNetServerStateTypes.OPEN.getValue(), GTNetServerStateTypes.OPEN.getValue());
+        GTNetServerStateTypes.SS_OPEN.getValue(), GTNetServerStateTypes.SS_OPEN.getValue());
     currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
 
     return new GTNetLastpriceService.SecurityCurrency(securityJpaRepository.updateLastPriceByList(securyties),
