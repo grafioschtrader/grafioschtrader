@@ -334,9 +334,10 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   @JsonIgnore
   public java.sql.Date getTransactionDateAsDate() {
-    return java.sql.Date.valueOf(transactionDate);
+    return idTransaction < 0 ? java.sql.Date.valueOf(DateHelper.getLocalDate(this.transactionTime))
+        : java.sql.Date.valueOf(transactionDate);
   }
-  
+
   public Date getExDate() {
     return exDate;
   }

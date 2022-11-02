@@ -1,16 +1,24 @@
+import {GTNet} from "./gtnet";
+import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
+
 export class GTNetMessage {
   idGtNetMessage: number;
   idGtNet: number;
   timestamp: number;
-  sendRecv: number;
+  sendRecv: number = null;
   replyTo: number;
-  messageCode: number | GTNetMessageCodeTypes;
+  messageCode: number | GTNetMessageCodeType = null;
   messageCodeValue: string;
   message: string;
 }
+export class MsgCallParam {
+  constructor(public  formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] }, public idsGTNet: number[],
+              public replyTo: number, public gtNetMessage: GTNetMessage){}
+}
 
-export enum GTNetMessageCodeTypes {
-  GTNET_UPDATE_SERVERLIST_C = 1,
+export enum GTNetMessageCodeType {
+  GTNET_UPDATE_SERVERLIST_C = 0,
+  GTNET_UPDATE_SERVERLIST_ACCEPT = 1,
   GTNET_LASTPRICE_REQUEST_C = 2,
   GTNET_LASTPRICE_REQUEST_IN_PROCESS_S = 3,
   GTNET_LASTPRICE_REQUEST_ACCEPT_S = 4,

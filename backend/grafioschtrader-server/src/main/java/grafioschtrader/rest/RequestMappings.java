@@ -21,6 +21,8 @@ public interface RequestMappings {
   public static final String M2M = "_m2m";
   public static final String M2M_API = "/m2m/";
 
+  public static final String ACTUATOR_MAP = API + "actuator";
+  
   public static final String ASSETCLASS_MAP = API + Assetclass.TABNAME;
 
   public static final String ALGOASSETCLASS = "algoassetclass";

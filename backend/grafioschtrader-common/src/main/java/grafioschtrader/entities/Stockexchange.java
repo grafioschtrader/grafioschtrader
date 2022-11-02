@@ -99,12 +99,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @NotNull
   @PropertyAlwaysUpdatable
   private LocalTime timeClose;
-
-  @Schema(description = "Symbol of the stock exchange")
-  @Basic(optional = false)
-  @Column(name = "symbol")
-  @Size(min = 3, max = 8)
-  private String symbol;
+  
 
   @Basic(optional = false)
   @NotNull
@@ -133,10 +128,10 @@ public class Stockexchange extends Auditable implements Serializable {
   public Stockexchange() {
   }
 
-  public Stockexchange(String name, String symbol, LocalTime timeClose, String timeZone, boolean noMarketValue,
+  public Stockexchange(String name, String mic, LocalTime timeClose, String timeZone, boolean noMarketValue,
       boolean secondaryMarket) {
     this.name = name;
-    this.symbol = symbol;
+    this.mic = mic;
     this.timeClose = timeClose;
     this.timeZone = timeZone;
     this.noMarketValue = noMarketValue;
@@ -214,15 +209,7 @@ public class Stockexchange extends Auditable implements Serializable {
   public void setTimeOpen(LocalTime timeOpen) {
     this.timeOpen = timeOpen;
   }
-
-  public String getSymbol() {
-    return symbol;
-  }
-
-  public void setSymbol(String symbol) {
-    this.symbol = symbol;
-  }
-
+ 
   public Integer getIdIndexUpdCalendar() {
     return idIndexUpdCalendar;
   }
@@ -322,7 +309,7 @@ public class Stockexchange extends Auditable implements Serializable {
   public String toString() {
     return "Stockexchange [idStockexchange=" + idStockexchange + ", mic=" + mic + ", name=" + name + ", countryCode="
         + countryCode + ", noMarketValue=" + noMarketValue + ", secondaryMarket=" + secondaryMarket + ", timeOpen="
-        + timeOpen + ", timeClose=" + timeClose + ", symbol=" + symbol + ", timeZone=" + timeZone
+        + timeOpen + ", timeClose=" + timeClose + ", MIC=" + mic + ", timeZone=" + timeZone
         + ", idIndexUpdCalendar=" + idIndexUpdCalendar + ", lastDirectPriceUpdate=" + lastDirectPriceUpdate
         + ", website=" + website + ", nameIndexUpdCalendar=" + nameIndexUpdCalendar + "]";
   }

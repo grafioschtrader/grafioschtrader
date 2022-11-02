@@ -2,12 +2,21 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.MapKeyColumn;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -16,7 +25,8 @@ import org.apache.commons.lang3.SerializationUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.gtnet.GTNetMessageCodeTypes;
+import grafioschtrader.entities.AlgoRule.AlgoRuleParam2;
+import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.SendReceivedType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -28,6 +38,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class GTNetMessage extends BaseID {
 
   public static final String TABNAME = "gt_net_message";
+  public static final String GT_NET_MESSAGE_PARAM = "gt_net_message_param";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,19 +66,18 @@ public class GTNetMessage extends BaseID {
   @Column(name = "message_code")
   private Short messageCode;
   
-  @JsonIgnore
-  @Schema(description = "Sometimes one or more corresponding values must be passed with the message code.")
-  @Column(name = "message_code_value")
-  private byte[] messageCodeValue;
-
   @Schema(description = "Contains optional a message. This message is mostly created by the user")
   @Column(name = "message")
   private String message;
-  
-  
-  
+
+  @ElementCollection(fetch = FetchType.EAGER)
+  @MapKeyColumn(name = "param_name")
+  @CollectionTable(name = GT_NET_MESSAGE_PARAM, joinColumns = @JoinColumn(name = "id_gt_net_message"))
+  private Map<String, GTNetMessageParam> gtNetMessageParamMap = new HashMap<>();
+ 
+
   public GTNetMessage(Integer idGtNet, Date timestamp, byte sendRecv, Integer replyTo, Short messageCode,
-      String message) {
+      String message, Map<String, GTNetMessageParam> gtNetMessageParamMap) {
     super();
     this.idGtNet = idGtNet;
     this.timestamp = timestamp;
@@ -75,6 +85,7 @@ public class GTNetMessage extends BaseID {
     this.replyTo = replyTo;
     this.messageCode = messageCode;
     this.message = message;
+    this.gtNetMessageParamMap = gtNetMessageParamMap;
   }
 
   public Integer getIdGtNetMessage() {
@@ -118,22 +129,14 @@ public class GTNetMessage extends BaseID {
     this.replyTo = replyTo;
   }
 
-  public GTNetMessageCodeTypes getMessageCode() {
-    return GTNetMessageCodeTypes.getGTNetMessageCodeTypes(messageCode);
+  public GTNetMessageCodeType getMessageCode() {
+    return GTNetMessageCodeType.getGTNetMessageCodeType(messageCode);
   }
 
-  public void setMessageCode(GTNetMessageCodeTypes gtNetMessageCodeTypes) {
-    this.messageCode = gtNetMessageCodeTypes.getValue();
+  public void setMessageCode(GTNetMessageCodeType gtNetMessageCodeType) {
+    this.messageCode = gtNetMessageCodeType.getValue();
   }
-  
-  public Serializable getMessageCodeValue() {
-    return SerializationUtils.deserialize(messageCodeValue);
-  }
-
-  public void setMessageCodeValue(Serializable valueDesarialized) {
-    this.messageCodeValue = SerializationUtils.serialize(valueDesarialized);
-  }
-
+ 
   public String getMessage() {
     return message;
   }
@@ -142,9 +145,22 @@ public class GTNetMessage extends BaseID {
     this.message = message;
   }
 
+  public Map<String, GTNetMessageParam> getGtNetMessageParamMap() {
+    return gtNetMessageParamMap;
+  }
+
+  public void setGtNetMessageParamMap(Map<String, GTNetMessageParam> gtNetMessageParamMap) {
+    this.gtNetMessageParamMap = gtNetMessageParamMap;
+  }
+
   @Override
   public Integer getId() {
     return idGtNetMessage;
   }
 
+  @Embeddable
+  @MappedSuperclass
+  public static class GTNetMessageParam extends BaseParam {
+  }
+  
 }

@@ -17,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.finanzen.FinanzenHelper;
 import grafioschtrader.connector.instrument.finanzench.FinanzenCHFeedConnector;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
@@ -71,18 +73,19 @@ class FinanzenCHFeedConnectorTest {
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
     securities.add(createSecurity("derivate/historisch/ch0033333326/qmh", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, "CH0033333326", "SIX", true, true));
-    securities.add(createSecurity("obligationen/historisch/impleniasf-anl_201424-obligation-2024-ch0253592767/SWX",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0253592767", "SIX", true,
+        SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, "CH0033333326", GlobalConstants.STOCK_EX_MIC_SIX, true,
         true));
-  
+    securities.add(createSecurity("obligationen/historisch/impleniasf-anl_201424-obligation-2024-ch0253592767/SWX",
+        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0253592767",
+        GlobalConstants.STOCK_EX_MIC_SIX, true, true));
     securities.add(createSecurity("index/historisch/FTSE_MIB", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", "MTA", true, true));
-   
-    securities.add(createSecurity("etf/historisch/ishares-european-property-yield-etf-ie00b0m63284/fse",
-        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "IE00B0M63284", "FSE", true, true));
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", GlobalConstants.STOCK_EX_MIC_ITALY, true,
+        true));
+    securities.add(
+        createSecurity("etf/historisch/ishares-european-property-yield-etf-ie00b0m63284/fse", AssetclassType.EQUITIES,
+            SpecialInvestmentInstruments.ETF, "IE00B0M63284", GlobalConstants.STOCK_EX_MIC_XETRA, true, true));
     securities.add(createSecurity("kurse/historisch/ubs/swx", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0244767585", "SIX", true, true));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0244767585", GlobalConstants.STOCK_EX_MIC_SIX, true, true));
 
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquotes = new ArrayList<>();
@@ -102,8 +105,8 @@ class FinanzenCHFeedConnectorTest {
   }
 
   private Security createSecurity(final String quoteFeedExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol,
-      final boolean securityMarket, final boolean history) {
+      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String mic, final boolean securityMarket,
+      final boolean history) {
     final Security security = new Security();
     if (history) {
       security.setUrlHistoryExtend(quoteFeedExtend);
@@ -116,11 +119,11 @@ class FinanzenCHFeedConnectorTest {
           new Assetclass(assectClass, "Bond/Aktien Schweiz", specialInvestmentInstruments, Language.GERMAN));
     }
     security.setIsin(isin);
-    security.setStockexchange(new Stockexchange("XXXX", stockexchangeSymbol, null, null, false, securityMarket));
+    security.setStockexchange(new Stockexchange("XXXX", mic, null, null, false, securityMarket));
 
     return security;
   }
-  
+
   @Test
   void updateCurrencyPairLastPriceTest() {
     final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
@@ -135,8 +138,6 @@ class FinanzenCHFeedConnectorTest {
       assertTrue(currencyPair.getSLast() > 0.0);
     });
   }
-
-  
 
   @Test
   void getEodCurrencyHistoryTest() {
@@ -153,7 +154,7 @@ class FinanzenCHFeedConnectorTest {
     currencies.add(createCurrencypairHistory("EUR", "NOK", "devisen/historisch/euro-norwegische_krone-kurs"));
     currencies.add(createCurrencypairHistory("ETH", "CHF", "devisen/historisch/ethereum-franken-kurs"));
     currencies.add(createCurrencypairHistory("EUR", "USD", "devisen/historisch/euro-us_dollar-kurs"));
-    
+
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -167,16 +168,18 @@ class FinanzenCHFeedConnectorTest {
     });
   }
 
-  private Currencypair createCurrencypairHistory(final String fromCurrency, String toCurrency, final String urlHistoryExtend) {
+  private Currencypair createCurrencypairHistory(final String fromCurrency, String toCurrency,
+      final String urlHistoryExtend) {
     Currencypair currencypair = ConnectorTestHelper.createCurrencyPair("USD", "CHF");
     currencypair.setUrlHistoryExtend(urlHistoryExtend);
     return currencypair;
   }
 
-  private Currencypair createCurrencypairIntra(final String fromCurrency, String toCurrency, final String urlIntraExtend) {
+  private Currencypair createCurrencypairIntra(final String fromCurrency, String toCurrency,
+      final String urlIntraExtend) {
     Currencypair currencypair = ConnectorTestHelper.createCurrencyPair("USD", "CHF");
     currencypair.setUrlIntraExtend(urlIntraExtend);
     return currencypair;
   }
-  
+
 }

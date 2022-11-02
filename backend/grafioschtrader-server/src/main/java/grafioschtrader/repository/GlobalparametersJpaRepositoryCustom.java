@@ -26,6 +26,10 @@ public interface GlobalparametersJpaRepositoryCustom {
 
   int getMaxValueByKey(String key);
 
+  Integer getGTNetMyEntryID();
+  
+  Globalparameters saveGTNetMyEntryID(Integer idGtNet);
+  
   EntityManager getEntityManager();
 
   List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys);

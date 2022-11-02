@@ -12,7 +12,7 @@ export class GTNet implements BaseID {
   dailyRequestLimitCount: number;
   dailyRequestLimitRemote: number;
   dailyRequestLimitRemoteCount: number;
-  lastpriceServerState: number | GTNetServerStateTypes = null;;
+  lastpriceServerState: number | GTNetServerStateTypes = null;
   lastpriceConsumerUsage: number;
   lastpriceUseDetailLog: number = 0;
 
@@ -22,8 +22,9 @@ export class GTNet implements BaseID {
 }
 
 export interface GTNetWithMessages {
-   gtNetList: GTNet[];
-   gtNetMessageMap: { [key: number]: GTNetMessage[]};
+  gtNetList: GTNet[];
+  gtNetMessageMap: { [key: number]: GTNetMessage[] };
+  gtNetMyEntryId: number;
 }
 
 export enum GTNetServerStateTypes {

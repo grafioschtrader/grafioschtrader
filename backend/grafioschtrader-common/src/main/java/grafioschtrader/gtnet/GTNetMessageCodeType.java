@@ -1,8 +1,15 @@
 package grafioschtrader.gtnet;
 
-public enum GTNetMessageCodeTypes {
+/**
+ * Enums ending with C are intended for communication triggering by the client.
+ * Enums ending with S are intended as a response from the server.
+ *
+ */
+public enum GTNetMessageCodeType {
   // Update server list
   GTNET_UPDATE_SERVERLIST_C((short) 0),
+  // Return server list
+  GTNET_UPDATE_SERVERLIST_ACCEPT_S((short) 0),
   // Request for Intraday data
   GTNET_LASTPRICE_REQUEST_C((short) 2),
   // The request for Intraday data is in processing
@@ -28,13 +35,13 @@ public enum GTNetMessageCodeTypes {
   // Request for all types of data is rejected
   GTNET_BOTH_RREQUEST_REJECTED_S((short) 13),
   // Server is in maintenance mode during time period
-  GTNET_MAINTENANCE_S ((short) 14),
+  GTNET_MAINTENANCE_S((short) 14),
   // Server operation will be discontinued as of this date.
-  GTNET_OPERATION_DISCONTINUED_S ((short) 15);
-  
+  GTNET_OPERATION_DISCONTINUED_S((short) 15);
+
   private final short value;
 
-  private GTNetMessageCodeTypes(short value) {
+  private GTNetMessageCodeType(short value) {
     this.value = value;
   }
 
@@ -42,10 +49,10 @@ public enum GTNetMessageCodeTypes {
     return this.value;
   }
 
-  public static GTNetMessageCodeTypes getGTNetMessageCodeTypes(short value) {
-    for (GTNetMessageCodeTypes gtNetMessageCodeTypes : GTNetMessageCodeTypes.values()) {
-      if (gtNetMessageCodeTypes.getValue() == value) {
-        return gtNetMessageCodeTypes;
+  public static GTNetMessageCodeType getGTNetMessageCodeType(short value) {
+    for (GTNetMessageCodeType gtNetMessageCodeType : GTNetMessageCodeType.values()) {
+      if (gtNetMessageCodeType.getValue() == value) {
+        return gtNetMessageCodeType;
       }
     }
     return null;

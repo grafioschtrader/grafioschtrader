@@ -6,7 +6,7 @@ import javax.persistence.MappedSuperclass;
 
 @Embeddable
 @MappedSuperclass
-public abstract class AlgoParam {
+public abstract class BaseParam {
   // no need of declaring key
   // key column will be created by MapKeyColumn
 

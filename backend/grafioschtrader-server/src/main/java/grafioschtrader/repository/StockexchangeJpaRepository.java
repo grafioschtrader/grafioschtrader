@@ -33,7 +33,6 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
 
   Stockexchange findByName(String name);
 
-  Optional<Stockexchange> findBySymbol(String symbol);
 
   @Query(value = "SELECT DISTINCT s.country_code FROM stockexchange s", nativeQuery = true)
   String[] findDistinctCountryCodes();
