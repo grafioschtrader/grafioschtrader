@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.dynamic.model.FieldDescriptorInputAndShow;
 import grafioschtrader.gtnet.GTNetHelper;
-import grafioschtrader.gtnet.GTNetMessageCodeTypes;
+import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.repository.GTNetMessageJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +31,7 @@ public class GTNetMessageResource {
   @Operation(summary = "Returns all form defintion of messages", description = "", tags = {
       RequestMappings.GTNET_MESSAGE })
   @GetMapping(value = "/msgformdefinition", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<GTNetMessageCodeTypes, List<FieldDescriptorInputAndShow>>> getAllFormDefinitions() {
+  public ResponseEntity<Map<GTNetMessageCodeType, List<FieldDescriptorInputAndShow>>> getAllFormDefinitions() {
     return new ResponseEntity<>(GTNetHelper.getAllFormDefinitions(), HttpStatus.OK);
   }
   

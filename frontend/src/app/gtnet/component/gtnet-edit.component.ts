@@ -63,18 +63,17 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       DynamicFieldHelper.createFieldCheckboxHeqF('spreadCapability' , {defaultValue: true,
         fieldsetName: this.BASE_SETTING}),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'dailyRequestLimit', true, 0, 9999,
-         {fieldsetName: this.BASE_SETTING}),
+         {defaultValue: 1000, fieldsetName: this.BASE_SETTING}),
       DynamicFieldHelper.createFieldCheckboxHeqF('acceptEntityRequest', {defaultValue: true,
         fieldsetName: this.ENTITY}),
       DynamicFieldHelper.createFieldSelectStringHeqF('entityServerState',  true,
         {defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_OPEN], fieldsetName: this.ENTITY}),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'lastpriceConsumerUsage', true, 0, 9999,
         {defaultValue: 0, fieldsetName: this.LAST_PRICE}),
-      DynamicFieldHelper.createFieldSelectStringHeqF('lastprice_server_state',  true,
+      DynamicFieldHelper.createFieldSelectStringHeqF('lastpriceServerState', true,
         {defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_NONE], fieldsetName: this.LAST_PRICE}),
-      DynamicFieldHelper.createFieldCheckboxHeqF('lastpriceUseDetailLog', {fieldsetName: this.LAST_PRICE})
-
-
+      DynamicFieldHelper.createFieldCheckboxHeqF('lastpriceUseDetailLog', {fieldsetName: this.LAST_PRICE}),
+      DynamicFieldHelper.createSubmitButton()
    ]
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -84,7 +83,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       this.configObject.timeZone.valueKeyHtmlOptions = timezones;
       this.configObject.entityServerState.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         GTNetServerStateTypes);
-      this.configObject.lastprice_server_state.valueKeyHtmlOptions = this.configObject.entityServerState.valueKeyHtmlOptions;
+      this.configObject.lastpriceServerState.valueKeyHtmlOptions = this.configObject.entityServerState.valueKeyHtmlOptions;
 
     });
   }

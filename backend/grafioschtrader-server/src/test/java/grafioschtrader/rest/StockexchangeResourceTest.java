@@ -58,9 +58,9 @@ class StockexchangeResourceTest {
   @ParameterizedTest
   @CsvFileSource(resources = "/stockexchanges.csv", encoding = "UTF-8")
   @DisplayName("Users create some Stockexchanges")
-  void createTest(String name, String symbol, LocalTime timeClose, String timeZone, boolean noMarketValue,
+  void createTest(String name, String mic, LocalTime timeClose, String timeZone, boolean noMarketValue,
       boolean secondaryMarket) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-    Stockexchange s = new Stockexchange(name, symbol, timeClose, timeZone, noMarketValue, secondaryMarket);
+    Stockexchange s = new Stockexchange(name, mic, timeClose, timeZone, noMarketValue, secondaryMarket);
     ResponseEntity<Stockexchange> response = restTemplate.exchange(
         RestTestHelper.createURLWithPort(RequestMappings.STOCKEXCHANGE_MAP + "/", port), HttpMethod.POST,
         RestTestHelper.getHttpEntity(RestTestHelper.getRadomUser(), s), Stockexchange.class);

@@ -14,7 +14,6 @@ public abstract class Stockexchange_ extends grafioschtrader.entities.Auditable_
   public static volatile SingularAttribute<Stockexchange, Boolean> secondaryMarket;
   public static volatile SingularAttribute<Stockexchange, Integer> idStockexchange;
   public static volatile SingularAttribute<Stockexchange, String> mic;
-  public static volatile SingularAttribute<Stockexchange, String> symbol;
   public static volatile SingularAttribute<Stockexchange, String> countryCode;
   public static volatile SingularAttribute<Stockexchange, String> name;
   public static volatile SingularAttribute<Stockexchange, String> timeZone;

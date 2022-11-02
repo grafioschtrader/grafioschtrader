@@ -42,10 +42,9 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
         .filter(
             t -> t.getTaskType().getValue() <= taskDataChangeConfig.maxUserCreateTask && t.getAllowedEntities() != null)
         .forEach(t -> taskDataChangeConfig.taskTypeConfig.put(t.getTaskType(), t.getAllowedEntities()));
-    taskDataChangeConfig.canBeInterruptedList= tasks.stream()
-    .filter(
-        t -> t.getTaskType().getValue() <= taskDataChangeConfig.maxUserCreateTask && t.canBeInterrupted())
-    .map(t -> t.getTaskType()).collect(Collectors.toList());
+    taskDataChangeConfig.canBeInterruptedList = tasks.stream()
+        .filter(t -> t.getTaskType().getValue() <= taskDataChangeConfig.maxUserCreateTask && t.canBeInterrupted())
+        .map(t -> t.getTaskType()).collect(Collectors.toList());
     return taskDataChangeConfig;
   }
 

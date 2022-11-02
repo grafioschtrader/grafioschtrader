@@ -12,20 +12,20 @@ import grafioschtrader.gtnet.model.msg.RequestMsg;
 
 public abstract class GTNetHelper {
 
-  private static Map<GTNetMessageCodeTypes, Class<?>> msgFormMap;
+  private static Map<GTNetMessageCodeType, Class<?>> msgFormMap;
 
   static {
     msgFormMap = new HashMap<>();
-    msgFormMap.put(GTNetMessageCodeTypes.GTNET_UPDATE_SERVERLIST_C, RequestMsg.class);
-    msgFormMap.put(GTNetMessageCodeTypes.GTNET_MAINTENANCE_S, MaintenanceMsg.class);
+    msgFormMap.put(GTNetMessageCodeType.GTNET_UPDATE_SERVERLIST_C, RequestMsg.class);
+    msgFormMap.put(GTNetMessageCodeType.GTNET_MAINTENANCE_S, MaintenanceMsg.class);
   }
 
-  public static Map<GTNetMessageCodeTypes, List<FieldDescriptorInputAndShow>> getAllFormDefinitions() {
+  public static Map<GTNetMessageCodeType, List<FieldDescriptorInputAndShow>> getAllFormDefinitions() {
     return msgFormMap.entrySet().stream().collect(
         Collectors.toMap(Map.Entry::getKey, e -> DynamicModelHelper.getFormDefinitionOfModelClass(e.getValue())));
   }
   
-  public static Class<?> getMsgClassByMessageCode(GTNetMessageCodeTypes gtNetMessageCodeTypes) {
-    return msgFormMap.get(gtNetMessageCodeTypes);
+  public static Class<?> getMsgClassByMessageCode(GTNetMessageCodeType gtNetMessageCodeType) {
+    return msgFormMap.get(gtNetMessageCodeType);
   }
 }

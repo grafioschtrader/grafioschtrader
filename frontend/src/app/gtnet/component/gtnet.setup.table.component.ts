@@ -1,9 +1,9 @@
 import {Component} from "@angular/core";
 import {CrudMenuOptions, TableCrudSupportMenu} from "../../shared/datashowbase/table.crud.support.menu";
 import {GTNet, GTNetWithMessages} from "../model/gtnet";
-import {GTNetMessage} from "../model/gtnet.message";
+import {GTNetMessage, MsgCallParam} from "../model/gtnet.message";
 import {GTNetService} from "../service/gtnet.service";
-import {ConfirmationService, FilterService} from "primeng/api";
+import {ConfirmationService, FilterService, MenuItem} from "primeng/api";
 import {MessageToastService} from "../../shared/message/message.toast.service";
 import {ActivePanelService} from "../../shared/mainmenubar/service/active.panel.service";
 import {DialogService} from "primeng/dynamicdialog";
@@ -19,6 +19,7 @@ import {GTNetMessageTreeTableComponent} from "./gtnet-message-treetable.componen
 import {combineLatest} from "rxjs";
 import {GTNetMessageService} from "../service/gtnet.message.service";
 import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
+import {BusinessHelper} from "../../shared/helper/business.helper";
 
 @Component({
   template: `
@@ -32,6 +33,7 @@ import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descr
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{'GTNET_SETUP' | translate}}</h4>
+          <h5 *ngIf="!gtNetMyEntryId"  style="color:red;">{{'GTNET_COMM_REQUIREMENT' | translate}}</h5>
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
@@ -79,6 +81,10 @@ import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descr
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'myEntry'">
+                  <span [style]='el.idGtNet === gtNetMyEntryId ? "font-weight:500": null'>
+                   {{getValueByPath(el, field)}}</span>
+                </ng-container>
                 <ng-container *ngSwitchCase="'check'">
                   <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
                 </ng-container>
@@ -109,18 +115,21 @@ import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descr
     </gtnet-edit>
     <gtnet-message-edit *ngIf="visibleDialogMsg"
                         [visibleDialog]="visibleDialogMsg"
-                        [formDefinitions]="formDefinitions"
+                        [msgCallParam]="msgCallParam"
                         (closeDialog)="handleCloseDialogMsg($event)">
     </gtnet-message-edit>
   `,
   providers: [DialogService]
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
+  private readonly domainRemoteName = 'domainRemoteName';
   callParam: GTNet;
   gtNetList: GTNet[];
+  gtNetMyEntryId: number;
   gtNetMessageMap: { [key: number]: GTNetMessage[] };
   formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] };
   visibleDialogMsg = false;
+  msgCallParam:  MsgCallParam;
 
   constructor(private gtNetService: GTNetService,
               private gtNetMessageService: GTNetMessageService,
@@ -138,8 +147,18 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
 
-    this.addColumnFeqH(DataType.String, 'domainRemoteName', true, false,
-      {width: 200});
+    this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false,
+      {width: 200, templateName: 'myEntry'});
+    this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
+    this.addColumnFeqH(DataType.Boolean, 'spreadCapability', true, false,
+      {templateName: 'check'});
+    this.addColumnFeqH(DataType.Boolean, 'acceptEntityRequest', true, false,
+      {templateName: 'check'});
+    this.addColumnFeqH(DataType.String, 'entityServerState',  true, false,
+      {translateValues: TranslateValue.NORMAL});
+
+    this.multiSortMeta.push({field: this.domainRemoteName, order: 1});
+    this.prepareTableAndTranslate();
   }
 
   override prepareCallParm(entity: GTNet): void {
@@ -152,6 +171,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
     combineLatest(observable).subscribe((data,) => {
       this.gtNetList = (<GTNetWithMessages>data[0]).gtNetList;
+      this.gtNetMyEntryId = (<GTNetWithMessages>data[0]).gtNetMyEntryId;
+      this.createTranslatedValueStoreAndFilterField(this.gtNetList);
       this.gtNetMessageMap = (<GTNetWithMessages>data[0]).gtNetMessageMap;
       this.formDefinitions ??= <{ [type: string]: FieldDescriptorInputAndShow[] }>data[1];
       this.prepareTableAndTranslate();
@@ -164,12 +185,31 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     }
   }
 
+  public override getEditMenuItems(): MenuItem[] {
+    const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
+    menuItems.push({separator: true});
+    menuItems.push({
+      label: 'GTNET_MESSAGE_SEND', command: (e) => this.sendMsgSelected(),
+      disabled: !this.selectedEntity && !this.gtNetMyEntryId
+    });
+    return menuItems;
+  }
+
   public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_GTNET;
   }
 
-  handleCloseDialogMsg(dynamicMsg: any) : void {
 
+  // Handle Messages
+  ////////////////////////////////////////
+  private sendMsgSelected():  void {
+    new MsgCallParam(this.formDefinitions, null, null, null);
+    this.visibleDialogMsg = true;
   }
+
+  handleCloseDialogMsg(dynamicMsg: any) : void {
+    this.visibleDialogMsg = false;
+  }
+
 
 }

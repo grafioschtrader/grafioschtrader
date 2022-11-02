@@ -261,9 +261,12 @@
   "GROUP_BY_FINANCIAL_INSTRUMENT": "Finanzinstrument gruppiert",
   "GROUP_BY_PORTFOLIO": "Portfolio gruppiert",
   "GROUP_BY_SUB_CATEGORY": "Unter Anlageklasse gruppiert",
+  "GTNET_COMM_REQUIREMENT" : "Die Kommunikation mit anderen Teilnehmern bedingt die Eintragung Ihres GT-Server. Dabei muss Ihr Server von aussen erreichbar sein.",
   "GTNET_CONSUME_MONITOR": "GT-Net Nutzungs-Monitor",
-  "GTNET_SETUP": "Einstellung GT-Net",
+  "GTNETMESSAGE": "GTNet Nachrichten",
+  "GTNET_MESSAGE_SEND": "GTNet Nachrichten versenden",
   "GTNET_PROVIDER_MONITOR": "GT-Net Anbieter-Nonitor",
+  "GTNET_SETUP": "Einstellung GT-Net",
   "GT_FILTER": {
     "gtNoFilter": "Kein Filter",
     "gtIS": "Gleich",

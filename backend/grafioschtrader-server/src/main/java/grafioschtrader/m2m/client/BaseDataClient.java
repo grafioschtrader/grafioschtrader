@@ -1,28 +1,46 @@
 package grafioschtrader.m2m.client;
 
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import grafioschtrader.entities.Security;
+import grafioschtrader.entities.GTNet;
+import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
+import grafioschtrader.gtnet.model.MsgRequest;
 import grafioschtrader.gtnet.model.msg.ApplicationInfo;
 import grafioschtrader.rest.RequestMappings;
+import io.netty.resolver.ResolvedAddressTypes;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 @Service
 public class BaseDataClient {
 
-  
-  public Security getSecurityByIsinAndCurrency(String isin, String currency) {
-    return WebClient
-        .create("http://[2a02:aa14:a243:1080:b561:cf4c:ddf7:6d80]").get().uri(uriBuilder -> uriBuilder
-            .path(RequestMappings.SECURITY_M2M_MAP + "/{isin}/{currency}").build(isin, currency))
-        .retrieve().bodyToMono(Security.class).block();
-  }
 
   public ApplicationInfo getActuatorInfo(String domainName) {
-    return WebClient
-        .create(domainName).get().uri(uriBuilder -> uriBuilder
-            .path("actuator/info").build())
-        .retrieve().bodyToMono(ApplicationInfo.class).block();
+    return getWebClientForDomain(domainName).get().uri(uriBuilder -> uriBuilder
+    .path(RequestMappings.ACTUATOR_MAP + "/info").build())
+    .retrieve().bodyToMono(ApplicationInfo.class).block();
+  }
+
+  
+  public void sendToMsg(String targetDomain, MessageEnvelope messageEnvelope) {
+    getWebClientForDomain(targetDomain).post()
+        .uri(uriBuilder -> uriBuilder.path(RequestMappings.GTNET_M2M_MAP).build())
+        .body(Mono.just(messageEnvelope), MessageEnvelope.class).retrieve().bodyToMono(MessageEnvelope.class).block();
+  }
+  
+  
+  private WebClient getWebClientForDomain(String domainName) {
+    HttpClient httpClient = HttpClient.create().resolver(spec -> {
+      spec.resolvedAddressTypes(ResolvedAddressTypes.IPV6_PREFERRED);
+      spec.disableRecursionDesired(false);
+    });
+
+    return WebClient.builder()
+    .clientConnector(new ReactorClientHttpConnector(httpClient))
+    .baseUrl(domainName)
+    .build();
   }
   
 }

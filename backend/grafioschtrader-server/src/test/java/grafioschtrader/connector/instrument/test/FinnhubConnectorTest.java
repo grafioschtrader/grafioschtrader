@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.finnhub.FinnhubConnector;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Historyquote;
@@ -106,7 +107,7 @@ class FinnhubConnectorTest {
   void getSplitHistoryTest() {
     final List<Security> securities = new ArrayList<>();
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-    securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.parallelStream().forEach(security -> {
       List<Securitysplit> splits = new ArrayList<>();
       try {
@@ -120,10 +121,10 @@ class FinnhubConnectorTest {
   }
   
   
-  private Security createSecurity(final String ticker, final String symbolStockexchange, String currency,
+  private Security createSecurity(final String ticker, final String mic, String currency,
       SpecialInvestmentInstruments specialInvestmentInstrument) {
     final Stockexchange stockexchange = new Stockexchange();
-    stockexchange.setSymbol(symbolStockexchange);
+    stockexchange.setMic(mic);
     Assetclass assetclass = new Assetclass();
     assetclass.setSpecialInvestmentInstrument(specialInvestmentInstrument);
     final Security security = new Security();

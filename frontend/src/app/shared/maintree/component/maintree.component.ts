@@ -243,7 +243,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.setLangTransNode(this.portfolioTrees[this.ADMINDATA_INDEX]);
   }
 
-  private  addGTNetToTree(): void {
+  private addGTNetToTree(): void {
     const gtNetNode: TreeNode = {
       expanded: true, children: [],
       label: 'GTNET_CONSUME_MONITOR',

@@ -101,7 +101,7 @@ public class AlgoRule extends AlgoRuleStrategy {
 
   @Embeddable
   @MappedSuperclass
-  public static class AlgoRuleParam2 extends AlgoParam {
+  public static class AlgoRuleParam2 extends BaseParam {
   }
 
 }

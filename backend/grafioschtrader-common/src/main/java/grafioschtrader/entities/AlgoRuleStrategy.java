@@ -92,7 +92,7 @@ public abstract class AlgoRuleStrategy extends TenantBaseID implements Serializa
   }
 
   @Embeddable
-  public static class AlgoRuleStrategyParam extends AlgoParam {
+  public static class AlgoRuleStrategyParam extends BaseParam {
   }
 
 }

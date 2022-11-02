@@ -21,7 +21,5 @@ public class BaseDataClientTest {
   
   @Test
   void getSecurityByIsinAndCurrencyTest() {
-    Security security = baseDataClient.getSecurityByIsinAndCurrency("IE00B5M4WH52", "CHF");
-    assertThat(security).isNotNull();
   }
 }

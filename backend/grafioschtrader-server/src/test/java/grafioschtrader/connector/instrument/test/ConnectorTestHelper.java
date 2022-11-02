@@ -42,9 +42,9 @@ public class ConnectorTestHelper {
   }
 
   public static Security setAssetclassAndStockexchange(Security security,
-      SpecialInvestmentInstruments specialInvestmentInstrument, String symbolStockexchange) {
+      SpecialInvestmentInstruments specialInvestmentInstrument, String mic) {
     final Stockexchange stockexchange = new Stockexchange();
-    stockexchange.setSymbol(symbolStockexchange);
+    stockexchange.setMic(mic);
     Assetclass assetclass = new Assetclass();
     assetclass.setSpecialInvestmentInstrument(specialInvestmentInstrument);
     security.setAssetClass(assetclass);

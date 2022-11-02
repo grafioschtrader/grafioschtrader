@@ -1,4 +1,5 @@
 import {GlobalSessionNames} from './global.session.names';
+import {GTNetMessage} from "../gtnet/model/gtnet.message";
 
 export class AppSettings {
 
@@ -14,6 +15,7 @@ export class AppSettings {
   public static readonly DIVIDEND = 'Dividend';
   public static readonly GLOBALPARAMETERS = 'Globalparameters';
   public static readonly GTNET= 'GTNet';
+  public static readonly GTNETMESSAGE = "GTNetMessage";
   public static readonly HISTORYQUOTE = 'Historyquote';
   public static readonly HISTORYQUOTE_PERIOD = 'HistoryquotePeriod';
   public static readonly IMPORT_TRANSACTION_HEAD = 'ImportTransactionHead';

@@ -178,10 +178,10 @@ class YahooFeedConnectorCOMTest {
     });
   }
 
-  private Security createSecurity(final String ticker, final String symbolStockexchange, String currency,
+  private Security createSecurity(final String ticker, final String mic, String currency,
       SpecialInvestmentInstruments specialInvestmentInstrument) {
     final Stockexchange stockexchange = new Stockexchange();
-    stockexchange.setSymbol(symbolStockexchange);
+    stockexchange.setMic(mic);
     Assetclass assetclass = new Assetclass();
     assetclass.setSpecialInvestmentInstrument(specialInvestmentInstrument);
     final Security security = new Security();

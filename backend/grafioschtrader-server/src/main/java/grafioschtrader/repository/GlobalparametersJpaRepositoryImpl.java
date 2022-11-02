@@ -76,6 +76,22 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return getCurrencyPrecision().getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
+
+  @Override
+  public Integer getGTNetMyEntryID() {
+    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_GTNET_MY_ENTRY_ID)
+        .map(Globalparameters::getPropertyInt).orElse(null);
+  }
+
+  @Override
+  public Globalparameters saveGTNetMyEntryID(Integer idGtNet) {
+    Globalparameters gp = new Globalparameters(Globalparameters.GLOB_KEY_GTNET_MY_ENTRY_ID);
+    gp.setPropertyInt(idGtNet);
+    gp.setChangedBySystem(true);
+    return globalparametersJpaRepository.save(gp);
+  }
+  
+  
   @Override
   public int getTaskDataDaysPreserve() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_TASK_DATA_DAYS_PRESERVE)
