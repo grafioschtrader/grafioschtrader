@@ -11,6 +11,7 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
 import {FileRequiredValidator} from '../../dynamic-form/components/form-input-file/file-input.validator';
 import {CurrencyMaskConfig} from 'ngx-currency';
 import {AppSettings} from '../app.settings';
+import {BaseParam} from "../../entities/view/base.param";
 
 export enum VALIDATION_SPECIAL {
   ISIN,
@@ -460,6 +461,7 @@ export class DynamicFieldHelper {
         case DataType.DateString:
         case DataType.DateNumeric:
         case DataType.DateTimeNumeric:
+        case DataType.DateTimeString:
         case DataType.DateStringShortUS:
           fieldConfig = this.createFieldPcalendar(DataType[fDIAS.dataType], fDIAS.fieldName, labelKey, fDIAS.required);
           fieldConfig.defaultValue = new Date();
@@ -475,6 +477,40 @@ export class DynamicFieldHelper {
       fieldConfigs.push(this.createSubmitButton(submitText ? submitText : undefined));
     }
     return fieldConfigs;
+  }
+
+  public static createAndSetValuesInDynamicModel(e: any,
+                                                 targetSelectionField: string,
+                                                 paramMap: Map<string, BaseParam> | { [key: string]: BaseParam },
+                                                 fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
+                                                 addStrategyImplField = false): any {
+    let dynamicModel: any = {};
+    if (addStrategyImplField) {
+      dynamicModel[targetSelectionField] = e;
+    }
+    return DynamicFieldHelper.setValuesOfMapModelToDynamicModel(fieldDescriptorInputAndShows,
+      paramMap, dynamicModel);
+
+  }
+
+
+  public static setValuesOfMapModelToDynamicModel(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
+                                                  paramMap: Map<string, BaseParam> | { [key: string]: BaseParam },
+                                                  dynamicModel: any = {}): any {
+    fieldDescriptorInputAndShows.forEach(fieldDescriptorInputAndShow => {
+      console.log('param', paramMap[fieldDescriptorInputAndShow.fieldName].paramValue);
+      let value = paramMap[fieldDescriptorInputAndShow.fieldName].paramValue;
+      switch (DataType[fieldDescriptorInputAndShow.dataType]) {
+        case DataType.Numeric:
+        case DataType.NumericInteger:
+          value = Number(value);
+          break;
+        default:
+        // Nothing
+      }
+      dynamicModel[fieldDescriptorInputAndShow.fieldName] = value;
+    });
+    return dynamicModel;
   }
 
   public static resetValidator(fieldConfig: FieldConfig, validation: ValidatorFn[], errors?: ErrorMessageRules[]): void {

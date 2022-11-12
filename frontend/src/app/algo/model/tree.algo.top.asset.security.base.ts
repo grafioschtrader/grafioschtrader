@@ -1,5 +1,5 @@
 import {TreeNode} from 'primeng/api';
-import {AlgoTopAssetSecurity} from '../../entities/algo.top.asset.security';
+import {AlgoTopAssetSecurity} from './algo.top.asset.security';
 import {TreeAlgoStrategy} from './tree.algo.strategy';
 import {TreeAlgoBase} from './tree.algo.base';
 

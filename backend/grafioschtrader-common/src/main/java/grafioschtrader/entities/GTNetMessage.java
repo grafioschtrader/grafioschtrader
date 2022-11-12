@@ -1,6 +1,5 @@
 package grafioschtrader.entities;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,11 +20,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import org.apache.commons.lang3.SerializationUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.entities.AlgoRule.AlgoRuleParam2;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.SendReceivedType;
 import io.swagger.v3.oas.annotations.media.Schema;

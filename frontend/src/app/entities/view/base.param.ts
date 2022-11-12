@@ -1,4 +1,4 @@
-export class AlgoRuleStrategyParam {
+export class BaseParam {
   constructor(public paramValue: string) {
   }
 }

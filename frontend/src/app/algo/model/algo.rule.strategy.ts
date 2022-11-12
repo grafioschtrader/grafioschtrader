@@ -1,12 +1,12 @@
-import {TenantBaseId} from './tenant.base.id';
-import {AlgoRuleStrategyParam} from './algo.rule.strategy.param';
+import {TenantBaseId} from '../../entities/tenant.base.id';
+import {BaseParam} from '../../entities/view/base.param';
 import {Exclude} from 'class-transformer';
 
 export abstract class AlgoRuleStrategy extends TenantBaseId {
   idAlgoRuleStrategy: number;
   idAlgoAssetclassSecurity: number;
 
-  algoRuleStrategyParamMap: Map<string, AlgoRuleStrategyParam> | { [key: string]: AlgoRuleStrategyParam };
+  algoRuleStrategyParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
 
   @Exclude()
   get idTree(): string {

@@ -1,10 +1,10 @@
 import {Component, OnInit} from '@angular/core';
-import {AlgoSecurity} from '../../entities/algo.security';
+import {AlgoSecurity} from '../model/algo.security';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {AlgoSecurityService} from '../service/algo.security.service';
-import {AlgoAssetclass} from '../../entities/algo.assetclass';
+import {AlgoAssetclass} from '../model/algo.assetclass';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.edit';
 import {combineLatest, Observable} from 'rxjs';

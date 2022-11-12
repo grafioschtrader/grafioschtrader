@@ -1,5 +1,5 @@
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
-import {AlgoSecurity} from '../../entities/algo.security';
+import {AlgoSecurity} from '../model/algo.security';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {LoginService} from '../../shared/login/service/log-in.service';

@@ -18,6 +18,8 @@ class ConsorsbankFeedConnectorTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
+    securities.add(ConnectorTestHelper.createIntraSecurity("-Gold", "_31117890,@DE",
+        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "GOLD"));
     securities.add(ConnectorTestHelper.createIntraSecurity("0.25 Societe Generale 20-27", "_282883661,SWX",
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SGP20"));
     securities.add(ConnectorTestHelper.createIntraSecurity("SPDR S&P U.S. Energy Select Sector (USD)", "_139582518,SWX",

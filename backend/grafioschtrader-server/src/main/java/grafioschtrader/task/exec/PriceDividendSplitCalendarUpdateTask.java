@@ -29,6 +29,8 @@ import grafioschtrader.types.TaskType;
 @Transactional
 public class PriceDividendSplitCalendarUpdateTask implements ITask {
 
+  private static long TIMEOUT_IN_SECONDS = 3600;
+  
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 
@@ -81,5 +83,11 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   public boolean canBeInterrupted() {
     return true;
   }
+  
+  @Override
+  public long getTimeoutInSeconds() {
+    return TIMEOUT_IN_SECONDS;
+  }
+  
   
 }

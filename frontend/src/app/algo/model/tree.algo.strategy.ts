@@ -1,4 +1,4 @@
-import {AlgoStrategy} from '../../entities/algo.strategy';
+import {AlgoStrategy} from './algo.strategy';
 import {TreeAlgoBase} from './tree.algo.base';
 
 export class TreeAlgoStrategy extends TreeAlgoBase {

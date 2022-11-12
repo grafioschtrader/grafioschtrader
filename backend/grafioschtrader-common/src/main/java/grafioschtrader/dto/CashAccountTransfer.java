@@ -121,7 +121,7 @@ public class CashAccountTransfer {
         GlobalConstants.FID_MAX_FRACTION_DIGITS);
     withdrawalTransaction.setCurrencyExRate(exactCurrencyExRate);
     depositTransaction.setCurrencyExRate(exactCurrencyExRate);
-    log.debug("Corrected currency exchange rate for difference  {} from {} to {}", difference, getCurrencyExRate(),
+    log.debug("Corrected currency exchange rate for difference {} from {} to {}", difference, getCurrencyExRate(),
         exactCurrencyExRate);
   }
 

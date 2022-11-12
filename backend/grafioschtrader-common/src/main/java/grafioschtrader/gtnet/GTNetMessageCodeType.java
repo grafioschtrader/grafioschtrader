@@ -35,9 +35,9 @@ public enum GTNetMessageCodeType {
   // Request for all types of data is rejected
   GTNET_BOTH_RREQUEST_REJECTED_S((short) 13),
   // Server is in maintenance mode during time period
-  GTNET_MAINTENANCE_S((short) 14),
+  GTNET_MAINTENANCE_C((short) 14),
   // Server operation will be discontinued as of this date.
-  GTNET_OPERATION_DISCONTINUED_S((short) 15);
+  GTNET_OPERATION_DISCONTINUED_C((short) 15);
 
   private final short value;
 

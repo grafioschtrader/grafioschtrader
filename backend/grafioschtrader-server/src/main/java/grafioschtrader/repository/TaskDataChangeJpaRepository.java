@@ -6,10 +6,13 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
+import grafioschtrader.types.ProgressStateType;
 
 @Repository
 public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChange, Integer>,
@@ -27,4 +30,10 @@ public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChang
   long removeByIdTask(byte idTask);
   
   long removeByExecEndTimeBefore(LocalDateTime dateTime);
+  
+  
+  @Modifying
+  @Transactional
+  @Query("UPDATE TaskDataChange t SET t.progressStateType = ?2 WHERE t.progressStateType = ?1")
+  int changeFromToProgressState(byte fromState, byte toState);
 }

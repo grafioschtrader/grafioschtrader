@@ -3,8 +3,6 @@ package grafioschtrader.dynamic.model;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import grafioschtrader.algo.strategy.model.DataTypeJava;
-
 public class FieldDescriptorInputAndShow implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -55,7 +53,7 @@ public class FieldDescriptorInputAndShow implements Serializable {
       break;
 
     case LccalDateTime:
-      dataType = DataType.DateTimeString;
+      dataType = DataType.DateTimeNumeric;
       break;
 
     default:

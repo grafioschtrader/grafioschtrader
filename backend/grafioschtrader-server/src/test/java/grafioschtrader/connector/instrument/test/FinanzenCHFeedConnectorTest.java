@@ -18,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.connector.instrument.finanzen.FinanzenHelper;
 import grafioschtrader.connector.instrument.finanzench.FinanzenCHFeedConnector;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;

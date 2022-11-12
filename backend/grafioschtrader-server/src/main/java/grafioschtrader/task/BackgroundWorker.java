@@ -19,14 +19,26 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import grafioschtrader.alert.AlertService;
+import grafioschtrader.alert.AlertType;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.exceptions.TaskInterruptException;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.types.ProgressStateType;
 
+/**
+ * One thread is started, which sequentially starts another thread per task. For
+ * a task a timeout can be set, this preferably with threads with the
+ * possibility of an endless run exists. This continues to run and becomes a
+ * zombie but does not hinder the start of new tasks.
+ *
+ */
 @Component
 public class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<ApplicationReadyEvent> {
+
+  private static long WAIT_MILISECONDS_AFTER_TIMEOUT = 10000;
+  private static long POLLING_TIME_SECONDS = 15;
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
@@ -34,11 +46,16 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
   @Autowired(required = false)
   private List<ITask> tasks = new ArrayList<>();
 
+  @Autowired
+  private AlertService alertService;
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
-  
+
   private Thread backgroundThread;
+  private Thread workerThread;
   private volatile boolean runningLoop;
   private RunningTask runningTask;
+  private boolean timeout;
 
   BackgroundWorker() {
     backgroundThread = new Thread(this);
@@ -46,6 +63,7 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
 
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
+    cleanUpZombieProcessAtStartUp();
     runningLoop = true;
     backgroundThread.start();
   }
@@ -59,16 +77,37 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
                 ProgressStateType.PROG_WAITING.getValue(), LocalDateTime.now());
         if (taskDataChangeOpt.isPresent()) {
           final TaskDataChange taskDataChange = taskDataChangeOpt.get();
-          LocalDateTime startTime = LocalDateTime.now();
-          tasks.stream().filter(task -> task.getTaskType() == taskDataChange.getIdTask()).findFirst()
-              .ifPresentOrElse(task -> {
-                executeJob(task, taskDataChange, startTime);
-              }, () -> finishedJob(taskDataChange, startTime, ProgressStateType.PROG_TASK_NOT_FOUND));
-
+          timeoutProcessRunningThread(taskDataChange);
         }
-        TimeUnit.SECONDS.sleep(15);
+        TimeUnit.SECONDS.sleep(POLLING_TIME_SECONDS);
       } catch (InterruptedException ie) {
-        log.info("Backgroud thread was interrupted, Failed to complete operation");
+        log.warn("Backgroud thread was interrupted, Failed to complete operation");
+      }
+    }
+  }
+
+  private void cleanUpZombieProcessAtStartUp() {
+    taskDataChangeRepository.changeFromToProgressState(ProgressStateType.PROG_ZOMBIE.getValue(),
+        ProgressStateType.PROG_ZOMBIE_CLEANED.getValue());
+  }
+
+  private void timeoutProcessRunningThread(final TaskDataChange taskDataChange) throws InterruptedException {
+    final LocalDateTime startTime = LocalDateTime.now();
+    Optional<ITask> taskOpt = tasks.stream().filter(task -> task.getTaskType() == taskDataChange.getIdTask())
+        .findFirst();
+    if (taskOpt.isPresent()) {
+      timeout = false;
+      workerThread = new Thread(() -> executeJob(taskOpt.get(), taskDataChange, startTime));
+      workerThread.start();
+      workerThread.join(taskOpt.get().getTimeoutInSeconds() * 1000);
+      if (workerThread.isAlive()) {
+        timeout = true;
+        workerThread.interrupt();
+        Thread.sleep(WAIT_MILISECONDS_AFTER_TIMEOUT);
+        if (workerThread.isAlive()) {
+          finishedJob(taskDataChange, startTime, ProgressStateType.PROG_ZOMBIE);
+          alertService.sendMail(AlertType.ALERT_GET_ZOMBIE_BACKGROUND_JOB, taskDataChange.getIdTaskDataChange());
+        }
       }
     }
   }
@@ -83,7 +122,8 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
         taskDataChangeRepository.removeByIdTask(task.getTaskType().getValue());
       }
     } catch (TaskInterruptException tie) {
-      finishedJob(taskDataChange, startTime, ProgressStateType.PROG_INTERRUPTED);
+      finishedJob(taskDataChange, startTime,
+          timeout ? ProgressStateType.PROG_TIMEOUT : ProgressStateType.PROG_INTERRUPTED);
     } catch (TaskBackgroundException tbe) {
       if (tbe.getErrorMsgOfSystem() != null) {
         StringBuilder failure = new StringBuilder("");
@@ -133,14 +173,15 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
   }
 
   public boolean interruptingRunningJob(Integer idTaskDataChange) {
-    if (idTaskDataChange == null || runningTask != null && runningTask.taskType.canBeInterrupted() 
-        && runningTask.taskDataChange.getIdTaskDataChange().equals(idTaskDataChange)) {
-      backgroundThread.interrupt();
-      return backgroundThread.isInterrupted();
+    if (workerThread != null && workerThread.isAlive()
+        && (idTaskDataChange == null || runningTask != null && runningTask.taskType.canBeInterrupted()
+            && runningTask.taskDataChange.getIdTaskDataChange().equals(idTaskDataChange))) {
+      workerThread.interrupt();
+      return workerThread.isInterrupted();
     }
     return false;
   }
-  
+
   private static class RunningTask {
     public ITask taskType;
     public TaskDataChange taskDataChange;
@@ -149,7 +190,7 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
       this.taskType = taskType;
       this.taskDataChange = taskDataChange;
     }
-    
+
   }
 
 }

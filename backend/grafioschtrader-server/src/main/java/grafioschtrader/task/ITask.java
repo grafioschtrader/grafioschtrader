@@ -24,4 +24,8 @@ public interface ITask {
     return false;
   }
 
+  default long getTimeoutInSeconds() {
+    return 0L;
+  }
+  
 }

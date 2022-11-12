@@ -1,8 +1,12 @@
-package grafioschtrader.algo.strategy.model;
+package grafioschtrader.dynamic.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Used for mapping between Java data types and GUI data types. 
+ *
+ */
 public enum DataTypeJava {
   Boolean(boolean.class),
   BooleanC(Boolean.class),
@@ -17,7 +21,6 @@ public enum DataTypeJava {
   private final Class<?> targetClass;
 
   private DataTypeJava(Class<?> targetClass) {
-
     this.targetClass = targetClass;
   }
 

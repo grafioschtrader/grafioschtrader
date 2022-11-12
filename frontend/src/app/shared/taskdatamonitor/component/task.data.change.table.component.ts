@@ -146,6 +146,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
 
+    this.addColumnFeqH(DataType.NumericInteger, 'idTaskDataChange', true, false,
+      {});
     this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, false,
       {});
     this.addColumnFeqH(DataType.NumericShowZero, 'taskAsId', true, false,

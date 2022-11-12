@@ -1,5 +1,5 @@
 import {TreeNode} from 'primeng/api';
-import {AlgoSecurity} from '../../entities/algo.security';
+import {AlgoSecurity} from './algo.security';
 import {TreeAlgoTopAssetSecurityBase} from './tree.algo.top.asset.security.base';
 
 export class TreeAlgoSecurity extends TreeAlgoTopAssetSecurityBase<AlgoSecurity> {

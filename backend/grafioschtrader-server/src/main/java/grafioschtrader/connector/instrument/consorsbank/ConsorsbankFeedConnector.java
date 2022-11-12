@@ -34,7 +34,7 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
   }
 
   public ConsorsbankFeedConnector() {
-    super(supportedFeed, "consorsbank", "Consorsbank", "^_[0-9]+,[A-Z]+$");
+    super(supportedFeed, "consorsbank", "Consorsbank", "^_[0-9]+,[A-Z,@]+$");
   }
   
   @Override

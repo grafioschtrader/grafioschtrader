@@ -1,5 +1,5 @@
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
-import {AlgoTop} from '../../entities/algo.top';
+import {AlgoTop} from '../model/algo.top';
 import {Injectable} from '@angular/core';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';

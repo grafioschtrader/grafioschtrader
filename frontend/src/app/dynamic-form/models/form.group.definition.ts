@@ -2,11 +2,11 @@ import {FieldConfig} from './field.config';
 import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';
 
 /**
- * For the defintion of a FormGroup
+ * For the definition of a FormGroup, It may bu uased for cross validation
  */
 export interface FormGroupDefinition extends BaseFieldFieldgroupConfig {
   /**
-   * Name of Formgroup
+   * Name of form group
    */
   formGroupName: string;
   /**

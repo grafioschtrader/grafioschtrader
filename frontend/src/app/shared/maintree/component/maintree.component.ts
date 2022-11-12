@@ -34,7 +34,7 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {BusinessHelper} from '../../helper/business.helper';
 import {WatchlistSecurityExists} from '../../../entities/dnd/watchlist.security.exists';
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
-import {AlgoTop} from '../../../entities/algo.top';
+import {AlgoTop} from '../../../algo/model/algo.top';
 import {GlobalSessionNames} from '../../global.session.names';
 
 

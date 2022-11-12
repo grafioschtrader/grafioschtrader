@@ -3,7 +3,6 @@ package grafioschtrader.repository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import grafioschtrader.entities.GTNetMessage;
-import grafioschtrader.gtnet.m2m.model.IMsgDetails;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.m2m.model.MessageResponse;
 

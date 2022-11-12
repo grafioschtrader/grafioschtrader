@@ -34,7 +34,6 @@ import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
-import grafioschtrader.gtnet.model.msg.ApplicationInfo;
 
 public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRepositoryCustom {
 
@@ -108,7 +107,13 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS);
   }
-
+  
+  @Override
+  public int getAlertBitmap() {
+    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_ALERT_MAIL)
+        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_ALERT_MAIL);
+  }
+  
   @Override
   public int getWatchlistIntradayUpdateTimeout() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS)

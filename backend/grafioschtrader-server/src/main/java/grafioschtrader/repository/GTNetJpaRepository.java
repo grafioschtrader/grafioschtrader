@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.Historyquote;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
 public interface GTNetJpaRepository

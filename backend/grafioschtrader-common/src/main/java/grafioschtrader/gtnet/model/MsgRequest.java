@@ -3,8 +3,6 @@ package grafioschtrader.gtnet.model;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import io.swagger.v3.oas.annotations.media.Schema;
