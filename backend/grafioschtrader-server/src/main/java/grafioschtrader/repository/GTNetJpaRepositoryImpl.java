@@ -18,23 +18,18 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.GTNetHelper;
 import grafioschtrader.gtnet.SendReceivedType;
-import grafioschtrader.gtnet.m2m.model.IMsgDetails;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.GTNetWithMessages;
 import grafioschtrader.gtnet.model.MsgRequest;
 import grafioschtrader.gtnet.model.msg.ApplicationInfo;
 import grafioschtrader.m2m.client.BaseDataClient;
-import grafioschtrader.rest.RequestMappings;
-import reactor.core.publisher.Mono;
 
 public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements GTNetJpaRepositoryCustom {
 

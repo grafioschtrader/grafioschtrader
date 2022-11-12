@@ -8,7 +8,7 @@ import {InputAndShowDefinitionStrategy} from '../model/input.and.show.definition
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.implementations';
-import {AlgoStrategy} from '../../entities/algo.strategy';
+import {AlgoStrategy} from '../model/algo.strategy';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 

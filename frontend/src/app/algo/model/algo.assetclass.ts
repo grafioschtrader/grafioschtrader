@@ -1,9 +1,9 @@
 import {AlgoAssetclassSecurity} from './algo.assetclass.security';
 import {AlgoSecurity} from './algo.security';
 import {Exclude, Type} from 'class-transformer';
-import {Assetclass} from './assetclass';
+import {Assetclass} from '../../entities/assetclass';
 import {AlgoTopAssetSecurity} from './algo.top.asset.security';
-import {AlgoTreeName} from './view/algo.tree.name';
+import {AlgoTreeName} from '../../entities/view/algo.tree.name';
 
 export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeName {
 

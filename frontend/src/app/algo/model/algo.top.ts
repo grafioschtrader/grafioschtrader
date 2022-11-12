@@ -1,8 +1,8 @@
 import {AlgoTopAssetSecurity} from './algo.top.asset.security';
 import {AlgoAssetclass} from './algo.assetclass';
 import {Exclude, Type} from 'class-transformer';
-import {AlgoTreeName} from './view/algo.tree.name';
-import {RuleStrategy} from '../shared/types/rule.strategy';
+import {AlgoTreeName} from '../../entities/view/algo.tree.name';
+import {RuleStrategy} from '../../shared/types/rule.strategy';
 
 
 export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {

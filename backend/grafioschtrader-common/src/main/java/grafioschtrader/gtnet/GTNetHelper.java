@@ -17,7 +17,7 @@ public abstract class GTNetHelper {
   static {
     msgFormMap = new HashMap<>();
     msgFormMap.put(GTNetMessageCodeType.GTNET_UPDATE_SERVERLIST_C, RequestMsg.class);
-    msgFormMap.put(GTNetMessageCodeType.GTNET_MAINTENANCE_S, MaintenanceMsg.class);
+    msgFormMap.put(GTNetMessageCodeType.GTNET_MAINTENANCE_C, MaintenanceMsg.class);
   }
 
   public static Map<GTNetMessageCodeType, List<FieldDescriptorInputAndShow>> getAllFormDefinitions() {

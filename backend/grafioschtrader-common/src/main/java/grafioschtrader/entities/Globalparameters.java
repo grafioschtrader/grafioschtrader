@@ -69,8 +69,11 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE = GT_PREFIX + "historyquote.quality.update.date";
   public static final String GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE = GT_PREFIX + "securitysplit.append.date";
 
+  // The idGTNet for this Server in GTNet  
   public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GT_PREFIX + "gtnet.my.entry.id";
   
+  // Alert bitmap for sending emai
+  public static final String GLOB_KEY_ALERT_MAIL = GT_PREFIX + "alert.mail.bitmap";
   
   // Tenant data entity limits
   private static final String MAX = "max.";
@@ -151,6 +154,8 @@ public class Globalparameters implements Serializable {
   public static final int DEFAULT_MAX_SECURITY_BREACH_COUNT = 5;
   public static final Date DEFAULT_START_FEED_DATE = new GregorianCalendar(2000, Calendar.JANUARY, 1).getTime();
 
+  public static final int DEFAULT_ALERT_MAIL = Integer.MAX_VALUE;
+  
   public static final int DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY = 5;
   
   public static final int DEFAULT_UPDATE_PRICE_BY_EXCHANGE = 0;

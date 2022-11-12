@@ -1,5 +1,6 @@
 import {GTNet} from "./gtnet";
 import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
+import {BaseParam} from "../../entities/view/base.param";
 
 export class GTNetMessage {
   idGtNetMessage: number;
@@ -8,7 +9,7 @@ export class GTNetMessage {
   sendRecv: number = null;
   replyTo: number;
   messageCode: number | GTNetMessageCodeType = null;
-  messageCodeValue: string;
+  gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
   message: string;
 }
 export class MsgCallParam {
@@ -31,6 +32,6 @@ export enum GTNetMessageCodeType {
   GTNET_BOTH_RREQUEST_IN_PROCESS_S = 11,
   GTNET_BOTH_RREQUEST_ACCEPT_S = 12,
   GTNET_BOTH_RREQUEST_REJECTED_S = 13,
-  GTNET_MAINTENANCE_S = 14,
-  GTNET_OPERATION_DISCONTINUED_S = 15
+  GTNET_MAINTENANCE_C = 14,
+  GTNET_OPERATION_DISCONTINUED_C = 15
 }

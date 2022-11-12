@@ -1,4 +1,4 @@
-import {AlgoTop} from '../algo.top';
+import {AlgoTop} from '../../algo/model/algo.top';
 import {RuleStrategy} from '../../shared/types/rule.strategy';
 
 export class AlgoTopCreate extends AlgoTop {

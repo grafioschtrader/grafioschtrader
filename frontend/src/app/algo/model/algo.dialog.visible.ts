@@ -1,9 +1,9 @@
-import {AlgoTop} from '../../entities/algo.top';
-import {AlgoAssetclass} from '../../entities/algo.assetclass';
-import {AlgoSecurity} from '../../entities/algo.security';
+import {AlgoTop} from './algo.top';
+import {AlgoAssetclass} from './algo.assetclass';
+import {AlgoSecurity} from './algo.security';
 import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.implementations';
 import {InputAndShowDefinitionStrategy} from './input.and.show.definition.strategy';
-import {AlgoStrategy} from '../../entities/algo.strategy';
+import {AlgoStrategy} from './algo.strategy';
 import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 
 export enum AlgoDialogVisible {

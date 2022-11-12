@@ -10,7 +10,7 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {Directive, Input} from '@angular/core';
-import {AlgoAssetclassSecurity} from '../../entities/algo.assetclass.security';
+import {AlgoAssetclassSecurity} from '../model/algo.assetclass.security';
 import {AlgoCallParam} from '../model/algo.dialog.visible';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 

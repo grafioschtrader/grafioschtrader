@@ -129,7 +129,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   gtNetMessageMap: { [key: number]: GTNetMessage[] };
   formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] };
   visibleDialogMsg = false;
-  msgCallParam:  MsgCallParam;
+  msgCallParam: MsgCallParam;
 
   constructor(private gtNetService: GTNetService,
               private gtNetMessageService: GTNetMessageService,
@@ -203,7 +203,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   // Handle Messages
   ////////////////////////////////////////
   private sendMsgSelected():  void {
-    new MsgCallParam(this.formDefinitions, null, null, null);
+    this.msgCallParam = new MsgCallParam(this.formDefinitions, null, null, null);
     this.visibleDialogMsg = true;
   }
 

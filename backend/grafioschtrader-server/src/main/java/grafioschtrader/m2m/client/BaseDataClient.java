@@ -4,9 +4,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import grafioschtrader.entities.GTNet;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.gtnet.model.MsgRequest;
 import grafioschtrader.gtnet.model.msg.ApplicationInfo;
 import grafioschtrader.rest.RequestMappings;
 import io.netty.resolver.ResolvedAddressTypes;

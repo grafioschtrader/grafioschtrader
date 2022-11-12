@@ -6,14 +6,14 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {Subscription} from 'rxjs';
 import {ActivatedRoute, Params} from '@angular/router';
-import {AlgoTop} from '../../entities/algo.top';
+import {AlgoTop} from '../model/algo.top';
 import {AlgoAssetclassService} from '../service/algo.assetclass.service';
-import {AlgoAssetclass} from '../../entities/algo.assetclass';
+import {AlgoAssetclass} from '../model/algo.assetclass';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {plainToClass} from 'class-transformer';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
-import {AlgoTopAssetSecurity} from '../../entities/algo.top.asset.security';
-import {AlgoStrategy} from '../../entities/algo.strategy';
+import {AlgoTopAssetSecurity} from '../model/algo.top.asset.security';
+import {AlgoStrategy} from '../model/algo.strategy';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
@@ -22,7 +22,7 @@ import {TreeAlgoTop} from '../model/tree.algo.top';
 import {AlgoTreeName} from '../../entities/view/algo.tree.name';
 import {TreeAlgoAssetclass} from '../model/tree.algo.assetclass';
 import {TreeAlgoStrategy} from '../model/tree.algo.strategy';
-import {AlgoSecurity} from '../../entities/algo.security';
+import {AlgoSecurity} from '../model/algo.security';
 import {TreeAlgoSecurity} from '../model/tree.algo.security';
 import {
   AlgoCallParam,

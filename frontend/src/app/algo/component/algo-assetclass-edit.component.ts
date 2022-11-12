@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {AlgoAssetclass} from '../../entities/algo.assetclass';
+import {AlgoAssetclass} from '../model/algo.assetclass';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
@@ -10,7 +10,7 @@ import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {combineLatest, Observable} from 'rxjs';
 import {Assetclass} from '../../entities/assetclass';
 import {Portfolio} from '../../entities/portfolio';
-import {AlgoTop} from '../../entities/algo.top';
+import {AlgoTop} from '../model/algo.top';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.edit';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
