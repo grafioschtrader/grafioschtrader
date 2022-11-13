@@ -1,19 +1,19 @@
-import {Component, Input, OnInit} from "@angular/core";
-import {SimpleEntityEditBase} from "../../shared/edit/simple.entity.edit.base";
-import {GTNetMessage, GTNetMessageCodeType, MsgCallParam} from "../model/gtnet.message";
-import {TranslateService} from "@ngx-translate/core";
-import {GlobalparameterService} from "../../shared/service/globalparameter.service";
-import {MessageToastService} from "../../shared/message/message.toast.service";
-import {HelpIds} from "../../shared/help/help.ids";
-import {AppSettings} from "../../shared/app.settings";
-import {AppHelper} from "../../shared/helper/app.helper";
-import {GTNetMessageService} from "../service/gtnet.message.service";
-import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
-import {DynamicFieldHelper} from "../../shared/helper/dynamic.field.helper";
-import {TranslateHelper} from "../../shared/helper/translate.helper";
-import {Subscription} from "rxjs";
-import {FieldConfig} from "../../dynamic-form/models/field.config";
-import {SelectOptionsHelper} from "../../shared/helper/select.options.helper";
+import {Component, Input, OnInit} from '@angular/core';
+import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {GTNetMessage, GTNetMessageCodeType, MsgCallParam} from '../model/gtnet.message';
+import {TranslateService} from '@ngx-translate/core';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {MessageToastService} from '../../shared/message/message.toast.service';
+import {HelpIds} from '../../shared/help/help.ids';
+import {AppSettings} from '../../shared/app.settings';
+import {AppHelper} from '../../shared/helper/app.helper';
+import {GTNetMessageService} from '../service/gtnet.message.service';
+import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {Subscription} from 'rxjs';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 
 /**
  * Crate a new GTNet message. A message can not be changed.
@@ -34,7 +34,7 @@ import {SelectOptionsHelper} from "../../shared/helper/select.options.helper";
 })
 export class GTNetMessageEditComponent extends SimpleEntityEditBase<GTNetMessage> implements OnInit {
   @Input() msgCallParam: MsgCallParam;
-  private readonly MESSAGE_CODE = "messageCode";
+  private readonly MESSAGE_CODE = 'messageCode';
   private fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[];
   messageCodeSubscription: Subscription;
 
@@ -62,7 +62,7 @@ export class GTNetMessageEditComponent extends SimpleEntityEditBase<GTNetMessage
     this.valueChangedOnMessageCode();
     if (this.msgCallParam.gtNetMessage) {
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        GTNetMessageCodeType,[GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]], false);
+        GTNetMessageCodeType, [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]], false);
       this.configObject[this.MESSAGE_CODE].formControl.setValue(this.msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
     } else {
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,

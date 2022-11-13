@@ -39,7 +39,7 @@ import {GlobalSessionNames} from '../../global.session.names';
 
 
 @Component({
-  selector: 'portfolio-tree',
+  selector: 'main-tree',
   templateUrl: '../view/maintree.html',
   // changeDetection: ChangeDetectionStrategy.OnPush
 })

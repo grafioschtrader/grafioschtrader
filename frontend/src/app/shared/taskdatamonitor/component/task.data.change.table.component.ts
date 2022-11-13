@@ -161,10 +161,10 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.addColumnFeqH(DataType.NumericInteger, 'idEntity', true, false);
     this.addColumnFeqH(DataType.DateTimeSecondString, 'execStartTime', true, false);
     this.addColumnFeqH(DataType.String, 'executionPriority', true, false,
-      {translateValues: TranslateValue.NORMAL});
+      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
     this.addColumnFeqH(DataType.DateTimeSecondString, 'execEndTime', true, false);
     this.addColumnFeqH(DataType.String, 'progressStateType', true, false,
-      {translateValues: TranslateValue.NORMAL});
+      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
     this.addColumnFeqH(DataType.NumericShowZero, 'executionDurationInSeconds', true, false,
       {maxFractionDigits: 0});
 
@@ -194,6 +194,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       this.tdcFormConstraints = data[1];
       this.prepareTableAndTranslate();
       this.createTranslatedValueStoreAndFilterField(this.taskDataChangeList);
+      this.prepareFilter(this.taskDataChangeList);
     });
   }
 

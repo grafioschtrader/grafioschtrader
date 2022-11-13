@@ -1,4 +1,3 @@
-import {GTNet} from "./gtnet";
 import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
 import {BaseParam} from "../../entities/view/base.param";
 
@@ -12,9 +11,11 @@ export class GTNetMessage {
   gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
   message: string;
 }
+
 export class MsgCallParam {
-  constructor(public  formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] }, public idsGTNet: number[],
-              public replyTo: number, public gtNetMessage: GTNetMessage){}
+  constructor(public formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] }, public idsGTNet: number[],
+              public replyTo: number, public gtNetMessage: GTNetMessage) {
+  }
 }
 
 export enum GTNetMessageCodeType {

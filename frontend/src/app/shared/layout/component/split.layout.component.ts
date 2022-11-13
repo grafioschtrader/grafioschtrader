@@ -10,7 +10,7 @@ declare function Split(ids, options);
     <menubar></menubar>
     <div class="row fullheight" #split (window:resize)="onResize($event)">
       <div id="tree" class="split split-horizontal">
-        <portfolio-tree></portfolio-tree>
+        <main-tree></main-tree>
       </div>
       <div id="mainpanel" class="split split-horizontal">
         <div id="maintop" class="split split-vetrical">

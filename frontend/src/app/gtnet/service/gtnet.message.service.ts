@@ -1,5 +1,4 @@
 import {AuthServiceWithLogout} from "../../shared/login/service/base.auth.service.with.logout";
-import {GTNet, GTNetWithMessages} from "../model/gtnet";
 import {ServiceEntityUpdate} from "../../shared/edit/service.entity.update";
 import {GTNetMessage} from "../model/gtnet.message";
 import {LoginService} from "../../shared/login/service/log-in.service";
