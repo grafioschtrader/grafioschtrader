@@ -99,7 +99,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
     this.initialize();
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_PORTFOLIOS_TRANSACTIONLIST;
   }
 
@@ -117,7 +117,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
     return transactions;
   }
 
-  protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
+  protected override prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
   }
 
 }

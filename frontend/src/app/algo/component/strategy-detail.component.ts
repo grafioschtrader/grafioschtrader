@@ -12,7 +12,7 @@ import {AppHelper} from '../../shared/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {OptionalParams, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
-import {DynamicFieldHelper} from "../../shared/helper/dynamic.field.helper";
+import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 
 /**
  * Displays the parameters of a selected strategy.

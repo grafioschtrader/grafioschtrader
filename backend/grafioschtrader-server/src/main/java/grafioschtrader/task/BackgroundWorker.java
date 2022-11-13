@@ -89,6 +89,8 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
   private void cleanUpZombieProcessAtStartUp() {
     taskDataChangeRepository.changeFromToProgressState(ProgressStateType.PROG_ZOMBIE.getValue(),
         ProgressStateType.PROG_ZOMBIE_CLEANED.getValue());
+    taskDataChangeRepository.changeFromToProgressState(ProgressStateType.PROG_RUNNING.getValue(),
+        ProgressStateType.PROG_ZOMBIE_CLEANED.getValue());
   }
 
   private void timeoutProcessRunningThread(final TaskDataChange taskDataChange) throws InterruptedException {

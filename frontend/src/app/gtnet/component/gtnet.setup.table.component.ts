@@ -1,25 +1,23 @@
-import {Component} from "@angular/core";
-import {CrudMenuOptions, TableCrudSupportMenu} from "../../shared/datashowbase/table.crud.support.menu";
-import {GTNet, GTNetWithMessages} from "../model/gtnet";
-import {GTNetMessage, MsgCallParam} from "../model/gtnet.message";
-import {GTNetService} from "../service/gtnet.service";
-import {ConfirmationService, FilterService, MenuItem} from "primeng/api";
-import {MessageToastService} from "../../shared/message/message.toast.service";
-import {ActivePanelService} from "../../shared/mainmenubar/service/active.panel.service";
-import {DialogService} from "primeng/dynamicdialog";
-import {TranslateService} from "@ngx-translate/core";
-import {GlobalparameterService} from "../../shared/service/globalparameter.service";
-import {UserSettingsService} from "../../shared/service/user.settings.service";
-import {AppSettings} from "../../shared/app.settings";
-import {DataType} from "../../dynamic-form/models/data.type";
-import {TranslateValue} from "../../shared/datashowbase/column.config";
-import {FilterType} from "../../shared/datashowbase/filter.type";
-import {HelpIds} from "../../shared/help/help.ids";
-import {GTNetMessageTreeTableComponent} from "./gtnet-message-treetable.component";
-import {combineLatest} from "rxjs";
-import {GTNetMessageService} from "../service/gtnet.message.service";
-import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
-import {BusinessHelper} from "../../shared/helper/business.helper";
+import {Component} from '@angular/core';
+import {CrudMenuOptions, TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
+import {GTNet, GTNetWithMessages} from '../model/gtnet';
+import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
+import {GTNetService} from '../service/gtnet.service';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {MessageToastService} from '../../shared/message/message.toast.service';
+import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {DialogService} from 'primeng/dynamicdialog';
+import {TranslateService} from '@ngx-translate/core';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {AppSettings} from '../../shared/app.settings';
+import {DataType} from '../../dynamic-form/models/data.type';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {HelpIds} from '../../shared/help/help.ids';
+import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
+import {combineLatest} from 'rxjs';
+import {GTNetMessageService} from '../service/gtnet.message.service';
+import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 
 @Component({
   template: `
@@ -33,7 +31,7 @@ import {BusinessHelper} from "../../shared/helper/business.helper";
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{'GTNET_SETUP' | translate}}</h4>
-          <h5 *ngIf="!gtNetMyEntryId"  style="color:red;">{{'GTNET_COMM_REQUIREMENT' | translate}}</h5>
+          <h5 *ngIf="!gtNetMyEntryId" style="color:red;">{{'GTNET_COMM_REQUIREMENT' | translate}}</h5>
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
@@ -154,7 +152,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       {templateName: 'check'});
     this.addColumnFeqH(DataType.Boolean, 'acceptEntityRequest', true, false,
       {templateName: 'check'});
-    this.addColumnFeqH(DataType.String, 'entityServerState',  true, false,
+    this.addColumnFeqH(DataType.String, 'entityServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
 
     this.multiSortMeta.push({field: this.domainRemoteName, order: 1});
@@ -202,12 +200,12 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   // Handle Messages
   ////////////////////////////////////////
-  private sendMsgSelected():  void {
+  private sendMsgSelected(): void {
     this.msgCallParam = new MsgCallParam(this.formDefinitions, null, null, null);
     this.visibleDialogMsg = true;
   }
 
-  handleCloseDialogMsg(dynamicMsg: any) : void {
+  handleCloseDialogMsg(dynamicMsg: any): void {
     this.visibleDialogMsg = false;
   }
 

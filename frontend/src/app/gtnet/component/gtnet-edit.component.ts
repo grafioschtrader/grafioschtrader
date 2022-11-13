@@ -1,25 +1,19 @@
-import {Component, Input, OnInit} from "@angular/core";
-import {SimpleEntityEditBase} from "../../shared/edit/simple.entity.edit.base";
-import {GTNet, GTNetServerStateTypes} from "../model/gtnet";
-import {TranslateService} from "@ngx-translate/core";
-import {GlobalparameterService} from "../../shared/service/globalparameter.service";
-import {MessageToastService} from "../../shared/message/message.toast.service";
-import {AssetclassService} from "../../assetclass/service/assetclass.service";
-import {HelpIds} from "../../shared/help/help.ids";
-import {AppSettings} from "../../shared/app.settings";
-import {GTNetService} from "../service/gtnet.service";
-import {AppHelper} from "../../shared/helper/app.helper";
-import {CallParam} from "../../shared/maintree/types/dialog.visible";
-import {ValueKeyHtmlSelectOptions} from "../../dynamic-form/models/value.key.html.select.options";
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from "../../shared/helper/dynamic.field.helper";
-import {AuditHelper} from "../../shared/helper/audit.helper";
-import {Subscription} from "rxjs";
-import {ApplicationInfo} from "../../shared/service/actuator.service";
-import {TranslateHelper} from "../../shared/helper/translate.helper";
-import {Cashaccount} from "../../entities/cashaccount";
-import {SelectOptionsHelper} from "../../shared/helper/select.options.helper";
-import {AssetclassType} from "../../shared/types/assetclass.type";
-import {DataType} from "../../dynamic-form/models/data.type";
+import {Component, Input, OnInit} from '@angular/core';
+import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {GTNet, GTNetServerStateTypes} from '../model/gtnet';
+import {TranslateService} from '@ngx-translate/core';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {MessageToastService} from '../../shared/message/message.toast.service';
+import {HelpIds} from '../../shared/help/help.ids';
+import {AppSettings} from '../../shared/app.settings';
+import {GTNetService} from '../service/gtnet.service';
+import {AppHelper} from '../../shared/helper/app.helper';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {Subscription} from 'rxjs';
+import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {DataType} from '../../dynamic-form/models/data.type';
 
 /**
  * Add ar modify a GTNet entity.
@@ -40,7 +34,7 @@ import {DataType} from "../../dynamic-form/models/data.type";
 })
 export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
   @Input() callParam: GTNet;
-  private readonly BASE_SETTING = "BASE_SETTING";
+  private readonly BASE_SETTING = 'BASE_SETTING';
   private readonly ENTITY = 'ENTITY';
   private readonly LAST_PRICE = 'LAST_PRICE';
   private domainRemoteNameSubscripe: Subscription;
@@ -60,13 +54,17 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     this.config = [
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('domainRemoteName', 128, false, {fieldsetName: this.BASE_SETTING}),
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true, {fieldsetName: this.BASE_SETTING}),
-      DynamicFieldHelper.createFieldCheckboxHeqF('spreadCapability' , {defaultValue: true,
-        fieldsetName: this.BASE_SETTING}),
+      DynamicFieldHelper.createFieldCheckboxHeqF('spreadCapability', {
+        defaultValue: true,
+        fieldsetName: this.BASE_SETTING
+      }),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'dailyRequestLimit', true, 0, 9999,
-         {defaultValue: 1000, fieldsetName: this.BASE_SETTING}),
-      DynamicFieldHelper.createFieldCheckboxHeqF('acceptEntityRequest', {defaultValue: true,
-        fieldsetName: this.ENTITY}),
-      DynamicFieldHelper.createFieldSelectStringHeqF('entityServerState',  true,
+        {defaultValue: 1000, fieldsetName: this.BASE_SETTING}),
+      DynamicFieldHelper.createFieldCheckboxHeqF('acceptEntityRequest', {
+        defaultValue: true,
+        fieldsetName: this.ENTITY
+      }),
+      DynamicFieldHelper.createFieldSelectStringHeqF('entityServerState', true,
         {defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_OPEN], fieldsetName: this.ENTITY}),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'lastpriceConsumerUsage', true, 0, 9999,
         {defaultValue: 0, fieldsetName: this.LAST_PRICE}),
@@ -74,12 +72,12 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
         {defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_NONE], fieldsetName: this.LAST_PRICE}),
       DynamicFieldHelper.createFieldCheckboxHeqF('lastpriceUseDetailLog', {fieldsetName: this.LAST_PRICE}),
       DynamicFieldHelper.createSubmitButton()
-   ]
+    ]
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   protected override initialize(): void {
-    this.gps.getTimezones().subscribe( (timezones: ValueKeyHtmlSelectOptions[]) =>  {
+    this.gps.getTimezones().subscribe((timezones: ValueKeyHtmlSelectOptions[]) => {
       this.configObject.timeZone.valueKeyHtmlOptions = timezones;
       this.configObject.entityServerState.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         GTNetServerStateTypes);
