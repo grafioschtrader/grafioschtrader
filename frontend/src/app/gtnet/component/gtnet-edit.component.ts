@@ -72,7 +72,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
         {defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_NONE], fieldsetName: this.LAST_PRICE}),
       DynamicFieldHelper.createFieldCheckboxHeqF('lastpriceUseDetailLog', {fieldsetName: this.LAST_PRICE}),
       DynamicFieldHelper.createSubmitButton()
-    ]
+    ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 

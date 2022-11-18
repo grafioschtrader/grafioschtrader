@@ -12,10 +12,10 @@ public abstract class TaIndicatorHelper {
   static {
     taFormMap = new HashMap<>();
     taFormMap.put(TaIndicators.SMA,
-        new TaFormDefinition(DynamicModelHelper.getFormDefinitionOfModelClass(ShortMediumLongInputPeriod.class),
+        new TaFormDefinition(DynamicModelHelper.getFormDefinitionOfModelClassMembers(ShortMediumLongInputPeriod.class),
             new ShortMediumLongInputPeriod(20, 50, 200)));
     taFormMap.put(TaIndicators.EMA,
-        new TaFormDefinition(DynamicModelHelper.getFormDefinitionOfModelClass(ShortMediumLongInputPeriod.class),
+        new TaFormDefinition(DynamicModelHelper.getFormDefinitionOfModelClassMembers(ShortMediumLongInputPeriod.class),
             new ShortMediumLongInputPeriod(20, 50, 200)));
   }
 

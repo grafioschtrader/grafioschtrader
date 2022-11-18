@@ -28,8 +28,8 @@ export class SelectOptionsHelper {
     });
   }
 
-  public static securitiesEnableDisableOptionsByActivDate(securities: Security[],
-    fieldConfig: FieldConfig, activeDateNol: number) {
+  public static securitiesEnableDisableOptionsByActiveDate(securities: Security[],
+                                                           fieldConfig: FieldConfig, activeDateNol: number) {
     const activeDate: string = moment(activeDateNol).format('YYYYMMDD');
     fieldConfig.valueKeyHtmlOptions.forEach(vkho => {
       const security = securities.find(s => s.idSecuritycurrency === vkho.key);

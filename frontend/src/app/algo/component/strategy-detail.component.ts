@@ -13,6 +13,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {OptionalParams, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
 
 /**
  * Displays the parameters of a selected strategy.
@@ -43,7 +44,7 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
   ngOnChanges() {
     console.log('ngOnInit-AlgoStrategy:', this.algoStrategyParamCall.algoStrategy);
     console.log('ngOnInit-description:', this.algoStrategyParamCall.fieldDescriptorShow);
-    this.dynamicModel = DynamicFieldHelper.createAndSetValuesInDynamicModel(this.algoStrategyParamCall.algoStrategy.algoStrategyImplementations,
+    this.dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(this.algoStrategyParamCall.algoStrategy.algoStrategyImplementations,
       AlgoStrategyHelper.FIELD_STRATEGY_IMPL,
       this.algoStrategyParamCall.algoStrategy.algoRuleStrategyParamMap,
       this.algoStrategyParamCall.fieldDescriptorShow);

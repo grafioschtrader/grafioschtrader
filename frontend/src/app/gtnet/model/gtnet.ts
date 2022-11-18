@@ -1,5 +1,5 @@
-import {BaseID} from "../../entities/base.id";
-import {GTNetMessage} from "./gtnet.message";
+import {BaseID} from '../../entities/base.id';
+import {GTNetMessage} from './gtnet.message';
 
 export class GTNet implements BaseID {
   idGtNet: number;

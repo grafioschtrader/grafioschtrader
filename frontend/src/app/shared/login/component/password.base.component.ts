@@ -9,6 +9,7 @@ import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {equalTo} from '../../validator/validator';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 @Directive()
 export abstract class PasswordBaseComponent {
@@ -42,9 +43,9 @@ export abstract class PasswordBaseComponent {
   protected init(fdias: FieldDescriptorInputAndShow[], newPassword: boolean): void {
     this.configPassword = [
       // TODO Should only accept better passwords
-      DynamicFieldHelper.ccWithFieldsFromDescriptor('password',
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptor('password',
         (newPassword) ? 'PASSWORD_NEW' : 'PASSWORD', fdias),
-      DynamicFieldHelper.ccWithFieldsFromDescriptor('password',
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptor('password',
         (newPassword) ? 'PASSWORD_NEW_CONFIRM' : 'PASSWORD_CONFIRM', fdias,
         {targetField: this.passwordConfirm}),
     ];

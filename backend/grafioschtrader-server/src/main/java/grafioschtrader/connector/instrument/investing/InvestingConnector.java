@@ -57,8 +57,6 @@ public class InvestingConnector extends BaseFeedConnector {
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
-    supportedFeed.put(FeedSupport.HISTORY,
-        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 
   public InvestingConnector() {

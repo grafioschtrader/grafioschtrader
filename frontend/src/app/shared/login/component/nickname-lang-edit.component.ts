@@ -54,11 +54,11 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
   submit(value: { [name: string]: any }): void {
     const userOwnProjection = new UserOwnProjection();
     this.form.cleanMaskAndTransferValuesToBusinessObject(userOwnProjection);
-    this.loginService.updateNicknameLocale(userOwnProjection).subscribe((successfullyChanged: SuccessfullyChanged) => {
+    this.loginService.updateNicknameLocale(userOwnProjection).subscribe({next:(successfullyChanged: SuccessfullyChanged) => {
       this.messageToastService.showMessage(InfoLevelType.INFO, successfullyChanged.message);
       this.loginService.logoutWithLoginView();
       this.mainDialogService.visibleDialog(false, UserSettingsDialogs.NicknameLocale);
-    }, () => this.configObject.submit.disabled = false);
+    }, error: () => this.configObject.submit.disabled = false});
   }
 
   onHide(event) {

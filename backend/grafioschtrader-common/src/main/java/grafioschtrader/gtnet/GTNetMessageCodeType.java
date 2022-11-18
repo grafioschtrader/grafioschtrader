@@ -10,13 +10,13 @@ public enum GTNetMessageCodeType {
   GTNET_UPDATE_SERVERLIST_C((short) 0),
   // Return server list
   GTNET_UPDATE_SERVERLIST_ACCEPT_S((short) 0),
-  // Request for Intraday data
+  // Request for intraday data
   GTNET_LASTPRICE_REQUEST_C((short) 2),
   // The request for Intraday data is in processing
   GTNET_LASTPRICE_REQUEST_IN_PROCESS_S((short) 3),
-  // Request for Intraday data is accepted
+  // Request for intraday data is accepted
   GTNET_LASTPRICE_REQUEST_ACCEPT_S((short) 4),
-  // Request for Intraday data is rejected
+  // Request for intraday data is rejected
   GTNET_LASTPRICE_REQUEST_REJECTED_S((short) 5),
   // Request for entity data
   GTNET_ENTITY_REQUEST_C((short) 6),

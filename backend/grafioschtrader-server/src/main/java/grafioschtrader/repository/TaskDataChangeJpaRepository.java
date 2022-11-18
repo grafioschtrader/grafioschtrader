@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
-import grafioschtrader.types.ProgressStateType;
 
 @Repository
 public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChange, Integer>,

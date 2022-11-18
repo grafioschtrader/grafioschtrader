@@ -607,7 +607,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         this.loadSecuritiesOnce(timeValue);
       } else {
         // Only disable or enable securities
-        SelectOptionsHelper.securitiesEnableDisableOptionsByActivDate(this.securities,
+        SelectOptionsHelper.securitiesEnableDisableOptionsByActiveDate(this.securities,
           this.configObject.idSecuritycurrency, timeValue);
       }
     }
@@ -628,7 +628,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
           security.idSecuritycurrency === this.transactionCallParam.idSecuritycurrency ||
           !this.transactionEditType.securityOnlyParentSelected());
         SelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(securitiesF, this.configObject.idSecuritycurrency);
-        SelectOptionsHelper.securitiesEnableDisableOptionsByActivDate(this.securities,
+        SelectOptionsHelper.securitiesEnableDisableOptionsByActiveDate(this.securities,
           this.configObject.idSecuritycurrency, timeValue);
         this.selectSecurity();
       });

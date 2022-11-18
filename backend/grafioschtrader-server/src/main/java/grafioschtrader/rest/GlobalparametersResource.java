@@ -72,7 +72,7 @@ public class GlobalparametersResource {
   @GetMapping(value = "/userformdefinition", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<FieldDescriptorInputAndShow>> getUserFormDefinitions() {
     return new ResponseEntity<>(
-        DynamicModelHelper.getFormDefinitionOfModelClass(User.class,
+        DynamicModelHelper.getFormDefinitionOfModelClassMembers(User.class,
             Set.of(PropertyAlwaysUpdatable.class, PropertyChangePassword.class, PropertyOnlyCreation.class)),
         HttpStatus.OK);
   }

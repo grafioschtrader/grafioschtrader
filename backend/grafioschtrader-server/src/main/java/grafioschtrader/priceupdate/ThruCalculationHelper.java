@@ -8,7 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.udojava.evalex.Expression;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ezylang.evalex.EvaluationException;
+import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.parser.ParseException;
 
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -24,8 +29,10 @@ import grafioschtrader.types.HistoryquoteCreateType;
  *  Only through a derived instrument does a currency pair become tradable, in this case the instrument has no formula.
  *
  */
-public interface ThruCalculationHelper {
+public abstract class ThruCalculationHelper {
 
+  private static final Logger log = LoggerFactory.getLogger(ThruCalculationHelper.class);
+  
   public static List<Historyquote> loadDataAndCreateHistoryquotes(
       final SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository,
       HistoryquoteJpaRepository historyquoteJpaRepository, IFormulaInSecurity security, Date correctedFromDate,
@@ -59,25 +66,30 @@ public interface ThruCalculationHelper {
     if (security.isCalculatedPrice()) {
       expression = new Expression(security.getFormulaPrices());
     }
-    if (securityDerivedLinks.isEmpty()) {
-      createdHistoryquotes = createHistoryquoteWithoutAddionalLinks(security, historyquotes, expression);
-    } else {
-      createdHistoryquotes = createHistoryquoteWitAddionalLinks(security, historyquotes, expression,
-          securityDerivedLinks);
+    try {
+      if (securityDerivedLinks.isEmpty()) {
+        createdHistoryquotes = createHistoryquoteWithoutAddionalLinks(security, historyquotes, expression);
+      } else {
+        createdHistoryquotes = createHistoryquoteWitAddionalLinks(security, historyquotes, expression,
+            securityDerivedLinks);
+      }
+
+    } catch (EvaluationException | ParseException e) {
+      log.error("Failed to evalute expression for security with ID {}", security.getIdSecuritycurrency());
     }
     return createdHistoryquotes;
 
   }
 
   private static List<Historyquote> createHistoryquoteWithoutAddionalLinks(IFormulaInSecurity security,
-      List<Historyquote> historyquotes, Expression expression) {
+      List<Historyquote> historyquotes, Expression expression) throws EvaluationException, ParseException {
     List<Historyquote> createdHistoryquotes = new ArrayList<>();
     for (Historyquote historyquote : historyquotes) {
       Historyquote historyquoteDerived = new Historyquote(security.getIdSecuritycurrency(),
           HistoryquoteCreateType.CALCULATED, historyquote.getDate());
       if (expression != null) {
-        expression.setVariable(SecurityDerivedLink.FIRST_VAR_NAME_LETTER, BigDecimal.valueOf(historyquote.getClose()));
-        historyquoteDerived.setClose(expression.eval().doubleValue());
+        expression.with(SecurityDerivedLink.FIRST_VAR_NAME_LETTER, BigDecimal.valueOf(historyquote.getClose()));
+        historyquoteDerived.setClose(expression.evaluate().getNumberValue().doubleValue());
       } else {
         historyquoteDerived.setClose(historyquote.getClose());
       }
@@ -87,7 +99,8 @@ public interface ThruCalculationHelper {
   }
 
   private static List<Historyquote> createHistoryquoteWitAddionalLinks(IFormulaInSecurity security,
-      List<Historyquote> historyquotes, Expression expression, List<SecurityDerivedLink> securityDerivedLinks) {
+      List<Historyquote> historyquotes, Expression expression, List<SecurityDerivedLink> securityDerivedLinks)
+      throws EvaluationException, ParseException {
     List<Historyquote> createdHistoryquotes = new ArrayList<>();
     Date groupDate = null;
     Map<Integer, String> idSecurityToVarNameMap = ThruCalculationHelper.createIdSecurityToVarNameMap(security,
@@ -98,7 +111,7 @@ public interface ThruCalculationHelper {
         groupDate = historyquote.getDate();
       }
 
-      expression.setVariable(idSecurityToVarNameMap.get(historyquote.getIdSecuritycurrency()),
+      expression.with(idSecurityToVarNameMap.get(historyquote.getIdSecuritycurrency()),
           BigDecimal.valueOf(historyquote.getClose()));
     }
     addCreatedHistoryquote(createdHistoryquotes, groupDate, security, expression);
@@ -107,13 +120,13 @@ public interface ThruCalculationHelper {
   }
 
   private static void addCreatedHistoryquote(List<Historyquote> createdHistoryquotes, Date groupDate,
-      IFormulaInSecurity security, Expression expression) {
+      IFormulaInSecurity security, Expression expression) throws EvaluationException, ParseException {
     if (groupDate != null) {
       Historyquote historyquoteDerived = new Historyquote(security.getIdSecuritycurrency(),
           HistoryquoteCreateType.CALCULATED, groupDate);
       createdHistoryquotes.add(historyquoteDerived);
       // Calculate save before history quote
-      historyquoteDerived.setClose(expression.eval().doubleValue());
+      historyquoteDerived.setClose(expression.evaluate().getNumberValue().doubleValue());
     }
   }
 
@@ -126,7 +139,8 @@ public interface ThruCalculationHelper {
     return idSecurityToVarNameMap;
   }
 
-  public static void checkFormulaAgainstInstrumetLinks(Security security, String localeStr) {
+  public static void checkFormulaAgainstInstrumetLinks(Security security, String localeStr)
+      throws ParseException, EvaluationException {
     if (security.isCalculatedPrice()) {
       Expression expression = new Expression(security.getFormulaPrices());
 
@@ -134,7 +148,7 @@ public interface ThruCalculationHelper {
         throw new DataViolationException("formula.prices", "gt.formula.must.contain.variable",
             new Object[] { SecurityDerivedLink.FIRST_VAR_NAME_LETTER }, localeStr);
       }
-      expression.setVariable(SecurityDerivedLink.FIRST_VAR_NAME_LETTER, new BigDecimal(1));
+      expression.with(SecurityDerivedLink.FIRST_VAR_NAME_LETTER, new BigDecimal(1));
       // Check formula contains every linked Instrument and every variable in formula
       // has a value
       for (int i = 0; i < security.getSecurityDerivedLinks().length; i++) {
@@ -144,13 +158,13 @@ public interface ThruCalculationHelper {
               new Object[] { securityDerivedLink.getVarName() }, localeStr);
         }
         if (SecurityDerivedLink.ALLOWED_VAR_NAMES_LINKS.contains(securityDerivedLink.getVarName())) {
-          expression.setVariable(securityDerivedLink.getVarName(), new BigDecimal(1));
+          expression.with(securityDerivedLink.getVarName(), new BigDecimal(1));
         } else {
           throw new DataViolationException("additional.instrument.name", "gt.formula.varname",
               securityDerivedLink.getVarName(), localeStr);
         }
       }
-      expression.eval();
+      expression.evaluate();
 
     }
   }

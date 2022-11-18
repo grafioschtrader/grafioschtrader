@@ -9,5 +9,7 @@ public enum DynamicFormPropertyHelps {
   // Input of a Email address
   EMAIL, 
   // Input with select option
-  SELECT_OPTIONS;
+  SELECT_OPTIONS,
+  // Date must be in the future
+  DATE_FUTURE;
 }

@@ -21,8 +21,6 @@ import grafioschtrader.repository.SecurityJpaRepository;
 /**
  * Update calculation of derived security.
  *
- * @author Hugo Graf
- *
  */
 public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> extends BaseHistoryquoteThru<Security> {
 

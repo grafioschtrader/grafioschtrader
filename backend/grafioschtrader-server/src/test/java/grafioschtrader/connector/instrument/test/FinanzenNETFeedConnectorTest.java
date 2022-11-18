@@ -4,14 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +15,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.finanzennet.FinanzenNETFeedConnector;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.test.start.GTforTest;
@@ -41,13 +33,12 @@ class FinanzenNETFeedConnectorTest {
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
     final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
-   
+
     securities.add(createSecurityIntra("rohstoffe/goldpreis/chf",
         AssetclassType.COMMODITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, ""));
-    
+
     securities.add(createSecurityIntra("rohstoffe/oelpreis",
         AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD, null, ""));
-    
   
     securities.add(createSecurityIntra("fonds/uniimmo-europa-de0009805515",
         AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND, null, GlobalConstants.STOCK_EX_MIC_XETRA));
@@ -57,10 +48,10 @@ class FinanzenNETFeedConnectorTest {
 
     securities.add(createSecurityIntra("index/smi", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, GlobalConstants.STOCK_EX_MIC_SIX));
-
-    securities.add(createSecurityIntra("aktien/lufthansa-aktie@stBoerse_XETRA", AssetclassType.EQUITIES,
+        
+     securities.add(createSecurityIntra("aktien/lufthansa-aktie@stBoerse_XETRA", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_XETRA));
-
+    
     securities.add(createSecurityIntra("anleihen/a19jgw-grande-dixence-anleihe", AssetclassType.FIXED_INCOME,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_SIX));
 
@@ -82,109 +73,13 @@ class FinanzenNETFeedConnectorTest {
     });
   }
 
-  @Test
-  void getEodSecurityHistoryTest() {
-    final List<Security> securities = new ArrayList<>();
-    final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-   // final LocalDate from = LocalDate.parse("04.01.2000", germanFormatter);
-    final LocalDate from = LocalDate.parse("24.04.2020", germanFormatter);
-    final LocalDate to = LocalDate.parse("04.05.2022", germanFormatter);
-
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-   
-   
-    securities.add(createSecurityHistorical("historische-kurse/Daimler", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE0007100000", GlobalConstants.STOCK_EX_MIC_XETRA));
-    
-    securities.add(createSecurityHistorical("index/S&P_500/Historisch", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "US78378X1072", GlobalConstants.STOCK_EX_MIC_NASDAQ));
-   
-    securities.add(createSecurityHistorical("anleihen/historisch/a19jgw-grande-dixence-anleihe",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0361532952", GlobalConstants.STOCK_EX_MIC_SIX));
-  
-    securities.add(createSecurityHistorical("rohstoffe/goldpreis/historisch|goldpreis/CHF",
-        AssetclassType.COMMODITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, ""));
-    
-    securities.add(createSecurityHistorical("fonds/historisch/uniimmo-europa-de0009805515",
-        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND, null, GlobalConstants.STOCK_EX_MIC_XETRA));
  
-    securities.add(createSecurityHistorical("index/ftse_mib/historisch", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", GlobalConstants.STOCK_EX_MIC_ITALY));
-    
-    securities.add(createSecurityHistorical("historische-kurse/citrix_systems", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "US1773761002", GlobalConstants.STOCK_EX_MIC_NASDAQ));
-  
-    securities.add(createSecurityHistorical("anleihen/historisch/a1zfhq-syngenta-finance-anleihe", AssetclassType.FIXED_INCOME,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0240672227", GlobalConstants.STOCK_EX_MIC_SIX));
-
-    securities.add(createSecurityHistorical("historische-kurse/unicredit", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "IT0005239360", GlobalConstants.STOCK_EX_MIC_ITALY));
-    
-    securities.add(createSecurityHistorical("rohstoffe/oelpreis/historisch|oelpreis/USD", AssetclassType.COMMODITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, ""));
-    
-    securities.add(createSecurityHistorical("rohstoffe/oelpreis/historisch|oelpreis/USD|?type=Brent",
-        AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD, null, ""));
-
-    securities.add(createSecurityHistorical("historische-kurse/lufthansa", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE0008232125", GlobalConstants.STOCK_EX_MIC_XETRA));
-
-    securities.add(createSecurityHistorical("historische-kurse/Bayer", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "DE000BAY0017", GlobalConstants.STOCK_EX_MIC_XETRA));
-
-    securities.add(createSecurityHistorical("anleihen/historisch/a19vaz-rallye-anleihe", AssetclassType.FIXED_INCOME,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_SIX));
-   
-    securities.add(createSecurityHistorical("index/FTSE_MIB/Historisch", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "IT0003465736", GlobalConstants.STOCK_EX_MIC_ITALY));
-    
-    // Since 2021-12-28 - ETF data is not available anymore. A maximum of only two months of historical 
-    // data is still available. In addition, the existing adapter no longer works.
-
-/*
-    securities.add(createSecurityHistorical("etf/kurse/ishares-atx-etf-de000a0d8q23", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.ETF, "DE000A0D8Q23", "FSX"));
-    
-    securities.add(createSecurityHistorical("etf/historisch/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
-        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
-         securities
-
-    .add(createSecurityHistorical("etf/historisch/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
-        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, "CH0398013778", "FSX"));
-
-     securities.add(createSecurityHistorical("etf/kurse/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.ETF, "LU0328473581", "LSE"));
-*/ 
-
-
-
-    securities.parallelStream().forEach(security -> {
-      List<Historyquote> historyquotes = new ArrayList<>();
-      try {
-        historyquotes = finanzenNETFeedConnector.getEodSecurityHistory(security, fromDate, toDate);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println(historyquotes.get(0));
-
-      assertThat(historyquotes.size()).isGreaterThan(200);
-    });
-
-  }
 
   private Security createSecurityIntra(final String historyExtend, final AssetclassType assectClass,
       SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol) {
     return createSecurity(historyExtend, assectClass, specialInvestmentInstruments, isin, stockexchangeSymbol, false);
   }
 
-  private Security createSecurityHistorical(final String historyExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol) {
-    return createSecurity(historyExtend, assectClass, specialInvestmentInstruments, isin, stockexchangeSymbol, true);
-  }
 
   private Security createSecurity(final String urlExtend, final AssetclassType assectClass,
       SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String mic,
@@ -202,36 +97,6 @@ class FinanzenNETFeedConnectorTest {
     return security;
   }
 
-  @Test
-  void getEodCurrencyHistoryTest() {
-
-    final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
-    final List<Currencypair> currencies = new ArrayList<>();
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("08.03.2016", germanFormatter);
-    final LocalDate to = LocalDate.parse("23.10.2019", germanFormatter);
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-    currencies.add(createCurrencypair("EUR", "USD", "devisen/dollarkurs/historisch"));
-    currencies.add(createCurrencypair("USD", "CAD", "devisen/us_dollar-kanadischer_dollar-kurs/historisch"));
-
-    currencies.parallelStream().forEach(currencyPair -> {
-      List<Historyquote> historyquote = new ArrayList<>();
-      try {
-        historyquote = finanzenNETFeedConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      assertThat(historyquote.size()).isGreaterThan(1000);
-    });
-  }
-
-  private Currencypair createCurrencypair(final String fromCurrency, String toCurrency, final String urlHistoryExtend) {
-    Currencypair currencypair = ConnectorTestHelper.createCurrencyPair("USD", "CHF");
-    currencypair.setUrlHistoryExtend(urlHistoryExtend);
-    return currencypair;
-  }
+  
 
 }

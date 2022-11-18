@@ -27,6 +27,7 @@ export class TranslateHelper {
   public static translateMessageErrors(translateService: TranslateService, fieldConfigs: FieldFormGroup[]) {
     fieldConfigs.forEach((fieldConfig: FieldFormGroup) => {
       if (!FormHelper.isFieldConfig(fieldConfig)) {
+        fieldConfig.errors && this.translateMessageError(translateService, <FieldConfig> fieldConfig);
         this.translateMessageErrors(translateService, (<FormGroupDefinition>fieldConfig).fieldConfig);
       } else {
         fieldConfigs.filter(fc => (<FieldConfig>fc).labelHelpText &&

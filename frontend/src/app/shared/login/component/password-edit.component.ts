@@ -13,6 +13,7 @@ import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.compo
 import {TranslateHelper} from '../../helper/translate.helper';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 /**
  * Change the password with a dialog.
@@ -73,7 +74,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5);
     this.config = [
-      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('password', fdias,
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('password', fdias,
         {targetField: 'passwordOld'}),
       ...this.configPassword,
       DynamicFieldHelper.createSubmitButton()

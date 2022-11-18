@@ -156,7 +156,11 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
         }
         final String[] items = inputLine.split(";");
         if (items.length == 5 + (hasVolume ? 1 : 0)) {
-          historyquotes.add(parseResponseLineItems(items, dateFormat, divider, hasVolume));
+          Historyquote hq = parseResponseLineItems(items, dateFormat, divider, hasVolume);
+          // Sometimes we get two rows for one date
+          if(historyquotes.isEmpty() || !historyquotes.isEmpty() && !historyquotes.get(historyquotes.size() - 1).getDate().equals(hq.getDate())) {
+            historyquotes.add(hq);  
+          }
         }
       }
     }

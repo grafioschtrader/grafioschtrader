@@ -25,6 +25,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ClassUtils;
 
+import com.ezylang.evalex.EvaluationException;
+
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
@@ -156,7 +158,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   @Transactional
   @Modifying
   public Historyquote saveOnlyAttributes(final Historyquote historyquote, final Historyquote existingEntity,
-      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
+      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     long dayDiff = checkDatePastMinus1Day(historyquote);
 
     final Historyquote historyquoteFillDate = historyquoteJpaRepository
@@ -219,8 +221,10 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * Update linked history quotes in derived instrument.
    *
    * @param savedHistoryquote
+   * @throws com.ezylang.evalex.parser.ParseException 
+   * @throws EvaluationException 
    */
-  private void updateCalculationByChangedHistoryquote(Historyquote savedHistoryquote) {
+  private void updateCalculationByChangedHistoryquote(Historyquote savedHistoryquote) throws EvaluationException, com.ezylang.evalex.parser.ParseException {
     List<IFormulaSecurityLoad> dependingSecurities = securityJpaRepository
         .getBySecurityDerivedLinkByIdSecurityLink(savedHistoryquote.getIdSecuritycurrency());
 

@@ -17,6 +17,7 @@ import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.i
 import {Helper} from '../../../helper/helper';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {AppSettings} from '../../app.settings';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 
 /**
@@ -49,7 +50,7 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
 
     this.proposeUserTaskService.getFormDefinitionsByUserTaskType(UserTaskType.LIMIT_CUD_CHANGE).subscribe(
       (fDIaSs: FieldDescriptorInputAndShow[]) => {
-        this.config = DynamicFieldHelper.createConfigFieldsFromDescriptor(fDIaSs, '', true, 'SEND');
+        this.config = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(fDIaSs, '', true, 'SEND');
         this.config.splice(this.config.length - 1, 0,
           DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.NOTE_REQUEST, AppSettings.FID_MAX_LETTERS, true));
         this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -68,12 +69,12 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
       proposeUserTask.addProposeChangeField((new ProposeChangeField(this.config[i].field, fieldObject[this.config[i].field])));
     }
 
-    this.proposeUserTaskService.update(proposeUserTask).subscribe(returnEntity => {
+    this.proposeUserTaskService.update(proposeUserTask).subscribe({next: returnEntity => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');
       this.dynamicDialogRef.close();
-    }, error1 => {
+    }, error: error1 => {
       this.configObject.submit.disabled = false;
-    });
+    }});
   }
 
   helpLink(): void {

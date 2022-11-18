@@ -27,9 +27,9 @@ import grafioschtrader.entities.Security;
 /*-
  * Only 5 API request per minutes and 500 per day.
  *
- *
- * Stock, Bond, ETF:
- *  https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=MSFT&outputsize=full&apikey=DEMO&datatype=csv
+ * Alphavantage does not provide intraday data for the current trading day. 
+ * Neither with the function "GLOBAL_QUOTE" nor with "TIME_SERIES_INTRADAY". 
+ * Instead, the data from the previous trading day is delivered.
  *
  * Dividend: Not Supported
  * Splits: Not Supported
@@ -39,6 +39,7 @@ import grafioschtrader.entities.Security;
 @ConfigurationProperties(prefix = "gt.connector.alphavantage")
 public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
 
+  private static final String ALPHAVANTAGE_BASE = "https://www.alphavantage.co/query?function=";
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final int TIMEOUT = 15000;
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
@@ -47,7 +48,6 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
    * returns only the latest 100 data points
    */
   private static final String COMPACT = "compact";
- 
 
   /**
    * returns the full-length time series of up to 20 years of historical data
@@ -57,23 +57,21 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
-    supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
   }
 
   public AlphaVantageFeedConnector() {
     super(supportedFeed, "alphavantage", "Alpha Vantage", URL_NORMAL_REGEX);
   }
 
-  
-
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return getSecurityHistoricalDownloadLink(security, COMPACT);
+    return ALPHAVANTAGE_BASE + "GLOBAL_QUOTE&datatype=csv&symbol=" + security.getUrlIntraExtend() + "&apikey="
+        + getApiKey();
   }
 
   public String getSecurityHistoricalDownloadLink(final Security security, String outputsize) {
-    return "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&datatype=csv&symbol="
-        + security.getUrlHistoryExtend() + "&outputsize=" + outputsize + "&apikey=" + getApiKey();
+    return ALPHAVANTAGE_BASE + "TIME_SERIES_DAILY_ADJUSTED&datatype=csv&symbol=" + security.getUrlHistoryExtend()
+        + "&outputsize=" + outputsize + "&apikey=" + getApiKey();
   }
 
   @Override
@@ -81,8 +79,11 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
     return getSecurityHistoricalDownloadLink(security, COMPACT);
   }
 
-  /**
+  /*-
    * An update of the last price is not carried out if the market is closed.
+   * symbol,open,high,low,price,volume,latestDay,previousClose,change,changePercent
+   * CAT,237.1000,239.4000,232.7450,234.5900,3371100,2022-11-15,236.5000,-1.9100,-0.8076%
+   * 
    */
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
@@ -116,13 +117,13 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   public synchronized List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to,
-      boolean takeYoungest) throws Exception {
+      boolean intraday) throws Exception {
 
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
     String outputsize = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) / 7 * 5 >= 100.0 ? FULL : COMPACT;
 
-    URL request = new URL((takeYoungest) ? getSecurityIntradayDownloadLink(security)
+    URL request = new URL((intraday) ? getSecurityIntradayDownloadLink(security)
         : getSecurityHistoricalDownloadLink(security, outputsize));
     URLConnection connection = request.openConnection();
     connection.setConnectTimeout(TIMEOUT);
@@ -136,12 +137,11 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
           // First line throw away
           continue;
         }
-        final Historyquote historyquote = parseResponseLine(inputLine, from, to, dateFormat, takeYoungest);
-        if (historyquote != null) {
-          if (takeYoungest) {
-            historyquotes.add(historyquote);
-            break;
-          } else {
+        if (intraday) {
+          parseResponseLineAndSetIndraday(security, inputLine);
+        } else {
+          final Historyquote historyquote = parseResponseLine(inputLine, from, to, dateFormat);
+          if (historyquote != null) {
             historyquotes.add(historyquote);
           }
         }
@@ -152,13 +152,13 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   private Historyquote parseResponseLine(final String inputLine, final Date from, final Date to,
-      final SimpleDateFormat dateFormat, boolean takeYoungest) throws ParseException {
+      final SimpleDateFormat dateFormat) throws ParseException {
     Historyquote historyquote = null;
     final String[] item = inputLine.split(",");
     final Calendar day = Calendar.getInstance();
     day.setTime(dateFormat.parse(item[0]));
     DateHelper.setTimeToZero(day);
-    if (day.getTime().getTime() >= from.getTime() && day.getTime().getTime() <= to.getTime() || takeYoungest) {
+    if (day.getTime().getTime() >= from.getTime() && day.getTime().getTime() <= to.getTime()) {
       historyquote = new Historyquote();
       historyquote.setDate(day.getTime());
       historyquote.setOpen(Double.parseDouble(item[1]));
@@ -168,6 +168,17 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
       historyquote.setVolume(Long.parseLong(item[6]));
     }
     return historyquote;
+  }
+
+  private void parseResponseLineAndSetIndraday(final Security security, final String inputLine) throws ParseException {
+    final String[] item = inputLine.split(",");
+    security.setSOpen(Double.parseDouble(item[1]));
+    security.setSHigh(Double.parseDouble(item[2]));
+    security.setSLow(Double.parseDouble(item[3]));
+    security.setSLast(Double.parseDouble(item[4]));
+    security.setSVolume(Long.parseLong(item[5]));
+    security.setSPrevClose(Double.parseDouble(item[7]));
+    security.setSChangePercentage(Double.parseDouble(item[9].replace("%", "")));
   }
 
 }

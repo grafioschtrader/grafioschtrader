@@ -8,12 +8,14 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {GTNetMessageService} from '../service/gtnet.message.service';
-import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {Subscription} from 'rxjs';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
+import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
 
 /**
  * Crate a new GTNet message. A message can not be changed.
@@ -35,7 +37,7 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 export class GTNetMessageEditComponent extends SimpleEntityEditBase<GTNetMessage> implements OnInit {
   @Input() msgCallParam: MsgCallParam;
   private readonly MESSAGE_CODE = 'messageCode';
-  private fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[];
+  private classDescriptorInputAndShows: ClassDescriptorInputAndShow;
   messageCodeSubscription: Subscription;
 
   constructor(translateService: TranslateService,
@@ -78,13 +80,14 @@ export class GTNetMessageEditComponent extends SimpleEntityEditBase<GTNetMessage
   }
 
   private createViewFromSelectedEnum(gtNetMessageCodeType: string | GTNetMessageCodeType): void {
-    this.fieldDescriptorInputAndShows = this.msgCallParam.formDefinitions[gtNetMessageCodeType];
+    this.classDescriptorInputAndShows = this.msgCallParam.formDefinitions[gtNetMessageCodeType];
     this.createDynamicInputFields();
   }
 
 
   private createDynamicInputFields(): void {
-    const fieldConfig: FieldConfig[] = DynamicFieldHelper.createConfigFieldsFromDescriptor(this.fieldDescriptorInputAndShows,
+    const fieldConfig: FieldConfig[] = <FieldConfig[]> DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+      this.classDescriptorInputAndShows,
       '', false);
 
     this.config = [this.config[0], ...fieldConfig, this.config[this.config.length - 1]];
@@ -97,11 +100,11 @@ export class GTNetMessageEditComponent extends SimpleEntityEditBase<GTNetMessage
 
 
   private setExistingModel(): void {
-    const dynamicModel = DynamicFieldHelper.createAndSetValuesInDynamicModel(
+    const dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
       this.msgCallParam.formDefinitions,
       this.MESSAGE_CODE,
       this.msgCallParam.gtNetMessage.gtNetMessageParamMap,
-      this.fieldDescriptorInputAndShows, true);
+      this.classDescriptorInputAndShows.fieldDescriptorInputAndShows, true);
     this.form.transferBusinessObjectToForm(dynamicModel);
   }
 

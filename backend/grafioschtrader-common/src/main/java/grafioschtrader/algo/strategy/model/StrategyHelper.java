@@ -64,9 +64,9 @@ public abstract class StrategyHelper {
       AlgoStrategyImplementations algoStrategyImplementations) {
     StrategyClassBindingDefinition scbd = strategyBindingMap.get(algoStrategyImplementations);
 
-    return new InputAndShowDefinitionStrategy(DynamicModelHelper.getFormDefinitionOfModelClass(scbd.algoTopModel),
-        DynamicModelHelper.getFormDefinitionOfModelClass(scbd.algoAssetclassModel),
-        DynamicModelHelper.getFormDefinitionOfModelClass(scbd.algoSecurityModel));
+    return new InputAndShowDefinitionStrategy(DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoTopModel),
+        DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoAssetclassModel),
+        DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoSecurityModel));
   }
 
 }

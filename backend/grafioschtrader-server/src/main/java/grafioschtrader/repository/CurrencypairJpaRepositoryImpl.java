@@ -140,7 +140,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
-  protected void afterFullLoad(final Currencypair currencypair) {
+  protected void afterFullLoad(final Currencypair currencypair) throws Exception {
     final int maxFillDays = globalparametersJpaRepository.getMaxFillDaysCurrency();
     currencypair.getHistoryquoteList().sort((h1, h2) -> h1.getDate().compareTo(h2.getDate()));
     currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays);

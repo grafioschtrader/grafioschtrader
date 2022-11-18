@@ -1,4 +1,3 @@
-import {DynamicFormPropertyHelps, FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {CalendarConfig, FieldConfig} from '../../dynamic-form/models/field.config';
 import {InputType} from '../../dynamic-form/models/input.type';
@@ -11,7 +10,6 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
 import {FileRequiredValidator} from '../../dynamic-form/components/form-input-file/file-input.validator';
 import {CurrencyMaskConfig} from 'ngx-currency';
 import {AppSettings} from '../app.settings';
-import {BaseParam} from "../../entities/view/base.param";
 
 export enum VALIDATION_SPECIAL {
   ISIN,
@@ -26,6 +24,10 @@ interface ValidError {
   msgR: ErrorMessageRules;
 }
 
+/**
+ * Creates the corresponding input element from the definition of a field.
+ * Optionally, the corresponding input checks are given to the input element.
+ */
 export class DynamicFieldHelper {
   public static readonly RULE_REQUIRED_TOUCHED = {name: 'required', keyi18n: 'required', rules: [RuleEvent.TOUCHED]};
   public static readonly RULE_REQUIRED_DIRTY = {name: 'required', keyi18n: 'required', rules: [RuleEvent.DIRTY]};
@@ -107,7 +109,7 @@ export class DynamicFieldHelper {
   }
 
   public static createFieldDropdownStringHeqF(fieldName: string, required: boolean,
-                                            fieldOptions?: FieldOptions): FieldConfig {
+                                              fieldOptions?: FieldOptions): FieldConfig {
     const fieldConfig = DynamicFieldHelper.createFieldDropdownNumberString(DataType.String, fieldName,
       AppHelper.convertPropertyForLabelOrHeaderKey(fieldName), required, fieldOptions);
     fieldConfig.defaultValue = fieldConfig.defaultValue || '';
@@ -115,7 +117,7 @@ export class DynamicFieldHelper {
   }
 
   private static createFieldDropdownNumberString(dataType: DataType, fieldName: string, labelKey: string, required: boolean,
-                                               fieldOptions?: FieldOptions): FieldConfig {
+                                                 fieldOptions?: FieldOptions): FieldConfig {
     return this.setFieldBaseAndOptions({
         dataType,
         inputType: InputType.InputDropdown
@@ -399,171 +401,6 @@ export class DynamicFieldHelper {
       fieldName, labelKey, validations, errorMessageRules, fieldOptions);
   }
 
-  public static ccWithFieldsFromDescriptorHeqF(fieldName: string, fieldDescriptorInputAndShows:
-    FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
-    return this.ccWithFieldsFromDescriptor(fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName),
-      fieldDescriptorInputAndShows, fieldOptionsCc);
-  }
-
-  public static ccWithFieldsFromDescriptor(fieldName: string, labelKey: string, fieldDescriptorInputAndShows:
-    FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
-    let fc: FieldConfig;
-    const fd = fieldDescriptorInputAndShows.filter(fdias => fdias.fieldName === fieldName)[0];
-    const targetField = fieldOptionsCc && fieldOptionsCc.targetField ? fieldOptionsCc.targetField : fieldName;
-    switch (DataType[fd.dataType]) {
-      case DataType.String:
-        const fieldOptions = Object.assign({}, fieldOptionsCc, {minLength: fd.min});
-        if (fd.dynamicFormPropertyHelps) {
-          switch (DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0]]) {
-            case DynamicFormPropertyHelps.EMAIL:
-              fc = DynamicFieldHelper.createFieldDAInputStringVSHeqF(DataType.Email, targetField, fd.max, fd.required,
-                [VALIDATION_SPECIAL.EMail], fieldOptions);
-              break;
-            case DynamicFormPropertyHelps.PASSWORD:
-              fc = DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.Password, targetField, fd.max, fd.required,
-                fieldOptions);
-              break;
-            case DynamicFormPropertyHelps.SELECT_OPTIONS:
-              fieldOptions.inputWidth = fd.max;
-              fc = DynamicFieldHelper.createFieldSelectStringHeqF(targetField, fd.required,
-                fieldOptions);
-              break;
-
-            default:
-
-          }
-        } else {
-          fc = DynamicFieldHelper.createFieldInputStringHeqF(fieldName, fd.max, fd.required,
-            fieldOptions);
-        }
-        break;
-    }
-    return fc;
-  }
-
-  public static createConfigFieldsFromDescriptor(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-                                                 labelPreffix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
-    const fieldConfigs: FieldConfig[] = [];
-
-    fieldDescriptorInputAndShows.forEach(fDIAS => {
-      let fieldConfig: FieldConfig;
-      const labelKey = labelPreffix + AppHelper.convertPropertyNameToUppercase(fDIAS.fieldName);
-      switch (DataType[fDIAS.dataType]) {
-        case DataType.String:
-          fieldConfig = this.createFieldInputString(fDIAS.fieldName, labelKey, fDIAS.max, fDIAS.required, {minLength: fDIAS.min});
-          break;
-        case DataType.Numeric:
-        case DataType.NumericInteger:
-          fieldConfig = this.createFieldMinMaxNumber(DataType[fDIAS.dataType], fDIAS.fieldName,
-            labelKey, fDIAS.required, fDIAS.min, fDIAS.max,
-            {fieldSuffix: DynamicFieldHelper.getFieldPercentageSuffix(fDIAS)});
-          break;
-        case DataType.DateString:
-        case DataType.DateNumeric:
-        case DataType.DateTimeNumeric:
-        case DataType.DateTimeString:
-        case DataType.DateStringShortUS:
-          fieldConfig = this.createFieldPcalendar(DataType[fDIAS.dataType], fDIAS.fieldName, labelKey, fDIAS.required);
-          fieldConfig.defaultValue = new Date();
-          break;
-
-      }
-      if (fieldConfig) {
-        fieldConfigs.push(fieldConfig);
-      }
-    });
-
-    if (addSubmitButton) {
-      fieldConfigs.push(this.createSubmitButton(submitText ? submitText : undefined));
-    }
-    return fieldConfigs;
-  }
-
-  public static createAndSetValuesInDynamicModel(e: any,
-                                                 targetSelectionField: string,
-                                                 paramMap: Map<string, BaseParam> | { [key: string]: BaseParam },
-                                                 fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-                                                 addStrategyImplField = false): any {
-    let dynamicModel: any = {};
-    if (addStrategyImplField) {
-      dynamicModel[targetSelectionField] = e;
-    }
-    return DynamicFieldHelper.setValuesOfMapModelToDynamicModel(fieldDescriptorInputAndShows,
-      paramMap, dynamicModel);
-
-  }
-
-
-  public static setValuesOfMapModelToDynamicModel(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-                                                  paramMap: Map<string, BaseParam> | { [key: string]: BaseParam },
-                                                  dynamicModel: any = {}): any {
-    fieldDescriptorInputAndShows.forEach(fieldDescriptorInputAndShow => {
-      console.log('param', paramMap[fieldDescriptorInputAndShow.fieldName].paramValue);
-      let value = paramMap[fieldDescriptorInputAndShow.fieldName].paramValue;
-      switch (DataType[fieldDescriptorInputAndShow.dataType]) {
-        case DataType.Numeric:
-        case DataType.NumericInteger:
-          value = Number(value);
-          break;
-        default:
-        // Nothing
-      }
-      dynamicModel[fieldDescriptorInputAndShow.fieldName] = value;
-    });
-    return dynamicModel;
-  }
-
-  public static resetValidator(fieldConfig: FieldConfig, validation: ValidatorFn[], errors?: ErrorMessageRules[]): void {
-    fieldConfig.validation = validation;
-    fieldConfig.formControl.setValidators(fieldConfig.validation);
-    fieldConfig.errors = errors;
-    fieldConfig.formControl.updateValueAndValidity();
-    fieldConfig.baseInputComponent.reEvaluateRequired();
-  }
-
-  public static getFieldPercentageSuffix(fDIAS: FieldDescriptorInputAndShow): string {
-    if (fDIAS.dynamicFormPropertyHelps
-      && (<string[]>fDIAS.dynamicFormPropertyHelps)
-        .indexOf(DynamicFormPropertyHelps[DynamicFormPropertyHelps.PERCENTAGE]) >= 0) {
-      return '%';
-    }
-    return null;
-  }
-
-  public static isDataModelEqual(model1: any, model2: any, fDIASs: FieldDescriptorInputAndShow[]) {
-    if (model1 && model2) {
-      for (const fDIAS of fDIASs) {
-        if (model1[fDIAS.fieldName] !== model2[fDIAS.fieldName]) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-
-  private static addValidations(fieldConfig: FieldConfig, validationSpecials: VALIDATION_SPECIAL[]): FieldConfig {
-    for (const validationSpecial of validationSpecials) {
-      const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
-      this.addValidationParam(fieldConfig, validationSpecial, null);
-    }
-    return fieldConfig;
-  }
-
-  private static addValidationParam(fieldConfig: FieldConfig, validationSpecial: VALIDATION_SPECIAL, param1: any,
-                                    param2?: any): FieldConfig {
-    const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
-    (fieldConfig.errors = fieldConfig.errors || []).push(validError.msgR);
-    switch (validationSpecial) {
-      case VALIDATION_SPECIAL.GT_With_Mask_Param:
-        validError.vFN = gtWithMask(param1);
-        validError.msgR.param1 = param1;
-        break;
-    }
-    (fieldConfig.validation = fieldConfig.validation || []).push(validError.vFN);
-    return fieldConfig;
-  }
-
   private static createFieldSelectNumberString(dataType: DataType, fieldName: string, labelKey: string, required: boolean,
                                                fieldOptions?: FieldOptions): FieldConfig {
     return this.setFieldBaseAndOptions({
@@ -617,6 +454,39 @@ export class DynamicFieldHelper {
     }
     return fieldConfig;
   }
+
+  // For validator
+  //////////////////////////////////////////////////////////////
+  public static resetValidator(fieldConfig: FieldConfig, validation: ValidatorFn[], errors?: ErrorMessageRules[]): void {
+    fieldConfig.validation = validation;
+    fieldConfig.formControl.setValidators(fieldConfig.validation);
+    fieldConfig.errors = errors;
+    fieldConfig.formControl.updateValueAndValidity();
+    fieldConfig.baseInputComponent.reEvaluateRequired();
+  }
+
+  private static addValidations(fieldConfig: FieldConfig, validationSpecials: VALIDATION_SPECIAL[]): FieldConfig {
+    for (const validationSpecial of validationSpecials) {
+      const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
+      this.addValidationParam(fieldConfig, validationSpecial, null);
+    }
+    return fieldConfig;
+  }
+
+  private static addValidationParam(fieldConfig: FieldConfig, validationSpecial: VALIDATION_SPECIAL, param1: any,
+                                    param2?: any): FieldConfig {
+    const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
+    (fieldConfig.errors = fieldConfig.errors || []).push(validError.msgR);
+    switch (validationSpecial) {
+      case VALIDATION_SPECIAL.GT_With_Mask_Param:
+        validError.vFN = gtWithMask(param1);
+        validError.msgR.param1 = param1;
+        break;
+    }
+    (fieldConfig.validation = fieldConfig.validation || []).push(validError.vFN);
+    return fieldConfig;
+  }
+
 }
 
 export interface FieldOptions {

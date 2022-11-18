@@ -16,6 +16,7 @@ import {HelpIds} from '../../help/help.ids';
 import {combineLatest} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 /**
  * Shows the login form
@@ -65,17 +66,18 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions()]).subscribe(
-      (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[]]) => {
-        this.applicationInfo = data[0];
-        sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
-        this.loginFormDefinition(data[1]);
-      }, err => this.applicationInfo = null);
+    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions()]).subscribe({
+        next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[]]) => {
+          this.applicationInfo = data[0];
+          sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
+          this.loginFormDefinition(data[1]);
+        }, error: err => this.applicationInfo = null
+      }
+    );
   }
-
   submit(value: { [name: string]: any }): void {
     this.loginService.login(value.email, value.password)
-      .subscribe((response: Response) => {
+      .subscribe({ next: (response: Response) => {
         this.loginService.aftersuccessfully(response.headers.get('x-auth-token'), (response as any).body);
         if (this.gps.getIdTenant()) {
           // Navigate to the main view
@@ -84,14 +86,14 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
           // It is a new tenant -> setup is required
           this.router.navigate([`/${AppSettings.TENANT_KEY}`]);
         }
-      }, (errorBackend) => {
-        this.configObject.submit.disabled = false;
+      }, error: (errorBackend) => {
+      this.configObject.submit.disabled = false;
 
-        if (errorBackend.bringUpDialog) {
-          const dynamicDialogHelper = DynamicDialogHelper.getOpenedLogoutReleaseRequestDynamicComponent(
-            this.translateService, this.dialogService, value.email, value.password);
-        }
-      });
+      if (errorBackend.bringUpDialog) {
+        const dynamicDialogHelper = DynamicDialogHelper.getOpenedLogoutReleaseRequestDynamicComponent(
+          this.translateService, this.dialogService, value.email, value.password);
+      }
+    }});
   }
 
   ngOnDestroy(): void {
@@ -109,8 +111,8 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
     };
     this.applicationInfo.users;
     this.config = [];
-    this.config.push(DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('email', fdias));
-    this.config.push(DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('password', fdias));
+    this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('email', fdias));
+    this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('password', fdias));
 
     if (this.applicationInfo.users.active < this.applicationInfo.users.allowed) {
       this.config.push(DynamicFieldHelper.createFunctionButton('REGISTRATION',

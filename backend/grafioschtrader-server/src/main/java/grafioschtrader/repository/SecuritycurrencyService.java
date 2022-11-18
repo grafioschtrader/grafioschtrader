@@ -46,7 +46,6 @@ import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 
 /**
  *
- * @author Hugo Graf
  *
  * @param <S>
  * @param <U>
@@ -96,7 +95,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     this.asyncHistoryquotes = asyncHistoryquotes;
   }
 
-  protected S createWithHistoryQuote(final S securitycurrency) {
+  protected S createWithHistoryQuote(final S securitycurrency) throws Exception {
     return getHistorquoteLoad(securitycurrency).createHistoryQuotesAndSave(getJpaRepository(), securitycurrency, null,
         null);
   }
@@ -107,7 +106,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         createEditSecuritycurrency);
   }
 
-  protected void afterFullLoad(final S securitycurrency) {
+  protected void afterFullLoad(final S securitycurrency) throws Exception {
   }
 
   @Override
@@ -234,7 +233,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     }
   }
 
-  protected S beforeSave(S securitycurrency, S existingEntity, User user) {
+  protected S beforeSave(S securitycurrency, S existingEntity, User user) throws Exception {
     return null;
   }
 

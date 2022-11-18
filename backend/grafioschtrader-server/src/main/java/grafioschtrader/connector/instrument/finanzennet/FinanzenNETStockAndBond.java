@@ -60,7 +60,6 @@ import grafioschtrader.entities.Security;
 * Link: etf/historisch/xtrackers_ftse_developed_europe_real_estate_ucits_etf_1c use: __atcrv, __ath, __atts
 *
 *
-* @author Hugo Graf
 *
 */
 public class FinanzenNETStockAndBond extends FinanzenBase<Security> {

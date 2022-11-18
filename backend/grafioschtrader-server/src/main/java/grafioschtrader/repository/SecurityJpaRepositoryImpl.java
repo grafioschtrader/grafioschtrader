@@ -407,7 +407,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  protected Security beforeSave(Security security, Security existingSecurity, User user) {
+  protected Security beforeSave(Security security, Security existingSecurity, User user) throws Exception {
     Security cloneSecurity = null;
     if (security.getIdTenantPrivate() != null && !user.getIdTenant().equals(security.getIdTenantPrivate())) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);

@@ -38,7 +38,7 @@ public class ProposeUserTaskResource extends UpdateCreateDeleteAuditResource<Pro
   @GetMapping(value = "/form/{userTaskType}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<FieldDescriptorInputAndShow>> getFormDefinitionsByUserTaskType(
       @PathVariable final byte userTaskType) {
-    return new ResponseEntity<>(DynamicModelHelper.getFormDefinitionOfModelClass(
+    return new ResponseEntity<>(DynamicModelHelper.getFormDefinitionOfModelClassMembers(
         ProposeUserTask.getModelByUserTaskType(UserTaskType.getUserTaskTypeByValue(userTaskType))), HttpStatus.OK);
   }
 

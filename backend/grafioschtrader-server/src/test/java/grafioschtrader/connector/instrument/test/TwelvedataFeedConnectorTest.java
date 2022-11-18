@@ -74,7 +74,7 @@ public class TwelvedataFeedConnectorTest {
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "SEK"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
+    // currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
