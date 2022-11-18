@@ -44,9 +44,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.HISTORY,
-        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
-    supportedFeed.put(FeedSupport.INTRA,
+     supportedFeed.put(FeedSupport.INTRA,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 

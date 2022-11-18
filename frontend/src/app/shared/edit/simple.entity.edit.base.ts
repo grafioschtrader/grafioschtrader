@@ -33,16 +33,16 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
 
   submit(value: { [name: string]: any }): void {
     const entityNew: T = this.getNewOrExistingInstanceBeforeSave(value);
-    this.serviceEntityUpdate.update(entityNew).subscribe(returnEntity => {
+    this.serviceEntityUpdate.update(entityNew).subscribe({ next: returnEntity => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: this.i18nRecord});
       this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED,
         plainToClassFromExist(entityNew, returnEntity)));
-    }, (transformedError: TransformedError) => {
+    }, error: (transformedError: TransformedError) => {
       if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
       }
       this.configObject.submit.disabled = false;
-    });
+    }});
   }
 
   public copyFormToPrivateBusinessObject(targetEntity: T, existingEntity: T): T {

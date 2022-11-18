@@ -16,6 +16,7 @@ import {HelpIds} from '../../help/help.ids';
 import {combineLatest} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 /**
  * Shows the register form.
@@ -66,12 +67,14 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   }
 
   ngOnInit(): void {
-    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions()]).subscribe(
-      (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[]]) => {
-        this.applicationInfo = data[0];
-        sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
-        this.loginFormDefinition(data[1]);
-      }, err => this.applicationInfo = null);
+    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions()]).subscribe({
+        next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[]]) => {
+          this.applicationInfo = data[0];
+          sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
+          this.loginFormDefinition(data[1]);
+        }, error: err => this.applicationInfo = null
+      }
+    );
   }
 
   submit(value: { [name: string]: any }): void {
@@ -82,16 +85,16 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.loginService.logout();
     this.form.setDisableAll(true);
     this.showProgressIndicator();
-    this.loginService.update(user).subscribe(newUser => {
+    this.loginService.update(user).subscribe( { next: newUser => {
       this.progressValue = 100;
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'USER_NEW_SAVED');
       this.progressValue = undefined;
       this.confirmEmail = true;
-    }, () => {
+    }, error: () => {
       this.progressValue = undefined;
       this.form.setDisableAll(false);
       this.configObject.submit.disabled = false;
-    });
+    }});
   }
 
   showProgressIndicator() {
@@ -122,10 +125,10 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     };
 
     this.config = [
-      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('nickname', fdias),
-      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('email', fdias),
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('nickname', fdias),
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('email', fdias),
       {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
-      DynamicFieldHelper.ccWithFieldsFromDescriptorHeqF('localeStr', fdias),
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('localeStr', fdias),
       DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) =>
         this.router.navigate([`/${AppSettings.LOGIN_KEY}`])),
       DynamicFieldHelper.createSubmitButton('REGISTRATION')

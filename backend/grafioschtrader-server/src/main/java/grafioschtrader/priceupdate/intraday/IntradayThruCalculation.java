@@ -7,7 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.udojava.evalex.Expression;
+import com.ezylang.evalex.Expression;
 
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks.VarNameLastPrice;
@@ -57,8 +57,8 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
       try {
         if (!varNameLastPrices.isEmpty()) {
           if (security.isCalculatedPrice()) {
-            varNameLastPrices.forEach(vnlp -> expression.setVariable(vnlp.varName, BigDecimal.valueOf(vnlp.sLast)));
-            security.setSLast(expression.eval().doubleValue());
+            varNameLastPrices.forEach(vnlp -> expression.with(vnlp.varName, BigDecimal.valueOf(vnlp.sLast)));
+            security.setSLast(expression.evaluate().getNumberValue().doubleValue());
           } else {
             security.setSLast(varNameLastPrices.get(0).sLast);
           }

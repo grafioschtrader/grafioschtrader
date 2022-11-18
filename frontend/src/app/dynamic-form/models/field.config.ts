@@ -17,7 +17,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
   disabled?: boolean;
 
   /**
-   * Label an field are not shown
+   * Label on field are not shown
    */
   invisible?: boolean;
 

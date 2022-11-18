@@ -17,7 +17,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
 import {combineLatest} from 'rxjs';
 import {GTNetMessageService} from '../service/gtnet.message.service';
-import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 
 @Component({
   template: `
@@ -125,7 +125,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   gtNetList: GTNet[];
   gtNetMyEntryId: number;
   gtNetMessageMap: { [key: number]: GTNetMessage[] };
-  formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] };
+  formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
   visibleDialogMsg = false;
   msgCallParam: MsgCallParam;
 
@@ -165,14 +165,14 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   protected override readData(): void {
     const observable = [this.gtNetService.getAllGTNetsWithMessages(),
-      ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitions()] : [])];
+      ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])];
 
     combineLatest(observable).subscribe((data,) => {
       this.gtNetList = (<GTNetWithMessages>data[0]).gtNetList;
       this.gtNetMyEntryId = (<GTNetWithMessages>data[0]).gtNetMyEntryId;
       this.createTranslatedValueStoreAndFilterField(this.gtNetList);
       this.gtNetMessageMap = (<GTNetWithMessages>data[0]).gtNetMessageMap;
-      this.formDefinitions ??= <{ [type: string]: FieldDescriptorInputAndShow[] }>data[1];
+      this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[1];
       this.prepareTableAndTranslate();
     })
   }

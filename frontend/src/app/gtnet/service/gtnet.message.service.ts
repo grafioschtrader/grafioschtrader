@@ -1,14 +1,14 @@
-import {AuthServiceWithLogout} from "../../shared/login/service/base.auth.service.with.logout";
-import {ServiceEntityUpdate} from "../../shared/edit/service.entity.update";
-import {GTNetMessage} from "../model/gtnet.message";
-import {LoginService} from "../../shared/login/service/log-in.service";
-import {HttpClient} from "@angular/common/http";
-import {MessageToastService} from "../../shared/message/message.toast.service";
-import {Observable} from "rxjs/internal/Observable";
-import {AppSettings} from "../../shared/app.settings";
-import {catchError} from "rxjs/operators";
-import {Injectable} from "@angular/core";
-import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
+import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {GTNetMessage} from '../model/gtnet.message';
+import {LoginService} from '../../shared/login/service/log-in.service';
+import {HttpClient} from '@angular/common/http';
+import {MessageToastService} from '../../shared/message/message.toast.service';
+import {Observable} from 'rxjs/internal/Observable';
+import {AppSettings} from '../../shared/app.settings';
+import {catchError} from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 
 @Injectable()
 export class GTNetMessageService extends AuthServiceWithLogout<GTNetMessage> implements ServiceEntityUpdate<GTNetMessage> {
@@ -17,8 +17,8 @@ export class GTNetMessageService extends AuthServiceWithLogout<GTNetMessage> imp
     super(loginService, httpClient, messageToastService);
   }
 
-  getAllFormDefinitions(): Observable<{ [type: string]: FieldDescriptorInputAndShow[] }> {
-    return <Observable<{ [type: string]: FieldDescriptorInputAndShow[] }>>this.httpClient.get(
+  getAllFormDefinitionsWithClass(): Observable<{ [type: string]: ClassDescriptorInputAndShow }> {
+    return <Observable<{ [type: string]: ClassDescriptorInputAndShow }>>this.httpClient.get(
       `${AppSettings.API_ENDPOINT}${AppSettings.GTNET_MESSAGE_KEY}`
       + `/msgformdefinition`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

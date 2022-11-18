@@ -1,4 +1,4 @@
-import {AbstractControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {AbstractControl, FormGroup, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 
 const isPresent = (obj: any): boolean => obj !== undefined && obj !== null;
 
@@ -40,6 +40,31 @@ export const gteWithMask = (gte: number): ValidatorFn => (control: AbstractContr
 
   const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
   return v >= +gte ? null : {gte: {requiredGt: gte, actualValue: v}};
+};
+
+
+export const gteDate = (minDate: Date): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
+  if (!isPresent(minDate)) {
+    return null;
+  }
+
+  if (isPresent(Validators.required(control))) {
+    return null;
+  }
+
+  return control.value.getTime() >= minDate.getTime() ? null :
+    {gteDate: {requiredGt: gteDate, actualValue: control.value}};
+};
+
+
+export const dateRange = (dateField1: string, dateField2: string, validatorField: string):
+  ValidatorFn => (group: FormGroup): ValidationErrors | null => {
+  const date1 = group.get(dateField1).value;
+  const date2 = group.get(dateField2).value;
+  if ((date1 !== null && date2 !== null) && date1 > date2) {
+    return {dateRange: {requiredGt: dateRange, actualValue: group.get(validatorField).value}};
+  }
+  return null;
 };
 
 

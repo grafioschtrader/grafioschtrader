@@ -2,7 +2,6 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafioschtrader.dynamic.model.FieldDescriptorInputAndShow;
+import grafioschtrader.dynamic.model.ClassDescriptorInputAndShow;
 import grafioschtrader.gtnet.GTNetHelper;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.repository.GTNetMessageJpaRepository;
@@ -31,8 +30,8 @@ public class GTNetMessageResource {
   @Operation(summary = "Returns all form defintion of messages", description = "", tags = {
       RequestMappings.GTNET_MESSAGE })
   @GetMapping(value = "/msgformdefinition", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<GTNetMessageCodeType, List<FieldDescriptorInputAndShow>>> getAllFormDefinitions() {
-    return new ResponseEntity<>(GTNetHelper.getAllFormDefinitions(), HttpStatus.OK);
+  public ResponseEntity<Map<GTNetMessageCodeType, ClassDescriptorInputAndShow>> getAllFormDefinitions() {
+    return new ResponseEntity<>(GTNetHelper.getAllFormDefinitionsWithClass(), HttpStatus.OK);
   }
   
  

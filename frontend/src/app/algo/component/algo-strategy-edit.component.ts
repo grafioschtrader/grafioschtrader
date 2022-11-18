@@ -18,6 +18,8 @@ import {AppSettings} from '../../shared/app.settings';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
+import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
+import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
 
 /**
  * Allows editing a new or existing strategy. The input fields will be different according to the selected strategy.
@@ -115,7 +117,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   }
 
   private createDynamicInputFields(): void {
-    const fieldConfig: FieldConfig[] = DynamicFieldHelper.createConfigFieldsFromDescriptor(this.fieldDescriptorInputAndShows,
+    const fieldConfig: FieldConfig[]= DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.fieldDescriptorInputAndShows,
       AppSettings.PREFIX_ALGO_FIELD, false);
 
     this.config = [this.config[0], ...fieldConfig, this.config[this.config.length - 1]];
@@ -128,7 +130,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   private setExistingModel(): void {
     this.ignoreValueChanged = true;
-    const dynamicModel = DynamicFieldHelper.createAndSetValuesInDynamicModel(
+    const dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
       (<AlgoStrategy>this.algoCallParam.thisObject)[AlgoStrategyHelper.FIELD_STRATEGY_IMPL],
       AlgoStrategyHelper.FIELD_STRATEGY_IMPL,
       (<AlgoStrategy>this.algoCallParam.thisObject).algoRuleStrategyParamMap,

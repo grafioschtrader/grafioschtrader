@@ -17,11 +17,11 @@ class YahooCalendarTest {
     YahooCalendar yahooCalendar = new YahooCalendar();
     Map<String, TickerSecuritysplit> securitySplitMap = null;
     try {
-      securitySplitMap = yahooCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2021-07-20"), new String[] {});
+      securitySplitMap = yahooCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2022-11-18"), new String[] {});
     } catch (Exception e) {
       e.printStackTrace();
     }
-    assertThat(securitySplitMap).hasSize(14);
+    assertThat(securitySplitMap).hasSize(8);
   }
   
 }

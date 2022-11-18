@@ -9,7 +9,7 @@ import {MenubarModule} from 'primeng/menubar';
 import {routing} from './app.routes';
 import {AppComponent} from './app.component';
 import {PortfolioService} from './portfolio/service/portfolio.service';
-import {MainTreeComponent} from './shared/maintree/component/maintree.component';
+import {MainTreeComponent} from './shared/maintree/component/main-tree.component';
 import {TreeModule} from 'primeng/tree';
 import {WatchlistService} from './watchlist/service/watchlist.service';
 import {ContextMenuModule} from 'primeng/contextmenu';

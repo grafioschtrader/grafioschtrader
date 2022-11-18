@@ -16,7 +16,7 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   void allCurrenciesFillEmptyDaysInHistoryquote();
 
-  void currencieyFillEmptyDaysInHistoryquote(Currencypair currencypair);
+  void currencieyFillEmptyDaysInHistoryquote(Currencypair currencypair) throws Exception;
 
   void fillEmptyCurrencypair(Integer idSecuritycurrency);
 

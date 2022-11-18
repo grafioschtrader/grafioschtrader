@@ -64,6 +64,11 @@ public class GTNetMessage extends BaseID {
   @Column(name = "message")
   private String message;
 
+  @Schema(description = "Was the message read")
+  @Column(name = "has_been_read")
+  private boolean hasBeenRead;
+  
+  
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")
   @CollectionTable(name = GT_NET_MESSAGE_PARAM, joinColumns = @JoinColumn(name = "id_gt_net_message"))
@@ -145,6 +150,15 @@ public class GTNetMessage extends BaseID {
 
   public void setGtNetMessageParamMap(Map<String, GTNetMessageParam> gtNetMessageParamMap) {
     this.gtNetMessageParamMap = gtNetMessageParamMap;
+  }
+  
+  
+  public boolean isHasBeenRead() {
+    return hasBeenRead;
+  }
+
+  public void setHasBeenRead(boolean hasBeenRead) {
+    this.hasBeenRead = hasBeenRead;
   }
 
   @Override

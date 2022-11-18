@@ -45,8 +45,6 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.HISTORY,
-        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
     supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
   }
 
@@ -111,7 +109,8 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
     case CFD:
     case DIRECT_INVESTMENT:
       if (assetClassType == AssetclassType.EQUITIES) {
-        select = "#ShareQuotes_1 table tr";
+        // select = "#ShareQuotes_1 table tr";
+        select = "[data-sg-tab-region-content=0] table tr";
       } else if (assetClassType == AssetclassType.COMMODITIES) {
         select = "div.table-quotes table tr";
       }
@@ -160,12 +159,14 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
         }
         break;
 
+      case "Eröffnung/Vortag":  
       case "Eröffnung / Vortag":
         String openDayBefore[] = value.split(" / ");
         security.setSOpen(FeedConnectorHelper.parseDoubleGE(openDayBefore[0]));
         security.setSPrevClose(FeedConnectorHelper.parseDoubleGE(openDayBefore[1]));
         break;
 
+      case "Tageshoch/Tagestief":  
       case "Tageshoch / Tagestief":
         String highLow[] = value.split(" / ");
         if (!highLow[0].equals("-")) {

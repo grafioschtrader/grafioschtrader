@@ -52,6 +52,7 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
 
               <ng-template #groupTemplate>
                 <div [formGroupName]="field['formGroupName']">
+
                   <ng-container *ngFor="let childField of field['fieldConfig'];">
                     <dynamic-form-layout [config]="childField"
                                          [formConfig]="formConfig"
@@ -168,6 +169,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       childGroups[formGroupDefinition.formGroupName] = formGroupDefinition.formControl;
       formGroupDefinition.fieldConfig.forEach(control =>
         childGroups[formGroupDefinition.formGroupName].addControl(control.field, this.createControl(control)));
+      formGroupDefinition.formControl.setValidators(formGroupDefinition.validation);
     });
 
     const group = this.fb.group(childGroups);
@@ -188,7 +190,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       let value = config.defaultValue;
 
       if (config.dataproperty) {
-        // field can not used to access the input value
+        // field can not be used to access the input value
         value = Helper.getValueByPath(sourceObject, config.dataproperty);
       } else if (sourceObject.hasOwnProperty(config.field)) {
         if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateTimeNumeric

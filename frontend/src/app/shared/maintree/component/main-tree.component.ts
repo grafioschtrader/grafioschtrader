@@ -221,7 +221,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         null, null, null)
     });
 
-    // this.addGTNetToTree();
+   //  this.addGTNetToTree();
 
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
       label: 'TASK_DATA_MONITOR',

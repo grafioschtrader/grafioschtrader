@@ -1,5 +1,5 @@
-import {FieldDescriptorInputAndShow} from "../../shared/dynamicfield/field.descriptor.input.and.show";
-import {BaseParam} from "../../entities/view/base.param";
+import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {BaseParam} from '../../entities/view/base.param';
 
 export class GTNetMessage {
   idGtNetMessage: number;
@@ -13,7 +13,7 @@ export class GTNetMessage {
 }
 
 export class MsgCallParam {
-  constructor(public formDefinitions: { [type: string]: FieldDescriptorInputAndShow[] }, public idsGTNet: number[],
+  constructor(public formDefinitions: { [type: string]: ClassDescriptorInputAndShow }, public idsGTNet: number[],
               public replyTo: number, public gtNetMessage: GTNetMessage) {
   }
 }

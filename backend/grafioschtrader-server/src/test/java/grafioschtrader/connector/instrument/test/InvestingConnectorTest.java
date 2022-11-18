@@ -3,22 +3,14 @@ package grafioschtrader.connector.instrument.test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.connector.instrument.investing.InvestingConnector;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
-import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class InvestingConnectorTest {
 
@@ -71,65 +63,6 @@ class InvestingConnectorTest {
     });
   }
 
-  @Test
-  void getEodCurrencyPairHistoryTest() {
-    final List<Currencypair> currencies = new ArrayList<>();
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-
-    final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-    final LocalDate to = LocalDate.parse("10.05.2021", germanFormatter);
-
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("CNY", "CHF", "9495"));
-    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("BTC", "CHF", "1117720"));
-    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("USD", "CHF", "4"));
-
-    currencies.parallelStream().forEach(currencypair -> {
-      List<Historyquote> historyquote = new ArrayList<>();
-      try {
-        historyquote = investingConnector.getEodCurrencyHistory(currencypair, fromDate, toDate);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println(historyquote.size());
-      assertTrue(historyquote.size() > 10);
-    });
-  }
-
-  @Test
-  void getEodSecurityHistoryTest() {
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-    final List<Security> securities = new ArrayList<>();
-
-    final LocalDate from = LocalDate.parse("01.01.2003", germanFormatter);
-    final LocalDate to = LocalDate.parse("10.05.2021", germanFormatter);
-
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("Enel", "6963",
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, ""));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("S&P 500 (SPX)", "166",
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, ""));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("SMI Futures - Jun 19", "8837",
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, ""));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("USA 30-Year Bond Yiel", "23706",
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, ""));
-
-    securities.parallelStream().forEach(security -> {
-      List<Historyquote> historyquote = new ArrayList<>();
-      try {
-        historyquote = investingConnector.getEodSecurityHistory(security, fromDate, toDate);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println(historyquote.size());
-      assertTrue(historyquote.size() > 10);
-    });
-  }
+  
 
 }

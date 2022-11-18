@@ -46,6 +46,7 @@ import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date
 import {TwoKeyMap} from '../../shared/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {Moment} from 'moment/moment';
+import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
 declare let Plotly: any;
 
 interface Traces {
@@ -558,7 +559,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     const dataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators);
     this.taEditParam = new TaEditParam(taIndicators,
       dataModel ? dataModel : taFormDefinition.defaultDataModel,
-      DynamicFieldHelper.createConfigFieldsFromDescriptor(taFormDefinition.taFormList, '', true, 'APPLY'));
+      DynamicFieldModelHelper.createConfigFieldsFromDescriptor(taFormDefinition.taFormList, '', true, 'APPLY'));
     this.visibleTaDialog = true;
   }
 
@@ -584,7 +585,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     taFormDefinition: TaFormDefinition): void {
     if (iDef.shown) {
       const existingDataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicator);
-      if (!DynamicFieldHelper.isDataModelEqual(existingDataModel, newDataModel, taFormDefinition.taFormList)) {
+      if (!DynamicFieldModelHelper.isDataModelEqual(existingDataModel, newDataModel, taFormDefinition.taFormList)) {
         this.deleteTaIndicator(iDef);
       }
     }
