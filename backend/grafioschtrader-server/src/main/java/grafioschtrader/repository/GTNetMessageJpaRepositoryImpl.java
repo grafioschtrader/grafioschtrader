@@ -1,25 +1,27 @@
 package grafioschtrader.repository;
 
+import java.lang.annotation.Annotation;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import grafioschtrader.entities.GTNetMessage;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.gtnet.m2m.model.MessageResponse;
 
-public class GTNetMessageJpaRepositoryImpl implements GTNetMessageJpaRepositoryCustom {
+public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessage>
+    implements GTNetMessageJpaRepositoryCustom {
 
   @Autowired
   private GTNetMessageJpaRepository gtNetMessageJpaRepository;
-  
+
   @Override
   public GTNetMessage saveMsg(GTNetMessage gtNetMessage) {
     return gtNetMessageJpaRepository.save(gtNetMessage);
   }
 
   @Override
-  public MessageResponse getMsgResponse(MessageEnvelope messageEnvelope) {
-    // TODO Auto-generated method stub
-    return null;
+  public GTNetMessage saveOnlyAttributes(GTNetMessage entity, GTNetMessage existingEntity,
+      Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
+    return gtNetMessageJpaRepository.saveMsg(entity);
   }
 
 }

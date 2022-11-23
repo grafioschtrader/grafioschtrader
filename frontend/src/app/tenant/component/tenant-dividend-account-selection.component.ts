@@ -7,7 +7,7 @@ import {TreeNode} from 'primeng/api';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 
 /**
- * Shows all portfolios and depending accounts as a tree for select or deselect.
+ * Display all portfolios and corresponding accounts in a tree structure. This enables a selection of these.
  */
 @Component({
   selector: 'tenant-dividend-account-selection',

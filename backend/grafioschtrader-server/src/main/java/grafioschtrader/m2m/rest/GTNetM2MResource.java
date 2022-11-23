@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.gtnet.m2m.model.MessageResponse;
-import grafioschtrader.repository.GTNetMessageJpaRepository;
+import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.rest.RequestMappings;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,13 +23,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = RequestMappings.GTNET_M2M, description = "Controller for GTNet messages")
 public class GTNetM2MResource {
 
+  public static String AUTHORIZATION_HEADER = "Authorization";
+  
   @Autowired
-  private GTNetMessageJpaRepository gtNetMessageJpaRepository;
+  private GTNetJpaRepository gtNetJpaRepository;
   
   @Operation(summary = "", description = "", tags = { RequestMappings.GTNET_M2M })
   @PostMapping(value = "/", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<MessageResponse> receiveMessage(@Valid @RequestBody MessageEnvelope messageEnvelope) {
+  public ResponseEntity<MessageEnvelope> receiveMessage(@Valid @RequestBody MessageEnvelope messageEnvelope) {
 
-    return new ResponseEntity<>(gtNetMessageJpaRepository.getMsgResponse(messageEnvelope), HttpStatus.OK);
+    return new ResponseEntity<>(gtNetJpaRepository.getMsgResponse(messageEnvelope), HttpStatus.OK);
   }
 }

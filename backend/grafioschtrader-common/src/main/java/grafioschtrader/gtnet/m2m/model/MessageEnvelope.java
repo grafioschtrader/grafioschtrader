@@ -3,6 +3,8 @@ package grafioschtrader.gtnet.m2m.model;
 import java.util.Date;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,9 +16,10 @@ public class MessageEnvelope {
   public String sourceDomain;
   public Integer souceIdForReply;
   public Date timestamp;
-  public Short messageCode;
+  public byte messageCode;
   public Map<String, GTNetMessageParam> gtNetMessageParamMap;
   public String message;
+  public JsonNode payload;
   
   public MessageEnvelope() {
   }

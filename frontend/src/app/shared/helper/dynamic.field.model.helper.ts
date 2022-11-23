@@ -23,7 +23,7 @@ export class DynamicFieldModelHelper {
   public static createFieldsFromClassDescriptorInputAndShow(cdias: ClassDescriptorInputAndShow, labelPreffix: string,
                                                             addSubmitButton = false, submitText?: string): FieldFormGroup[] {
     let config: FieldFormGroup[];
-    if (cdias.constraintValidatorMap) {
+    if (cdias?.constraintValidatorMap) {
       let counter = 0;
       for (const [key, value] of Object.entries(cdias.constraintValidatorMap)) {
         counter++;
@@ -49,7 +49,7 @@ export class DynamicFieldModelHelper {
       }
       return config;
     } else {
-      return this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPreffix, addSubmitButton, null, submitText);
+      return cdias? this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPreffix, addSubmitButton, null, submitText): [];
     }
   }
 

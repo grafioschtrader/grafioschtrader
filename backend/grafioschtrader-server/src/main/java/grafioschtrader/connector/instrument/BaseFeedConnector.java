@@ -300,6 +300,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       HttpURLConnection.setFollowRedirects(true);
       HttpURLConnection huc = (HttpURLConnection) u.openConnection();
       huc.setRequestProperty("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
+      huc.setRequestProperty("Accept-Language", "en");
       huc.setRequestMethod("GET");
       huc.connect();
       int code = huc.getResponseCode();

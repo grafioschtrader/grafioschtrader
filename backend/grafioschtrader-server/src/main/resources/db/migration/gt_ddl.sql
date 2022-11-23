@@ -235,7 +235,7 @@ CREATE TABLE `assetclass` (
   UNIQUE KEY `category_type` (`category_type`,`sub_category_nls`,`spec_invest_instrument`) USING BTREE,
   KEY `FK_Assetklass_Multilinguestring` (`sub_category_nls`),
   CONSTRAINT `FK_Assetclass_Multilinguestring` FOREIGN KEY (`sub_category_nls`) REFERENCES `multilinguestring` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=542 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=544 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -414,7 +414,7 @@ CREATE TABLE `gt_net` (
   `lastprice_use_detail_log` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_gt_net`),
   UNIQUE KEY `domainRemoteName` (`domain_remote_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -554,8 +554,9 @@ CREATE TABLE `gt_net_message` (
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `send_recv` tinyint(1) NOT NULL,
   `reply_to` int(11) DEFAULT NULL,
-  `message_code` smallint(6) DEFAULT NULL,
-  `message` varchar(1024) DEFAULT NULL,
+  `message_code` tinyint(3) DEFAULT NULL,
+  `message` varchar(1000) DEFAULT NULL,
+  `error_msg_code` varchar(50) DEFAULT NULL,
   `has_been_read` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_gt_net_message`),
   KEY `FK_GtNetMessage_GtNet` (`id_gt_net`),
@@ -573,16 +574,17 @@ DROP TABLE IF EXISTS `gt_net_message_answer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `gt_net_message_answer` (
-  `request_msg_code` smallint(6) NOT NULL,
-  `response_msg_code1` smallint(6) NOT NULL,
+  `request_msg_code` tinyint(3) NOT NULL,
+  `response_msg_code1` tinyint(3) NOT NULL,
   `response_msg_conditional1` varchar(256) DEFAULT NULL,
-  `response_msg_message1` varchar(1024) DEFAULT NULL,
-  `response_msg_code2` smallint(6) DEFAULT NULL,
+  `response_msg_message1` varchar(1000) DEFAULT NULL,
+  `response_msg_code2` tinyint(3) DEFAULT NULL,
   `response_msg_conditional2` varchar(256) DEFAULT NULL,
-  `response_msg_message2` varchar(1024) DEFAULT NULL,
-  `response_msg_code3` smallint(6) DEFAULT NULL,
+  `response_msg_message2` varchar(1000) DEFAULT NULL,
+  `response_msg_code3` tinyint(3) DEFAULT NULL,
   `response_msg_conditional3` varchar(256) DEFAULT NULL,
-  `response_msg_message3` varchar(1024) DEFAULT NULL,
+  `response_msg_message3` varchar(1000) DEFAULT NULL,
+  `wait_days_apply` tinyint(3) NOT NULL DEFAULT 0,
   PRIMARY KEY (`request_msg_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -625,7 +627,7 @@ CREATE TABLE `historyquote` (
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`,`create_type`) USING BTREE,
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7338154 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7363874 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -915,7 +917,7 @@ CREATE TABLE `mail_in_out` (
   KEY `FK_MailInOut_Role` (`id_role_to`),
   CONSTRAINT `FK_MailInOut_Role` FOREIGN KEY (`id_role_to`) REFERENCES `role` (`id_role`),
   CONSTRAINT `CONSTRAINT_1` CHECK (`id_user_to` is null and `id_role_to` is not null or `id_user_to` is not null and `id_role_to` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -978,7 +980,7 @@ DROP TABLE IF EXISTS `multilinguestring`;
 CREATE TABLE `multilinguestring` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=701 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=703 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1298,7 +1300,7 @@ CREATE TABLE `securitycurrency` (
   `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=4074 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4075 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1394,7 +1396,7 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=5918 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5940 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1920,4 +1922,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-11-18 17:22:21
+-- Dump completed on 2022-11-23 15:38:37

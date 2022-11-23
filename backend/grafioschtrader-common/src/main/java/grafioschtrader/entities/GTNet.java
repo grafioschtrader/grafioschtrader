@@ -14,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.gtnet.GTNetServerStateTypes;
-import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
@@ -31,7 +30,7 @@ public class GTNet extends BaseID {
   
   @Schema(description = "Name or ip address of this remote domain")
   @NotNull
-  @WebUrl
+  // @WebUrl
   @Column(name = "domain_remote_name")
   private String domainRemoteName;
 

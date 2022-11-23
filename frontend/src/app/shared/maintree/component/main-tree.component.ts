@@ -221,7 +221,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         null, null, null)
     });
 
-   //  this.addGTNetToTree();
+    // this.addGTNetToTree();
 
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
       label: 'TASK_DATA_MONITOR',
@@ -249,19 +249,19 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       label: 'GTNET_CONSUME_MONITOR',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_CONSUME_MONITOR_KEY),
         null, null, null)
-    }
+    };
 
     gtNetNode.children.push({
       label: 'GTNET_SETUP',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_KEY),
         null, null, null)
-    })
+    });
 
     gtNetNode.children.push({
       label: 'GTNET_PROVIDER_MONITOR',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_PROVIDER_MONITOR_KEY),
         null, null, null)
-    })
+    });
 
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push(gtNetNode);
 

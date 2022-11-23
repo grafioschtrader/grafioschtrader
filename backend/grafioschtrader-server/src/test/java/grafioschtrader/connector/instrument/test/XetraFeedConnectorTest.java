@@ -20,7 +20,8 @@ import grafioschtrader.entities.Security;
 public class XetraFeedConnectorTest {
 
   private XetraFeedConnector xetraFeedConnector = new XetraFeedConnector();
-
+  
+  
   @Test
   void getEodSecurityHistoryTest() {
 
