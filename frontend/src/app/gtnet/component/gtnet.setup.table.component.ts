@@ -97,7 +97,9 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
         <ng-template pTemplate="rowexpansion" let-el let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-              <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[el.idGtNet]"></gtnet-message-treetable>
+              <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[el.idGtNet]"
+                                       [formDefinitions]="formDefinitions">
+              </gtnet-message-treetable>
             </td>
           </tr>
         </ng-template>
@@ -174,7 +176,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       this.gtNetMessageMap = (<GTNetWithMessages>data[0]).gtNetMessageMap;
       this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[1];
       this.prepareTableAndTranslate();
-    })
+    });
   }
 
   override onComponentClick(event): void {
@@ -201,7 +203,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   // Handle Messages
   ////////////////////////////////////////
   private sendMsgSelected(): void {
-    this.msgCallParam = new MsgCallParam(this.formDefinitions, null, null, null);
+    this.msgCallParam = new MsgCallParam(this.formDefinitions, [this.selectedEntity.idGtNet], null, null);
     this.visibleDialogMsg = true;
   }
 

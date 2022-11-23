@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
-import {GTNetMessage, GTNetMessageCodeType, MsgCallParam} from '../model/gtnet.message';
+import {GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
@@ -16,6 +16,8 @@ import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
 import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
+import {BaseParam} from '../../entities/view/base.param';
+import {Helper} from '../../helper/helper';
 
 /**
  * Crate a new GTNet message. A message can not be changed.
@@ -53,13 +55,13 @@ export class GTNetMessageEditComponent extends SimpleEntityEditBase<GTNetMessage
       4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF(this.MESSAGE_CODE, true),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('message',  AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   protected override initialize(): void {
-    this.config = [this.config[0], this.config[this.config.length - 1]];
     this.configObject[this.MESSAGE_CODE].formControl.enable();
     this.valueChangedOnMessageCode();
     if (this.msgCallParam.gtNetMessage) {
@@ -90,7 +92,7 @@ export class GTNetMessageEditComponent extends SimpleEntityEditBase<GTNetMessage
       this.classDescriptorInputAndShows,
       '', false);
 
-    this.config = [this.config[0], ...fieldConfig, this.config[this.config.length - 1]];
+    this.config = [this.config[0], ...fieldConfig, ...this.config.slice(-2)];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
 
     if (this.msgCallParam.gtNetMessage) {
@@ -111,6 +113,12 @@ export class GTNetMessageEditComponent extends SimpleEntityEditBase<GTNetMessage
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetMessage {
     const gtNetMessage: GTNetMessage = new GTNetMessage();
     this.form.cleanMaskAndTransferValuesToBusinessObject(gtNetMessage);
+    gtNetMessage.idGtNet = this.msgCallParam.idsGTNet[0];
+    gtNetMessage.sendRecv = SendReceivedType.SEND;
+    gtNetMessage.gtNetMessageParamMap = {};
+    const valuesFlatten = Helper.flattenObject(value);
+    this.classDescriptorInputAndShows.fieldDescriptorInputAndShows.forEach(fDIAS =>
+      gtNetMessage.gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(valuesFlatten[fDIAS.fieldName]));
     return gtNetMessage;
   }
 

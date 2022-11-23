@@ -10,6 +10,14 @@ public abstract class BaseParam {
   // no need of declaring key
   // key column will be created by MapKeyColumn
 
+  public BaseParam() {
+  }
+
+  public BaseParam(String paramValue) {
+    this.paramValue = paramValue;
+  }
+
+  
   @Column(name = "param_value")
   protected String paramValue;
 

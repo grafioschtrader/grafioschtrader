@@ -1,10 +1,10 @@
 {
   "name": "grafioschtrader-client",
-  "version": "0.28.2",
+  "version": "0.28.3",
   "license": "Apache-2.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --proxy-config proxy.conf.json",
+    "start": "ng serve --host 0.0.0.0 --port 5000 --proxy-config proxy.conf.json",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -81,3 +81,5 @@
     "typescript": "~4.7.4"
   }
 }
+
+

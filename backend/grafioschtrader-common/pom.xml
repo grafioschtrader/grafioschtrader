@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.28.2</version>
+		<version>0.28.3</version>
 	</parent>
 
 
@@ -111,13 +111,13 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
-			<version>1.6.11</version>
+			<version>1.6.13</version>
 		</dependency>
 		
 		 <dependency>
       		<groupId>org.springdoc</groupId>
       		<artifactId>springdoc-openapi-javadoc</artifactId>
-      		<version>1.6.11</version>
+      		<version>1.6.13</version>
    		</dependency>
 		
 		<!-- Jasypt (Java Simplified Encryption) -->

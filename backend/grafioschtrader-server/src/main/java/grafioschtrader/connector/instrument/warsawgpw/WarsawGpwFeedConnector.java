@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -21,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.validation.ISINValidator;
@@ -29,19 +33,61 @@ import grafioschtrader.validation.ISINValidator;
 public class WarsawGpwFeedConnector extends BaseFeedConnector {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
-  private static String DOMAIN_NAME_URL = "https://gpwbenchmark.pl/chart-json.php?req=";
+  private static String DOMAIN_NAME_INTRA = "https://gpw.pl/";
+  private static String DOMAIN_NAME_INDEX = "https://gpwbenchmark.pl/";
+  private static String DOMAIN_NAME_CHART = DOMAIN_NAME_INDEX + "chart-json.php?req=";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   
   static {
     supportedFeed = new HashMap<>();
+    supportedFeed.put(FeedSupport.INTRA,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
     supportedFeed.put(FeedSupport.HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
   }
   
+  @Override
+  public int getIntradayDelayedSeconds() {
+    return 900;
+  }
+  
   public WarsawGpwFeedConnector() {
     super(supportedFeed, "warsawgpw", "Warsaw GPW", "Dummy pattern");
+  }
+  
+  @Override
+  public String getSecurityIntradayDownloadLink(final Security security) {
+    return getUrlPrefix(security) + "?isin=" + security.getUrlIntraExtend(); 
+  }
+
+  
+  private String getUrlPrefix(final Security security) {
+    String prefix = null;
+    switch(security.getAssetClass().getSpecialInvestmentInstrument()) {
+      case NON_INVESTABLE_INDICES:
+        prefix = DOMAIN_NAME_INDEX + "karta-indeksu";
+        break;
+      default:
+        prefix = DOMAIN_NAME_INTRA + "spolka";
+    }
+    return prefix;
+  }
+  
+  @Override
+  public void updateSecurityLastPrice(final Security security) throws Exception {
+    String url = getSecurityIntradayDownloadLink(security);
+    Document doc = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT).header("Accept-Language", "en").get();
+    final Element div = doc.select("div.PaL.header.text-right.text-left-xs").first();
+    String[] maxMinValues = div.selectFirst(".max_min").text().split("max");
+    security.setSLow(FeedConnectorHelper.parseDoubleGE(maxMinValues[0].replaceAll("[^\\d,]", "")));;
+    security.setSHigh(FeedConnectorHelper.parseDoubleGE(maxMinValues[1].replaceAll("[^\\d,]", "")));
+    security.setSLast(FeedConnectorHelper.parseDoubleGE(div.selectFirst(".summary").text().replaceAll("[^\\d,]", "")));
+    Element changeElement = div.selectFirst(".profit") == null? div.selectFirst(".loss"): div.selectFirst(".profit");  
+    security.setSChangePercentage(FeedConnectorHelper.parseDoubleGE(changeElement.text().replaceAll("[^\\d,-]", "")));
+    security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+    
   }
   
   @Override
@@ -91,7 +137,7 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
     var rq = new RequestParam("RANGE", isin, dateFormat.format(from), dateFormat.format(to));
     String url = null;
     try {
-      url = DOMAIN_NAME_URL + "[" + objectMapper.writeValueAsString(rq) + "]&t=" + System.currentTimeMillis();
+      url = DOMAIN_NAME_CHART + "[" + objectMapper.writeValueAsString(rq) + "]&t=" + System.currentTimeMillis();
     } catch (JsonProcessingException e) {
       log.error("Could not create JSON for ISIN {}", isin);
     }

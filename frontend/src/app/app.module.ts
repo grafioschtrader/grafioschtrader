@@ -310,7 +310,7 @@ import {
 } from './securitycurrency/component/instrument-year-performance-table.component';
 import {
   InstrumentStatisticsSummaryComponent
-} from './securitycurrency/component/instrument.statistics.summary.component';
+} from './securitycurrency/component/instrument-statistics-summary.component';
 import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
 import {ConnectorApiKeyEditComponent} from './connectorapikey/component/connector.api.key.edit.component';
 import {ConnectorApiKeyService} from './connectorapikey/service/connector.api.key.service';

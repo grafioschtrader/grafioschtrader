@@ -9,7 +9,10 @@ import grafioschtrader.rest.UpdateCreateJpaRepository;
 
 public interface GTNetJpaRepository
     extends JpaRepository<GTNet, Integer>, GTNetJpaRepositoryCustom, UpdateCreateJpaRepository<GTNet> {
+ 
   List<GTNet> findByLastpriceConsumerUsageAndLastpriceServerState(byte lastpriceConsumerUsage,
       byte lastpriceServerState);
+  
+  GTNet findByDomainRemoteName(String domainRemoteName);
 
 }

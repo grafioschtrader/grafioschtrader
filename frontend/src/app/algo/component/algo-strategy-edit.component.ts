@@ -19,7 +19,6 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
-import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
 
 /**
  * Allows editing a new or existing strategy. The input fields will be different according to the selected strategy.
@@ -117,7 +116,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   }
 
   private createDynamicInputFields(): void {
-    const fieldConfig: FieldConfig[]= DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.fieldDescriptorInputAndShows,
+    const fieldConfig: FieldConfig[] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.fieldDescriptorInputAndShows,
       AppSettings.PREFIX_ALGO_FIELD, false);
 
     this.config = [this.config[0], ...fieldConfig, this.config[this.config.length - 1]];
@@ -148,9 +147,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.form.cleanMaskAndTransferValuesToBusinessObject(algoStrategy);
     algoStrategy.idAlgoAssetclassSecurity = this.algoCallParam.parentObject.idAlgoAssetclassSecurity;
     algoStrategy.algoRuleStrategyParamMap = {};
-    this.fieldDescriptorInputAndShows.forEach(fDIAS => {
-      algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new BaseParam(value[fDIAS.fieldName]);
-    });
+    this.fieldDescriptorInputAndShows.forEach(fDIAS =>
+      algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new BaseParam(value[fDIAS.fieldName])
+    );
 
     return algoStrategy;
   }

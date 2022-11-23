@@ -20,10 +20,10 @@ public class GTNetMessageAnswer {
   
   @Id
   @Column(name = "request_msg_code")
-  private Short requestMsgCode;
+  private byte requestMsgCode;
   
   @Column(name = "response_msg_code1")
-  private Short responseMsgCode1;
+  private byte responseMsgCode1;
   
   @Column(name = "response_msg_conditional1")
   private String responseMsgConditional1;
@@ -32,7 +32,7 @@ public class GTNetMessageAnswer {
   private String responseMsgMessage1;
   
   @Column(name = "response_msg_code2")
-  private Short responseMsgCode2;
+  private Byte responseMsgCode2;
   
   @Schema(description = "2nd: This response is given if there is no condition or if this condition is met.")
   @Column(name = "response_msg_conditional2")
@@ -43,7 +43,7 @@ public class GTNetMessageAnswer {
   private String responseMsgMessage2;
   
   @Column(name = "response_msg_code3")
-  private Short responseMsgCode3;
+  private Byte responseMsgCode3;
   
   @Schema(description = "3nd: This response is given if there is no condition or if this condition is met.")
   @Column(name = "response_msg_conditional3")
@@ -53,9 +53,12 @@ public class GTNetMessageAnswer {
   @Column(name = "response_msg_message3")
   private String responseMsgMessage3;
  
+  @Schema(description = "If the answer was negative, it is necessary to wait minimally so many days for the next apply.")
+  @Column(name = "wait_days_apply")
+  private String waitDaysAplly;
   
   public GTNetMessageCodeType getRequestMsgCode() {
-    return GTNetMessageCodeType.getGTNetMessageCodeType(requestMsgCode);
+    return GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(requestMsgCode);
   }
 
   public void setRequestMsgCode(GTNetMessageCodeType requestMsgCode) {
@@ -63,7 +66,7 @@ public class GTNetMessageAnswer {
   }
 
   public GTNetMessageCodeType getResponseMsgCode1() {
-    return GTNetMessageCodeType.getGTNetMessageCodeType(responseMsgCode1);
+    return GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(responseMsgCode1);
   }
 
   public void setResponseMsgCode1(GTNetMessageCodeType responseMsgCode1) {
@@ -87,7 +90,7 @@ public class GTNetMessageAnswer {
   }
 
   public GTNetMessageCodeType getResponseMsgCode2() {
-    return GTNetMessageCodeType.getGTNetMessageCodeType(responseMsgCode2);
+    return GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(responseMsgCode2);
   }
 
   public void setResponseMsgCode2(GTNetMessageCodeType responseMsgCode2) {
@@ -111,7 +114,7 @@ public class GTNetMessageAnswer {
   }
 
   public GTNetMessageCodeType getResponseMsgCode3() {
-    return GTNetMessageCodeType.getGTNetMessageCodeType(responseMsgCode3);
+    return GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(responseMsgCode3);
   }
 
   public void setResponseMsgCode3(GTNetMessageCodeType responseMsgCode3) {
@@ -132,6 +135,14 @@ public class GTNetMessageAnswer {
 
   public void setResponseMsgMessage3(String responseMsgMessage3) {
     this.responseMsgMessage3 = responseMsgMessage3;
+  }
+
+  public String getWaitDaysAplly() {
+    return waitDaysAplly;
+  }
+
+  public void setWaitDaysAplly(String waitDaysAplly) {
+    this.waitDaysAplly = waitDaysAplly;
   }
   
   

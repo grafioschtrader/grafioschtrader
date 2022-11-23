@@ -1,11 +1,12 @@
 package grafioschtrader.gtnet;
 
 public enum SendReceivedType {
-
   // Message was send
   SEND((byte) 0),
   // Message was received
-  RECEIVED((byte) 1);
+  RECEIVED((byte) 1),
+  // Message is answered. This state is not persited 
+  ANSWER((byte) 2);
   
   private final Byte value;
 

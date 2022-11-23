@@ -111,7 +111,7 @@ export class AppHelper {
   }
 
   public static getValueByPathWithField(gps: GlobalparameterService, translateService: TranslateService,
-    dataobject: any, field: ColumnConfig, valueField: string) {
+                                        dataobject: any, field: ColumnConfig, valueField: string) {
     dataobject = Helper.getValueByPath(dataobject, valueField);
     if (dataobject || field.dataType === DataType.NumericShowZero && dataobject === 0) {
 
@@ -144,7 +144,7 @@ export class AppHelper {
   }
 
   public static numberFormat(gps: GlobalparameterService, value: number, maxFractionDigits: number,
-    minFractionDigits: number) {
+                             minFractionDigits: number) {
     if (maxFractionDigits != null) {
       if (maxFractionDigits > 0) {
         const n = Math.log(Math.abs(value)) / Math.LN10;
@@ -188,15 +188,16 @@ export class AppHelper {
     if (array.length > middle && compare(array[middle], item) === Comparison.LT) {
       middle += 1;
     }
-
     return middle * -1;
   }
+
+
 
   /**
    * Shows a confirm dialog which is expecting an user input to confirm the action.
    */
   public static confirmationDialog(translateService: TranslateService, confirmationService: ConfirmationService, msgKey: string,
-    acceptFN: () => void, headerKey: string = 'MSG_GENERAL_HEADER') {
+                                   acceptFN: () => void, headerKey: string = 'MSG_GENERAL_HEADER') {
     if (msgKey.indexOf('|') >= 0) {
       const msgParam: string[] = msgKey.split('|');
       translateService.get(msgParam[1]).subscribe(paramTrans => AppHelper.confirmationDialogParam(translateService,
@@ -207,7 +208,7 @@ export class AppHelper {
   }
 
   public static getDefaultFormConfig(gps: GlobalparameterService, labelcolums: number,
-    helpLinkFN: () => void = null, nonModal = false): FormConfig {
+                                     helpLinkFN: () => void = null, nonModal = false): FormConfig {
     return {
       locale: gps.getLocale(),
       labelcolumns: labelcolums, language: gps.getUserLang(),
@@ -230,7 +231,7 @@ export class AppHelper {
   }
 
   public static processDroppedFiles(files: NgxFileDropEntry[], messageToastService: MessageToastService,
-    allowedFileExtension: string, uploadFunc: (formData: FormData) => void): void {
+                                    allowedFileExtension: string, uploadFunc: (formData: FormData) => void): void {
     let totalFilesSize = 0;
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
@@ -252,7 +253,7 @@ export class AppHelper {
   }
 
   private static confirmationDialogParam(translateService: TranslateService, confirmationService: ConfirmationService,
-    msgKey: string, param: string, acceptFN: () => void, headerKey: string) {
+                                         msgKey: string, param: string, acceptFN: () => void, headerKey: string) {
     const observableMsg = (param) ? translateService.get(msgKey, {i18nRecord: param}) : translateService.get(msgKey);
     const observableHeaderKey = translateService.get(headerKey);
 
