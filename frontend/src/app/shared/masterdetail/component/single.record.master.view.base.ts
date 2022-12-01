@@ -121,7 +121,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   }
 
   handleEditEntityOpenDialog(entity: T): void {
-    this.prepareCallParm(entity);
+    this.prepareCallParam(entity);
     this.visibleEditDialog = true;
   }
 
@@ -176,7 +176,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   /**
    * Prepare parameter data object for editing component.
    */
-  protected abstract prepareCallParm(entity: T): void;
+  protected abstract prepareCallParam(entity: T): void;
 
   /*
   protected beforeDelete(entity: T): T {

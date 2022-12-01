@@ -261,6 +261,7 @@
   "GROUP_BY_FINANCIAL_INSTRUMENT": "Finanzinstrument gruppiert",
   "GROUP_BY_PORTFOLIO": "Portfolio gruppiert",
   "GROUP_BY_SUB_CATEGORY": "Unter Anlageklasse gruppiert",
+  "GTNET_AUTOANWSER": "Automatische Nachricht",
   "GTNET_COMM_REQUIREMENT" : "Die Kommunikation mit anderen Teilnehmern bedingt die Eintragung Ihres GT-Server. Dabei muss Ihr Server von aussen erreichbar sein.",
   "GTNET_CONSUME_MONITOR": "GT-Net Nutzungs-Monitor",
   "GTNETMESSAGE": "GTNet Nachrichten",

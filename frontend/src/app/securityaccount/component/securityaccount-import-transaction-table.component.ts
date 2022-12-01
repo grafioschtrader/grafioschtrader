@@ -261,8 +261,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     }
   }
 
-  prepareCallParm(entity: CombineTemplateAndImpTransPos) {
-  }
 
   public prepareShowMenu(): MenuItem[] {
     return super.getMenuShowOptions();

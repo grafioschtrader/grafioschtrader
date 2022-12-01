@@ -56,6 +56,7 @@ import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connect
 import {GTNetConsumerMonitorComponent} from "./gtnet/component/gtnet.consumer.monitor.component";
 import {GTNetSetupTableComponent} from "./gtnet/component/gtnet.setup.table.component";
 import {GTNetProviderMonitorComponent} from "./gtnet/component/gtnet.provider.monitor.component";
+import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
 
 
 const APP_ROUTES: Routes = [
@@ -245,6 +246,11 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.GTNET_KEY,
         component: GTNetSetupTableComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: AppSettings.GTNET_AUTO_ANWSER_KEY,
+        component: GTNetMessageAutoAnswerComponent,
         canActivate: [AuthGuard]
       },
       {

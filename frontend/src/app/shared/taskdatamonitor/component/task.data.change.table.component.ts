@@ -180,7 +180,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     return Math.min((text.match(/\n/g) || '').length + 1, 15);
   }
 
-  override prepareCallParm(entity: TaskDataChange): void {
+  override prepareCallParam(entity: TaskDataChange): void {
     this.callParam = entity;
   }
 
@@ -221,7 +221,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       idTask: taskDataChange.idTask,
       entity: taskDataChange.entity, idEntity: taskDataChange.idEntity
     });
-    this.prepareCallParm(taskDataChangeNew);
+    this.prepareCallParam(taskDataChangeNew);
     this.visibleDialog = true;
   }
 

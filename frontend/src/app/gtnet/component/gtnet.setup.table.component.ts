@@ -161,7 +161,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     this.prepareTableAndTranslate();
   }
 
-  override prepareCallParm(entity: GTNet): void {
+  override prepareCallParam(entity: GTNet): void {
     this.callParam = entity;
   }
 
@@ -196,7 +196,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   public override getHelpContextId(): HelpIds {
-    return HelpIds.HELP_GTNET;
+    return HelpIds.HELP_GTNET_SETUP;
   }
 
 

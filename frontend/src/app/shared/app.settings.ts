@@ -81,6 +81,7 @@ export class AppSettings {
   public static readonly TASK_DATA_CHANGE_MONITOR_KEY = 'taskdatachangemonitor';
   public static readonly GTNET_CONSUME_MONITOR_KEY = 'gtnetconsumemonitor'
   public static readonly GTNET_KEY = 'gtnet'
+  public static readonly GTNET_AUTO_ANWSER_KEY = 'gtnetautoanwser'
   public static readonly GTNET_MESSAGE_KEY = 'gtnetmessage'
   public static readonly GTNET_PROVIDER_MONITOR_KEY = 'gtnetprovidermonitor'
   public static readonly TRADING_DAYS_MINUS_KEY = AppSettings.TRADING_DAYS_MINUS.toLowerCase();

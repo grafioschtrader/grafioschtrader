@@ -36,7 +36,7 @@ export abstract class MailInOutTable<T extends MailInOut> extends TableCrudSuppo
     this.multiSortMeta.push({field: sortField, order: 1});
   }
 
-  prepareCallParm(entity: T): void {
+  prepareCallParam(entity: T): void {
     this.callParam = entity;
   }
 

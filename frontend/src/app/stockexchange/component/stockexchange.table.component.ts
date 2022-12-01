@@ -196,7 +196,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     return menuItems;
   }
 
-  protected override prepareCallParm(entity: Stockexchange) {
+  protected override prepareCallParam(entity: Stockexchange) {
     this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
     this.callParam.stockexchange = entity;
     this.callParam.stockexchangeMics = this.stockexchangeMics;
