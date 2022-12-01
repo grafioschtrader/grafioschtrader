@@ -198,7 +198,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
       return Object.assign(importTransactionPlatform, entity);
     }
   */
-  protected prepareCallParm(entity: ImportTransactionPlatform): void {
+  protected prepareCallParam(entity: ImportTransactionPlatform): void {
     this.callParam = new CallParam(null, entity);
   }
 

@@ -75,7 +75,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   }
 
   handleEditEntity(entity: T): void {
-    this.prepareCallParm(JSON.parse(JSON.stringify(entity)));
+    this.prepareCallParam(JSON.parse(JSON.stringify(entity)));
     this.visibleDialog = true;
   }
 
@@ -157,7 +157,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   /**
    * Prepare parameter data object for editing component.
    */
-  protected abstract prepareCallParm(entity: T);
+  protected abstract prepareCallParam(entity: T);
 
   protected abstract readData(): void;
 

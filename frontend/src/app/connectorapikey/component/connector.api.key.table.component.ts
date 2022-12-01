@@ -95,7 +95,7 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
     });
   }
 
-  override prepareCallParm(entity: ConnectorApiKey) {
+  override prepareCallParam(entity: ConnectorApiKey) {
     this.existingProviders = this.entityList.map(el => el.idProvider);
     this.callParam = new CallParam(null, entity);
   }

@@ -191,7 +191,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     return menuItems;
   }
 
-  protected prepareCallParm(entity: CorrelationSet): void {
+  protected prepareCallParam(entity: CorrelationSet): void {
     this.callParam = new CallParam(null, entity);
   }
 }

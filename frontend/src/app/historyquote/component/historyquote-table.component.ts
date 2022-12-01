@@ -332,7 +332,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     });
   }
 
-  protected prepareCallParm(entity: Historyquote) {
+  protected prepareCallParam(entity: Historyquote) {
     // For a new Historyquote the idSecuritycurrency is needed
     this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency.getSecuritycurrency());
   }

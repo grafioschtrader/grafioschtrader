@@ -322,6 +322,7 @@ import {GTNetMessageTreeTableComponent} from "./gtnet/component/gtnet-message-tr
 import {GTNetEditComponent} from "./gtnet/component/gtnet-edit.component";
 import {GTNetMessageEditComponent} from "./gtnet/component/gtnet-message-edit.component";
 import {GTNetMessageService} from "./gtnet/service/gtnet.message.service";
+import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
   {prefix: './assets/i18n/', suffix: '.json'},
@@ -335,7 +336,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent, ConnectorApiKeyTableComponent, ConnectorApiKeyEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
-    GTNetEditComponent, GTNetMessageEditComponent,
+    GTNetEditComponent, GTNetMessageEditComponent, GTNetMessageAutoAnswerComponent,
     GTNetConsumerMonitorComponent, GTNetSetupTableComponent, GTNetProviderMonitorComponent, GTNetMessageTreeTableComponent,
     HistoryquoteEditComponent, HistoryquoteTableComponent, ImportTransactionEditPlatformComponent, HistoryquoteQualityComponent,
     SecurityHistoryquoteQualityTreetableComponent, SecurityHistoryquoteQualityTableComponent, InstrumentStatisticsSummaryComponent,

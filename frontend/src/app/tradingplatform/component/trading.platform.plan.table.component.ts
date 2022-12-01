@@ -89,7 +89,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     this.prepareTableAndTranslate();
   }
 
-  override prepareCallParm(entity: TradingPlatformPlan) {
+  override prepareCallParam(entity: TradingPlatformPlan) {
     this.callParam = entity;
   }
 

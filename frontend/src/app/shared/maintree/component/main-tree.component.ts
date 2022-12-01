@@ -258,6 +258,12 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     });
 
     gtNetNode.children.push({
+      label: 'GTNET_AUTOANWSER',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_AUTO_ANWSER_KEY),
+        null, null, null)
+    });
+
+    gtNetNode.children.push({
       label: 'GTNET_PROVIDER_MONITOR',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_PROVIDER_MONITOR_KEY),
         null, null, null)

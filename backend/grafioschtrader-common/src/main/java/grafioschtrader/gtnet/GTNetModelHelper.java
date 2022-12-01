@@ -19,13 +19,13 @@ public abstract class GTNetModelHelper {
   static {
     msgFormMap = new HashMap<>();
     msgFormMap.put(GTNetMessageCodeType.GTNET_FIRST_HANDSHAKE_S,
-        new GTNetMsgRequest(FirstHandshakeMsg.class, false, true, GTNet.class));
+        new GTNetMsgRequest(FirstHandshakeMsg.class, false, true));
     msgFormMap.put(GTNetMessageCodeType.GTNET_UPDATE_SERVERLIST_C,
-        new GTNetMsgRequest(UpdateServerlistRequestMsg.class, true, true, null));
+        new GTNetMsgRequest(UpdateServerlistRequestMsg.class, true, true));
     msgFormMap.put(GTNetMessageCodeType.GTNET_ENTITY_REQUEST_C,
-        new GTNetMsgRequest(EntityExchangeRequestMsg.class, true, true, null));
+        new GTNetMsgRequest(EntityExchangeRequestMsg.class, true, true));
     msgFormMap.put(GTNetMessageCodeType.GTNET_MAINTENANCE_C,
-        new GTNetMsgRequest(MaintenanceMsg.class, true, true, null));
+        new GTNetMsgRequest(MaintenanceMsg.class, true, true));
   }
 
   public static Map<GTNetMessageCodeType, ClassDescriptorInputAndShow> getAllFormDefinitionsWithClass() {
@@ -41,13 +41,12 @@ public abstract class GTNetModelHelper {
     public Class<?> model;
     public boolean userRequest;
     public boolean responseExpected;
-    public Class<?> payloadClass;
+    
 
-    public GTNetMsgRequest(Class<?> model, boolean userRequest, boolean responseExpected, Class<?> payloadClass) {
+    public GTNetMsgRequest(Class<?> model, boolean userRequest, boolean responseExpected) {
       this.model = model;
       this.userRequest = userRequest;
       this.responseExpected = responseExpected;
-      this.payloadClass = payloadClass;
     }
   }
 

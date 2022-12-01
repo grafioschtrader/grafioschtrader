@@ -187,13 +187,20 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
 
     hqfStream.forEach(historyquoteQualityFlat -> {
       boolean isConnectGroup = groupedBy == HistoryquoteQualityGrouped.CONNECTOR_GROUPED;
-      groupValues[0] = isConnectGroup
-          ? ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
-              historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY).getReadableName()
-          : historyquoteQualityFlat.getStockexchangeName();
-      groupValues[1] = isConnectGroup ? historyquoteQualityFlat.getStockexchangeName()
-          : ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
-              historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY).getReadableName();
+      String readableName = null;
+      String readableNamePrefix = ""; 
+      IFeedConnector ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
+          historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY);
+      if(ifeedConnector == null) {
+        ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
+            historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.INTRA);
+        readableNamePrefix = "† - ";
+        
+      }
+      readableName = ifeedConnector == null? "†" : readableNamePrefix  + ifeedConnector.getReadableName();
+      
+      groupValues[0] = isConnectGroup ? readableName : historyquoteQualityFlat.getStockexchangeName();
+      groupValues[1] = isConnectGroup ? historyquoteQualityFlat.getStockexchangeName(): readableName;
       groupValues[2] = messages.getMessage(
           AssetclassType.getAssetClassTypeByValue(historyquoteQualityFlat.getCategoryType()).name(), null, userLocale);
       groupValues[2] = groupValues[2] + " / "

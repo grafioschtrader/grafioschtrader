@@ -225,7 +225,7 @@ export class SecurityaccountImportTransactionComponent
     return menuItems;
   }
 
-  protected prepareCallParm(entity: ImportTransactionHead): void {
+  protected prepareCallParam(entity: ImportTransactionHead): void {
     this.callParam.thisObject = entity;
   }
 

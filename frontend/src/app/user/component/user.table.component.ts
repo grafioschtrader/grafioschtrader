@@ -269,7 +269,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     });
   }
 
-  protected prepareCallParm(entity: User) {
+  protected prepareCallParam(entity: User) {
     this.callParam = entity;
   }
 

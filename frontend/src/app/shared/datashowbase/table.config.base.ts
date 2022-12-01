@@ -17,7 +17,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   FilterType: typeof FilterType = FilterType;
 
   formLocale: string;
-  // Used when an component click event is consumed by the child and the parent should ignored it.
+  // Used when a component click event is consumed by the child and the parent should ignored it.
   readonly consumedGT = 'consumedGT';
 
   public hasFilter = false;
