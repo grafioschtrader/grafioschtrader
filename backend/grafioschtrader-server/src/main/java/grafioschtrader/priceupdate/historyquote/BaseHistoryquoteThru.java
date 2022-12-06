@@ -88,10 +88,8 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar) {
     final List<S> catchUp = new ArrayList<>();
-
     ThreadHelper.executeForkJoinPool(() -> historySecurityCurrencyList.parallelStream()
-        .forEach(queryObject -> catchUpHistoryquote(queryObject, currentCalendar, catchUp)), 4);
-
+       .forEach(queryObject -> catchUpHistoryquote(queryObject, currentCalendar, catchUp)), 4);
     return catchUp;
   }
 

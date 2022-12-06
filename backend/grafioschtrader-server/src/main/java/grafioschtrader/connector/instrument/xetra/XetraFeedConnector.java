@@ -20,6 +20,15 @@ import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
+/**
+ * 
+ * For intraday quotes there is access via
+ * "https://api.boerse-frankfurt.de/v1/data/quote_box/single?isin=DE0005785604&mic=XETR".
+ * Unfortunately, the header requires the key "x-client-traceid", whose value is
+ * calculated in the user interface. GT will not implement this calculation and
+ * therefore this access via this API call is not possible.
+ *
+ */
 @Component
 public class XetraFeedConnector extends BaseFeedConnector {
 
@@ -54,7 +63,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
     final Quotes quotes = objectMapper.readValue(new URL(getSecurityHistoricalDownloadLink(security, from, to)),
         Quotes.class);
     final List<Historyquote> historyquotes = new ArrayList<>();
-    for(int i = 0; i < quotes.t.length; i++) {
+    for (int i = 0; i < quotes.t.length; i++) {
       final Historyquote historyquote = new Historyquote();
       historyquotes.add(historyquote);
       historyquote.setDate(new Date(quotes.t[i].getTime() * 1000));
@@ -69,7 +78,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   private static class Quotes {
     public String s;
-    @JsonFormat(shape=JsonFormat.Shape.NUMBER, pattern="s")
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "s")
     public Timestamp[] t;
     public double[] c;
     public double[] o;
@@ -78,5 +87,4 @@ public class XetraFeedConnector extends BaseFeedConnector {
     public long[] v;
   }
 
-  
 }

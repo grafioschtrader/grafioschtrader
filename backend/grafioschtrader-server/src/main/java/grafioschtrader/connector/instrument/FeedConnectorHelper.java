@@ -61,7 +61,7 @@ public class FeedConnectorHelper {
 
   public static List<Historyquote> checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(Date fromDate, Date toDate,
       List<Historyquote> historyquotes, String instrumentName) {
-    for (int i = 0; !historyquotes.isEmpty() && i < historyquotes.size(); i += historyquotes.size() - 1) {
+    for (int i = 0; !historyquotes.isEmpty() && i < historyquotes.size(); i += Math.max(historyquotes.size() - 1, 1)) {
       Historyquote historyquote = historyquotes.get(i);
       var fromDateCheck = DateHelper.setTimeToZeroAndAddDay(fromDate, 0);
       if (historyquote.getDate().before(fromDateCheck) || historyquote.getDate().after(toDate)) {
