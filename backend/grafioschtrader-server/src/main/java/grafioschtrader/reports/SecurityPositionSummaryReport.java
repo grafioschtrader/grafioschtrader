@@ -88,7 +88,7 @@ public abstract class SecurityPositionSummaryReport {
       Date untilDate) throws Exception {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
 
-    final Tenant tenant = tenantJpaRepository.getById(idTenant);
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
 
     final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture
         .supplyAsync(() -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdTenant(idTenant));
@@ -116,7 +116,7 @@ public abstract class SecurityPositionSummaryReport {
     if (securityaccountList.isEmpty()) {
       return new SecurityPositionGrandSummary(null, null);
     } else {
-      Tenant tenant = tenantJpaRepository.getById(securityaccountList.get(0).getPortfolio().getIdTenant());
+      Tenant tenant = tenantJpaRepository.getReferenceById(securityaccountList.get(0).getPortfolio().getIdTenant());
 
       final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture.supplyAsync(
           () -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdPortfolio(idPortfolio));
@@ -143,7 +143,7 @@ public abstract class SecurityPositionSummaryReport {
     if (securityaccount != null) {
       final List<Securityaccount> securityList = new ArrayList<>();
       securityList.add(securityaccount);
-      Tenant tenant = tenantJpaRepository.getById(securityaccount.getPortfolio().getIdTenant());
+      Tenant tenant = tenantJpaRepository.getReferenceById(securityaccount.getPortfolio().getIdTenant());
 
       final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture
           .supplyAsync(() -> historyquoteJpaRepository

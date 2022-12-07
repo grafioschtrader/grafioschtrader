@@ -51,7 +51,7 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
   public Portfolio removeCashaccounts(final Integer idPortfolio) {
     em.createQuery("DELETE FROM Cashaccount c WHERE c.portfolio.idPortfolio = ?1").setParameter(1, idPortfolio)
         .executeUpdate();
-    return portfolioJpaRepository.getById(idPortfolio);
+    return portfolioJpaRepository.getReferenceById(idPortfolio);
   }
 
   @Override
@@ -60,7 +60,7 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
   public Portfolio removeSecurityaccounts(final Integer idPortfolio) {
     em.createQuery("DELETE FROM Securityaccount s WHERE s.portfolio.idPortfolio = ?1").setParameter(1, idPortfolio)
         .executeUpdate();
-    return portfolioJpaRepository.getById(idPortfolio);
+    return portfolioJpaRepository.getReferenceById(idPortfolio);
   }
 
   @Override
@@ -106,7 +106,7 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
 
       Set<String> existingFromCurrency = currencypairJpaRepository.getFromCurrencyByToCurrency(portfolio.getCurrency());
       Set<String> requiredFromCurrency = new HashSet<>();
-      Tenant tenant = tenantJpaRepository.getById(portfolio.getIdTenant());
+      Tenant tenant = tenantJpaRepository.getReferenceById(portfolio.getIdTenant());
       requiredFromCurrency.add(tenant.getCurrency());
       requiredFromCurrency.addAll(currencypairJpaRepository
           .getSecurityTransactionCurrenciesForPortfolioExclude(idPortfolio, portfolio.getCurrency()));

@@ -68,7 +68,7 @@ public class InstrumentStatisticsSummary {
 
   private void prepareSecurity(Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    Tenant tenant = tenantJpaRepository.getById(user.getIdTenant());
+    Tenant tenant = tenantJpaRepository.getReferenceById(user.getIdTenant());
     tenantCurrency = tenant.getCurrency();
     securityCurrency = securityJpaRepository
         .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency, user.getIdTenant());

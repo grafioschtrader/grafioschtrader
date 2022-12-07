@@ -85,7 +85,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    */
   public AccountPositionGrandSummary getAccountGrandSummaryIdTenant(final Integer idTenant,
       final AccountGroupMap<?> grouping, final Date untilDate) {
-    final Tenant tenant = tenantJpaRepository.getById(idTenant);
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
 
     final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture
         .supplyAsync(() -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdTenant(idTenant));
@@ -111,11 +111,11 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   public AccountPositionGroupSummary getAccountGrandSummaryPortfolio(Integer idTenant, final Integer idPortfolio,
       final Date untilDate) {
 
-    final Portfolio portfolio = this.portfolioJpaRepository.getById(idPortfolio);
+    final Portfolio portfolio = this.portfolioJpaRepository.getReferenceById(idPortfolio);
     if (portfolio.getIdTenant().equals(idTenant)) {
       if (portfolio.getCashaccountList() != null && !portfolio.getCashaccountList().isEmpty()) {
         final GroupPortfolio groupPortfolio = new GroupPortfolio();
-        final Tenant tenant = tenantJpaRepository.getById(portfolio.getIdTenant());
+        final Tenant tenant = tenantJpaRepository.getReferenceById(portfolio.getIdTenant());
 
         final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture.supplyAsync(
             () -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdPortfolio(idPortfolio));

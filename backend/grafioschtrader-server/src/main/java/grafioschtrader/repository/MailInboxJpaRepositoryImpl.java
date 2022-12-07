@@ -34,7 +34,7 @@ public class MailInboxJpaRepositoryImpl extends MailInOutService<MailInbox> impl
   @Override
   public MailInbox markForRead(Integer idMailInOut) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final MailInbox mailInbox = mailInboxJpaRepository.getById(idMailInOut);
+    final MailInbox mailInbox = mailInboxJpaRepository.getReferenceById(idMailInOut);
     if (mailInbox == null || mailInbox.getIdRoleTo() != null
         && user.getRoles().stream().filter(r -> r.getIdRole().equals(mailInbox.getIdRoleTo())).findFirst().isEmpty()) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);

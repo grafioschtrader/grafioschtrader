@@ -69,7 +69,7 @@ public class UserEntityChangeLimitRessource extends UpdateCreateDeleteAuditResou
     if (idProposeRequest != null) {
       Optional<ProposeUserTask> proposeUserTaskOpt = proposeUserTaskJpaRepository.findById(idProposeRequest);
       if (proposeUserTaskOpt.isPresent()) {
-        User targetUser = userJpaRepository.getById(entity.getIdUser());
+        User targetUser = userJpaRepository.getReferenceById(entity.getIdUser());
         result = updateSaveEntity(entity, existingEntity);
         // Create internal mail
         mailSendboxJpaRepository.sendInternalMail(userAtWork.getIdUser(), entity.getIdUser(), null,

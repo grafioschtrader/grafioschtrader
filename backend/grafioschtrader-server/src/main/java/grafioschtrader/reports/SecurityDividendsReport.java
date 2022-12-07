@@ -67,7 +67,7 @@ public class SecurityDividendsReport {
   public SecurityDividendsGrandTotal getSecurityDividendsGrandTotalByTenant(final Integer idTenant,
       final List<Integer> idsSecurityaccount, final List<Integer> idsCashaccount) {
 
-    final Tenant tenant = tenantJpaRepository.getById(idTenant);
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
     SecurityDividendsGrandTotal securityDividendsGrandTotal = new SecurityDividendsGrandTotal(tenant.getCurrency(),
         globalparametersJpaRepository.getCurrencyPrecision());
 

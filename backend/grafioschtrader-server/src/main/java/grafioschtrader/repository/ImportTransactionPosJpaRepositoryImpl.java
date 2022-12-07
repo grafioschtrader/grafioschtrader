@@ -369,7 +369,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       Optional<HoldSecurityaccountSecurity> hssMatching = getHoldings(importTransactionHead, itp, true);
       if (hssMatching.isPresent()) {
         itp.removeKnowOtherFlags(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH);
-        Security security = securityJpaRepository.getById(hssMatching.get().getHssk().getIdSecuritycurrency());
+        Security security = securityJpaRepository.getReferenceById(hssMatching.get().getHssk().getIdSecuritycurrency());
         itp.setSecurity(security);
       }
     }

@@ -107,6 +107,7 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
   }
 
   
+  @SuppressWarnings("unused")
   @JsonIgnoreProperties(ignoreUnknown = true)
   private static class HeaderExchangeHistorical {
     public boolean success;

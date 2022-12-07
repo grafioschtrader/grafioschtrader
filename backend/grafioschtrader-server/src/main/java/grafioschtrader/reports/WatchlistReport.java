@@ -190,7 +190,7 @@ public class WatchlistReport {
   public SecuritycurrencyGroup getWatchlistwithPeriodPerformance(final Integer idWatchlist, final Integer idTenant,
       final Integer daysTimeFrame) {
 
-    final Watchlist watchlist = watchlistJpaRepository.getById(idWatchlist);
+    final Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
     if (!watchlist.getIdTenant().equals(idTenant)) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
@@ -203,7 +203,7 @@ public class WatchlistReport {
     final DateTransactionCurrencypairMap dateCurrencyMap = null;
 
     final LocalDate dateTimeFrame = LocalDate.now().minusDays(daysTimeFrame);
-    Tenant tenant = tenantJpaRepository.getById(watchlist.getIdTenant());
+    Tenant tenant = tenantJpaRepository.getReferenceById(watchlist.getIdTenant());
     final CompletableFuture<GTNetLastpriceService.SecurityCurrency> securityCurrencyCF = CompletableFuture
         .supplyAsync(() -> updateLastPrice(tenant, watchlist));
     final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateClose>> historyquoteMaxDayCF = CompletableFuture
@@ -237,7 +237,7 @@ public class WatchlistReport {
   }
 
   private SecuritycurrencyGroup createWatchlistWithoutUpdate(final Integer idWatchlist, final Integer idTenant) {
-    final Watchlist watchlist = watchlistJpaRepository.getById(idWatchlist);
+    final Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
 
     if (!watchlist.getIdTenant().equals(idTenant)) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);

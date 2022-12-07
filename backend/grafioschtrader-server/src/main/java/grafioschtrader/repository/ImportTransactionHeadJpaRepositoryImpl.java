@@ -114,7 +114,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   public void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles,
       Integer idTransactionImportTemplate) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository.getById(idTransactionHead);
+    ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository.getReferenceById(idTransactionHead);
     if (user.getIdTenant().equals(importTransactionHead.getIdTenant())) {
       this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles, idTransactionImportTemplate);
     } else {

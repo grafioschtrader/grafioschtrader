@@ -23,6 +23,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.dto.MissingQuotesWithSecurities;
 import grafioschtrader.entities.Currencypair;
@@ -92,7 +93,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   @Override
   public void createSecurityHoldingsEntireByTenant(Integer idTenant) {
     long startTime = System.currentTimeMillis();
-    Tenant tenant = tenantJpaRepository.getById(idTenant);
+    Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
     createSecurityHoldingsEntireByTenant(tenant);
     log.debug("End - HoldSecurityaccountSecurity: {}", System.currentTimeMillis() - startTime);
   }
@@ -106,7 +107,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   public void adjustSecurityHoldingForSecurityaccountAndSecurity(Securityaccount securityaccount,
       Transaction transaction, boolean isAdded) {
     long startTime = System.currentTimeMillis();
-    Tenant tenant = tenantJpaRepository.getById(securityaccount.getIdTenant());
+    Tenant tenant = tenantJpaRepository.getReferenceById(securityaccount.getIdTenant());
     loadForSecurityHoldingsBySecurityaccountAndSecurity(securityaccount, transaction, tenant.getCurrency(),
         securityaccount.getPortfolio().getCurrency(), loadCurrencypairSecuritySplit(securityaccount.getIdTenant()),
         isAdded);
@@ -471,7 +472,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
         }
         units += tss.getFactorUnits();
       }
-      if (units != 0d) {
+      if (DataHelper.round(units) != 0d) {
         // Per transaction when units <> 0 -> create new HoldSecurityaccountSecurity
 
         if (tss.getCurrency() != null) {
@@ -488,7 +489,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
             tss.getTsDate().toLocalDate(), css.securitysplitMap);
 
         HoldSecurityaccountSecurity holdSecurityaccountSecurity = new HoldSecurityaccountSecurity(idTenant, idPortfolio,
-            idSecuritycashAccount, tss.getIdSecuritycurrency(), tss.getTsDate().toLocalDate(), units,
+            idSecuritycashAccount, tss.getIdSecuritycurrency(), tss.getTsDate().toLocalDate(), DataHelper.round(units),
             marginRealHoldings != 0 ? marginRealHoldings : null, marginAveragePrice, splitPriceFactor,
             idCurrencypairTenant, idCurrencypairPortfolio);
         toSaveHoldForSecurityList.add(holdSecurityaccountSecurity);

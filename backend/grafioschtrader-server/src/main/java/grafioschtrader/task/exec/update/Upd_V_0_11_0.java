@@ -1,15 +1,11 @@
 package grafioschtrader.task.exec.update;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.AssetclassJpaRepository;
-import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.repository.StockexchangeJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -26,17 +22,13 @@ import grafioschtrader.types.TaskType;
 @Component
 public class Upd_V_0_11_0 implements ITask {
 
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
+ 
 
   @Autowired
   private AssetclassJpaRepository assetclassJpaRepository;
 
-  @Autowired
-  private SecurityJpaRepository securityJpaRepository;
-
-  @Autowired
-  private StockexchangeJpaRepository stockexchangeJpaRepository;
-
+ 
+ 
   @Override
   public TaskType getTaskType() {
     return TaskType.UPD_V_0_11_0;
@@ -44,9 +36,7 @@ public class Upd_V_0_11_0 implements ITask {
 
   @Override
   public void doWork(TaskDataChange taskDataChange) {
-    Assetclass assetclass = addAssetclassStockCanada();
-    // addStockIndexCanada(assetclass);
-    // connectIndexToStockexchange();
+    addAssetclassStockCanada();
   }
 
   private Assetclass addAssetclassStockCanada() {

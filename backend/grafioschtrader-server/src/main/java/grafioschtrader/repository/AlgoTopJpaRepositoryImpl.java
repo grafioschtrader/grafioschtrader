@@ -41,7 +41,7 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
   void simulateRuleOrStrategy(Integer idAlgoAssetclassSecurity, LocalDate startDate, LocalDate endDate) {
 
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    AlgoTop algoTop = algoTopJpaRepository.getById(idAlgoAssetclassSecurity);
+    AlgoTop algoTop = algoTopJpaRepository.getReferenceById(idAlgoAssetclassSecurity);
     if (user.getIdTenant().equals(algoTop.getIdTenant())) {
       if (algoTop.getRuleStrategy() == RuleStrategy.RS_RULE) {
         SimulateRule simulateRule = new SimulateRule(algoAssetclassJpaRepository, watchlistJpaRepository,

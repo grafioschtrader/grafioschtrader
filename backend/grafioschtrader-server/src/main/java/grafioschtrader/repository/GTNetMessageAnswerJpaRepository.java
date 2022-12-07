@@ -1,6 +1,5 @@
 package grafioschtrader.repository;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafioschtrader.entities.GTNetMessageAnswer;
