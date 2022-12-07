@@ -54,7 +54,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
   @Modifying
   public void createCashaccountBalanceEntireByTenant(Integer idTenant) {
     long startTime = System.currentTimeMillis();
-    createCashaccountBalanceEntireByTenant(tenantJpaRepository.getById(idTenant));
+    createCashaccountBalanceEntireByTenant(tenantJpaRepository.getReferenceById(idTenant));
     log.debug("End - HoldCashaccountSaldo: {}", System.currentTimeMillis() - startTime);
   }
 
@@ -92,7 +92,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     Integer idCashaccount = transaction.getCashaccount().getIdSecuritycashAccount();
     LocalDate transactionDate = DateHelper.getLocalDate(transaction.getTransactionTime());
 
-    Tenant tenant = tenantJpaRepository.getById(transaction.getIdTenant());
+    Tenant tenant = tenantJpaRepository.getReferenceById(transaction.getIdTenant());
     holdCashaccountBalanceJpaRepository.removeByIdTenantAndIdEmIdSecuritycashAccountAndIdEmFromHoldDateGreaterThanEqual(
         transaction.getIdTenant(), idCashaccount, transactionDate);
 

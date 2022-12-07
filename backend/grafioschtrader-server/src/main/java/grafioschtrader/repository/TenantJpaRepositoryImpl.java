@@ -71,7 +71,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   @Modifying
   public Tenant removeAllWatchlistByIdTenant(final Integer idTenant) {
     em.createQuery("DELETE FROM Watchlist w WHERE idTenant = ?1").setParameter(1, idTenant).executeUpdate();
-    return tenantJpaRepository.getById(idTenant);
+    return tenantJpaRepository.getReferenceById(idTenant);
   }
 
   @Override
@@ -79,14 +79,14 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   @Modifying
   public Tenant removeAllPortfolios(final Integer idTenant) {
     em.createQuery("DELETE FROM Portfolio p WHERE idTenant = ?1").setParameter(1, idTenant).executeUpdate();
-    return tenantJpaRepository.getById(idTenant);
+    return tenantJpaRepository.getReferenceById(idTenant);
   }
 
   @Override
   @Transactional
   @Modifying
   public Tenant attachWatchlist(final Integer idTenant) {
-    Tenant tenantFull = tenantJpaRepository.getById(idTenant);
+    Tenant tenantFull = tenantJpaRepository.getReferenceById(idTenant);
     tenantFull = em.merge(tenantFull);
     tenantFull.getWatchlistList().size();
     return tenantFull;
@@ -102,7 +102,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
         || !StringUtils.equals(existingEntity.getCurrency(), tenant.getCurrency());
     User user = null;
     if (tenant.getIdTenant() != null) {
-      createEditTenant = tenantJpaRepository.getById(tenant.getIdTenant());
+      createEditTenant = tenantJpaRepository.getReferenceById(tenant.getIdTenant());
       createEditTenant.updateThis(tenant);
     } else {
       // Attach tenant to existing user
@@ -128,7 +128,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   @Override
   public boolean isExcludeDividendTaxcost() {
     final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    final Tenant tenant = tenantJpaRepository.getById(((User) authentication.getDetails()).getIdTenant());
+    final Tenant tenant = tenantJpaRepository.getReferenceById(((User) authentication.getDetails()).getIdTenant());
     return (tenant.isExcludeDivTax());
   }
 
@@ -166,7 +166,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   public Tenant changeCurrencyTenantAndPortfolios(String currency) {
     Currency.getAvailableCurrencies().contains(Currency.getInstance(currency));
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
-    final Tenant tenant = tenantJpaRepository.getById(idTenant);
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
     tenant.setCurrency(currency);
     tenant.getPortfolioList().forEach(p -> p.setCurrency(currency));
     tenantJpaRepository.save(tenant);
@@ -178,7 +178,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   @Override
   public Tenant setWatchlistForPerformance(Integer idWatchlist) {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
-    final Tenant tenant = tenantJpaRepository.getById(idTenant);
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
     tenant.setIdWatchlistPerformance(idWatchlist);
     tenantJpaRepository.save(tenant);
     return tenant;

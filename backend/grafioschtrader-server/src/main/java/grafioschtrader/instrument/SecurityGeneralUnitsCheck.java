@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
@@ -43,6 +44,7 @@ public class SecurityGeneralUnitsCheck {
     transactionAfter.forEach(transaction -> {
       checkUnitsIntegrity(securitySplitMap, security, transaction, transactionTimeUnits, dataViolationException);
       if (!transactionTimeUnits.isEmpty() && transactionTimeUnits.get(0).units < 0.0) {
+        System.out.println( transactionTimeUnits.get(0).units);
         dataViolationException.addDataViolation(GlobalConstants.UNITS, "units.less.zero",
             transaction.getTransactionTime());
       }
@@ -145,7 +147,7 @@ class TransactionTimeUnits {
   public TransactionTimeUnits(final Transaction transaction, final double units) {
     super();
     this.transaction = transaction;
-    this.units = units;
+    this.units = DataHelper.round(units);
   }
 
 }

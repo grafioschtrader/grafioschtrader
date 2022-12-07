@@ -42,7 +42,7 @@ public class UpdateDividendForSecurityTask implements ITask {
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    Security security = securityJpaRepository.getById(taskDataChange.getIdEntity());
+    Security security = securityJpaRepository.getReferenceById(taskDataChange.getIdEntity());
     if (security.getIdConnectorDividend() != null) {
       List<String> errorMessages = dividendJpaRepository.loadAllDividendDataFromConnector(security);
       if (!errorMessages.isEmpty()) {

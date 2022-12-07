@@ -207,7 +207,7 @@ public class SecruityTransactionsReport {
       final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final Date untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions, Integer idOpenMarginTransaction) {
 
-    final Tenant tenant = tenantJpaRepository.getById(idTenant);
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
 
     final CompletableFuture<List<Transaction>> transactionsFuture = CompletableFuture
         .supplyAsync(() -> idOpenMarginTransaction != null

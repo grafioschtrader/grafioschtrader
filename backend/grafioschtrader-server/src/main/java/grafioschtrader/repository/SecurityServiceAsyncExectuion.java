@@ -39,7 +39,7 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
 
           if (sc.getIdSecuritycurrency() != null && withDeletion) {
             securitycurrencyService.historyquoteJpaRepository.removeAllSecurityHistoryquote(sc.getIdSecuritycurrency());
-            sc = securitycurrencyService.getJpaRepository().getById(sc.getIdSecuritycurrency());
+            sc = securitycurrencyService.getJpaRepository().getReferenceById(sc.getIdSecuritycurrency());
           }
           sc = securitycurrencyService.updateLastPriceSecurityCurrency(sc, maxIntraRetry, scIntradayUpdateTimeout);
           securitycurrencyService.createWithHistoryQuote(sc);

@@ -211,6 +211,7 @@ public class InvestingConnector extends BaseFeedConnector {
     return historyquotes;
   }
 
+  @SuppressWarnings("unused")
   private static class Quotes {
     public String s;
     @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "s")

@@ -381,7 +381,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   public CrossRateResponse getCurrencypairForCrossRate(CrossRateRequest crossRateRequest) {
     List<Currencypair> currencypairsMissing = new ArrayList<>();
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    Tenant tenant = tenantJpaRepository.getById(user.getIdTenant());
+    Tenant tenant = tenantJpaRepository.getReferenceById(user.getIdTenant());
     String mainCurrencyTenant = tenant.getCurrency();
 
     CrossRateResponse crossRateResponse = new CrossRateResponse(mainCurrencyTenant);

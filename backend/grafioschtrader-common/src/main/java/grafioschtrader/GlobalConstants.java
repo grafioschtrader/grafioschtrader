@@ -16,8 +16,7 @@ public class GlobalConstants {
   public static final String STOCK_EX_MIC_ZKB = "ZKBX";
   public static final String STOCK_EX_MIC_STUTTGART = "XSTU";
   public static final String STOCK_EX_MIC_WARSAW = "XWAR";
-  
-  
+
   /**
    * Supported languages in this application
    */
@@ -38,9 +37,15 @@ public class GlobalConstants {
    * Normal precision for decimal numbers
    */
   public static final int FID_STANDARD_FRACTION_DIGITS = 2;
-  public static final int FID_STANDARD_INTEGER_DIGITS = 9;
+  // public static final int FID_STANDARD_INTEGER_DIGITS = 9;
+  // public static final int FID_SMALL_INTEGER_LIMIT = 6;
 
-  public static final int FID_SMALL_INTEGER_LIMIT = 6;
+  /**
+   * Number maybe rounded to this precision
+   */
+  public static final int FID_MAX_FRACTION_DIGITS = 8;
+  // public static final int FID_MAX_INTEGER_DIGITS = 11;
+  // public static final int FID_MAX_DIGITS = 16;
 
   /** Step, min value and max value **/
   public static final String CORR_DAILY = "10,20,120";
@@ -49,21 +54,13 @@ public class GlobalConstants {
   public static final byte REQUIRED_MIN_PERIODS = 3;
 
   /**
-   * Number maybe rounded to this precision
-   */
-  public static final int FID_MAX_FRACTION_DIGITS = 8;
-  public static final int FID_MAX_INTEGER_DIGITS = 11;
-
-  public static final int FID_MAX_DIGITS = 16;
-
-  /**
    * It will adjust the currency exchange rate or quotation for the cash account
    * amount.
    */
   public static boolean AUTO_CORRECT_TO_AMOUNT = false;
 
   public static final String USER_AGENT = "\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36\"";
-  
+
   /**
    * The standard note text size
    */

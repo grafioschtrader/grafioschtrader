@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import grafioschtrader.dynamic.model.ClassDescriptorInputAndShow;
 import grafioschtrader.dynamic.model.DynamicModelHelper;
-import grafioschtrader.entities.GTNet;
 import grafioschtrader.gtnet.model.msg.EntityExchangeRequestMsg;
 import grafioschtrader.gtnet.model.msg.FirstHandshakeMsg;
 import grafioschtrader.gtnet.model.msg.MaintenanceMsg;

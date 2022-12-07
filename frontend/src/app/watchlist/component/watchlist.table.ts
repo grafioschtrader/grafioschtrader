@@ -454,7 +454,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
           label: 'REDUCE' + AppSettings.DIALOG_MENU_SUFFIX,
           command: (e) => (securitycurrencyPosition) ? this.handleTransaction(TransactionType.REDUCE,
             <Security>securitycurrencyPosition.securitycurrency) : null,
-          disabled: !(securitycurrencyPosition.units || securitycurrencyPosition.units === 0)
+          disabled: (securitycurrencyPosition.units === null || securitycurrencyPosition.units === 0)
             && !this.isMarginProduct(securitycurrencyPosition)
         });
 

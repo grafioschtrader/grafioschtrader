@@ -46,7 +46,7 @@ public class HistoryquoteQualityService {
     final List<Historyquote> missingHistoryquoteList = new ArrayList<>();
     HisotryqouteLinearFilledSummary hisotryqouteLinearFilledSummary = new HisotryqouteLinearFilledSummary();
 
-    Security security = securityJpaRepository.getById(idSecuritycurrency);
+    Security security = securityJpaRepository.getReferenceById(idSecuritycurrency);
     if ((UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, security)
         && security.getActiveToDate().before(new Date()) && security.getIdTenantPrivate() == null)
         || UserAccessHelper.isAdmin(user)) {

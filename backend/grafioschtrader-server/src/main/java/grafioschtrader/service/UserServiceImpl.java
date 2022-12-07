@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public Optional<User> findUser(final Integer id) {
-    return Optional.of(userJpaRepository.getById(id));
+    return Optional.of(userJpaRepository.getReferenceById(id));
   }
 
   @Override

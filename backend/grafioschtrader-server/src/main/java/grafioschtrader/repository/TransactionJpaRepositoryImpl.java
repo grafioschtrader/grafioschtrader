@@ -95,7 +95,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Override
   public List<Transaction> getTransactionsByIdPortfolio(Integer idPortfolio, Integer idTenant) {
-    Portfolio portfolio = portfolioJpaRepository.getById(idPortfolio);
+    Portfolio portfolio = portfolioJpaRepository.getReferenceById(idPortfolio);
     if (!idTenant.equals(portfolio.getIdTenant())) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
@@ -440,7 +440,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   public CurrencypairWithTransaction getTransactionForCurrencyPair(final Integer idTenant, final Integer idCurrencypair,
       final boolean forChart) {
 
-    final Currencypair currencypair = currencypairJpaRepository.getById(idCurrencypair);
+    final Currencypair currencypair = currencypairJpaRepository.getReferenceById(idCurrencypair);
     currencypairJpaRepository.updateLastPrice(currencypair);
     final CurrencypairWithTransaction cwt = new CurrencypairWithTransaction(currencypair);
     if (forChart) {

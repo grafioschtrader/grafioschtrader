@@ -46,7 +46,7 @@ public class UpdateSplitForSecurityTask implements ITask {
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    Security security = securityJpaRepository.getById(taskDataChange.getIdEntity());
+    Security security = securityJpaRepository.getReferenceById(taskDataChange.getIdEntity());
     if (security.getIdConnectorSplit() != null) {
       try {
         Date requestSplitDate = taskDataChange.getOldValueString() == null ? null
