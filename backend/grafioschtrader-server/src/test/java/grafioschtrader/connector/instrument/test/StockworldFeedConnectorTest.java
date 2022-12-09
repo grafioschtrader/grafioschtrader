@@ -49,8 +49,8 @@ class StockworldFeedConnectorTest {
 
   private List<Security> getStocks() {
     final List<Security> securities = new ArrayList<>();
-    securities.add(createSecurity("ComStage STOXXEurope 600 Food & Beverage NR UCITS ETF", "LU0378435803", "149970851", 753));
-    securities.add(createSecurity("BASF", "DE000BASF111", "293", 765));
+    securities.add(createSecurity("ComStage STOXXEurope 600 Food & Beverage NR UCITS ETF", "LU0378435803", "149970851", 764));
+    securities.add(createSecurity("BASF", "DE000BASF111", "293", 764));
     securities.add(createSecurity("Bayerische Landesbank 2,5% 17/27", "DE000BLB4UP9", "128405128", 762));
     return securities;
   }

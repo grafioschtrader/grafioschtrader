@@ -82,10 +82,10 @@ class FinnhubConnectorTest {
     
     // Not supporting for free
     // securities.add(createSecurity("LYHLT.SW", "SIX", "EUR", SpecialInvestmentInstruments.ETF)); 
-    // securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
 
     // Only US Market for free
-    securities.add(createSecurity("csco", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    // securities.add(createSecurity("csco", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
    
     securities.parallelStream().forEach(security -> {
       try {
