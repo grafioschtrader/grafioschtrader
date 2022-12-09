@@ -1,2 +1,4 @@
 # Since rounding of holdings in HoldSecurityaccountSecurity has changed, a rebuild of this table for all clients is required
 INSERT INTO `task_data_change` (`id_task_data_change`, `id_task`, `execution_priority`, `entity`, `id_entity`, `earliest_start_time`, `creation_time`, `exec_start_time`, `exec_end_time`, `old_value_varchar`, `old_value_number`, `progress_state`, `failed_message_code`) VALUES (NULL, '9', '20', NULL, NULL, UTC_TIMESTAMP(), UTC_TIMESTAMP(), NULL, NULL, NULL, NULL, '0', NULL);
+# Change from "Free Currency Converter" to "CryptoCompare" 
+UPDATE securitycurrency SET id_connector_intra = "gt.datafeed.cryptocompare", retry_intra_load = 0 WHERE id_connector_intra = "gt.datafeed.currencyconverter"; 

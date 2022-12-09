@@ -26,7 +26,7 @@ class SwissFundDataConnectorTest {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
     final LocalDate from = LocalDate.parse("05.01.2018", germanFormatter);
-    final LocalDate to = LocalDate.parse("17.02.2021", germanFormatter);
+    final LocalDate to = LocalDate.parse("06.12.2022", germanFormatter);
 
     SwissFundDataConnector swissFundDataConnector = new SwissFundDataConnector();
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -42,7 +42,8 @@ class SwissFundDataConnectorTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      assertTrue(historyquote.size() > 783);
+      System.out.println(security.getName() + " Size: " + historyquote.size());
+      assertTrue(historyquote.size() >= 1240);
     });
 
   }

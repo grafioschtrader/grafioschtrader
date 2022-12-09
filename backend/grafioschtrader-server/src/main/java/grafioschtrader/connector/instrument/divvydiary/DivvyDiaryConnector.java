@@ -20,12 +20,10 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.types.CreateType;
 
 /**
- * Only for dividents.
+ * Only for dividends.
  *
  * Share splits have no effect on the dividend payment.
  *
- *
- * @author Hugo Graf
  *
  */
 @Component
