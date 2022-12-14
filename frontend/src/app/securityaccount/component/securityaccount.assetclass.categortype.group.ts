@@ -7,7 +7,7 @@ import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dyna
 /**
  * Group by asset class, like bond, stock, commodities, real estate, ....
  */
-export class SecurityaccountAssetclassCategorytpeGroup extends SecurityaccountGroupBaseDynamic<AssetclassType> {
+export class SecurityaccountAssetclassCategortypeGroup extends SecurityaccountGroupBaseDynamic<AssetclassType> {
 
 
   constructor(translateService: TranslateService, datatableConfigBase: TableConfigBase) {
@@ -20,7 +20,7 @@ export class SecurityaccountAssetclassCategorytpeGroup extends SecurityaccountGr
       super.extendColumns(internalColumnConfigs);
       internalColumnConfigs.push(
         this.datatableConfigBase.insertColumn(7, DataType.Numeric, 'valueSecurityMC',
-          SecurityaccountAssetclassCategorytpeGroup.VALUE_SECURITY_MAIN_CURRENCY_HEADER, true, true,
+          SecurityaccountAssetclassCategortypeGroup.VALUE_SECURITY_MAIN_CURRENCY_HEADER, true, true,
           {
             width: 75,
             columnGroupConfigs: [new ColumnGroupConfig('groupSecurityRiskMC'),

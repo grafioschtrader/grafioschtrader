@@ -68,6 +68,7 @@
   "BASE_DATA": "Basisdaten",
   "BASE_PRODUCT_NAME": "Basis Instrument (o)",
   "BASE_SETTING": "Grundeinstellung",
+  "BEFORE_FIRST_SECURITYACCOUNT": "Bitte erfassen Sie ein Depot über dem Navigationsbaum",
   "BOND_USE_UNTIL": "Anleihen unterstützt Fbis",
   "CALCULATED": "Berechnet",
   "CALC_TOTAL_VALUE": "Errechnete Gesamtsumme",

@@ -19,7 +19,7 @@ export class CorrelationEditingSupport {
   private changeOnDateFromSub: Subscription;
   private periodMoment: Base = 'M';
   private requiredMinPeriods = 3;
-  private actualSamplinPeriod: SamplingPeriodType;
+  private actualSamplingPeriod: SamplingPeriodType;
 
 
   getCorrelationFieldDefinition(mainField: string, usedLayoutColumns: number, submitTextKey: string = null): FieldConfig[] {
@@ -55,10 +55,10 @@ export class CorrelationEditingSupport {
   private valueChangedOnSamplingPeriod(configObject: { [name: string]: FieldConfig }, correlationLimit: CorrelationLimit): void {
     this.changeOnSamplingPeriodSub = configObject[this.samplingPeriod].formControl.valueChanges.subscribe((key: string) => {
 
-      if (this.actualSamplinPeriod !== SamplingPeriodType[key]) {
-        this.actualSamplinPeriod = SamplingPeriodType[key];
+      if (this.actualSamplingPeriod !== SamplingPeriodType[key]) {
+        this.actualSamplingPeriod = SamplingPeriodType[key];
         configObject[this.rolling].formControl.enable();
-        switch (this.actualSamplinPeriod) {
+        switch (this.actualSamplingPeriod) {
           case SamplingPeriodType.DAILY_RETURNS:
             this.periodMoment = 'd';
             this.createOptionsForRolling(configObject, correlationLimit.dailyConfiguration);

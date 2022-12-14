@@ -68,6 +68,7 @@
   "BASE_DATA": "Base data",
   "BASE_PRODUCT_NAME": "Base instrument (o)",
   "BASE_SETTING": "Base settings",
+  "BEFORE_FIRST_SECURITYACCOUNT": "Please enter a depot above the navigation tree",
   "BOND_USE_UNTIL": "Bonds supported until",
   "CALCULATED": "Calculated",
   "CALC_TOTAL_VALUE": "Calculated total",

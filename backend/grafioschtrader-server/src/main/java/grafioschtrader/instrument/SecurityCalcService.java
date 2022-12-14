@@ -77,6 +77,7 @@ public class SecurityCalcService {
       }
     }
     securityTransactionSummary.securityPositionSummary.removeClosedMarginPosition();
+    
   }
 
   public void calcSingleSecurityTransaction(final Transaction transaction,

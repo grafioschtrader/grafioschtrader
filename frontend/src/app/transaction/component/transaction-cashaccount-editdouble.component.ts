@@ -206,13 +206,14 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   saveTransaction(cashAccountTransfer: CashAccountTransfer) {
-    this.transactionService.updateCreateDoubleTransaction(cashAccountTransfer).subscribe((newCashAccountTransfer: CashAccountTransfer) => {
+    this.transactionService.updateCreateDoubleTransaction(cashAccountTransfer).subscribe({
+      next: (newCashAccountTransfer: CashAccountTransfer) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
           {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
         this.closeDialog.emit(new ProcessedActionData(cashAccountTransfer.depositTransaction.idTransaction ? ProcessedAction.UPDATED
           : ProcessedAction.CREATED, [newCashAccountTransfer.withdrawalTransaction, newCashAccountTransfer.depositTransaction]));
-      }, () => this.configObject.submit.disabled = false
-    );
+      }, error: () => this.configObject.submit.disabled = false
+    });
   }
 
   protected initialize(): void {

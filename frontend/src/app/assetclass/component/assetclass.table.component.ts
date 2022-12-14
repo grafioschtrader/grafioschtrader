@@ -7,7 +7,6 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {combineLatest} from 'rxjs';
 import {AssetclassService} from '../service/assetclass.service';
 import {Assetclass} from '../../entities/assetclass';
-import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AssetclassCallParam} from './assetclass.call.param';

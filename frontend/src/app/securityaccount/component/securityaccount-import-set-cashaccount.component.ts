@@ -15,7 +15,7 @@ import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.po
 import {AppSettings} from '../../shared/app.settings';
 
 /**
- * Dialog to assign a cash account to a imported transaction position.
+ * Dialog to assign a cash account to an imported transaction position.
  */
 @Component({
   selector: 'securityaccount-import-set-cashaccount',

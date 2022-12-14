@@ -5,7 +5,7 @@ import {Securityaccount} from '../../entities/securityaccount';
 import {TransactionCallParam} from './transaction.call.parm';
 
 /**
- * Transaction too add some units to a security account.
+ * Transaction to add some units to a security account.
  */
 export class TransactionSecurityEditAccumulate implements ITransactionEditType {
 

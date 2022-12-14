@@ -390,14 +390,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   saveTransaction(transaction: Transaction) {
-    this.transactionService.updateCreateSecurityTrans(transaction).subscribe(newTransaction => {
+    this.transactionService.updateCreateSecurityTrans(transaction).subscribe({
+      next: newTransaction => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
           {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
         this.closeDialog.emit(new ProcessedActionData(transaction.idTransaction ? ProcessedAction.UPDATED
           : ProcessedAction.CREATED, newTransaction));
-      }, () =>
-        this.configObject.submit.disabled = false
-    );
+      }, error: () => this.configObject.submit.disabled = false
+    });
   }
 
   helpLink(): void {

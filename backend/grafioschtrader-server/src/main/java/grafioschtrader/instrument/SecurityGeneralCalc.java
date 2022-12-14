@@ -128,7 +128,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     default:
       break;
     }
-
+    securityPositionSummary.roundUnits();
     securityPositionSummary.transactionGainLoss = (securityPositionSummary.transactionGainLoss != null)
         ? DataHelper.round(securityPositionSummary.transactionGainLoss)
         : null;

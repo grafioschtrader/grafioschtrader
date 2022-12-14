@@ -4,7 +4,7 @@ import {FieldConfig} from '../dynamic-form/models/field.config';
 import * as moment from 'moment';
 import {FormConfig} from '../dynamic-form/models/form.config';
 import {AppSettings} from '../shared/app.settings';
-import {addPackageToPackageJson} from '@angular/cdk/schematics/ng-add/package-config';
+
 
 export abstract class Helper {
 

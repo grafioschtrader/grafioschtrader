@@ -5,8 +5,7 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {TranslateService} from '@ngx-translate/core';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 
-export abstract class SecurityaccountGroupBase<T extends SecurityPositionGroupSummary, U extends SecurityPositionGrandSummary
-  | SecurityPositionGrandSummary> {
+export abstract class SecurityaccountGroupBase<T extends SecurityPositionGroupSummary, U extends SecurityPositionGrandSummary> {
 
   /**
    *

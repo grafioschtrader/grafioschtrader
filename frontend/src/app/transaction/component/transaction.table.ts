@@ -26,7 +26,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
 
   cashaccountTransactionPositions: Transaction[];
 
-  constructor(protected currencypairService: CurrencypairService,
+  protected constructor(protected currencypairService: CurrencypairService,
               parentChildRegisterService: ParentChildRegisterService,
               activePanelService: ActivePanelService,
               transactionService: TransactionService,

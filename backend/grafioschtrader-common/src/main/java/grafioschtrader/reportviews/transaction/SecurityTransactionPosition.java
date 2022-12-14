@@ -10,8 +10,6 @@ import grafioschtrader.types.TransactionType;
  * Contains the gain/loss of a single transaction. For every Transaction one
  * instance of this class.
  *
- * @author Hugo Graf
- *
  */
 public class SecurityTransactionPosition {
   public Transaction transaction;
