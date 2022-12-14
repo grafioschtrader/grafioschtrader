@@ -285,8 +285,6 @@ import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price
 import {WatchlistSecuritysplitTableComponent} from './watchlist/component/watchlist-securitysplit-table.component';
 import {WatchlistDividendTableComponent} from './watchlist/component/watchlist-dividend-table.component';
 import {DividendService} from './watchlist/service/dividend.service';
-import {InjectableRxStompConfig, RxStompService, rxStompServiceFactory} from '@stomp/ng2-stompjs';
-import {myRxStompConfig} from './my-rx-stomp.config';
 import {CardModule} from 'primeng/card';
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
 import {GlobalSettingsEditComponent} from './shared/globalsettings/global.settings-edit.component';
@@ -455,16 +453,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,
     TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UserAdminService,
     UserEntityChangeLimitService, UserSettingsService, ViewSizeChangedService,
-    WatchlistService,
-    {
-      provide: InjectableRxStompConfig,
-      useValue: myRxStompConfig,
-    },
-    {
-      provide: RxStompService,
-      useFactory: rxStompServiceFactory,
-      deps: [InjectableRxStompConfig],
-    }],
+    WatchlistService],
   bootstrap: [AppComponent]
 })
 export class AppModule {

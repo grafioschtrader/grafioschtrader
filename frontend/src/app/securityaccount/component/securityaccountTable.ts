@@ -10,7 +10,7 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {SecurityaccountGroupBase} from './securityaccount.group.base';
 import {SecurityaccountCurrencyGroup} from './securityaccount.currency.group';
-import {SecurityaccountAssetclassCategorytpeGroup} from './securityaccount.assetclass.categorytpe.group';
+import {SecurityaccountAssetclassCategortypeGroup} from './securityaccount.assetclass.categortype.group';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
 import {SecurityaccountAssetclassSpecInvestGroup} from './securityaccount.assetclass.spec.invest.group';
 import {SecurityaccountAssetclassSubCategoryGroup} from './securityaccount.assetclass.sub.category.group';
@@ -68,7 +68,7 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY],
       new SecurityaccountCurrencyGroup(this.translateService, this));
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_ASSETCLASS],
-      new SecurityaccountAssetclassCategorytpeGroup(this.translateService, this));
+      new SecurityaccountAssetclassCategortypeGroup(this.translateService, this));
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_FINANCIAL_INSTRUMENT],
       new SecurityaccountAssetclassSpecInvestGroup(this.translateService, this));
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_SUB_CATEGORY],
@@ -109,7 +109,3 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
   }
 }
 
-interface SecurityAccountGroupToFN {
-  securityAccountGroup: SecurityAccountGroup;
-  command?: (event?: any) => void;
-}

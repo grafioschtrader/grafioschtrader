@@ -9,7 +9,7 @@ import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
-import {SecurityaccountAssetclassCategorytpeGroup} from '../../securityaccount/component/securityaccount.assetclass.categorytpe.group';
+import {SecurityaccountAssetclassCategortypeGroup} from '../../securityaccount/component/securityaccount.assetclass.categortype.group';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {SecurityaccountBaseTable} from '../../securityaccount/component/securityaccount.base.table';
 import {AppSettings} from '../../shared/app.settings';
@@ -40,7 +40,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
               usersettingsService: UserSettingsService) {
     super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
       activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
-    this.securityaccountGroupBase = new SecurityaccountAssetclassCategorytpeGroup(translateService, this);
+    this.securityaccountGroupBase = new SecurityaccountAssetclassCategortypeGroup(translateService, this);
     this.createColumns();
   }
 

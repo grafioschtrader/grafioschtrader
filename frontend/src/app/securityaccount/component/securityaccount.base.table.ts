@@ -330,8 +330,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   protected getComponentId(): string {
-    const routeUrlCompoent = /(\/\w+\/)\({0,1}(\w+)/.exec(this.router.url);
-    return routeUrlCompoent[2];
+    const routeUrlComponent = /(\/\w+\/)\({0,1}(\w+)/.exec(this.router.url);
+    return routeUrlComponent[2];
   }
 
   private addNoMarketValueOpt(security: Security): OptionalParameters {

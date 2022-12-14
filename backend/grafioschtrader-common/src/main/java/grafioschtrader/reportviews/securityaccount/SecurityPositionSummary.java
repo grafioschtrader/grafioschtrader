@@ -156,6 +156,10 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
         GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
+  public void roundUnits() {
+    units = DataHelper.round(units);
+  }
+  
   public double getUnits() {
     return DataHelper.round(units);
   }

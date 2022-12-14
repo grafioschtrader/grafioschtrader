@@ -7,12 +7,9 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {CorrelationLimit, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {AppSettings} from '../../shared/app.settings';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {DataType} from '../../dynamic-form/models/data.type';
 import {CorrelationEditingSupport} from './correlation.editing.support';
 
 

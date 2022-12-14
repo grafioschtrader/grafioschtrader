@@ -24,7 +24,6 @@ import {combineLatest, Observable, Subscription} from 'rxjs';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {InjectableRxStompConfig, RxStompService} from '@stomp/ng2-stompjs';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 
@@ -43,21 +42,11 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
 
-  stompConfig: InjectableRxStompConfig = {
-    heartbeatIncoming: 0,
-    heartbeatOutgoing: 20000,
-    reconnectDelay: 1000,
-    connectHeaders: {'x-auth-token': sessionStorage.getItem('jwt')},
-    debug: (str) => {
-      console.log(str);
-    }
-  };
+
   private subscriptionViewSizeChanged: Subscription;
   private topicSubscription: Subscription;
 
-  constructor(private stompService: RxStompService,
-              private updatedStompConfig: InjectableRxStompConfig,
-              private viewSizeChangedService: ViewSizeChangedService,
+  constructor(private viewSizeChangedService: ViewSizeChangedService,
               dialogService: DialogService,
               timeSeriesQuotesService: TimeSeriesQuotesService,
               dataChangedService: DataChangedService,
@@ -79,7 +68,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();
 
-    this.updateStompJs();
+
     this.timeFrames.push(new TimeFrame('THIS_WEEK', moment().weekday()));
     this.timeFrames.push(new TimeFrame('DAYS_30', 30));
     this.timeFrames.push(new TimeFrame('DAYS_90', 90));
@@ -141,22 +130,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.getWatchlistWithoutUpdate();
   }
 
-  private updateStompJs(): void {
-    // Update StompJs configuration.
-    if (this.gps.useWebsocket()) {
-      this.stompConfig = {...this.stompConfig, ...this.updatedStompConfig};
-      console.log('stomconfig', this.stompConfig);
-      this.stompService.configure(this.stompConfig);
-    }
-  }
 
-  sendMessage(idWatchlist: number, daysFrameDate: number) {
-    this.stompService.publish({
-      destination: '/app/ws/watchlist',
-      headers: this.stompConfig.connectHeaders,
-      body: JSON.stringify({idWatchlist, daysFrameDate})
-    });
-  }
 
   public getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST_PERFORMANCE;
@@ -167,14 +141,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     super.ngOnDestroy();
   }
 
-  protected updateAllPriceWebSocket() {
-    if (this.topicSubscription) {
-      this.sendMessage(this.idWatchlist, this.choosenTimeFrame.days);
-    } else {
-      this.sendMessage(this.idWatchlist, this.choosenTimeFrame.days);
-      this.getAndSetDataWebsocket();
-    }
-  }
+
 
   protected getWatchlistWithoutUpdate() {
     const watchListObservable: Observable<SecuritycurrencyGroup> = this.watchlistService.getWatchlistWithoutUpdate(this.idWatchlist);
@@ -188,11 +155,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   }
 
   protected updateAllPrice(): void {
-    if (this.gps.useWebsocket()) {
-      this.updateAllPriceWebSocket();
-    } else {
-      this.updateAllPriceThruRest();
-    }
+     this.updateAllPriceThruRest();
   }
 
   protected getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
@@ -202,16 +165,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     return menuItems;
   }
 
-  private getAndSetDataWebsocket(): void {
-    this.topicSubscription = this.stompService.watch('/user/queue/security',
-      this.stompConfig.connectHeaders).subscribe(securitycurrencyGroup => {
-      const sg: SecuritycurrencyGroup = JSON.parse(securitycurrencyGroup.body);
-      if (this.watchlist.idWatchlist === sg.idWatchlist) {
-        this.selectedSecuritycurrencyPosition = null;
-        this.createSecurityPositionList(sg);
-      }
-    });
-  }
 
   private updateAllPriceThruRest(): void {
     this.watchlistService.getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days)
