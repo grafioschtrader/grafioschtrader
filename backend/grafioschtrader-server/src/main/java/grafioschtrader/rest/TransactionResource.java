@@ -60,7 +60,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   }
 
   @Operation(summary = "Get all transactions of a tenant", description = "", tags = { Transaction.TABNAME })
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Transaction>> getTransactionByTenant() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     List<Transaction> transaction = transactionJpaRepository

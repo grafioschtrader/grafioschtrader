@@ -25,7 +25,7 @@ public class MailSendboxResource extends UpdateCreateResource<MailSendbox> {
   @Autowired
   private MailSendboxJpaRepository mailSendboxJpaRepository;
 
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<MailSendbox>> getAllInboxByUser() {
     return new ResponseEntity<>(mailSendboxJpaRepository.getMailSendboxByUser(), HttpStatus.OK);
   }

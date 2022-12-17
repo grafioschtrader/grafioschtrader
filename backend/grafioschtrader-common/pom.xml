@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.28.4</version>
+		<version>0.28.5</version>
 	</parent>
 
 
@@ -89,17 +89,18 @@
 		<!-- <dependency> <groupId>net.andreinc.jbvext</groupId> <artifactId>jbvext</artifactId> 
 			<version>0.0.11</version> </dependency> -->
 
-
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
 		<dependency>
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
 			<version>1.7</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.persistence</groupId>
+			<artifactId>jakarta.persistence-api</artifactId>
 		</dependency>
 
 		<dependency>
@@ -125,7 +126,7 @@
 			<groupId>com.github.ulisesbocchio</groupId>
 			<artifactId>jasypt-spring-boot-starter</artifactId>
 			<!--  adjust maven plugin as well -->
-			<version>3.0.3</version>
+			<version>3.0.5</version>
 		</dependency>
 		
 		

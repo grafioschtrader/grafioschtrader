@@ -16,13 +16,13 @@ export class MailSendboxService extends AuthServiceWithLogout<MailSendbox> imple
   }
 
   public getAllSendboxByUser(): Observable<MailSendbox[]> {
-    return <Observable<MailSendbox[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.MAIL_SENDBOX_KEY}/`,
+    return <Observable<MailSendbox[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.MAIL_SENDBOX_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
 
   public replyMessage(mailSendbox: MailSendbox): Observable<MailSendbox> {
-    return <Observable<MailSendbox>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.MAIL_SENDBOX_KEY}/`,
+    return <Observable<MailSendbox>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.MAIL_SENDBOX_KEY}`,
       mailSendbox, {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 

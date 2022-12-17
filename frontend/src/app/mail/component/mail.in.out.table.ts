@@ -44,6 +44,10 @@ export abstract class MailInOutTable<T extends MailInOut> extends TableCrudSuppo
     return HelpIds.HELP_MESSAGE_SYSTEM;
   }
 
+  protected override isDeleteDisabled(entity: T): boolean {
+    return false;
+  }
+
   onRowSelect(event): void {
     this.showMessage(event.data.message);
   }

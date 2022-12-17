@@ -42,7 +42,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   public getAllGlobalparameters(): Observable<Globalparameters[]> {
     return <Observable<Globalparameters[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
-      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      + `${AppSettings.GLOBALPARAMETERS_P_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public clearValues(): void {
@@ -259,7 +259,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   update(globalparameters: Globalparameters): Observable<Globalparameters> {
     return <Observable<Globalparameters>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
-      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/`, globalparameters,
+      + `${AppSettings.GLOBALPARAMETERS_P_KEY}`, globalparameters,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 

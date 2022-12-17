@@ -43,18 +43,18 @@ public class UserAdminResource extends UpdateCreateResource<User> {
   @Autowired
   private MessageSource messages;
 
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<User>> getAllUsers() {
     return new ResponseEntity<>(userJpaRepository.connectUserWithUserAndLimitProposals(), HttpStatus.OK);
   }
 
-  @GetMapping(value = "/{idUser}", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "{idUser}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<User> getUserByIdUser(@PathVariable final Integer idUser) {
     return new ResponseEntity<>(userJpaRepository.findById(idUser).get(), HttpStatus.OK);
   }
 
   @Override
-  @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<User> update(@Validated(AdminModify.class) @RequestBody final User user) throws Exception {
     return updateEntity(user);
   }

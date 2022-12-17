@@ -18,7 +18,7 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   getTenantAndPortfolio(): Observable<Tenant> {
-    return <Observable<Tenant>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/`,
+    return <Observable<Tenant>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -40,7 +40,7 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   public deleteMyDataAndUserAccount() {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/`, this.getHeaders())
+    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 

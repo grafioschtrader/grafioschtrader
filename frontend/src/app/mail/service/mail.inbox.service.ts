@@ -17,7 +17,7 @@ export class MailInboxService extends AuthServiceWithLogout<MailInbox> implement
   }
 
   public getAllInboxByUser(): Observable<MailInbox[]> {
-    return <Observable<MailInbox[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.MAIL_INBOX_KEY}/`,
+    return <Observable<MailInbox[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.MAIL_INBOX_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

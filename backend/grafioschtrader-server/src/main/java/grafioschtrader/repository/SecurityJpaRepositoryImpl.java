@@ -21,8 +21,6 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +65,7 @@ import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
+import jakarta.annotation.PostConstruct;
 
 public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security, SecurityPositionSummary>
     implements IPositionCloseOnLatestPrice<Security, SecurityPositionSummary>, SecurityJpaRepositoryCustom {

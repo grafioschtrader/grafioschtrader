@@ -34,10 +34,10 @@ export abstract class BaseAuthService<T> extends BaseService {
    */
   updateEntity(entity: T, id: number | string, pathApi: string): Observable<T> {
     if (id != null) {
-      return <Observable<T>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${pathApi}/`, entity,
+      return <Observable<T>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${pathApi}`, entity,
         {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
     } else {
-      return <Observable<T>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${pathApi}/`, entity,
+      return <Observable<T>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${pathApi}`, entity,
         {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
     }
   }

@@ -3,7 +3,7 @@ package grafioschtrader.entities;
 import java.util.Objects;
 import java.util.UUID;
 
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

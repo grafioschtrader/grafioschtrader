@@ -1,7 +1,7 @@
 package grafioschtrader.algo.strategy.model.rebalacing;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 import grafioschtrader.common.DynamicFormPropertySupport;
 import grafioschtrader.dynamic.model.DynamicFormPropertyHelps;

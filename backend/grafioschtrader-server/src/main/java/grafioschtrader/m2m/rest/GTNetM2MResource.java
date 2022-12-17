@@ -2,7 +2,7 @@ package grafioschtrader.m2m.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,7 +29,7 @@ public class GTNetM2MResource {
   private GTNetJpaRepository gtNetJpaRepository;
   
   @Operation(summary = "", description = "", tags = { RequestMappings.GTNET_M2M })
-  @PostMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<MessageEnvelope> receiveMessage(@Valid @RequestBody MessageEnvelope messageEnvelope) {
 
     return new ResponseEntity<>(gtNetJpaRepository.getMsgResponse(messageEnvelope), HttpStatus.OK);

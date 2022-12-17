@@ -3,7 +3,7 @@ package grafioschtrader.alert;
 import java.util.Locale;
 import java.util.Optional;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

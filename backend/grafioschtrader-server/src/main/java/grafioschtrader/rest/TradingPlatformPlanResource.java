@@ -23,7 +23,7 @@ public class TradingPlatformPlanResource extends UpdateCreateDeleteAuditResource
   @Autowired
   private TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
 
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TradingPlatformPlan>> getAllTradingPlatform() {
     return new ResponseEntity<>(tradingPlatformPlanJpaRepository.findAll(), HttpStatus.OK);
   }

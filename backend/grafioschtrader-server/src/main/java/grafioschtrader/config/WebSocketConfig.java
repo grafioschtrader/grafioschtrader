@@ -11,10 +11,10 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-// @Configuration
-// @EnableWebSocketMessageBroker
-// @ConditionalOnExpression("${gt.use.websocket:false}")
-// @Order(Ordered.HIGHEST_PRECEDENCE + 99)
+@Configuration
+@EnableWebSocketMessageBroker
+@ConditionalOnExpression("${gt.use.websocket:false}")
+@Order(Ordered.HIGHEST_PRECEDENCE + 99)
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Autowired

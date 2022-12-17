@@ -1,7 +1,7 @@
 package grafioschtrader.algo.strategy.model.alerts;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 /**
  * Alert when a certain position in a portfolio gain or lose a certain

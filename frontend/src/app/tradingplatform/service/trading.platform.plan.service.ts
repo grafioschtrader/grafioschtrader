@@ -21,7 +21,7 @@ export class TradingPlatformPlanService extends AuthServiceWithLogout<TradingPla
   }
 
   public getAllTradingPlatform(): Observable<TradingPlatformPlan[]> {
-    return <Observable<TradingPlatformPlan[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/`,
+    return <Observable<TradingPlatformPlan[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

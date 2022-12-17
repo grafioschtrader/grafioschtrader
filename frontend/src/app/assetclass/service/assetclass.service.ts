@@ -22,7 +22,7 @@ export class AssetclassService extends AuthServiceWithLogout<Assetclass> impleme
   }
 
   public getAllAssetclass(): Observable<Assetclass[]> {
-    return <Observable<Assetclass[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ASSETCLASS_KEY}/`,
+    return <Observable<Assetclass[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ASSETCLASS_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

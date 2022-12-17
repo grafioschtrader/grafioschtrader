@@ -62,7 +62,7 @@ public class UserResource {
         HttpStatus.OK);
   }
 
-  @PostMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<User> createUserForVerification(@RequestBody final UserDTO userDTO,
       @RequestHeader final HttpHeaders headers) {
     log.debug("Create User: {}", userDTO);
@@ -71,7 +71,7 @@ public class UserResource {
         .body(userService.createUserForVerification(userDTO, referer.substring(0, referer.lastIndexOf('/'))));
   }
 
-  @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<User> updateButPassword(@RequestBody final UserDTO userDTO) {
     log.debug("Update User: {}", userDTO);
     return ResponseEntity.ok().body(userService.updateButPassword(userDTO));

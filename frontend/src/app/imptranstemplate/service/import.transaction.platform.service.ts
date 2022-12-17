@@ -21,16 +21,14 @@ export class ImportTransactionPlatformService extends AuthServiceWithLogout<Impo
 
   getAllImportTransactionPlatforms(): Observable<ImportTransactionPlatform[]> {
     return <Observable<ImportTransactionPlatform[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
-      + `${AppSettings.IMP_TRANS_PLATFORM_KEY}/`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      + `${AppSettings.IMP_TRANS_PLATFORM_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   getPlatformTransactionImport(): Observable<IPlatformTransactionImport[]> {
     return <Observable<IPlatformTransactionImport[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.IMP_TRANS_PLATFORM_KEY}/platformImports`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   update(importTransactionPlatform: ImportTransactionPlatform): Observable<ImportTransactionPlatform> {
     return this.updateEntity(importTransactionPlatform, importTransactionPlatform.idTransactionImportPlatform,
@@ -47,7 +45,6 @@ export class ImportTransactionPlatformService extends AuthServiceWithLogout<Impo
     formData.append('file', pdfFileToUpload, pdfFileToUpload.name);
     const options: any = this.getMultipartHeaders();
     options.responseType = 'text';
-
 
     return <Observable<string>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_PLATFORM_KEY}/transformpdftotxt`,
       formData, options).pipe(catchError(this.handleError.bind(this)));

@@ -20,7 +20,7 @@ export class ProposeChangeEntityService extends AuthServiceWithLogout<ProposeCha
 
   getProposeChangeEntityListByCreatedBy(): Observable<ProposeChangeEntity[]> {
     return <Observable<ProposeChangeEntity[]>>
-      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}/`,
+      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.validation.Valid;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public abstract class UpdateCreate<T extends BaseID> {
    * Request for a new entity. The new URI-location of the created record is not
    * returned.
    */
-  @PostMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<T> create(@Valid @RequestBody T entity) throws Exception {
     return createEntity(entity);
   }
@@ -83,7 +83,7 @@ public abstract class UpdateCreate<T extends BaseID> {
   /**
    * Request for update entity.
    */
-  @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<T> update(@Valid @RequestBody final T entity) throws Exception {
     return updateEntity(entity);
   }

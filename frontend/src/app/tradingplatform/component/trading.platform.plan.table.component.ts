@@ -114,4 +114,8 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     return Object.assign(tradingPlatformPlan, entity);
   }
 
+  protected override isDeleteDisabled(entity: TradingPlatformPlan): boolean {
+    return false;
+  }
+
 }

@@ -15,7 +15,9 @@ import {MailSendbox} from '../model/mail.sendbox';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
-
+/**
+ * Display of sent messages.
+ */
 @Component({
   templateUrl: '../view/mail.in.out.table.html',
   providers: [DialogService]

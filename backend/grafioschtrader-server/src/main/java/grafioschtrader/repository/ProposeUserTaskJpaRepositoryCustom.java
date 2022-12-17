@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import grafioschtrader.entities.ProposeUserTask;
 

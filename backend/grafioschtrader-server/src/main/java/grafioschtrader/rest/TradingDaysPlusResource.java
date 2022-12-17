@@ -2,7 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,7 +37,7 @@ public class TradingDaysPlusResource {
 
   @Operation(summary = "Save trading days of year", description = "Only admin can change this calendar", tags = {
       RequestMappings.TRADINGDAYSPLUS })
-  @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TradingDaysWithDateBoundaries> deleteAndCreateMultiple(
       @Valid @RequestBody final SaveTradingDays saveTradingDaysPlus) {
     return new ResponseEntity<>(tradingDaysPlusJpaRepository.save(saveTradingDaysPlus), HttpStatus.OK);

@@ -5,7 +5,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.List;
 import java.util.Map;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,7 +35,7 @@ public class ConnectorApiKeyResource {
 
   @Operation(summary = "Return of all existing API keys from data provider", description = "Only for admin", tags = {
       RequestMappings.CONNECTOR_API_KEY })
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ConnectorApiKey>> getAllConnectorApiKey() {
     return new ResponseEntity<>(connectorApiKeyJpaRepository.findAll(), HttpStatus.OK);
   }
@@ -49,7 +49,7 @@ public class ConnectorApiKeyResource {
   
   @Operation(summary = "Add a connector api key with its data provider", description = "Only admin can create connector api key", tags = {
       RequestMappings.CONNECTOR_API_KEY })
-  @PostMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ConnectorApiKey> createConnectorApiKey(
       @Valid @RequestBody final ConnectorApiKey connectorApiKey) {
     return new ResponseEntity<>(connectorApiKeyJpaRepository.saveOnlyAttributes(connectorApiKey), HttpStatus.OK);
@@ -57,7 +57,7 @@ public class ConnectorApiKeyResource {
     
   @Operation(summary = "Update connector api key", description = "Only admin can change connector api key", tags = {
       RequestMappings.CONNECTOR_API_KEY })
-  @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ConnectorApiKey> updateConnectorApiKey(
       @Valid @RequestBody final ConnectorApiKey connectorApiKey) {
     return new ResponseEntity<>(connectorApiKeyJpaRepository.saveOnlyAttributes(connectorApiKey), HttpStatus.OK);

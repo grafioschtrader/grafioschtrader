@@ -18,6 +18,9 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
+/**
+ * Display of received messages. In addition, you can reply to a message or send a new message to a role.
+ */
 @Component({
   templateUrl: '../view/mail.in.out.table.html',
   providers: [DialogService]
@@ -84,8 +87,8 @@ export class MailInboxTableComponent extends MailInOutTable<MailInbox> implement
   protected resetMenu(mailInbox: MailInbox): void {
     this.selectedEntity = mailInbox;
     // Menus for the mailInbox -> only delete
-    this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
-    this.contextMenuItems.push({separator: true});
+    this.contextMenuItems = [...(this.selectedEntity? this.prepareEditMenu(this.selectedEntity): [])];
+    this.contextMenuItems.length > 0 && this.contextMenuItems.push({separator: true});
     this.contextMenuItems.push(this.sendToAdminMenuItem);
     if (mailInbox) {
       this.contextMenuItems.push(this.replyMenuItem);

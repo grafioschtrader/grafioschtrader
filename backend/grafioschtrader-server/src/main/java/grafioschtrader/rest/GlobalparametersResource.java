@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,7 +43,7 @@ public class GlobalparametersResource {
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Operation(summary = "Returns all global parameters", description = "", tags = { Globalparameters.TABNAME })
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Globalparameters>> getAllAssetclass() {
     return new ResponseEntity<>(globalparametersJpaRepository.findAll(), HttpStatus.OK);
   }
@@ -114,7 +114,7 @@ public class GlobalparametersResource {
 
   @Operation(summary = "Change a property value of existing global parameter", description = "Only admin can change values of exiting global parameters", tags = {
       Globalparameters.TABNAME })
-  @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Globalparameters> replacePropertyValue(
       @Valid @RequestBody final Globalparameters globalparameters) {
     return new ResponseEntity<>(globalparametersJpaRepository.saveOnlyAttributes(globalparameters), HttpStatus.OK);

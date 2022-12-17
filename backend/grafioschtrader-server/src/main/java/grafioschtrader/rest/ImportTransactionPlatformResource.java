@@ -30,7 +30,7 @@ public class ImportTransactionPlatformResource extends UpdateCreateDeleteAuditRe
   @Autowired
   ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
 
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPlatform>> getAllImportTransactionPlatform() {
     return new ResponseEntity<>(importTransactionPlatformJpaRepository.findAll(), HttpStatus.OK);
   }
