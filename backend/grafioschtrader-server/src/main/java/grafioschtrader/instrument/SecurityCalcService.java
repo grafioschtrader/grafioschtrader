@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +51,7 @@ public class SecurityCalcService {
    * @param untilDate
    * @param dateCurrencyMap
    */
-  public void calcTransactions(final boolean excludeDivTaxcost,
+  public void calcTransactions(Security security, final boolean excludeDivTaxcost,
       final SecurityTransactionSummary securityTransactionSummary,
       final Map<Integer, List<Securitysplit>> securitySplitMap, final List<Transaction> transactions,
       final Date untilDate, DateTransactionCurrencypairMap dateCurrencyMap) {
@@ -66,13 +68,13 @@ public class SecurityCalcService {
         return;
       }
       if (!isMarginInstrument) {
-        securityGeneralCalc.createAccruedInterestPostion(TransactionType.REDUCE, transaction,
+        securityGeneralCalc.createAccruedInterestPostion(security, TransactionType.REDUCE, transaction,
             securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
       }
-      getSecurityCalc(transaction.getSecurity()).calcTransactionAndAddToPosition(transaction,
+      getSecurityCalc(security).calcTransactionAndAddToPosition(transaction,
           securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
       if (!isMarginInstrument) {
-        securityGeneralCalc.createAccruedInterestPostion(TransactionType.ACCUMULATE, transaction,
+        securityGeneralCalc.createAccruedInterestPostion(security, TransactionType.ACCUMULATE, transaction,
             securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
       }
     }

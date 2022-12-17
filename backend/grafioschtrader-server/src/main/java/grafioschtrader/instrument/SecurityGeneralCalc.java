@@ -66,12 +66,12 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     securityTransactionSummary.createAndAddPositionGainLoss(transaction);
   }
 
-  void createAccruedInterestPostion(final TransactionType requiredTransactionTypeTransaction,
+  void createAccruedInterestPostion(final Security security, final TransactionType requiredTransactionTypeTransaction,
       final Transaction transaction, final SecurityTransactionSummary securityTransactionSummary,
       final boolean excludeDivTaxcost, final Map<Integer, List<Securitysplit>> securitySplitMap,
       final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater) {
-    if (transaction.getSecurity().getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME
-        || transaction.getSecurity().getAssetClass().getCategoryType() == AssetclassType.CONVERTIBLE_BOND) {
+    if (security.getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME
+        || security.getAssetClass().getCategoryType() == AssetclassType.CONVERTIBLE_BOND) {
 
       if (transaction.getTransactionType() == requiredTransactionTypeTransaction
           && transaction.getAssetInvestmentValue1() != null && transaction.getAssetInvestmentValue1() != 0.0) {

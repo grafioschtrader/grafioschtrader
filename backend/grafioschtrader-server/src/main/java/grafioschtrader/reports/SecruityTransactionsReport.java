@@ -11,6 +11,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,7 @@ import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
@@ -192,7 +194,8 @@ public class SecruityTransactionsReport {
         .separateTransactionForSecurityBySecurityaccount(securityTransactionSummary, excludeIdTransaction);
 
     for (final Map.Entry<Integer, List<Transaction>> entry : securityTransactionMap.entrySet()) {
-      securityTransactionSummary = calcSummaryForTransactions(entry.getValue(), idSecuritycurrency, untilDate,
+      securityTransactionSummary = calcSummaryForTransactions(entry.getValue(),
+          securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate,
           Collections.<SecruityTransactionsReportOptions>emptySet(), null);
       if (securityTransactionSummary.securityPositionSummary.units != 0.0) {
         securityaccountOpenPositionSecurity.securityaccountOpenPositionUnitsList
@@ -229,8 +232,9 @@ public class SecruityTransactionsReport {
             dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
             this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
 
-    return calcSummaryForTransactions(transactionsFuture.join(), idSecuritycurrency, untilDate,
-        secruityTransactionsReportOptions, dateCurrencyMapFuture.join());
+    return calcSummaryForTransactions(transactionsFuture.join(),
+        securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
+        dateCurrencyMapFuture.join());
   }
 
   private SecurityTransactionSummary getTransactionsByIdPortfolioAndIdSecurity(final Integer idPortfolio,
@@ -240,8 +244,9 @@ public class SecruityTransactionsReport {
 
     final Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
     if (portfolio != null) {
-      final CompletableFuture<List<Transaction>> transactionsFuture = CompletableFuture
-          .supplyAsync(() -> transactionJpaRepository.findByIdPortfolioAndIdSecurity(idPortfolio, idSecuritycurrency));
+      final CompletableFuture<List<Transaction>> transactionsFuture = CompletableFuture.supplyAsync(
+          () -> transactionJpaRepository.findByIdPortfolioAndIdSecurity(portfolio.getSecurityaccountList().stream()
+              .map(Securityaccount::getIdSecuritycashAccount).collect(Collectors.toList()), idSecuritycurrency));
 
       final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture
           .supplyAsync(() -> historyquoteJpaRepository.findByIdPortfolioAndIdSecurityFoCuHistoryquotes(idPortfolio,
@@ -254,8 +259,9 @@ public class SecruityTransactionsReport {
               dateTransactionCurrencyFuture.join(), currencypairsFuture.join(), this.tradingDaysPlusJpaRepository
                   .hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
 
-      return calcSummaryForTransactions(transactionsFuture.join(), idSecuritycurrency, untilDate,
-          secruityTransactionsReportOptions, dateCurrencyMapFuture.join());
+      return calcSummaryForTransactions(transactionsFuture.join(),
+          securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
+          dateCurrencyMapFuture.join());
     } else {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
@@ -282,8 +288,9 @@ public class SecruityTransactionsReport {
             dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
             this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
 
-    return calcSummaryForTransactions(transactionsFuture.join(), idSecuritycurrency, untilDate,
-        secruityTransactionsReportOptions, dateCurrencyMapFuture.join());
+    return calcSummaryForTransactions(transactionsFuture.join(),
+        securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
+        dateCurrencyMapFuture.join());
   }
 
   private Map<Integer, List<Transaction>> separateTransactionForSecurityBySecurityaccount(
@@ -304,28 +311,28 @@ public class SecruityTransactionsReport {
   }
 
   private SecurityTransactionSummary calcSummaryForTransactions(final List<Transaction> transactions,
-      final Integer idSecuritycurrency, final Date untilDate,
+      final Security security, final Date untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
 
     final SecurityTransactionSummary securityTransactionSummary = new SecurityTransactionSummary(
-        securityJpaRepository.findById(idSecuritycurrency).get(),
+        securityJpaRepository.findById(security.getIdSecuritycurrency()).get(),
         (dateCurrencyMap != null) ? dateCurrencyMap.getMainCurrency() : null,
         globalparametersJpaRepository.getCurrencyPrecision());
     final boolean excludeDivTaxcost = tenantJpaRepository.isExcludeDividendTaxcost();
 
     final Map<Integer, List<Securitysplit>> securitySplitMap = this.securitysplitJpaRepository
-        .getSecuritysplitMapByIdSecuritycurrency(idSecuritycurrency);
+        .getSecuritysplitMapByIdSecuritycurrency(security.getIdSecuritycurrency());
 
-    List<Securitysplit> securitysplits = securitySplitMap.get(idSecuritycurrency);
+    List<Securitysplit> securitysplits = securitySplitMap.get(security.getIdSecuritycurrency());
     if (securitysplits != null) {
       Securitysplit[] securitysplitsArray = new Securitysplit[securitysplits.size()];
       securitysplits.toArray(securitysplitsArray);
       securityTransactionSummary.securityPositionSummary.securitycurrency.setSplitPropose(securitysplitsArray);
     }
 
-    securityCalcService.calcTransactions(excludeDivTaxcost, securityTransactionSummary, securitySplitMap, transactions,
-        untilDate, dateCurrencyMap);
+    securityCalcService.calcTransactions(security, excludeDivTaxcost, securityTransactionSummary, securitySplitMap,
+        transactions, untilDate, dateCurrencyMap);
 
     if (securityTransactionSummary.securityPositionSummary.units != 0.0
         && secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
@@ -347,7 +354,7 @@ public class SecruityTransactionsReport {
     }
 
     if (secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)) {
-      quotationSplitCorrection(idSecuritycurrency, securityTransactionSummary, securitySplitMap);
+      quotationSplitCorrection(security.getIdSecuritycurrency(), securityTransactionSummary, securitySplitMap);
     }
 
     return securityTransactionSummary;
