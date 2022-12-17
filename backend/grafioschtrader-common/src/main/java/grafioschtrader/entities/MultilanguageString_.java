@@ -1,8 +1,9 @@
 package grafioschtrader.entities;
 
-import javax.annotation.Generated;
-import javax.persistence.metamodel.MapAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
+import jakarta.annotation.Generated;
+
+import jakarta.persistence.metamodel.MapAttribute;
+import jakarta.persistence.metamodel.StaticMetamodel;
 
 @Generated(value = "org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor")
 @StaticMetamodel(MultilanguageString.class)

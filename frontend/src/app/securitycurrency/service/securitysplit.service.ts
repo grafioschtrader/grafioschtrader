@@ -22,7 +22,7 @@ export class SecuritysplitService extends AuthServiceWithLogout<Securitysplit> i
   }
 
   deleteAndCreateMultiple(idSecuritycurrency: number, securitysplits: Securitysplit[], noteRequest: string): Observable<Securitysplit[]> {
-    return <Observable<Securitysplit[]>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_SPLIT_KEY}/`,
+    return <Observable<Securitysplit[]>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_SPLIT_KEY}`,
       {idSecuritycurrency, securitysplits, noteRequest},
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

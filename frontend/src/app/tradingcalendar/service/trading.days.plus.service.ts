@@ -24,8 +24,7 @@ export class TradingDaysPlusService extends AuthServiceWithLogout<TradingDaysPlu
 
   save(saveTradingDays: SaveTradingDays): Observable<TradingDaysWithDateBoundaries> {
     return <Observable<TradingDaysWithDateBoundaries>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
-      + `${AppSettings.TRADING_DAYS_PLUS_KEY}/`,
-      saveTradingDays, {headers: this.prepareHeaders()}
+      + `${AppSettings.TRADING_DAYS_PLUS_KEY}`, saveTradingDays, {headers: this.prepareHeaders()}
     ).pipe(catchError(this.handleError.bind(this)));
   }
 

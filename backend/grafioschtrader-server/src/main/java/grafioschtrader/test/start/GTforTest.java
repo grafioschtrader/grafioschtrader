@@ -2,8 +2,6 @@ package grafioschtrader.test.start;
 
 import java.util.TimeZone;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -14,6 +12,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GrafioschtraderApplication;
+import jakarta.annotation.PostConstruct;
 
 /**
  * With tests use a different application context without a tomcat

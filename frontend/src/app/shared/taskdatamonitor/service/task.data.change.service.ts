@@ -18,13 +18,13 @@ export class TaskDataChangeService extends AuthServiceWithLogout<TaskDataChange>
   }
 
   getAllTaskDataChange(): Observable<TaskDataChange[]> {
-    return <Observable<TaskDataChange[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}/`,
+    return <Observable<TaskDataChange[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getFormConstraints(): Observable<TaskDataChangeFormConstraints> {
     return <Observable<TaskDataChangeFormConstraints>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}/taskdatachangeconstraints/`,
+      `${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}/taskdatachangeconstraints`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -36,7 +36,6 @@ export class TaskDataChangeService extends AuthServiceWithLogout<TaskDataChange>
     return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}/${idTaskDataChange}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   interruptingRunningJob(idTaskDataChange: number): Observable<boolean> {
     return this.httpClient.patch(`${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}/interruptingrunningjob`

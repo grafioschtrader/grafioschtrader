@@ -82,6 +82,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
   private static final String DOMAIN_NAME_WITH_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
+  private static boolean USE_CRUMB = false;
 
   static {
     supportedFeed = new HashMap<>();
@@ -220,33 +221,47 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
       final double divider) throws IOException, URISyntaxException {
 
     List<Historyquote> historyquotes = null;
-
+    symbol = URLEncoder.encode(symbol, "UTF-8");
     CookieStore cookieStore = new BasicCookieStore();
     HttpClient client = HttpClientBuilder.create()
         .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
+    if (USE_CRUMB) {
 
-    symbol = URLEncoder.encode(symbol, "UTF-8");
-
-    String crumb = getCrumb(symbol, client, context);
-    if (crumb != null && !crumb.isEmpty()) {
-
-      String url = String.format(
-          DOMAIN_NAME_WITH_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s", symbol,
-          startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60, crumb);
-      HttpGet request = new HttpGet(url);
-      request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
-      HttpResponse response = client.execute(request, context);
-      HttpEntity entity = response.getEntity();
-
-      if (entity != null) {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent()))) {
-          historyquotes = this.readBackfillStream(in, isCurrency, divider);
-        }
+      String crumb = getCrumb(symbol, client, context);
+      if (crumb != null && !crumb.isEmpty()) {
+        historyquotes = getEodHistory(symbol, startDate, endDate, isCurrency, divider, client, context, crumb);
       }
-      HttpClientUtils.closeQuietly(response);
+    } else {
+      historyquotes = getEodHistory(symbol, startDate, endDate, isCurrency, divider, client, context, null);
     }
+    return historyquotes;
+  }
+
+  private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
+      final double divider, HttpClient client, HttpClientContext context, String crumb)
+      throws IOException, URISyntaxException {
+
+    List<Historyquote> historyquotes = null;
+    String url = String.format(
+        DOMAIN_NAME_WITH_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s", symbol,
+        startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60, crumb);
+    if (crumb != null) {
+      url += url + "&crumb" + crumb;
+    }
+
+    HttpGet request = new HttpGet(url);
+    request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
+    HttpResponse response = client.execute(request, context);
+    HttpEntity entity = response.getEntity();
+
+    if (entity != null) {
+      try (BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent()))) {
+        historyquotes = this.readBackfillStream(in, isCurrency, divider);
+      }
+    }
+    HttpClientUtils.closeQuietly(response);
     return historyquotes;
   }
 
@@ -395,13 +410,17 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
-
+    
     String symbol = URLEncoder.encode(
         event.equals(SPLIT_EVENT) ? security.getUrlSplitExtend() : security.getUrlDividendExtend(),
         StandardCharsets.UTF_8);
 
-    String crumb = getCrumb(symbol, client, context);
-    if (crumb != null && !crumb.isEmpty()) {
+    String crumb = null;
+    if(USE_CRUMB) {
+      crumb = getCrumb(symbol, client, context);  
+    }
+    
+    if ( !USE_CRUMB || USE_CRUMB && crumb != null && !crumb.isEmpty()) {
       String url = this.getSplitHistoricalDownloadLink(symbol, fromDate, event, crumb);
       HttpGet request = new HttpGet(url);
       request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);

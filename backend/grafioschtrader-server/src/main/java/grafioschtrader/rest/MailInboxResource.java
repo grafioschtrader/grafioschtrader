@@ -26,7 +26,7 @@ public class MailInboxResource {
   @Autowired
   private MailInboxJpaRepository mailInboxJpaRepository;
 
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<MailInbox>> getMailInboxByUser() {
     return new ResponseEntity<>(mailInboxJpaRepository.getMailInboxByUser(), HttpStatus.OK);
   }

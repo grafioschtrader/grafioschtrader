@@ -1,6 +1,6 @@
 package grafioschtrader.ta.indicator.model;
 
-import javax.validation.constraints.Max;
+import jakarta.validation.constraints.Max;
 
 public class ShortMediumLongInputPeriod {
 

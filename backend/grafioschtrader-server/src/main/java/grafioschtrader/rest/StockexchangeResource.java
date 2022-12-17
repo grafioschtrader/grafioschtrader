@@ -38,7 +38,7 @@ public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stock
   }
   
   @Operation(summary = "Returns all stock exchanges sorted by name", description = "", tags = { Stockexchange.TABNAME })
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Stockexchange>> getAllStockexchanges(
       @Parameter(description = "Get name of the index which is used for calenadar update", required = true) @RequestParam() final boolean includeNameOfCalendarIndex) {
     return new ResponseEntity<>(stockexchangeJpaRepository.getAllStockExchanges(includeNameOfCalendarIndex),

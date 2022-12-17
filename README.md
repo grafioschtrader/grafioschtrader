@@ -1,7 +1,3 @@
-
-## Attention!
-**With version 0.22.1 we have changed from Java 11 to Java 17. For the update of GT, please switch to Java 17 before.** 
-
 ## Preface
 - **Unless otherwise described, GT will only get a new version if the new features require an update of the database. It is the goal that the master branch always contains the most reliable and feature rich source code.** 
 - For importing transactions we refer to the [gt-import-transaction-template](//github.com/grafioschtrader/gt-import-transaction-template) and [gt-pdf-transform](//github.com/grafioschtrader/gt-pdf-transform) projects.

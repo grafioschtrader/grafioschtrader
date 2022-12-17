@@ -35,7 +35,7 @@ public class TaskDataChangeResource extends UpdateCreateDeleteAuditResource<Task
 
   @Operation(summary = "Returns all existing background jobs.", description = "", tags = {
       RequestMappings.TASK_DATA_CHANGE })
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TaskDataChange>> getAllTaskDataChange() {
     return new ResponseEntity<>(taskDataChangeJpaRepository.findAll(), HttpStatus.OK);
   }

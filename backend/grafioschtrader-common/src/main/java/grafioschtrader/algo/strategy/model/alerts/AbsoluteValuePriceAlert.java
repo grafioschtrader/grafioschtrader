@@ -1,6 +1,6 @@
 package grafioschtrader.algo.strategy.model.alerts;
 
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Min;
 
 /**
  * Warn if a security exceeds a lower or upper threshold.<\br> Can only used on

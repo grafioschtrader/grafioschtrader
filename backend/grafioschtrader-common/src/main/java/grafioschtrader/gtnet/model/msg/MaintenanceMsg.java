@@ -2,8 +2,8 @@ package grafioschtrader.gtnet.model.msg;
 
 import java.time.LocalDateTime;
 
-import javax.validation.constraints.Future;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotNull;
 
 import grafioschtrader.gtnet.m2m.model.IMsgDetails;
 import grafioschtrader.validation.DateRange;

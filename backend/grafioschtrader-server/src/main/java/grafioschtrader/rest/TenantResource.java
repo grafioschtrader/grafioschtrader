@@ -2,7 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Tenant> getTenantAndPortfolio() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(tenantJpaRepository.getReferenceById(user.getIdTenant()), HttpStatus.OK);
@@ -70,7 +70,7 @@ public class TenantResource extends UpdateCreateResource<Tenant> {
 
   @Operation(summary = "Delete the private data the main tenant of the user. It als removes the user from this application", description = "", tags = {
       Tenant.TABNAME })
-  @DeleteMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @DeleteMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteMyDataAndUserAccount() throws Exception {
     log.debug("Delete all data of a user");
     tenantJpaRepository.deleteMyDataAndUserAccount();

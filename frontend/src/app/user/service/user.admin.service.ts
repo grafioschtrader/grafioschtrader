@@ -18,7 +18,7 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
   }
 
   public getAllUsers(): Observable<User[]> {
-    return <Observable<User[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/`,
+    return <Observable<User[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

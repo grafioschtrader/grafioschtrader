@@ -24,7 +24,7 @@ public class ProposeChangeEntityResource extends UpdateCreateDeleteAuditResource
   @Autowired
   ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
 
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ProposeChangeEntity>> getProposeChangeEntityListByCreatedBy() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(proposeChangeEntityJpaRepository.findByCreatedBy(user.getIdUser()), HttpStatus.OK);

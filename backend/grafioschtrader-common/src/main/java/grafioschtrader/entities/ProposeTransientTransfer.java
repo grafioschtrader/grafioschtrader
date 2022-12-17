@@ -1,6 +1,6 @@
 package grafioschtrader.entities;
 
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 /**
  * An entity which stands for public data can not directly edited by everybody.

@@ -5,9 +5,9 @@ import java.io.PrintWriter;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.StaleObjectStateException;

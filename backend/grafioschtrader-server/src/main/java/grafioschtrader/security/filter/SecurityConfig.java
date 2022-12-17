@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 import grafioschtrader.entities.Role;
 import grafioschtrader.repository.ProposeUserTaskJpaRepository;
@@ -52,29 +53,29 @@ public class SecurityConfig {
 
     http.exceptionHandling().and().anonymous().and().servletApi().and().headers().cacheControl();
 
-    http.authorizeRequests().antMatchers("/").permitAll()
-        // It must be accessible before login
-        .antMatchers(HttpMethod.GET, RequestMappings.API + "actuator/**").permitAll()
-        .antMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
-        .antMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/locales").permitAll()
-        .antMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/userformdefinition").permitAll()
-        .antMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/properties/*").permitAll()
-        // Register user
-        .antMatchers(HttpMethod.POST, RequestMappings.USER_MAP + "/").permitAll()
-        .antMatchers(HttpMethod.GET, RequestMappings.API + "user/tokenverify/*").permitAll()
-        // for login
-        .antMatchers(HttpMethod.POST, RequestMappings.API + "login").permitAll()
-        // Only for Admin
-        .antMatchers(HttpMethod.PUT, RequestMappings.TRADINGDAYSPLUS_MAP + "/").hasRole(Role.ADMIN)
-        .antMatchers(HttpMethod.PATCH, RequestMappings.TASK_DATA_CHANGE_MAP + "/**").hasRole(Role.ADMIN)
-        .antMatchers(HttpMethod.POST, RequestMappings.TASK_DATA_CHANGE_MAP + "/").hasRole(Role.ADMIN)
-        .antMatchers(HttpMethod.PUT, RequestMappings.TASK_DATA_CHANGE_MAP + "/").hasRole(Role.ADMIN)
-        .antMatchers(HttpMethod.DELETE, RequestMappings.TASK_DATA_CHANGE_MAP + "/*").hasRole(Role.ADMIN)
-        .antMatchers(RequestMappings.CONNECTOR_API_KEY_MAP + "/**").hasRole(Role.ADMIN)
-        .antMatchers(RequestMappings.USER_ENTITY_CHANGE_LIMIT_MAP + "/**").hasRole(Role.ADMIN)
-        .antMatchers(RequestMappings.USERADMIN_MAP + "/**").hasRole(Role.ADMIN)
-        // For all users
-        .antMatchers(RequestMappings.API + "**").hasAnyRole(Role.USER, Role.LIMIT_EDIT);
+    http.authorizeHttpRequests().requestMatchers("/").permitAll()
+ // It must be accessible before login
+    .requestMatchers(antMatcher(HttpMethod.GET, RequestMappings.API + "actuator/**")).permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/locales").permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/userformdefinition").permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/properties/*").permitAll()
+    // Register user
+    .requestMatchers(HttpMethod.POST, RequestMappings.USER_MAP).permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.API + "user/tokenverify/*").permitAll()
+    // for login
+    .requestMatchers(HttpMethod.POST, RequestMappings.API + "login").permitAll()
+    // Only for Admin
+    .requestMatchers(HttpMethod.PUT, RequestMappings.TRADINGDAYSPLUS_MAP).hasRole(Role.ADMIN)
+    .requestMatchers(HttpMethod.PATCH, RequestMappings.TASK_DATA_CHANGE_MAP + "/**").hasRole(Role.ADMIN)
+    .requestMatchers(HttpMethod.POST, RequestMappings.TASK_DATA_CHANGE_MAP).hasRole(Role.ADMIN)
+    .requestMatchers(HttpMethod.PUT, RequestMappings.TASK_DATA_CHANGE_MAP).hasRole(Role.ADMIN)
+    .requestMatchers(HttpMethod.DELETE, RequestMappings.TASK_DATA_CHANGE_MAP + "/*").hasRole(Role.ADMIN)
+    .requestMatchers(RequestMappings.CONNECTOR_API_KEY_MAP + "/**").hasRole(Role.ADMIN)
+    .requestMatchers(RequestMappings.USER_ENTITY_CHANGE_LIMIT_MAP + "/**").hasRole(Role.ADMIN)
+    .requestMatchers(RequestMappings.USERADMIN_MAP + "/**").hasRole(Role.ADMIN)
+    // For all users
+    .requestMatchers(RequestMappings.API + "**").hasAnyRole(Role.USER, Role.LIMIT_EDIT);
 
     http.addFilterBefore(new StatelessLoginFilter("/api/login", tokenAuthenticationService, userService,
         authenticationManager, proposeUserTaskJpaRepository, messages), UsernamePasswordAuthenticationFilter.class);

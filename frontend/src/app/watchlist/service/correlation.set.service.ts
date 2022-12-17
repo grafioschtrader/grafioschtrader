@@ -70,7 +70,7 @@ export class CorrelationSetService extends AuthServiceWithLogout<CorrelationSet>
 
   getCorrelationSetLimit(): Observable<CorrelationLimit> {
     return <Observable<CorrelationLimit>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/limit/`,
+      `${AppSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}/limit`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

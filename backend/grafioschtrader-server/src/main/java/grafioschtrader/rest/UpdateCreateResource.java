@@ -2,7 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +18,7 @@ public abstract class UpdateCreateResource<T extends BaseID> extends UpdateCreat
    * returned.
    */
   @Override
-  @PostMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<T> create(@Valid @RequestBody T entity) throws Exception {
     return createEntity(entity);
   }
@@ -27,7 +27,7 @@ public abstract class UpdateCreateResource<T extends BaseID> extends UpdateCreat
    * Request for update entity.
    */
   @Override
-  @PutMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<T> update(@Valid @RequestBody final T entity) throws Exception {
     return updateEntity(entity);
   }

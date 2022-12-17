@@ -52,7 +52,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   }
 
   @Operation(summary = "Returns all currency pairs", description = "", tags = { Currencypair.TABNAME })
-  @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> getAllCurrencypairs() {
     return new ResponseEntity<>(currencypairJpaRepository.findAll(), HttpStatus.OK);
   }

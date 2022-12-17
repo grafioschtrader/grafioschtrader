@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public class SecuritysplitResource {
     return new ResponseEntity<>(securitysplits, HttpStatus.OK);
   }
 
-  @PostMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Securitysplit>> deleteAndCreateMultiple(
       @Valid @RequestBody final SecuritysplitDeleteAndCreateMultiple sdacm) {
     log.debug("Create Entities : {}", sdacm);

@@ -33,7 +33,7 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
   private AssetclassJpaRepository assetclassJpaRepository;
 
   @Operation(summary = "Return of all asset classes unsorted.", description = "", tags = { RequestMappings.ALGOASSETCLASS })
-  @GetMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Assetclass>> getAllAssetclass() {
     return new ResponseEntity<>(assetclassJpaRepository.findAll(), HttpStatus.OK);
   }

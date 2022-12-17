@@ -1,6 +1,6 @@
 package grafioschtrader.service;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 import org.springframework.stereotype.Service;

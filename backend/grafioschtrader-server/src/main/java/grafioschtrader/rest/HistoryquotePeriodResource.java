@@ -4,7 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,7 +45,7 @@ public class HistoryquotePeriodResource {
 
   @Operation(summary = "Historyquote period are created manually, normally used when one price does not fit the whole lifetime "
       + " of a security", description = "", tags = { RequestMappings.HISTORYQUOTE_PERIOD })
-  @PostMapping(value = "/", produces = APPLICATION_JSON_VALUE)
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<HistoryquotePeriod>> deleteAndCreateMultiple(
       @Valid @RequestBody final HistoryquotePeriodDeleteAndCreateMultiple hpdacm) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

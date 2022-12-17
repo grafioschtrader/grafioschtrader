@@ -1,6 +1,6 @@
 package grafioschtrader.dto;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 import grafioschtrader.GlobalConstants;
 

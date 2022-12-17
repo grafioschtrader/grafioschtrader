@@ -3,7 +3,7 @@ package grafioschtrader.repository;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import grafioschtrader.entities.User;
 
