@@ -48,10 +48,6 @@ import grafioschtrader.validation.ValidISIN;
 import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- *
- * @author Hugo Graf
- */
 @Entity
 @Table(name = Security.TABNAME)
 @DiscriminatorValue("S")

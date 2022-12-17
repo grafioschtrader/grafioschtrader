@@ -37,6 +37,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdTenantAndConnectedIdTransactionAndUnitsIsNotNull(Integer idTenant,
       Integer connectedIdTransaction);
 
+  
   @Query(value = "SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t LEFT JOIN Fetch t.security s"
       + " JOIN Fetch t.cashaccount WHERE p.idPortfolio=?1 ORDER BY t.transactionTime")
   List<Transaction> getTransactionsByIdPortfolio(Integer idPortfolio);
@@ -117,12 +118,12 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdTenantAndSecurityAccountsIdSecurity(Integer idTenant, List<Integer> idsSecurityaccount,
       Integer idSecuritycurrency);
 
-  @Query(nativeQuery = true)
-  List<Transaction> findByIdPortfolioAndIdSecurity(Integer idPortfolio, Integer idSecuritycurrency);
+  @Query(value = "SELECT t FROM Transaction t JOIN Fetch t.security s WHERE s.idSecuritycurrency = ?2 AND t.idSecurityaccount IN ?1 ORDER BY t.transactionTime")
+  List<Transaction> findByIdPortfolioAndIdSecurity(List<Integer> idsSecurityaccounts, Integer idSecuritycurrency);
 
-  @Query(nativeQuery = true)
+  @Query(value = "SELECT t FROM Transaction t JOIN t.security s WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 ORDER BY t.transactionTime")
   List<Transaction> findByIdSecurityaccountAndIdSecurity(Integer idSecuritycashAccount, Integer idSecuritycurrency);
-
+  
   @Query
   List<Transaction> findByIdWatchlist(Integer idWatchlist);
 
