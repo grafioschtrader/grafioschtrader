@@ -1,0 +1,83 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info
+      base-path: /api/actuator
+  info:
+    env:
+      enabled: true
+
+gt:
+  security:
+    async:
+    # Async Execution
+    #-------------------------------------
+    # GT loads historcal pirce data asynchronously when a user saves a instrument with a activated connector
+    # It should be unchanged, only disable it for tests   
+      historyquotes: true
+  use:
+    websocket: false
+    algo: false
+  limit:
+    # Limit Data
+    #-------------------------------------
+    # GT has bandwidth limits to avoid an overuse, it may be disabled for tests  
+    request: true  
+
+spring:
+  main:
+     # Break circular references which disabled by default since spring boot 2.6
+     allow-circular-references: true
+  jpa:
+    properties:
+      jakarta:
+        persistence:
+          sharedCache:
+            mode: ENABLE_SELECTIVE
+      hibernate:
+        # The SQL dialect makes Hibernate generate better SQL for the chosen database
+        dialect: org.hibernate.dialect.MariaDBDialect
+        javax:
+          cache:
+            missing_cache_strategy: create
+        jdbc:
+          time_zone: UTC
+        cache:
+          use_second_level_cache: true
+          region:
+            factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+          use_query_cache: true
+        discriminator:
+          # Do not change it, otherwise dtype in tables is not set
+          ignore_explicit_for_joined: false
+    hibernate:
+      # Hibernate ddl auto (none, create, create-drop, update)
+      ddl-auto: none
+    # Show or not log for each sql query  
+    show-sql: false
+    # Prevents warnings during Spring Boot startup
+    open-in-view: true
+  flyway:
+    locations: classpath:db/migration,classpath:db/callback
+    baseline-on-migrate: true
+    baseline-version: 0.10.0
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver  
+  jackson:
+    serialization:
+      WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS: false
+      WRITE_DATES_AS_TIMESTAMPS: true
+      fail-on-empty-beans: false
+  hateoas:
+    use-hal-as-default-json-media-type: false
+
+
+info:
+  description: '@project.description@'
+  version: '@project.version@'
+  name: '@project.name@'
+
+server:
+  tomcat:
+    connection-timeout: 30s
