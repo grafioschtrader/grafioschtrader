@@ -23,7 +23,7 @@ Some propertis are encrypted with **Jasypt**. Those properties values starts wit
 # In directory backend/grafioschtrader-server
 mvn jasypt:encrypt -Djasypt.encryptor.password="YOUR_Jasypt_PASSWORD"
 ```
-All properties values with "DEC(...)" are now encrypted with "ENC(...). **If you follow the installation path of Wiki, then go back to the main path.**
+All properties values with "DEC(...)" are now encrypted with "ENC(...). Your settings will be kept during GT updates if you use the shell scripts provided by us. However, updates will delete the properties that are not present in the application.properties source. And non-existing properties are added by the source. Therefore, only values of the properties should be changed. **If you follow the installation path of Wiki, then go back to the main path.**
 
 ### Build and execute without scripts
 GT provides some shell scripts which make the following manual creation of the backend unnecessary. We recommend you to use these shell scripts.

@@ -311,6 +311,7 @@
     		 <optional>true</optional>
 		</dependency>
 
+       
 
 	</dependencies>
 
@@ -326,7 +327,7 @@
 			<plugin>
 				<groupId>com.github.ulisesbocchio</groupId>
 				<artifactId>jasypt-maven-plugin</artifactId>
-				<version>3.0.5</version>
+				<version>3.0.3</version>
 			</plugin>
 			<plugin>
 			    <!-- see https://springdoc.org/ -->  
