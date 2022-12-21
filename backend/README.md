@@ -6,7 +6,13 @@ GT depends heavily on other libraries, to get them. Execute the following:
 # In directory backend
 mvn clean install -Dmaven.test.skip=true
 ```
-### application.properties
+### Property files
+There are three [property](./grafioschtrader-server/src/main/resources) files in the backend:
+- **application.yaml**: The properties are set by the software developer. This property file is always overwritten during the update.
+- **application.properties**: The values of this property file should be adjusted according to the configuration of your environment. Your settings will be kept during GT updates if you use the shell scripts provided by us. However, updates will delete the properties that are not present in the application.properties source. And non-existing properties are added by the source. Therefore, only values of the properties should be changed.
+- **application-production.properties**: Here you can make your own settings. These properties remain unaffected by an update. GT delivers an empty file here. A value in this property file overrides the value in the other two property files. Therefore, certain properties should only be overwritten with enough basic knowledge.
+
+#### application.properties
 GT has some properties in the configuration file **backend/grafioschtrader-server/src/main/resources/application.properties**. The properties which settings starts with *ENC* must have a new value and other properties should be checked:
 - spring.datasource.url
 - spring.datasource.username
@@ -23,7 +29,7 @@ Some propertis are encrypted with **Jasypt**. Those properties values starts wit
 # In directory backend/grafioschtrader-server
 mvn jasypt:encrypt -Djasypt.encryptor.password="YOUR_Jasypt_PASSWORD"
 ```
-All properties values with "DEC(...)" are now encrypted with "ENC(...). Your settings will be kept during GT updates if you use the shell scripts provided by us. However, updates will delete the properties that are not present in the application.properties source. And non-existing properties are added by the source. Therefore, only values of the properties should be changed. **If you follow the installation path of Wiki, then go back to the main path.**
+All properties values with "DEC(...)" are now encrypted with "ENC(...).  **If you follow the installation path of Wiki, then go back to the main path.**
 
 ### Build and execute without scripts
 GT provides some shell scripts which make the following manual creation of the backend unnecessary. We recommend you to use these shell scripts.
