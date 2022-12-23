@@ -7,6 +7,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.types.CreateType;
+import grafioschtrader.validation.AfterEqual;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,14 +26,6 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.types.CreateType;
-import grafioschtrader.validation.AfterEqual;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * A security split hat not been mapped to security because of performance

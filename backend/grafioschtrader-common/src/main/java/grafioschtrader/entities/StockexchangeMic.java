@@ -1,11 +1,10 @@
 package grafioschtrader.entities;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Contains a stock exchange with mic, it may be used for the stochexchange creation")
 @Entity

@@ -12,10 +12,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import grafioschtrader.connector.instrument.eodhistoricaldata.EodHistoricalDataConnector;
 import grafioschtrader.entities.Currencypair;
@@ -26,7 +24,6 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)
 public class EodHistoricalDataConnectorTest {
 

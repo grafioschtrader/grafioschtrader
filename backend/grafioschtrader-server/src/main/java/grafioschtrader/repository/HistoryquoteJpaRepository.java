@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import grafioschtrader.dto.HistoryquoteDateClose;
 import grafioschtrader.dto.IDateAndClose;
@@ -18,7 +17,6 @@ import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
-@Repository
 public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, Integer>,
     HistoryquoteJpaRepositoryCustom, UpdateCreateJpaRepository<Historyquote> {
 

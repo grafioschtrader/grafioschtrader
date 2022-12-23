@@ -11,17 +11,11 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 
 import grafioschtrader.dto.StockexchangeHasSecurity;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
-/**
- *
- * @author Hugo Graf
- */
-@Repository
 public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange, Integer>,
     StockexchangeJpaRepositoryCustom, UpdateCreateJpaRepository<Stockexchange> {
 

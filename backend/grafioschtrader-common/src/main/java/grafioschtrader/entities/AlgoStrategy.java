@@ -1,12 +1,11 @@
 package grafioschtrader.entities;
 
+import grafioschtrader.algo.strategy.model.AlgoStrategyImplementations;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-
-import grafioschtrader.algo.strategy.model.AlgoStrategyImplementations;
 
 /**
  * A tenant portfolios, asset class or security may have none or more strategy,

@@ -1,9 +1,8 @@
 package grafioschtrader.dto;
 
+import grafioschtrader.entities.Securitysplit;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
-
-import grafioschtrader.entities.Securitysplit;
 
 public class SecuritysplitDeleteAndCreateMultiple extends DeleteAndCreateMultiple {
 

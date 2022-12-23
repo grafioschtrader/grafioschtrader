@@ -4,14 +4,13 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+import grafioschtrader.common.DateHelper;
+import grafioschtrader.types.OperationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-
-import grafioschtrader.common.DateHelper;
-import grafioschtrader.types.OperationType;
 
 @Entity
 @Table(name = UserEntityChangeCount.TABNAME)

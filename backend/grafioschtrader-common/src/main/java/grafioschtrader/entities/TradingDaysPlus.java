@@ -3,14 +3,13 @@ package grafioschtrader.entities;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafioschtrader.GlobalConstants;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import grafioschtrader.GlobalConstants;
 
 @Entity
 @Table(name = TradingDaysPlus.TABNAME)

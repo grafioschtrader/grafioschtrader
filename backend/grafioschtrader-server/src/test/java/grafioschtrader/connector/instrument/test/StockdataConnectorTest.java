@@ -14,11 +14,9 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.connector.instrument.stockdata.StockdataConnector;
@@ -31,7 +29,6 @@ import grafioschtrader.repository.StockexchangeMicJpaRepository;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)
 @Transactional
 public class StockdataConnectorTest {

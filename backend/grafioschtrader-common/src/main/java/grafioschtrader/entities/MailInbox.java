@@ -3,16 +3,15 @@ package grafioschtrader.entities;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafioschtrader.GlobalConstants;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import grafioschtrader.GlobalConstants;
 
 /**
  * Contains the receiving Messages.

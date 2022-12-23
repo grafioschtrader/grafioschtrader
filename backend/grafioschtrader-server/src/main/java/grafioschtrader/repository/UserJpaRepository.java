@@ -6,13 +6,12 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.UserOwnProjection;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
-@Repository
+
 public interface UserJpaRepository
     extends JpaRepository<User, Integer>, UserJpaRepositoryCustom, UpdateCreateJpaRepository<User> {
   Optional<User> findByEmail(String username);

@@ -3,6 +3,7 @@ package grafioschtrader.entities;
 import java.util.HashMap;
 import java.util.Map;
 
+import grafioschtrader.algo.rule.BuySell;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -15,8 +16,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Table;
-
-import grafioschtrader.algo.rule.BuySell;
 
 @Entity
 @Table(name = AlgoRule.TABNAME)

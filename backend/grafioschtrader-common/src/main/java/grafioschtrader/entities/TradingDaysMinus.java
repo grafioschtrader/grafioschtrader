@@ -4,6 +4,12 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.types.CreateType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -12,13 +18,6 @@ import jakarta.persistence.ParameterMode;
 import jakarta.persistence.StoredProcedureParameter;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.types.CreateType;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = TradingDaysMinus.TABNAME)

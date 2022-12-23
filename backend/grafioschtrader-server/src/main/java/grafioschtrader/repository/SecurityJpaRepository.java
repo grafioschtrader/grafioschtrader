@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
-import org.springframework.stereotype.Repository;
 
 import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import grafioschtrader.entities.Security;
@@ -22,7 +21,7 @@ import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithS
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
-@Repository
+
 public interface SecurityJpaRepository extends JpaRepository<Security, Integer>, JpaSpecificationExecutor<Security>,
     SecurityJpaRepositoryCustom, UpdateCreateJpaRepository<Security> {
 
@@ -127,5 +126,6 @@ public interface SecurityJpaRepository extends JpaRepository<Security, Integer>,
   public enum SplitAdjustedHistoryquotes {
     NOT_DETCTABLE, ADJUSTED, NOT_ADJUSTED
   }
+
 
 }

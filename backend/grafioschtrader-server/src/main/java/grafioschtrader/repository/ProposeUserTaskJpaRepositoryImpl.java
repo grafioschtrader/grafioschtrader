@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import jakarta.mail.MessagingException;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -24,6 +22,7 @@ import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserEntityChangeLimit;
 import grafioschtrader.usertask.UserTaskType;
+import jakarta.mail.MessagingException;
 
 public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<ProposeUserTask>
     implements ProposeUserTaskJpaRepositoryCustom {

@@ -2,14 +2,13 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import jakarta.validation.Valid;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import grafioschtrader.entities.BaseID;
+import jakarta.validation.Valid;
 
 public abstract class UpdateCreateResource<T extends BaseID> extends UpdateCreate<T> {
 

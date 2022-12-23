@@ -7,8 +7,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +30,7 @@ import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 
 @RestController

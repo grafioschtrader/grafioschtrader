@@ -3,12 +3,11 @@ package grafioschtrader.validation;
 import java.util.Currency;
 import java.util.function.Predicate;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
-
 import org.apache.commons.lang3.StringUtils;
 
 import grafioschtrader.GlobalConstants;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class ValidCurrencyCodeValidator implements ConstraintValidator<ValidCurrencyCode, String> {
 

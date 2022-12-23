@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.metamodel.EntityType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +15,8 @@ import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.AdminEntity;
 import grafioschtrader.entities.Auditable;
 import grafioschtrader.entities.UserEntityChangeLimit;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.EntityType;
 
 public class UserEntityChangeLimitJpaRepositoryImpl extends BaseRepositoryImpl<UserEntityChangeLimit>
     implements UserEntityChangeLimitJpaRepositoryCustom {

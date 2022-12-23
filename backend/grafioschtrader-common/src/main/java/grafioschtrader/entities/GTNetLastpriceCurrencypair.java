@@ -1,13 +1,12 @@
 package grafioschtrader.entities;
 
+import grafioschtrader.validation.ValidCurrencyCode;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-
-import grafioschtrader.validation.ValidCurrencyCode;
 
 @Entity
 @Table(name = GTNetLastpriceCurrencypair.TABNAME)

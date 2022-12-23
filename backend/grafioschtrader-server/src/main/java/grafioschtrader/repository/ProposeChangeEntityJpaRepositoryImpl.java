@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,6 +16,8 @@ import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.entities.ProposeChangeEntity;
 import grafioschtrader.entities.User;
 import grafioschtrader.types.ProposeDataChangeState;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 public class ProposeChangeEntityJpaRepositoryImpl extends ProposeRequestService<ProposeChangeEntity>
     implements ProposeChangeEntityJpaRepositoryCustom {

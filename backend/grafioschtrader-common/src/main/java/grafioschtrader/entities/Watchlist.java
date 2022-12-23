@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.common.PropertyAlwaysUpdatable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,11 +27,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 
 @Schema(description = "A watchlist is a personal compilation of instruments with price performance and other details.")

@@ -44,7 +44,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-     supportedFeed.put(FeedSupport.INTRA,
+    supportedFeed.put(FeedSupport.INTRA,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 
@@ -68,11 +68,12 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
-      String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
-      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+      Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
+      FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
+      AssetclassType assetclassType) {
 
-    boolean clear = super.checkAndClearSecuritycurrencyConnector(feedSupport, urlExtend, errorMsgKey, feedIdentifier,
+    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey, feedIdentifier,
         specialInvestmentInstruments, assetclassType);
     switch (feedSupport) {
     case HISTORY:
@@ -97,17 +98,17 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     boolean useStockSelector = security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES
         && security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
 
-    if(security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF) {
+    if (security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF) {
       updateLstPriceETF(security, url);
-    } else {  
+    } else {
       updateLastPrice(security, url, useStockSelector);
     }
-    
+
   }
 
   private <S extends Securitycurrency<S>> void updateLastPrice(Securitycurrency<S> securitycurrency, String url,
       boolean useStockSelector) throws Exception {
-   
+
     final Document doc = getDoc(url);
     final Elements elementPrices = useStockSelector ? doc.select("table.drop-up-enabled td")
         : doc.select("table.pricebox th");
@@ -122,35 +123,34 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
 
     setLastPrice(securitycurrency, lastPrice, dailyChange, changePercentage);
   }
-  
+
   private void updateLstPriceETF(Security security, final String url) throws Exception {
     final Document doc = getDoc(url);
     final Elements elementPrices = doc.select("div.snapshot__values");
     String[] splited = elementPrices.text().split("\\s+");
-    final double lastPrice = NumberFormat.getNumberInstance(FC_LOCALE).parse(splited[0].replace("'", ""))
-        .doubleValue();
+    final double lastPrice = NumberFormat.getNumberInstance(FC_LOCALE).parse(splited[0].replace("'", "")).doubleValue();
     final double dailyChange = NumberFormat.getNumberInstance(FC_LOCALE).parse(splited[2].replace("'", ""))
-            .doubleValue();   
-    final double changePercentage = NumberFormat.getNumberInstance(FC_LOCALE)
-        .parse(splited[4].replaceAll("[ %]", "")).doubleValue();
+        .doubleValue();
+    final double changePercentage = NumberFormat.getNumberInstance(FC_LOCALE).parse(splited[4].replaceAll("[ %]", ""))
+        .doubleValue();
     setLastPrice(security, lastPrice, dailyChange, changePercentage);
   }
-  
+
   private Document getDoc(String url) throws IOException, InterruptedException {
     HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL).build();
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
     HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
     return Jsoup.parse(response.body());
   }
-  
-  private <S extends Securitycurrency<S>> void setLastPrice(Securitycurrency<S> securitycurrency, double lastPrice, double dailyChange, double changePercentage) {
+
+  private <S extends Securitycurrency<S>> void setLastPrice(Securitycurrency<S> securitycurrency, double lastPrice,
+      double dailyChange, double changePercentage) {
     securitycurrency.setSLast(lastPrice);
     securitycurrency.setSPrevClose(lastPrice - dailyChange);
     securitycurrency.setSChangePercentage(changePercentage);
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
-  
-  
+
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     return domain + security.getUrlHistoryExtend();

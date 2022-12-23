@@ -7,8 +7,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import jakarta.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +18,7 @@ import grafioschtrader.dto.TradingDaysWithDateBoundaries;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.TradingDaysMinus;
 import grafioschtrader.entities.User;
+import jakarta.transaction.Transactional;
 
 public class TradingDaysMinusJpaRepositoryImpl implements TradingDaysMinusJpaRepositoryCustom {
 

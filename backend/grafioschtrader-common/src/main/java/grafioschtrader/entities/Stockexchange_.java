@@ -3,9 +3,8 @@ package grafioschtrader.entities;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import jakarta.persistence.metamodel.SingularAttribute;
-
 import jakarta.annotation.Generated;
+import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.StaticMetamodel;
 
 @Generated(value = "org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor")

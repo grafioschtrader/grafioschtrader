@@ -8,11 +8,9 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
@@ -28,7 +26,6 @@ import grafioschtrader.types.TransactionType;
  * future test.
  *
  */
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)
 class CheckCashaccountAmountTransaction {
 

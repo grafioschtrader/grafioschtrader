@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +46,7 @@ import grafioschtrader.platformimport.pdf.ParseFormInputPDFasTXT;
 import grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT;
 import grafioschtrader.types.TemplateCategory;
 import grafioschtrader.types.TemplateFormatType;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryImpl<ImportTransactionTemplate>
     implements ImportTransactionTemplateJpaRepositoryCustom {

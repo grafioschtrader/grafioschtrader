@@ -1,10 +1,9 @@
 package grafioschtrader.validation;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
-
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.MultilanguageString;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class ValidMultilanguageValidator implements ConstraintValidator<ValidMultilanguage, MultilanguageString> {
 

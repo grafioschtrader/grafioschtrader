@@ -3,9 +3,9 @@ package grafioschtrader.entities;
 import java.util.Objects;
 import java.util.UUID;
 
-import jakarta.persistence.Transient;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Transient;
 
 /**
  * Only surrogate key with Integer type is supported, since some public data

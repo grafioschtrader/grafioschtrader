@@ -72,7 +72,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   public String getID() {
     return ID_PREFIX + shortId;
   }
-  
+
   @Override
   public String getShortID() {
     return shortId;
@@ -211,7 +211,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
 
     switch (feedSupport) {
     case HISTORY:
-      if (checkAndClearSecuritycurrencyConnector(feedSupport, securitycurrency.getUrlHistoryExtend(),
+      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, securitycurrency.getUrlHistoryExtend(),
           "gt.connector.historical.url.failure", getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null),
           specInst, assetclassType)) {
         securitycurrency.setUrlHistoryExtend(null);
@@ -228,7 +228,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       }
       break;
     case INTRA:
-      if (checkAndClearSecuritycurrencyConnector(feedSupport, securitycurrency.getUrlIntraExtend(),
+      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, securitycurrency.getUrlIntraExtend(),
           "gt.connector.intra.url.failure", getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null), specInst,
           assetclassType)) {
         securitycurrency.setUrlIntraExtend(null);
@@ -245,13 +245,13 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       }
       break;
     case DIVIDEND:
-      if (checkAndClearSecuritycurrencyConnector(feedSupport, ((Security) securitycurrency).getUrlDividendExtend(),
+      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, ((Security) securitycurrency).getUrlDividendExtend(),
           "gt.connector.dividend.url.failure", FeedIdentifier.DIVIDEND_URL, specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlDividendExtend(null);
       }
       break;
     case SPLIT:
-      if (checkAndClearSecuritycurrencyConnector(feedSupport, ((Security) securitycurrency).getUrlSplitExtend(),
+      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, ((Security) securitycurrency).getUrlSplitExtend(),
           "gt.connector.split.url.failure", FeedIdentifier.SPLIT_URL, specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlSplitExtend(null);
       }
@@ -268,9 +268,10 @@ public abstract class BaseFeedConnector implements IFeedConnector {
             : FeedIdentifier.CURRENCY_URL;
   }
 
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
-      String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
-      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+      Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
+      FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
+      AssetclassType assetclassType) {
 
     boolean clear = shouldClearUrlExtension(urlExtend, errorMsgKey, feedIdentifier, specialInvestmentInstruments,
         assetclassType);

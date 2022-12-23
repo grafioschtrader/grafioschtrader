@@ -1,16 +1,15 @@
 package grafioschtrader.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.types.MessageComType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.types.MessageComType;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "User can set per type if this message will be forwarded to his EMail.")
 public class MailSettingForward extends BaseID {

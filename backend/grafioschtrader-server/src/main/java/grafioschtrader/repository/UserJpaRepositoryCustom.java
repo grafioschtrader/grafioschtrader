@@ -3,9 +3,8 @@ package grafioschtrader.repository;
 import java.sql.SQLException;
 import java.util.List;
 
-import jakarta.mail.MessagingException;
-
 import grafioschtrader.entities.User;
+import jakarta.mail.MessagingException;
 
 public interface UserJpaRepositoryCustom extends BaseRepositoryCustom<User> {
 

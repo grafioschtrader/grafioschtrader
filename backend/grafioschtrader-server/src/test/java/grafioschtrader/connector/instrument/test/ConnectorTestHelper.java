@@ -1,5 +1,10 @@
 package grafioschtrader.connector.instrument.test;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
@@ -8,6 +13,8 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public class ConnectorTestHelper {
 
+  final static SimpleDateFormat sdf = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+  
   public static Currencypair createCurrencyPair(final String fromCurrency, final String toCurrency) {
     return createCurrencyPair(fromCurrency, toCurrency, null);
   }
@@ -62,10 +69,11 @@ public class ConnectorTestHelper {
     return createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA);
   }
 
+   
   public static Security createHistoricalSecurity(final String name, final String urlHistoryExtend,
-      SpecialInvestmentInstruments specialInvestmentInstrument, String symbolStockexchange) {
+      SpecialInvestmentInstruments specialInvestmentInstrument, String mic) {
     return setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlHistoryExtend, ExtendKind.EOD),
-        specialInvestmentInstrument, symbolStockexchange);
+        specialInvestmentInstrument, mic);
   }
 
   public static Security createHistoricalSecurity(final String name, final String urlHistoryExtend) {
@@ -107,4 +115,27 @@ public class ConnectorTestHelper {
     EOD, INTRA, DIVIDEND, SPLIT;
   }
 
+  public static class HisoricalDate {
+    
+   
+    public Security security;
+    public int expectedRows;
+    public Date from;
+    public Date to;
+    
+    public HisoricalDate(final String name, String isin, 
+        SpecialInvestmentInstruments specialInvestmentInstrument, String mic, int expectedRows,
+        String fromStr, String toStr) throws ParseException {
+      security = new Security();
+      security.setName(name);
+      security.setIsin(isin);
+      this.expectedRows = expectedRows;
+      this.from = sdf.parse(fromStr);
+      this.to = sdf.parse(toStr);
+      setAssetclassAndStockexchange(security, specialInvestmentInstrument, mic);
+    }
+     
+  }
+  
+  
 }

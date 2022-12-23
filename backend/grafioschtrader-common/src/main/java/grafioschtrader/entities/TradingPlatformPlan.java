@@ -2,6 +2,12 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.types.Language;
+import grafioschtrader.types.TradingPlatformFeePlan;
+import grafioschtrader.validation.ValidMultilanguage;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -14,13 +20,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.types.Language;
-import grafioschtrader.types.TradingPlatformFeePlan;
-import grafioschtrader.validation.ValidMultilanguage;
 
 /**
  * It contains the information for the trading platform.

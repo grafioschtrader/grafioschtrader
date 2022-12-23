@@ -16,6 +16,17 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.common.PropertyOnlyCreation;
+import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
+import grafioschtrader.validation.WebUrl;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
@@ -28,18 +39,6 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertyOnlyCreation;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
-import grafioschtrader.validation.WebUrl;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Stockexchange

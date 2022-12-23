@@ -2,17 +2,16 @@ package grafioschtrader.entities;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.types.CreateType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.types.CreateType;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @MappedSuperclass
 public abstract class DividendSplit extends BaseID {

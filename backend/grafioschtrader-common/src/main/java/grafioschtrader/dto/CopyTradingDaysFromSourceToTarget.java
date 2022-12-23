@@ -1,8 +1,7 @@
 package grafioschtrader.dto;
 
-import jakarta.validation.constraints.Min;
-
 import grafioschtrader.GlobalConstants;
+import jakarta.validation.constraints.Min;
 
 public class CopyTradingDaysFromSourceToTarget {
   public int sourceIdStockexchange;

@@ -1,7 +1,6 @@
 package grafioschtrader.entities;
 
 import jakarta.annotation.Generated;
-
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.StaticMetamodel;
 

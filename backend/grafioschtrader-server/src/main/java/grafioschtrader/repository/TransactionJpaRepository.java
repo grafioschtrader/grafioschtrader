@@ -6,13 +6,11 @@ import java.util.stream.Stream;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
-@Repository
 public interface TransactionJpaRepository extends JpaRepository<Transaction, Integer>, TransactionJpaRepositoryCustom,
     UpdateCreateJpaRepository<Transaction> {
 

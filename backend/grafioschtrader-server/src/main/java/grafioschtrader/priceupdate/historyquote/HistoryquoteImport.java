@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import jakarta.validation.Validator;
-
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +37,7 @@ import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository.SecurityCurrencyIdAndDate;
 import grafioschtrader.types.HistoryquoteCreateType;
+import jakarta.validation.Validator;
 
 /**
  * Import delimited EOD into history quote. First row must contain the delimited
