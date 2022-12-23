@@ -2,9 +2,8 @@ package grafioschtrader.entities;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.metamodel.ListAttribute;
-
 import jakarta.annotation.Generated;
+import jakarta.persistence.metamodel.ListAttribute;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.StaticMetamodel;
 

@@ -3,16 +3,15 @@ package grafioschtrader.search;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-
 import org.springframework.data.jpa.domain.Specification;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Currencypair_;
 import grafioschtrader.entities.Securitycurrency_;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 public class CurrencySearchBuilder extends SecuritycurrencySearchBuilder implements Specification<Currencypair> {
 

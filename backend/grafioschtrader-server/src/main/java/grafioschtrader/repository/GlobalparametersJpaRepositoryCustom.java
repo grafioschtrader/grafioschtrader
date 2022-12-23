@@ -5,11 +5,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.persistence.EntityManager;
-
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
+import jakarta.persistence.EntityManager;
 
 public interface GlobalparametersJpaRepositoryCustom {
 

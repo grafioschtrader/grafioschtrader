@@ -1,8 +1,7 @@
 package grafioschtrader.dto;
 
-import jakarta.validation.constraints.Size;
-
 import grafioschtrader.GlobalConstants;
+import jakarta.validation.constraints.Size;
 
 public abstract class DeleteAndCreateMultiple {
   public Integer idSecuritycurrency;

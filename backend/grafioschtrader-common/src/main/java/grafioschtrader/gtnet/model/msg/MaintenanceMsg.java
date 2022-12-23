@@ -2,11 +2,10 @@ package grafioschtrader.gtnet.model.msg;
 
 import java.time.LocalDateTime;
 
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotNull;
-
 import grafioschtrader.gtnet.m2m.model.IMsgDetails;
 import grafioschtrader.validation.DateRange;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Server which offers data will receive maintenance in the future.

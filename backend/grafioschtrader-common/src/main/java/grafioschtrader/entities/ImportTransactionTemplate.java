@@ -6,16 +6,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -26,6 +16,15 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.platformimport.TemplateConfiguration;
 import grafioschtrader.types.TemplateCategory;
 import grafioschtrader.types.TemplateFormatType;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 /**
  * It contains the pdf or csv template as text, which will be used for import

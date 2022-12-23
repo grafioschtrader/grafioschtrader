@@ -3,10 +3,10 @@ package grafioschtrader.validation;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.validator.routines.checkdigit.ISINCheckDigit;
+
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
-import org.apache.commons.validator.routines.checkdigit.ISINCheckDigit;
 
 public class ISINValidator implements ConstraintValidator<ValidISIN, String> {
 

@@ -16,6 +16,7 @@ public class GlobalConstants {
   public static final String STOCK_EX_MIC_ZKB = "ZKBX";
   public static final String STOCK_EX_MIC_STUTTGART = "XSTU";
   public static final String STOCK_EX_MIC_WARSAW = "XWAR";
+  
 
   /**
    * Supported languages in this application

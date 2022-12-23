@@ -4,6 +4,20 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DateHelper;
+import grafioschtrader.exceptions.DataViolationException;
+import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.reportviews.SecurityCostPosition;
+import grafioschtrader.types.TransactionType;
+import grafioschtrader.validation.AfterEqual;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,21 +37,6 @@ import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.groups.Default;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
-import grafioschtrader.common.DateHelper;
-import grafioschtrader.exceptions.DataViolationException;
-import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
-import grafioschtrader.reportviews.SecurityCostPosition;
-import grafioschtrader.types.TransactionType;
-import grafioschtrader.validation.AfterEqual;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = Transaction.TABNAME)

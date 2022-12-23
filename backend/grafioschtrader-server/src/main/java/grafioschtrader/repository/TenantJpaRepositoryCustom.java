@@ -2,9 +2,8 @@ package grafioschtrader.repository;
 
 import java.util.Optional;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 import grafioschtrader.entities.Tenant;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface TenantJpaRepositoryCustom extends BaseRepositoryCustom<Tenant> {
 

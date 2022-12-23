@@ -16,9 +16,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +44,8 @@ import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
 import grafioschtrader.rest.helper.RestHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionPosJpaRepositoryCustom {
 

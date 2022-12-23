@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafioschtrader.dto.MaxDefaultDBValueWithKey;
@@ -21,6 +18,8 @@ import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 
 public abstract class TenantLimitsHelper {
 

@@ -4,6 +4,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.common.PropertyOnlyCreation;
+import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
+import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.SendReceivedType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -19,13 +25,6 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertyOnlyCreation;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
-import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.SendReceivedType;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = GTNetMessage.TABNAME)

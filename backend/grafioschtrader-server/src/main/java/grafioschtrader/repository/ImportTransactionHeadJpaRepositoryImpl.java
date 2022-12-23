@@ -8,8 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import jakarta.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +25,7 @@ import grafioschtrader.platform.IPlatformTransactionImport;
 import grafioschtrader.platformimport.ImportTransactionHelper;
 import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.SavedImpPosAndTransaction;
 import grafioschtrader.types.TemplateFormatType;
+import jakarta.transaction.Transactional;
 
 public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<ImportTransactionHead>
     implements ImportTransactionHeadJpaRepositoryCustom {

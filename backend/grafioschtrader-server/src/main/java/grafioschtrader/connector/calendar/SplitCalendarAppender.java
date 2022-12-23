@@ -41,7 +41,7 @@ import grafioschtrader.types.TaskType;
  * corresponding securities. A direct insertion into the split table is not
  * performed, because the security may have been identified incorrectly. For the
  * identification the security symbol is used and also the name is checked for
- * simalarty.
+ * similarity.
  *
  */
 @Component

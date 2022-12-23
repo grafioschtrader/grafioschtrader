@@ -9,10 +9,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.common.DateHelper;
@@ -31,7 +29,6 @@ import grafioschtrader.repository.helper.GroupPortfolio;
  * holding tables, this way it may be faster. But the holding tables have a
  * small risk to get outdated.
  */
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @Transactional
 class CompareHoldingWithOtherSummaryTest {

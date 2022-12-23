@@ -5,10 +5,6 @@ import java.io.PrintWriter;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.StaleObjectStateException;
 import org.slf4j.Logger;
@@ -41,6 +37,9 @@ import grafioschtrader.exceptions.LimitEntityTransactionException;
 import grafioschtrader.exceptions.RequestLimitAndSecurityBreachException;
 import grafioschtrader.security.UserRightLimitCounter;
 import grafioschtrader.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class RestErrorHandler {

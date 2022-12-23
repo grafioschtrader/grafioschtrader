@@ -4,6 +4,13 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.types.ProgressStateType;
+import grafioschtrader.types.TaskDataExecPriority;
+import grafioschtrader.types.TaskType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,14 +19,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.types.ProgressStateType;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 
 @Entity

@@ -5,8 +5,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +22,7 @@ import grafioschtrader.repository.ConnectorApiKeyJpaRepository;
 import grafioschtrader.repository.ConnectorApiKeyJpaRepositoryImpl.SubscriptionTypeReadableName;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(RequestMappings.CONNECTOR_API_KEY_MAP)

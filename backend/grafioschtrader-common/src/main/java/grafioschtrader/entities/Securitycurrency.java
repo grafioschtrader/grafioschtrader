@@ -12,6 +12,14 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.validation.WebUrl;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -30,15 +38,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.validation.WebUrl;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * It is not mapped to transaction, because the right way goes from

@@ -49,11 +49,9 @@ public class InvestingConnector extends BaseFeedConnector {
   private static final String URL_HISTORICAL_REGEX = "^\\d+$";
   private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
 
-  
   Map<String, String> cryptoCurrencyMap = Map.of("BTC", "bitcoin", "BNB", "binance-coin", "ETH", "ethereum", "ETC",
       "ethereum-classic", "LTC", "litecoin", "XPR", "xrp");
 
-  
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
@@ -63,14 +61,14 @@ public class InvestingConnector extends BaseFeedConnector {
     super(supportedFeed, INVESTING, "Investing.com", null);
   }
 
-  
   @Override
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
-      String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
-      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+      Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
+      FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
+      AssetclassType assetclassType) {
 
-    boolean clear = super.checkAndClearSecuritycurrencyConnector(feedSupport, urlExtend, errorMsgKey, feedIdentifier,
-        specialInvestmentInstruments, assetclassType);
+    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey,
+        feedIdentifier, specialInvestmentInstruments, assetclassType);
     if (feedIdentifier != null) {
       switch (feedSupport) {
       case HISTORY:
@@ -82,8 +80,7 @@ public class InvestingConnector extends BaseFeedConnector {
     }
     return clear;
   }
-  
-  
+
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
     return IConnectorNames.DOMAIN_INVESTING
@@ -94,7 +91,7 @@ public class InvestingConnector extends BaseFeedConnector {
   private String getCryptoMapping(final Currencypair currencypair) {
     return "crypto/" + cryptoCurrencyMap.get(currencypair.getFromCurrency());
   }
-  
+
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     final Connection investingConnection = Jsoup.connect(getCurrencypairIntradayDownloadLink(currencypair));
@@ -105,18 +102,18 @@ public class InvestingConnector extends BaseFeedConnector {
   public String getSecurityIntradayDownloadLink(final Security security) {
     return IConnectorNames.DOMAIN_INVESTING + security.getUrlIntraExtend();
   }
-  
+
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     final Connection investingConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
     updateSecuritycurrency(security, investingConnection);
   }
-  
+
   @Override
   public int getIntradayDelayedSeconds() {
     return 1;
   }
-  
+
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency,
       final Connection investingConnection) throws IOException {
     final Document doc = investingConnection.timeout(10000).get();
@@ -134,8 +131,7 @@ public class InvestingConnector extends BaseFeedConnector {
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
-  
-  
+
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     return getSecurityCurrencyHistoricalDownloadLink(security);
@@ -143,15 +139,16 @@ public class InvestingConnector extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> String getHistoricalLink(final Securitycurrency<T> securitycurreny, Date from,
       Date to, String guid) {
-    return INVESTING_DOMAIN_HISTORYICAL + guid + "/0/0/0/0/history?symbol=" + securitycurreny.getUrlHistoryExtend() + "&resolution=D&from="
-        + (new Timestamp(from.getTime()).getTime() / 1000) + "&to=" + (new Timestamp(to.getTime()).getTime() / 1000);
+    return INVESTING_DOMAIN_HISTORYICAL + guid + "/0/0/0/0/history?symbol=" + securitycurreny.getUrlHistoryExtend()
+        + "&resolution=D&from=" + (new Timestamp(from.getTime()).getTime() / 1000) + "&to="
+        + (new Timestamp(to.getTime()).getTime() / 1000);
   }
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(Currencypair currencypair) {
     return getSecurityCurrencyHistoricalDownloadLink(currencypair);
   }
-  
+
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws Exception {

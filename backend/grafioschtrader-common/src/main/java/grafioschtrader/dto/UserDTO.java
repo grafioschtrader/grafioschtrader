@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import jakarta.validation.constraints.Size;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;
+import jakarta.validation.constraints.Size;
 
 /**
  * Never send this DTO back to the client, because it contains the password.

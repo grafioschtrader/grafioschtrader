@@ -3,40 +3,48 @@ package grafioschtrader.alert;
 import java.util.Locale;
 import java.util.Optional;
 
-import jakarta.mail.MessagingException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
+import jakarta.mail.MessagingException;
 
-@Service
-public class AlertService {
+@Component
+public class AlertListener implements ApplicationListener<AlertEvent>  {
 
   private static final Logger log = LoggerFactory.getLogger(CashAccountTransfer.class);
-  
-  @Autowired
-  private UserJpaRepository userJpaRepository;
+ 
+  private final UserJpaRepository userJpaRepository;
 
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private final GlobalparametersJpaRepository globalparametersJpaRepository;
 
-  @Autowired
-  private MessageSource messages;
+  private final MessageSource messages;
 
   @Value("${gt.main.user.admin.mail}")
   private String mainUserAdminMail;
 
-  public void sendMail(AlertType alertType, Object msgParam) {
-    sendMail(alertType, new Object[] {msgParam});
+  
+  public AlertListener(@Lazy UserJpaRepository userJpaRepository, @Lazy GlobalparametersJpaRepository globalparametersJpaRepository,
+      MessageSource messages) {
+    super();
+    this.userJpaRepository = userJpaRepository;
+    this.globalparametersJpaRepository = globalparametersJpaRepository;
+    this.messages = messages;
+  }
+
+
+  @Override
+  public void onApplicationEvent(AlertEvent event) {
+    sendMail(event.getAlertType(), new Object[] {event.getMsgParam()});
   }
   
   
@@ -55,4 +63,8 @@ public class AlertService {
     }
   }
 
+
+ 
+
 }
+

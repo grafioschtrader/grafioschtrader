@@ -4,6 +4,16 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DataHelper;
+import grafioschtrader.platformimport.ImportProperties;
+import grafioschtrader.platformimport.ImportTransactionHelper;
+import grafioschtrader.types.ImportKnownOtherFlags;
+import grafioschtrader.types.TransactionType;
+import grafioschtrader.validation.ValidISIN;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -21,17 +31,6 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
-import grafioschtrader.platformimport.ImportProperties;
-import grafioschtrader.platformimport.ImportTransactionHelper;
-import grafioschtrader.types.ImportKnownOtherFlags;
-import grafioschtrader.types.TransactionType;
-import grafioschtrader.validation.ValidISIN;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Transactions from csv or pdf file are imported in this table. Normally a csv

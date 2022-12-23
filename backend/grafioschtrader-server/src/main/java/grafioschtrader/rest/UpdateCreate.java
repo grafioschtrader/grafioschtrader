@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.validation.Valid;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +45,9 @@ import grafioschtrader.repository.TenantLimitsHelper;
 import grafioschtrader.repository.UserEntityChangeCountJpaRepository;
 import grafioschtrader.types.OperationType;
 import grafioschtrader.types.ProposeDataChangeState;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.validation.Valid;
 
 public abstract class UpdateCreate<T extends BaseID> {
 

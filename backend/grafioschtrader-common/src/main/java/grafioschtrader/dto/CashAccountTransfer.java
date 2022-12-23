@@ -2,9 +2,6 @@ package grafioschtrader.dto;
 
 import java.util.List;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +12,8 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Transaction.CashTransaction;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.types.TransactionType;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 @Validated
 public class CashAccountTransfer {

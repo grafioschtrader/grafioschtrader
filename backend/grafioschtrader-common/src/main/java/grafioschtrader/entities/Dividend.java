@@ -4,13 +4,6 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Date;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafioschtrader.GlobalConstants;
@@ -18,6 +11,12 @@ import grafioschtrader.common.DateHelper;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = Dividend.TABNAME)

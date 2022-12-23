@@ -1,5 +1,7 @@
 package grafioschtrader.entities;
 
+import grafioschtrader.algo.RuleStrategy;
+import grafioschtrader.common.PropertyAlwaysUpdatable;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -8,9 +10,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import grafioschtrader.algo.RuleStrategy;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
 
 /**
  * Algorithmic tranding top level. It does not include the depending children.

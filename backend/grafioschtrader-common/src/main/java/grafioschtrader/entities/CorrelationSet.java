@@ -10,6 +10,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.exceptions.DataViolationException;
+import grafioschtrader.types.SamplingPeriodType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,16 +32,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.exceptions.DataViolationException;
-import grafioschtrader.types.SamplingPeriodType;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = CorrelationSet.TABNAME)

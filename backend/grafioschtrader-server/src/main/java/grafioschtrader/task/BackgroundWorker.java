@@ -15,11 +15,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import grafioschtrader.alert.AlertService;
+import grafioschtrader.alert.AlertEvent;
 import grafioschtrader.alert.AlertType;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
@@ -47,7 +48,7 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
   private List<ITask> tasks = new ArrayList<>();
 
   @Autowired
-  private AlertService alertService;
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -108,7 +109,8 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
         Thread.sleep(WAIT_MILISECONDS_AFTER_TIMEOUT);
         if (workerThread.isAlive()) {
           finishedJob(taskDataChange, startTime, ProgressStateType.PROG_ZOMBIE);
-          alertService.sendMail(AlertType.ALERT_GET_ZOMBIE_BACKGROUND_JOB, taskDataChange.getIdTaskDataChange());
+          applicationEventPublisher.publishEvent(
+              new AlertEvent(this, AlertType.ALERT_GET_ZOMBIE_BACKGROUND_JOB, taskDataChange.getIdTaskDataChange()));
         }
       }
     }

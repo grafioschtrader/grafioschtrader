@@ -3,13 +3,12 @@ package grafioschtrader.repository;
 import java.util.List;
 import java.util.Locale;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.web.multipart.MultipartFile;
 
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.platformimport.FormTemplateCheck;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface ImportTransactionTemplateJpaRepositoryCustom extends BaseRepositoryCustom<ImportTransactionTemplate> {
   FormTemplateCheck checkFormAgainstTemplate(FormTemplateCheck formTemplateCheck, Locale userLocale) throws Exception;

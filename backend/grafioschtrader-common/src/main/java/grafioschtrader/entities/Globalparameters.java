@@ -13,6 +13,15 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.dto.MaxDefaultDBValue;
+import grafioschtrader.dto.MaxDefaultDBValueWithKey;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
@@ -23,16 +32,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
-
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.dto.MaxDefaultDBValue;
-import grafioschtrader.dto.MaxDefaultDBValueWithKey;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Contains a global setting configuration")
 @Entity

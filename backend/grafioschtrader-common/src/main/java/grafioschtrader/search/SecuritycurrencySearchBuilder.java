@@ -3,19 +3,18 @@ package grafioschtrader.search;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.ListJoin;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
-
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.CorrelationSet_;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitycurrency_;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.entities.Watchlist_;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.ListJoin;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 public class SecuritycurrencySearchBuilder {
 

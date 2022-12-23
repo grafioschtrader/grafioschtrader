@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import jakarta.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -17,6 +15,7 @@ import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.TradingDaysWithDateBoundaries;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.User;
+import jakarta.transaction.Transactional;
 
 public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepositoryCustom {
 

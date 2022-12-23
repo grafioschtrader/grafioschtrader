@@ -1,8 +1,7 @@
 package grafioschtrader.repository;
 
-import jakarta.mail.MessagingException;
-
 import grafioschtrader.entities.ProposeUserTask;
+import jakarta.mail.MessagingException;
 
 public interface ProposeUserTaskJpaRepositoryCustom extends BaseRepositoryCustom<ProposeUserTask> {
 

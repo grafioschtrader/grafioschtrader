@@ -2,11 +2,10 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 
+import grafioschtrader.common.PropertyAlwaysUpdatable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-
-import grafioschtrader.common.PropertyAlwaysUpdatable;
 
 /**
  * Base class for a strategy on asset class or security.

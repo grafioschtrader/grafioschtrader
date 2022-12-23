@@ -1,11 +1,10 @@
 package grafioschtrader.algo.strategy.model.rebalacing;
 
+import grafioschtrader.common.DynamicFormPropertySupport;
+import grafioschtrader.dynamic.model.DynamicFormPropertyHelps;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-
-import grafioschtrader.common.DynamicFormPropertySupport;
-import grafioschtrader.dynamic.model.DynamicFormPropertyHelps;
 
 public class RebalancingTop {
 

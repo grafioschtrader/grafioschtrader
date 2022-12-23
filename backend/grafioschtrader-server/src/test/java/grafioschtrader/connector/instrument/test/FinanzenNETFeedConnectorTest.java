@@ -8,9 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.finanzennet.FinanzenNETFeedConnector;
@@ -25,7 +23,6 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 /**
  * Sometimes Finanzen.NET can not always satisfy every request.
  */
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = GTforTest.class)
 class FinanzenNETFeedConnectorTest {
 

@@ -8,6 +8,11 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
+import grafioschtrader.validation.ValidCurrencyCode;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -16,12 +21,6 @@ import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
-import grafioschtrader.validation.ValidCurrencyCode;
 
 /**
  *

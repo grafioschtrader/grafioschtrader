@@ -8,6 +8,11 @@ package grafioschtrader.entities;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import grafioschtrader.types.TenantKindType;
+import grafioschtrader.validation.ValidCurrencyCode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,12 +28,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import grafioschtrader.types.TenantKindType;
-import grafioschtrader.validation.ValidCurrencyCode;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = Tenant.TABNAME)

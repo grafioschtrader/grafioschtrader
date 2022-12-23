@@ -2,15 +2,14 @@ package grafioschtrader.entities;
 
 import java.time.LocalDateTime;
 
+import grafioschtrader.gtnet.MessageCodesGTNetwork;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import grafioschtrader.gtnet.MessageCodesGTNetwork;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Table(name = GTNetDataExchange.TABNAME)

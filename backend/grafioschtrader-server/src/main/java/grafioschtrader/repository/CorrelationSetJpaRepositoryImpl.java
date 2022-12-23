@@ -8,8 +8,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jakarta.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +27,7 @@ import grafioschtrader.reports.CorrelationReport;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.SamplingPeriodType;
+import jakarta.transaction.Transactional;
 
 public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<CorrelationSet>
     implements CorrelationSetJpaRepositoryCustom {

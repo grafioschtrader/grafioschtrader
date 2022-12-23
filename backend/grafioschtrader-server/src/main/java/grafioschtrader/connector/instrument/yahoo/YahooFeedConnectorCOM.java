@@ -191,12 +191,13 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   @Override
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(FeedSupport feedSupport,
-      String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
-      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+      Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
+      FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
+      AssetclassType assetclassType) {
 
-    boolean clear = super.checkAndClearSecuritycurrencyConnector(feedSupport, urlExtend, errorMsgKey, feedIdentifier,
-        specialInvestmentInstruments, assetclassType);
+    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey,
+        feedIdentifier, specialInvestmentInstruments, assetclassType);
     if (!clear) {
       switch (specialInvestmentInstruments) {
       case CFD, NON_INVESTABLE_INDICES:
@@ -410,17 +411,17 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
-    
+
     String symbol = URLEncoder.encode(
         event.equals(SPLIT_EVENT) ? security.getUrlSplitExtend() : security.getUrlDividendExtend(),
         StandardCharsets.UTF_8);
 
     String crumb = null;
-    if(USE_CRUMB) {
-      crumb = getCrumb(symbol, client, context);  
+    if (USE_CRUMB) {
+      crumb = getCrumb(symbol, client, context);
     }
-    
-    if ( !USE_CRUMB || USE_CRUMB && crumb != null && !crumb.isEmpty()) {
+
+    if (!USE_CRUMB || USE_CRUMB && crumb != null && !crumb.isEmpty()) {
       String url = this.getSplitHistoricalDownloadLink(symbol, fromDate, event, crumb);
       HttpGet request = new HttpGet(url);
       request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
