@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
 
   private final TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
-  @Autowired
+  
   public UserServiceImpl(final UserJpaRepository userJpaRepository, final RoleJpaRepository roleJpaRepository,
       final MessageSource messages, GlobalparametersJpaRepository globalparametersJpaRepository,
       final TaskDataChangeJpaRepository taskDataChangeJpaRepository) {

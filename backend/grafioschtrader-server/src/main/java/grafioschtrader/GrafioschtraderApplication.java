@@ -34,7 +34,7 @@ public class GrafioschtraderApplication {
   }
 
   @Bean
-  public TomcatServletWebServerFactory servletContainer() throws UnknownHostException {
+  TomcatServletWebServerFactory servletContainer() throws UnknownHostException {
     final TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
     tomcat.addAdditionalTomcatConnectors(this.addTomcatConnector(9090));
     return tomcat;

@@ -1,7 +1,5 @@
 package grafioschtrader.security.filter;
 
-import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -48,15 +46,18 @@ public class SecurityConfig {
   private AuthenticationManager authenticationManager;
  
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
     http.csrf().disable();
 
     http.exceptionHandling().and().anonymous().and().servletApi().and().headers().cacheControl();
 
     http.authorizeHttpRequests().requestMatchers("/").permitAll()
- // It must be accessible before login
-    .requestMatchers(antMatcher(HttpMethod.GET, RequestMappings.API + "actuator/**")).permitAll()
+    // Swagger
+    .requestMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
+    .requestMatchers(HttpMethod.GET, "/api-docs/**").permitAll()
+    // It must be accessible before login
+    .requestMatchers(HttpMethod.GET, RequestMappings.API + "actuator/**").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/locales").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/userformdefinition").permitAll()
@@ -91,7 +92,7 @@ public class SecurityConfig {
   }
   
   @Bean
-  public DaoAuthenticationProvider authenticationProvider() {
+  DaoAuthenticationProvider authenticationProvider() {
       DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
       authProvider.setUserDetailsService(userService);
       authProvider.setPasswordEncoder(new BCryptPasswordEncoder());
@@ -99,7 +100,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(
+  AuthenticationManager authenticationManager(
           AuthenticationConfiguration authConfig) throws Exception {
       return authConfig.getAuthenticationManager();
   }

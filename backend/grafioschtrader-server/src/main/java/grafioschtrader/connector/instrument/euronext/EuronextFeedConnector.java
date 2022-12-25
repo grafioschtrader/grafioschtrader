@@ -1,5 +1,6 @@
 package grafioschtrader.connector.instrument.euronext;
 
+import java.io.IOException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -10,8 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +26,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -43,7 +50,11 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   private static final Set<String> EN_STOCK_EXCHANGES_SET = Set.of(STOCK_EX_MIC_AMSTERDAM, STOCK_EX_MIC_BRUSSELS,
       STOCK_EX_MIC_DUBLIN, STOCK_EX_MIC_LISBON, STOCK_EX_MIC_OSLO, STOCK_EX_MIC_PARIS);
 
-  private static final String DOMAIN_NAME_WITH_CHART = "https://live.euronext.com/intraday_chart/getChartData/";
+  private static final String DOMAIN_NAME = "https://live.euronext.com/";
+  private static final String DOMAIN_NAME_WITH_CHART = DOMAIN_NAME + "intraday_chart/getChartData/";
+  private static final String DOMAIN_NAME_INTRA_LAST_PRICE = DOMAIN_NAME + "en/ajax/getDetailedQuote/";
+  private static final String DOMAIN_NAME_INTRA_DETAILED_QUOTE = DOMAIN_NAME
+      + "en/intraday_chart/getDetailedQuoteAjax/";
   private static final String PERIOD_1M = "1M";
   private static final String PERIOD_MAX = "max";
   private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -51,6 +62,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
+    supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY });
     supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.SECURITY });
     mappingMicOperation.put(STOCK_EX_MIC_DUBLIN, STOCK_EX_OPERATION_DUBLIN);
   }
@@ -60,14 +72,69 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   @Override
+  public String getSecurityIntradayDownloadLink(final Security security) {
+    return DOMAIN_NAME_INTRA_LAST_PRICE + getISINWithOperationMic(security);
+  }
+
+  @Override
+  public void updateSecurityLastPrice(final Security security) throws Exception {
+    scanLastPriceAndChange(security);
+    scanDetailFull(security);
+  }
+
+  private void scanLastPriceAndChange(Security security) throws IOException {
+    Document doc = getIntraDoc(security, getSecurityIntradayDownloadLink(security));
+    final Element price = doc.select("#header-instrument-price").first();
+    security.setSLast(FeedConnectorHelper.parseDoubleUS(price.text()));
+    Elements spans = doc.select("div:containsOwn(Since Previous Close)").first().parent().select("span");
+    security.setSChangePercentage(
+        FeedConnectorHelper.parseDoubleUS((spans.get(1).text().replaceAll("[" + Pattern.quote("()%") + "]", ""))));
+  }
+
+  private void scanDetailFull(Security security) throws IOException {
+    Document doc = getIntraDoc(security,
+        DOMAIN_NAME_INTRA_DETAILED_QUOTE + getISINWithOperationMic(security) + "/full");
+    Element table = doc.select("table").get(0);
+    Elements rows = table.select("tr");
+    for (int i = 0; i < rows.size(); i++) {
+      Element row = rows.get(i);
+      Elements cols = row.select("td");
+      switch (cols.get(0).text()) {
+      case "Open":
+        security.setSOpen(FeedConnectorHelper.parseDoubleUS(cols.get(1).text()));
+        break;
+      case "High":
+        security.setSHigh(FeedConnectorHelper.parseDoubleUS(cols.get(1).text()));
+        break;
+      case "Low":
+        security.setSLow(FeedConnectorHelper.parseDoubleUS(cols.get(1).text()));
+        break;
+      case "Previous Close":
+        security.setSPrevClose(FeedConnectorHelper.parseDoubleUS(cols.get(1).text()));
+        break;
+      }
+    }
+
+  }
+
+  private Document getIntraDoc(Security security, String url) throws IOException {
+    return Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT).header("Accept-Language", "en")
+        .header("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
+        .requestBody("theme_name=euronext_live").post();
+  }
+
+  @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     return getSecurityHistoricalDownloadLink(security, PERIOD_1M);
   }
 
   private String getSecurityHistoricalDownloadLink(final Security security, String periodSuffix) {
-    return DOMAIN_NAME_WITH_CHART + security.getIsin() + "-"
-        + mappingMicOperation.getOrDefault(security.getStockexchange().getMic(), security.getStockexchange().getMic())
-        + "/" + periodSuffix;
+    return DOMAIN_NAME_WITH_CHART + getISINWithOperationMic(security) + "/" + periodSuffix;
+  }
+
+  private String getISINWithOperationMic(final Security security) {
+    return security.getIsin() + "-"
+        + mappingMicOperation.getOrDefault(security.getStockexchange().getMic(), security.getStockexchange().getMic());
   }
 
   @Override

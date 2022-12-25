@@ -41,7 +41,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * Stockexchange
+ * Stock exchange
  */
 @Schema(description = "Contains a stock exchange")
 @Entity
@@ -58,11 +58,13 @@ public class Stockexchange extends Auditable implements Serializable {
   @Column(name = "id_stockexchange")
   private Integer idStockexchange;
 
+  @Schema(description = "The market identifier code (MIC) for this stock exchanges. It must be unique")
   @Column(name = "mic")
   @Size(min = 4, max = 4)
   @PropertySelectiveUpdatableOrWhenNull
   private String mic;
   
+  @Schema(description = "The name of the stock exchange")
   @Basic(optional = false)
   @Column(name = "name")
   @NotBlank
@@ -70,21 +72,25 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private String name;
 
+  @Schema(description = "The country code of this exchange")
   @NotBlank
   @Column(name = "country_code")
   @PropertyAlwaysUpdatable
   private String countryCode;
 
+  @Schema(description = "For an exchange without publicly available quote data, the period quotes entered by the user are used")
   @Basic(optional = false)
   @Column(name = "no_market_value")
   @PropertySelectiveUpdatableOrWhenNull
   private boolean noMarketValue;
-
+  
+  @Schema(description = "Defines whether secondary trading is supported by this exchange")
   @Basic(optional = false)
   @Column(name = "secondary_market")
   @PropertyAlwaysUpdatable
   private boolean secondaryMarket;
 
+  @Schema(description = "The official opening time of this stock exchange")
   @Basic(optional = false)
   @Column(name = "time_open")
   @JsonFormat(pattern = "HH:mm")
@@ -92,6 +98,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private LocalTime timeOpen;
 
+  @Schema(description = "The official time of the close of trading of this stock exchange")  
   @Basic(optional = false)
   @Column(name = "time_close")
   @JsonFormat(pattern = "HH:mm")
@@ -100,6 +107,7 @@ public class Stockexchange extends Auditable implements Serializable {
   private LocalTime timeClose;
   
 
+  @Schema(description = "The time zone of this stock exchange")  
   @Basic(optional = false)
   @NotNull
   @Size(min = 1, max = 50)
@@ -107,6 +115,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyOnlyCreation
   private String timeZone;
 
+  @Schema(description = "ID of the index through which the trading calendar receives its update")  
   @PropertyAlwaysUpdatable
   @Column(name = "id_index_upd_calendar")
   private Integer idIndexUpdCalendar;

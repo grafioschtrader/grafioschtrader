@@ -52,7 +52,7 @@ public class TokenAuthenticationService {
   @PersistenceContext
   private EntityManager entityManager;
 
-  @Autowired
+  
   public TokenAuthenticationService(final JwtTokenHandler jwtTokenHandler) {
     this.jwtTokenHandler = jwtTokenHandler;
   }

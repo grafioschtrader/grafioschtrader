@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class JpaConfiguration {
 
   @Bean
-  public AuditorAware<Integer> auditorAware() {
+  AuditorAware<Integer> auditorAware() {
     return new AuditorAwareImpl();
   }
 
