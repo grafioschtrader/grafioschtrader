@@ -51,7 +51,7 @@ public class RestErrorHandler {
   @Autowired
   private UserService userService;
 
-  @Autowired
+
   public RestErrorHandler(final MessageSource messageSource) {
     this.messageSource = messageSource;
   }

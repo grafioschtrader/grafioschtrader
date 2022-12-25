@@ -12,7 +12,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 public class MessageConfig {
 
   @Bean
-  public MessageSource messageSource() {
+  MessageSource messageSource() {
     final ReloadableResourceBundleMessageSource messageSource = new ExposedResourceBundleMessageSource();
     // final ReloadableResourceBundleMessageSource messageSource = new
     // ReloadableResourceBundleMessageSource();
@@ -23,7 +23,7 @@ public class MessageConfig {
   }
 
   @Bean
-  public LocalValidatorFactoryBean validator() {
+  LocalValidatorFactoryBean validator() {
     LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
     bean.setValidationMessageSource(messageSource());
     return bean;

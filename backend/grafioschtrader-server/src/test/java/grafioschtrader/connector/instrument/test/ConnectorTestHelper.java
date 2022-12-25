@@ -60,10 +60,20 @@ public class ConnectorTestHelper {
   }
 
   public static Security createIntraSecurity(final String name, final String urlIntraExtend,
-      SpecialInvestmentInstruments specialInvestmentInstrument, String symbolStockexchange) {
+      SpecialInvestmentInstruments specialInvestmentInstrument, String mic) {
     return setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA),
-        specialInvestmentInstrument, symbolStockexchange);
+        specialInvestmentInstrument, mic);
   }
+  
+  public static Security createSecurityWithMic(final String name, String isin, 
+      SpecialInvestmentInstruments specialInvestmentInstrument, String mic) {
+    final Security security = new Security();
+    security.setName(name);
+    security.setIsin(isin);
+    
+    return setAssetclassAndStockexchange(security, specialInvestmentInstrument, mic);
+  }
+  
 
   public static Security createIntraSecurity(final String name, final String urlIntraExtend) {
     return createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA);
