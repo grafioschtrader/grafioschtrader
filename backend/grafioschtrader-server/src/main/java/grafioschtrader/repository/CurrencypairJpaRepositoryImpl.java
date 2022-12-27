@@ -52,10 +52,7 @@ import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 import jakarta.annotation.PostConstruct;
 
-/**
- *
- * @author Hugo Graf
- */
+
 public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Currencypair, CashaccountPositionSummary>
     implements IPositionCloseOnLatestPrice<Currencypair, CashaccountPositionSummary>, CurrencypairJpaRepositoryCustom {
 

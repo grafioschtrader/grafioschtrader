@@ -345,7 +345,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   @Override
   @JsonIgnore
   public int getIntradayDelayedSeconds() {
-    throw new UnsupportedOperationException("Not supported yet in" + shortId + ".");
+    throw new UnsupportedOperationException("Not supported yet in " + shortId + ".");
   }
 
   @Override

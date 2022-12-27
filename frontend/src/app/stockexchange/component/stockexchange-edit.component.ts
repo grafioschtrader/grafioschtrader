@@ -24,10 +24,9 @@ import {Security} from '../../entities/security';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import * as moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
-import {GroupItem, ValueKeyHtmlSelectOptions} from "../../dynamic-form/models/value.key.html.select.options";
-import {StockexchangeMic} from "../model/stockexchange.base.data";
-import {Dropdown} from "primeng/dropdown";
-import {StockexchangeHelper} from "./stockexchange.helper";
+import {GroupItem} from '../../dynamic-form/models/value.key.html.select.options';
+import {StockexchangeMic} from '../model/stockexchange.base.data';
+import {StockexchangeHelper} from './stockexchange.helper';
 
 /**
  * Edit stockexchnage
@@ -81,12 +80,12 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', false),
       DynamicFieldHelper.createFieldInputStringVSHeqF('website', 128, false,
-        [VALIDATION_SPECIAL.WEB_URL], ),
+        [VALIDATION_SPECIAL.WEB_URL],),
       ...
         AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
-    ]
+    ];
     if (this.callParam.stockexchange && !this.callParam.stockexchange.mic) {
-      this.callParam.stockexchange.mic = "";
+      this.callParam.stockexchange.mic = '';
     }
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -134,7 +133,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
   private valueChangedOnMic(): void {
     this.micSubscribe = this.configObject.mic.formControl.valueChanges.subscribe(mic => {
-      const sm: StockexchangeMic = this.callParam.stockexchangeMics.find(sm => sm.mic === mic);
+      const sm: StockexchangeMic = this.callParam.stockexchangeMics.find(smf => smf.mic === mic);
       this.configObject.name.formControl.setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
       this.configObject.countryCode.formControl.setValue(sm.countryCode);
       this.configObject.website.formControl.setValue(sm.website);
@@ -149,8 +148,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
   private createMicOptions(onlyMainStockexchange: boolean): GroupItem[] {
     const countryMap: { [cc: string]: GroupItem } = {};
-    const emptyEntry: StockexchangeMic = {mic: "", name: "", city: "", countryCode: "xx"};
-    this.createGreopAndFristEntry(countryMap, emptyEntry, "-----");
+    const emptyEntry: StockexchangeMic = {mic: '', name: '', city: '', countryCode: 'xx'};
+    this.createGreopAndFristEntry(countryMap, emptyEntry, '-----');
 
     this.callParam.stockexchangeMics.filter(sm => (this.canAssignMic() && (onlyMainStockexchange && sm.timeZone || !onlyMainStockexchange)
         && !this.callParam.existingMic.has(sm.mic))
@@ -159,7 +158,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       if (existingGroup) {
         this.addEntry(existingGroup, sm);
       } else {
-        const country = this.countriesAsKeyValue[sm.countryCode]
+        const country = this.countriesAsKeyValue[sm.countryCode];
         if (country) {
           this.createGreopAndFristEntry(countryMap, sm, country);
         }
@@ -169,7 +168,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private createGreopAndFristEntry(countryMap: { [cc: string]: GroupItem }, sm: StockexchangeMic, country: string): void {
-    const gp = new GroupItem(null, null, country, "fi fi-" + sm.countryCode.toLowerCase());
+    const gp = new GroupItem(null, null, country, 'fi fi-' + sm.countryCode.toLowerCase());
     countryMap[sm.countryCode] = gp;
     gp.children = [];
     this.addEntry(gp, sm);
@@ -177,18 +176,21 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
   private addEntry(groupItem: GroupItem, sm: StockexchangeMic): void {
     groupItem.children.splice(this.sortedIndex(groupItem.children, sm.name), 0,
-      new GroupItem(sm.mic, sm.mic, sm.name + ", " + sm.city + ", " + sm.mic, null));
+      new GroupItem(sm.mic, sm.mic, sm.name + ', ' + sm.city + ', ' + sm.mic, null));
   }
 
 
   private sortedIndex(groupItem: GroupItem[], value: string) {
-    var low = 0,
-      high = groupItem.length;
+    let low = 0;
+    let high = groupItem.length;
 
     while (low < high) {
-      var mid = (low + high) >>> 1;
-      if (groupItem[mid].optionsText < value) low = mid + 1;
-      else high = mid;
+      const mid = (low + high) >>> 1;
+      if (groupItem[mid].optionsText < value) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
     }
     return low;
   }
