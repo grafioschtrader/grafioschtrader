@@ -56,15 +56,15 @@ public class HistoryquoteQualityService {
 
       List<IDateAndClose> dateAndClose = historyquoteJpaRepository
           .getClosedAndMissingHistoryquoteByIdSecurity(idSecuritycurrency);
-      dateAndClose.forEach(dateAndClode -> {
+      dateAndClose.forEach(dac -> {
         hisotryqouteLinearFilledSummary.requiredClosing++;
-        if (dateAndClode.getClose() == null) {
-          missingDays.add(dateAndClode.getDate());
+        if (dac.getClose() == null) {
+          missingDays.add(dac.getDate());
         } else if (missingDays.isEmpty()) {
-          firstLastPrice[0] = dateAndClode.getClose();
+          firstLastPrice[0] = dac.getClose();
         } else {
           // Get close price but missing days is not empty
-          firstLastPrice[1] = dateAndClode.getClose();
+          firstLastPrice[1] = dac.getClose();
           addHistoryquotesLiniear(idSecuritycurrency, firstLastPrice, missingDays, missingHistoryquoteList,
               hisotryqouteLinearFilledSummary);
         }

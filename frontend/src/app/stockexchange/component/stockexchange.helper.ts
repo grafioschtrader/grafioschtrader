@@ -1,4 +1,4 @@
-import {ValueKeyHtmlSelectOptions} from "../../dynamic-form/models/value.key.html.select.options";
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
 export class StockexchangeHelper {
 

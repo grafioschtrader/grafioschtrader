@@ -375,6 +375,8 @@
   "MARGIN_CLOSE_GAIN": "Gewinn offene Margin Position",
   "MARGIN_FINANCE_COST": "Finazierungskosten",
   "MAX": "Maximaler Gewinn %",
+  "MAX_CALENDAR_UPD_DATE": "Kalender Nachführung",
+  "MAX_CALENDAR_UPD_DATE_TOOLTIP": "Bis zu welchem Datum wurde der Handelskalender durch den Index nachgeführt",
   "MAX_CORRELATION_INSTRUMENTS": "Instrumente von maximal",
   "MAX_DATE": "Jüngste vorhandene Kursdaten",
   "MAX_LIMIT": "Maximal {{limit}} {{i18nEntity}} erlaubt!",

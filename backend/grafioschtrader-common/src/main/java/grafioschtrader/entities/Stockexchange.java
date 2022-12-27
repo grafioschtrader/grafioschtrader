@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -119,7 +120,13 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   @Column(name = "id_index_upd_calendar")
   private Integer idIndexUpdCalendar;
+  
+  @Schema(description = "Until this date, the update of the trading calendar was performed via the index. This date is set by the system")  
+  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "max_calendar_upd_date")
+  private LocalDate maxCalendarUpdDate;
 
+  @Schema(description = "When was the last update performed for this stock exchange ")
   @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME)
   @Column(name = "last_direct_price_update")
   private LocalDateTime lastDirectPriceUpdate;
@@ -232,6 +239,10 @@ public class Stockexchange extends Auditable implements Serializable {
 
   public void setNameIndexUpdCalendar(String nameIndexUpdCalendar) {
     this.nameIndexUpdCalendar = nameIndexUpdCalendar;
+  }
+  
+  public LocalDate getMaxCalendarUpdDate() {
+    return maxCalendarUpdDate;
   }
 
   public LocalDateTime getLastDirectPriceUpdate() {

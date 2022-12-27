@@ -1,5 +1,6 @@
 package grafioschtrader.entities;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -21,6 +22,7 @@ public abstract class Stockexchange_ extends grafioschtrader.entities.Auditable_
   public static volatile SingularAttribute<Stockexchange, LocalTime> timeOpen;
   public static volatile SingularAttribute<Stockexchange, Boolean> noMarketValue;
   public static volatile SingularAttribute<Stockexchange, Integer> idIndexUpdCalendar;
+  public static volatile SingularAttribute<Stockexchange, LocalDate> maxCalendarUpdDate;
   public static volatile SingularAttribute<Stockexchange, LocalDateTime> lastDirectPriceUpdate;
   public static volatile SingularAttribute<Stockexchange, String> website;
 

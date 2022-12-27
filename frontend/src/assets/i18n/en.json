@@ -374,6 +374,8 @@
   "MARGIN_CLOSE_GAIN": "Profit open margin position",
   "MARGIN_FINANCE_COST": "Finance cost",
   "MAX": "Maximum profit %",
+  "MAX_CALENDAR_UPD_DATE": "Calendar update",
+  "MAX_CALENDAR_UPD_DATE_TOOLTIP": "Until what date was the trading calendar tracked by the index",
   "MAX_CORRELATION_INSTRUMENTS": "Instruments from a maximum of",
   "MAX_DATE": "Oldest available price data",
   "MAX_LIMIT": "Maximum {{limit}} {{i18nEntity}} allowed!",

@@ -80,6 +80,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   protected CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
+  protected StockexchangeJpaRepository stockexchangeJpaRepository;
+
+  @Autowired
   private SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
 
   @Autowired
@@ -126,6 +129,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   public List<Security> catchAllUpSecurityHistoryquote(List<Integer> idsStockexchange) {
     List<Security> securities = historyquoteThruConnector.catchAllUpSecuritycurrencyHistoryquote(idsStockexchange);
     securities.addAll(historyquoteThruCalculation.catchAllUpSecuritycurrencyHistoryquote(null));
+    if (idsStockexchange == null || idsStockexchange.isEmpty()) {
+      stockexchangeJpaRepository.updateHistoricalUpdateWithNowForAll();
+    } else {
+      stockexchangeJpaRepository.updateHistoricalUpdateWithNowByIdsStockexchange(idsStockexchange);
+    }
     return securities;
   }
 
@@ -240,16 +248,16 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList())));
     return securitiesRc;
   }
-/*
-  @Override
-  public void updateAllLastPrice() {
-    List<Security> securities = securityJpaRepository.findAll();
-    intradayThruConnector.updateLastPriceOfSecuritycurrency(
-        securities.stream().filter(s -> !s.isDerivedInstrument()).collect(Collectors.toList()));
-    intradayThruCalculation.updateLastPriceOfSecuritycurrency(
-        securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()));
-  }
-*/
+  /*
+   * @Override public void updateAllLastPrice() { List<Security> securities =
+   * securityJpaRepository.findAll();
+   * intradayThruConnector.updateLastPriceOfSecuritycurrency(
+   * securities.stream().filter(s ->
+   * !s.isDerivedInstrument()).collect(Collectors.toList()));
+   * intradayThruCalculation.updateLastPriceOfSecuritycurrency(
+   * securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.
+   * toList())); }
+   */
 
   @Override
   protected Security updateLastPriceSecurityCurrency(final Security security, final short maxIntraRetry,

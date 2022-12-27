@@ -4,7 +4,6 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
@@ -86,9 +85,8 @@ public class QuoteBackgroundUpdateWorker
     for (Stockexchange stockexchange : stockexchanges) {
       log.info("Namen {}, time since close: {}, number of securties {}, stock-Index-upd: {}", stockexchange.getName(),
           stockexchange.getClosedMinuntes(), securities.size(), getIndexOfStockexchange(stockexchange));
-      stockexchange.setLastDirectPriceUpdate(LocalDateTime.now());
     }
-    stockexchangeJpaRepository.saveAll(stockexchanges);
+
   }
 
   private Date getIndexOfStockexchange(Stockexchange stockexchange) {

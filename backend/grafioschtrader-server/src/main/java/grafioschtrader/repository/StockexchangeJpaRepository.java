@@ -27,7 +27,6 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
 
   Stockexchange findByName(String name);
 
-
   @Query(value = "SELECT DISTINCT s.country_code FROM stockexchange s", nativeQuery = true)
   String[] findDistinctCountryCodes();
 
@@ -42,6 +41,13 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
   @Query(nativeQuery = true)
   List<IdStockexchangeIndexName> getIdStockexchangeAndIndexNameForCalendarUpd();
 
+  @Query(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE no_market_value = 0", nativeQuery = true)
+  void updateHistoricalUpdateWithNowForAll();
+  
+  
+  @Query(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE id_stockexchange IN (?1)", nativeQuery = true)
+  void updateHistoricalUpdateWithNowByIdsStockexchange(List<Integer> ids);
+  
   public interface IdStockexchangeIndexName {
     public Integer getIdStockexchange();
 

@@ -114,7 +114,10 @@ public class EuronextFeedConnector extends BaseFeedConnector {
         break;
       }
     }
-
+  }
+  
+  public int getIntradayDelayedSeconds() {
+    return 60;
   }
 
   private Document getIntraDoc(Security security, String url) throws IOException {

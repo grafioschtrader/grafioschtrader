@@ -18,10 +18,10 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud.support.menu.security';
-import {StockexchangeBaseData, StockexchangeMic} from "../model/stockexchange.base.data";
-import {StockexchangeHasSecurity} from "../model/stockexchange.has.security";
-import {BusinessHelper} from "../../shared/helper/business.helper";
-import {StockexchangeHelper} from "./stockexchange.helper";
+import {StockexchangeBaseData, StockexchangeMic} from '../model/stockexchange.base.data';
+import {StockexchangeHasSecurity} from '../model/stockexchange.has.security';
+import {BusinessHelper} from '../../shared/helper/business.helper';
+import {StockexchangeHelper} from './stockexchange.helper';
 
 /**
  * Shows stock exchanges in a table
@@ -128,6 +128,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.addColumnFeqH(DataType.TimeString, 'timeClose', true, false);
     this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
     this.addColumn(DataType.String, 'nameIndexUpdCalendar', 'ID_INDEX_UPD_CALENDAR', true, false, {width: 180});
+    this.addColumnFeqH(DataType.DateString, 'maxCalendarUpdDate', true, false);
     this.addColumnFeqH(DataType.TimeString, 'localTime', true, false);
     this.addColumnFeqH(DataType.DateTimeString, 'lastDirectPriceUpdate', true, false,
       {width: 100});
