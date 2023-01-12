@@ -1,6 +1,6 @@
-import {Stockexchange} from "../../entities/stockexchange";
-import {StockexchangeHasSecurity} from "./stockexchange.has.security";
-import {ValueKeyHtmlSelectOptions} from "../../dynamic-form/models/value.key.html.select.options";
+import {Stockexchange} from '../../entities/stockexchange';
+import {StockexchangeHasSecurity} from './stockexchange.has.security';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
 export interface StockexchangeBaseData {
   stockexchanges: Stockexchange[];

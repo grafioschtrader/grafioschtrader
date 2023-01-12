@@ -1,0 +1,57 @@
+<div
+  #cmDiv
+  (click)="onComponentClick($event)"
+  [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  class="data-container"
+>
+  <p-table
+    (onRowSelect)="onRowSelect($event)"
+    (onRowUnselect)="onRowUnselect($event)"
+    [(selection)]="selectedEntity"
+    [columns]="fields"
+    [dataKey]="entityKeyName"
+    [multiSortMeta]="multiSortMeta"
+    [value]="entityList"
+    selectionMode="single"
+    sortMode="multiple"
+    styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
+  >
+    <ng-template pTemplate="header" let-fields>
+      <tr>
+        <th
+          *ngFor="let field of fields"
+          [pSortableColumn]="field.field"
+          [style.width.px]="field.width"
+        >
+          {{field.headerTranslated}}
+          <p-sortIcon [field]="field.field"></p-sortIcon>
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-columns="fields" let-el>
+      <tr [pSelectableRow]="el">
+        <td *ngFor="let field of fields">
+          <ng-container [ngSwitch]="field.templateName">
+            <ng-container *ngSwitchCase="'check'">
+              <span
+                ><i
+                  [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
+                  aria-hidden="true"
+                ></i
+              ></span>
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              {{getValueByPath(el, field)}}
+            </ng-container>
+          </ng-container>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+  <p-contextMenu
+    *ngIf="contextMenuItems && contextMenuItems.length > 0 && isActivated()"
+    [model]="contextMenuItems"
+    [target]="cmDiv"
+    appendTo="body"
+  ></p-contextMenu>
+</div>

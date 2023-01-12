@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" viewBox="0 0 16 16" width="100%"
+     xml:space="preserve"
+     xmlns="http://www.w3.org/2000/svg">
+    <g transform="matrix(1,0,0,1,-28.2598,-109.75)">
+        <g>
+            <g transform="matrix(0.0322581,0,0,0.0322581,28.0017,109.492)">
+                <path
+                  d="M256,8C119,8 8,119 8,256C8,393 119,504 256,504C393,504 504,393 504,256C504,119 393,8 256,8ZM377.6,321.1C382.3,325.8 382.3,333.4 377.6,338.1L338,377.6C333.3,382.3 325.7,382.3 321,377.6L256,312L190.9,377.6C186.2,382.3 178.6,382.3 173.9,377.6L134.4,338C129.7,333.3 129.7,325.7 134.4,321L200,256L134.4,190.9C129.7,186.2 129.7,178.6 134.4,173.9L174,134.3C178.7,129.6 186.3,129.6 191,134.3L256,200L321.1,134.4C325.8,129.7 333.4,129.7 338.1,134.4L377.7,174C382.4,178.7 382.4,186.3 377.7,191L312,256L377.6,321.1Z"
+                  style="fill:rgb(255,0,10);fill-rule:nonzero;"/>
+            </g>
+          <g transform="matrix(3.74302,0,0,2.9106,-218.876,-152.765)">
+                <text style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:5.667px;fill:rgb(11,4,47);fill-opacity:0.99;" x="66.43px"
+                      y="95.193px">T</text>
+            </g>
+        </g>
+    </g>
+</svg>

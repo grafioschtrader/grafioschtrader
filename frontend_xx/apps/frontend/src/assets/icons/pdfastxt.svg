@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;" version="1.1" viewBox="0 0 17 18" width="100%"
+     xml:space="preserve"
+     xmlns="http://www.w3.org/2000/svg">
+    <g transform="matrix(1,0,0,1,-62.5,-84.4099)">
+        <g>
+            <g transform="matrix(1.06667,0,0,1,-4.2,0)">
+                <path d="M63,101L78,101L78,90L72.972,84.91L63,84.91L63,101Z" style="fill:none;stroke:black;stroke-width:0.97px;"/>
+            </g>
+          <path d="M73.637,84.91L73.637,90L79,90" style="fill:none;stroke:black;stroke-width:1px;"/>
+        </g>
+      <g transform="matrix(2.47235,0,0,1.8382,-97.5705,-71.789)">
+            <text style="font-family:'ArialMT', 'Arial', sans-serif;font-size:5px;fill-opacity:0.99;" x="65.546px"
+                  y="89.226px">T</text>
+        </g>
+      <g transform="matrix(1.37051,0,0,2.1176,-26.8006,-101.388)">
+            <text style="font-family:'ArialMT', 'Arial', sans-serif;font-size:5px;fill:rgb(255,0,15);fill-opacity:0.99;" x="66.43px"
+                  y="95.193px">PDF</text>
+        </g>
+    </g>
+</svg>

@@ -30,7 +30,9 @@ import {PortfolioTransactionTableComponent} from './portfolio/component/portfoli
 import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
 import {LoginComponent} from './shared/login/component/login.component';
-import {SecurityaccountImportTransactionComponent} from './securityaccount/component/securityaccount.import.transaction.component';
+import {
+  SecurityaccountImportTransactionComponent
+} from './securityaccount/component/securityaccount.import.transaction.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
 import {ProposeChangeTabMenuComponent} from './proposechange/component/propose.change.tab.menu.component';
 import {RequestForYouTableComponent} from './proposechange/component/request.for.you.table.component';
@@ -44,7 +46,9 @@ import {TradingCalendarGlobalComponent} from './tradingcalendar/component/tradin
 import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
 import {PerformancePeriodComponent} from './shared/performanceperiod/component/performance.period.component';
 import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.performance.eod.missing.component';
-import {SecurityHistoryquoteQualityTreetableComponent} from './securitycurrency/component/security.historyquote.quality.treetable.component';
+import {
+  SecurityHistoryquoteQualityTreetableComponent
+} from './securitycurrency/component/security.historyquote.quality.treetable.component';
 import {MailMessageComponent} from './mail/component/mail.message.component';
 import {MailInOutTabMenuComponent} from './mail/component/mail.in.out.tab.menu.component';
 import {MailSendboxTableComponent} from './mail/component/mail.sendbox.table.component';
@@ -53,9 +57,9 @@ import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchli
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
 import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
 import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
-import {GTNetConsumerMonitorComponent} from "./gtnet/component/gtnet.consumer.monitor.component";
-import {GTNetSetupTableComponent} from "./gtnet/component/gtnet.setup.table.component";
-import {GTNetProviderMonitorComponent} from "./gtnet/component/gtnet.provider.monitor.component";
+import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.monitor.component';
+import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
+import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
 
 

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;" version="1.1" viewBox="0 0 18 18" width="100%"
+     xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g transform="matrix(1,0,0,1,-49.4172,-53.9172)">
+        <g transform="matrix(1,0,0,1.03333,0,-1.81667)">
+            <g transform="matrix(0.941176,0,0,1.21994,-18.7059,-25.1716)">
+                <g transform="matrix(1.0625,-0,-0,0.793269,72.3808,64.8454)">
+                    <use height="15.032px" transform="matrix(0.953642,0,0,0.939514,0,0)" width="17.166px" x="0" xlink:href="#_Image1"
+                         y="2.271"/>
+                </g>
+            </g>
+          <g transform="matrix(1.14286,0,0,1.03226,-14,5.98387)">
+                <path d="M63,55L63,60" style="fill:none;stroke:black;stroke-width:1.05px;"/>
+            </g>
+          <g transform="matrix(6.95566e-17,-1.03226,1.07143,5.88338e-17,-3.78572,130.371)">
+                <path d="M63,55L63,60" style="fill:none;stroke:black;stroke-width:1.09px;"/>
+            </g>
+          <g transform="matrix(1.14286,0,0,1.03226,-17.4285,-3.30645)">
+                <path d="M59,62C73.066,62 73,62 73,62" style="fill:none;stroke:black;stroke-width:1.05px;"/>
+            </g>
+          <g transform="matrix(1.14286,0,0,0.825806,-17.4286,9.08065)">
+                <path d="M63,55L63,60" style="fill:none;stroke:black;stroke-width:1.16px;"/>
+            </g>
+          <g transform="matrix(1.14286,0,0,0.825806,-10.5714,9.08065)">
+                <path d="M63,55L63,60" style="fill:none;stroke:black;stroke-width:1.16px;"/>
+            </g>
+        </g>
+    </g>
+  <defs>
+        <image height="16px" id="_Image1" width="18px"
+               xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAQCAYAAAAbBi9cAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAxklEQVQ4je2Uu42EQBBEi08m3SMRAGnNjEgETEhnfGwgjda4oFpjxRlnIJY7c59UZj2jpWqQpJnRe08RIYBbERF672lmJMnCzNi2LYqiQNd1aJoGVVXhiuM4sG0bhmEASczzDMQY6ZxjzpmfknOmc44xRkJEOE3Tx5KTcRypqgQAppQei1JKBMASAOq6vrzJFWe3fGz4xVd0U7Tv+2PB2S1FBOu6PhYtywJV/b+J/Gm0fd8DwHu05PuNhBDOzdyKqjKE8PNGXsZ5buIYjwZXAAAAAElFTkSuQmCC"/>
+    </defs>
+</svg>

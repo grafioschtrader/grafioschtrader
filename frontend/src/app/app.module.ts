@@ -312,14 +312,14 @@ import {
 import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
 import {ConnectorApiKeyEditComponent} from './connectorapikey/component/connector.api.key.edit.component';
 import {ConnectorApiKeyService} from './connectorapikey/service/connector.api.key.service';
-import {GTNetConsumerMonitorComponent} from "./gtnet/component/gtnet.consumer.monitor.component";
-import {GTNetSetupTableComponent} from "./gtnet/component/gtnet.setup.table.component";
-import {GTNetProviderMonitorComponent} from "./gtnet/component/gtnet.provider.monitor.component";
-import {GTNetService} from "./gtnet/service/gtnet.service";
-import {GTNetMessageTreeTableComponent} from "./gtnet/component/gtnet-message-treetable.component";
-import {GTNetEditComponent} from "./gtnet/component/gtnet-edit.component";
-import {GTNetMessageEditComponent} from "./gtnet/component/gtnet-message-edit.component";
-import {GTNetMessageService} from "./gtnet/service/gtnet.message.service";
+import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.monitor.component';
+import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
+import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';
+import {GTNetService} from './gtnet/service/gtnet.service';
+import {GTNetMessageTreeTableComponent} from './gtnet/component/gtnet-message-treetable.component';
+import {GTNetEditComponent} from './gtnet/component/gtnet-edit.component';
+import {GTNetMessageEditComponent} from './gtnet/component/gtnet-message-edit.component';
+import {GTNetMessageService} from './gtnet/service/gtnet.message.service';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -331,7 +331,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
   declarations: [
     AlgoAssetclassEditComponent, AlgoRuleStrategyCreateComponent, AlgoRuleStrategyCreateWizardComponent,
     AlgoSecurityEditComponent, GlobalSettingsEditComponent, CorrelationTableComponent,
-    AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent, ConnectorApiKeyTableComponent, ConnectorApiKeyEditComponent,
+    AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent,
+    ConnectorApiKeyTableComponent, ConnectorApiKeyEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
     GTNetEditComponent, GTNetMessageEditComponent, GTNetMessageAutoAnswerComponent,

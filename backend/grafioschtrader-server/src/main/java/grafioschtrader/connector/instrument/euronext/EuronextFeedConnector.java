@@ -115,7 +115,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
       }
     }
   }
-  
+
   public int getIntradayDelayedSeconds() {
     return 60;
   }

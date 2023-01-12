@@ -5,16 +5,16 @@ export class GTNet implements BaseID {
   idGtNet: number;
   domainRemoteName: string = null;
   timeZone: string = null;
-  spreadCapability: boolean = true;
+  spreadCapability = true;
   entityServerState: number | GTNetServerStateTypes = null;
-  acceptEntityRequest: boolean = false;
+  acceptEntityRequest = false;
   dailyRequestLimit: number = null;
   dailyRequestLimitCount: number;
   dailyRequestLimitRemote: number;
   dailyRequestLimitRemoteCount: number;
   lastpriceServerState: number | GTNetServerStateTypes = null;
   lastpriceConsumerUsage: number;
-  lastpriceUseDetailLog: number = 0;
+  lastpriceUseDetailLog = 0;
 
   getId(): number {
     return this.idGtNet;

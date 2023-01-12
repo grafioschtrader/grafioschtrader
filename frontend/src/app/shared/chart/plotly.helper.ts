@@ -1,9 +1,10 @@
 import {TranslateService} from '@ngx-translate/core';
 import {Helper} from '../../helper/helper';
 import {Legend} from 'plotly.js';
-import {ElementRef} from "@angular/core";
-declare let Plotly: any;
+import {ElementRef} from '@angular/core';
 import tippy from 'tippy.js';
+
+declare let Plotly: any;
 
 
 export interface ChartData {
@@ -101,10 +102,10 @@ export class PlotlyHelper {
   }
 
 
-   public static attachTooltip(plotly: any, legendTooltipMap = new Map<string, string>(),
-      chartElement: ElementRef): void {
-      const legendLayer = chartElement.nativeElement.querySelector('g.legend')
-      const items: any[] = legendLayer.querySelectorAll('g.traces');
+  public static attachTooltip(plotly: any, legendTooltipMap = new Map<string, string>(),
+                              chartElement: ElementRef): void {
+    const legendLayer = chartElement.nativeElement.querySelector('g.legend');
+    const items: any[] = legendLayer.querySelectorAll('g.traces');
 
     items.forEach(i => {
       tippy(i, {content: legendTooltipMap.get(i.textContent)});
