@@ -245,14 +245,16 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       }
       break;
     case DIVIDEND:
-      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, ((Security) securitycurrency).getUrlDividendExtend(),
-          "gt.connector.dividend.url.failure", FeedIdentifier.DIVIDEND_URL, specInst, assetclassType)) {
+      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport,
+          ((Security) securitycurrency).getUrlDividendExtend(), "gt.connector.dividend.url.failure",
+          FeedIdentifier.DIVIDEND_URL, specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlDividendExtend(null);
       }
       break;
     case SPLIT:
-      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, ((Security) securitycurrency).getUrlSplitExtend(),
-          "gt.connector.split.url.failure", FeedIdentifier.SPLIT_URL, specInst, assetclassType)) {
+      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport,
+          ((Security) securitycurrency).getUrlSplitExtend(), "gt.connector.split.url.failure", FeedIdentifier.SPLIT_URL,
+          specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlSplitExtend(null);
       }
       break;
@@ -277,8 +279,16 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         assetclassType);
     if (!clear && regexStrPattern != null) {
       checkUrlExtendsionWithRegex(new String[] { regexStrPattern }, urlExtend);
+      extendedCheck(securitycurrency, feedSupport, urlExtend, errorMsgKey, feedIdentifier, specialInvestmentInstruments,
+          assetclassType);
     }
     return clear;
+  }
+
+  protected <S extends Securitycurrency<S>> void extendedCheck(Securitycurrency<S> securitycurrency,
+      FeedSupport feedSupport, String urlExtend, String errorMsgKey, FeedIdentifier feedIdentifier,
+      SpecialInvestmentInstruments specialInvestmentInstruments, AssetclassType assetclassType) {
+
   }
 
   protected <S extends Securitycurrency<S>> boolean shouldClearUrlExtension(String urlExtend, String errorMsgKey,

@@ -49,15 +49,15 @@ public class EuronextFeedConnectorTest {
     try {
 
       hisoricalDate.add(new HisoricalDate("Niederlande, Königreich der 4% 05/37", "NL0000102234",
-          SpecialInvestmentInstruments.DIRECT_INVESTMENT, EuronextFeedConnector.STOCK_EX_MIC_AMSTERDAM, 3532,
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, EuronextFeedConnector.STOCK_EX_MIC_AMSTERDAM, 3532,
           "2005-04-20", "2022-12-21"));
       hisoricalDate.add(new HisoricalDate("Portuguese Stock Index 20", "PTING0200002",
-          SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, EuronextFeedConnector.STOCK_EX_MIC_LISBON, 5860,
+          SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, EuronextFeedConnector.STOCK_EX_MIC_LISBON, 5860,
           "2000-01-03", "2022-12-21"));
       hisoricalDate.add(new HisoricalDate("CAC40", "FR0003500008", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
-          EuronextFeedConnector.STOCK_EX_MIC_PARIS, 1276, "2018-01-02", "2022-12-21"));
+         null, EuronextFeedConnector.STOCK_EX_MIC_PARIS, 1276, "2018-01-02", "2022-12-21"));
       hisoricalDate.add(new HisoricalDate("AMUNDI MSCI EM ASIA UCITS ETF - EUR", "LU1681044480",
-          SpecialInvestmentInstruments.ETF, EuronextFeedConnector.STOCK_EX_MIC_PARIS, 22, "2022-11-22", "2022-12-21"));
+          SpecialInvestmentInstruments.ETF, null, EuronextFeedConnector.STOCK_EX_MIC_PARIS, 22, "2022-11-22", "2022-12-21"));
 
       hisoricalDate.parallelStream().forEach(hd -> {
         List<Historyquote> historyquote = new ArrayList<>();

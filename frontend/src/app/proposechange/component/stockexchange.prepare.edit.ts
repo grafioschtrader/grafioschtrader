@@ -3,9 +3,8 @@ import {StockexchangeService} from '../../stockexchange/service/stockexchange.se
 import {Stockexchange} from '../../entities/stockexchange';
 import {StockexchangeCallParam} from '../../stockexchange/component/stockexchange.call.param';
 import {BasePrepareEdit} from './base.prepare.edit';
-import {combineLatest} from 'rxjs';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {StockexchangeBaseData} from "../../stockexchange/model/stockexchange.base.data";
+import {StockexchangeBaseData} from '../../stockexchange/model/stockexchange.base.data';
 
 export class StockexchangePrepareEdit extends BasePrepareEdit implements PrepareCallParam {
   constructor(private stockexchangeService: StockexchangeService,

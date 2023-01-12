@@ -1,5 +1,5 @@
 import {GlobalSessionNames} from './global.session.names';
-import {GTNetMessage} from "../gtnet/model/gtnet.message";
+import {GTNetMessage} from '../gtnet/model/gtnet.message';
 
 export class AppSettings {
 
@@ -14,8 +14,8 @@ export class AppSettings {
   public static readonly CURRENCYPAIR = 'Currencypair';
   public static readonly DIVIDEND = 'Dividend';
   public static readonly GLOBALPARAMETERS = 'Globalparameters';
-  public static readonly GTNET= 'GTNet';
-  public static readonly GTNETMESSAGE = "GTNetMessage";
+  public static readonly GTNET = 'GTNet';
+  public static readonly GTNETMESSAGE = 'GTNetMessage';
   public static readonly HISTORYQUOTE = 'Historyquote';
   public static readonly HISTORYQUOTE_PERIOD = 'HistoryquotePeriod';
   public static readonly IMPORT_TRANSACTION_HEAD = 'ImportTransactionHead';
@@ -79,11 +79,11 @@ export class AppSettings {
   public static readonly GLOBAL_SETTINGS_KEY = 'globalsettings';
   public static readonly TASK_DATA_CHANGE_KEY = 'taskdatachange';
   public static readonly TASK_DATA_CHANGE_MONITOR_KEY = 'taskdatachangemonitor';
-  public static readonly GTNET_CONSUME_MONITOR_KEY = 'gtnetconsumemonitor'
-  public static readonly GTNET_KEY = 'gtnet'
-  public static readonly GTNET_AUTO_ANWSER_KEY = 'gtnetautoanwser'
-  public static readonly GTNET_MESSAGE_KEY = 'gtnetmessage'
-  public static readonly GTNET_PROVIDER_MONITOR_KEY = 'gtnetprovidermonitor'
+  public static readonly GTNET_CONSUME_MONITOR_KEY = 'gtnetconsumemonitor';
+  public static readonly GTNET_KEY = 'gtnet';
+  public static readonly GTNET_AUTO_ANWSER_KEY = 'gtnetautoanwser';
+  public static readonly GTNET_MESSAGE_KEY = 'gtnetmessage';
+  public static readonly GTNET_PROVIDER_MONITOR_KEY = 'gtnetprovidermonitor';
   public static readonly TRADING_DAYS_MINUS_KEY = AppSettings.TRADING_DAYS_MINUS.toLowerCase();
   public static readonly TRADING_DAYS_PLUS_KEY = AppSettings.TRADING_DAYS_PLUS.toLowerCase();
   public static readonly IMPORT_TRANSACTION_HEAD_KEY = AppSettings.IMPORT_TRANSACTION_HEAD.toLowerCase();

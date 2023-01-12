@@ -91,7 +91,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private canAssignMic(): boolean {
-    return this.callParam.stockexchange && (!this.callParam.stockexchange.mic || this.callParam.proposeChange) || !this.callParam.stockexchange;
+    return this.callParam.stockexchange && (!this.callParam.stockexchange.mic || this.callParam.proposeChange)
+      || !this.callParam.stockexchange;
   }
 
   protected override initialize(): void {
@@ -185,7 +186,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     let high = groupItem.length;
 
     while (low < high) {
-      const mid = (low + high) >>> 1;
+      const mid = (low + high) >>> 1; //eslint-disable-line no-bitwise
       if (groupItem[mid].optionsText < value) {
         low = mid + 1;
       } else {
