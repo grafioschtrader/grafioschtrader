@@ -16,7 +16,6 @@ public class GlobalConstants {
   public static final String STOCK_EX_MIC_ZKB = "ZKBX";
   public static final String STOCK_EX_MIC_STUTTGART = "XSTU";
   public static final String STOCK_EX_MIC_WARSAW = "XWAR";
-  
 
   /**
    * Supported languages in this application
@@ -78,6 +77,13 @@ public class GlobalConstants {
   public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2025-12-31";
 
   /**
+   * Sometimes the EOD of the currency pair is not yet updated, in this case the
+   * existing current price can be taken if there are not more than so many days
+   * between the requested date and the current one.
+   */
+  public static final int MAX_DAY_DIFF_CURRENCY_UNTIL_NOW = 3;
+
+  /**
    * The amount of time in minutes after the close of the relevant stock exchange
    * that is waited before an update of historical prices is made.
    */
@@ -105,6 +111,12 @@ public class GlobalConstants {
    * and this value control the date of next possible check.
    */
   public static final int DIVIDEND_FROM_NOW_FOR_NEXT_CHECK_IN_DAYS = 8;
+
+  /**
+   * The number of cores for the fork join pool is multiplied by this value. This
+   * pool is used for the connectors of the EOD and last price.
+   */
+  public static final int FORK_JOIN_POOL_CORE_MULTIPLIER = 4;
 
   /**
    * Maximum of weeks in the period performance report

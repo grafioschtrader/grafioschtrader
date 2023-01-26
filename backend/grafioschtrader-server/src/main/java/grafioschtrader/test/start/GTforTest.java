@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import grafioschtrader.GlobalConstants;
@@ -18,16 +19,15 @@ import jakarta.annotation.PostConstruct;
  * With tests use a different application context without a tomcat
  * reconfiguration.
  *
- *
- * @author Hugo Graf
- *
  */
 @SpringBootApplication()
 @EnableAsync
 @EntityScan(basePackages = { "grafioschtrader.entities" })
 @ComponentScan(basePackages = { "grafioschtrader" }, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class) })
+@PropertySource("classpath:application-test.properties")
 @EnableConfigurationProperties
+
 public class GTforTest {
 
   public static void main(final String[] args) {

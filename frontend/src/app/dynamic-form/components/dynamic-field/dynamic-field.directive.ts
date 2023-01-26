@@ -61,7 +61,7 @@ export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChange
   component: ComponentRef<FieldFormFormGroupConfig>;
 
   constructor(private resolver: ComponentFactoryResolver,
-              private container: ViewContainerRef) {
+              private viewContainerRef: ViewContainerRef) {
   }
 
   ngOnChanges() {
@@ -80,8 +80,10 @@ export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChange
         Supported types: ${supportedTypes}`
       );
     }
-    const component = this.resolver.resolveComponentFactory<FieldFormFormGroupConfig>(components[this.config.inputType]);
-    this.component = this.container.createComponent(component);
+   // const component = this.resolver.resolveComponentFactory<FieldFormFormGroupConfig>(components[this.config.inputType]);
+   // this.component = this.viewContainerRef.createComponent(component);
+
+    this.component = this.viewContainerRef.createComponent(components[this.config.inputType]);
 
 
     this.component.instance.config = this.config;

@@ -160,7 +160,8 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     [HistoryquoteCreateType.MANUAL_IMPORTED]: 'import',
     [HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY]: 'fill_linear',
     [HistoryquoteCreateType.CALCULATED]: 'calculation',
-    [HistoryquoteCreateType.ADD_MODIFIED_USER]: 'edit'
+    [HistoryquoteCreateType.ADD_MODIFIED_USER]: 'edit',
+    [HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR]: 'fill_gap'
   };
   private static iconLoadDone = false;
 
@@ -333,7 +334,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   }
 
   protected prepareCallParam(entity: Historyquote) {
-    // For a new Historyquote the idSecuritycurrency is needed
+    // For a new history quote the idSecuritycurrency is needed
     this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency.getSecuritycurrency());
   }
 
@@ -356,7 +357,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   /**
    * The deletion of a history quote depends on the right on the security or currency
    */
-  protected hasRightsForDeleteEntity(histroyquote: Historyquote): boolean {
+  protected override hasRightsForDeleteEntity(histroyquote: Historyquote): boolean {
     return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
       this.nameSecuritycurrency.getSecuritycurrency());
   }

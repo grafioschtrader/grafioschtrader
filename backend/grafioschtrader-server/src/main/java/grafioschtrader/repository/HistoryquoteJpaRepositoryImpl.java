@@ -206,6 +206,8 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   }
 
   @Override
+  @Transactional
+  @Modifying
   public void afterDelete(Optional<Historyquote> deletedHistoryquoteOpt) {
     if (deletedHistoryquoteOpt.isPresent()) {
       List<IFormulaSecurityLoad> dependingSecurities = securityJpaRepository

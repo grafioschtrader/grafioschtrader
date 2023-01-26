@@ -141,6 +141,9 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
    */
   defaultValue?: any;
 
+  /**
+   * Used for PrimeNG p-inputNumber
+   */
   inputNumberSettings?: InputNumberSetting;
 
   calendarConfig?: CalendarConfig;

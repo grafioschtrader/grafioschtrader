@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.exceptions.DataViolationException;
@@ -44,15 +45,19 @@ public class DateTransactionCurrencypairMap {
 
   /**
    *
-   * @param mainCurrency                  Main currency of the tenant or porfolio
-   * @param untilDate                     Latest day which is included in the
-   *                                      report
-   * @param dateTransactionCurrency       Expect close price with date for each
-   *                                      day where a transaction with the no main
-   *                                      currency is happened
-   * @param currencypairs                 Used currency pairs by the tenant or
-   *                                      portfolio, get the the last price but
-   *                                      history quote.
+   * @param mainCurrency                               Main currency of the tenant
+   *                                                   or porfolio
+   * @param untilDate                                  Latest day which is
+   *                                                   included in the report
+   * @param dateTransactionCurrency                    Expect close price with
+   *                                                   date for each day where a
+   *                                                   transaction with the no
+   *                                                   main currency is happened
+   * @param currencypairs                              Used currency pairs by the
+   *                                                   tenant or portfolio, get
+   *                                                   the the last price but
+   *                                                   history quote.
+   * @param hasTradingDaysBetweenUntilDateAndYesterday
    * @param useUntilDateForFeeAndInterest
    */
 
@@ -132,8 +137,8 @@ public class DateTransactionCurrencypairMap {
     searchDateCurrency.date = date;
     searchDateCurrency.fromCurrency = fromCurrency;
     Double closePrice = dateFromCurrencyMap.get(searchDateCurrency);
-    if (closePrice == null && (!hasTradingDaysBetweenUntilDateAndYesterday && DateHelper.isSameDay(date, untilDate)
-        || DateHelper.isSameDay(date, new Date()))) {
+    if (closePrice == null && (!hasTradingDaysBetweenUntilDateAndYesterday
+        && DateHelper.getDateDiff(date, untilDate, TimeUnit.DAYS) <= 1)) {
       closePrice = getClosePriceFromLastPrice(date, fromCurrency);
     }
 
@@ -150,9 +155,7 @@ public class DateTransactionCurrencypairMap {
   private Double getClosePriceFromLastPrice(Date date, String fromCurrency) {
     Double closePrice = null;
     long diffDays = DateHelper.getDateDiff(date, new Date(), TimeUnit.DAYS);
-    // TODO 4 should come from global parameters
-    if (diffDays < 4) {
-
+    if (diffDays <= GlobalConstants.MAX_DAY_DIFF_CURRENCY_UNTIL_NOW) {
       Currencypair currencypair = getCurrencypairByFromCurrency(fromCurrency);
       if (currencypair != null) {
         closePrice = currencypair.getSLast();

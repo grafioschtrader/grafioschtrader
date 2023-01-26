@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafioschtrader.connector.ConnectorHelper;
@@ -29,6 +28,7 @@ import grafioschtrader.entities.User;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
+import grafioschtrader.repository.ISecuritycurrencyService;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -63,14 +63,14 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   @Override
-  public S createHistoryQuotesAndSave(final JpaRepository<S, Integer> jpaRepository, final S securitycurrency,
-      final Date fromDate, final Date toDate) {
+  public S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService,
+      final S securitycurrency, final Date fromDate, final Date toDate) {
     short restryHistoryLoad = securitycurrency.getRetryHistoryLoad();
 
     try {
       final IFeedConnector feedConnector = getConnectorHistoricalForSecuritycurrency(securitycurrency);
       if (feedConnector != null) {
-        createWithHistoryQuoteWithConnector(securitycurrency, feedConnector, fromDate, toDate);
+        createWithHistoryQuoteWithConnector(securitycurrencyService, securitycurrency, feedConnector, fromDate, toDate);
         restryHistoryLoad = 0;
       }
     } catch (final ParseException pe) {
@@ -86,7 +86,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
       securitycurrency.setFullLoadTimestamp(new Date(System.currentTimeMillis()));
     }
 
-    return jpaRepository.save(securitycurrency);
+    return securitycurrencyService.getJpaRepository().save(securitycurrency);
   }
 
   @Override
@@ -103,7 +103,6 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
       return null;
     }
   }
-  
 
   private IFeedConnector getConnectorHistoricalForSecuritycurrency(final Securitycurrency<?> securitycurrency) {
     return ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, securitycurrency.getIdConnectorHistory(),
@@ -127,8 +126,9 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     return catchUpEmptyHistoryquote(query.getResultList());
   }
 
-  private void createWithHistoryQuoteWithConnector(final S securitycurrency, final IFeedConnector feedConnector,
-      final Date fromDate, final Date toDate) throws Exception {
+  private void createWithHistoryQuoteWithConnector(final ISecuritycurrencyService<S> securitycurrencyService,
+      final S securitycurrency, final IFeedConnector feedConnector, final Date fromDate, final Date toDate)
+      throws Exception {
 
     final Date correctedFromDate = getCorrectedFromDate(securitycurrency, fromDate);
     final Date toDateCalc = (toDate == null) ? new Date() : toDate;
@@ -139,6 +139,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     historyquotes = historyquotes.stream().parallel()
         .filter(historyquote -> !historyquote.getDate().before(correctedFromDate)).collect(Collectors.toList());
 
+    securitycurrencyService.fillGap(securitycurrency, feedConnector, correctedFromDate, toDateCalc, historyquotes);
+    
     historyquotes.stream()
         .forEach(historyquote -> historyquote.setIdSecuritycurrency(securitycurrency.getIdSecuritycurrency()));
 
@@ -146,8 +148,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Some data provider cause an error, if there is no match between the two
-   * dates. For this reason, some days are subtract form the older Date.
+   * Some data provider cause an error, if there is not minimum of days between the two
+   * dates. For this reason, some days are subtract form the older date.
    *
    * @param fromDate
    * @param toDate
@@ -187,19 +189,19 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     hqfStream.forEach(historyquoteQualityFlat -> {
       boolean isConnectGroup = groupedBy == HistoryquoteQualityGrouped.CONNECTOR_GROUPED;
       String readableName = null;
-      String readableNamePrefix = ""; 
+      String readableNamePrefix = "";
       IFeedConnector ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
           historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY);
-      if(ifeedConnector == null) {
+      if (ifeedConnector == null) {
         ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
             historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.INTRA);
         readableNamePrefix = "† - ";
-        
+
       }
-      readableName = ifeedConnector == null? "†" : readableNamePrefix  + ifeedConnector.getReadableName();
-      
+      readableName = ifeedConnector == null ? "†" : readableNamePrefix + ifeedConnector.getReadableName();
+
       groupValues[0] = isConnectGroup ? readableName : historyquoteQualityFlat.getStockexchangeName();
-      groupValues[1] = isConnectGroup ? historyquoteQualityFlat.getStockexchangeName(): readableName;
+      groupValues[1] = isConnectGroup ? historyquoteQualityFlat.getStockexchangeName() : readableName;
       groupValues[2] = messages.getMessage(
           AssetclassType.getAssetClassTypeByValue(historyquoteQualityFlat.getCategoryType()).name(), null, userLocale);
       groupValues[2] = groupValues[2] + " / "

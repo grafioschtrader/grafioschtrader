@@ -13,10 +13,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import grafioschtrader.test.start.GTforTest;
 import jakarta.annotation.PostConstruct;
 
 @SpringBootApplication()
@@ -26,6 +29,8 @@ import jakarta.annotation.PostConstruct;
 // Spring ehcache is not working,
 // @EnableCaching
 @Configuration
+@ComponentScan(basePackages = { "grafioschtrader" }, excludeFilters = {
+    @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GTforTest.class) })
 public class GrafioschtraderApplication {
 
   public static void main(final String[] args) {

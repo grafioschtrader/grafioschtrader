@@ -57,7 +57,7 @@ public interface IFeedConnector {
 
   @Schema(description = "Id of the connector as it is used in the database")
   String getID();
-  
+
   @Schema(description = "Id of the connector without prefix")
   String getShortID();
 
@@ -135,6 +135,17 @@ public interface IFeedConnector {
    * @return
    */
   FeedIdentifier[] getSecuritycurrencyFeedSupport(final FeedSupport feedSupport);
+
+  /**
+   * Certain connectors only provide end-of-day prices for certain securities if
+   * trading has also taken place on that day.
+   * 
+   * @param security
+   * @return Null if no gap filler is needed, otherwise the number of days
+   *         filled at most to the most recent date of the master instrument. This
+   *         leading instrument is defined at the corresponding exchange.
+   */
+  public Integer needHistoricalGapFiller(final Security security);
 
   /**
    * Return the security quotes for a specified period

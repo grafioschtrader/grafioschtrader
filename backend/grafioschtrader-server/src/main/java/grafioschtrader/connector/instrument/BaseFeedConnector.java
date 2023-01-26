@@ -94,6 +94,12 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   @Override
+  public Integer needHistoricalGapFiller(final Security security) {
+    return null;
+  }
+  
+  
+  @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     return null;
   }

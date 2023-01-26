@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
@@ -32,7 +33,7 @@ public abstract class BaseIntradayThru<S extends Securitycurrency<S>> implements
       ThreadHelper.executeForkJoinPool(() -> securtycurrencies.parallelStream()
           .forEach(securitycurrency -> updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry,
               scIntradayUpdateTimeout)),
-          4);
+          GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
     } else if (securtycurrencies.size() == 1) {
       securtycurrencies.set(0,
           updateLastPriceSecurityCurrency(securtycurrencies.get(0), maxIntraRetry, scIntradayUpdateTimeout));

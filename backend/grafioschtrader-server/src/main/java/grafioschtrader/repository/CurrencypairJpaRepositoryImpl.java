@@ -420,4 +420,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     return crossRateResponse;
   }
 
+  @Override
+  public void fillGap(Currencypair securitycurrency, IFeedConnector feedConnector, Date fromDate, Date toDate,
+      List<Historyquote> historyquotes) {
+  }
+
 }

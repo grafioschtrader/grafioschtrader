@@ -5,12 +5,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.context.MessageSource;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
+import grafioschtrader.repository.ISecuritycurrencyService;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityServiceAsyncExectuion;
 import grafioschtrader.repository.SecuritycurrencyService;
@@ -45,7 +45,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    * @param fromDate         When null then Date from global parameters is taken
    * @param toDate           When null then actual Date is taken
    */
-  S createHistoryQuotesAndSave(final JpaRepository<S, Integer> jpaRepository, final S securitycurrency,
+  S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService, final S securitycurrency,
       final Date fromDate, final Date toDate);
 
   /**
