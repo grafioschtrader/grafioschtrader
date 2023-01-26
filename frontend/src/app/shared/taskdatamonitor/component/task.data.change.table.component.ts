@@ -236,8 +236,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     });
   }
 
-  protected override isDeleteDisabled(entity: TaskDataChange): boolean {
-    return ProgressStateType[entity.progressStateType] === ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING]];
+  protected override hasRightsForDeleteEntity(entity: TaskDataChange): boolean {
+    return ProgressStateType[entity.progressStateType] !== ProgressStateType[ProgressStateType[ProgressStateType.PROG_RUNNING]];
   }
 
 }

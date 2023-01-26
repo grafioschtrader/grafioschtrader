@@ -64,6 +64,7 @@ class DeleteALLDataTest {
   @BeforeAll
   void setUpUserToken() {
     RestTestHelper.inizializeUserTokens(restTemplate, port, jwtTokenHandler);
+    System.out.println("**********************");
   }
 
   @Test

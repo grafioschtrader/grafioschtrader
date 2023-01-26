@@ -14,6 +14,11 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   List<Currencypair> catchAllUpCurrencypairHistoryquote();
 
+  /**
+   * For currency pairs, historical end-of-day rates must be available for each
+   * day. Otherwise GT cannot calculate the transactions on weekends and holidays.
+   * This method, which fills these gaps should be performed daily.
+   */
   void allCurrenciesFillEmptyDaysInHistoryquote();
 
   void currencieyFillEmptyDaysInHistoryquote(Currencypair currencypair) throws Exception;

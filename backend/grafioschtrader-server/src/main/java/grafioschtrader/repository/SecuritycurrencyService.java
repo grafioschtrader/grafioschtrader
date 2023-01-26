@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafioschtrader.common.DataHelper;
@@ -67,7 +66,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   @Autowired(required = false)
   public List<IFeedConnector> feedConnectorbeans = new ArrayList<>();
 
-  public abstract JpaRepository<S, Integer> getJpaRepository();
+ // public abstract JpaRepository<S, Integer> getJpaRepository();
   
   
   /**
@@ -90,7 +89,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   }
 
   protected S createWithHistoryQuote(final S securitycurrency) throws Exception {
-    return getHistorquoteLoad(securitycurrency).createHistoryQuotesAndSave(getJpaRepository(), securitycurrency, null,
+    return getHistorquoteLoad(securitycurrency).createHistoryQuotesAndSave(this, securitycurrency, null,
         null);
   }
 

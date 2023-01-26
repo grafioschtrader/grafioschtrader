@@ -10,6 +10,7 @@ import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.entities.Historyquote;
@@ -21,7 +22,7 @@ import grafioschtrader.repository.SecurityServiceAsyncExectuion;
 import grafioschtrader.repository.SecuritycurrencyService;
 
 /*-
- *
+ * This is the base class for loading or calculating historical price data.
  *
  * @param <S>
  */
@@ -66,13 +67,22 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
    */
   private List<S> particialFillHistoryquote(List<Integer> idsStockexchange) {
 
-    final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(idsStockexchange == null || idsStockexchange.size() == 0);
+    final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(
+        idsStockexchange == null || idsStockexchange.size() == 0);
     final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList = historyqouteEntityBaseAccess
         .getMaxHistoryquoteResult(globalparametersJpaRepository.getMaxHistoryRetry(), this, idsStockexchange);
 
     return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar);
   }
 
+  /**
+   * For current Sunday or Monday only determine EOD until previous Friday.
+   * 
+   * @param adjustForDayAfterUpd If the dates are determined according to the
+   *                             closing times of the trading exchange, the
+   *                             to-date is determined differently.
+   * @return
+   */
   private Calendar corretToCalendarForDayAfterUpdate(boolean adjustForDayAfterUpd) {
     final Calendar currentCalendar = DateHelper.getCalendar(new Date());
 
@@ -82,14 +92,15 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
     }
     return currentCalendar;
   }
-  
-  
+
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar) {
     final List<S> catchUp = new ArrayList<>();
-    ThreadHelper.executeForkJoinPool(() -> historySecurityCurrencyList.parallelStream()
-       .forEach(queryObject -> catchUpHistoryquote(queryObject, currentCalendar, catchUp)), 4);
+    ThreadHelper.executeForkJoinPool(
+        () -> historySecurityCurrencyList.parallelStream()
+            .forEach(queryObject -> catchUpHistoryquote(queryObject, currentCalendar, catchUp)),
+        GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
     return catchUp;
   }
 
@@ -102,7 +113,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
       if (execSecuritycurrency.getRetryHistoryLoad() == 0) {
         catchUp.add(execSecuritycurrency);
       }
-    }), 4);
+    }), GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
     return catchUp;
   }
 
@@ -131,10 +142,10 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
   }
 
   private void catchUpHistoryquote(final SecurityCurrencyMaxHistoryquoteData<S> queryObject,
-      final Calendar currentCalendar, final List<S> catchUp) {
+      final Calendar untilCalendar, final List<S> catchUp) {
     final S securitycurrency = queryObject.getSecurityCurrency();
     final Calendar lastQuoteCalendar = DateHelper.getCalendar(queryObject.getDate());
-    final int diffInDays = (int) ((currentCalendar.getTimeInMillis() - lastQuoteCalendar.getTimeInMillis())
+    final int diffInDays = (int) ((untilCalendar.getTimeInMillis() - lastQuoteCalendar.getTimeInMillis())
         / (1000 * 60 * 60 * 24));
 
     if (diffInDays > 1) {
@@ -142,7 +153,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
           diffInDays, securitycurrency);
       lastQuoteCalendar.add(Calendar.DATE, 1);
       final S execSecuritycurrency = historyqouteEntityBaseAccess.catchUpSecurityCurrencypairHisotry(securitycurrency,
-          lastQuoteCalendar.getTime(), currentCalendar.getTime());
+          lastQuoteCalendar.getTime(), untilCalendar.getTime());
       if (execSecuritycurrency.getRetryHistoryLoad() == 0) {
         catchUp.add(execSecuritycurrency);
       }

@@ -1,10 +1,14 @@
 package grafioschtrader.repository;
 
+import java.util.Date;
 import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
+import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 
@@ -28,5 +32,11 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
   List<IFeedConnector> getFeedConnectors(boolean isCurrency);
 
   List<ValueKeyHtmlSelectOptions> getAllFeedConnectorsAsKeyValue(FeedSupport feedSupport);
+  
+  
+  JpaRepository<S, Integer> getJpaRepository();
 
+  void fillGap(S securitycurrency, final IFeedConnector feedConnector,
+      final Date fromDate, final Date toDate, List<Historyquote> historyquotes);
+  
 }

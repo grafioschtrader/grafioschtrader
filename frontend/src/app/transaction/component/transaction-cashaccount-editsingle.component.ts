@@ -88,6 +88,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         {dataproperty: 'cashaccount.idSecuritycashAccount'}),
       DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', AppSettings.SECURITYACCOUNT.toUpperCase(), false,
         {invisible: true}),
+
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
         {...this.gps.getNumberCurrencyMask(), allowNegative: false}, true,
@@ -111,7 +112,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   }
 
   /**
-   * Depending on the transaction type a validator will be set an some input fields set visible or invisible
+   * Depending on the transaction type a validator will be set on some input fields set visible or invisible
    */
   valueChangedOnTransactionType() {
     this.transactionTypeChangedSub = this.configObject.transactionType.formControl.valueChanges.subscribe((data: string) => {
@@ -219,7 +220,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   }
 
   private adjustNumberInputFractions(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
-    fieldConfig.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.cashaccountCurrency);
+    DynamicFieldHelper.setCurrency(fieldConfig, this.cashaccountCurrency);
     DynamicFieldHelper.adjustNumberFraction(fieldConfig, integerDigits,
       precision);
   }

@@ -44,7 +44,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * The Vienna Stock Exchange provides for different asset classes the download
  * of a CSV file of the historical price data. Unfortunately, for some asset
  * classes a rounding to integers is performed for the CSV export. Another
- * access to more precise figures is available via the Profi Chart. The
+ * access to more precise figures is available via the "Profi Chart". The
  * disadvantage there is that only figures for the trading days are delivered if
  * they were traded on this day.
  *
@@ -138,6 +138,10 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
 
   }
 
+  public Integer needHistoricalGapFiller(final Security security) {
+    return useCSVEOD(security)? null: 1;
+  }
+  
   private boolean useCSVEOD(Security security) {
     return security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
         && security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES

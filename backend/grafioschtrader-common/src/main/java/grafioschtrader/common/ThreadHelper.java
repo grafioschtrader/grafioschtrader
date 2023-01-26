@@ -12,8 +12,8 @@ public class ThreadHelper {
 
   private static final Logger log = LoggerFactory.getLogger(ThreadHelper.class);
 
-  public static void executeForkJoinPool(final Runnable task, int threatMultiplier) {
-    final int numberOfThreads = Runtime.getRuntime().availableProcessors() * threatMultiplier;
+  public static void executeForkJoinPool(final Runnable task, int coreMultiplier) {
+    final int numberOfThreads = Runtime.getRuntime().availableProcessors() * coreMultiplier;
     final ForkJoinPool customThreadPool = new ForkJoinPool(numberOfThreads);
     try {
       customThreadPool.submit(task).get();

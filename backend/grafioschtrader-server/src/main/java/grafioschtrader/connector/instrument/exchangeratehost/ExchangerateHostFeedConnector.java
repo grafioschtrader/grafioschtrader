@@ -3,6 +3,9 @@ package grafioschtrader.connector.instrument.exchangeratehost;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,7 +27,8 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 
 /**
- * User for historical currency pair prices.
+ * This connector also provides a price for the current day, even in the first
+ * hours of trading. Of course, this price is not the closing price.
  *
  */
 @Component
@@ -56,6 +60,11 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
 
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, Date fromDate, Date toDate,
       SimpleDateFormat dateFormat) {
+
+    if (DateHelper.isSameDay(new Date(), toDate)
+        && LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).getHour() < 23) {
+      toDate = DateHelper.setTimeToZeroAndAddDay(toDate, -1);
+    }
     return DOMAIN_NAME + "timeseries?start_date=" + dateFormat.format(fromDate) + "&end_date="
         + dateFormat.format(toDate) + "&base=" + currencypair.getFromCurrency() + "&symbols="
         + currencypair.getToCurrency();
@@ -74,10 +83,7 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
       long days = DateHelper.getDateDiff(startDate, toDate, TimeUnit.DAYS);
       endDate = days > READ_TIME_SERIE_LIMIT ? DateHelper.setTimeToZeroAndAddDay(startDate, READ_TIME_SERIE_LIMIT)
           : toDate;
-
-      log.debug("From Date: {}", startDate);
-      log.debug("To Date: {}", endDate);
-
+      log.debug("From Date: {}, To Date: {}", startDate, endDate);
       URL url = new URL(getCurrencypairHistoricalDownloadLink(currencyPair, startDate, endDate, dateFormat));
       HeaderExchangeHistorical heh = objectMapper.readValue(url, HeaderExchangeHistorical.class);
       historyquotes.addAll(addDays(heh.rates, dateFormat, currencyPair.getToCurrency()));
@@ -106,7 +112,6 @@ public class ExchangerateHostFeedConnector extends BaseFeedConnector {
     return historyquotes;
   }
 
-  
   @SuppressWarnings("unused")
   @JsonIgnoreProperties(ignoreUnknown = true)
   private static class HeaderExchangeHistorical {

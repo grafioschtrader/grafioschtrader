@@ -108,8 +108,8 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
     });
   }
 
-  protected override isDeleteDisabled(entity: ConnectorApiKey): boolean {
-    return false;
+  protected override hasRightsForDeleteEntity(entity: ConnectorApiKey): boolean {
+    return true;
   }
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {

@@ -148,6 +148,7 @@ public class ConnectorTestHelper {
     public Date from;
     public Date to;
 
+     
     public HisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend, String mic, int expectedRows, String fromStr, String toStr) throws ParseException {
       this(name, isin, specialInvestmentInstrument, null, urlExtend, mic, expectedRows, fromStr, toStr);

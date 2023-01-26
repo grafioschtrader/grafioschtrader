@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.context.MessageSource;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -15,6 +14,7 @@ import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGroupe
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.repository.ISecuritycurrencyService;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
@@ -41,7 +41,7 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
   }
 
   @Override
-  public Security createHistoryQuotesAndSave(JpaRepository<Security, Integer> jpaRepository, Security security,
+  public Security createHistoryQuotesAndSave(ISecuritycurrencyService<Security> securitycurrencyService, Security security,
       Date fromDate, Date toDate) {
     short restryHistoryLoad = security.getRetryHistoryLoad();
     try {
@@ -56,7 +56,7 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
     }
     security.setRetryHistoryLoad(restryHistoryLoad);
 
-    return jpaRepository.save(security);
+    return securitycurrencyService.getJpaRepository().save(security);
   }
 
   @Override
@@ -75,5 +75,7 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
       SecurityJpaRepository securityJpaRepository, MessageSource messages) {
     return null;
   }
+
+  
 
 }

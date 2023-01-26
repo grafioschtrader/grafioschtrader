@@ -47,10 +47,10 @@ public class RestTestHelper {
   public static final String[] LIMIT_USERS = new String[] { LIMIT1, LIMIT2 };
 
   public static UserRegister[] users = { new UserRegister("hg@hugograf.com", "a", ADMIN, "de-CH", -60, C_CHF),
-      new UserRegister("hugo.graf@grafiosch.com", "d", ALLEDIT, "de-CH", -60, C_CHF),
-      new UserRegister("hugo.graf@outlook.com", "d", USER, "de-CH", -60, C_USD),
-      new UserRegister("grafiosch@outlook.com", "b", LIMIT1, "de-CH", -60, C_EUR),
-      new UserRegister("hugo.graf@wirtschaftsfilz.ch", "c", LIMIT2, "de-CH", -60, C_CHF) };
+      new UserRegister("hugo.graf@grafiosch.com", "a", ALLEDIT, "de-CH", -60, C_CHF),
+      new UserRegister("hugo.graf@outlook.com", "a", USER, "de-CH", -60, C_USD),
+      new UserRegister("grafiosch@outlook.com", "a", LIMIT1, "de-CH", -60, C_EUR),
+      new UserRegister("hugo.graf@wirtschaftsfilz.ch", "a", LIMIT2, "de-CH", -60, C_CHF) };
 
   public static String getRadomUser() {
     return ALL_USERS[random.nextInt(4) + 1];

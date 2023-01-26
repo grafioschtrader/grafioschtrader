@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafioschtrader.GlobalConstants;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -13,12 +14,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- * Contains the receiving Messages.
- *
- * @author Hugo Graf
- *
- */
+@Schema(description = "Contains the receiving messages")
 @Entity
 @Table(name = MailInbox.TABNAME)
 @DiscriminatorValue("I")
@@ -28,14 +24,12 @@ public class MailInbox extends MailInOut implements Serializable {
 
   public static final String TABNAME = "mail_inbox";
 
-  @Size(min = 2, max = 64)
-  @Column(name = "domain_from")
-  private String domainFrom;
-
+  @Schema(description = "When was the message received")
   @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME)
   @Column(name = "received_time")
   private LocalDateTime receivedTime;
 
+  @Schema(description = "The message was read")
   @Column(name = "has_been_read")
   private boolean hasBeenRead;
 
@@ -46,14 +40,7 @@ public class MailInbox extends MailInOut implements Serializable {
       @NotNull @Size(min = 2, max = 96) String subject, @NotNull @Size(min = 2, max = 1024) String message) {
     super(idUserFrom, idUserTo, roleName, subject, message);
   }
-
-  public String getDomainFrom() {
-    return domainFrom;
-  }
-
-  public void setDomainFrom(String domainFrom) {
-    this.domainFrom = domainFrom;
-  }
+ 
 
   public LocalDateTime getReceivedTime() {
     return receivedTime;

@@ -6,6 +6,7 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -189,6 +190,9 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @PropertyAlwaysUpdatable
   private Short retrySplitLoad = 0;
 
+  @Column(name = "fill_eod_gap_until")
+  private LocalDate fillEodGapUntil;
+  
   @Column(name = "div_earliest_next_check")
   @Temporal(TemporalType.TIMESTAMP)
   private Date dividendEarliestNextCheck;
@@ -469,6 +473,14 @@ public class Security extends Securitycurrency<Security> implements Serializable
 
   public void setRetrySplitLoad(Short retrySplitLoad) {
     this.retrySplitLoad = retrySplitLoad;
+  }
+  
+  public LocalDate getFillEodGapUntil() {
+    return fillEodGapUntil;
+  }
+
+  public void setFillEodGapUntil(LocalDate fillEodGapUntil) {
+    this.fillEodGapUntil = fillEodGapUntil;
   }
 
   public Date getDividendEarliestNextCheck() {

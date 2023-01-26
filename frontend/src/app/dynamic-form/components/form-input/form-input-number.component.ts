@@ -11,6 +11,7 @@ import {BaseInputComponent} from '../base.input.component';
       <p-inputNumber
         [class.required-input]="isRequired && !config.readonly"
         inputStyleClass="text-right"
+        [readonly]="config.readonly"
         [ngStyle]="{'width': config.inputWidth+'em'}"
         [class.negativ-number]="input.value < 0"
         pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
@@ -27,15 +28,11 @@ import {BaseInputComponent} from '../base.input.component';
         [mode]="config.inputNumberSettings.currency? 'currency': 'decimal'"
         currencyDisplay="code">
       </p-inputNumber>
-      <p-inputNumber [(ngModel)]="price1" mode="currency" currency="CHF" locale="de-CH"
-                     currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
     </ng-container>
   `
 })
 
 export class FormInputNumberComponent extends BaseInputComponent implements OnInit {
-  price1 = 12.20;
-
   ngOnInit() {
   }
 }

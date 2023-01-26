@@ -533,4 +533,19 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         securityStatisticsSummary.getStandardDeviation(jdbcTemplate, dateFrom, dateTo, false));
   }
 
+  @Override
+  public void fillGap(Security security, IFeedConnector feedConnector, Date fromDate, Date toDate,
+      List<Historyquote> historyquotes) {
+    Integer daysMinus = feedConnector.needHistoricalGapFiller(security);
+    if(daysMinus != null) {
+      
+      if(security.getStockexchange().getIdIndexUpdCalendar() != null) {
+        System.out.println("--------------------------  Need fill gaps ------------------------");
+        System.out.println(security);
+      }
+    }
+    
+  }
+
+ 
 }

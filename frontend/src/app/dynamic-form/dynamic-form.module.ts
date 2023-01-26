@@ -36,13 +36,13 @@ import {FilterOutPipe} from './pipe/FilterOutPipe';
 import {FormInputButtonComponent} from './components/form-input/form-input-button.component';
 import {DisableControlDirective} from './components/disable.control.directive';
 import {FormInputNumberComponent} from './components/form-input/form-input-number.component';
-import {InputNumberModule} from 'primeng/inputnumber';
 import {NgxCurrencyModule} from 'ngx-currency';
 import {FormInputCurrencyNumberComponent} from './components/form-input/form-input-currency-number.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {HttpClientModule} from '@angular/common/http';
 import {FormInputDropdownComponent} from './components/form-input/form-input-dropdown.component';
 import {DropdownModule} from 'primeng/dropdown';
+import {InputNumberModule} from 'primeng/inputnumber';
 
 
 @NgModule({
@@ -115,7 +115,7 @@ export class DynamicFormModule {
     return {
       ngModule: DynamicFormModule,
       providers: [
-        {provide: ANALYZE_FOR_ENTRY_COMPONENTS, useValue: components, multi: true}
+      //  {provide: ANALYZE_FOR_ENTRY_COMPONENTS, useValue: components, multi: true}
       ]
     };
   }

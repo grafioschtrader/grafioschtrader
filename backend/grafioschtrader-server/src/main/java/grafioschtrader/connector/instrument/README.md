@@ -11,17 +11,32 @@
 
 ### To observe
 Before it can be implemented, these points still need to be clarified.
+### Nordic Nasdaq (Nasdaq: NDAQ)
 
-#### [Wiener Boerse](//www.wienerborse.at/) - Free
-- It works with an **ID_NOTATION** and uses an array for request c48840[DATETIME_TZ_END_RANGE]. Does 
-this array change over time?
+```
+<post>
+<param+name="Exchange"+value="NMF"/>
+<param+name="SubSystem"+value="History"/>
+<param+name="Action"+value="GetDataSeries"/>
+<param+name="AppendIntraDay"+value="no"/>
+<param+name="FromDate"+value="2000-01-03"/>
+<param+name="ToDate"+value="2023-01-16"/>
+<param+name="Instrument"+value="SSE160271"/>
+<param+name="hi__a"+value="0,5,6,3,1,2,4,21,8,10,12,9,11"/>
+<param+name="OmitNoTrade"+value="true"/>
+<param+name="ext_xslt_lang"+value="en"/>
+<param+name="ext_xslt"+value="/nordicV3/hi_csv.xsl"/>
+<param+name="ext_xslt_options"+value=",adjusted,"/>
+<param+name="ext_contenttype"+value="application/ms-excel"/>
+<param+name="ext_contenttypefilename"+value="NDA-SE-2000-01-03-2023-01-16.csv"/>
+<param+name="ext_xslt_hiddenattrs"+value=",iv,ip,"/>
+<param+name="ext_xslt_tableId"+value="historicalTable"/>
+<param+name="DefaultDecimals"+value="false"/>
+<param+name="app"+value="/shares/historicalprices"/>
+</post>
+`` 
 
 ### Does not work
 Listed here are those data sources that were considered possible candidates but ultimately did not seem feasible for implementation.
 
 ### Should be implemented 
-#### [Euronext](//www.euronext.com/en) - Free
-- Over 2 years take rates from price chart. It only contains the date and close price.
-- For the last two years or less take the historical rates from historical prices.
-#### [EOD Historical Data](//eodhistoricaldata.com/) - Paid
-This data source provides data from over 60 stock exchanges and at a very "reasonable" price.

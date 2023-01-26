@@ -40,9 +40,6 @@ import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
  * Import a single csv file, which can produce one or more import transactions.
- *
- * @author Hugo Graf
- *
  */
 public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfBase {
 

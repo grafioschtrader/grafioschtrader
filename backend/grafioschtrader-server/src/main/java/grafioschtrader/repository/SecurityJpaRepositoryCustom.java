@@ -105,3 +105,4 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   void checkAndClearSecuritycurrencyConnectors(final Security security);
 
 }
+

@@ -155,6 +155,10 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     return clear;
   }
 
+  public Integer needHistoricalGapFiller(final Security security) {
+    return 0;
+  }
+  
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {

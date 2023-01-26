@@ -63,7 +63,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     });
   }
 
-  readData() {
+  override readData() {
     this.selectedSecurityPositionSummary = null;
     this.securityaccountService.getPositionSummarySecurityaccount(this.idSecurityaccount, this.securityaccountGroupBase.defaultGroup,
       this.includeClosedPosition, this.untilDate)
@@ -111,6 +111,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
               noOfImportedTransactions: sfdit.noOfImportedTransactions,
               noOfDifferentSecurities: sfdit.noOfDifferentSecurities
             });
+          this.readData();
         }
       });
   }

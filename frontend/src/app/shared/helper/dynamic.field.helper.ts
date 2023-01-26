@@ -258,7 +258,18 @@ export class DynamicFieldHelper {
   }
 
   /**
-   * TODO Not working Primeng p-inputNumber
+   * Primeng p-inputNumber maybe not working
+   */
+  public static createFieldInputNumberHeqF(fieldName: string, required: boolean, integerLimit: number,
+                                           maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions): FieldConfig {
+
+    return this.createFieldInputNumber(fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName), required,
+      integerLimit, maxFractionDigits, allowNegative, fieldOptions);
+  }
+
+
+  /**
+   * Primeng p-inputNumber maybe not working
    */
   public static createFieldInputNumber(fieldName: string, labelKey: string, required: boolean, integerLimit: number,
                                        maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions): FieldConfig {
@@ -329,11 +340,25 @@ export class DynamicFieldHelper {
     return validationSpecials ? this.addValidationParam(fieldConfig, validationSpecials, param) : fieldConfig;
   }
 
+  public static setCurrency(fieldConfig: FieldConfig, currency: string): void {
+    if (fieldConfig.inputType === InputType.InputCurrencyNumber) {
+      fieldConfig.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(currency);
+    } else {
+      fieldConfig.inputNumberSettings.currency = currency;
+    }
+  }
+
+
   public static adjustNumberFraction(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
-    fieldConfig.currencyMaskConfig.precision = precision;
-    // Error in ngx-currency: Fraction digits may not be greater than Integer digits + 2 disgits
-    DynamicFieldHelper.setCurrencyMaskMaxMin(fieldConfig, Math.max(integerDigits - precision + 2,
-      AppSettings.FID_SMALL_INTEGER_LIMIT), precision);
+    if (fieldConfig.inputType === InputType.InputCurrencyNumber) {
+      fieldConfig.currencyMaskConfig.precision = precision;
+      // Error in ngx-currency: Fraction digits may not be greater than Integer digits + 2 disgits
+      DynamicFieldHelper.setCurrencyMaskMaxMin(fieldConfig, Math.max(integerDigits - precision + 2,
+        AppSettings.FID_SMALL_INTEGER_LIMIT), precision);
+    } else {
+      this.setMinMaxValues(fieldConfig, integerDigits, precision, fieldConfig.currencyMaskConfig.allowNegative);
+      fieldConfig.inputNumberSettings.maxFractionDigits = precision;
+    }
   }
 
   public static setCurrencyMaskMaxMin(fieldConfig: FieldConfig, integerDigits: number, maxFractionDigits: number): void {
