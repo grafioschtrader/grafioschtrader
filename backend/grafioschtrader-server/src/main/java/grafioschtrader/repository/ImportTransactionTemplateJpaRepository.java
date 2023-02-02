@@ -27,7 +27,6 @@ public interface ImportTransactionTemplateJpaRepository extends JpaRepository<Im
   List<ImportTransactionTemplate> findByIdTransactionImportPlatformAndTemplateFormatTypeOrderByTemplatePurpose(
       Integer idTransactionImportPlatform, byte templateFormatType);
 
-  @Query(value = "SELECT DISTINCT t.* FROM imp_trans_template t, imp_trans_pos p "
-      + "WHERE t.id_trans_imp_template = p.id_trans_imp_template AND p.id_trans_head = ?1 AND p.id_tenant = ?2", nativeQuery = true)
+  @Query(nativeQuery = true)
   List<ImportTransactionTemplate> getImportTemplateByImportTransPos(Integer idTransactionHead, Integer idTenant);
 }

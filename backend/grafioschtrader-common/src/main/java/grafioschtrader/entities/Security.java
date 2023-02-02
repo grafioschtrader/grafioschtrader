@@ -189,9 +189,6 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @Column(name = "retry_split_load")
   @PropertyAlwaysUpdatable
   private Short retrySplitLoad = 0;
-
-  @Column(name = "fill_eod_gap_until")
-  private LocalDate fillEodGapUntil;
   
   @Column(name = "div_earliest_next_check")
   @Temporal(TemporalType.TIMESTAMP)
@@ -474,14 +471,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   public void setRetrySplitLoad(Short retrySplitLoad) {
     this.retrySplitLoad = retrySplitLoad;
   }
-  
-  public LocalDate getFillEodGapUntil() {
-    return fillEodGapUntil;
-  }
-
-  public void setFillEodGapUntil(LocalDate fillEodGapUntil) {
-    this.fillEodGapUntil = fillEodGapUntil;
-  }
+ 
 
   public Date getDividendEarliestNextCheck() {
     return dividendEarliestNextCheck;

@@ -19,8 +19,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.connector.instrument.stockdata.StockdataConnector;
-import grafioschtrader.connector.instrument.stockdata.StockdataConnector.StockexchangeStockdata;
+import grafioschtrader.connector.instrument.stockdata.StockDataFeedConnector;
+import grafioschtrader.connector.instrument.stockdata.StockDataFeedConnector.StockexchangeStockdata;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -31,10 +31,10 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @SpringBootTest(classes = GTforTest.class)
 @Transactional
-public class StockdataConnectorTest {
+public class StockDataFeedConnectorTest {
 
   @Autowired
-  private StockdataConnector stockdataConnector;
+  private StockDataFeedConnector stockdataConnector;
 
   @Autowired
   private StockexchangeMicJpaRepository stockexchangeMicJpaRepository;
@@ -94,6 +94,7 @@ public class StockdataConnectorTest {
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
     final List<Currencypair> currencies = new ArrayList<>();
+    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "SEK"));
@@ -112,6 +113,8 @@ public class StockdataConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ETH", "USD"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "CHF"));
     currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "GBP"));

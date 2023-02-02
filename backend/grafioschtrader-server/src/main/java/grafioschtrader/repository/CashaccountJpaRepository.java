@@ -19,9 +19,7 @@ public interface CashaccountJpaRepository extends JpaRepository<Cashaccount, Int
   // @Query("SELECT c FROM Cashaccount c, Portfolio p WHERE p.name = ?1 AND c.name
   // = ?2")
 
-  @Query(value = "SELECT c.id_securitycash_account, s.name, s.note, s.id_portfolio, c.start_amount, c.balance, c.currency "
-      + "FROM cashaccount c, securitycashaccount s, portfolio p WHERE c.id_securitycash_account = s.id_securitycash_account "
-      + "AND s.id_portfolio = p.id_portfolio AND p.name=?1 AND s.name=?2", nativeQuery = true)
+  @Query(nativeQuery = true)
   Cashaccount findByPortfolioNameAndName(String portfolioName, String name);
 
   // TODO A cashaccount can have many accounts for a single currency

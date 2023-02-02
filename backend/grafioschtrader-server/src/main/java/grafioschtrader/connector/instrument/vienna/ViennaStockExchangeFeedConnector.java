@@ -138,8 +138,8 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
 
   }
 
-  public Integer needHistoricalGapFiller(final Security security) {
-    return useCSVEOD(security)? null: 1;
+  public boolean needHistoricalGapFiller(final Security security) {
+    return useCSVEOD(security)? false: true;
   }
   
   private boolean useCSVEOD(Security security) {

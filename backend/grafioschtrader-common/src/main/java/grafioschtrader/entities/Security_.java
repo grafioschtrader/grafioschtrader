@@ -35,6 +35,6 @@ public abstract class Security_ extends grafioschtrader.entities.Securitycurrenc
   public static volatile SingularAttribute<Security, String> currency;
   public static volatile SingularAttribute<Security, String> productLink;
   public static volatile SingularAttribute<Security, String> isin;
-  public static volatile SingularAttribute<Security, LocalDate> fillEodGapUntil;
+ 
 
 }

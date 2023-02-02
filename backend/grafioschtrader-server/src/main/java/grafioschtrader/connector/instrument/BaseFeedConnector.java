@@ -94,8 +94,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   @Override
-  public Integer needHistoricalGapFiller(final Security security) {
-    return null;
+  public boolean needHistoricalGapFiller(final Security security) {
+    return false;
   }
   
   

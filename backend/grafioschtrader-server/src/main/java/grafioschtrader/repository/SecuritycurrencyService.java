@@ -246,5 +246,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         : Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class);
   }
 
- 
+  
+  
 }

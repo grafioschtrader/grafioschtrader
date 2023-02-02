@@ -16,6 +16,7 @@ import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
+import jakarta.transaction.Transactional;
 
 public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, Integer>,
     HistoryquoteJpaRepositoryCustom, UpdateCreateJpaRepository<Historyquote> {
@@ -26,6 +27,9 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   int deleteByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
 
+  @Transactional
+  int deleteByIdSecuritycurrencyAndDateGreaterThanEqual(Integer idSecuritycurrency, Date date);
+  
   Optional<Historyquote> findByIdSecuritycurrencyAndDate(Integer idSecuritycurrency, Date date);
 
   List<Historyquote> findByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
@@ -38,9 +42,8 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency, Date date,
       Pageable pageable);
 
-  
-  
   void removeByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
+
   /**
    * For user interface, do not show history quotes which fills day holes.
    *
@@ -64,11 +67,11 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   @Query(value = "SELECT MAX(date) FROM Historyquote h WHERE h.idSecuritycurrency = ?1")
   Date getMaxDateByIdSecurity(Integer idSecuritycurrency);
-  
+
   @Query(nativeQuery = false)
   List<HistoryquoteDateClose> findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(
       Integer idSecuritycurrency);
-  
+
   @Query(nativeQuery = true)
   IHistoryquoteQuality getMissingsDaysCountByIdSecurity(Integer idSecuritycurrency);
 
@@ -90,7 +93,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   @Query(nativeQuery = true)
   List<IMinMaxDateHistoryquote> getMinMaxDateByIdSecuritycurrencyIds(List<Integer> idsSecuritycurrency);
-  
+
   /**
    * Return of historical prices based on the trading calendar of the security.
    * That means a closed price can be null.
@@ -190,6 +193,17 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   @Query(nativeQuery = true)
   List<Object[]> findByIdSecurityaccountAndIdSecurityFoCuHistoryquotes(Integer idSecuritycashAccount,
       Integer idSecuritycurrency);
+
+  /**
+   * Return of all missing dates of the EOD for a security. The missing dates are
+   * determined via the index referenced by the stock exchange.
+   * 
+   * @param idSecuritycurrencyIndex
+   * @param idSecuritycurrency
+   * @return
+   */
+  @Query(nativeQuery = true)
+  List<Date> getMissingEODForSecurityByUpdCalendarIndex(Integer idSecuritycurrencyIndex, Integer idSecuritycurrency);
 
   public interface SecurityCurrencyIdAndDate {
     Integer getIdSecuritycurrency();

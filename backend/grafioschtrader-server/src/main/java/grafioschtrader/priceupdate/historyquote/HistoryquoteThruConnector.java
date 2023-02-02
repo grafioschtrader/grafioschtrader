@@ -31,9 +31,11 @@ import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.ISecuritycurrencyService;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import jakarta.transaction.Transactional;
 
 /**
  * Update or load historical prices thru the connector for securities or
@@ -63,15 +65,35 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   @Override
-  public S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService,
-      final S securitycurrency, final Date fromDate, final Date toDate) {
+  @Transactional
+  public S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
+      final Date fromDate, final Date toDate) {
     short restryHistoryLoad = securitycurrency.getRetryHistoryLoad();
 
     try {
       final IFeedConnector feedConnector = getConnectorHistoricalForSecuritycurrency(securitycurrency);
+      boolean needGapFiller = securitycurrency instanceof Security security
+          && security.getStockexchange().getIdIndexUpdCalendar() != null
+              ? feedConnector.needHistoricalGapFiller(security)
+              : false;
       if (feedConnector != null) {
-        createWithHistoryQuoteWithConnector(securitycurrencyService, securitycurrency, feedConnector, fromDate, toDate);
+        HistoryquoteDataChange hdc = createWithHistoryQuoteWithConnector(securitycurrencyService, securitycurrency,
+            feedConnector, fromDate, toDate, needGapFiller);
+
+        if (hdc.removeFromDate != null) {
+          historyquoteEntityAccess.getHistoryquoteJpaRepository().deleteByIdSecuritycurrencyAndDateGreaterThanEqual(
+              securitycurrency.getIdSecuritycurrency(), hdc.historyquotes.get(0).getDate());
+          securitycurrency = securitycurrencyService.getJpaRepository()
+              .findByIdSecuritycurrency(securitycurrency.getIdSecuritycurrency());
+        }
         restryHistoryLoad = 0;
+        addHistoryquotesToSecurity(securitycurrency, hdc.historyquotes, hdc.correctedFromDate, hdc.toDateCalc);
+
+        if (needGapFiller) {
+          securitycurrency = securitycurrencyService.getJpaRepository().save(securitycurrency);
+          addHistoryquotesToSecurity(securitycurrency, securitycurrencyService.fillGap(securitycurrency), fromDate,
+              toDate);
+        }
       }
     } catch (final ParseException pe) {
       log.error(pe.getMessage() + "Offset: " + pe.getErrorOffset(), pe);
@@ -126,30 +148,67 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     return catchUpEmptyHistoryquote(query.getResultList());
   }
 
-  private void createWithHistoryQuoteWithConnector(final ISecuritycurrencyService<S> securitycurrencyService,
-      final S securitycurrency, final IFeedConnector feedConnector, final Date fromDate, final Date toDate)
-      throws Exception {
+  private HistoryquoteDataChange createWithHistoryQuoteWithConnector(
+      final ISecuritycurrencyService<S> securitycurrencyService, final S securitycurrency,
+      final IFeedConnector feedConnector, final Date fromDate, final Date toDate, boolean needGapFiller) throws Exception {
 
-    final Date correctedFromDate = getCorrectedFromDate(securitycurrency, fromDate);
-    final Date toDateCalc = (toDate == null) ? new Date() : toDate;
+    HistoryquoteDataChange hdc = new HistoryquoteDataChange(getCorrectedFromDate(securitycurrency, fromDate));
+    hdc.toDateCalc = (toDate == null) ? new Date() : toDate;
+    Date correctedFromDateGapFill = securitycurrency instanceof Security
+        ? getFirstGapFillByAfterLastRealEOD((Security) securitycurrency, needGapFiller, hdc.correctedFromDate)
+        : hdc.correctedFromDate;
 
-    List<Historyquote> historyquotes = historyquoteEntityAccess.getHistoryQuote(securitycurrency,
-        substractSomeDays(correctedFromDate, toDateCalc), toDateCalc, feedConnector);
+    hdc.historyquotes = historyquoteEntityAccess.getHistoryQuote(securitycurrency,
+        substractSomeDays(
+            correctedFromDateGapFill.before(hdc.correctedFromDate) ? correctedFromDateGapFill : hdc.correctedFromDate,
+            hdc.toDateCalc),
+        hdc.toDateCalc, feedConnector);
 
-    historyquotes = historyquotes.stream().parallel()
-        .filter(historyquote -> !historyquote.getDate().before(correctedFromDate)).collect(Collectors.toList());
+    hdc.removeFromDate = removeFillGap(securitycurrency, hdc.historyquotes, needGapFiller, hdc.correctedFromDate,
+        correctedFromDateGapFill);
 
-    securitycurrencyService.fillGap(securitycurrency, feedConnector, correctedFromDate, toDateCalc, historyquotes);
-    
-    historyquotes.stream()
-        .forEach(historyquote -> historyquote.setIdSecuritycurrency(securitycurrency.getIdSecuritycurrency()));
+    hdc.historyquotes = hdc.historyquotes.stream().parallel()
+        .filter(historyquote -> hdc.removeFromDate != null || !historyquote.getDate().before(hdc.correctedFromDate))
+        .peek(h -> h.setIdSecuritycurrency(securitycurrency.getIdSecuritycurrency())).collect(Collectors.toList());
 
-    addHistoryquotesToSecurity(securitycurrency, historyquotes, correctedFromDate, toDateCalc);
+    return hdc;
+
+  }
+
+  private Date removeFillGap(final S securitycurrency, List<Historyquote> historyquotes, boolean needGapFiller,
+      Date correctedFromDate, Date correctedFromDateGapFill) {
+    boolean hasGapFillRemoved = needGapFiller && correctedFromDateGapFill.before(correctedFromDate)
+        && !historyquotes.isEmpty() && historyquotes.get(0).getDate().before(correctedFromDate);
+    return hasGapFillRemoved ? historyquotes.get(0).getDate() : null;
   }
 
   /**
-   * Some data provider cause an error, if there is not minimum of days between the two
-   * dates. For this reason, some days are subtract form the older date.
+   * For the area of the recent EOD gap previously felt by the system, there could
+   * now be one or more real EODs. Therefore, the data back to the most recent
+   * real EOD is requested again by the connector.
+   * 
+   * @param security
+   * @param needGapFiller
+   * @param toDateCalc
+   * @return
+   */
+  private Date getFirstGapFillByAfterLastRealEOD(Security security, boolean needGapFiller, Date correctedFromDate) {
+    if (needGapFiller && security.getHistoryquoteList() != null) {
+      int i = security.getHistoryquoteList().size();
+      do {
+        i -= 1;
+      } while (i > 0
+          && security.getHistoryquoteList().get(i).getCreateType() == HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR);
+      if (i < security.getHistoryquoteList().size() - 1) {
+        return security.getHistoryquoteList().get(i + 1).getDate();
+      }
+    }
+    return correctedFromDate;
+  }
+
+  /**
+   * Some data provider cause an error, if there is not minimum of days between
+   * the two dates. For this reason, some days are subtract form the older date.
    *
    * @param fromDate
    * @param toDate
@@ -182,36 +241,47 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     Locale userLocale = user.createAndGetJavaLocale();
     String[] groupValues = new String[3];
 
-    Stream<IHistoryquoteQualityFlat> hqfStream = groupedBy == HistoryquoteQualityGrouped.CONNECTOR_GROUPED
+    try (Stream<IHistoryquoteQualityFlat> hqfStream = groupedBy == HistoryquoteQualityGrouped.CONNECTOR_GROUPED
         ? securityJpaRepository.getHistoryquoteQualityConnectorFlat()
-        : securityJpaRepository.getHistoryquoteQualityStockexchangeFlat();
+        : securityJpaRepository.getHistoryquoteQualityStockexchangeFlat()) {
+      hqfStream.forEach(historyquoteQualityFlat -> {
+        boolean isConnectGroup = groupedBy == HistoryquoteQualityGrouped.CONNECTOR_GROUPED;
+        String readableName = null;
+        String readableNamePrefix = "";
+        IFeedConnector ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
+            historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY);
+        if (ifeedConnector == null) {
+          ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
+              historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.INTRA);
+          readableNamePrefix = "† - ";
 
-    hqfStream.forEach(historyquoteQualityFlat -> {
-      boolean isConnectGroup = groupedBy == HistoryquoteQualityGrouped.CONNECTOR_GROUPED;
-      String readableName = null;
-      String readableNamePrefix = "";
-      IFeedConnector ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
-          historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY);
-      if (ifeedConnector == null) {
-        ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
-            historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.INTRA);
-        readableNamePrefix = "† - ";
+        }
+        readableName = ifeedConnector == null ? "†" : readableNamePrefix + ifeedConnector.getReadableName();
 
-      }
-      readableName = ifeedConnector == null ? "†" : readableNamePrefix + ifeedConnector.getReadableName();
+        groupValues[0] = isConnectGroup ? readableName : historyquoteQualityFlat.getStockexchangeName();
+        groupValues[1] = isConnectGroup ? historyquoteQualityFlat.getStockexchangeName() : readableName;
+        groupValues[2] = messages.getMessage(
+            AssetclassType.getAssetClassTypeByValue(historyquoteQualityFlat.getCategoryType()).name(), null,
+            userLocale);
+        groupValues[2] = groupValues[2] + " / "
+            + messages.getMessage(SpecialInvestmentInstruments
+                .getSpecialInvestmentInstrumentsByValue(historyquoteQualityFlat.getSpecialInvestmentInstrument())
+                .name(), null, userLocale);
+        historyquoteQualityHead.addHistoryquoteQualityFlat(historyquoteQualityFlat, groupValues, 0, isConnectGroup);
 
-      groupValues[0] = isConnectGroup ? readableName : historyquoteQualityFlat.getStockexchangeName();
-      groupValues[1] = isConnectGroup ? historyquoteQualityFlat.getStockexchangeName() : readableName;
-      groupValues[2] = messages.getMessage(
-          AssetclassType.getAssetClassTypeByValue(historyquoteQualityFlat.getCategoryType()).name(), null, userLocale);
-      groupValues[2] = groupValues[2] + " / "
-          + messages.getMessage(SpecialInvestmentInstruments
-              .getSpecialInvestmentInstrumentsByValue(historyquoteQualityFlat.getSpecialInvestmentInstrument()).name(),
-              null, userLocale);
-      historyquoteQualityHead.addHistoryquoteQualityFlat(historyquoteQualityFlat, groupValues, 0, isConnectGroup);
-
-    });
+      });
+    }
     return historyquoteQualityHead;
   }
 
+  private static class HistoryquoteDataChange {
+    public Date correctedFromDate;
+    public Date toDateCalc;
+    public List<Historyquote> historyquotes;
+    public Date removeFromDate;
+
+    public HistoryquoteDataChange(Date correctedFromDate) {
+      this.correctedFromDate = correctedFromDate;
+    }
+  }
 }

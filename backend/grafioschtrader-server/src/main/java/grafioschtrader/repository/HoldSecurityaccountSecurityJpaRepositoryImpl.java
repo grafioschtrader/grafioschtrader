@@ -123,7 +123,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       Security security = securityOpt.get();
       if (security.isMarginInstrument()) {
         Map<Integer, Transaction> marginTransactionMap = transactionJpaRepository
-            .findBySecurity_idSecuritycurrency(security.getIdSecuritycurrency())
+            .findBySecurity_idSecuritycurrency(security.getIdSecuritycurrency()).stream()
             .collect(Collectors.toMap(Transaction::getIdTransaction, Function.identity()));
         List<IHoldSecuritySplitTransactionBySecurity> hstbsList = holdSecurityaccountSecurityRepository
             .getHoldSecuritySplitMarginTransactionBySecurity(security.getIdSecuritycurrency());

@@ -30,7 +30,7 @@ public interface TradingDaysPlusJpaRepository
 
   /**
    * Get global holidays from 2001-01-01 until now. Normally first of first of
-   * january and December 25 for each year.
+   * January and December 25 for each year.
    *
    * @return
    */

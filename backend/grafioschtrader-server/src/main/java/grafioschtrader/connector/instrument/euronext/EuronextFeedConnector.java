@@ -155,8 +155,8 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     return clear;
   }
 
-  public Integer needHistoricalGapFiller(final Security security) {
-    return 0;
+  public boolean needHistoricalGapFiller(final Security security) {
+    return true;
   }
   
   @Override
