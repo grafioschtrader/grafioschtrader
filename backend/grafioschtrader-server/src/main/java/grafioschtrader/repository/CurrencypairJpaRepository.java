@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
@@ -14,7 +13,7 @@ import grafioschtrader.entities.projection.CurrencyCount;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
-public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, Integer>,
+public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaRepository<Currencypair>,
     JpaSpecificationExecutor<Currencypair>, CurrencypairJpaRepositoryCustom, UpdateCreateJpaRepository<Currencypair> {
 
   List<Currencypair> findByFromCurrency(String fromCurrency);
@@ -42,13 +41,13 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
   @EntityGraph(value = "graph.currency.historyquote", type = EntityGraphType.FETCH)
   Currencypair findByIdSecuritycurrency(Integer idSecuritycurrency);
 
-  @Query(value = "SELECT c as securityCurrency, MAX(h.date) AS date FROM Currencypair c JOIN c.historyquoteList h "
-      + "WHERE c.retryHistoryLoad < ?1 AND c.idConnectorHistory IS NOT NULL GROUP BY c.idSecuritycurrency", nativeQuery = false)
+  @Query(nativeQuery = false)
   List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> getMaxHistoryquote(short maxHistoryRetry);
 
-  @Query(value = "SELECT c FROM Watchlist w JOIN w.securitycurrencyList c "
-      + "WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryIntraLoad > 0 AND c.fromCurrency IS NOT NULL "
-      + "AND c.idConnectorIntra IS NOT NULL")
+  @Query(value ="""
+                 SELECT c FROM Watchlist w JOIN w.securitycurrencyList c 
+                 WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryIntraLoad > 0 
+                 AND c.fromCurrency IS NOT NULL AND c.idConnectorIntra IS NOT NULL""")
   List<Currencypair> findByIdTenantAndIdWatchlistWhenRetryIntraThan0(Integer idTenant, Integer idWatchlist);
 
   /**
@@ -58,9 +57,10 @@ public interface CurrencypairJpaRepository extends JpaRepository<Currencypair, I
    * @param idWatchlist
    * @return
    */
-  @Query(value = "SELECT c as securityCurrency, MAX(h.date) AS date FROM Watchlist w JOIN w.securitycurrencyList c "
-      + "JOIN c.historyquoteList h WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryHistoryLoad > 0 "
-      + "AND c.fromCurrency IS NOT NULL AND c.idConnectorHistory IS NOT NULL GROUP BY c.idSecuritycurrency")
+  @Query(value = """
+      SELECT c as securityCurrency, MAX(h.date) AS date FROM Watchlist w JOIN w.securitycurrencyList c JOIN c.historyquoteList h 
+      WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryHistoryLoad > 0 AND c.fromCurrency IS NOT NULL 
+      AND c.idConnectorHistory IS NOT NULL GROUP BY c.idSecuritycurrency""")
   List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> findWithConnectorByIdTenantAndIdWatchlistWhenRetryHistoryGreaterThan0(
       Integer idTenant, Integer idWatchlist);
 

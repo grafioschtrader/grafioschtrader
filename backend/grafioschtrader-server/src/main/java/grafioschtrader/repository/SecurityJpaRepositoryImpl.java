@@ -10,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -63,6 +63,7 @@ import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquot
 import grafioschtrader.search.SecuritySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 import jakarta.annotation.PostConstruct;
@@ -281,7 +282,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   // General procedures
   ////////////////////////////////////////////////////////////////
   @Override
-  public JpaRepository<Security, Integer> getJpaRepository() {
+  public SecurityCurrencypairJpaRepository<Security> getJpaRepository() {
     return securityJpaRepository;
   }
 
@@ -534,18 +535,61 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  public void fillGap(Security security, IFeedConnector feedConnector, Date fromDate, Date toDate,
-      List<Historyquote> historyquotes) {
-    Integer daysMinus = feedConnector.needHistoricalGapFiller(security);
-    if(daysMinus != null) {
+  public List<Historyquote> fillGap(Security security) {
+    List<Date> missingDates = historyquoteJpaRepository.getMissingEODForSecurityByUpdCalendarIndex(
+        security.getStockexchange().getIdIndexUpdCalendar(), security.getIdSecuritycurrency());
+    List<Historyquote> historyquotesFill = new ArrayList<>();
+    if (!missingDates.isEmpty()) {
       
-      if(security.getStockexchange().getIdIndexUpdCalendar() != null) {
-        System.out.println("--------------------------  Need fill gaps ------------------------");
-        System.out.println(security);
+      int missingDateCounter = 0;
+      int historyIdxFirst = Collections.binarySearch(security.getHistoryquoteList(), new Historyquote(missingDates.get(0)),
+          (h1, h2) -> h1.getDate().compareTo(h2.getDate())) * -1 - 1;
+      if (historyIdxFirst > 0) {
+        fillGapEODAfterFirstHistoryquote(security, historyquotesFill, historyIdxFirst, missingDates, missingDateCounter);
+      } else {
+        fillGapEODBeforeFirstHistoryquote(security, historyquotesFill, missingDates, missingDateCounter);
       }
     }
-    
+    return historyquotesFill;
   }
 
- 
+  /**
+   * Fill in the past because first available EOD after oldest date.
+   */
+  private void fillGapEODBeforeFirstHistoryquote(Security security, List<Historyquote> historyquotesFill,
+      List<Date> missingDates, int missingDateCounter) {
+    do {
+      historyquotesFill
+          .add(new Historyquote(security.getIdSecuritycurrency(), HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR,
+              missingDates.get(missingDateCounter), security.getHistoryquoteList().get(0).getClose()));
+      missingDateCounter++;
+    } while (missingDateCounter < missingDates.size()
+        && security.getHistoryquoteList().get(0).getDate().after(missingDates.get(missingDateCounter)));
+    fillGapEODAfterFirstHistoryquote(security, historyquotesFill, 0, missingDates, missingDateCounter);
+  }
+
+  private void fillGapEODAfterFirstHistoryquote(Security security, List<Historyquote> historyquotesFill, int historyIdx,
+      List<Date> missingDates, int missingDateCounter) {
+    List<Historyquote> hql = security.getHistoryquoteList();
+    while(missingDateCounter < missingDates.size()) {
+      if (historyIdx == hql.size() || historyIdx < hql.size()
+          && missingDates.get(missingDateCounter).before(hql.get(historyIdx).getDate())) {
+        historyquotesFill
+            .add(new Historyquote(security.getIdSecuritycurrency(), HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR,
+                missingDates.get(missingDateCounter), hql.get(historyIdx - 1).getClose()));
+        missingDateCounter++;
+      } else {
+        historyIdx = Collections.binarySearch(hql,
+            new Historyquote(missingDates.get(missingDateCounter)), (h1, h2) -> h1.getDate().compareTo(h2.getDate()))
+            * -1 - 1; 
+      }
+    }
+  }
+  
+  @Override
+  public HistoryquoteJpaRepository getHistoryquoteJpaRepository() {
+    return historyquoteJpaRepository;
+  }
+
+
 }

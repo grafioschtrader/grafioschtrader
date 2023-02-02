@@ -141,11 +141,9 @@ public interface IFeedConnector {
    * trading has also taken place on that day.
    * 
    * @param security
-   * @return Null if no gap filler is needed, otherwise the number of days
-   *         filled at most to the most recent date of the master instrument. This
-   *         leading instrument is defined at the corresponding exchange.
+   * @return 
    */
-  public Integer needHistoricalGapFiller(final Security security);
+  public boolean needHistoricalGapFiller(final Security security);
 
   /**
    * Return the security quotes for a specified period

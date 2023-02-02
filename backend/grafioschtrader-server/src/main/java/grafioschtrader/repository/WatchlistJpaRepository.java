@@ -41,8 +41,7 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Query(nativeQuery = true)
   Set<Integer> hasSplitOrDividendByWatchlist(Integer idWatchlist);
 
-  @Query(value = "SELECT w.id_watchlist,(CASE WHEN EXISTS(SELECT NULL FROM watchlist_sec_cur s WHERE s.id_watchlist = w.id_watchlist)"
-      + " THEN 1 ELSE 0 END) AS has_security FROM watchlist w WHERE w.id_tenant = ?1", nativeQuery = true)
+  @Query(nativeQuery = true)
   List<Object[]> watchlistsOfTenantHasSecurity(Integer idTenant);
 
   /**

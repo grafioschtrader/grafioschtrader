@@ -126,12 +126,12 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
         securitycurrency.getHistoryquoteList().add(historyquote);
       }
     }
-
     if (fromDate == null && toDate == null) {
       securitycurrency.setFullLoadTimestamp(new Date(System.currentTimeMillis()));
     }
   }
 
+  
   protected Date getCorrectedFromDate(final S securitycurrency, final Date fromDate) throws ParseException {
     if (fromDate == null) {
       return securitycurrency instanceof Security ? ((Security) securitycurrency).getActiveFromDate()

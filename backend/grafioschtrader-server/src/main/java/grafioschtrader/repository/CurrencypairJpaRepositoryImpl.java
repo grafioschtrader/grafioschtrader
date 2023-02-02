@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -304,7 +303,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
-  public JpaRepository<Currencypair, Integer> getJpaRepository() {
+  public SecurityCurrencypairJpaRepository<Currencypair> getJpaRepository() {
     return currencypairJpaRepository;
   }
 
@@ -421,8 +420,15 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
-  public void fillGap(Currencypair securitycurrency, IFeedConnector feedConnector, Date fromDate, Date toDate,
-      List<Historyquote> historyquotes) {
+  public List<Historyquote> fillGap(Currencypair securitycurrency) {
+    return Collections.emptyList();
+    
   }
 
+  @Override
+  public HistoryquoteJpaRepository getHistoryquoteJpaRepository() {
+    return historyquoteJpaRepository;
+  }
+
+  
 }

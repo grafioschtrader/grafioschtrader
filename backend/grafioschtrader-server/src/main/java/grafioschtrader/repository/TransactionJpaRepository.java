@@ -1,7 +1,6 @@
 package grafioschtrader.repository;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -23,7 +22,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       WHERE cp.from_currency = s.currency""", nativeQuery = true)
   List<Transaction> findWrongCurrencypairTransaction();
 
-  Stream<Transaction> findBySecurity_idSecuritycurrency(Integer idSecuritycurrency);
+  List<Transaction> findBySecurity_idSecuritycurrency(Integer idSecuritycurrency);
 
   /**
    * Get close or finance cost of a margin position
@@ -35,7 +34,6 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdTenantAndConnectedIdTransactionAndUnitsIsNotNull(Integer idTenant,
       Integer connectedIdTransaction);
 
-  
   @Query(value = "SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t LEFT JOIN Fetch t.security s"
       + " JOIN Fetch t.cashaccount WHERE p.idPortfolio=?1 ORDER BY t.transactionTime")
   List<Transaction> getTransactionsByIdPortfolio(Integer idPortfolio);
@@ -73,8 +71,9 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * @param idSecurityaccount
    * @return
    */
-  @Query(value = "SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a "
-      + "WHERE t.idSecurityaccount = ?1 AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)")
+  @Query(value = """
+      SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a WHERE t.idSecurityaccount = ?1
+      AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)""")
   List<Transaction> getMarginTransactionMapForSecurityaccount(Integer idSecurityaccount);
 
   /**
@@ -83,9 +82,9 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * @param idSecurityaccount
    * @return
    */
-  @Query(value = "SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a "
-      + "WHERE s.idSecuritycurrency = :idSecurity AND t.idSecurityaccount = :idSecurityaccount "
-      + "AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)")
+  @Query(value = """
+      SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a WHERE s.idSecuritycurrency = :idSecurity AND
+      t.idSecurityaccount = :idSecurityaccount AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)""")
   List<Transaction> getMarginTransactionMapForSecurityaccountAndSecurity(Integer idSecurityaccount, Integer idSecurity);
 
   /**
@@ -94,8 +93,9 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * @param idSecurityaccount
    * @return
    */
-  @Query(value = "SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a "
-      + "WHERE s.idSecuritycurrency = :idSecurity AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)")
+  @Query(value = """
+      SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a
+      WHERE s.idSecuritycurrency = :idSecurity AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)""")
   List<Transaction> getMarginTransactionMapForSecurity(Integer idSecurity);
 
   @Transactional
@@ -121,7 +121,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   @Query(value = "SELECT t FROM Transaction t JOIN t.security s WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 ORDER BY t.transactionTime")
   List<Transaction> findByIdSecurityaccountAndIdSecurity(Integer idSecuritycashAccount, Integer idSecuritycurrency);
-  
+
   @Query
   List<Transaction> findByIdWatchlist(Integer idWatchlist);
 
@@ -135,12 +135,14 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * @param transactonMaxType
    * @return
    */
-  @Query(value = "SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.securityTransactionList t"
-      + " JOIN Fetch t.security s JOIN Fetch t.cashaccount WHERE p.idTenant = ?1 AND s.idSecuritycurrency = t.security.idSecuritycurrency"
-      + " AND t.transactionType >=4  AND t.transactionType <= ?2  ORDER BY t.transactionTime, s.idSecuritycurrency")
+  @Query(value = """
+      SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.securityTransactionList t
+      JOIN Fetch t.security s JOIN Fetch t.cashaccount WHERE p.idTenant = ?1 AND s.idSecuritycurrency = t.security.idSecuritycurrency
+      AND t.transactionType >=4  AND t.transactionType <= ?2  ORDER BY t.transactionTime, s.idSecuritycurrency""")
   List<Transaction> getSecurityAccountTransactionsByTenant(Integer idTenant, Byte transactonMaxType);
-
-  @Query(value = "SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t JOIN Fetch t.cashaccount LEFT JOIN Fetch t.security"
-      + " WHERE p.idTenant=?1 AND t.idCurrencypair=?2 ORDER BY t.transactionTime")
+  
+  @Query(value = """
+      SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t JOIN Fetch t.cashaccount
+      LEFT JOIN Fetch t.security WHERE p.idTenant=?1 AND t.idCurrencypair=?2 ORDER BY t.transactionTime""")
   List<Transaction> findByCurrencypair(Integer idTenant, Integer idCurrencypair);
 }

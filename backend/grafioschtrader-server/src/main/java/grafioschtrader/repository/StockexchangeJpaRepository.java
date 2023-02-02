@@ -30,12 +30,10 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
   @Query(value = "SELECT DISTINCT s.country_code FROM stockexchange s", nativeQuery = true)
   String[] findDistinctCountryCodes();
 
-  @Query(value = "SELECT (CASE WHEN EXISTS(SELECT NULL FROM security s WHERE s.id_stockexchange = e.id_stockexchange)"
-      + " THEN 1 ELSE 0 END) AS has_security FROM stockexchange e WHERE e.id_stockexchange = ?1", nativeQuery = true)
+  @Query(nativeQuery = true)
   int stockexchangeHasSecurity(Integer idStockexchange);
 
-  @Query(value = "SELECT e.id_stockexchange AS id, (CASE WHEN EXISTS(SELECT NULL FROM security s WHERE s.id_stockexchange = e.id_stockexchange)"
-      + " THEN 1 ELSE 0 END) AS s FROM stockexchange e", nativeQuery = true)
+  @Query(nativeQuery = true)
   List<StockexchangeHasSecurity> stockexchangesHasSecurity();
 
   @Query(nativeQuery = true)

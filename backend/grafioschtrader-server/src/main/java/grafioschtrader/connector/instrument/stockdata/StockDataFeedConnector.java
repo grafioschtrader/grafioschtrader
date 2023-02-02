@@ -30,7 +30,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 
 @Component
-public class StockdataConnector extends BaseFeedApiKeyConnector {
+public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   private static final String DOMAIN_NAME_WITH_VERSION = "https://api.stockdata.org/v1/";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
@@ -45,8 +45,8 @@ public class StockdataConnector extends BaseFeedApiKeyConnector {
     supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
   }
 
-  public StockdataConnector() {
-    super(supportedFeed, "stockdata", "Stockdata", null);
+  public StockDataFeedConnector() {
+    super(supportedFeed, "stockdata", "StockData", null);
   }
 
   private String getApiKeyString(boolean firstArgument) {

@@ -161,7 +161,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     [HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY]: 'fill_linear',
     [HistoryquoteCreateType.CALCULATED]: 'calculation',
     [HistoryquoteCreateType.ADD_MODIFIED_USER]: 'edit',
-    [HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR]: 'fill_gap'
+    [HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR]: 'gap_fill'
   };
   private static iconLoadDone = false;
 
