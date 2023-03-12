@@ -182,7 +182,6 @@ import {
   TenantDividendSecurityAccountSelectionDialogComponent
 } from './tenant/component/tenant-dividend-security-account-selection-dialog.component';
 import {TenantDividendAccountSelectionComponent} from './tenant/component/tenant-dividend-account-selection.component';
-import {MailInboxTableComponent} from './mail/component/mail.inbox.table.component';
 import {UserAdminService} from './user/service/user.admin.service';
 import {UserTableComponent} from './user/component/user.table.component';
 import {UserEntityChangeLimitTableComponent} from './user/component/user-entity-change-limit-table.component';
@@ -269,12 +268,9 @@ import {HistoryquotePeriodService} from './securitycurrency/service/historyquote
 import {HistoryquoteDeleteDialogComponent} from './historyquote/component/historyquote-delete-dialog.component';
 
 import {DragDropModule} from 'primeng/dragdrop';
-import {MailInboxService} from './mail/service/mail.inbox.service';
 import {MailMessageComponent} from './mail/component/mail.message.component';
-import {MailInOutTabMenuComponent} from './mail/component/mail.in.out.tab.menu.component';
-import {MailSendboxTableComponent} from './mail/component/mail.sendbox.table.component';
 import {MailSendDynamicComponent} from './shared/dynamicdialog/component/mail.send.dynamic.component';
-import {MailSendboxService} from './mail/service/mail.sendbox.service';
+import {MailSendRecvService} from './mail/service/mail.send.recv.service';
 import {ScrollPanelModule} from 'primeng/scrollpanel';
 import {CommonModule} from '@angular/common';
 import {InputNumberModule} from 'primeng/inputnumber';
@@ -321,6 +317,7 @@ import {GTNetEditComponent} from './gtnet/component/gtnet-edit.component';
 import {GTNetMessageEditComponent} from './gtnet/component/gtnet-message-edit.component';
 import {GTNetMessageService} from './gtnet/service/gtnet.message.service';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
+import {SendRecvTreetableComponent} from './mail/component/send.recv.treetable.component';
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
   {prefix: './assets/i18n/', suffix: '.json'},
@@ -342,7 +339,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     InstrumentYearPerformanceTableComponent, InstrumentStatisticsResultComponent, InstrumentAnnualisedReturnComponent,
     ImportTransactionEditTemplateComponent, ImportTransactionTemplateComponent, ImportTransactionTemplateTableComponent,
     IndicatorEditComponent, LimitTransactionRequestDynamicComponent, LoginComponent, LogoutReleaseRequestDynamicComponent,
-    MailMessageComponent, MailInOutTabMenuComponent, MailSendboxTableComponent, MailSendDynamicComponent,
+    SendRecvTreetableComponent,  MailMessageComponent, MailSendDynamicComponent,
     MainDialogComponent, MainTreeComponent, MenubarComponent, MessageToastComponent, NicknameLangEditComponent,
     PasswordEditComponent, PortfolioCashaccountSummaryComponent, PortfolioEditComponent, PortfolioTabMenuComponent,
     PortfolioTransactionTableComponent, ProposeChangeTabMenuComponent, RegisterComponent, RegistrationTokenVerifyComponent,
@@ -368,7 +365,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TransactionCashaccountEditDoubleComponent, TransactionCashaccountEditSingleComponent, TransactionCashaccountTableComponent,
     TransactionSecurityEditComponent, TransactionSecurityTableComponent, TransformPdfToTxtDialogComponent,
     UploadFileDialogComponent, UserEditComponent, UserEntityChangeLimitEditComponent, UserEntityChangeLimitTableComponent,
-    MailInboxTableComponent, UserTableComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
+    UserTableComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
     CorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent,
     SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent,
     WatchlistPerformanceComponent, WatchlistTabMenuComponent, WatchlistDividendSplitFeedComponent,
@@ -448,7 +445,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     ConfirmationService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService, GTNetMessageService,
     GTNetService, HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
     ImportTransactionTemplateService, ImportTransactionPosService, ImportTransactionHeadService, LoginService,
-    MainDialogService, MessageToastService, ParentChildRegisterService, MailInboxService, MailSendboxService,
+    MainDialogService, MessageToastService, ParentChildRegisterService, MailSendRecvService, MailSendRecvService,
     MultipleRequestToOneService, TaskDataChangeService, CorrelationSetService, ConnectorApiKeyService,
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,

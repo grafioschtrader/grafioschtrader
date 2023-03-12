@@ -131,7 +131,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   callMeDeactivate(): void {
   }
 
-  setMenuItemsToActivePanel(): void {
+  private setMenuItemsToActivePanel(): void {
     this.activePanelService.activatePanel(this,
       {editMenu: this.getMenuItems()});
     this.contextMenuItems = this.getMenuItems();
@@ -141,7 +141,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     return HelpIds.HELP_GTNET;
   }
 
-  getMenuItems(): MenuItem[] {
+  private getMenuItems(): MenuItem[] {
     const menuItems: MenuItem[] = [];
     return menuItems;
   }

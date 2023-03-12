@@ -4,6 +4,7 @@ import {LimitTransactionRequestDynamicComponent} from './limit.transaction.reque
 import {LogoutReleaseRequestDynamicComponent} from './logout.release.request.dynamic.component';
 import {MailSendDynamicComponent, MailSendParam} from './mail.send.dynamic.component';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {MailSendRecv} from '../../../mail/model/mail.send.recv';
 
 export class DynamicDialogHelper {
 
@@ -34,15 +35,14 @@ export class DynamicDialogHelper {
 
   public static getOpenedMailSendComponent(translateService: TranslateService,
                                            dialogService: DialogService,
-                                           mailSendParam: MailSendParam): DynamicDialogHelper {
+                                           mailSendParam: MailSendParam): DynamicDialogRef {
     const dynamicDialogHelper = new DynamicDialogHelper(translateService, dialogService,
       MailSendDynamicComponent, 'MAIL_SEND_DIALOG');
-    dynamicDialogHelper.openDynamicDialog(800, {mailSendParam});
-    return dynamicDialogHelper;
+    return dynamicDialogHelper.openDynamicDialog(800, {mailSendParam});
   }
 
 
-  private openDynamicDialog(widthPx: number, data?: any, contentStyle?: any) {
+  private openDynamicDialog(widthPx: number, data?: any, contentStyle?: any): DynamicDialogRef {
     let dynamicDialogRef: DynamicDialogRef;
     this.translateService.get(this.titleKey).subscribe(msg => {
       dynamicDialogRef = this.dialogService.open(this.componentType, {
@@ -51,6 +51,7 @@ export class DynamicDialogHelper {
         data
       });
     });
+    return dynamicDialogRef;
   }
 
 

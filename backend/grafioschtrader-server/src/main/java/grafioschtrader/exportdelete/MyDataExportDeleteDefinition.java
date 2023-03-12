@@ -28,7 +28,7 @@ import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionPosFailed;
 import grafioschtrader.entities.ImportTransactionTemplate;
-import grafioschtrader.entities.MailInOut;
+import grafioschtrader.entities.MailSendRecv;
 import grafioschtrader.entities.MultilanguageString;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.ProposeChangeEntity;
@@ -205,7 +205,7 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(TradingDaysPlus.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(TradingDaysMinus.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       // Delete all Mails of the user, nothing is exported
-      new ExportDefinition(MailInOut.TABNAME, TENANT_USER.NONE, MAIL_IN_OUT_DELETE, DELETE_USE),
+      new ExportDefinition(MailSendRecv.TABNAME, TENANT_USER.NONE, MAIL_IN_OUT_DELETE, DELETE_USE),
 
       // TODO Missing Algo export ...
       new ExportDefinition(AlgoTopAssetSecurity.TABNAME, TENANT_USER.ID_TENANT, null, DELETE_USE),

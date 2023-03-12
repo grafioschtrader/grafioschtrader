@@ -79,6 +79,10 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return roles.split(',').indexOf(requiredRole) >= 0;
   }
 
+  public getMostPrivilegedRole(): string {
+    return sessionStorage.getItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE);
+  }
+
   public isEntityCreatedByUser(entity: Auditable): boolean {
     return entity.createdBy === +sessionStorage.getItem(GlobalSessionNames.ID_USER);
   }

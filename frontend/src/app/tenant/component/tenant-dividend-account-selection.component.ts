@@ -74,16 +74,16 @@ export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase
       if (portfolio[this.listAttributeName].length > 0) {
         const portfolioTreeNode: TreeNode = {data: portfolio, children: [], expanded: true, leaf: false};
         psa.push(portfolioTreeNode);
-        let childSelectonCount = 0;
+        let childSelectionCount = 0;
         portfolio[this.listAttributeName].forEach(account => {
           const accountTeeNode = {data: account, leaf: true};
           portfolioTreeNode.children.push(accountTeeNode);
           if (markAll || this.idsAccount.indexOf(account.idSecuritycashAccount) >= 0) {
             this.selectedNodes.push(accountTeeNode);
-            childSelectonCount++;
+            childSelectionCount++;
           }
         });
-        if (childSelectonCount > 0 && portfolio[this.listAttributeName].length === childSelectonCount) {
+        if (childSelectionCount > 0 && portfolio[this.listAttributeName].length === childSelectionCount) {
           this.selectedNodes.push(portfolioTreeNode);
         }
       }

@@ -22,8 +22,7 @@ export class AppSettings {
   public static readonly IMPORT_TRANSACTION_PLATFORM = 'ImportTransactionPlatform';
   public static readonly IMPORT_TRANSACTION_POS = 'ImportTransactionPos';
   public static readonly IMPORT_TRANSACTION_TEMPLATE = 'ImportTransactionTemplate';
-  public static readonly MAIL_INBOX = 'MailInbox';
-  public static readonly MAIL_SENDBOX = 'MailSendbox';
+  public static readonly MAIL_SEND_RECV = 'MailSendRecv';
   public static readonly PORTFOLIO = 'Portfolio';
   public static readonly PROPOSE_CHANGE_ENTITY = 'ProposeChangeEntity';
   public static readonly PROPOSE_USER_TASK = 'ProposeUserTask';
@@ -58,8 +57,7 @@ export class AppSettings {
   public static readonly CONNECTOR_API_KEY_KEY = 'connectorapikey';
   public static readonly WATCHLIST_KEY = AppSettings.WATCHLIST.toLowerCase();
   public static readonly SECURITY_DIVIDEND_KEY = AppSettings.DIVIDEND.toLowerCase();
-  public static readonly MAIL_INBOX_KEY = AppSettings.MAIL_INBOX.toLowerCase();
-  public static readonly MAIL_SENDBOX_KEY = AppSettings.MAIL_SENDBOX.toLowerCase();
+  public static readonly MAIL_SEND_RECV_KEY = AppSettings.MAIL_SEND_RECV.toLowerCase();
   public static readonly MAIL_SHOW_MESSAGE_KEY = 'mailmessage';
   public static readonly USER_MESSAGE_KEY = 'usermessage';
   public static readonly WATCHLIST_TAB_MENU_KEY = 'wachtlistTabMenu';
@@ -189,6 +187,8 @@ export class AppSettings {
   public static readonly ROLE_ALL_EDIT = 'ROLE_ALLEDIT';
   public static readonly ROLE_USER = 'ROLE_USER';
   public static readonly ROLE_LIMIT_EDIT = 'ROLE_LIMITEDIT';
+
+  public static readonly SVG = '.svg';
 
   public static readonly DIALOG_MENU_SUFFIX = '...';
 

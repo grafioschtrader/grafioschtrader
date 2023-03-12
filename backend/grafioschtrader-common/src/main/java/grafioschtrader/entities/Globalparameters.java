@@ -96,7 +96,7 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK = GT_LIMIT_DAY + ProposeUserTask.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_SECURITY = GT_LIMIT_DAY + Security.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_CURRENCYPAIR = GT_LIMIT_DAY + Currencypair.class.getSimpleName();
-  public static final String GLOB_KEY_LIMIT_DAY_MAIL_SENDBOX = GT_LIMIT_DAY + MailSendbox.class.getSimpleName();
+  public static final String GLOB_KEY_LIMIT_DAY_MAIL_SEND = GT_LIMIT_DAY + MailSendRecv.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONTEMPLATE = GT_LIMIT_DAY
       + ImportTransactionTemplate.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONPLATFORM = GT_LIMIT_DAY
@@ -129,7 +129,7 @@ public class Globalparameters implements Serializable {
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_STOCKEXCHANGE, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_SECURITY, new MaxDefaultDBValue(50));
-    defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAIL_SENDBOX, new MaxDefaultDBValue(200));
+    defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAIL_SEND, new MaxDefaultDBValue(200));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_CURRENCYPAIR, new MaxDefaultDBValue(15));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONTEMPLATE, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONPLATFORM, new MaxDefaultDBValue(3));

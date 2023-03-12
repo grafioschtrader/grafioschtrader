@@ -61,12 +61,12 @@ export abstract class TenantEditComponent {
       Object.assign(tenant, this.callParam.thisObject);
     }
     this.form.cleanMaskAndTransferValuesToBusinessObject(tenant);
-    this.tenantService.update(tenant).subscribe(newTenant => {
+    this.tenantService.update(tenant).subscribe({ next: newTenant => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CLIENT'});
 
       const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
       this.afterSaved(tenantNew);
-    }, () => this.configObject.submit.disabled = false);
+    }, error: () => this.configObject.submit.disabled = false});
   }
 
   helpLink(): void {

@@ -52,7 +52,6 @@ public class TokenAuthenticationService {
   @PersistenceContext
   private EntityManager entityManager;
 
-  
   public TokenAuthenticationService(final JwtTokenHandler jwtTokenHandler) {
     this.jwtTokenHandler = jwtTokenHandler;
   }
@@ -63,7 +62,7 @@ public class TokenAuthenticationService {
     final UserDetails user = authentication.getDetails();
     response.addHeader(AUTH_HEADER_NAME, jwtTokenHandler.createTokenForUser(user));
     PrintWriter out = response.getWriter();
-    jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(((User) user).isUiShowMyProperty()));
+    jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(((User) user).isUiShowMyProperty(), ((User) user).getMostPrivilegedRole()));
   }
 
   /**
@@ -104,10 +103,10 @@ public class TokenAuthenticationService {
   }
 
   @Transactional
-  public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty) {
+  public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole) {
     Map<String, Integer> standardPrecision = new HashMap<>();
     ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(useWebsockt, useAlgo,
-        globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision, uiShowMyProperty);
+        globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision, uiShowMyProperty, mostPrivilegedRole);
 
     Field[] fields = GlobalConstants.class.getDeclaredFields();
     for (Field f : fields) {
@@ -140,14 +139,16 @@ public class TokenAuthenticationService {
     public final Map<String, Integer> currencyPrecision;
     public final Map<String, Integer> standardPrecision;
     public final boolean uiShowMyProperty;
+    public final String mostPrivilegedRole;
 
     public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo, Map<String, Integer> currencyPrecision,
-        Map<String, Integer> standardPrecision, boolean uiShowMyProperty) {
+        Map<String, Integer> standardPrecision, boolean uiShowMyProperty, String mostPrivilegedRole) {
       this.useWebsocket = useWebsocket;
       this.useAlgo = useAlgo;
       this.currencyPrecision = currencyPrecision;
       this.standardPrecision = standardPrecision;
       this.uiShowMyProperty = uiShowMyProperty;
+      this.mostPrivilegedRole = mostPrivilegedRole;
     }
   }
 

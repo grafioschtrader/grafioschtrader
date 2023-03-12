@@ -35,7 +35,7 @@ export enum CrudMenuOptions {
 
 /**
  * The menus are changed because of listening to the component click.
- * It expect a dialog for editing of the entity.
+ * A dialog for editing the entity is expected.
  */
 @Directive()
 export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfigBase implements OnInit, IGlobalMenuAttach {
@@ -98,7 +98,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
       this.readData();
     } else if (processedActionData.transformedError && processedActionData.transformedError.errorClass
       && processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError) {
-      const dynamicDialogHelper = DynamicDialogHelper.getOpenedLimitTransactionRequestDynamicComponent(
+      DynamicDialogHelper.getOpenedLimitTransactionRequestDynamicComponent(
         this.translateService, this.dialogService, this.entityName);
     }
   }

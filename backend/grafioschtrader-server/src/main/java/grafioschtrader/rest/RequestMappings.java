@@ -84,12 +84,9 @@ public interface RequestMappings {
   public static final String IMPORTTRANSACTIONTEMPLATE = "importtransactiontemplate";
   public static final String IMPORTTRANSACTIONTEMPLATE_MAP = API + IMPORTTRANSACTIONTEMPLATE;
 
-  public static final String MAIL_INBOX = "mailinbox";
-  public static final String MAIL_INBOX_MAP = API + MAIL_INBOX;
-
-  public static final String MAIL_SENDBOX = "mailsendbox";
-  public static final String MAIL_SENDBOX_MAP = API + MAIL_SENDBOX;
-
+  public static final String MAIL_SEMD_RECV = "mailsendrecv";
+  public static final String MAIL_SEMD_RECV_READ_MAP = API + MAIL_SEMD_RECV;
+ 
   public static final String MULTIPLE_REQUEST_TO_ONE = "multiplerequesttoone";
   public static final String MULTIPLE_REQUEST_TO_ONE_MAP = API + MULTIPLE_REQUEST_TO_ONE;
 

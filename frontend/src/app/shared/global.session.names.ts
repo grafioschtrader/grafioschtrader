@@ -21,5 +21,6 @@ export enum GlobalSessionNames {
   STANDARD_PRECISION = 'standardPrecision',
   CURRENCY_PRECISION = 'currencyPrecision',
   UI_SHOW_MY_PROPERTY = 'uiShowMyProperty',
-  USER_FORM_DEFINITION = 'userFormDefinition'
+  USER_FORM_DEFINITION = 'userFormDefinition',
+  MOST_PRIVILEGED_ROLE = 'mostPrivilegedRole'
 }

@@ -39,7 +39,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
         </p-dropdown>
       </p-panel>
       <p-treeTable [value]="qualityNode" [columns]="fields" dataKey="uniqueKey" sortField="name"
-                   selectionMode="single" [(selection)]="selectedNodes" (onNodeSelect)="nodeSelect($event)">
+                   selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)">
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th *ngFor="let field of fields" [ttSortableColumn]="field.field" [style.width.px]="field.width">
@@ -88,7 +88,7 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
 
   qualityNode: TreeNode[] = [];
   historyquoteQualityHead: HistoryquoteQualityHead;
-  selectedNodes: TreeNode[] = [];
+  selectedNode: TreeNode[] = [];
   selectedGroup: string;
   lastUpdate: string;
 
@@ -158,7 +158,7 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
     return HelpIds.HELP_HISTORYQUOTE_QUALITY;
   }
 
-  nodeSelect(event) {
+  nodeSelect(event): void {
     const hqg: HistoryquoteQualityGroup = event.node.data;
     if (hqg.categoryType !== null) {
       this.groupTitle = event.node.parent.parent.data.name + ' / ' + event.node.parent.data.name + ' / ' + hqg.name;

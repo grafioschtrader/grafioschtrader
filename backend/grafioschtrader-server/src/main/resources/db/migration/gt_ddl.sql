@@ -235,7 +235,7 @@ CREATE TABLE `assetclass` (
   UNIQUE KEY `category_type` (`category_type`,`sub_category_nls`,`spec_invest_instrument`) USING BTREE,
   KEY `FK_Assetklass_Multilinguestring` (`sub_category_nls`),
   CONSTRAINT `FK_Assetclass_Multilinguestring` FOREIGN KEY (`sub_category_nls`) REFERENCES `multilinguestring` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=552 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=553 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,7 +251,7 @@ CREATE TABLE `cashaccount` (
   `connect_id_securityaccount` int(11) DEFAULT NULL,
   PRIMARY KEY (`id_securitycash_account`),
   CONSTRAINT `FK_CashAccount_SecurityCashAccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28744 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28888 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -305,7 +305,7 @@ CREATE TABLE `correlation_set` (
   `adjust_currency` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_correlation_set`),
   UNIQUE KEY `Unique_idTenant_name` (`id_tenant`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1544 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1560 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -345,7 +345,7 @@ CREATE TABLE `dividend` (
   PRIMARY KEY (`id_dividend`),
   KEY `FK_Dividend_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Dividend_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=48481 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=50695 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -627,7 +627,7 @@ CREATE TABLE `historyquote` (
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`),
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7487936 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7505871 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -777,7 +777,7 @@ CREATE TABLE `imp_trans_head` (
   KEY `FK_ImpTransHead_Securityaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransHead_Securityaccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securityaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransHead_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=560 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=567 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -849,7 +849,7 @@ CREATE TABLE `imp_trans_pos` (
   CONSTRAINT `FK_ImpTransPos_Cashaccount1` FOREIGN KEY (`id_cash_account`) REFERENCES `cashaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransPos_ImpTransHead` FOREIGN KEY (`id_trans_head`) REFERENCES `imp_trans_head` (`id_trans_head`),
   CONSTRAINT `transacton_maybe` CHECK (`id_transaction_maybe` is null or `id_transaction_maybe` is not null and `id_transaction` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=35025 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=35032 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -899,62 +899,53 @@ CREATE TABLE `imp_trans_template` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `mail_in_out`
+-- Table structure for table `mail_send_recv`
 --
 
-DROP TABLE IF EXISTS `mail_in_out`;
+DROP TABLE IF EXISTS `mail_send_recv`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `mail_in_out` (
-  `id_mail_inout` int(11) NOT NULL AUTO_INCREMENT,
-  `dtype` varchar(1) NOT NULL,
+CREATE TABLE `mail_send_recv` (
+  `id_mail_send_recv` int(11) NOT NULL AUTO_INCREMENT,
+  `send_recv` char(1) NOT NULL,
   `id_user_from` int(11) NOT NULL,
   `id_user_to` int(11) DEFAULT NULL,
   `id_role_to` int(11) DEFAULT NULL,
+  `id_reply_to_remote` int(11) DEFAULT NULL,
+  `id_reply_to_local` int(11) DEFAULT NULL,
+  `reply_to_role_private` tinyint(1) NOT NULL DEFAULT 0,
   `id_gt_net` int(11) DEFAULT NULL,
-  `reply_to` int(11) DEFAULT NULL,
   `id_entity` varchar(20) DEFAULT NULL,
   `message_com_type` tinyint(4) NOT NULL DEFAULT 0,
   `subject` varchar(96) NOT NULL,
   `message` varchar(1024) NOT NULL,
-  PRIMARY KEY (`id_mail_inout`),
+  `send_recv_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_mail_send_recv`),
   KEY `FK_MailInOut_Role` (`id_role_to`),
   KEY `FK_MailInOut_GtNet` (`id_gt_net`),
-  CONSTRAINT `FK_MailInOut_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`),
-  CONSTRAINT `FK_MailInOut_Role` FOREIGN KEY (`id_role_to`) REFERENCES `role` (`id_role`),
-  CONSTRAINT `CONSTRAINT_1` CHECK (`id_user_to` is null and `id_role_to` is not null or `id_user_to` is not null and `id_role_to` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  KEY `id_reply_to_local` (`id_reply_to_local`),
+  CONSTRAINT `FK_MailSendRecv_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`),
+  CONSTRAINT `FK_MailSendRecv_Role` FOREIGN KEY (`id_role_to`) REFERENCES `role` (`id_role`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `mail_inbox`
+-- Table structure for table `mail_send_recv_read_del`
 --
 
-DROP TABLE IF EXISTS `mail_inbox`;
+DROP TABLE IF EXISTS `mail_send_recv_read_del`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `mail_inbox` (
-  `id_mail_inout` int(11) NOT NULL,
-  `received_time` timestamp NOT NULL DEFAULT current_timestamp(),
+CREATE TABLE `mail_send_recv_read_del` (
+  `id_mail_send_recv` int(11) NOT NULL,
+  `id_user` int(11) NOT NULL,
   `has_been_read` tinyint(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id_mail_inout`),
-  CONSTRAINT `FK_MailInbox_MailInOut` FOREIGN KEY (`id_mail_inout`) REFERENCES `mail_in_out` (`id_mail_inout`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `mail_sendbox`
---
-
-DROP TABLE IF EXISTS `mail_sendbox`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `mail_sendbox` (
-  `id_mail_inout` int(11) NOT NULL,
-  `send_time` timestamp NOT NULL DEFAULT current_timestamp(),
-  KEY `FK_Sendbox_MailInOut` (`id_mail_inout`),
-  CONSTRAINT `FK_Sendbox_MailInOut` FOREIGN KEY (`id_mail_inout`) REFERENCES `mail_in_out` (`id_mail_inout`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  `mark_hide_del` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id_mail_send_recv`,`id_user`),
+  KEY `FK_MailInBoxRead_User` (`id_user`),
+  CONSTRAINT `FK_MailSendRecvReadDel_MailSendRecv` FOREIGN KEY (`id_mail_send_recv`) REFERENCES `mail_send_recv` (`id_mail_send_recv`) ON DELETE CASCADE,
+  CONSTRAINT `FK_MailSendRecvReadDel_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -984,7 +975,7 @@ DROP TABLE IF EXISTS `multilinguestring`;
 CREATE TABLE `multilinguestring` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=714 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=715 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1035,7 +1026,7 @@ CREATE TABLE `portfolio` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Portfolio_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Portfolio_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=7206 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7242 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1162,7 +1153,6 @@ CREATE TABLE `security` (
   `id_connector_split` varchar(35) DEFAULT NULL,
   `url_split_extend` varchar(254) DEFAULT NULL,
   `retry_split_load` smallint(6) NOT NULL DEFAULT 0,
-  `fill_eod_gap_until` date DEFAULT NULL,
   PRIMARY KEY (`id_securitycurrency`),
   UNIQUE KEY `Unique_ISIN_currency` (`isin`,`currency`),
   KEY `FK_Security_StockExchange` (`id_stockexchange`),
@@ -1270,7 +1260,7 @@ CREATE TABLE `securitycashaccount` (
   UNIQUE KEY `idPortfolio_dType_name` (`id_portfolio`,`dtype`,`name`) USING BTREE,
   KEY `FK_SecurityAccount_Portfolio` (`id_portfolio`),
   CONSTRAINT `FK_SecurityAccount_Portfolio` FOREIGN KEY (`id_portfolio`) REFERENCES `portfolio` (`id_portfolio`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28744 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28888 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1305,7 +1295,7 @@ CREATE TABLE `securitycurrency` (
   `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=4108 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4109 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1326,7 +1316,7 @@ CREATE TABLE `securitysplit` (
   PRIMARY KEY (`id_securitysplit`),
   KEY `FK_Securitysplit_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Securitysplit_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=317 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=318 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1402,7 +1392,7 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=6282 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6460 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1522,7 +1512,7 @@ CREATE TABLE `transaction` (
   CONSTRAINT `c_currency_ex_rate` CHECK (`currency_ex_rate` is not null and `currency_ex_rate` > 0 and `id_currency_pair` is not null or `currency_ex_rate` is null and `id_currency_pair` is null),
   CONSTRAINT `s_units` CHECK (`units` is not null and `units` <> 0 and `id_securitycurrency` is not null or `id_securitycurrency` is null and `units` is null),
   CONSTRAINT `s_quotation` CHECK (`quotation` is not null and (`quotation` > 0 or `quotation` <> 0 and `transaction_type` between 6 and 7) and `id_securitycurrency` is not null or `quotation` is null and `id_securitycurrency` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=463844 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=466008 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1544,6 +1534,7 @@ CREATE TABLE `user` (
   `ui_show_my_property` tinyint(1) NOT NULL DEFAULT 1,
   `security_breach_count` smallint(6) NOT NULL DEFAULT 0,
   `limit_request_exceed_count` smallint(6) NOT NULL DEFAULT 0,
+  `last_role_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_by` int(11) NOT NULL,
   `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
@@ -1651,7 +1642,7 @@ CREATE TABLE `watchlist` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Watchlist_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Watchlist_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=19738 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19842 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1686,9 +1677,9 @@ CREATE TABLE `watchlist_sec_cur` (
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `copyTradingMinusToOtherStockexchange`(IN `sourceIdStockexchange` INT, IN `targetIdStockexchange` INT, IN `dateFrom` DATE, IN `dateTo` DATE)
     MODIFIES SQL DATA
-BEGIN
-DELETE FROM trading_days_minus WHERE id_stockexchange = targetIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
-INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus, create_type) SELECT targetIdStockexchange, trading_date_minus, create_type FROM trading_days_minus WHERE id_stockexchange = sourceIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
+BEGIN
+DELETE FROM trading_days_minus WHERE id_stockexchange = targetIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
+INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus, create_type) SELECT targetIdStockexchange, trading_date_minus, create_type FROM trading_days_minus WHERE id_stockexchange = sourceIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1891,29 +1882,29 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `updCalendarStockexchangeByIndex`()
     NO SQL
-BEGIN
-  DECLARE done BOOLEAN DEFAULT FALSE;
-  DECLARE _idStockexchange INT UNSIGNED;
-  DECLARE _idSecurity INT UNSIGNED;
-  DECLARE cur CURSOR FOR SELECT id_stockexchange, id_index_upd_calendar FROM stockexchange  
-     WHERE (SELECT COUNT(*) FROM historyquote WHERE id_securitycurrency = id_index_upd_calendar) > 4000;
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done := TRUE;
-  OPEN cur;
-  testLoop: LOOP
-    FETCH cur INTO _idStockexchange, _idSecurity;
-    IF done THEN
-      LEAVE testLoop;
-    END IF;
-    DELETE FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND trading_date_minus > 
-      (SELECT IFNULL(MAX(trading_date_minus), "1999-12-31") AS fromDate FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND create_type = 5);
-    INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus)
-     SELECT _idStockexchange, tsp.trading_date AS trandingDate FROM trading_days_plus tsp LEFT JOIN (SELECT DISTINCT hq.date AS date FROM historyquote hq  WHERE hq.id_securitycurrency = _idSecurity) AS a ON tsp.trading_date = a.date WHERE a.date IS NULL AND  
-     tsp.trading_date > (SELECT IFNULL(MAX(trading_date_minus), "1999-12-31") AS fromDate FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND create_type = 5)
-     AND tsp.trading_date < CURDATE();
-     UPDATE stockexchange SET max_calendar_upd_date = (SELECT MAX(date) FROM historyquote WHERE id_securitycurrency = _idSecurity);
-  END LOOP testLoop;
-  CLOSE cur;
-
+BEGIN
+  DECLARE done BOOLEAN DEFAULT FALSE;
+  DECLARE _idStockexchange INT UNSIGNED;
+  DECLARE _idSecurity INT UNSIGNED;
+  DECLARE cur CURSOR FOR SELECT id_stockexchange, id_index_upd_calendar FROM stockexchange  
+     WHERE (SELECT COUNT(*) FROM historyquote WHERE id_securitycurrency = id_index_upd_calendar) > 4000;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done := TRUE;
+  OPEN cur;
+  testLoop: LOOP
+    FETCH cur INTO _idStockexchange, _idSecurity;
+    IF done THEN
+      LEAVE testLoop;
+    END IF;
+    DELETE FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND trading_date_minus > 
+      (SELECT IFNULL(MAX(trading_date_minus), "1999-12-31") AS fromDate FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND create_type = 5);
+    INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus)
+     SELECT _idStockexchange, tsp.trading_date AS trandingDate FROM trading_days_plus tsp LEFT JOIN (SELECT DISTINCT hq.date AS date FROM historyquote hq  WHERE hq.id_securitycurrency = _idSecurity) AS a ON tsp.trading_date = a.date WHERE a.date IS NULL AND  
+     tsp.trading_date > (SELECT IFNULL(MAX(trading_date_minus), "1999-12-31") AS fromDate FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND create_type = 5)
+     AND tsp.trading_date < CURDATE();
+     UPDATE stockexchange SET max_calendar_upd_date = (SELECT MAX(date) FROM historyquote WHERE id_securitycurrency = _idSecurity);
+  END LOOP testLoop;
+  CLOSE cur;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1930,4 +1921,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-02-01 22:55:51
+-- Dump completed on 2023-03-12 15:21:27
