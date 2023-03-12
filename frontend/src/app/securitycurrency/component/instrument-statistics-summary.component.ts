@@ -6,9 +6,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TreeNode} from 'primeng/api';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
-import {AppSettings} from '../../shared/app.settings';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 
 /**
  * Shows statistical data about an instrument.

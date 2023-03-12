@@ -7,14 +7,14 @@ export class DividendSplitSvgCreator {
     [CreateType.CONNECTOR_CREATED]: 'connector',
     [CreateType.ADD_MODIFIED_USER]: 'edit'
   };
-  private static SVG = '.svg';
+
   private static iconLoadDone = false;
 
 
   public static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!DividendSplitSvgCreator.iconLoadDone) {
       for (const [key, iconName] of Object.entries(DividendSplitSvgCreator.createTypeIconMap)) {
-        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + DividendSplitSvgCreator.SVG, iconName);
+        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + AppSettings.SVG, iconName);
       }
       DividendSplitSvgCreator.iconLoadDone = true;
     }

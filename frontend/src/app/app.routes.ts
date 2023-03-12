@@ -39,7 +39,6 @@ import {RequestForYouTableComponent} from './proposechange/component/request.for
 import {YourProposalTableComponent} from './proposechange/component/your.proposal.table.component';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
-import {MailInboxTableComponent} from './mail/component/mail.inbox.table.component';
 import {UserTableComponent} from './user/component/user.table.component';
 import {AdminGuard} from './shared/service/admin.guard';
 import {TradingCalendarGlobalComponent} from './tradingcalendar/component/trading.calendar.global.component';
@@ -50,8 +49,6 @@ import {
   SecurityHistoryquoteQualityTreetableComponent
 } from './securitycurrency/component/security.historyquote.quality.treetable.component';
 import {MailMessageComponent} from './mail/component/mail.message.component';
-import {MailInOutTabMenuComponent} from './mail/component/mail.in.out.tab.menu.component';
-import {MailSendboxTableComponent} from './mail/component/mail.sendbox.table.component';
 import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
@@ -61,6 +58,7 @@ import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.mo
 import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
 import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
+import {SendRecvTreetableComponent} from './mail/component/send.recv.treetable.component';
 
 
 const APP_ROUTES: Routes = [
@@ -221,11 +219,7 @@ const APP_ROUTES: Routes = [
       },
       // Admin data
       {
-        path: AppSettings.USER_MESSAGE_KEY, component: MailInOutTabMenuComponent, canActivate: [AuthGuard],
-        children: [
-          {path: AppSettings.MAIL_INBOX_KEY, component: MailInboxTableComponent, canActivate: [AuthGuard]},
-          {path: AppSettings.MAIL_SENDBOX_KEY, component: MailSendboxTableComponent, canActivate: [AuthGuard]}
-        ]
+        path: AppSettings.USER_MESSAGE_KEY, component: SendRecvTreetableComponent, canActivate: [AuthGuard]
       },
       {
         path: AppSettings.TRADING_CALENDAR_GLOBAL_KEY,

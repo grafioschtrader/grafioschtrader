@@ -111,7 +111,6 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 })
 export class UserTableComponent extends TableCrudSupportMenu<User> implements OnDestroy {
 
-  private static SVG = '.svg';
   private static createTypeIconMap: { [key: number]: string } = {
     [UserTaskType.RELEASE_LOGOUT]: 'user_update',
     [UserTaskType.LIMIT_CUD_CHANGE]: 'user_limit_update'
@@ -132,16 +131,16 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   };
 
   constructor(private iconReg: SvgIconRegistryService,
-    private userAdminService: UserAdminService,
-    private proposeUserTaskService: ProposeUserTaskService,
-    confirmationService: ConfirmationService,
-    messageToastService: MessageToastService,
-    activePanelService: ActivePanelService,
-    dialogService: DialogService,
-    filterService: FilterService,
-    translateService: TranslateService,
-    gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+              private userAdminService: UserAdminService,
+              private proposeUserTaskService: ProposeUserTaskService,
+              confirmationService: ConfirmationService,
+              messageToastService: MessageToastService,
+              activePanelService: ActivePanelService,
+              dialogService: DialogService,
+              filterService: FilterService,
+              translateService: TranslateService,
+              gps: GlobalparameterService,
+              usersettingsService: UserSettingsService) {
     super(AppSettings.USER, userAdminService, confirmationService, messageToastService, activePanelService, dialogService,
       filterService, translateService, gps, usersettingsService, [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);
@@ -170,7 +169,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!UserTableComponent.iconLoadDone) {
       for (const [key, iconName] of Object.entries(UserTableComponent.createTypeIconMap)) {
-        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + UserTableComponent.SVG, iconName);
+        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + AppSettings.SVG, iconName);
       }
       UserTableComponent.iconLoadDone = false;
     }
@@ -239,7 +238,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
 
     } else if (processedActionData.transformedError && processedActionData.transformedError.errorClass
       && processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError) {
-      const dynamicDialogHelper = DynamicDialogHelper.getOpenedLimitTransactionRequestDynamicComponent(
+      DynamicDialogHelper.getOpenedLimitTransactionRequestDynamicComponent(
         this.translateService, this.dialogService, this.entityName);
     }
   }

@@ -90,7 +90,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       this.configObject.submit.disabled = false;
 
       if (errorBackend.bringUpDialog) {
-        const dynamicDialogHelper = DynamicDialogHelper.getOpenedLogoutReleaseRequestDynamicComponent(
+        DynamicDialogHelper.getOpenedLogoutReleaseRequestDynamicComponent(
           this.translateService, this.dialogService, value.email, value.password);
       }
     }});
@@ -132,6 +132,7 @@ export interface ConfigurationWithLogin {
   standardPrecision: { [typename: string]: number };
   currencyPrecision: { [curreny: string]: number };
   uiShowMyProperty: boolean;
+  mostPrivilegedRole: string;
 }
 
 export interface EntityNameWithKeyName {

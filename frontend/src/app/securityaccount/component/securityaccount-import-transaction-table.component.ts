@@ -144,7 +144,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     ['B']: 'checkcrossedout',
     [SecurityaccountImportTransactionTableComponent.TRANSACTION_ERROR]: 'transerror'
   };
-  private static SVG = '.svg';
+
   private static iconLoadDone = false;
   supplementCriteria: SupplementCriteria;
   entityList: CombineTemplateAndImpTransPos[] = [];
@@ -217,7 +217,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!SecurityaccountImportTransactionTableComponent.iconLoadDone) {
       for (const [key, iconName] of Object.entries(SecurityaccountImportTransactionTableComponent.createTypeIconMap)) {
-        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + SecurityaccountImportTransactionTableComponent.SVG, iconName);
+        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + AppSettings.SVG, iconName);
       }
       SecurityaccountImportTransactionTableComponent.iconLoadDone = false;
     }

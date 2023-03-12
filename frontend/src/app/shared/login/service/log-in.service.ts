@@ -76,6 +76,7 @@ export class LoginService extends BaseAuthService<User> {
     const entityNameWithKeyNameMap = configurationWithLogin.entityNameWithKeyNameList.reduce(
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));
+    sessionStorage.setItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE, configurationWithLogin.mostPrivilegedRole);
 
   }
 

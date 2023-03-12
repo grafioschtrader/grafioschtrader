@@ -1,6 +1,5 @@
 package grafioschtrader.entities;
 
-import java.time.LocalDate;
 import java.util.Date;
 
 import jakarta.annotation.Generated;

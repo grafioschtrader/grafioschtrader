@@ -154,7 +154,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 })
 export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquote> implements OnDestroy {
 
-  private static SVG = '.svg';
+
   private static createTypeIconMap: { [key: number]: string } = {
     [HistoryquoteCreateType.CONNECTOR_CREATED]: 'connector',
     [HistoryquoteCreateType.MANUAL_IMPORTED]: 'import',
@@ -236,7 +236,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!HistoryquoteTableComponent.iconLoadDone) {
       for (const [key, iconName] of Object.entries(HistoryquoteTableComponent.createTypeIconMap)) {
-        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + HistoryquoteTableComponent.SVG, iconName);
+        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + AppSettings.SVG, iconName);
       }
       HistoryquoteTableComponent.iconLoadDone = false;
     }

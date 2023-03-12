@@ -20,10 +20,11 @@ import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserEntityChangeLimit;
-import grafioschtrader.repository.MailSendboxJpaRepository;
+import grafioschtrader.repository.MailSendRecvJpaRepository;
 import grafioschtrader.repository.ProposeUserTaskJpaRepository;
 import grafioschtrader.repository.UserEntityChangeLimitJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
+import grafioschtrader.types.ReplyToRolePrivateType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -33,13 +34,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class UserEntityChangeLimitRessource extends UpdateCreateDeleteAuditResource<UserEntityChangeLimit> {
 
   @Autowired
-  UserEntityChangeLimitJpaRepository userEntityChangeLimitJpaRepository;
+  private UserEntityChangeLimitJpaRepository userEntityChangeLimitJpaRepository;
 
   @Autowired
-  ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
+  private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
 
   @Autowired
-  private MailSendboxJpaRepository mailSendboxJpaRepository;
+  private MailSendRecvJpaRepository mailSendRecvJpaRepository;
 
   @Autowired
   private MessageSource messages;
@@ -72,9 +73,9 @@ public class UserEntityChangeLimitRessource extends UpdateCreateDeleteAuditResou
         User targetUser = userJpaRepository.getReferenceById(entity.getIdUser());
         result = updateSaveEntity(entity, existingEntity);
         // Create internal mail
-        mailSendboxJpaRepository.sendInternalMail(userAtWork.getIdUser(), entity.getIdUser(), null,
+        mailSendRecvJpaRepository.sendInternalMail(userAtWork.getIdUser(), entity.getIdUser(), null,
             messages.getMessage("mail.subject.admin", null, Locale.forLanguageTag(targetUser.getLocaleStr())),
-            entity.getNoteRequestOrReject());
+            entity.getNoteRequestOrReject(), null, ReplyToRolePrivateType.REPLY_NORMAL);
         proposeChangeEntityJpaRepository.deleteById(idProposeRequest);
 
       }
