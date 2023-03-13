@@ -103,9 +103,9 @@ export class AppHelper {
     if (str.length <= length) {
       return str;
     } else {
-      const subString = str.substr(0, length - 1);
+      const subString = str.slice(0, length - 1);
       return (useWordBoundary
-        ? subString.substr(0, subString.lastIndexOf(' '))
+        ? subString.slice(0, subString.lastIndexOf(' '))
         : subString) + '...';
     }
   }

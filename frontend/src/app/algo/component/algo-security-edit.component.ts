@@ -58,7 +58,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
       (<AlgoAssetclass>this.algoCallParam.parentObject).idAlgoAssetclassSecurity);
     const allSecurityaccountsObservable: Observable<Portfolio[]> = this.portfolioService.getPortfoliosForTenantOrderByName();
     this.valueChangedOnSecurityaccount1();
-    combineLatest(securitiesObservable, allSecurityaccountsObservable).subscribe(
+    combineLatest([securitiesObservable, allSecurityaccountsObservable]).subscribe(
       (data: [Security[], Portfolio[]]) => {
         this.configObject.security.referencedDataObject = data[0];
         this.algoCallParam.thisObject &&

@@ -60,11 +60,11 @@ export class HistoryquoteQualityFillGapsComponent extends SimpleEditBase impleme
     this.configObject.execute.disabled = true;
     this.securityService.fillHistoryquoteGapsLinear(this.securitycurrency.idSecuritycurrency,
       this.configObject[this.moveWeekendToFriday].formControl.value)
-      .subscribe((hlfs: HisotryqouteLinearFilledSummary) => {
+      .subscribe({next: (hlfs: HisotryqouteLinearFilledSummary) => {
         this.messageToastService.showMessageI18nEnableHtml(hlfs.warning ? InfoLevelType.WARNING : InfoLevelType.SUCCESS,
           'HISTORYQUOTE_FILL_RESULT', hlfs);
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
-      }, () => this.configObject.execute.disabled = false);
+      }, error: () => this.configObject.execute.disabled = false});
   }
 
   protected initialize(): void {

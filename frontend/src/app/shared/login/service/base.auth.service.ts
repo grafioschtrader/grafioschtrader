@@ -21,7 +21,7 @@ export abstract class BaseAuthService<T> extends BaseService {
     ValidationError
   };
 
-  constructor(protected httpClient: HttpClient, protected messageToastService: MessageToastService) {
+  protected constructor(protected httpClient: HttpClient, protected messageToastService: MessageToastService) {
     super();
   }
 
@@ -70,7 +70,7 @@ export abstract class BaseAuthService<T> extends BaseService {
       this.messageToastService.showMessage(InfoLevelType.ERROR, transformedError.msg);
     }
 
-    return throwError(transformedError);
+    return throwError(() => transformedError);
   }
 
 

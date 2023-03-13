@@ -70,11 +70,11 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
 
     if (hct.length > 0) {
       this.historyquoteService.deleteHistoryquotesByCreateTypes(this.idSecuritycurrency, hct).subscribe(
-        (dhs: DeleteHistoryquotesSuccess) => {
+        {next: (dhs: DeleteHistoryquotesSuccess) => {
           this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.SUCCESS,
             'HISTORYQUOTE_DELETE_CREATE_TYPES', dhs);
           this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
-        }, () => this.configObject.execute.disabled = false);
+        }, error: () => this.configObject.execute.disabled = false});
     } else {
       this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
     }

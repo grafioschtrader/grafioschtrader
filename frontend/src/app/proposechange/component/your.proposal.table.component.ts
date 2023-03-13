@@ -9,7 +9,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ProposeChangeEntityService} from '../service/propose.change.entity.service';
-import {plainToClass} from 'class-transformer';
+import {plainToInstance} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
@@ -80,7 +80,7 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
   readData(): void {
     this.proposeChangeEntityService.getProposeChangeEntityListByCreatedBy().subscribe(proposeChangeEntityList => {
       this.createTranslatedValueStoreAndFilterField(proposeChangeEntityList);
-      this.entityList = plainToClass(ProposeChangeEntity, proposeChangeEntityList);
+      this.entityList = plainToInstance(ProposeChangeEntity, proposeChangeEntityList);
     });
   }
 

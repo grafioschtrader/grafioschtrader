@@ -51,7 +51,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
 
   pageFirstRowSelectedRow: PageFirstRowSelectedRow;
 
-  constructor(protected parentChildRegisterService: ParentChildRegisterService,
+  protected constructor(protected parentChildRegisterService: ParentChildRegisterService,
               protected activePanelService: ActivePanelService,
               protected transactionService: TransactionService,
               protected confirmationService: ConfirmationService,

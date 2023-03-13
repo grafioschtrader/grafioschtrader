@@ -160,17 +160,17 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     const pWD: PerformanceWindowDef = new PerformanceWindowDef(this.idPortfolio);
     this.form.cleanMaskAndTransferValuesToBusinessObject(pWD, true);
     this.loading = true;
-    this.holdingService.getPeriodPerformance(pWD).subscribe(periodPerformance => {
+    this.holdingService.getPeriodPerformance(pWD).subscribe({next: periodPerformance => {
       this.performancePeriod = periodPerformance;
       this.periodHoldingsAndDiff = [periodPerformance.firstDayTotals, periodPerformance.lastDayTotals, periodPerformance.difference];
       this.configObject.submit.disabled = false;
       this.menuItems[0].disabled = false;
       this.changeToOpenChart();
       this.loading = false;
-    }, () => {
+    }, error: () => {
       this.configObject.submit.disabled = false;
       this.loading = false;
-    });
+    }});
   }
 
   ngOnDestroy(): void {

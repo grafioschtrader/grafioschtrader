@@ -1,4 +1,4 @@
-import {ANALYZE_FOR_ENTRY_COMPONENTS, ModuleWithProviders, NgModule} from '@angular/core';
+import {ModuleWithProviders, NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 
@@ -115,7 +115,7 @@ export class DynamicFormModule {
     return {
       ngModule: DynamicFormModule,
       providers: [
-      //  {provide: ANALYZE_FOR_ENTRY_COMPONENTS, useValue: components, multi: true}
+        //  {provide: ANALYZE_FOR_ENTRY_COMPONENTS, useValue: components, multi: true}
       ]
     };
   }

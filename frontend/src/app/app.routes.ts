@@ -4,7 +4,6 @@ import {AppSettings} from './shared/app.settings';
 import {PortfolioCashaccountSummaryComponent} from './portfolio/component/portfolio.cashaccount.summary.component';
 import {SecurityaccountSummariesComponent} from './securityaccount/component/securityaccount.summaries.component';
 import {SecurityaccountSummaryComponent} from './securityaccount/component/securityaccount.summary.component';
-import {AuthGuard} from './shared/service/auth.guard';
 import {SplitLayoutComponent} from './shared/layout/component/split.layout.component';
 import {SecurityaccountEmptyComponent} from './securityaccount/component/securityaccount.empty.component';
 import {AssetclassTableComponent} from './assetclass/component/assetclass.table.component';
@@ -40,7 +39,6 @@ import {YourProposalTableComponent} from './proposechange/component/your.proposa
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
 import {UserTableComponent} from './user/component/user.table.component';
-import {AdminGuard} from './shared/service/admin.guard';
 import {TradingCalendarGlobalComponent} from './tradingcalendar/component/trading.calendar.global.component';
 import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
 import {PerformancePeriodComponent} from './shared/performanceperiod/component/performance.period.component';
@@ -59,6 +57,7 @@ import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.comp
 import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
 import {SendRecvTreetableComponent} from './mail/component/send.recv.treetable.component';
+import {adminGuard, authGuard} from './shared/service/guards.definition';
 
 
 const APP_ROUTES: Routes = [
@@ -66,49 +65,49 @@ const APP_ROUTES: Routes = [
   {path: AppSettings.LOGIN_KEY, component: LoginComponent},
   {path: AppSettings.REGISTER_KEY, component: RegisterComponent},
   {path: AppSettings.TOKEN_VERIFY_KEY, component: RegistrationTokenVerifyComponent},
-  {path: AppSettings.TENANT_KEY, component: TenantEditFullPageComponent, canActivate: [AuthGuard]},
+  {path: AppSettings.TENANT_KEY, component: TenantEditFullPageComponent, canActivate: [authGuard]},
   {
-    path: AppSettings.MAINVIEW_KEY, component: SplitLayoutComponent, canActivate: [AuthGuard],
+    path: AppSettings.MAINVIEW_KEY, component: SplitLayoutComponent, canActivate: [authGuard],
     children: [
       {
-        //   path: AppSettings.TENANT_TAB_MENU_KEY + '/:id', component: TenantTabMenuComponent, canActivate: [AuthGuard],
-        path: AppSettings.TENANT_TAB_MENU_KEY, component: TenantTabMenuComponent, canActivate: [AuthGuard],
+        //   path: AppSettings.TENANT_TAB_MENU_KEY + '/:id', component: TenantTabMenuComponent, canActivate: [authGuard],
+        path: AppSettings.TENANT_TAB_MENU_KEY, component: TenantTabMenuComponent, canActivate: [authGuard],
         children: [
-          {path: AppSettings.PORTFOLIO_KEY, component: TenantSummariesCashaccountComponent, canActivate: [AuthGuard]},
+          {path: AppSettings.PORTFOLIO_KEY, component: TenantSummariesCashaccountComponent, canActivate: [authGuard]},
           {
             path: AppSettings.PERFORMANCE_TAB_KEY,
             component: TenantPerformanceTabMenuComponent,
-            canActivate: [AuthGuard],
+            canActivate: [authGuard],
             children: [
-              {path: AppSettings.PERFORMANCE_KEY, component: PerformancePeriodComponent, canActivate: [AuthGuard]},
+              {path: AppSettings.PERFORMANCE_KEY, component: PerformancePeriodComponent, canActivate: [authGuard]},
               {
                 path: AppSettings.EOD_DATA_QUALITY_KEY,
                 component: TenantPerformanceEodMissingComponent,
-                canActivate: [AuthGuard]
+                canActivate: [authGuard]
               }
             ]
           },
-          {path: AppSettings.DEPOT_KEY, component: TenantSummariesSecurityaccountComponent, canActivate: [AuthGuard]},
-          {path: AppSettings.DEPOT_CASH_KEY, component: TenantSummariesAssetclassComponent, canActivate: [AuthGuard]},
-          {path: AppSettings.DIVIDENDS_ROUTER_KEY, component: TenantDividendsComponent, canActivate: [AuthGuard]},
-          {path: AppSettings.TENANT_TRANSACTION, component: TenantTransactionTableComponent, canActivate: [AuthGuard]},
-          {path: AppSettings.TRANSACTION_COST_KEY, component: TenantTransactionCostComponent, canActivate: [AuthGuard]}
+          {path: AppSettings.DEPOT_KEY, component: TenantSummariesSecurityaccountComponent, canActivate: [authGuard]},
+          {path: AppSettings.DEPOT_CASH_KEY, component: TenantSummariesAssetclassComponent, canActivate: [authGuard]},
+          {path: AppSettings.DIVIDENDS_ROUTER_KEY, component: TenantDividendsComponent, canActivate: [authGuard]},
+          {path: AppSettings.TENANT_TRANSACTION, component: TenantTransactionTableComponent, canActivate: [authGuard]},
+          {path: AppSettings.TRANSACTION_COST_KEY, component: TenantTransactionCostComponent, canActivate: [authGuard]}
         ]
       },
       {
         path: AppSettings.PORTFOLIO_TAB_MENU_KEY + '/:id',
         component: PortfolioTabMenuComponent,
-        canActivate: [AuthGuard],
+        canActivate: [authGuard],
         children: [
           {
             path: AppSettings.PORTFOLIO_SUMMARY_KEY + '/:id',
             component: PortfolioCashaccountSummaryComponent,
-            canActivate: [AuthGuard]
+            canActivate: [authGuard]
           },
-          {path: AppSettings.PERFORMANCE_KEY + '/:id', component: PerformancePeriodComponent, canActivate: [AuthGuard]},
+          {path: AppSettings.PERFORMANCE_KEY + '/:id', component: PerformancePeriodComponent, canActivate: [authGuard]},
           {
             path: AppSettings.PORTFOLIO_TRANSACTION_KEY + '/:id', component: PortfolioTransactionTableComponent,
-            canActivate: [AuthGuard]
+            canActivate: [authGuard]
           }
         ]
       },
@@ -116,31 +115,31 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.CASHACCOUNT_DETAIL_ROUTE_KEY + ':id',
         component: CashaccountEditComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.SECURITYACCOUNT_EMPTY_ROUTE_KEY + '/:id',
         component: SecurityaccountEmptyComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.SECURITYACCOUNT_SUMMERIES_ROUTE_KEY + '/:id',
         component: SecurityaccountSummariesComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
 
       {
         path: AppSettings.SECURITYACCOUNT_TAB_MENU_KEY + '/:id',
         component: SecurityaccountTabMenuComponent,
-        canActivate: [AuthGuard],
+        canActivate: [authGuard],
         children: [
           {
             path: AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY + '/:id', component: SecurityaccountSummaryComponent,
-            canActivate: [AuthGuard]
+            canActivate: [authGuard]
           },
           {
             path: AppSettings.SECURITYACCOUNT_IMPORT_KEY + '/:id', component: SecurityaccountImportTransactionComponent,
-            canActivate: [AuthGuard]
+            canActivate: [authGuard]
           }
         ]
       },
@@ -148,122 +147,122 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.PROPOSE_CHANGE_TAB_MENU_KEY,
         component: ProposeChangeTabMenuComponent,
-        canActivate: [AuthGuard],
+        canActivate: [authGuard],
         children: [
           {
             path: AppSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY,
             component: RequestForYouTableComponent,
-            canActivate: [AuthGuard]
+            canActivate: [authGuard]
           },
           {
             path: AppSettings.PROPOSE_CHANGE_YOUR_PROPOSAL_KEY,
             component: YourProposalTableComponent,
-            canActivate: [AuthGuard]
+            canActivate: [authGuard]
           },
         ]
       },
 
       {
         path: AppSettings.CHART_GENERAL_PURPOSE + '/:id', component: ChartGeneralPurposeComponent,
-        outlet: AppSettings.MAIN_BOTTOM, canActivate: [AuthGuard]
+        outlet: AppSettings.MAIN_BOTTOM, canActivate: [authGuard]
       },
 
       {
         path: AppSettings.TIME_SERIE_QUOTES, component: TimeSeriesChartComponent,
-        outlet: AppSettings.MAIN_BOTTOM, canActivate: [AuthGuard]
+        outlet: AppSettings.MAIN_BOTTOM, canActivate: [authGuard]
       },
       {
         path: AppSettings.HISTORYQUOTE_P_KEY, component: HistoryquoteTableComponent, outlet: AppSettings.MAIN_BOTTOM,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.MAIL_SHOW_MESSAGE_KEY, component: MailMessageComponent,
-        outlet: AppSettings.MAIN_BOTTOM, canActivate: [AuthGuard]
+        outlet: AppSettings.MAIN_BOTTOM, canActivate: [authGuard]
       },
-      {path: AppSettings.STRATEGY_OVERVIEW_KEY, component: StrategyOverviewComponent, canActivate: [AuthGuard]},
-      {path: AppSettings.ALGO_TOP_KEY + '/:id', component: AlgoTopDataViewComponent, canActivate: [AuthGuard]},
-      {path: AppSettings.WATCHLIST_KEY + '/:id', component: CorrelationComponent, canActivate: [AuthGuard]},
+      {path: AppSettings.STRATEGY_OVERVIEW_KEY, component: StrategyOverviewComponent, canActivate: [authGuard]},
+      {path: AppSettings.ALGO_TOP_KEY + '/:id', component: AlgoTopDataViewComponent, canActivate: [authGuard]},
+      {path: AppSettings.WATCHLIST_KEY + '/:id', component: CorrelationComponent, canActivate: [authGuard]},
       {
         path: AppSettings.WATCHLIST_TAB_MENU_KEY + '/:id',
         component: WatchlistTabMenuComponent,
-        canActivate: [AuthGuard],
+        canActivate: [authGuard],
         children: [
           {
             path: AppSettings.WATCHLIST_PERFORMANCE_KEY + '/:id',
             component: WatchlistPerformanceComponent,
-            canActivate: [AuthGuard]
+            canActivate: [authGuard]
           },
           {
             path: AppSettings.WATCHLIST_PRICE_FEED_KEY + '/:id',
             component: WatchlistPriceFeedComponent,
-            canActivate: [AuthGuard]
+            canActivate: [authGuard]
           },
           {
             path: AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY + '/:id',
-            component: WatchlistDividendSplitFeedComponent, canActivate: [AuthGuard]
+            component: WatchlistDividendSplitFeedComponent, canActivate: [authGuard]
           },
         ]
       },
       // Base data
-      {path: AppSettings.ASSETCLASS_KEY, component: AssetclassTableComponent, canActivate: [AuthGuard]},
-      {path: AppSettings.STOCKEXCHANGE_KEY, component: StockexchangeTableComponent, canActivate: [AuthGuard]},
+      {path: AppSettings.ASSETCLASS_KEY, component: AssetclassTableComponent, canActivate: [authGuard]},
+      {path: AppSettings.STOCKEXCHANGE_KEY, component: StockexchangeTableComponent, canActivate: [authGuard]},
       {
         path: AppSettings.TRADING_PLATFORM_PLAN_KEY,
         component: TradingPlatformPlanTableComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.IMP_TRANS_TEMPLATE_KEY,
         component: ImportTransactionTemplateComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       // Admin data
       {
-        path: AppSettings.USER_MESSAGE_KEY, component: SendRecvTreetableComponent, canActivate: [AuthGuard]
+        path: AppSettings.USER_MESSAGE_KEY, component: SendRecvTreetableComponent, canActivate: [authGuard]
       },
       {
         path: AppSettings.TRADING_CALENDAR_GLOBAL_KEY,
         component: TradingCalendarGlobalComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.SECURITY_HISTORY_QUALITY_KEY,
         component: SecurityHistoryquoteQualityTreetableComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.GLOBAL_SETTINGS_KEY,
         component: GlobalSettingsTableComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.GTNET_CONSUME_MONITOR_KEY,
         component: GTNetConsumerMonitorComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.GTNET_KEY,
         component: GTNetSetupTableComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.GTNET_AUTO_ANWSER_KEY,
         component: GTNetMessageAutoAnswerComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.GTNET_PROVIDER_MONITOR_KEY,
         component: GTNetProviderMonitorComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
       {
         path: AppSettings.TASK_DATA_CHANGE_MONITOR_KEY,
         component: TaskDataChangeTableComponent,
-        canActivate: [AuthGuard]
+        canActivate: [authGuard]
       },
 
-      {path: AppSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [AdminGuard]},
-      {path: AppSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [AdminGuard]}
+      {path: AppSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [adminGuard]},
+      {path: AppSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [adminGuard]}
     ]
   },
 

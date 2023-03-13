@@ -56,13 +56,12 @@ export class TradingCalendarOtherExchangeDynamicComponent extends FormBase imple
   submit(value: { [name: string]: any }): void {
     this.copyTradingDaysFromSourceToTarget.sourceIdStockexchange = value.name;
     this.tradingDaysMinusService.copyAllTradingDaysMinusToOtherStockexchange(this.copyTradingDaysFromSourceToTarget)
-      .subscribe(tradingDaysWithDateBoundaries => {
+      .subscribe({next: tradingDaysWithDateBoundaries => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_COPY_SUCCESS');
         this.ref.close(tradingDaysWithDateBoundaries);
-      }, error1 => {
+      }, error: error1 => {
         this.configObject.submit.disabled = false;
-      });
-
+      }});
   }
 
   helpLink(): void {

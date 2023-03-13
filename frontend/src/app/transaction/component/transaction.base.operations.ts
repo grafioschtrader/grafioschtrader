@@ -16,7 +16,7 @@ export abstract class TransactionBaseOperations {
   configObject: { [name: string]: FieldConfig };
   protected currencypair?: Currencypair;
 
-  constructor(public messageToastService: MessageToastService,
+  protected constructor(public messageToastService: MessageToastService,
               public currencypairService: CurrencypairService,
               public historyquoteService: HistoryquoteService,
               public translateService: TranslateService,

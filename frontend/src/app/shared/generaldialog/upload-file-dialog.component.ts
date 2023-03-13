@@ -85,7 +85,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     this.fileUploadParam.additionalFieldConfig && this.fileUploadParam.additionalFieldConfig.submitPrepareFN(value, formData,
       this.fileUploadParam.additionalFieldConfig.fieldConfig);
 
-    this.fileUploadParam.uploadService.uploadFiles(this.fileUploadParam.entityId, formData).subscribe(
+    this.fileUploadParam.uploadService.uploadFiles(this.fileUploadParam.entityId, formData).subscribe({next:
       response => {
         if (response.hasOwnProperty('duplicatedInImport')) {
           const uhs: UploadHistoryquotesSuccess = response;
@@ -94,7 +94,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
             : InfoLevelType.SUCCESS, 'UPLOAD_HISTORYQUOTE_SUCCESS', uhs);
         }
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
-      }, () => this.configObject.submit.disabled = false);
+      }, error: () => this.configObject.submit.disabled = false});
   }
 
   valueChangedOnDecimalSeparator(): void {

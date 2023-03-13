@@ -171,11 +171,11 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     }
     this.translateFormulaFromUserLanguage(security);
     this.setSecurityDerivedLinks(security);
-    this.securityService.update(security).subscribe(newSecurity => {
+    this.securityService.update(security).subscribe({next: newSecurity => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
       this.closeDialog.emit(new ProcessedActionData(this.securityCallParam ? ProcessedAction.UPDATED
         : ProcessedAction.CREATED, newSecurity));
-    }, () => this.configObject.submit.disabled = false);
+    }, error: () => this.configObject.submit.disabled = false});
   }
 
   onHide(event): void {

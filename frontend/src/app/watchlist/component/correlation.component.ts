@@ -121,11 +121,11 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
 
   saveAndCalculate(event): void {
     this.form.cleanMaskAndTransferValuesToBusinessObject(this.selectedEntity);
-    this.correlationSetService.update(this.selectedEntity).subscribe(cs => {
+    this.correlationSetService.update(this.selectedEntity).subscribe({next: cs => {
       Object.assign(this.selectedEntity, cs);
       this.setChildData(this.selectedEntity);
       this.configObject.submit.disabled = false;
-    }, errorBackend => (this.configObject.submit.disabled = false));
+    }, error: errorBackend => (this.configObject.submit.disabled = false)});
   }
 
   ngOnDestroy(): void {
