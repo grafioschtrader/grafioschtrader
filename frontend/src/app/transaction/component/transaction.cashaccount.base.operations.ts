@@ -38,7 +38,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
 
   protected valueChangedOnValueCalcFieldsSub: Subscription;
 
-  constructor(messageToastService: MessageToastService,
+  protected constructor(messageToastService: MessageToastService,
               currencypairService: CurrencypairService,
               historyquoteService: HistoryquoteService,
               translateService: TranslateService,

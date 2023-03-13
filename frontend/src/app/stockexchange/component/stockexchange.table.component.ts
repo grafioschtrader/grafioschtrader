@@ -7,10 +7,9 @@ import {StockexchangeService} from '../service/stockexchange.service';
 import {Stockexchange} from '../../entities/stockexchange';
 import {combineLatest} from 'rxjs';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
-import {plainToClass} from 'class-transformer';
+import {plainToInstance} from 'class-transformer';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -117,7 +116,8 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
       templateName: AppSettings.OWNER_TEMPLATE
     });
     this.addColumnFeqH(DataType.String, 'name', true, false, {
-      width: 180,});
+      width: 180,
+    });
     this.addColumnFeqH(DataType.String, 'countryCode', true, false,
       {fieldValueFN: this.getDisplayNameForCounty.bind(this)});
     this.addColumnFeqH(DataType.Boolean, 'secondaryMarket', true, false,
@@ -177,7 +177,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
   }
 
   private prepareStockexchanges(stockexchanges: Stockexchange[], shs: StockexchangeHasSecurity[]): void {
-    this.entityList = plainToClass(Stockexchange, stockexchanges);
+    this.entityList = plainToInstance(Stockexchange, stockexchanges);
     shs.forEach(keyvalue => this.hasSecurityObject[keyvalue.id] = keyvalue.s);
     this.refreshSelectedEntity();
   }

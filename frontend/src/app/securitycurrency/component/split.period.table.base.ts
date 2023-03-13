@@ -8,7 +8,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {Security} from '../../entities/security';
-import {plainToClass} from 'class-transformer';
+import {plainToInstance} from 'class-transformer';
 import {DeleteCreateMultiple} from '../service/delete.create.multiple';
 import {ClassConstructor} from 'class-transformer/types/interfaces';
 import {FilterService} from 'primeng/api';
@@ -22,6 +22,7 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
 
   selectedRow: T;
   dataChanged = false;
+  _dataList: T[] = [];
 
   protected constructor(public dataSortKey: string,
                         public maxRowMessageKey: string,
@@ -35,8 +36,6 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
     super(filterService, usersettingsService, translateService, gps);
     this.multiSortMeta.push({field: dataSortKey, order: 1});
   }
-
-  _dataList: T[] = [];
 
   get dataList(): T[] {
     return this._dataList;
@@ -85,7 +84,7 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
 
   save(security: Security, noteRequest: string): void {
     if (this.dataChanged) {
-      const securitySplitsCleaned = plainToClass(this.classz, this._dataList, <any>{excludeExtraneousValues: true});
+      const securitySplitsCleaned = plainToInstance(this.classz, this._dataList, <any>{excludeExtraneousValues: true});
       this.deleteCreateMultipleService.deleteAndCreateMultiple(security.idSecuritycurrency, securitySplitsCleaned, noteRequest).subscribe(
         savedEntity => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'SECURITY_SPLITS'});
@@ -98,7 +97,6 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
     this.savedData.emit(new SaveSecuritySuccess(security, false));
   }
 }
-
 
 export class SaveSecuritySuccess {
   constructor(public security: Security, public success: boolean) {

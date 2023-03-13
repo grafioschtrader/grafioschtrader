@@ -22,7 +22,7 @@ import {Directive} from '@angular/core';
 @Directive()
 export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
 
-  constructor(helpId: HelpIds,
+  protected constructor(helpId: HelpIds,
               public i18nRecord: string,
               public translateService: TranslateService,
               gps: GlobalparameterService,

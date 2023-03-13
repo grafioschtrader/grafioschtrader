@@ -1,13 +1,4 @@
-import {
-  ComponentFactoryResolver,
-  ComponentRef,
-  Directive,
-  Input,
-  OnChanges,
-  OnInit,
-  Type,
-  ViewContainerRef
-} from '@angular/core';
+import {ComponentRef, Directive, Input, OnChanges, OnInit, Type, ViewContainerRef} from '@angular/core';
 import {UntypedFormGroup} from '@angular/forms';
 
 import {FormButtonComponent} from '../form-button/form-button.component';
@@ -60,8 +51,7 @@ export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChange
 
   component: ComponentRef<FieldFormFormGroupConfig>;
 
-  constructor(private resolver: ComponentFactoryResolver,
-              private viewContainerRef: ViewContainerRef) {
+  constructor(private viewContainerRef: ViewContainerRef) {
   }
 
   ngOnChanges() {
@@ -80,12 +70,7 @@ export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChange
         Supported types: ${supportedTypes}`
       );
     }
-   // const component = this.resolver.resolveComponentFactory<FieldFormFormGroupConfig>(components[this.config.inputType]);
-   // this.component = this.viewContainerRef.createComponent(component);
-
     this.component = this.viewContainerRef.createComponent(components[this.config.inputType]);
-
-
     this.component.instance.config = this.config;
     this.component.instance.formConfig = this.formConfig;
     this.component.instance.group = this.group;

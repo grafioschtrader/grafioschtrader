@@ -48,9 +48,8 @@ export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements 
 
   }
 
-  copyToClipboard(event) {
-    this.configObject.templateAsTxt.elementRef.nativeElement.select();
-    document.execCommand('copy');
+  async copyToClipboard(event)  {
+    await navigator.clipboard.writeText(this.configObject.templateAsTxt.formControl.value);
   }
 
   handleFileInput(files: FileList) {

@@ -169,10 +169,10 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
         parseInt(value[AlgoRuleStrategyCreateComponent.ASSETCLASS_FIELD + i], 10),
         parseInt(value[AlgoRuleStrategyCreateComponent.PERCENTAGE_FIELD + i], 10)));
     }
-    this.algoTopService.create(this.algoTopCreate).subscribe(returnEntity => {
+    this.algoTopService.create(this.algoTopCreate).subscribe({next: returnEntity => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: this.algoTitleKey});
       this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
-    }, () => this.configObject.submit.disabled = false);
+    }, error: () => this.configObject.submit.disabled = false});
   }
 
   private getUsedAssetclasses(): string[] {

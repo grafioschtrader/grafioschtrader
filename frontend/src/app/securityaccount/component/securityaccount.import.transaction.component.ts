@@ -22,7 +22,7 @@ import {ProcessedAction} from '../../shared/types/processed.action';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {plainToClass} from 'class-transformer';
+import {plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
@@ -132,7 +132,7 @@ export class SecurityaccountImportTransactionComponent
   readData(): void {
     this.importTransactionHeadService.getImportTransactionHeadBySecurityaccount(this.securityAccount.idSecuritycashAccount).subscribe(
       (importTransactionHeads: ImportTransactionHead[]) => {
-        this.entityList = plainToClass(ImportTransactionHead, importTransactionHeads);
+        this.entityList = plainToInstance(ImportTransactionHead, importTransactionHeads);
         this.configObject.idTransactionHead.valueKeyHtmlOptions =
           SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idTransactionHead', 'name', importTransactionHeads, true);
 

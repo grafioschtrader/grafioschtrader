@@ -18,7 +18,7 @@ export class HistoryquotePrepareEdit extends BasePrepareEdit implements PrepareC
     const cpObservable = this.currencypairService.getCurrencypairByIdSecuritycurrency(entity.idSecuritycurrency);
     const securityObservable = this.securityService.getSecurityByIdSecuritycurrency(entity.idSecuritycurrency);
 
-    combineLatest(cpObservable, securityObservable).subscribe((data: any[]) => {
+    combineLatest([cpObservable, securityObservable]).subscribe((data: any[]) => {
       const historyquote = new Historyquote();
       Object.assign(historyquote, entity);
       /*

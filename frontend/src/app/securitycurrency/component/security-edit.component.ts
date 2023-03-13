@@ -198,7 +198,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   submit(value: { [name: string]: any }): void {
     const security = this.securityEditSupport.prepareForSave(this, this.proposeChangeEntityWithEntity,
       <Security>this.securityCurrencypairCallParam, this.dynamicForm, value);
-    this.securityService.update(security).subscribe(newSecurity => {
+    this.securityService.update(security).subscribe({next: newSecurity => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
       let savedDepending = false;
       if (this.securityEditSupport.hasMarketValue) {
@@ -216,8 +216,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       if (!savedDepending) {
         this.onDependingDialogSave(new SaveSecuritySuccess(newSecurity, true));
       }
-
-    }, () => this.configObject.submit.disabled = false);
+    }, error: () => this.configObject.submit.disabled = false});
   }
 
   onDependingDialogSave(saveSecuritySuccess: SaveSecuritySuccess): void {

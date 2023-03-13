@@ -3,7 +3,7 @@ import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.servic
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {AppSettings} from '../../shared/app.settings';
-import {Observable} from 'rxjs';
+import {lastValueFrom, Observable} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
@@ -66,10 +66,10 @@ export class ImportTransactionTemplateService extends AuthServiceWithLogout<Impo
   }
 
   public async getTemplatesByPlatformPlanAsZip(idTradingPlatformPlan: number): Promise<Blob> {
-    return await this.httpClient.get<Blob>(
+    const blob$ = this.httpClient.get<Blob>(
       `${AppSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_TEMPLATE_KEY}/exportalltemplates/${idTradingPlatformPlan}`,
-      {headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json'})
-      .toPromise();
+      {headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json'});
+    return await lastValueFrom(blob$);
   }
 
   public uploadImportTemplateFiles(idTransactionImportPlatform: number, formData: FormData):

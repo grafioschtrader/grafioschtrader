@@ -16,7 +16,7 @@ import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu
 import {HelpIds} from '../../shared/help/help.ids';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {plainToClass} from 'class-transformer';
+import {plainToInstance} from 'class-transformer';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
@@ -162,7 +162,7 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
     const hqg: HistoryquoteQualityGroup = event.node.data;
     if (hqg.categoryType !== null) {
       this.groupTitle = event.node.parent.parent.data.name + ' / ' + event.node.parent.data.name + ' / ' + hqg.name;
-      this.historyquoteQualityIds = plainToClass(HistoryquoteQualityIds, event.node.data, {excludeExtraneousValues: true});
+      this.historyquoteQualityIds = plainToInstance(HistoryquoteQualityIds, event.node.data, {excludeExtraneousValues: true});
     }
   }
 

@@ -27,7 +27,6 @@ import {CurrencypairService} from './securitycurrency/service/currencypair.servi
 import {ReplacePipe} from './shared/pipe/replace.pipe';
 import {SplitLayoutComponent} from './shared/layout/component/split.layout.component';
 import {LoginService} from './shared/login/service/log-in.service';
-import {AuthGuard} from './shared/service/auth.guard';
 import {TabMenuModule} from 'primeng/tabmenu';
 import {MessageToastComponent} from './shared/message/message.toast.component';
 import {MessageToastService} from './shared/message/message.toast.service';
@@ -67,7 +66,6 @@ import {RegistrationTokenVerifyComponent} from './shared/login/component/registr
 import {TableModule} from 'primeng/table';
 import {TimeSeriesQuotesService} from './historyquote/service/time.series.quotes.service';
 import {CorrelationComponent} from './watchlist/component/correlation.component';
-import {AllEditGuard} from './shared/service/all.edit.guard.service';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TradingPlatformPlanService} from './tradingplatform/service/trading.platform.plan.service';
 import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
@@ -186,7 +184,6 @@ import {UserAdminService} from './user/service/user.admin.service';
 import {UserTableComponent} from './user/component/user.table.component';
 import {UserEntityChangeLimitTableComponent} from './user/component/user-entity-change-limit-table.component';
 import {UserEditComponent} from './user/component/user-edit-component';
-import {AdminGuard} from './shared/service/admin.guard';
 import {NicknameLangEditComponent} from './shared/login/component/nickname-lang-edit.component';
 import {UserEntityChangeLimitService} from './user/service/user.entity.change.limit.service';
 import {UserEntityChangeLimitEditComponent} from './user/component/user-entity-change-limit-edit.component';
@@ -339,7 +336,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     InstrumentYearPerformanceTableComponent, InstrumentStatisticsResultComponent, InstrumentAnnualisedReturnComponent,
     ImportTransactionEditTemplateComponent, ImportTransactionTemplateComponent, ImportTransactionTemplateTableComponent,
     IndicatorEditComponent, LimitTransactionRequestDynamicComponent, LoginComponent, LogoutReleaseRequestDynamicComponent,
-    SendRecvTreetableComponent,  MailMessageComponent, MailSendDynamicComponent,
+    SendRecvTreetableComponent, MailMessageComponent, MailSendDynamicComponent,
     MainDialogComponent, MainTreeComponent, MenubarComponent, MessageToastComponent, NicknameLangEditComponent,
     PasswordEditComponent, PortfolioCashaccountSummaryComponent, PortfolioEditComponent, PortfolioTabMenuComponent,
     PortfolioTransactionTableComponent, ProposeChangeTabMenuComponent, RegisterComponent, RegistrationTokenVerifyComponent,
@@ -440,8 +437,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TreeModule,
     CommonModule
   ],
-  providers: [ActivePanelService, AllEditGuard, ActuatorService, AdminGuard, AlgoTopService, AlgoAssetclassService,
-    AssetclassService, AuthGuard, CashaccountService, ChartDataService, AlgoStrategyService, AlgoSecurityService,
+  providers: [ActivePanelService, ActuatorService, AlgoTopService, AlgoAssetclassService,
+    AssetclassService, CashaccountService, ChartDataService, AlgoStrategyService, AlgoSecurityService,
     ConfirmationService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService, GTNetMessageService,
     GTNetService, HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
     ImportTransactionTemplateService, ImportTransactionPosService, ImportTransactionHeadService, LoginService,

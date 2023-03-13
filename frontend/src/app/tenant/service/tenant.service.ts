@@ -3,7 +3,7 @@ import {Injectable} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
 import {Tenant} from '../../entities/tenant';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import {Observable} from 'rxjs';
+import {lastValueFrom, Observable} from 'rxjs';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {HttpClient} from '@angular/common/http';
 import {catchError} from 'rxjs/operators';
@@ -33,10 +33,10 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   public async getExportPersonalDataAsZip(): Promise<Blob> {
-    return await this.httpClient.get<Blob>(
+    const blob$ = this.httpClient.get<Blob>(
       `${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/exportpersonaldataaszip`,
-      {headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json'})
-      .toPromise();
+      {headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json'});
+    return await lastValueFrom(blob$);
   }
 
   public deleteMyDataAndUserAccount() {

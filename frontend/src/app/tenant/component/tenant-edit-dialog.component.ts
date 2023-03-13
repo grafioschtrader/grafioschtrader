@@ -47,11 +47,11 @@ export class TenantEditDialogComponent extends TenantEditComponent implements On
 
   submit(value: { [name: string]: any }) {
     if (this.onlyCurrency) {
-      this.tenantService.changeCurrencyTenantAndPortfolios(value.currency).subscribe(tenant => {
+      this.tenantService.changeCurrencyTenantAndPortfolios(value.currency).subscribe({next: tenant => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CLIENT'});
         const tenantChanged: Tenant = Object.assign(new Tenant(), tenant);
         this.afterSaved(tenantChanged);
-      }, () => this.configObject.submit.disabled = false);
+      }, error: () => this.configObject.submit.disabled = false});
     } else {
       super.submit(value);
     }

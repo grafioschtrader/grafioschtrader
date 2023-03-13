@@ -96,12 +96,12 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity);
     this.dynamicForm.cleanMaskAndTransferValuesToBusinessObject(currencypair);
 
-    this.currencypairService.update(currencypair).subscribe(newSecurity => {
+    this.currencypairService.update(currencypair).subscribe({next: newSecurity => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
         {i18nRecord: AppSettings.CURRENCYPAIR.toUpperCase()});
       this.closeDialog.emit(new ProcessedActionData(this.securityCurrencypairCallParam ? ProcessedAction.UPDATED
         : ProcessedAction.CREATED, newSecurity));
-    }, () => this.configObject.submit.disabled = false);
+    }, error: () => this.configObject.submit.disabled = false});
   }
 
   onHide(event): void {

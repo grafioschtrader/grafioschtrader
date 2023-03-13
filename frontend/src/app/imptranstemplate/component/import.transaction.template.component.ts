@@ -15,7 +15,7 @@ import {ParentChildRowSelection} from '../../shared/datashowbase/parent.child.ro
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {plainToClass} from 'class-transformer';
+import {plainToClass, plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
@@ -122,7 +122,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
   readData(): void {
     this.importTransactionPlatformService.getAllImportTransactionPlatforms().subscribe(
       (importTransactionPlatforms: ImportTransactionPlatform[]) => {
-        this.entityList = plainToClass(ImportTransactionPlatform, importTransactionPlatforms);
+        this.entityList = plainToInstance(ImportTransactionPlatform, importTransactionPlatforms);
         this.configObject.idTransactionImportPlatform.valueKeyHtmlOptions =
           SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idTransactionImportPlatform',
             'name', importTransactionPlatforms,
