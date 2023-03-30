@@ -224,7 +224,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
         + "&ID_NOTATION=" + security.getUrlHistoryExtend();
 
     Document doc = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT).get();
-    Element link = doc.select("a:contains(csv-file)").first();
+    Element link = doc.select("a:contains(csv)").first();
     String linkHref = UriUtils.decode(link.attr("href"), "UTF-8");
     linkHref = linkHref.replaceFirst("(.*\\[DATETIME_TZ_START_RANGE\\]=)([0-9/])*(.*)", "$1" + sdf.format(from) + "$3");
     linkHref = DOMAIN_NAME
