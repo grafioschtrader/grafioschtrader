@@ -20,6 +20,7 @@ class InvestingConnectorTest {
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
 
+    securities.add(ConnectorTestHelper.createIntraSecurity("Credit Suisse", "equities/credit-suisse"));
     securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40", "indices/france-40-chart"));
     securities.add(ConnectorTestHelper.createIntraSecurity("MOEX Russia (IMOEX)", "indices/mcx"));
     securities.add(ConnectorTestHelper.createIntraSecurity("Bitcoin Tracker EUR XBT Provider (SE0007525332)",

@@ -257,9 +257,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     case REDUCE:
     case DIVIDEND:
     case FINANCE_COST:
-      checkTradingDayAndUnitsIntegrity(transaction);
+      List<Transaction> existingTransactions = checkTradingDayAndUnitsIntegrity(transaction);
       transaction.validateCashaccountAmount(getOpenPositionMarginPosition(transaction), currencyFraction);
       newTransaction = saveSecurityTransaction(transaction, existingEntity, securityaccount, adjustHoldings);
+      if (newTransaction.isMarginOpenPosition() && !existingTransactions.isEmpty()) {
+        adjustMarginClosePosition(newTransaction, existingTransactions, currencyFraction);
+      }
       break;
 
     case FEE:
@@ -279,6 +282,20 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return newTransaction;
   }
 
+  /**
+   * If the opening margin transaction changes, the account posting may need to be
+   * recalculated. This amount depends on the opening and closing transaction.
+   */
+  private void adjustMarginClosePosition(Transaction openPositionMarginTransaction,
+      List<Transaction> existingTransactions, Integer currencyFraction) {
+    for (Transaction closeTransaction : existingTransactions) {
+      closeTransaction.setCashaccountAmount(
+          closeTransaction.recalculateCloseMarginPos(openPositionMarginTransaction.getQuotation()));
+      closeTransaction.validateCashaccountAmount(openPositionMarginTransaction, currencyFraction);
+      transactionJpaRepository.save(closeTransaction);
+    }
+  }
+
   private Transaction getOpenPositionMarginPosition(Transaction transaction) {
     Transaction openPositionMarginTransaction = null;
     if (transaction.isMarginInstrument() && !transaction.isMarginOpenPosition()) {
@@ -293,7 +310,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return openPositionMarginTransaction;
   }
 
-  private void checkTradingDayAndUnitsIntegrity(Transaction transaction) {
+  private List<Transaction> checkTradingDayAndUnitsIntegrity(Transaction transaction) {
     final List<Transaction> transactions = filterMarginTransaction(transaction,
         transactionJpaRepository.findByIdSecurityaccountAndIdSecurity(transaction.getIdSecurityaccount(),
             transaction.getSecurity().getIdSecuritycurrency()));
@@ -305,6 +322,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
     checkUnitsIntegrity((transaction.getIdTransaction() == null) ? OperationType.ADD : OperationType.UPDATE,
         transactions, transaction, transaction.getSecurity());
+    return transactions;
   }
 
   private Transaction saveSecurityTransaction(Transaction transaction, Transaction existingEntity,
@@ -348,7 +366,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return transactionsMargin;
   }
 
-  private void adjustSecurityaccountHoldings(Transaction transaction, Securityaccount securityaccount, boolean isAdded) {
+  private void adjustSecurityaccountHoldings(Transaction transaction, Securityaccount securityaccount,
+      boolean isAdded) {
     if (transaction.getTransactionType() == TransactionType.ACCUMULATE
         || transaction.getTransactionType() == TransactionType.REDUCE) {
       holdSecurityaccountSecurityRepository.adjustSecurityHoldingForSecurityaccountAndSecurity(

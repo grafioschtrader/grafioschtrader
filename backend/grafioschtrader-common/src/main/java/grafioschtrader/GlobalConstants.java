@@ -43,7 +43,7 @@ public class GlobalConstants {
   /**
    * Number maybe rounded to this precision
    */
-  public static final int FID_MAX_FRACTION_DIGITS = 8;
+  public static final int FID_MAX_FRACTION_DIGITS = 7;
   // public static final int FID_MAX_INTEGER_DIGITS = 11;
   // public static final int FID_MAX_DIGITS = 16;
 
@@ -55,9 +55,13 @@ public class GlobalConstants {
 
   /**
    * It will adjust the currency exchange rate or quotation for the cash account
-   * amount.
+   * amount. Sometimes the user tries to get the total amount as exact as possible
+   * by adjusting the rate or exchange rate. In this case, the user interface
+   * rounds the calculated amount, thus only the rounded calculation results in
+   * the desired calculated amount. The backend can adjust the two parameters even
+   * more exactly with a rounding of FID_MAX_FRACTION_DIGITS.
    */
-  public static boolean AUTO_CORRECT_TO_AMOUNT = false;
+  public static boolean AUTO_CORRECT_TO_AMOUNT = true;
 
   public static final String USER_AGENT = "\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36\"";
 

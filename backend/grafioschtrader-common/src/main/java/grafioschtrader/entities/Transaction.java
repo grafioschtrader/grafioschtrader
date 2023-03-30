@@ -637,8 +637,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
     if (roundCashaccountAmount == calcCashaccountAmount) {
       if (quotation != null && GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {
-        if (calcCashaccountAmount != DataHelper.round(cashaccountAmount, currencyFraction + 1)) {
-          correctSecurityTransactionToAmount(cashaccountAmount - roundCashaccountAmount);
+        if (calcCashaccountAmount != DataHelper.round(cashaccountAmount,
+            Math.min(GlobalConstants.FID_MAX_FRACTION_DIGITS, currencyFraction + 3))) {
+          correctSecurityTransactionToAmount(roundCashaccountAmount - cashaccountAmount);
         }
       }
     } else {
@@ -678,6 +679,10 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       // Close a open position or finance cost
       return validateSecurityGeneralCashaccountAmount(openPositionMarginTransaction.getQuotation());
     }
+  }
+
+  public double recalculateCloseMarginPos(double buyQuotation) {
+    return validateSecurityGeneralCashaccountAmount(buyQuotation);
   }
 
   private void correctSecurityTransactionToAmount(double diff) {

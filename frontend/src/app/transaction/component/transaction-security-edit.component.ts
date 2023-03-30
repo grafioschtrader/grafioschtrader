@@ -156,9 +156,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       DynamicFieldHelper.createFieldCurrencyNumber('currencyExRate', 'EXCHANGE_RATE', true,
         7, AppSettings.FID_MAX_FRACTION_DIGITS, false,
         this.gps.getNumberCurrencyMask(), false, {usedLayoutColumns: 8}),
-
       ...this.createExRateButtons(),
-
       this.createQuotationField(),
       DynamicFieldHelper.createFieldCurrencyNumber('quotation', 'QUOTATION_DIV', true,
         AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,

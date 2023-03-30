@@ -201,7 +201,7 @@ export class AppSettings {
   public static FID_SMALL_INTEGER_LIMIT = 6;
 
   public static FID_MAX_INTEGER_DIGITS = 11;
-  public static FID_MAX_FRACTION_DIGITS = 8;
+  public static FID_MAX_FRACTION_DIGITS = 7;
 
   public static FID_MAX_LETTERS = 1000;
 
