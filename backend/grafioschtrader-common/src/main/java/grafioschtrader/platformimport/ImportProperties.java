@@ -15,8 +15,6 @@ import grafioschtrader.validation.ISINValidator;
 /**
  * Is filled with the data of a import form.
  *
- * @author Hugo Graf
- *
  */
 public class ImportProperties {
 

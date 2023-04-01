@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.28.9</version>
+		<version>0.29.0</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.28.9</version>
+			<version>0.29.0</version>
 		</dependency>
 
 
@@ -227,7 +227,7 @@
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.15.3</version>
+			<version>1.15.4</version>
 		</dependency>
 
 		<dependency>
@@ -257,7 +257,7 @@
 		<dependency>
      		 <groupId>com.ezylang</groupId>
      		 <artifactId>EvalEx</artifactId>
-     		 <version>3.0.2</version>
+     		 <version>3.0.4</version>
    		 </dependency>
 
 		<!-- Not really used -->

@@ -58,7 +58,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private chashaccountChangedSub: Subscription;
   private errorRequired = {name: 'required', keyi18n: 'required', rules: [RuleEvent.TOUCHED]};
 
-
   constructor(private portfolioService: PortfolioService,
               private transactionService: TransactionService,
               messageToastService: MessageToastService,
@@ -74,7 +73,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     const calcGroupConfig: FieldConfig[] = [
       // Validator for amount is set dynamically
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', true,
-        AppSettings.FID_MAX_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, true, {
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, true, {
           ...this.gps.getNumberCurrencyMask(),
           allowZero: false
         }, true),
@@ -158,10 +157,10 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       this.prepareSecurityaccount(cp.portfolio);
       this.cashaccountCurrency = cp.cashaccount.currency;
       const precision = this.gps.getCurrencyPrecision(this.cashaccountCurrency);
-      this.adjustNumberInputFractions(this.configObject.cashaccountAmount, AppSettings.FID_MAX_INTEGER_DIGITS, precision);
-      this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INTEGER_DIGITS, precision);
-      this.adjustNumberInputFractions(this.configObject.transactionCost, AppSettings.FID_MAX_INTEGER_DIGITS, precision);
-      this.adjustNumberInputFractions(this.configObject.taxCost, AppSettings.FID_STANDARD_INTEGER_DIGITS, precision);
+      this.adjustNumberInputFractions(this.configObject.cashaccountAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
+      this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
+      this.adjustNumberInputFractions(this.configObject.transactionCost, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
+      this.adjustNumberInputFractions(this.configObject.taxCost, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
     });
   }
 

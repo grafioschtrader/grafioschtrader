@@ -37,12 +37,13 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.29.0</h4>
+          {{'V_0_29_0' | translate}}
           <h4>0.28.0</h4>
           {{'V_0_28_0' | translate}}
           <h4>0.27.0</h4>
           {{'V_0_27_0' | translate}}
-          <h4>0.26.0</h4>
-          {{'V_0_26_0' | translate}}
+
         </p-card>
       </div>
     </div>

@@ -60,7 +60,7 @@ import {AppSettings} from '../../shared/app.settings';
   selector: 'transaction-security-edit',
   template: `
     <p-dialog [(visible)]="visibleSecurityTransactionDialog"
-              [responsive]="true" [style]="{width: '640px'}" [resizable]="false"
+              [responsive]="true" [style]="{width: '720px'}" [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <p-header>
         <h4>{{'INVESTMENT_TRANSACTION' | translate}}</h4>
@@ -125,7 +125,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   // When this changes, the holdings must be reloaded
   private holdingCheck = new ChangedIdSecurityAndTime();
-  // When this changedes the price of historyquote will be reloaded
+  // When this changes, the price of historyquote will be reloaded
   private historyquoteCheck = new ChangedIdSecurityAndTime();
 
   constructor(private transactionService: TransactionService,
@@ -154,19 +154,19 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
     const calcGroupConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldCurrencyNumber('currencyExRate', 'EXCHANGE_RATE', true,
-        7, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        AppSettings.FID_MAX_CURRENCY_EX_RATE_PRECISION - AppSettings.FID_MAX_CURRENCY_EX_RATE_FRACTION,
+        AppSettings.FID_MAX_CURRENCY_EX_RATE_FRACTION, false,
         this.gps.getNumberCurrencyMask(), false, {usedLayoutColumns: 8}),
       ...this.createExRateButtons(),
       this.createQuotationField(),
       DynamicFieldHelper.createFieldCurrencyNumber('quotation', 'QUOTATION_DIV', true,
-        AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
-        AppSettings.FID_MAX_FRACTION_DIGITS, this.transactionCallParam.transactionType === TransactionType.DIVIDEND
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS,
+        this.transactionCallParam.transactionType === TransactionType.DIVIDEND
         || this.transactionCallParam.transactionType === TransactionType.FINANCE_COST,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
       DynamicFieldHelper.createFieldCurrencyNumber('quotationCA', '_CA', false,
-        AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
-        AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(),
-        true, {userDefinedValue: 'C', usedLayoutColumns: 4}),
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS,
+        true, this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'C', usedLayoutColumns: 4}),
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
@@ -209,11 +209,13 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('securityRisk', false,
-        9, 2, true, this.gps.getNumberCurrencyMask(),
+        AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
+        AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(),
         true, {readonly: true, userDefinedValue: 'C'}),
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', false,
-        9, 2, true, this.gps.getNumberCurrencyMask(),
+        AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
+        AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(),
         true, {readonly: true, userDefinedValue: 'C', usedLayoutColumns: 8}),
       /*
        DynamicFieldHelper.createFieldInputString('cashaccountAmountExact', '_exact',

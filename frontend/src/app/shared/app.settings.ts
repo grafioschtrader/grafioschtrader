@@ -195,13 +195,17 @@ export class AppSettings {
   public static readonly INSTRUMENT_HEADER = 'I';
   public static readonly FIELD_SUFFIX = '$';
 
-  public static FID_MAX_DIGITS = 14;
+  public static FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
+  public static FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;
+  public static FID_MAX_DIGITS = 22;
+  public static FID_MAX_FRACTION_DIGITS = 8;
+  public static FID_MAX_INT_REAL_DOUBLE = AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS;
   public static FID_STANDARD_INTEGER_DIGITS = 9;
   public static FID_STANDARD_FRACTION_DIGITS = 2;
   public static FID_SMALL_INTEGER_LIMIT = 6;
 
   public static FID_MAX_INTEGER_DIGITS = 11;
-  public static FID_MAX_FRACTION_DIGITS = 7;
+
 
   public static FID_MAX_LETTERS = 1000;
 

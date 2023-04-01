@@ -352,9 +352,7 @@ export class DynamicFieldHelper {
   public static adjustNumberFraction(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
     if (fieldConfig.inputType === InputType.InputCurrencyNumber) {
       fieldConfig.currencyMaskConfig.precision = precision;
-      // Error in ngx-currency: Fraction digits may not be greater than Integer digits + 2 disgits
-      DynamicFieldHelper.setCurrencyMaskMaxMin(fieldConfig, Math.max(integerDigits - precision + 2,
-        AppSettings.FID_SMALL_INTEGER_LIMIT), precision);
+      DynamicFieldHelper.setCurrencyMaskMaxMin(fieldConfig, integerDigits, precision);
     } else {
       this.setMinMaxValues(fieldConfig, integerDigits, precision, fieldConfig.currencyMaskConfig.allowNegative);
       fieldConfig.inputNumberSettings.maxFractionDigits = precision;

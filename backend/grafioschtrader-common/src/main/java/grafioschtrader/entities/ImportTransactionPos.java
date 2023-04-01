@@ -37,8 +37,6 @@ import jakarta.validation.constraints.Size;
  * will creates many and a pdf may create only one.
  *
  *
- * @author Hugo Graf
- *
  */
 @Entity
 @Table(name = ImportTransactionPos.TABNAME)

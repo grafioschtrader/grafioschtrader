@@ -44,6 +44,7 @@ import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
 import grafioschtrader.rest.helper.RestHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
+import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -223,7 +224,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   private List<ImportTransactionPos> saveAndCheckReady(List<ImportTransactionPos> importTransactionPosList) {
-    // Import position with transaction can never be changed also a trans action
+    // Import position with transaction can never be changed also a transaction
     // with a maybe transaction only
     // when dTransactionMaybe == 0
     List<Integer> idTransactionPosList = importTransactionPosList.stream()
@@ -245,27 +246,34 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   @Override
-  public void setCheckReadyForSingleTransaction(ImportTransactionPos importTransactionPos) {
-    if (importTransactionPos.getCashaccount() != null && importTransactionPos.getTransactionTime() != null
-        && importTransactionPos.getTransactionType() != null && importTransactionPos.getCashaccountAmount() != null) {
-      switch (importTransactionPos.getTransactionType()) {
+  public void setCheckReadyForSingleTransaction(ImportTransactionPos itp) {
+    if (itp.getCashaccount() != null && itp.getTransactionTime() != null && itp.getTransactionType() != null
+        && itp.getCashaccountAmount() != null) {
+      switch (itp.getTransactionType()) {
       case ACCUMULATE:
       case DIVIDEND:
       case REDUCE:
-        if (importTransactionPos.getSecurity() != null) {
-          importTransactionPos.calcDiffCashaccountAmountWhenPossible();
-          if (importTransactionPos.getDiffCashaccountAmount() == 0.0
-              || (importTransactionPos.getDiffCashaccountAmount() != 0.0
-                  && importTransactionPos.getAcceptedTotalDiff() != null && importTransactionPos
-                      .getDiffCashaccountAmount() == importTransactionPos.getAcceptedTotalDiff().doubleValue())) {
-            importTransactionPos.setReadyForTransaction(true);
+        if (itp.getSecurity() != null) {
+          itp.calcDiffCashaccountAmountWhenPossible();
+          if (itp.getDiffCashaccountAmount() == 0.0
+              || (itp.getDiffCashaccountAmount() != 0.0 && itp.getAcceptedTotalDiff() != null
+                  && itp.getDiffCashaccountAmount() == itp.getAcceptedTotalDiff().doubleValue())) {
+            itp.setReadyForTransaction(true);
           }
         }
         break;
       default:
-        importTransactionPos.setReadyForTransaction(true);
+        itp.setReadyForTransaction(true);
         break;
       }
+    }
+  }
+
+  public void addPossibleExchangeRateForDividend(ImportTransactionHead importTransactionHead,
+      ImportTransactionPos itp) {
+    if (itp.isReadyForTransaction() && itp.getTransactionType() == TransactionType.DIVIDEND
+        && itp.getCurrencyExRate() == null && !itp.getSecurity().getCurrency().equals(itp.getCashaccount().getCurrency())) {
+      itp.addKnowOtherFlags(ImportKnownOtherFlags.CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE);
     }
   }
 
@@ -275,7 +283,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         .findAllById(idTransactionPosList);
     if (!importTransactionPosList.isEmpty()) {
       Map<Integer, ImportTransactionPos> idItpMap = checkConnectedImpTransaction(importTransactionPosList);
-      createAndSaveTransactionsImpPos(importTransactionPosList, idItpMap);
+      createAndSaveTransactionsFromImpPos(importTransactionPosList, idItpMap);
     }
     return importTransactionPosList;
   }
@@ -299,7 +307,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   @Override
-  public List<SavedImpPosAndTransaction> createAndSaveTransactionsImpPos(
+  public List<SavedImpPosAndTransaction> createAndSaveTransactionsFromImpPos(
       List<ImportTransactionPos> importTransactionPosList, Map<Integer, ImportTransactionPos> idItpMap) {
 
     List<Currencypair> currencypairs = null;
@@ -363,6 +371,12 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     }
   }
 
+  /**
+   * If a security with the same ISIN exists with more than one currency, the
+   * correct security is determined according to the ISIN/currency combination
+   * based on the position held.
+   * 
+   */
   private void correctSecurityCurrencyMissmatch(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
     if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH)) {
       Optional<HoldSecurityaccountSecurity> hssMatching = getHoldings(importTransactionHead, itp, true);
@@ -385,13 +399,18 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         .findFirst().map(Optional::of).orElseGet(() -> hssList.stream().findFirst());
   }
 
+  /**
+   * For ETF and possibly on for funds, sometimes the dividend is not paid in the
+   * currency of the ETF's purchase currency, in which case a currency conversion
+   * must take place.
+   */
   private Integer setPossibleMissingCurrencyExRate(ImportTransactionPos itp) {
     if (itp.getCurrencyExRate() == null
         && itp.getKnownOtherFlags()
             .contains(ImportKnownOtherFlags.CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE)
         && itp.getCashaccount().getCurrency() != null && itp.getSecurity().getCurrency() != null
         && !itp.getCashaccount().getCurrency().equals(itp.getSecurity().getCurrency())) {
-      Currencypair currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(itp.getCurrencySecurity(),
+      Currencypair currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(itp.getSecurity().getCurrency(),
           itp.getCashaccount().getCurrency());
       // It is as currency
       Integer idCurrencypair = this.currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(
@@ -528,6 +547,10 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     importTransactionPosJpaRepository.save(itp);
   }
 
+  /**
+   * Link of ImportTransactionPos to saved transaction.
+   *
+   */
   public static class SavedImpPosAndTransaction {
     public Transaction transaction;
     public ImportTransactionPos importTransactionPos;
