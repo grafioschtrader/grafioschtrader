@@ -17,7 +17,7 @@ ALTER TABLE imp_trans_pos CHANGE tax_cost tax_cost DOUBLE(22,8) NULL DEFAULT NUL
 ALTER TABLE imp_trans_pos CHANGE transaction_cost transaction_cost DOUBLE(22,8) NULL DEFAULT NULL;
 ALTER TABLE imp_trans_pos CHANGE cashaccount_amount cashaccount_amount DOUBLE(22,8) NULL DEFAULT NULL;
 ALTER TABLE imp_trans_pos CHANGE accrued_interest accrued_interest DOUBLE(22,8) NULL DEFAULT NULL;
-ALTER TABLE net_lastprice_detail_log CHANGE last last DOUBLE(22,8) NOT NULL;
+ALTER TABLE gt_net_lastprice_detail_log CHANGE last last DOUBLE(22,8) NOT NULL;
 ALTER TABLE securitycurrency CHANGE s_prev_close s_prev_close DOUBLE(22,8) NULL DEFAULT NULL;
 ALTER TABLE securitycurrency CHANGE s_change_percentage s_change_percentage DOUBLE(22,8) NULL DEFAULT NULL;
 ALTER TABLE securitycurrency CHANGE s_last s_last DOUBLE(22,8) NULL DEFAULT NULL;
