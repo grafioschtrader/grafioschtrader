@@ -65,9 +65,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   debitCashaccount: Cashaccount;
   creditCashaccount: Cashaccount;
-  // currencypair: Currencypair;
 
-  // Obeserver subscribe
+  // Observer subscribe
   private transactionTimeChangeSub: Subscription;
   private debitChashaccountChangedSub: Subscription;
   private creditChashaccountChangedSub: Subscription;
@@ -95,14 +94,13 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
       ...this.createExRateButtons(),
       /*
-            DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, 8,
-              8, false, {
+            DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS false, {
                 ...this.gps.getNumberCurrencyMask(),
                 allowZero: false
               }, VALIDATION_SPECIAL.GT_With_Mask_Param, 0.01),
       */
-      DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, 8,
-        8, false, {
+      DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,{
           ...this.gps.getNumberCurrencyMask(), allowZero: false
         }, null, null, true),
 
@@ -236,11 +234,11 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       this.currencypair.fromCurrency : this.creditCashaccount.currency);
     const toCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency :
       this.debitCashaccount.currency);
-    DynamicFieldHelper.adjustNumberFraction(this.configObject.creditAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
+    DynamicFieldHelper.adjustNumberFraction(this.configObject.creditAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE,
       toCurrencyFraction);
     DynamicFieldHelper.adjustNumberFraction(this.configObject.transactionCost, AppSettings.FID_SMALL_INTEGER_LIMIT,
       fromCurrencyFraction);
-    DynamicFieldHelper.adjustNumberFraction(this.configObject.debitAmount, AppSettings.FID_MAX_INTEGER_DIGITS,
+    DynamicFieldHelper.adjustNumberFraction(this.configObject.debitAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE,
       fromCurrencyFraction);
   }
 

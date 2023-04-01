@@ -43,7 +43,7 @@ public class GlobalConstants {
   /**
    * Number maybe rounded to this precision
    */
-  public static final int FID_MAX_FRACTION_DIGITS = 7;
+  public static final int FID_MAX_FRACTION_DIGITS = 8;
   // public static final int FID_MAX_INTEGER_DIGITS = 11;
   // public static final int FID_MAX_DIGITS = 16;
 

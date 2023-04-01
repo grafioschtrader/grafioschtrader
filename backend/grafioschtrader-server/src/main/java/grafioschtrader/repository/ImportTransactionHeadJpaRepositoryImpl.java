@@ -85,23 +85,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       if (itpOpt.isPresent()) {
         return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead());
       } else {
-        // Every pdf import is ready for transaction
-        List<SavedImpPosAndTransaction> savedImpPosAndTransactions = importTransactionPosJpaRepository
-            .createAndSaveTransactionsImpPos(importTransactionPosList, null);
-        Optional<ImportTransactionPos> itpErrorOpt = importTransactionPosList.stream()
-            .filter(itp -> itp.getTransactionError() != null).findFirst();
-        if (itpErrorOpt.isPresent()) {
-          // Failed to create a transaction
-          return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead());
-        } else {
-          // Every transaction was created
-          importTransactionPosJpaRepository.deleteAll(
-              savedImpPosAndTransactions.stream().map(spat -> spat.importTransactionPos).collect(Collectors.toList()));
-          importTransactionHeadJpaRepository.delete(importTransactionHead);
-          int noOfDifferentSecurities = (int) savedImpPosAndTransactions.stream()
-              .map(spat -> spat.transaction.getSecurity().getIdSecuritycurrency()).distinct().count();
-          return new SuccessFailedDirectImportTransaction(savedImpPosAndTransactions.size(), noOfDifferentSecurities);
-        }
+        return createRealTransactions(importTransactionHead, importTransactionPosList);
       }
 
     } else {
@@ -109,11 +93,35 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     }
   }
 
+  /**
+   *  Every pdf import is ready for transaction
+   */
+  private SuccessFailedDirectImportTransaction createRealTransactions(ImportTransactionHead importTransactionHead,
+      List<ImportTransactionPos> importTransactionPosList) {
+    List<SavedImpPosAndTransaction> savedImpPosAndTransactions = importTransactionPosJpaRepository
+        .createAndSaveTransactionsFromImpPos(importTransactionPosList, null);
+    Optional<ImportTransactionPos> itpErrorOpt = importTransactionPosList.stream()
+        .filter(itp -> itp.getTransactionError() != null).findFirst();
+    if (itpErrorOpt.isPresent()) {
+      // Failed to create a transaction
+      return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead());
+    } else {
+      // Every transaction was created
+      importTransactionPosJpaRepository.deleteAll(
+          savedImpPosAndTransactions.stream().map(spat -> spat.importTransactionPos).collect(Collectors.toList()));
+      importTransactionHeadJpaRepository.delete(importTransactionHead);
+      int noOfDifferentSecurities = (int) savedImpPosAndTransactions.stream()
+          .map(spat -> spat.transaction.getSecurity().getIdSecuritycurrency()).distinct().count();
+      return new SuccessFailedDirectImportTransaction(savedImpPosAndTransactions.size(), noOfDifferentSecurities);
+    }
+  }
+
   @Override
   public void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles,
       Integer idTransactionImportTemplate) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository.getReferenceById(idTransactionHead);
+    ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository
+        .getReferenceById(idTransactionHead);
     if (user.getIdTenant().equals(importTransactionHead.getIdTenant())) {
       this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles, idTransactionImportTemplate);
     } else {

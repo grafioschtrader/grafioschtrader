@@ -59,15 +59,19 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
           }
         }),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('volume', false,
-        10, 2, false, this.gps.getNumberCurrencyMask(), false),
+        AppSettings.FID_MAX_INTEGER_DIGITS, 0, false, this.gps.getNumberCurrencyMask(), false),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('open', false,
-        6, 8, false, this.gps.getNumberCurrencyMask(), false),
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        this.gps.getNumberCurrencyMask(), false),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('high', false,
-        6, 8, false, this.gps.getNumberCurrencyMask(), false),
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        this.gps.getNumberCurrencyMask(), false),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('low', false,
-        6, 8, false, this.gps.getNumberCurrencyMask(), false),
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        this.gps.getNumberCurrencyMask(), false),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('close', true,
-        6, 8, false, this.gps.getNumberCurrencyMask(), false),
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        this.gps.getNumberCurrencyMask(), false),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
     this.configObject = Object.assign({}, ...this.config.map(d => ({[d.field]: d})));

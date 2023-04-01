@@ -25,9 +25,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Rest service for head of import transactions.
- *
- * @author Hugo Graf
- *
  */
 @RestController
 @RequestMapping(RequestMappings.IMPORTTRANSACTIONHEAD_MAP)

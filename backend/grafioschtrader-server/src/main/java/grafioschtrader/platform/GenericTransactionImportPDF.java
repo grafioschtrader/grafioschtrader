@@ -32,9 +32,6 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * It is a generic importer CSV and PDF importer. It can be used for the most
  * online broker.
  *
- *
- * @author Hugo Graf
- *
  */
 public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfBase {
 
@@ -93,6 +90,14 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
     }
   }
 
+  
+  protected void setCashaccountAndCheckReadyState(List<Cashaccount> cashaccountList,
+      ImportTransactionPos importTransactionPos, ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
+    super.setCashaccountAndCheckReadyState(cashaccountList, importTransactionPos, importTransactionPosJpaRepository);
+    importTransactionPosJpaRepository.addPossibleExchangeRateForDividend(importTransactionHead, importTransactionPos);
+    
+  }
+  
   /**
    * Override this if the PDF as text needs some cleaning after reading as text
    * before it is processed

@@ -3,6 +3,7 @@ package grafioschtrader.repository;
 import java.util.List;
 import java.util.Map;
 
+import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
 import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.SavedImpPosAndTransaction;
@@ -23,12 +24,20 @@ public interface ImportTransactionPosJpaRepositoryCustom {
 
   List<ImportTransactionPos> setIdTransactionMayBe(Integer idTransactionMaybe, List<Integer> idTransactionPosList);
 
-  void setCheckReadyForSingleTransaction(ImportTransactionPos importTransactionPos);
+  void setCheckReadyForSingleTransaction(ImportTransactionPos itp);
+
+  void addPossibleExchangeRateForDividend(ImportTransactionHead importTransactionHead, ImportTransactionPos itp);
 
   List<ImportTransactionPos> createAndSaveTransactionsByIds(List<Integer> idTransactionPosList);
 
-  List<SavedImpPosAndTransaction> createAndSaveTransactionsImpPos(List<ImportTransactionPos> importTransactionPosList,
-      Map<Integer, ImportTransactionPos> idItpMap);
+  /**
+   * Creates and saves transactions from the "ImportTransactionPos" data, while
+   * still making possible corrections automatically.
+   * 
+   * @return
+   */
+  List<SavedImpPosAndTransaction> createAndSaveTransactionsFromImpPos(
+      List<ImportTransactionPos> importTransactionPosList, Map<Integer, ImportTransactionPos> idItpMap);
 
   void setTrasactionIdToNullWhenExists(Integer idTransaction);
 }

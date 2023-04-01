@@ -18,8 +18,6 @@ import grafioschtrader.types.TransactionType;
 /**
  * Base class for import different data types like csv, txt of pdf.
  *
- * @author Hugo Graf
- *
  */
 public abstract class GenericTransactionImportCsvPdfBase {
   protected final ImportTransactionHead importTransactionHead;
