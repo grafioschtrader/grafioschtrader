@@ -1,0 +1,3 @@
+DELETE FROM globalparameters WHERE property_name = 'gt.currency.precision';
+INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_blob`, `changed_by_system`) VALUES ('gt.currency.precision', NULL, 'BTC=8,ETH=7,JPY=0,KWD=3', NULL, NULL, '0');
+U

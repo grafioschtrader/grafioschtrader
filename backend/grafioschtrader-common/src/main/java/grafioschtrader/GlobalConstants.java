@@ -44,6 +44,10 @@ public class GlobalConstants {
    * Number maybe rounded to this precision
    */
   public static final int FID_MAX_FRACTION_DIGITS = 8;
+  
+  public static final int FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
+  public static final int FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;
+  
   // public static final int FID_MAX_INTEGER_DIGITS = 11;
   // public static final int FID_MAX_DIGITS = 16;
 
