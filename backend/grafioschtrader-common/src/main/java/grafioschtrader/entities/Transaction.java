@@ -638,7 +638,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     if (roundCashaccountAmount == calcCashaccountAmount) {
       if (quotation != null && GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {
         if (calcCashaccountAmount != DataHelper.round(cashaccountAmount,
-            Math.min(GlobalConstants.FID_MAX_FRACTION_DIGITS, currencyFraction + 3))) {
+            Math.min(GlobalConstants.FID_MAX_FRACTION_DIGITS, currencyFraction + (currencyExRate == null? 3: 5)))) {
           correctSecurityTransactionToAmount(roundCashaccountAmount - cashaccountAmount);
         }
       }
@@ -688,8 +688,10 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   private void correctSecurityTransactionToAmount(double diff) {
     if (idCurrencypair != null) {
       double oldCurrencyExRate = currencyExRate;
-      currencyExRate = DataHelper.round((validateSecurityGeneralCashaccountAmount(0) - diff)
-          / calculateSecurityTransactionAmountWithoutExchangeRate(0), GlobalConstants.FID_MAX_FRACTION_DIGITS);
+      currencyExRate = DataHelper.round(
+          (validateSecurityGeneralCashaccountAmount(0) + diff)
+              / calculateSecurityTransactionAmountWithoutExchangeRate(0),
+          GlobalConstants.FID_MAX_CURRENCY_EX_RATE_FRACTION);
       log.debug("Corrected currency exchange rate for difference {} from {} to {}", diff, oldCurrencyExRate,
           currencyExRate);
 
@@ -698,8 +700,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       quotation = DataHelper.round((getSeucritiesNetPrice(0) + diff) / this.units,
           GlobalConstants.FID_MAX_FRACTION_DIGITS);
       log.debug("Corrected quotation for difference {} from {} to {}", diff, oldQuotation, quotation);
-      cashaccountAmount = this.validateSecurityGeneralCashaccountAmount(0);
     }
+    cashaccountAmount = this.validateSecurityGeneralCashaccountAmount(0);
   }
 
   // It is public for test
