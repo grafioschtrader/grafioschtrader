@@ -139,7 +139,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.ignoreValueChanged = false;
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoStrategy {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoStrategy {
     const algoStrategy: AlgoStrategy = new AlgoStrategy();
     if (this.algoCallParam.thisObject) {
       Object.assign(algoStrategy, this.algoCallParam.thisObject);

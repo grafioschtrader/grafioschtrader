@@ -6,9 +6,10 @@ import {ProcessedAction} from '../../shared/types/processed.action';
 import {TenantDividendAccountSelectionComponent} from './tenant-dividend-account-selection.component';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {IdsAccounts} from '../model/ids.accounts';
+import {ShowRecordConfigBase} from '../../shared/datashowbase/show.record.config.base';
 
 /**
- * Thie dialog allows to select certain cash or security accounts. It includes two tree table one for cash the other
+ * This dialog allows to select certain cash or security accounts. It includes two tree table one for cash the other
  * for security accounts.
  */
 @Component({
@@ -64,10 +65,10 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   caColumnConfig: ColumnConfig[] = [];
 
   constructor() {
-    const columnConfig = new ColumnConfig(DataType.String, 'name', 'Name', true, false);
+    const columnConfig = ShowRecordConfigBase.createColumnConfig(DataType.String, 'name', 'Name', true, false);
     this.saColumnConfig.push(columnConfig);
     this.caColumnConfig.push(columnConfig);
-    this.caColumnConfig.push(new ColumnConfig(DataType.String, 'currency', 'CURRENCY', true, false));
+    this.caColumnConfig.push(ShowRecordConfigBase.createColumnConfig(DataType.String, 'currency', 'CURRENCY', true, false));
   }
 
   get disableButton(): boolean {

@@ -94,7 +94,7 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
       });
   }
 
-  onHide(event): void {
+  override onHide(event): void {
     this.categoryTypeSubscribe && this.categoryTypeSubscribe.unsubscribe();
     super.onHide(event);
   }

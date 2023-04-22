@@ -10,7 +10,6 @@ import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping(RequestMappings.CASHACCOUNT_MAP)
 @Tag(name = Cashaccount.TABNAME, description = "Controller for the cash account")
-public class CashaccountResource extends UpdateCreateResource<Cashaccount> {
+public class CashaccountResource extends UpdateCreateDeleteWithTenantResource<Cashaccount> {
 
   @Autowired
   private CashaccountJpaRepository cashaccountJpaRepository;
@@ -36,6 +35,11 @@ public class CashaccountResource extends UpdateCreateResource<Cashaccount> {
   @Autowired
   private AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
 
+  
+  public CashaccountResource() {
+    super(Cashaccount.class);
+  }
+  
   @Operation(summary = "Returns the performance report over a portfolio with all its cash accounts, it includes securities as well", description = "", tags = {
       Cashaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliocashaccountsummary", produces = APPLICATION_JSON_VALUE)
@@ -46,6 +50,7 @@ public class CashaccountResource extends UpdateCreateResource<Cashaccount> {
         accountPositionGroupSummaryReport.getAccountGrandSummaryPortfolio(user.getIdTenant(), idPortfolio, untilDate),
         HttpStatus.OK);
   }
+  /*
 
   @Operation(summary = "Delete a cash account when possible", description = "A used cash account will not be deleted", tags = {
       Cashaccount.TABNAME })
@@ -55,9 +60,9 @@ public class CashaccountResource extends UpdateCreateResource<Cashaccount> {
     cashaccountJpaRepository.deleteCashaccount(idSecuritycashaccount, user.getIdTenant());
     return ResponseEntity.noContent().build();
   }
-
+*/
   @Override
-  protected UpdateCreateJpaRepository<Cashaccount> getUpdateCreateJpaRepository() {
+  protected UpdateCreateDeleteWithTenantJpaRepository<Cashaccount> getUpdateCreateJpaRepository() {
     return cashaccountJpaRepository;
   }
 

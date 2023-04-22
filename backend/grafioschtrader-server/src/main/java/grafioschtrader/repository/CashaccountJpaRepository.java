@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.Cashaccount;
-import grafioschtrader.rest.UpdateCreateJpaRepository;
+import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
 public interface CashaccountJpaRepository extends JpaRepository<Cashaccount, Integer>, CashaccountJpaRepositoryCustom,
-    UpdateCreateJpaRepository<Cashaccount> {
+ UpdateCreateDeleteWithTenantJpaRepository<Cashaccount> {
 
   Cashaccount findByIdSecuritycashAccountAndIdTenant(Integer idSecuritycashAccount, Integer idTenant);
 

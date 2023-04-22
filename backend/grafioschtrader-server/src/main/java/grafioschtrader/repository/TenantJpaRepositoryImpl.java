@@ -116,7 +116,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
       userJpaRepository.save(user);
     }
     if (currencyChanged) {
-      // Holdling tables recreation
+      // Holding tables recreation
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO,
           TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), teantNew.getIdTenant(), Tenant.class.getSimpleName()));
     }

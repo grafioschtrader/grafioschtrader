@@ -26,7 +26,6 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 export class IndicatorEditComponent extends DynamicSimpleEditBase implements OnInit {
   @Input() taEditParam: TaEditParam;
 
-
   constructor(public translateService: TranslateService,
               gps: GlobalparameterService) {
     super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART, gps);
@@ -42,7 +41,7 @@ export class IndicatorEditComponent extends DynamicSimpleEditBase implements OnI
       new TaEditReturn(this.taEditParam.taIndicators, values)));
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.config = [...this.taEditParam.fieldConfig];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     setTimeout(() => this.form.transferBusinessObjectToForm(this.taEditParam.taDynamicDataModel));

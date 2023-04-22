@@ -50,11 +50,11 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.form.transferBusinessObjectToForm(this.globalparameters);
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Globalparameters {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Globalparameters {
     return this.copyFormToPrivateBusinessObject(new Globalparameters(), <Globalparameters>this.globalparameters);
   }
 

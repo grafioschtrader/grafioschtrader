@@ -37,7 +37,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   private readonly BASE_SETTING = 'BASE_SETTING';
   private readonly ENTITY = 'ENTITY';
   private readonly LAST_PRICE = 'LAST_PRICE';
-  private domainRemoteNameSubscripe: Subscription;
+  private domainRemoteNameSubscribe: Subscription;
 
 
   constructor(translateService: TranslateService,
@@ -92,7 +92,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   }
 
   override onHide(event): void {
-    this.domainRemoteNameSubscripe && this.domainRemoteNameSubscripe.unsubscribe();
+    this.domainRemoteNameSubscribe && this.domainRemoteNameSubscribe.unsubscribe();
     super.onHide(event);
   }
 }

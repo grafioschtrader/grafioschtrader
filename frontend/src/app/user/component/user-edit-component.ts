@@ -21,14 +21,15 @@ import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propos
 @Component({
   selector: 'user-edit',
   template: `
-      <p-dialog header="{{'USER_SETTINGS' | translate}}" [(visible)]="visibleDialog"
-                [responsive]="true" [style]="{width: '500px'}"
-                (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+    <p-dialog header="{{'USER_SETTINGS' | translate}}" [(visible)]="visibleDialog"
+              [responsive]="true" [style]="{width: '500px'}"
+              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                        (submitBt)="submit($event)">
-          </dynamic-form>
-      </p-dialog>`
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
+                    (submitBt)="submit($event)">
+      </dynamic-form>
+    </p-dialog>`
 })
 export class UserEditComponent extends SimpleEntityEditBase<User> implements OnInit {
   @Input() callParam: User;
@@ -73,8 +74,23 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
       this.form, this.configObject, proposeChangeEntityWithEntity);
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): User {
-    return this.copyFormToPrivateBusinessObject(new User(), this.callParam);
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): User {
+    const user = this.copyFormToPrivateBusinessObject(new User(), this.callParam);
+    AuditHelper.copyNoteAcceptRejectToEntity(this, user);
+    return user;
   }
+
+  protected override activateWaitStateInButton(): void {
+    if (AuditHelper.isProposeVisible(this)) {
+      this.configObject[AuditHelper.SUBMIT_FIELD_BUTTON].groupItemUseOrLoading = true;
+    }
+  }
+
+  protected override deactivateWaitStateInButton(): void {
+    if (AuditHelper.isProposeVisible(this)) {
+      this.configObject[AuditHelper.SUBMIT_FIELD_BUTTON].groupItemUseOrLoading = false;
+    }
+  }
+
 }
 

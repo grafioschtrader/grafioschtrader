@@ -43,8 +43,6 @@ import jakarta.validation.constraints.Size;
  * It is not mapped to transaction, because the right way goes from
  * Securityaccount -> Transaction -> Security.
  *
- *
- * @author Hugo Graf
  */
 @Entity
 @Table(name = Securitycurrency.TABNAME)

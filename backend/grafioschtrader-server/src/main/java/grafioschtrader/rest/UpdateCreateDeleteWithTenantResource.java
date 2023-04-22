@@ -18,8 +18,6 @@ import io.swagger.v3.oas.annotations.Operation;
  * Delete entity which is connected to a tenant. It is checked if the user has
  * the right to delete the entity.
  *
- * @author Hugo Graf
- *
  * @param <T>
  */
 public abstract class UpdateCreateDeleteWithTenantResource<T extends TenantBaseID> extends UpdateCreateResource<T> {
@@ -40,7 +38,7 @@ public abstract class UpdateCreateDeleteWithTenantResource<T extends TenantBaseI
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     log.debug("Delete by id : {}", id);
     getUpdateCreateJpaRepository().delEntityWithTenant(id, user.getIdTenant());
-    this.logAddUpdDel(user.getIdUser(), type.getSimpleName(), OperationType.DELETE, false);
+    this.logAddUpdDel(user.getIdUser(), type.getSimpleName(), OperationType.DELETE);
     return ResponseEntity.noContent().build();
   }
 }

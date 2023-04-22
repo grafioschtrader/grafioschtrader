@@ -228,7 +228,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.visibleDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.REJECT_DATA_CHANGE) {
-        // Reject the proposed user changes, which were created by an user violation
+        // Reject the proposed user changes, which were created by a user violation
         this.proposeUserTaskService.rejectUserTask(this.selectedEntity.userChangePropose.idProposeRequest,
           processedActionData.data).subscribe(stringResponse => this.messageToastService.showMessage(InfoLevelType.SUCCESS,
           stringResponse.response));

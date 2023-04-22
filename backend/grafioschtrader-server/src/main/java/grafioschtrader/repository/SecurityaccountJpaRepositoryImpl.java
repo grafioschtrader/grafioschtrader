@@ -13,24 +13,22 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
     implements SecurityaccountJpaRepositoryCustom {
 
   @Autowired
-  SecurityaccountJpaRepository securityaccountJpaRepository;
+  private SecurityaccountJpaRepository securityaccountJpaRepository;
 
   @Override
   @Transactional
   @Modifying
   public Securityaccount saveOnlyAttributes(final Securityaccount securityaccount, Securityaccount existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
-    /*
-     * Securityaccount createEditSecurityaccount = securityaccount; if
-     * (securityaccount.getIdSecuritycashAccount() != null) {
-     * createEditSecurityaccount =
-     * securityaccountJpaRepository.getOne(securityaccount.getIdSecuritycashAccount(
-     * )); createEditSecurityaccount.updateThis(securityaccount); } return
-     * securityaccountJpaRepository.save(createEditSecurityaccount);
-     */
-
     return RepositoryHelper.saveOnlyAttributes(securityaccountJpaRepository, securityaccount, existingEntity,
         updatePropertyLevelClasses);
+  }
+
+ 
+
+  @Override
+  public int delEntityWithTenant(Integer id, Integer idTenant) {
+    return securityaccountJpaRepository.deleteSecurityaccount(id, idTenant);
   }
 
 }

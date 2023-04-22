@@ -33,6 +33,8 @@ public class GlobalConstants {
    */
   public static final int ADMIN_ID_USER = 1;
 
+ 
+  
   /**
    * Normal precision for decimal numbers
    */
@@ -97,6 +99,9 @@ public class GlobalConstants {
    */
   public static final int WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES = 180;
 
+  public static final String NEW_LINE = "\n";
+  public static final String NEW_LINE_AND_RETURN = "\r\n";
+  
   /**
    * Time that had to elapse before the next obtainment of historical prices from
    * the external data source.
@@ -136,7 +141,7 @@ public class GlobalConstants {
   public static final String UNITS = "units";
 
   /**
-   * Contains the supported cryptocurrencies. When a new is added, check
+   * Contains the supported crypto currencies. When a new is added, check
    * references. Maybe a connector must be extended to this new cryptocurrency.
    */
   public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of("BTC", "BNB", "ETH", "ETC", "LTC", "XRP");

@@ -10,10 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.dto.ITransactionCost;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
-import grafioschtrader.rest.UpdateCreateJpaRepository;
+import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
 public interface SecurityaccountJpaRepository extends JpaRepository<Securityaccount, Integer>,
-    SecurityaccountJpaRepositoryCustom, UpdateCreateJpaRepository<Securityaccount> {
+    SecurityaccountJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<Securityaccount> {
 
   Securityaccount findByIdSecuritycashAccountAndIdTenant(Integer idSecuritycashAccount, Integer idTenant);
 

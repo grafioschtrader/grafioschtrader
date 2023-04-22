@@ -10,6 +10,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import grafioschtrader.entities.BaseID;
 import jakarta.validation.Valid;
 
+/**
+ * A REST API that supports the creation and editing of an entity. In addition,
+ * these edits are summed and stored per information class on a daily basis.
+ * Attention. If the deletion is additionally implemented specifically, there is
+ * no summation deletion.
+ *
+ * @param <T>
+ */
 public abstract class UpdateCreateResource<T extends BaseID> extends UpdateCreate<T> {
 
   /**

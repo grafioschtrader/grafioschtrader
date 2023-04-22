@@ -6,7 +6,7 @@ public enum TenantKindType {
 
   // Created by when a user is registered
   MAIN((byte) 0),
-  // Tenant only used for a simulation enviroment
+  // Tenant only used for a simulation environment
   SIMULATION_COPY((byte) 1);
 
   private final Byte value;

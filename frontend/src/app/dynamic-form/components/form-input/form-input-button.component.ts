@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 
 /**
- * Creates a input field with a following button.
+ * Creates an input field with a following button.
  */
 @Component({
   selector: 'form-input-button',

@@ -60,7 +60,7 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
       // Group header message
       if (user.getIdUser().equals(msrTarget.getIdUserFrom()) && msrTarget.getSendRecvAsType() == SendRecvType.SEND
           || user.getIdUser().equals(msrTarget.getIdUserTo())
-          && msrTarget.getSendRecvAsType() == SendRecvType.RECEIVE) {
+              && msrTarget.getSendRecvAsType() == SendRecvType.RECEIVE) {
         // Group is one to one message, can be deleted
         mailSendRecvJpaRepository.deleteByIdMailSendRecvAndIdUser(idMailSendRecv, user.getIdUser());
         mailSendRecvJpaRepository.deleteByIdReplyToLocalAndIdUser(idMailSendRecv, user.getIdUser());
@@ -84,7 +84,20 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
   }
 
   @Override
-  public MailSendRecv sendInternalMail(Integer idUserFrom, Integer idUserTo, String roleName, String subject,
+  public Integer sendInternalMail(Integer idUserFrom, Integer idUserTo, String subject, String message) {
+    return this.sendInternalMail(idUserFrom, idUserTo, null, subject, message, null,
+        ReplyToRolePrivateType.REPLY_NORMAL);
+
+  }
+
+  @Override
+  public Integer sendInternalMail(Integer idUserFrom, Integer idUserTo, String roleName, String subject, String message,
+      Integer idReplyToLocal, ReplyToRolePrivateType replyToRolePrivate) {
+    return saveInternalMail(idUserFrom, idUserTo, roleName, subject, message, idReplyToLocal, replyToRolePrivate)
+        .getIdMailSendRecv();
+  }
+
+  private MailSendRecv saveInternalMail(Integer idUserFrom, Integer idUserTo, String roleName, String subject,
       String message, Integer idReplyToLocal, ReplyToRolePrivateType replyToRolePrivate) {
     MailSendRecv mailSendRecvS = new MailSendRecv(SendRecvType.SEND, idUserFrom, idUserTo, roleName, subject, message,
         idReplyToLocal, replyToRolePrivate);
@@ -95,14 +108,14 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
             : mailSendRecvS.getIdReplyToLocal(),
         replyToRolePrivate);
     mailSendRecvR.setIdRoleTo(mailSendRecvS.getIdRoleTo());
-    mailSendRecvJpaRepository.save(mailSendRecvR);
-    return mailSendRecvS;
+    return mailSendRecvJpaRepository.save(mailSendRecvR);
+
   }
 
   @Override
   public MailSendRecv saveOnlyAttributes(MailSendRecv mailSendRecv, MailSendRecv existingMailSendRecv,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
-    MailSendRecv mailSendRecvS = sendInternalMail(mailSendRecv.getIdUserFrom(), mailSendRecv.getIdUserTo(),
+    MailSendRecv mailSendRecvS = saveInternalMail(mailSendRecv.getIdUserFrom(), mailSendRecv.getIdUserTo(),
         mailSendRecv.getRoleNameTo(), mailSendRecv.getSubject(), mailSendRecv.getMessage(),
         mailSendRecv.getIdReplyToLocal(), isRoleReplySend(mailSendRecv));
     connectRoleNameToMail(mailSendRecvS);

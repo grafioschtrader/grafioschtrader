@@ -5,9 +5,12 @@ import {ElementRef} from '@angular/core';
 /**
  * Definition for a single form input field.
  */
-export interface BaseFieldFieldgroupConfig {
-  validation?: ValidatorFn[];
-  errors?: ErrorMessageRules[];
+export interface BaseFieldFieldgroupConfig extends ValidationErrorRule {
   formControl?: AbstractControl;
   elementRef?: ElementRef;
+}
+
+export interface ValidationErrorRule {
+  validation?: ValidatorFn[];
+  errors?: ErrorMessageRules[];
 }

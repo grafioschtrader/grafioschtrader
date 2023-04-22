@@ -67,7 +67,7 @@ export class HistoryquoteQualityFillGapsComponent extends SimpleEditBase impleme
       }, error: () => this.configObject.execute.disabled = false});
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.form.setDefaultValuesAndEnableSubmit();
     const hasWeekendDays: boolean = this.historyquoteQuality.quoteSaturday !== null && this.historyquoteQuality.quoteSaturday > 0
       || this.historyquoteQuality.quoteSunday !== null && this.historyquoteQuality.quoteSunday > 0;

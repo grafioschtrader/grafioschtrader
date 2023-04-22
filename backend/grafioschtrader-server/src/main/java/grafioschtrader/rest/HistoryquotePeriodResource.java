@@ -42,8 +42,9 @@ public class HistoryquotePeriodResource {
         idSecuritycurrency, HistoryquotePeriodCreateType.USER_CREATED.getValue()), HttpStatus.OK);
   }
 
-  @Operation(summary = "Historyquote period are created manually, normally used when one price does not fit the whole lifetime "
-      + " of a security", description = "", tags = { RequestMappings.HISTORYQUOTE_PERIOD })
+  @Operation(summary = """
+      Historyquote period are created manually, normally used when one price does not fit the whole lifetime of a security""", description = "", tags = {
+      RequestMappings.HISTORYQUOTE_PERIOD })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<HistoryquotePeriod>> deleteAndCreateMultiple(
       @Valid @RequestBody final HistoryquotePeriodDeleteAndCreateMultiple hpdacm) {

@@ -315,6 +315,11 @@ import {GTNetMessageEditComponent} from './gtnet/component/gtnet-message-edit.co
 import {GTNetMessageService} from './gtnet/service/gtnet.message.service';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
 import {SendRecvTreetableComponent} from './mail/component/send.recv.treetable.component';
+import {MailForwardSettingTableEditComponent} from './mail/component/mail.forward.setting.table.edit.component';
+import {SendRecvForwardTabMenuComponent} from './mail/component/send.recv.forward.tab.menu.component';
+import {MailSettingForwardService} from './mail/service/mail.setting.forward.service';
+import {MailForwardSettingTableComponent} from './mail/component/mail.forward.setting.table.component';
+import {MailForwardSettingEditComponent} from './mail/component/mail-forward-setting-edit.component';
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
   {prefix: './assets/i18n/', suffix: '.json'},
@@ -336,7 +341,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     InstrumentYearPerformanceTableComponent, InstrumentStatisticsResultComponent, InstrumentAnnualisedReturnComponent,
     ImportTransactionEditTemplateComponent, ImportTransactionTemplateComponent, ImportTransactionTemplateTableComponent,
     IndicatorEditComponent, LimitTransactionRequestDynamicComponent, LoginComponent, LogoutReleaseRequestDynamicComponent,
-    SendRecvTreetableComponent, MailMessageComponent, MailSendDynamicComponent,
+    SendRecvTreetableComponent, MailForwardSettingTableEditComponent, MailMessageComponent, MailSendDynamicComponent,
+    MailForwardSettingTableComponent, MailForwardSettingEditComponent,
     MainDialogComponent, MainTreeComponent, MenubarComponent, MessageToastComponent, NicknameLangEditComponent,
     PasswordEditComponent, PortfolioCashaccountSummaryComponent, PortfolioEditComponent, PortfolioTabMenuComponent,
     PortfolioTransactionTableComponent, ProposeChangeTabMenuComponent, RegisterComponent, RegistrationTokenVerifyComponent,
@@ -345,7 +351,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     SecurityaccountImportExtendedInfoComponent, SecurityaccountImportExtendedInfoFilenameComponent,
     SecurityaccountImportSetCashaccountComponent, SecuritycurrencySearchAndSetComponent, CorrelationSetAddInstrumentTableComponent,
     SecuritycurrencySearchAndSetTableComponent, SecurityaccountImportTransactionComponent, CorrelationAddInstrumentComponent,
-    SecurityaccountImportTransactionEditHeadComponent, SecurityaccountImportTransactionTableComponent,
+    SecurityaccountImportTransactionEditHeadComponent, SecurityaccountImportTransactionTableComponent, SendRecvForwardTabMenuComponent,
     SecurityaccountSummariesComponent, SecurityaccountSummaryComponent, SecurityaccountTabMenuComponent, SecurityEditComponent,
     SecuritysplitEditTableComponent, SplitLayoutComponent, StepComponent, StepsComponent, StockexchangeEditComponent,
     StockexchangeTableComponent, StrategyDetailComponent, StrategyOverviewComponent, TemplateFormCheckDialogComponent,
@@ -443,6 +449,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     GTNetService, HistoryquoteService, HistoryquotePeriodService, HoldingService, ImportTransactionPlatformService,
     ImportTransactionTemplateService, ImportTransactionPosService, ImportTransactionHeadService, LoginService,
     MainDialogService, MessageToastService, ParentChildRegisterService, MailSendRecvService, MailSendRecvService,
+    MailSettingForwardService,
     MultipleRequestToOneService, TaskDataChangeService, CorrelationSetService, ConnectorApiKeyService,
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,

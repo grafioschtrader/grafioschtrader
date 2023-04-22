@@ -4,16 +4,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.entities.Securityaccount;
-import grafioschtrader.entities.User;
 import grafioschtrader.reports.SecurityGroupByAssetclassSubCategoryReport;
 import grafioschtrader.reports.SecurityGroupByAssetclassWithCashReport;
 import grafioschtrader.reports.SecurityGroupByBaseReport;
@@ -35,7 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping(RequestMappings.SECURITYACCOUNT_MAP)
 @Tag(name = Securityaccount.TABNAME, description = "Controller for security account")
-public class SecurityaccountResource extends UpdateCreateResource<Securityaccount> {
+public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResource<Securityaccount> {
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
@@ -49,14 +44,14 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
   @Autowired
   private AutowireCapableBeanFactory beanFactory;
 
+  public SecurityaccountResource() {
+    super(Securityaccount.class);
+  }
+  
+  /*
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  /**
-   * Delete security account
-   *
-   * @param idSecuritycashaccount
-   * @return
-   */
+ 
   @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteSecurityaccount(@PathVariable final Integer idSecuritycashaccount) {
     log.debug("Delete by id Securityaccount : {}", idSecuritycashaccount);
@@ -65,9 +60,9 @@ public class SecurityaccountResource extends UpdateCreateResource<Securityaccoun
 
     return ResponseEntity.ok().build();
   }
-
+*/
   @Override
-  protected UpdateCreateJpaRepository<Securityaccount> getUpdateCreateJpaRepository() {
+  protected UpdateCreateDeleteWithTenantJpaRepository<Securityaccount> getUpdateCreateJpaRepository() {
     return securityaccountJpaRepository;
   }
 

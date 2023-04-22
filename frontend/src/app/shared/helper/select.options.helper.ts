@@ -38,8 +38,8 @@ export class SelectOptionsHelper {
   }
 
   public static assetclassCreateValueKeyHtmlSelectOptions(gps: GlobalparameterService,
-    translateService: TranslateService,
-    assetClasses: Assetclass[]): ValueKeyHtmlSelectOptions[] {
+                                                          translateService: TranslateService,
+                                                          assetClasses: Assetclass[]): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
     assetClasses.forEach(assetclass => {
       // const observableTranslateCategoryType = translateService.get(<string>assetclass.categoryType);
@@ -50,7 +50,7 @@ export class SelectOptionsHelper {
   }
 
   public static translateAssetclass(translateService: TranslateService, language: string, assetclass: Assetclass,
-    valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[]): ValueKeyHtmlSelectOptions {
+                                    valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[]): ValueKeyHtmlSelectOptions {
     const observableTranslateCategoryType = translateService.get(<string>assetclass.categoryType);
     const observableTranslateSpecialInvestment = translateService.get(<string>assetclass.specialInvestmentInstrument);
     const valueKeyHtmlSelectOption = new ValueKeyHtmlSelectOptions(assetclass.idAssetClass, null);
@@ -75,26 +75,26 @@ export class SelectOptionsHelper {
   }
 
   public static createHtmlOptionsFromEnumAddEmpty(translateService: TranslateService, e: EnumI, allowedEnums?: any[],
-    deny?: boolean): ValueKeyHtmlSelectOptions[] {
+                                                  deny?: boolean): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
     return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, allowedEnums, deny);
   }
 
   public static createHtmlOptionsFromEnum(translateService: TranslateService, e: EnumI, allowedEnums?: any[],
-    deny?: boolean): ValueKeyHtmlSelectOptions[] {
+                                          deny?: boolean): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
     return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, allowedEnums, deny);
   }
 
   public static createHtmlOptionsFromEnumDisabled(translateService: TranslateService, e: EnumI,
-    disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
+                                                  disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
     return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, null, false,
       disabledEnums);
   }
 
   public static createValueKeyHtmlSelectOptionsFromArray(key: string, propertyName: string, values: any[],
-    addEmpty: boolean): ValueKeyHtmlSelectOptions[] {
+                                                         addEmpty: boolean): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     addEmpty && valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions('', ''));
     values.forEach(element => {
@@ -103,11 +103,14 @@ export class SelectOptionsHelper {
     return valueKeyHtmlSelectOptions;
   }
 
-  public static createValueKeyHtmlSelectOptionsFromObject(propertyName: string, values: { [keySN: string | number]: any },
-    addEmpty: boolean, excludeKeys: string[] = []): ValueKeyHtmlSelectOptions[] {
+  public static createValueKeyHtmlSelectOptionsFromObject(propertyName: string, values: {
+                                                            [keySN: string | number]: any
+                                                          },
+                                                          addEmpty: boolean, excludeKeys: string[] = []): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     addEmpty && valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions('', ''));
-    Object.keys(values).filter(value => excludeKeys.indexOf(value) < 0).forEach(k => valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(k, values[k][propertyName])));
+    Object.keys(values).filter(value => excludeKeys.indexOf(value) < 0).forEach(k =>
+      valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(k, values[k][propertyName])));
     return valueKeyHtmlSelectOptions;
   }
 
@@ -115,8 +118,8 @@ export class SelectOptionsHelper {
    * Translate a existing vaule of ValueKeyHtmlSelectOptions.
    */
   public static translateExistingValueKeyHtmlSelectOptions(translateService: TranslateService,
-    hSelOpt: ValueKeyHtmlSelectOptions[],
-    addEmpty = true): ValueKeyHtmlSelectOptions[] {
+                                                           hSelOpt: ValueKeyHtmlSelectOptions[],
+                                                           addEmpty = true): ValueKeyHtmlSelectOptions[] {
     const newValueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = addEmpty ? [new ValueKeyHtmlSelectOptions('', '')] :
       [];
     hSelOpt.forEach(h => newValueKeyHtmlSelectOptions.push(
@@ -128,7 +131,7 @@ export class SelectOptionsHelper {
 
 
   public static translateArrayKeyEqualValue<T extends number | string>(translateService: TranslateService,
-    arr: T[]): ValueKeyHtmlSelectOptions[] {
+                                                                       arr: T[]): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
     arr.forEach(value =>
       valueKeyHtmlSelectOptions.push(this.translateValueKeyHtmlSelectOptions(translateService, value, '' + value)));
@@ -153,13 +156,16 @@ export class SelectOptionsHelper {
   }
 
   private static createHtmlOptionsFromEnumWithEmptyOrNot(valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[],
-    translateService: TranslateService, e: EnumI, allowedEnums?: any[],
-    deny?: boolean, disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
+                                                         translateService: TranslateService, e: EnumI, allowedEnums?: any[],
+                                                         deny?: boolean, disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
+    let typeAllowedEnums = null;
+    if (allowedEnums && allowedEnums.length > 0) {
+      typeAllowedEnums = typeof allowedEnums[0];
+    }
     for (const n in e) {
       if (typeof e[n] === 'number') {
         const stringType: string = e[e[n]];
-        if (!allowedEnums || (allowedEnums.indexOf(e[stringType]) >= 0 && !deny
-          || allowedEnums.indexOf(e[stringType]) < 0 && deny)) {
+        if (this.checkAllowEnum(typeAllowedEnums, e, stringType, allowedEnums, deny)) {
           const valueKeyHtmlSelectOption = this.translateValueKeyHtmlSelectOptions(translateService, stringType, stringType);
           if (disabledEnums && disabledEnums.indexOf(e[stringType]) >= 0) {
             valueKeyHtmlSelectOption.disabled = true;
@@ -173,11 +179,22 @@ export class SelectOptionsHelper {
     return valueKeyHtmlSelectOptions;
   }
 
+  private static checkAllowEnum(typeAllowedEnums: string, e: EnumI, stringType: string, allowedEnums?: any[], deny?: boolean, ): boolean {
+    if(!typeAllowedEnums || typeAllowedEnums === 'number') {
+      return !allowedEnums || (allowedEnums.indexOf(e[stringType]) >= 0 && !deny
+        || allowedEnums.indexOf(e[stringType]) < 0 && deny);
+    } else {
+      return allowedEnums.indexOf(stringType) >= 0 && !deny
+        || allowedEnums.indexOf(stringType) < 0 && deny;
+    }
+  }
+
+
   // Primeng SelectItem[]
   /////////////////////////////////////////////////////////////
 
   private static translateValueKeyHtmlSelectOptions(translateService: TranslateService, key: string | number,
-    value: string): ValueKeyHtmlSelectOptions {
+                                                    value: string): ValueKeyHtmlSelectOptions {
     const valueKeyHtmlSelectOptions = new ValueKeyHtmlSelectOptions(key, value);
     value !== '' && translateService.get(value).subscribe(translated => valueKeyHtmlSelectOptions.value = translated);
 

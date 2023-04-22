@@ -55,9 +55,6 @@ import grafioschtrader.service.GTNetLastpriceService;
 
 /**
  * Prepares the Data for every kind of Watchlists.
- *
- * @author Hugo Graf
- *
  */
 @Component
 public class WatchlistReport {

@@ -1,5 +1,6 @@
 package grafioschtrader.repository;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,22 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
       Integer idTenantPrivate);
 
   List<Security> findByTickerSymbolInOrderByIdSecuritycurrency(Set<String> tickers);
+
+  /**
+   * Determination of the positions held by instruments that are no longer traded, using the "active until" property.
+   */
+  @Query(nativeQuery = true)
+  List<CheckSecurityTransIntegrity> getHoldingsOfInactiveSecurties();
+  
+  /**
+   * A new payment of interest or dividend is expected: 
+   * - Last payment with this client plus the addition of days determined based on the frequency of payments.</br>
+   * TODO First interest of a bond determined on the basis of the trading date plus addition of the frequency.</br>
+   * TODO Use of the dividend table with its optional "Pay day".</br> 
+   */
+  @Query(nativeQuery = true)
+  List<CheckSecurityTransIntegrity> getPossibleMissingDivInterest();
+  
 
   @Query(nativeQuery = true)
   List<Security> getUnusedSecurityForAlgo(Integer idTenantPrivate, Integer idAlgoAssetclassSecurity);
@@ -130,6 +147,20 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   public enum SplitAdjustedHistoryquotes {
     NOT_DETCTABLE, ADJUSTED, NOT_ADJUSTED
+  }
+
+  public static interface CheckSecurityTransIntegrity {
+    int getIdUser();
+
+    String getLocaleStr();
+    
+    String getCurrency();
+
+    int getIdSecuritycurrency();
+
+    String getName();
+
+    LocalDate getMarkDate();
   }
 
 }

@@ -54,6 +54,7 @@ public class TaskDataChangeResource extends UpdateCreateDeleteAuditResource<Task
   public ResponseEntity<Void> deleteResource(@PathVariable final Integer idTaskDataChange) {
     taskDataChangeJpaRepository.removeByIdTaskDataChangeAndProgressStateTypeNot(idTaskDataChange,
         ProgressStateType.PROG_RUNNING.getValue());
+    logAndAudit(TaskDataChange.class, idTaskDataChange);
     return ResponseEntity.noContent().build();
   }
 

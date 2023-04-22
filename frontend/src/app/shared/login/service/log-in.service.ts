@@ -16,6 +16,7 @@ import {UserOwnProjection} from '../../../entities/projection/user.own.projectio
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
 import {ConfigurationWithLogin} from '../component/login.component';
 import {PrimeNGConfig} from 'primeng/api';
+import {AppHelper} from '../../helper/app.helper';
 
 
 @Injectable()
@@ -32,7 +33,7 @@ export class LoginService extends BaseAuthService<User> {
     if (translateService.getLangs().find(lang => lang === sessionStorage.getItem(GlobalSessionNames.LANGUAGE))) {
       translateService.use(sessionStorage.getItem(GlobalSessionNames.LANGUAGE)).subscribe(params => console.log('loaded'));
     } else {
-      translateService.use(translateService.getBrowserLang());
+      translateService.use(AppHelper.getNonUserDefinedLanguage(translateService.getBrowserLang()));
     }
     translateService.get('primeng').subscribe(res => primeNGConfig.setTranslation(res));
   }

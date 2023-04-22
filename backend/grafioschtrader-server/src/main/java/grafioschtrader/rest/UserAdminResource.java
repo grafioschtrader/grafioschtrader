@@ -84,9 +84,8 @@ public class UserAdminResource extends UpdateCreateResource<User> {
         result = updateSaveEntity(entity, existingEntity);
         userJpaRepository.sendSimpleMessage(entity.getUsername(),
             messages.getMessage("mail.subject.admin", null, Locale.forLanguageTag(entity.getLocaleStr())),
-            entity.userChangePropose.getNoteRequest());
+            entity.getNoteRequestOrReject());
         proposeChangeEntityJpaRepository.deleteById(idProposeRequest);
-
       }
     } else {
       result = updateSaveEntity(entity, existingEntity);

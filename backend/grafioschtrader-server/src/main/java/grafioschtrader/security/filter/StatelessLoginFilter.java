@@ -102,7 +102,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
     } catch (RequestLimitAndSecurityBreachException lee) {
       // User has to many times misused the limits (requests/period or security
-      // breach) of Grafioschtrader
+      // breach) of GT
       if (holdUserValue.note != null) {
         processUserUnlockNoteRequest(authenticatedUser, response, lee, holdUserValue);
       } else {
@@ -127,7 +127,6 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * @param holdUserValue
    * @throws IOException
    */
-
   private void processUserUnlockNoteRequest(final UserDetails authenticatedUser, final HttpServletResponse response,
       RequestLimitAndSecurityBreachException lee, HoldUserValues holdUserValue) throws IOException {
     try {

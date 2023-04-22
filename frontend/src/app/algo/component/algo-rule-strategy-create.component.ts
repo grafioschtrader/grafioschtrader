@@ -87,7 +87,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  initialize() {
+  protected override initialize() {
     this.algoTopCreate = <AlgoTopCreate>this.callParam.thisObject;
     if (this.algoTopCreate.ruleStrategy === RuleStrategy[RuleStrategy.RS_RULE]) {
       this.algoTitleKey = 'ALGO_RULE_BASED';

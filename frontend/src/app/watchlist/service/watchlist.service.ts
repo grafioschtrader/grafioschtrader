@@ -39,7 +39,7 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
       `${AppSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  public watchlistsOfTenantHasSecurity(): Observable<number[]> {
+  getWatchlistsOfTenantHasSecurity(): Observable<number[]> {
     return <Observable<number[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/hassecurity`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
@@ -53,7 +53,6 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
     return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
-
 
   getWatchlistWithoutUpdateAndMaxHistoryquote(idWatchlist: number): Observable<SecuritycurrencyGroup> {
     return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`

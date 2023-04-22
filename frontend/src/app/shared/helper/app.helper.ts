@@ -33,6 +33,10 @@ export class AppHelper {
     return date ? moment(date).toDate() : defaultDate;
   }
 
+  static getNonUserDefinedLanguage(currentLang: string): string {
+    return ['de', 'en'].indexOf(currentLang) >= 0 ? currentLang : 'en';
+  }
+
   static saveUntilDateInSessionStorage(untilDate: Date): void {
     AppHelper.saveDateToSessionStore(GlobalSessionNames.REPORT_UNTIL_DATE, untilDate);
   }
@@ -190,8 +194,6 @@ export class AppHelper {
     }
     return middle * -1;
   }
-
-
 
   /**
    * Shows a confirm dialog which is expecting an user input to confirm the action.

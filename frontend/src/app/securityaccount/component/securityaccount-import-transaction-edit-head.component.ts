@@ -50,7 +50,7 @@ export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEnt
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.form.setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
@@ -58,7 +58,7 @@ export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEnt
     setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionHead {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ImportTransactionHead {
     const importTransactionHead = new ImportTransactionHead();
     if (this.callParam.thisObject) {
       Object.assign(importTransactionHead, this.callParam.thisObject);

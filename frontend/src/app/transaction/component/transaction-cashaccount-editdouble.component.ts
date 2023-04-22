@@ -219,7 +219,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     this.portfolioService.getPortfoliosForTenantOrderByName()
       .subscribe((data: Portfolio[]) => {
         this.portfolios = data;
-        this.diableCurrencyExRateState();
+        this.disableCurrencyExRateState();
 
         if (this.transactionCallParam.transaction) {
           this.setupModifyExistingTransaction(this.transactionCallParam.transaction);
@@ -300,7 +300,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       this.setCurrencypair();
       if (this.debitCashaccount.currency === this.creditCashaccount.currency) {
         this.configObject.currencyExRate.formControl.setValue(1);
-        this.diableCurrencyExRateState();
+        this.disableCurrencyExRateState();
       } else {
         // this.configObject.currencyExRate.labelSuffix = this.currencypair.toStringFN();
         this.configObject.currencyExRate.labelSuffix = this.currencypair.name;
@@ -336,7 +336,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         this.transactions[this.WithIndex].cashaccount.idSecuritycashAccount !== this.configObject.idDebitCashaccount.formControl.value);
   }
 
-  private diableCurrencyExRateState(): void {
+  private disableCurrencyExRateState(): void {
     this.configObject.currencyExRate.labelSuffix = '';
     this.configObject.currencyExRate.formControl.disable();
   }

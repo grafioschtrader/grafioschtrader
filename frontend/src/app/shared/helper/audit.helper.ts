@@ -31,7 +31,8 @@ export class AuditHelper {
    */
   public static transferToFormAndChangeButtonForProposaleEdit(translateService: TranslateService,
                                                               gps: GlobalparameterService, entityAuditable: Auditable,
-                                                              form: DynamicFormComponent, configObject: { [name: string]: FieldConfig },
+                                                              form: DynamicFormComponent,
+                                                              configObject: { [name: string]: FieldConfig },
                                                               proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
     if (entityAuditable) {
       // Existing entity
@@ -58,7 +59,8 @@ export class AuditHelper {
 
   public static configureFormFromAuditableRights(translateService: TranslateService,
                                                  gps: GlobalparameterService, entityAuditable: Auditable,
-                                                 form: DynamicFormComponent, configObject: { [name: string]: FieldConfig },
+                                                 form: DynamicFormComponent,
+                                                 configObject: { [name: string]: FieldConfig },
                                                  proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
                                                  transferToForm: boolean): void {
     if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(gps, entityAuditable)) {
@@ -109,21 +111,38 @@ export class AuditHelper {
       AppSettings.FID_MAX_LETTERS, required);
   }
 
-  public static copyNoteRequestToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer) {
-    targetEntity.noteRequestOrReject = formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value;
+  public static copyNoteRequestToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer): void {
+    if (!formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].invisible
+      && !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.disabled) {
+      targetEntity.noteRequestOrReject = formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value;
+    }
+  }
+
+  public static copyNoteAcceptRejectToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer): void {
+    if (this.isProposeVisible(formBase)) {
+      targetEntity.noteRequestOrReject = formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.value;
+    }
+  }
+
+  public static isProposeVisible(formBase: FormBase): boolean {
+    return !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].invisible
+      && !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.disabled
+  }
+
+  public static disableRejectFieldButton(configObject: { [name: string]: FieldConfig }, disable: boolean): void {
+    if (configObject[AuditHelper.REJECT_FIELD_BUTTON] && !configObject[AuditHelper.REJECT_FIELD_BUTTON].invisible) {
+      configObject[AuditHelper.REJECT_FIELD_BUTTON].disabled = disable;
+    }
+
   }
 
   public static copyProposeChangeEntityToEntityAfterEdit(formBase: FormBase, targetEntity: ProposeTransientTransfer,
                                                          proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
     if (proposeChangeEntityWithEntity) {
       targetEntity.idProposeRequest = proposeChangeEntityWithEntity.proposeChangeEntity.idProposeRequest;
-      targetEntity.noteRequestOrReject = formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.value;
+      this.copyNoteAcceptRejectToEntity(formBase, targetEntity);
     }
-
-    if (!formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].invisible
-      && !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.disabled) {
-      this.copyNoteRequestToEntity(formBase, targetEntity);
-    }
+    this.copyNoteRequestToEntity(formBase, targetEntity);
   }
 
   /**
@@ -172,7 +191,8 @@ export class AuditHelper {
     });
   }
 
-  private static editWithoutProposalInForm(form: DynamicFormComponent, configObject: { [name: string]: FieldConfig }): void {
+  private static editWithoutProposalInForm(form: DynamicFormComponent,
+                                           configObject: { [name: string]: FieldConfig }): void {
     AuditHelper.setHeaderChangeRequest(null, form);
     FormHelper.hideVisibleFieldConfigs(true, [configObject[AuditHelper.NOTE_REQUEST_INPUT],
       configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], configObject[AuditHelper.REJECT_FIELD_BUTTON]]);

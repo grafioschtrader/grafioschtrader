@@ -358,7 +358,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     });
   }
 
-  private resetMenu() {
+  private resetMenu(): void {
     this.contextMenuItems = this.getEditMenu(this.selectedSecurityPositionSummary);
     this.activePanelService.activatePanel(this, {
       showMenu: this.getMenuShowOptionsParam(this.selectedSecurityPositionSummary ?

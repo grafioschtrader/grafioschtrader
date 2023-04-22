@@ -65,7 +65,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
 
     super(filterService, usersettingsService, translateService, gps);
-    this.entityNameUpper = this.entityName.toUpperCase();
+    this.entityNameUpper = AppHelper.convertPropertyNameToUppercase(this.entityName);
     this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
   }
 
@@ -75,6 +75,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   }
 
   handleEditEntity(entity: T): void {
+    // need a copy of the entity
     this.prepareCallParam(JSON.parse(JSON.stringify(entity)));
     this.visibleDialog = true;
   }

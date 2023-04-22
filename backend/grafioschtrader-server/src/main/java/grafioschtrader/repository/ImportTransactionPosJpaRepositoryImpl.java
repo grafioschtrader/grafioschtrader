@@ -272,7 +272,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   public void addPossibleExchangeRateForDividend(ImportTransactionHead importTransactionHead,
       ImportTransactionPos itp) {
     if (itp.isReadyForTransaction() && itp.getTransactionType() == TransactionType.DIVIDEND
-        && itp.getCurrencyExRate() == null && !itp.getSecurity().getCurrency().equals(itp.getCashaccount().getCurrency())) {
+        && itp.getCurrencyExRate() == null
+        && !itp.getSecurity().getCurrency().equals(itp.getCashaccount().getCurrency())) {
       itp.addKnowOtherFlags(ImportKnownOtherFlags.CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE);
     }
   }
@@ -542,7 +543,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     final StringBuilder errorStringBuilder = new StringBuilder();
     ValidationError validationError = RestHelper.createValidationError(dvex, messageSource);
     validationError.getFieldErrors()
-        .forEach(fe -> errorStringBuilder.append(fe.getField() + ": " + fe.getMessage() + "\n"));
+        .forEach(fe -> errorStringBuilder.append(fe.getField() + ": " + fe.getMessage() + GlobalConstants.NEW_LINE));
     itp.setTransactionError(errorStringBuilder.toString());
     importTransactionPosJpaRepository.save(itp);
   }

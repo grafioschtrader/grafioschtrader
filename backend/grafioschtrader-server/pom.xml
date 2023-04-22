@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.29.0</version>
+		<version>0.30.0</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.29.0</version>
+			<version>0.30.0</version>
 		</dependency>
 
 
@@ -171,7 +171,7 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20220924</version>
+			<version>20230227</version>
 		</dependency>
 
 		<dependency>

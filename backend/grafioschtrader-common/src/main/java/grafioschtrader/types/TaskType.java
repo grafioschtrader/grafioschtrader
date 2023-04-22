@@ -37,7 +37,11 @@ public enum TaskType {
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX((byte) 12),
   // Traces possible new dividends of the instruments through the connectors
   PERIODICALLY_DIVIDEND_UPDATE_CHECK((byte) 13),
-
+  // Integrity check over held positions
+  CHECK_INACTIVE_SECURITY_AND_DIVIDEND_INTEREST((byte) 14),
+  // Deletes all expired token of the registration process with its created user
+  TOKEN_USER_REGISTRATION_PURGE((byte) 15),
+  
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////
   // Moves shared entities from one user to another user by changing field

@@ -62,7 +62,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   @Operation(summary = "Returns if watchlists has security or not", description = "Empty watchlist check", tags = {
       Watchlist.TABNAME })
   @GetMapping(value = "/hassecurity", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Object[]>> watchlistsOfTenantHasSecurity() {
+  public ResponseEntity<List<Object[]>> getWatchlistsOfTenantHasSecurity() {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
     return new ResponseEntity<>(watchlistJpaRepository.watchlistsOfTenantHasSecurity(idTenant), HttpStatus.OK);
   }

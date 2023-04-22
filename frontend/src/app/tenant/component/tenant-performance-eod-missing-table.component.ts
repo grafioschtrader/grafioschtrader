@@ -9,6 +9,7 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {IFeedConnector} from '../../securitycurrency/component/ifeed.connector';
 import {FilterService} from 'primeng/api';
+import {SecurityIdWithCurrency} from '../../securitycurrency/component/security-historyquote-quality-table.component';
 
 /**
  * Shows a table with the missing instruments that do not have a complete price history.
@@ -109,6 +110,5 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
       this.selectedSecurity = null;
     }
   }
-
 
 }

@@ -24,7 +24,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 @Component({
   selector: 'import-transaction-edit-template',
   template: `
-    <p-dialog header="{{'IMPORTTRANSACTIONTEMPLATE' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'IMPORT_TRANSACTION_TEMPLATE' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

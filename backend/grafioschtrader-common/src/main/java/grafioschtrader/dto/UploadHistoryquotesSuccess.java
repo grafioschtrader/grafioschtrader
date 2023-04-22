@@ -4,9 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Return this class after import.
- *
- * @author Hugo Graf
- *
  */
 public class UploadHistoryquotesSuccess {
   @Schema(description = "Number of imported EOD records")

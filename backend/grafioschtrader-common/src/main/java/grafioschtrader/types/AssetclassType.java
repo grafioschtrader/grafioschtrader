@@ -6,8 +6,8 @@
 package grafioschtrader.types;
 
 /**
- *
- * @author Hugo Graf
+ * GT distinguishes between different asset classes of instruments. This may
+ * result in different functionality per asset class.
  */
 public enum AssetclassType {
 

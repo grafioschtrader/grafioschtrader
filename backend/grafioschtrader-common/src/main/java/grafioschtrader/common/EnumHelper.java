@@ -47,5 +47,12 @@ public abstract class EnumHelper {
     }
     return null;
   }
+  
+  public static <E extends Enum<E>> EnumSet<E> cloneSetAndAddEnum(EnumSet<E> existingEnumSet, E addEnum) {
+    EnumSet<E> cloneEnumSet = existingEnumSet.clone();
+    cloneEnumSet.add(addEnum);
+    return cloneEnumSet;
+    
+  }
 
 }

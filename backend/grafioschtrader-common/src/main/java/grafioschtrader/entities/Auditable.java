@@ -16,6 +16,11 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Version;
 
+/**
+ * The entities of most shared information classes should additionally contain
+ * the creator the last editor and the associated timestamps.
+ *
+ */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class Auditable extends ProposeTransientTransfer implements Serializable {

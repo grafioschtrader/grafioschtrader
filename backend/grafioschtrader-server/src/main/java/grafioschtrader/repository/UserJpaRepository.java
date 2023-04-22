@@ -36,4 +36,12 @@ public interface UserJpaRepository
   @Query(value = "CALL moveCreatedByUserToOtherUser(:fromIdUser, :toIdUser, :schemaName);", nativeQuery = true)
   Integer moveCreatedByUserToOtherUser(@Param("fromIdUser") Integer fromIdUser, @Param("toIdUser") Integer toIdUser,
       @Param("schemaName") String schemaName);
+  
+  @Query(nativeQuery = true)
+  List<IdUserAndNickname> getIdUserAndNicknameByRoleExcludeUser(String roleName, Integer exludeIdUser);
+  
+  public interface IdUserAndNickname {
+    int getIdUser();
+    String getNickname();
+  }
 }

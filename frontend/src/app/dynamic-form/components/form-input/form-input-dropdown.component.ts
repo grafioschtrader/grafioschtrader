@@ -1,12 +1,15 @@
 import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 
+/**
+ * This PrimeNG dropdown allows grouping the offered options.
+ */
 @Component({
   selector: 'form-input-dropdown',
   template: `
     <ng-container [formGroup]="group">
       <p-dropdown #input
-                  [group]="config.groupItemUse"
+                  [group]="config.groupItemUseOrLoading"
                   [options]="config.groupItem"
                   optionLabel="value"
                   optionValue="key"

@@ -58,7 +58,7 @@ export class UserEntityChangeLimitEditComponent extends SimpleEntityEditBase<Use
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     (<UserEntityChangeLimitService>this.serviceEntityUpdate).getPublicEntitiesAsHtmlSelectOptions(this.user.idUser,
       this.existingUserEntityChangeLimit ? this.existingUserEntityChangeLimit.idUserEntityChangeLimit : undefined)
       .subscribe((valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[]) => {
@@ -75,7 +75,7 @@ export class UserEntityChangeLimitEditComponent extends SimpleEntityEditBase<Use
       });
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): UserEntityChangeLimit {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): UserEntityChangeLimit {
     const userEntityChangeLimit = new UserEntityChangeLimit();
     userEntityChangeLimit.idUser = this.user.idUser;
     this.copyFormToPublicBusinessObject(userEntityChangeLimit, this.existingUserEntityChangeLimit, this.proposeChangeEntityWithEntity);

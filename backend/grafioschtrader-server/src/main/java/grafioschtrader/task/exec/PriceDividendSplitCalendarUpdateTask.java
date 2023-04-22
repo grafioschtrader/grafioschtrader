@@ -30,7 +30,7 @@ import grafioschtrader.types.TaskType;
 public class PriceDividendSplitCalendarUpdateTask implements ITask {
 
   private static long TIMEOUT_IN_SECONDS = 3600;
-  
+
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 
@@ -48,14 +48,13 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
 
   @Autowired
   private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
-    
+
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Scheduled(cron = "${gt.eod.cron.quotation}", zone = GlobalConstants.TIME_ZONE)
   public void catchAllUpSecuritycurrencyHistoryquote() {
-    TaskDataChange taskDataChange = new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU,
-        TaskDataExecPriority.PRIO_VERY_HIGH);
+    TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_HIGH);
     taskDataChangeRepository.save(taskDataChange);
   }
 
@@ -63,9 +62,9 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   public void doWork(TaskDataChange taskDataChange) {
     currencypairJpaRepository.catchAllUpCurrencypairHistoryquote();
     currencypairJpaRepository.allCurrenciesFillEmptyDaysInHistoryquote();
-    
-    if(globalparametersJpaRepository.getUpdatePriceByStockexchange() == 0) {
-       securityJpaRepository.catchAllUpSecurityHistoryquote(null);
+
+    if (globalparametersJpaRepository.getUpdatePriceByStockexchange() == 0) {
+      securityJpaRepository.catchAllUpSecurityHistoryquote(null);
     }
     historyquotePeriodJpaRepository.updatLastPrice();
     securityJpaRepository.deleteUpdateHistoryQuality();
@@ -83,11 +82,10 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   public boolean canBeInterrupted() {
     return true;
   }
-  
+
   @Override
   public long getTimeoutInSeconds() {
     return TIMEOUT_IN_SECONDS;
   }
-  
-  
+
 }

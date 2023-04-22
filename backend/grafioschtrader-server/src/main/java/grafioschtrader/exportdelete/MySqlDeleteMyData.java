@@ -10,8 +10,6 @@ import grafioschtrader.GlobalConstants;
  * Deletes the private data of the main tenant of a user in the application
  * context.
  *
- * @author Hugo Graf
- *
  */
 public class MySqlDeleteMyData extends MyDataExportDeleteDefinition {
 
@@ -25,7 +23,9 @@ public class MySqlDeleteMyData extends MyDataExportDeleteDefinition {
     for (int i = exportDefinitions.length - 1; i >= 0; i--) {
       ExportDefinition exportDefinition = exportDefinitions[i];
       if (exportDefinition.isDelete()) {
-        deleteSingleEntityData(exportDefinition);
+        prepareAndExecuteUpdateQuery(exportDefinition);
+      }  else if (exportDefinition.isChangeUserId()) {
+        prepareAndExecuteUpdateQuery(exportDefinition);
       }
     }
 
@@ -33,7 +33,7 @@ public class MySqlDeleteMyData extends MyDataExportDeleteDefinition {
     // user
     for (int i = exportDefinitions.length - 1; i >= 0; i--) {
       ExportDefinition exportDefinition = exportDefinitions[i];
-      if (exportDefinition.isChangeUserId()) {
+      if (exportDefinition.isChangeUserIdForCreatedBy()) {
         String updateQuery = "update " + exportDefinition.table + " set created_by = " + GlobalConstants.SYSTEM_ID_USER
             + " where created_by = " + user.getIdUser();
         jdbcTemplate.update(updateQuery);
@@ -41,9 +41,9 @@ public class MySqlDeleteMyData extends MyDataExportDeleteDefinition {
     }
   }
 
-  private void deleteSingleEntityData(ExportDefinition exportDefinition) {
+  private void prepareAndExecuteUpdateQuery(ExportDefinition exportDefinition) {
     String query = getQuery(exportDefinition);
-    Object[] idArray = getParamArrayOfWhereForIdTenant(exportDefinition, query);
+    Object[] idArray = getParamArrayOfStatementForIdTenantOrIdUser(exportDefinition, query);
     log.info("Execute: query={}, param={}", query, idArray);
     jdbcTemplate.update(query, idArray);
   }

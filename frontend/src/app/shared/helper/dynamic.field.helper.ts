@@ -524,7 +524,7 @@ export interface FieldOptions {
   dataproperty?: string;
   disabled?: boolean;
   readonly?: boolean;
-  groupItemUse?: boolean;
+  groupItemUseOrLoading?: boolean;
   inputWidth?: number;
   upperCase?: boolean;
   userDefinedValue?: number | string;

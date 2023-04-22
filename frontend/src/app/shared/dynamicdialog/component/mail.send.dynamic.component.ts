@@ -53,8 +53,8 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
     this.mailSendParam = this.dynamicDialogConfig.data.mailSendParam;
     this.config = [
       this.getGroupOrUserField(),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.SUBJECT, 64, true),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.MESSAGE, 1024, true,
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.SUBJECT, 96, true),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.MESSAGE, 4096, true,
         {textareaRows: 30}),
       ...this.getMarkAsPrivateWhenRoleMessage(),
       DynamicFieldHelper.createSubmitButton('SEND')
@@ -69,7 +69,8 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
   submit(value: { [name: string]: any }): void {
     const mailSendRecv = new MailSendRecv();
     this.form.cleanMaskAndTransferValuesToBusinessObject(mailSendRecv, true);
-    mailSendRecv.replyToRolePrivate = value.replyToRolePrivate? ReplyToRolePrivateType.REPLY_IS_PRIVATE: ReplyToRolePrivateType.REPLY_NORMAL ;
+    mailSendRecv.replyToRolePrivate = value.replyToRolePrivate ? ReplyToRolePrivateType.REPLY_IS_PRIVATE :
+      ReplyToRolePrivateType.REPLY_NORMAL;
     mailSendRecv.idUserFrom = this.gps.getIdUser();
     mailSendRecv.idReplyToLocal = this.mailSendParam.mailSendRecv?.idReplyToLocal ? this.mailSendParam.mailSendRecv.idReplyToLocal :
       this.mailSendParam.mailSendRecv ? this.mailSendParam.mailSendRecv.idMailSendRecv : null;
@@ -95,7 +96,7 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
 
   private getMarkAsPrivateWhenRoleMessage(): FieldConfig[] {
     return this.mailSendParam.mailSendRecv?.replyToRolePrivate === ReplyToRolePrivateType.REPLY_IS_PRIVATE
-      || this.mailSendParam.mailSendRecv?.idRoleTo ?
+    || this.mailSendParam.mailSendRecv?.idRoleTo ?
       [DynamicFieldHelper.createFieldCheckboxHeqF('replyToRolePrivate')] : [];
   }
 
