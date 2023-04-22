@@ -7,10 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This propertey can only updated by the user when the entity is created.
- *
- * @author Hugo Graf
- *
+ * This property can only updated by the user when the entity is created.
  */
 @Target({ ElementType.FIELD })
 @Retention(value = RetentionPolicy.RUNTIME)

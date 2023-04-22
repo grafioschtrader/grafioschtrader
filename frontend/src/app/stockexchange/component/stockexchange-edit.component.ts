@@ -70,7 +70,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       DynamicFieldHelper.createFieldCheckboxHeqF('onlyMainStockexchange',
         {defaultValue: true, disabled: !this.canAssignMic()}),
       DynamicFieldHelper.createFieldDropdownStringHeqF('mic', false,
-        {groupItemUse: true, disabled: !this.canAssignMic()}),
+        {groupItemUseOrLoading: true, disabled: !this.canAssignMic()}),
       DynamicFieldHelper.createFieldInputStringHeqF('name', this.nameMaxLength, true, {minLength: 2}),
       DynamicFieldHelper.createFieldSelectStringHeqF('countryCode', true),
       DynamicFieldHelper.createFieldCheckboxHeqF('secondaryMarket', {defaultValue: true}),

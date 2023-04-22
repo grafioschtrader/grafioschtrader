@@ -12,7 +12,9 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 
-
+/**
+ * Create or modify a watchlist, only the name can be edited.
+ */
 @Component({
   selector: 'watchlist-edit',
   template: `
@@ -55,7 +57,7 @@ export class WatchlistEditComponent extends SimpleEntityEditBase<Watchlist> impl
     setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Watchlist {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Watchlist {
     const watchlist: Watchlist = new Watchlist();
     if (this.callParam.thisObject) {
       Object.assign(watchlist, this.callParam.thisObject);

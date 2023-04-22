@@ -71,7 +71,7 @@ export class TemplateFormCheckDialogComponent extends SimpleEditBase implements 
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null));
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
 
   }
 

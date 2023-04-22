@@ -18,9 +18,6 @@ import jakarta.validation.constraints.Size;
 /**
  * Never send this DTO back to the client, because it contains the password.
  *
- *
- * @author Hugo Graf
- *
  */
 public final class UserDTO {
 

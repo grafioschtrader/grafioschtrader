@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.ChangePasswordDTO;
 import grafioschtrader.dto.UserDTO;
 import grafioschtrader.entities.Role;
@@ -25,23 +26,21 @@ import grafioschtrader.entities.projection.SuccessfullyChanged;
 import grafioschtrader.entities.projection.UserOwnProjection;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.exceptions.RequestLimitAndSecurityBreachException;
-import grafioschtrader.registration.OnRegistrationCompleteEvent;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.RoleJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
+import grafioschtrader.repository.VerificationTokenJpaRepository;
 import grafioschtrader.rest.helper.RestHelper;
 import grafioschtrader.security.UserRightLimitCounter;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
+import jakarta.mail.MessagingException;
 
 @Service
 public class UserServiceImpl implements UserService {
 
   private final MessageSource messages;
-
-  @Autowired
-  private ApplicationEventPublisher eventPublisher;
 
   @Value("${gt.main.user.admin.mail}")
   private String mainUserAdminMail;
@@ -55,6 +54,9 @@ public class UserServiceImpl implements UserService {
   @Value("${gt.demo.account.pattern.en}")
   private String demoAccountPatternEN;
 
+  @Autowired
+  private VerificationTokenJpaRepository verificationTokenJpaRepository;
+
   private final UserJpaRepository userJpaRepository;
 
   private final RoleJpaRepository roleJpaRepository;
@@ -63,7 +65,6 @@ public class UserServiceImpl implements UserService {
 
   private final TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
-  
   public UserServiceImpl(final UserJpaRepository userJpaRepository, final RoleJpaRepository roleJpaRepository,
       final MessageSource messages, GlobalparametersJpaRepository globalparametersJpaRepository,
       final TaskDataChangeJpaRepository taskDataChangeJpaRepository) {
@@ -129,7 +130,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public User createUserForVerification(final UserDTO userDTO, final String hostNameAndBaseName) {
+  public User createUserForVerification(final UserDTO userDTO, final String hostNameAndBaseName)
+      throws MessagingException {
     checkApplExeedsUserLimit(userDTO.getLocaleStr());
     // Unique
     Optional<User> user = userJpaRepository.findByEmail(userDTO.getEmail().get());
@@ -142,8 +144,20 @@ public class UserServiceImpl implements UserService {
           userDTO.getLocaleStr());
     }
     final User newUser = createUser(userDTO);
-    eventPublisher.publishEvent(new OnRegistrationCompleteEvent(newUser, hostNameAndBaseName));
+    confirmRegistration(newUser, hostNameAndBaseName);
     return newUser;
+  }
+
+  private void confirmRegistration(User user, final String hostNameAndBaseNam) throws MessagingException {
+
+    final String token = UUID.randomUUID().toString();
+    verificationTokenJpaRepository.createVerificationTokenForUser(user, token);
+
+    final String subject = messages.getMessage("registraion.success.subject", null, user.createAndGetJavaLocale());
+    final String confirmationUrl = hostNameAndBaseNam + "/tokenverify?token=" + token;
+    final String message = messages.getMessage("registraion.success.text", null, user.createAndGetJavaLocale());
+    userJpaRepository.sendSimpleMessage(user.getUsername(), subject,
+        message + GlobalConstants.NEW_LINE_AND_RETURN + confirmationUrl);
   }
 
   private void checkApplExeedsUserLimit(String localeStr) {

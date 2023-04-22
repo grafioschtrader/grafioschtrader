@@ -65,7 +65,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
     this.mainDialogService.visibleDialog(false, UserSettingsDialogs.NicknameLocale);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     combineLatest([this.gps.getSupportedLocales(), this.loginService.getOwnUser()])
       .subscribe(data => {
         this.configObject.localeStr.valueKeyHtmlOptions = data[0];

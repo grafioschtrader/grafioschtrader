@@ -7,13 +7,13 @@ import {FormConfig} from '../../models/form.config';
 
 /**
  * Output of a single button, It is assumed that the output of the buttons is from left to right.
- * It has a button with sumit and to buttons with a expected function. One with function does not show
+ * It has a button with submit and to buttons with an expected function. One with function does not show
  * a label only the icon.
  */
 @Component({
   selector: 'form-pbutton',
   template: `
-      <button *ngIf="!config.buttonFN" pButton class="btn ml-1"
+      <button *ngIf="!config.buttonFN" pButton class="btn ml-1" [loading]="config.groupItemUseOrLoading"
               type="submit" [label]="config.labelKey | translate" [disabled]="!group.valid || config.disabled"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP' }}">
         <svg-icon *ngIf="config.icon"

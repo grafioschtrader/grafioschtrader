@@ -111,7 +111,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
     this.prepareTableAndTranslate();
   }
 
-  prepareCallParam(entity: Assetclass): void {
+  override prepareCallParam(entity: Assetclass): void {
     this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
     this.callParam.assetclass = entity;
   }

@@ -21,7 +21,7 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 
 /**
- * The daily limit of changing public data was passed. The user can apply for an other daily limit.
+ * The daily limit of changing public data was passed. The user can apply for a different daily limit.
  */
 @Component({
   template: `

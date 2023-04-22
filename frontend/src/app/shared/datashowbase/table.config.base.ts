@@ -12,7 +12,10 @@ import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 
-
+/**
+ * The base class for displaying data in a table format. Thereby there is no support for menus and also not for
+ * editing the data. There is support for filtering or sorting data.
+ */
 export abstract class TableConfigBase extends TableTreetableTotalBase {
   FilterType: typeof FilterType = FilterType;
 
@@ -118,7 +121,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   createFilterField(data: any[]): void {
     const columnConfigs = this.fields.filter(columnConfig => columnConfig.filterType && columnConfig.dataType === DataType.DateNumeric);
     columnConfigs.forEach(cc => {
-      const fieldName = cc.field +  AppSettings.FIELD_SUFFIX;
+      const fieldName = cc.field + AppSettings.FIELD_SUFFIX;
       data.forEach(item => item[fieldName] = this.getValueByPath(item, cc));
     });
   }
@@ -133,14 +136,14 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     if (event) {
       if (columnConfig.dataType === DataType.DateNumeric) {
         const dateString = moment(event).format(this.gps.getDateFormat());
-        table.filter(dateString, columnConfig.field +  AppSettings.FIELD_SUFFIX, 'equals');
+        table.filter(dateString, columnConfig.field + AppSettings.FIELD_SUFFIX, 'equals');
       } else {
         const dateStringUS = moment(event).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
         table.filter(dateStringUS, columnConfig.field, 'equals');
       }
     } else {
       // Without value
-      table.filter(null, columnConfig.field + (columnConfig.dataType === DataType.DateNumeric ?  AppSettings.FIELD_SUFFIX : ''), null);
+      table.filter(null, columnConfig.field + (columnConfig.dataType === DataType.DateNumeric ? AppSettings.FIELD_SUFFIX : ''), null);
     }
   }
 

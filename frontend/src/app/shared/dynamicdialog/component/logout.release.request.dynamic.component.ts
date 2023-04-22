@@ -49,14 +49,15 @@ export class LogoutReleaseRequestDynamicComponent extends FormBase implements On
   }
 
   submit(value: { [name: string]: any }): void {
+    this.configObject.submit.groupItemUseOrLoading = true;
     this.loginService.login(this.dynamicDialogConfig.data.email, this.dynamicDialogConfig.data.password, value[this.NOTE])
-      .subscribe((response: Response) => {
+      .subscribe({next: ( response: Response) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');
         this.dynamicDialogRef.close();
-      });
+      }, error: () => this.configObject.submit.groupItemUseOrLoading = false});
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_USER);
+    BusinessHelper.toExternalHelpWebpage(AppHelper.getNonUserDefinedLanguage(this.translateService.currentLang), HelpIds.HELP_USER);
   }
 }

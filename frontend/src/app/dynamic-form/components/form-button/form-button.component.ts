@@ -16,7 +16,6 @@ import {FormConfig} from '../../models/form.config';
               [disabled]="config.disabled" type="button" (click)="config.buttonFN($event)">
           {{config.labelKey | translate}}
       </button>
-
   `
 })
 

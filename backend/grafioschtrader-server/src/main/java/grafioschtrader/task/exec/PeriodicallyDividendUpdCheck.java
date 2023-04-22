@@ -27,8 +27,7 @@ public class PeriodicallyDividendUpdCheck implements ITask {
 
   @Scheduled(cron = "${gt.dividend.update.data}", zone = GlobalConstants.TIME_ZONE)
   public void catchAllUpSecuritycurrencyHistoryquote() {
-    TaskDataChange taskDataChange = new TaskDataChange(TaskType.PERIODICALLY_DIVIDEND_UPDATE_CHECK,
-        TaskDataExecPriority.PRIO_VERY_LOW);
+    TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_LOW);
     taskDataChangeRepository.save(taskDataChange);
   }
 

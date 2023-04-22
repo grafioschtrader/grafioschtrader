@@ -151,7 +151,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   addAndRefreshWatchlistToTree(): void {
     combineLatest([this.watchlistService.getWatchlistsByIdTenant(),
-      this.watchlistService.watchlistsOfTenantHasSecurity()])
+      this.watchlistService.getWatchlistsOfTenantHasSecurity()])
       .subscribe(data => {
         const watchlists: Watchlist[] = data[0];
         data[1].forEach(keyvalue => this.hasSecurityObject[keyvalue[0]] = keyvalue[1]);
@@ -231,7 +231,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
     if (AuditHelper.hasAdminRole(this.globalParamService)) {
       this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
-        label: 'CONNECTORAPIKEY',
+        label: 'CONNECTOR_API_KEY',
         data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.CONNECTOR_API_KEY_KEY), null, null, null)
       });
 

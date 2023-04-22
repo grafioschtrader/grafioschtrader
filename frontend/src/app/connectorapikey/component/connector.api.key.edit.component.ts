@@ -16,10 +16,13 @@ import {Subscription} from 'rxjs';
 import {Cashaccount} from '../../entities/cashaccount';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 
+/**
+ * Create or edit a key for the connectors API. It is intended for the admin only.
+ */
 @Component({
   selector: 'connector-api-key-edit',
   template: `
-    <p-dialog header="{{'CONNECTORAPIKEY' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'CONNECTOR_API_KEY' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

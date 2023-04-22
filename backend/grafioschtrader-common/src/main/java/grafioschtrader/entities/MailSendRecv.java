@@ -6,11 +6,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.types.MessageComType;
 import grafioschtrader.types.ReplyToRolePrivateType;
 import grafioschtrader.types.SendRecvType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,10 +29,11 @@ import jakarta.validation.constraints.Size;
 public class MailSendRecv extends BaseID {
 
   public static final String TABNAME = "mail_send_recv";
-
+  public static final int MAX_TEXT_LENGTH = 4096;
+  
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id_mail_send_recv ")
+  @Column(name = "id_mail_send_recv")
   private Integer idMailSendRecv;
 
   @Column(name = "send_recv ")
@@ -52,19 +51,7 @@ public class MailSendRecv extends BaseID {
   @Schema(description = "A message can also be addressed to a role")
   @Column(name = "id_role_to")
   private Integer idRoleTo;
-
-  @Schema(description = """
-      Avoiding multiple creation of the same message by system monitoring.
-      For example, the id of the instrument or the name of the connector is stored in it.""")
-  @Column(name = "id_entity")
-  private String idEntity;
-
-  @Schema(description = "The type of the message which will be sent to the private email")
-  @Basic(optional = false)
-  @Column(name = "message_com_type")
-  @NotNull
-  private byte messageComType;
-
+ 
   @Schema(description = "Exchange of a message beyond this instance")
   @Column(name = "id_gt_net")
   private Integer idGtNet;
@@ -77,7 +64,7 @@ public class MailSendRecv extends BaseID {
 
   @Schema(description = "The message text from this message")
   @NotNull
-  @Size(min = 2, max = 1024)
+  @Size(min = 2, max = MAX_TEXT_LENGTH)
   @Column(name = "message")
   private String message;
 
@@ -207,27 +194,7 @@ public class MailSendRecv extends BaseID {
   public void setSendRecvTime(LocalDateTime sendRecvTime) {
     this.sendRecvTime = sendRecvTime;
   }
-
-  public String getIdEntity() {
-    return idEntity;
-  }
-
-  public void setIdEntity(String idEntity) {
-    this.idEntity = idEntity;
-  }
-
-  public MessageComType getMessageComType() {
-    return MessageComType.getMessageComTypeByValue(messageComType);
-  }
-
-  public void setMessageComType(MessageComType messageComType) {
-    this.messageComType = messageComType.getValue();
-  }
-
-  public void setMessageComType(byte messageComType) {
-    this.messageComType = messageComType;
-  }
-
+  
   public Integer getIdGtNet() {
     return idGtNet;
   }

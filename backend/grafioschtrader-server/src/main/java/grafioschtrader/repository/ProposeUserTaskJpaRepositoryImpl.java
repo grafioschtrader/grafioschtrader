@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,33 +23,38 @@ import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserEntityChangeLimit;
+import grafioschtrader.types.MessageComType;
 import grafioschtrader.usertask.UserTaskType;
 import jakarta.mail.MessagingException;
 
 public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<ProposeUserTask>
     implements ProposeUserTaskJpaRepositoryCustom {
 
-  @Autowired
-  ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
-  ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
+  private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
 
   @Autowired
-  ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
+  private ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
 
   @Autowired
-  RoleJpaRepository roleJpaRepository;
+  private ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
 
   @Autowired
-  private MessageSource messages;
+  private RoleJpaRepository roleJpaRepository;
 
   @Autowired
-  UserJpaRepository userJpaRepository;
+  private MessageSource messagesSource;
+
+  @Autowired
+  private UserJpaRepository userJpaRepository;
+
+  @Autowired
+  private MailSettingForwardJpaRepository mailSettingForwardJpaRepository;
 
   @Override
   public void createReleaseLougout(Integer idTargetUser, String field, String note) throws Exception {
-
     ProposeUserTask proposeUserTask = new ProposeUserTask();
     proposeUserTask.setIdTargetUser(idTargetUser);
     proposeUserTask.setUserTaskType(UserTaskType.RELEASE_LOGOUT);
@@ -57,6 +64,12 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
     proposeChangeField.setValue(SerializationUtils.serialize((short) 0));
     proposeUserTask.setProposeChangeFieldList(List.of(proposeChangeField));
     save(proposeUserTask, null, null);
+    try {
+      mailSettingForwardJpaRepository.sendMailToMainAdminInternalOrExternal(idTargetUser, "reset.user.misused", note,
+          MessageComType.MAIN_ADMIN_RELEASE_LOGOUT);
+    } catch (MessagingException me) {
+      log.warn("Could not send email to admin");
+    }
   }
 
   @Override
@@ -112,9 +125,10 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
         final User userAdmin = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         User user = userOpt.get();
         userJpaRepository.sendSimpleMessage(user.getUsername(),
-            messages.getMessage("mail.subject.admin", null, Locale.forLanguageTag(user.getLocaleStr())), rejectNote);
+            messagesSource.getMessage("mail.subject.admin", null, Locale.forLanguageTag(user.getLocaleStr())),
+            rejectNote);
         proposeChangeEntityJpaRepository.deleteById(idProposeRequest);
-        return messages.getMessage("mail.send", null, Locale.forLanguageTag(userAdmin.getLocaleStr()));
+        return messagesSource.getMessage("mail.send", null, Locale.forLanguageTag(userAdmin.getLocaleStr()));
       }
     }
     throw new IllegalArgumentException("Proposed user task not exists");

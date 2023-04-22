@@ -94,18 +94,15 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
   }
 
   @Override
-  public void sendSimpleMessage(final String to, final String subject, final String text) throws MessagingException {
-    final MimeMessage message = emailSender.createMimeMessage();
-    MimeMessageHelper helper;
-
-    helper = new MimeMessageHelper(message, true);
-    message.setSender(new InternetAddress(springMailUsername));
-    message.setFrom(new InternetAddress(springMailUsername));
-    helper.setTo(to);
+  public void sendSimpleMessage(final String toEmail, final String subject, final String message) throws MessagingException  {
+    final MimeMessage mineMessage = emailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(mineMessage, true);
+    mineMessage.setSender(new InternetAddress(springMailUsername));
+    mineMessage.setFrom(new InternetAddress(springMailUsername));
+    helper.setTo(toEmail);
     helper.setSubject(subject);
-    helper.setText(text);
-    emailSender.send(message);
-
+    helper.setText(message);
+    emailSender.send(mineMessage);
   }
 
   @Override

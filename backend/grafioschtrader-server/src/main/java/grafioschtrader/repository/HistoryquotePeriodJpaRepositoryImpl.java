@@ -25,16 +25,16 @@ import grafioschtrader.types.HistoryquotePeriodCreateType;
 public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJpaRepositoryCustom {
 
   @Autowired
-  HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
+  private HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
+  private ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
 
   @Autowired
-  ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
+  private ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
 
   @Override
   public void adjustHistoryquotePeriod(Security security) {

@@ -84,6 +84,9 @@ public interface RequestMappings {
   public static final String IMPORTTRANSACTIONTEMPLATE = "importtransactiontemplate";
   public static final String IMPORTTRANSACTIONTEMPLATE_MAP = API + IMPORTTRANSACTIONTEMPLATE;
 
+  public static final String MAIL_SETTING_FORWARD = "mailsettingforward";
+  public static final String MAIL_SETTING_FORWARD_MAP = API + MAIL_SETTING_FORWARD;
+  
   public static final String MAIL_SEMD_RECV = "mailsendrecv";
   public static final String MAIL_SEMD_RECV_READ_MAP = API + MAIL_SEMD_RECV;
  

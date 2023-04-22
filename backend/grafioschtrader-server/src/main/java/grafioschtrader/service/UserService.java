@@ -11,6 +11,7 @@ import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.SuccessfullyChanged;
 import grafioschtrader.entities.projection.UserOwnProjection;
 import grafioschtrader.security.UserRightLimitCounter;
+import jakarta.mail.MessagingException;
 
 public interface UserService extends UserDetailsService {
 
@@ -24,7 +25,7 @@ public interface UserService extends UserDetailsService {
 
   User updateTimezoneOffset(User user, Integer timezoneOffset);
 
-  User createUserForVerification(UserDTO userDTO, String hostName);
+  User createUserForVerification(UserDTO userDTO, String hostName) throws MessagingException;
 
   SuccessfullyChanged changePassword(ChangePasswordDTO changePasswortDTO);
 

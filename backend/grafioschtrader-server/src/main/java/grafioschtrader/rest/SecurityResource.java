@@ -49,8 +49,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.SECURITY_MAP)
-@Tag(name = Security.TABNAME, description = "Controller for security")
-public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> {
+@Tag(name = Security.TABNAME, description = """
+    This is the controller for a security. The deletion of a security is not addressed via this resource. The deletion is done via the watchlist.""")
+public class SecurityResource extends UpdateCreateResource<Security> {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -220,15 +221,16 @@ public class SecurityResource extends UpdateCreateDeleteAuditResource<Security> 
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/securitystatistics", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<InstrumentStatisticsResult> getAnnualisedPerformance(
-      @PathVariable final Integer idSecuritycurrency, @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) final LocalDate dateFrom, 
+      @PathVariable final Integer idSecuritycurrency,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) final LocalDate dateFrom,
       @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate dateTo)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-    return new ResponseEntity<>(securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency, dateFrom, dateTo),
-        HttpStatus.OK);
+    return new ResponseEntity<>(
+        securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency, dateFrom, dateTo), HttpStatus.OK);
   }
 
-  @Operation(summary = "For a derived instrument it returns base instruments", 
-      description = "", tags = {Security.TABNAME })
+  @Operation(summary = "For a derived instrument it returns base instruments", description = "", tags = {
+      Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/derivedlinks", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityCurrencypairDerivedLinks> getDerivedInstrumensLinksForSecurity(
       @PathVariable final Integer idSecuritycurrency) {

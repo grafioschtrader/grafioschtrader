@@ -226,7 +226,6 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
       });
   }
 
-
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }

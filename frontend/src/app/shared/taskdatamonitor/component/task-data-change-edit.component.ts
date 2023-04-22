@@ -87,13 +87,13 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     });
   }
 
-  onHide(event): void {
+  override onHide(event): void {
     this.idTaskSubscribe && this.idTaskSubscribe.unsubscribe();
     this.entitySubscribe && this.entitySubscribe.unsubscribe();
     super.onHide(event);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.valueChangedOnIdTask();
     this.valueChangedOnEntity();
     this.configObject.idTask.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
@@ -106,7 +106,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     this.configObject.idTask.elementRef.nativeElement.focus();
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {
     const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
     taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).add(moment().utcOffset() * -1,
       'm').format('yyyy-MM-DD HH:mm:ss');

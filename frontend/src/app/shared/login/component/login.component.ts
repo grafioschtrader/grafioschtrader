@@ -17,6 +17,7 @@ import {combineLatest} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {AppHelper} from '../../helper/app.helper';
 
 /**
  * Shows the login form
@@ -37,13 +38,12 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.30.0</h4>
+          {{'V_0_30_0' | translate}}
           <h4>0.29.0</h4>
           {{'V_0_29_0' | translate}}
           <h4>0.28.0</h4>
           {{'V_0_28_0' | translate}}
-          <h4>0.27.0</h4>
-          {{'V_0_27_0' | translate}}
-
         </p-card>
       </div>
     </div>
@@ -108,7 +108,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
     this.formConfig = {
       labelcolumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
-      language: this.translateService.currentLang
+      language: AppHelper.getNonUserDefinedLanguage(this.translateService.currentLang)
     };
     this.applicationInfo.users;
     this.config = [];

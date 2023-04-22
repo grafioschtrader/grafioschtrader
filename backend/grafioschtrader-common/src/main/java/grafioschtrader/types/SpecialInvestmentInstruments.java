@@ -1,5 +1,10 @@
 package grafioschtrader.types;
 
+/**
+ * An asset class can be offered in different instruments. Shares can be
+ * invested in directly or through an ETF or fund, etc. GT must be able to
+ * distinguish whether, for example, a share is traded directly or CFT.
+ */
 public enum SpecialInvestmentInstruments {
 
   // Can have dividends

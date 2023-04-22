@@ -32,6 +32,7 @@ import grafioschtrader.entities.ProposeTransientTransfer;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TenantBaseID;
 import grafioschtrader.entities.User;
+import grafioschtrader.entities.UserBaseID;
 import grafioschtrader.entities.UserEntityChangeCount;
 import grafioschtrader.entities.UserEntityChangeCount.UserEntityChangeCountId;
 import grafioschtrader.entities.UserEntityChangeLimit;
@@ -105,7 +106,6 @@ public abstract class UpdateCreate<T extends BaseID> {
     if (entity instanceof TenantBaseID) {
       if (entity instanceof Tenant) {
         // User can have only one Tenant
-
         if (user.getIdTenant() != null) {
           throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
         }
@@ -116,7 +116,7 @@ public abstract class UpdateCreate<T extends BaseID> {
         throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
       }
     } else {
-      checkDailyLimitAuditable(entity, user);
+      checkDailyLimitOnCRUDOperations(entity, user);
     }
     final T result = getUpdateCreateJpaRepository().saveOnlyAttributes(entity, null,
         Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class));
@@ -138,7 +138,7 @@ public abstract class UpdateCreate<T extends BaseID> {
    * @param entity
    * @param user
    */
-  private void checkDailyLimitAuditable(T entity, User user) {
+  private void checkDailyLimitOnCRUDOperations(T entity, User user) {
     if (UserAccessHelper.isLimitedEditingUser(user)) {
       String entityName = entity.getClass().getSimpleName();
       Optional<UserCountLimit> userCountLimitOpt = userEntityChangeCountJpaRepository
@@ -182,7 +182,7 @@ public abstract class UpdateCreate<T extends BaseID> {
     } else if (entity instanceof TenantBaseID) {
       existingEntity = checkAndSetEntityWithTenant(entity, user);
       resultEntity = updateSaveEntity(entity, existingEntity);
-      logAddUpdDel(user.getIdUser(), entity.getClass().getSimpleName(), OperationType.UPDATE, false);
+      logAddUpdDel(user.getIdUser(), entity.getClass().getSimpleName(), OperationType.UPDATE);
     } else if (entity instanceof Auditable) {
       // It runs always here for auditable, also in a case of a proposal.
       if (UserAccessHelper.hasHigherPrivileges(user)) {
@@ -192,18 +192,26 @@ public abstract class UpdateCreate<T extends BaseID> {
         resultEntity = checkProposeChangeAndSave(user, entity, (Auditable) entity, false);
       }
       logAddUpdDel(user.getIdUser(), entity, OperationType.UPDATE);
+    } else if(entity instanceof UserBaseID) {
+      existingEntity = checkAndSetEntityWithUser(entity, user);
+      resultEntity = updateSaveEntity(entity, existingEntity);
+      logAddUpdDel(user.getIdUser(), entity.getClass().getSimpleName(), OperationType.UPDATE);
     } else {
       // Special implementation, for example rights are checked by a parent entity
       resultEntity = updateSpecialEntity(user, entity);
     }
     return resultEntity;
   }
-
-  protected void logAddUpdDel(Integer idUser, T entity, OperationType operationType) {
-    logAddUpdDel(idUser, entity.getClass().getSimpleName(), operationType, entity instanceof Auditable);
+  
+  protected void logAddUpdDel(Integer idUser, Class<T> zclass, OperationType operationType) {
+    logAddUpdDel(idUser, zclass.getSimpleName(), operationType);
   }
 
-  protected void logAddUpdDel(Integer idUser, String entityName, OperationType operationType, boolean isAuditable) {
+  protected void logAddUpdDel(Integer idUser, T entity, OperationType operationType) {
+    logAddUpdDel(idUser, entity.getClass().getSimpleName(), operationType);
+  }
+
+  protected void logAddUpdDel(Integer idUser, String entityName, OperationType operationType) {
     UserEntityChangeCount userEntityChangeCount = userEntityChangeCountJpaRepository
         .findById(new UserEntityChangeCountId(idUser, new Date(), entityName))
         .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, new Date(), entityName)));
@@ -224,7 +232,7 @@ public abstract class UpdateCreate<T extends BaseID> {
   protected ResponseEntity<T> checkProposeChangeAndSave(final User user, T entity, Auditable parentEntity,
       boolean hasHigherPrivileges) throws Exception {
     ResponseEntity<T> result = null;
-    checkDailyLimitAuditable(entity, user);
+    checkDailyLimitOnCRUDOperations(entity, user);
 
     T existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
     // Since existingEntity will be updated with new Data a detach of the entity is
@@ -260,7 +268,7 @@ public abstract class UpdateCreate<T extends BaseID> {
 
       }
     } else {
-      // No proposale -> User has higher privileges or is owner of the entity
+      // No proposal -> User has higher privileges or is owner of the entity
       result = updateSaveEntity(entity, existingEntity);
     }
     return result;
@@ -336,7 +344,6 @@ public abstract class UpdateCreate<T extends BaseID> {
     if (entity.getId() != null) {
       existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
       if (existingEntity != null) {
-
         if (!user.getIdTenant().equals(((TenantBaseID) existingEntity).getIdTenant())) {
           throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
         }
@@ -350,4 +357,32 @@ public abstract class UpdateCreate<T extends BaseID> {
     return existingEntity;
   }
 
+  protected T checkAndSetEntityWithUser(T entity, final User user) {
+    T existingEntity = null;
+
+    if (((UserBaseID) entity).getIdUser() != null) {
+      if (!user.getIdUser().equals(((UserBaseID) entity).getIdUser())) {
+        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      }
+    }
+
+    // Maybe the user is not set by the client, we set it always
+    ((UserBaseID) entity).setIdUser(user.getIdUser());
+
+    if (entity.getId() != null) {
+      existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
+      if (existingEntity != null) {
+        if (!user.getIdUser().equals(((UserBaseID) existingEntity).getIdUser())) {
+          throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        }
+      } else {
+        // TODO Not existing ID -> should not happened
+      }
+    } else {
+      // New Entity with Tenant
+      return entity;
+    }
+    return existingEntity;
+  }
+  
 }

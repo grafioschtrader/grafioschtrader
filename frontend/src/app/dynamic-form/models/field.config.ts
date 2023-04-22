@@ -1,14 +1,14 @@
 import {GroupItem, ValueKeyHtmlSelectOptions} from './value.key.html.select.options';
 import {InputType} from './input.type';
-import {DataType} from './data.type';
 import {BaseInputComponent} from '../components/base.input.component';
 import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';
 import {CurrencyMaskConfig} from 'ngx-currency';
+import {BaseFieldDefinition, PropertyEditShare} from './base.field.definition';
 
 /**
  * Definition of input elements and buttons.
  */
-export interface FieldConfig extends BaseFieldFieldgroupConfig {
+export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinition, PropertyEditShare {
 
   /**
    * Disable works directly on the angular form control. Normally on the view the
@@ -63,19 +63,10 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
   upperCase?: boolean;
 
   /**
-   * Property name of the field
+   * PrimeNG Dropdown may have children.
+   * For buttons can be used for loading state.
    */
-  field?: string;
-
-  /**
-   * Contains the options for a html select
-   */
-  valueKeyHtmlOptions?: ValueKeyHtmlSelectOptions[];
-
-  /**
-   * PrimeNG Dropdown may have children
-   */
-  groupItemUse?: boolean;
+  groupItemUseOrLoading?: boolean;
 
   /**
    * Contains the items for a PrimeNG Dropdown
@@ -93,11 +84,6 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig {
    */
   inputType: InputType;
 
-  /**
-   * For simple values and referenced datatyes should be name of the bunsiness object property. It is always used to transfer
-   * the view to the business object.
-   */
-  dataType: DataType;
 
   /**
    * Property name of the business object, it is used to transform from existing Object to the view. It is used for referenced

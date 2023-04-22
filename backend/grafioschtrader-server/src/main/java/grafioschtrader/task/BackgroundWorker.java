@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.alert.AlertEvent;
 import grafioschtrader.alert.AlertType;
 import grafioschtrader.entities.TaskDataChange;
@@ -131,7 +132,7 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     } catch (TaskBackgroundException tbe) {
       if (tbe.getErrorMsgOfSystem() != null) {
         StringBuilder failure = new StringBuilder("");
-        tbe.getErrorMsgOfSystem().forEach(m -> failure.append(m.toString() + "\n"));
+        tbe.getErrorMsgOfSystem().forEach(m -> failure.append(m.toString() + GlobalConstants.NEW_LINE));
         taskDataChange
             .setFailedStackTrace(failure.toString().substring(0, TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE));
       }

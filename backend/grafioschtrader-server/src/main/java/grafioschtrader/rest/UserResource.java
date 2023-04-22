@@ -33,7 +33,7 @@ import grafioschtrader.repository.VerificationTokenJpaRepository;
 import grafioschtrader.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
+import jakarta.mail.MessagingException;
 
 @RestController
 @RequestMapping(RequestMappings.USER_MAP)
@@ -53,8 +53,7 @@ public class UserResource {
   @Autowired
   private UserJpaRepository userJpaRepository;
 
-  @Operation(summary = "Return of the own user.", description = "Return without password", tags = {
-      User.TABNAME })
+  @Operation(summary = "Return of the own user.", description = "Return without password", tags = { User.TABNAME })
   @GetMapping(value = "/own", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<UserOwnProjection> getOwnUser() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -62,15 +61,18 @@ public class UserResource {
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Creates a new user for GT", description = "", tags = { User.TABNAME })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<User> createUserForVerification(@RequestBody final UserDTO userDTO,
-      @RequestHeader final HttpHeaders headers) {
+      @RequestHeader final HttpHeaders headers) throws MessagingException {
     log.debug("Create User: {}", userDTO);
     String referer = headers.get("referer").get(0).replace("/api", "");
     return ResponseEntity.ok()
         .body(userService.createUserForVerification(userDTO, referer.substring(0, referer.lastIndexOf('/'))));
   }
 
+  @Operation(summary = "Allows the user to change some general settings such as language or nickname.", description = "", tags = {
+      User.TABNAME })
   @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<User> updateButPassword(@RequestBody final UserDTO userDTO) {
     log.debug("Update User: {}", userDTO);
@@ -85,12 +87,17 @@ public class UserResource {
     return ResponseEntity.ok().body(userService.updateNicknameLocal(userOwnProjection));
   }
 
+  @Operation(summary = "Change the current password to a new one", description = "", tags = { User.TABNAME })
   @PutMapping(value = "/password", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessfullyChanged> changePassword(
       @Validated(PropertyChangePassword.class) @RequestBody final ChangePasswordDTO changePasswordDTO) {
     return ResponseEntity.ok().body(userService.changePassword(changePasswordDTO));
   }
 
+  @Operation(summary = """
+  The user receives an email with a token to his email address. 
+  This token is included as a link in this email and must be confirmed for the further in the GT registration process.""", description = "", tags = {
+      User.TABNAME })
   @GetMapping(value = "/tokenverify/{token}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<String> tokenverify(@PathVariable final String token) {
     final VerificationToken verificationToken = verificationTokenJpaRepository.findByToken(token);

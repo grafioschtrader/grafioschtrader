@@ -8,7 +8,8 @@ import {Helper} from '../../helper/helper';
 import {TranslateHelper} from '../helper/translate.helper';
 
 /**
- * It is the base class which supports the definition of non editable fields.
+ * It is the base class which supports the definition of no editable fields.
+ * Of course, ColumnConfig can be extended in a superclass with properties for editing.
  */
 export abstract class ShowRecordConfigBase {
   // Otherwise enum DataType can't be used in a html template
@@ -38,7 +39,6 @@ export abstract class ShowRecordConfigBase {
 
   addColumn(dataType: DataType, field: string, headerKey: string, visible: boolean = true, changeVisibility: boolean = true,
             optionalParams?: OptionalParams): ColumnConfig {
-
     return this.addColumnToFields(this.fields, dataType, field, headerKey, visible, changeVisibility, optionalParams);
   }
 
@@ -53,17 +53,50 @@ export abstract class ShowRecordConfigBase {
    */
   addColumnFeqH(dataType: DataType, field: string, visible: boolean = true, changeVisibility: boolean = true,
                 optionalParams?: OptionalParams): ColumnConfig {
-
     return this.addColumnToFields(this.fields, dataType, field, AppHelper.convertPropertyForLabelOrHeaderKey(field), visible,
       changeVisibility, optionalParams);
   }
 
 
-  addColumnToFields(fields: ColumnConfig[], dataType: DataType, field: string, header: string,
+  addColumnToFields(fields: ColumnConfig[], dataType: DataType, field: string, headerKey: string,
                     visible: boolean = true, changeVisibility: boolean = true, optionalParams?: OptionalParams): ColumnConfig {
-    const columnConfig = new ColumnConfig(dataType, field, header, visible, changeVisibility, optionalParams);
-    fields.push(columnConfig);
-    return columnConfig;
+    const cc: ColumnConfig = ShowRecordConfigBase.createColumnConfig(dataType, field, headerKey, visible, changeVisibility, optionalParams);
+    fields.push(cc);
+    return cc;
+  }
+
+  public static createColumnConfig(dataType: DataType, field: string, headerKey: string,
+                    visible: boolean = true, changeVisibility: boolean = true, optionalParams?: OptionalParams): ColumnConfig {
+    const cc: Partial<ColumnConfig> = {};
+    cc.dataType = dataType;
+    cc.field = field;
+    cc.headerKey = headerKey;
+    cc.visible = visible;
+    cc.changeVisibility = changeVisibility;
+    const columConfig: ColumnConfig = cc as ColumnConfig;
+    this.setOptionalColumnConfigParams(columConfig, optionalParams);
+    return columConfig;
+  }
+
+  private static setOptionalColumnConfigParams(cc: ColumnConfig, optionalParams?: OptionalParams) {
+    if (optionalParams) {
+      cc.width = optionalParams.width;
+      cc.fieldValueFN = optionalParams.fieldValueFN;
+      cc.headerSuffix = optionalParams.headerSuffix;
+      cc.translateValues = optionalParams.translateValues;
+      cc.headerPrefix = optionalParams.headerPrefix;
+      cc.templateName = (optionalParams.templateName) ? optionalParams.templateName : '';
+      cc.maxFractionDigits = optionalParams.maxFractionDigits;
+      cc.minFractionDigits = optionalParams.minFractionDigits;
+      cc.columnGroupConfigs = optionalParams.columnGroupConfigs;
+      cc.filterType = optionalParams.filterType;
+      cc.filterValues = optionalParams.filterValues;
+      cc.headerTranslated = optionalParams.headerTranslated;
+      cc.export = optionalParams.export;
+      cc.frozenColumn = optionalParams.frozenColumn;
+      cc.userValue = optionalParams.userValue;
+      cc.fieldsetName = optionalParams.fieldsetName;
+    }
   }
 
   insertColumnFeqH(index: number, dataType: DataType, field: string, visible: boolean, changeVisibility: boolean,
@@ -74,7 +107,7 @@ export abstract class ShowRecordConfigBase {
 
   insertColumn(index: number, dataType: DataType, field: string, header: string, visible: boolean, changeVisibility: boolean,
                optionalParams?: OptionalParams): ColumnConfig {
-    const columnConfig: ColumnConfig = new ColumnConfig(dataType, field, header, visible, changeVisibility, optionalParams);
+    const columnConfig: ColumnConfig = ShowRecordConfigBase.createColumnConfig(dataType, field, header, visible, changeVisibility, optionalParams);
     this.fields = [...this.fields.slice(0, index), columnConfig, ...this.fields.slice(index)];
     return columnConfig;
   }

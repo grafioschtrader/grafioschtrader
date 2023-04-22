@@ -112,7 +112,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     this.decimalSeparatorSub && this.decimalSeparatorSub.unsubscribe();
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     if (this.fileUploadParam.supportedCSVFormats) {
       this.configObject.decimalSeparator.valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.decimalSeparators);

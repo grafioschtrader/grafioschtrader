@@ -14,8 +14,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * User which export his data will get the role with most power.
  *
- * @author Hugo Graf
- *
  */
 public class MySqlExportMyData extends MyDataExportDeleteDefinition {
 
@@ -42,7 +40,7 @@ public class MySqlExportMyData extends MyDataExportDeleteDefinition {
     StringBuilder sqlStatement = new StringBuilder();
     String query = getQuery(exportDefinition);
 
-    Object[] idArray = getParamArrayOfWhereForIdTenant(exportDefinition, query);
+    Object[] idArray = getParamArrayOfStatementForIdTenantOrIdUser(exportDefinition, query);
 
     log.debug("Execute: query={}, param={}", query, idArray);
     final List<Map<String, Object>> rows = jdbcTemplate.queryForList(query, idArray);

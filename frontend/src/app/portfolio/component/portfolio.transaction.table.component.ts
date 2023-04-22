@@ -53,7 +53,7 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     const transactionsObserable: Observable<Transaction[]> =
       this.transactionService.getTransactionsByIdPortfolio(this.idPortfolio);
     const currencypairObservable: Observable<Currencypair[]> = this.currencypairService

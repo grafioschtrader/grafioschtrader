@@ -29,7 +29,7 @@ export class SecurityService extends SecurityCurrencyService<Security> {
     super(loginService, httpClient, messageToastService);
   }
 
-  getTradableSecuritiesByTenantAndIdWatschlist(idWatchlist: number): Observable<Security[]> {
+  getTradableSecuritiesByTenantAndIdWatchlist(idWatchlist: number): Observable<Security[]> {
     return <Observable<Security[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/`
       + `${AppSettings.WATCHLIST_KEY}/${idWatchlist}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

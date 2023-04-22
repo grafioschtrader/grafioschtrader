@@ -57,7 +57,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
 
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     const allSecurityaccountsObservable: Observable<Portfolio[]> = this.portfolioService.getPortfoliosForTenantOrderByName();
     this.valueChangedOnSecurityaccount1();
     combineLatest([this.getAssetclassObserver(), allSecurityaccountsObservable]).subscribe(
@@ -71,7 +71,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       });
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoAssetclass {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoAssetclass {
     const algoAssetclass: AlgoAssetclass = new AlgoAssetclass();
     if (this.algoCallParam.thisObject) {
       Object.assign(algoAssetclass, this.algoCallParam.thisObject);

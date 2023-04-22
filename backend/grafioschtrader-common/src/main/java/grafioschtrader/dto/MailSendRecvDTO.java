@@ -20,8 +20,6 @@ public interface MailSendRecvDTO {
    
    @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME)
    public LocalDateTime getSendRecvTime();
-   public Byte getMessageComType();
-   public String getIdEntity();
    public Integer getIdGtNet();
    public Byte getReplyToRolePrivate();
    public String getRoleNameTo();

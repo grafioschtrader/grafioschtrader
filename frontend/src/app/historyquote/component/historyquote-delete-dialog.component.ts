@@ -80,7 +80,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     }
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
   }
 
 }

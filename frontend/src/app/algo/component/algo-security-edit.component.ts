@@ -70,7 +70,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
       });
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoSecurity {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoSecurity {
     const algoSecurity = new AlgoSecurity();
     if (this.algoCallParam.thisObject) {
       Object.assign(algoSecurity, this.algoCallParam.thisObject);

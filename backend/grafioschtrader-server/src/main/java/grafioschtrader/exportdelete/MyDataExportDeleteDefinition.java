@@ -28,6 +28,7 @@ import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionPosFailed;
 import grafioschtrader.entities.ImportTransactionTemplate;
+import grafioschtrader.entities.MailSettingForward;
 import grafioschtrader.entities.MultilanguageString;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.ProposeChangeEntity;
@@ -62,13 +63,16 @@ import grafioschtrader.entities.Watchlist;
  * <li>{@link grafioschtrader.entities.TaskDataChange} is not exported
  * </ul>
  *
- * @author Hugo Graf
  *
  */
 public class MyDataExportDeleteDefinition {
   protected static final int EXPORT_USE = 0x01;
   protected static final int DELETE_USE = 0x02;
-  protected static final int CHANGE_USER_ID = 0x04;
+  /**
+   * Shared data of the user to be deleted must be assigned to another user.
+   */
+  protected static final int CHANGE_USER_ID_FOR_CREATED_BY = 0x04;
+  protected static final int CHANGE_USER_ID = 0x08;
 
   private static final String SELECT_STR = "SELECT";
   private static final String DELETE_STR = "DELETE";
@@ -103,10 +107,11 @@ public class MyDataExportDeleteDefinition {
   private static String CORRELATION_INSTRUMENT_SELDEL = String.format(
       "ci.* FROM %s cs, %s ci WHERE cs.id_tenant = ? AND cs.id_correlation_set = ci.id_correlation_set",
       CorrelationSet.TABNAME, CorrelationSet.TABNAME_CORRELATION_INSTRUMENT);
-  private static String DIVIDEND_SELECT = String.format("""
-    DISTINCT d.* FROM %s d JOIN %s ws ON ws.id_securitycurrency = d.id_securitycurrency JOIN watchlist w ON w.id_watchlist = ws.id_watchlist WHERE w.id_tenant = ? 
-    UNION SELECT d.* FROM dividend d JOIN security s ON d.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ? 
-    UNION SELECT DISTINCT d.* FROM transaction t JOIN dividend d ON t.id_securitycurrency = d.id_securitycurrency WHERE t.id_tenant = ?""",
+  private static String DIVIDEND_SELECT = String.format(
+      """
+          DISTINCT d.* FROM %s d JOIN %s ws ON ws.id_securitycurrency = d.id_securitycurrency JOIN watchlist w ON w.id_watchlist = ws.id_watchlist WHERE w.id_tenant = ?
+          UNION SELECT d.* FROM dividend d JOIN security s ON d.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
+          UNION SELECT DISTINCT d.* FROM transaction t JOIN dividend d ON t.id_securitycurrency = d.id_securitycurrency WHERE t.id_tenant = ?""",
       Dividend.TABNAME, Watchlist.TABNAME_SEC_CUR);
   private static String DIVIDEND_DELETE = String.format(
       "d.* FROM %s d JOIN %s s ON d.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?",
@@ -114,47 +119,19 @@ public class MyDataExportDeleteDefinition {
   private static String SECURITYACCOUNT_SELDEL = String.format(
       "sa.* FROM %s sa, %s sc WHERE sc.id_tenant = ? AND sc.id_securitycash_account = sa.id_securitycash_account",
       Securityaccount.TABNAME, Securitycashaccount.TABNAME);
-
-  private static String SECURITY_SELECT = String.format("""
-          s.* FROM %s w JOIN %s ws ON w.id_watchlist = ws.id_watchlist JOIN %s s ON s.id_securitycurrency = ws.id_securitycurrency WHERE w.id_tenant = ?
-          UNION SELECT s.* FROM %s s WHERE s.id_tenant_private = ? UNION SELECT DISTINCT s.* FROM %s t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency WHERE t.id_tenant = ?
-          UNION SELECT DISTINCT s1.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist
-          JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
-          JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE w.id_tenant = ? AND sc.dtype = 'S'
-          UNION SELECT s1.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
-          JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE s.id_tenant_private = ? AND sc.dtype = 'S'
-          UNION SELECT DISTINCT s1.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
-          JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'S'
-          UNION SELECT s.* FROM correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN security s ON ci.id_securitycurrency = s.id_securitycurrency WHERE cs.id_tenant = ?""",
-      Watchlist.TABNAME, Watchlist.TABNAME_SEC_CUR, Security.TABNAME, Security.TABNAME, Transaction.TABNAME);
-  // private static String SECURITY_SELECT = "s.* FROM watchlist w JOIN
-  // watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON
-  // s.id_securitycurrency = ws.id_securitycurrency WHERE w.id_tenant = ? UNION
-  // SELECT s.* FROM security s WHERE s.id_tenant_private = 7 UNION SELECT
-  // DISTINCT s.* FROM transaction t JOIN security s ON t.id_securitycurrency =
-  // s.id_securitycurrency WHERE t.id_tenant = ? UNION SELECT DISTINCT s1.* FROM
-  // watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist
-  // JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency JOIN
-  // security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
-  // JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
-  // JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
-  // WHERE w.id_tenant = ? AND sc.dtype = 'S' UNION SELECT s1.* FROM security s
-  // JOIN security_derived_link sdl ON s.id_securitycurrency =
-  // sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency =
-  // sdl.id_link_securitycurrency JOIN securitycurrency sc ON
-  // s1.id_securitycurrency = sc.id_securitycurrency WHERE s.id_tenant_private = ?
-  // AND sc.dtype = 'S' UNION SELECT DISTINCT s1.* FROM transaction t JOIN
-  // security s ON t.id_securitycurrency = s.id_securitycurrency JOIN
-  // security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
-  // JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
-  // JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
-  // WHERE t.id_tenant = ? AND sc.dtype = 'S' UNION SELECT s.* FROM
-  // correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set =
-  // ci.id_correlation_set JOIN security s ON ci.id_securitycurrency =
-  // s.id_securitycurrency WHERE cs.id_tenant = 7";
-
+  private static String SECURITY_SELECT = """
+      s.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency
+      WHERE w.id_tenant = ? UNION SELECT s.* FROM security s WHERE s.id_tenant_private = 7 UNION SELECT DISTINCT s.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
+      WHERE t.id_tenant = ? UNION SELECT DISTINCT s1.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE w.id_tenant = ? AND sc.dtype = 'S' UNION SELECT s1.* FROM security s
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE s.id_tenant_private = ? AND sc.dtype = 'S'
+      UNION SELECT DISTINCT s1.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'S' UNION SELECT s.* FROM correlation_set cs
+      JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN security s ON ci.id_securitycurrency = s.id_securitycurrency WHERE cs.id_tenant = ?""";
   private static String SECURITY_DELETE = String.format("FROM %s WHERE id_tenant_private = ?", Security.TABNAME);
-
   private static String SECURITY_DERIVED_LINK = String.format(
       """
           sdl.* FROM %s w JOIN %s wsc ON w.id_watchlist = wsc.id_watchlist JOIN %s s ON wsc.id_securitycurrency = s.id_securitycurrency
@@ -162,100 +139,103 @@ public class MyDataExportDeleteDefinition {
           UNION SELECT sdl.* FROM security s JOIN securitycurrency sc ON s.id_securitycurrency = sc.id_securitycurrency
           JOIN security_derived_link sdl ON sdl.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?""",
       Watchlist.TABNAME, Watchlist.TABNAME_SEC_CUR, Security.TABNAME);
-
   private static String SECURITYSPLIT_SELECT = String.format(
       """
           DISTINCT ss.* FROM %s ss JOIN watchlist_sec_cur ws ON ws.id_securitycurrency = ss.id_securitycurrency JOIN %s w ON w.id_watchlist = ws.id_watchlist
           WHERE w.id_tenant = ? UNION SELECT ss.* FROM %s ss JOIN security s ON ss.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
           UNION SELECT DISTINCT ss.* FROM %s t JOIN %s ss ON t.id_securitycurrency = ss.id_securitycurrency WHERE t.id_tenant = ?""",
       Securitysplit.TABNAME, Watchlist.TABNAME, Securitysplit.TABNAME, Transaction.TABNAME, Securitysplit.TABNAME);
-
-  private static String SECURITYSPLIT_DELETE = "ss.* FROM security s, securitysplit ss WHERE s.id_securitycurrency = ss.id_securitycurrency AND s.id_tenant_private = ?";
-
+  private static String SECURITYSPLIT_DELETE = String.format(
+      "ss.* FROM %s s, %s ss WHERE s.id_securitycurrency = ss.id_securitycurrency AND s.id_tenant_private = ?",
+      Security.TABNAME, Securitysplit.TABNAME);
   private static String SECURITYCURRENCY_S_SELECT = """
-          sc.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN securitycurrency sc ON sc.id_securitycurrency = ws.id_securitycurrency 
-          WHERE w.id_tenant = ? AND sc.dtype = 'S' UNION SELECT sc.* FROM security s JOIN securitycurrency sc ON s.id_securitycurrency = sc.id_securitycurrency WHERE s.id_tenant_private = ? 
-          UNION SELECT DISTINCT sc.* FROM transaction t JOIN securitycurrency sc ON t.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? 
-          UNION SELECT DISTINCT sc.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s 
-          ON s.id_securitycurrency = ws.id_securitycurrency JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency 
-          JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency 
-          WHERE w.id_tenant = ? AND sc.dtype = 'S' UNION SELECT sc.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency 
-          JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency 
-          WHERE s.id_tenant_private = ? AND sc.dtype = 'S' UNION SELECT DISTINCT sc.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency 
-          JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency 
-          JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'S' UNION SELECT sc.* FROM correlation_set cs 
-          JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN securitycurrency sc ON ci.id_securitycurrency = sc.id_securitycurrency WHERE sc.dtype = 'S' AND cs.id_tenant = ?""";
-
-  private static String SECURITYCURRENCY_DELETE = "sc.* FROM securitycurrency sc, security s WHERE sc.id_securitycurrency = s.id_securitycurrency AND id_tenant_private = ?";
-
+      sc.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN securitycurrency sc ON sc.id_securitycurrency = ws.id_securitycurrency
+      WHERE w.id_tenant = ? AND sc.dtype = 'S' UNION SELECT sc.* FROM security s JOIN securitycurrency sc ON s.id_securitycurrency = sc.id_securitycurrency WHERE s.id_tenant_private = ?
+      UNION SELECT DISTINCT sc.* FROM transaction t JOIN securitycurrency sc ON t.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ?
+      UNION SELECT DISTINCT sc.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s
+      ON s.id_securitycurrency = ws.id_securitycurrency JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
+      JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
+      WHERE w.id_tenant = ? AND sc.dtype = 'S' UNION SELECT sc.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
+      JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
+      WHERE s.id_tenant_private = ? AND sc.dtype = 'S' UNION SELECT DISTINCT sc.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'S' UNION SELECT sc.* FROM correlation_set cs
+      JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN securitycurrency sc ON ci.id_securitycurrency = sc.id_securitycurrency WHERE sc.dtype = 'S' AND cs.id_tenant = ?""";
+  private static String SECURITYCURRENCY_DELETE = String.format(
+      "sc.* FROM %s sc, %s s WHERE sc.id_securitycurrency = s.id_securitycurrency AND id_tenant_private = ?",
+      Securitycurrency.TABNAME, Security.TABNAME);
   private static String CURRENCYPAIR_SELECT = """
-          c1.* FROM currencypair c1, securitycurrency sc, (SELECT DISTINCT s.currency as fromcurrency, e.currency as tocurrency 
-          FROM tenant e, portfolio p, securitycashaccount sc, transaction t, security s WHERE e.id_tenant = ? AND e.id_tenant = p.id_portfolio 
-          AND p.id_portfolio = sc.id_portfolio AND sc.id_securitycash_account = t.id_security_account AND t.id_securitycurrency = s.id_securitycurrency) c2 
-          WHERE c1.from_currency = fromcurrency AND c1.to_currency = tocurrency AND c1.id_securitycurrency = sc.id_securitycurrency 
-          UNION SELECT DISTINCT c.* FROM tenant e, currencypair c, portfolio p, cashaccount a, securitycashaccount s, securitycurrency sc WHERE e.id_tenant = ? 
-          AND e.id_tenant = p.id_tenant AND c.from_currency = a.currency AND c.to_currency = e.currency AND p.id_portfolio = s.id_portfolio 
-          AND a.id_securitycash_account = s.id_securitycash_account AND c.id_securitycurrency = sc.id_securitycurrency UNION SELECT DISTINCT c.* 
-          FROM currencypair c, transaction t, portfolio p, securitycashaccount sc, cashaccount ca, securitycurrency s WHERE p.id_tenant = ? 
-          AND p.id_portfolio = sc.id_portfolio AND sc.id_securitycash_account = ca.id_securitycash_account AND t.id_cash_account = ca.id_securitycash_account 
-          AND t.id_currency_pair = c.id_securitycurrency AND c.id_securitycurrency = s.id_securitycurrency UNION SELECT DISTINCT c.* 
-          FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency 
-          JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency 
-          JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency WHERE w.id_tenant = ? AND sc.dtype = 'C' 
-          UNION SELECT c.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency 
-          JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency 
-          WHERE s.id_tenant_private = ? AND sc.dtype = 'C' UNION SELECT DISTINCT c.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency 
-          JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency 
-          JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'C' UNION SELECT c.* FROM watchlist w 
-          JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN currencypair c ON c.id_securitycurrency = ws.id_securitycurrency WHERE w.id_tenant = ? 
-          UNION SELECT cp.* FROM correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN currencypair cp 
-          ON ci.id_securitycurrency = cp.id_securitycurrency WHERE cs.id_tenant = ?""";
-
+      c1.* FROM currencypair c1, securitycurrency sc, (SELECT DISTINCT s.currency as fromcurrency, e.currency as tocurrency
+      FROM tenant e, portfolio p, securitycashaccount sc, transaction t, security s WHERE e.id_tenant = ? AND e.id_tenant = p.id_portfolio
+      AND p.id_portfolio = sc.id_portfolio AND sc.id_securitycash_account = t.id_security_account AND t.id_securitycurrency = s.id_securitycurrency) c2
+      WHERE c1.from_currency = fromcurrency AND c1.to_currency = tocurrency AND c1.id_securitycurrency = sc.id_securitycurrency
+      UNION SELECT DISTINCT c.* FROM tenant e, currencypair c, portfolio p, cashaccount a, securitycashaccount s, securitycurrency sc WHERE e.id_tenant = ?
+      AND e.id_tenant = p.id_tenant AND c.from_currency = a.currency AND c.to_currency = e.currency AND p.id_portfolio = s.id_portfolio
+      AND a.id_securitycash_account = s.id_securitycash_account AND c.id_securitycurrency = sc.id_securitycurrency UNION SELECT DISTINCT c.*
+      FROM currencypair c, transaction t, portfolio p, securitycashaccount sc, cashaccount ca, securitycurrency s WHERE p.id_tenant = ?
+      AND p.id_portfolio = sc.id_portfolio AND sc.id_securitycash_account = ca.id_securitycash_account AND t.id_cash_account = ca.id_securitycash_account
+      AND t.id_currency_pair = c.id_securitycurrency AND c.id_securitycurrency = s.id_securitycurrency UNION SELECT DISTINCT c.*
+      FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency WHERE w.id_tenant = ? AND sc.dtype = 'C'
+      UNION SELECT c.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
+      JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency
+      WHERE s.id_tenant_private = ? AND sc.dtype = 'C' UNION SELECT DISTINCT c.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'C' UNION SELECT c.* FROM watchlist w
+      JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN currencypair c ON c.id_securitycurrency = ws.id_securitycurrency WHERE w.id_tenant = ?
+      UNION SELECT cp.* FROM correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN currencypair cp
+      ON ci.id_securitycurrency = cp.id_securitycurrency WHERE cs.id_tenant = ?""";
   private static String SECURITYCURRENCY_C_SELECT = """
-          sc.* FROM currencypair c1, securitycurrency sc, (SELECT DISTINCT s.currency as fromcurrency, e.currency as tocurrency 
-          FROM tenant e, portfolio p, securitycashaccount sc, transaction t, security s WHERE e.id_tenant = ? AND e.id_tenant = p.id_portfolio 
-          AND p.id_portfolio = sc.id_portfolio AND sc.id_securitycash_account = t.id_security_account AND t.id_securitycurrency = s.id_securitycurrency) c2 
-          WHERE c1.from_currency = fromcurrency AND c1.to_currency = tocurrency AND c1.id_securitycurrency = sc.id_securitycurrency 
-          UNION SELECT DISTINCT sc.* FROM tenant e, currencypair c, portfolio p, cashaccount a, securitycashaccount s, securitycurrency sc WHERE e.id_tenant = ? 
-          AND e.id_tenant = p.id_tenant AND c.from_currency = a.currency AND c.to_currency = e.currency AND p.id_portfolio = s.id_portfolio 
-          AND a.id_securitycash_account = s.id_securitycash_account AND c.id_securitycurrency = sc.id_securitycurrency 
-          UNION SELECT DISTINCT s.* FROM currencypair c, transaction t, portfolio p, securitycashaccount sc, cashaccount ca, securitycurrency s 
-          WHERE p.id_tenant = ? AND p.id_portfolio = sc.id_portfolio AND sc.id_securitycash_account = ca.id_securitycash_account 
-          AND t.id_cash_account = ca.id_securitycash_account AND t.id_currency_pair = c.id_securitycurrency AND c.id_securitycurrency = s.id_securitycurrency 
-          UNION SELECT DISTINCT sc.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s 
-          ON s.id_securitycurrency = ws.id_securitycurrency JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency 
-          JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency WHERE w.id_tenant = ? AND sc.dtype = 'C' 
-          UNION SELECT sc.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency 
-          JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency 
-          WHERE s.id_tenant_private = ? AND sc.dtype = 'C' UNION SELECT DISTINCT sc.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency 
-          JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency 
-          JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'C' UNION SELECT sc.* FROM watchlist w 
-          JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN securitycurrency sc ON sc.id_securitycurrency = ws.id_securitycurrency 
-          WHERE sc.dtype = 'C' AND w.id_tenant = ? UNION SELECT sc.* FROM correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set 
-          JOIN securitycurrency sc ON ci.id_securitycurrency = sc.id_securitycurrency WHERE sc.dtype = 'C' AND cs.id_tenant = ?""";
-
+      sc.* FROM currencypair c1, securitycurrency sc, (SELECT DISTINCT s.currency as fromcurrency, e.currency as tocurrency
+      FROM tenant e, portfolio p, securitycashaccount sc, transaction t, security s WHERE e.id_tenant = ? AND e.id_tenant = p.id_portfolio
+      AND p.id_portfolio = sc.id_portfolio AND sc.id_securitycash_account = t.id_security_account AND t.id_securitycurrency = s.id_securitycurrency) c2
+      WHERE c1.from_currency = fromcurrency AND c1.to_currency = tocurrency AND c1.id_securitycurrency = sc.id_securitycurrency
+      UNION SELECT DISTINCT sc.* FROM tenant e, currencypair c, portfolio p, cashaccount a, securitycashaccount s, securitycurrency sc WHERE e.id_tenant = ?
+      AND e.id_tenant = p.id_tenant AND c.from_currency = a.currency AND c.to_currency = e.currency AND p.id_portfolio = s.id_portfolio
+      AND a.id_securitycash_account = s.id_securitycash_account AND c.id_securitycurrency = sc.id_securitycurrency
+      UNION SELECT DISTINCT s.* FROM currencypair c, transaction t, portfolio p, securitycashaccount sc, cashaccount ca, securitycurrency s
+      WHERE p.id_tenant = ? AND p.id_portfolio = sc.id_portfolio AND sc.id_securitycash_account = ca.id_securitycash_account
+      AND t.id_cash_account = ca.id_securitycash_account AND t.id_currency_pair = c.id_securitycurrency AND c.id_securitycurrency = s.id_securitycurrency
+      UNION SELECT DISTINCT sc.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s
+      ON s.id_securitycurrency = ws.id_securitycurrency JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
+      JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency WHERE w.id_tenant = ? AND sc.dtype = 'C'
+      UNION SELECT sc.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
+      JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency
+      WHERE s.id_tenant_private = ? AND sc.dtype = 'C' UNION SELECT DISTINCT sc.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'C' UNION SELECT sc.* FROM watchlist w
+      JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN securitycurrency sc ON sc.id_securitycurrency = ws.id_securitycurrency
+      WHERE sc.dtype = 'C' AND w.id_tenant = ? UNION SELECT sc.* FROM correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set
+      JOIN securitycurrency sc ON ci.id_securitycurrency = sc.id_securitycurrency WHERE sc.dtype = 'C' AND cs.id_tenant = ?""";
   private static String HISTORYQUOTE_SELECT = """
-          DISTINCT h.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency JOIN historyquote h ON s.id_securitycurrency = h.id_securitycurrency 
-          WHERE t.id_tenant = ? AND s.active_to_date < now() + interval 1 month 
-          UNION SELECT DISTINCT h.* FROM transaction t JOIN historyquote h ON h.id_securitycurrency = t.id_currency_pair WHERE t.id_tenant = ? """;
-
+      DISTINCT h.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency JOIN historyquote h ON s.id_securitycurrency = h.id_securitycurrency
+      WHERE t.id_tenant = ? AND s.active_to_date < now() + interval 1 month
+      UNION SELECT DISTINCT h.* FROM transaction t JOIN historyquote h ON h.id_securitycurrency = t.id_currency_pair WHERE t.id_tenant = ? """;
   private static String HISTORYQUOTEPERIOD_SELECT = """
-          hp.* FROM historyquote_period hp JOIN security s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ? 
-          UNION SELECT DISTINCT hp.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN historyquote_period hp ON wsc.id_securitycurrency = hp.id_securitycurrency 
-          WHERE w.id_tenant = ? UNION SELECT DISTINCT hp.* FROM transaction t JOIN historyquote_period hp ON t.id_securitycurrency = hp.id_securitycurrency WHERE t.id_tenant = ?""";
-
-  private static String HISTORYQUOTEPERIOD_DELETE = "hp.* FROM historyquote_period hp JOIN security s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?";
-
-  private static String WATCHLIST_SEC_CUR_SELDEL = "ws.* FROM watchlist w, watchlist_sec_cur ws WHERE w.id_tenant = ? AND w.id_watchlist = ws.id_watchlist";
-
-  private static String IMPORT_TRANS_FAILED_SELDEL = "f.* FROM " + ImportTransactionPosFailed.TABNAME + " f INNER JOIN "
-      + ImportTransactionPos.TABNAME + " p ON f.id_trans_pos = p.id_trans_pos WHERE p.id_tenant = ?";
-
-  private static String PROPOSE_USER_TASK_SEL = "t.* FROM propose_user_task t JOIN propose_request r ON t.id_propose_request = r.id_propose_request WHERE r.created_by = ?";
-
-  private static String PROPOSE_CHANGE_ENTITY_SEL = "e.* FROM propose_change_entity e JOIN propose_request r ON e.id_propose_request = r.id_propose_request WHERE r.created_by = ?";
-
-  private static String PROPOSE_CHANGE_FIELD_SELDEL = "f.* FROM propose_change_field f INNER JOIN propose_request r ON f.id_propose_request = r.id_propose_request WHERE r.created_by = ?";
+      hp.* FROM historyquote_period hp JOIN security s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
+      UNION SELECT DISTINCT hp.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN historyquote_period hp ON wsc.id_securitycurrency = hp.id_securitycurrency
+      WHERE w.id_tenant = ? UNION SELECT DISTINCT hp.* FROM transaction t JOIN historyquote_period hp ON t.id_securitycurrency = hp.id_securitycurrency WHERE t.id_tenant = ?""";
+  private static String HISTORYQUOTEPERIOD_DELETE = String.format(
+      "hp.* FROM %s hp JOIN %s s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?",
+      HistoryquotePeriod.TABNAME, Security.TABNAME);
+  private static String WATCHLIST_SEC_CUR_SELDEL = String.format(
+      "ws.* FROM %s w, %s ws WHERE w.id_tenant = ? AND w.id_watchlist = ws.id_watchlist", Watchlist.TABNAME,
+      Watchlist.TABNAME_SEC_CUR);
+  private static String IMPORT_TRANS_FAILED_SELDEL = String.format(
+      "f.* FROM %s f INNER JOIN %s p ON f.id_trans_pos = p.id_trans_pos WHERE p.id_tenant = ?",
+      ImportTransactionPosFailed.TABNAME, ImportTransactionPos.TABNAME);
+  private static String PROPOSE_USER_TASK_SEL = String.format(
+      "t.* FROM %s t JOIN %s r ON t.id_propose_request = r.id_propose_request WHERE r.created_by = ?",
+      ProposeUserTask.TABNAME, ProposeRequest.TABNAME);
+  private static String PROPOSE_CHANGE_ENTITY_SEL = String.format(
+      "e.* FROM %s e JOIN %s r ON e.id_propose_request = r.id_propose_request WHERE r.created_by = ?",
+      ProposeChangeEntity.TABNAME, ProposeRequest.TABNAME);
+  private static String PROPOSE_CHANGE_FIELD_SELDEL = String.format(
+      "f.* FROM %s f INNER JOIN %s r ON f.id_propose_request = r.id_propose_request WHERE r.created_by = ?",
+      ProposeChangeField.TABNAME, ProposeRequest.TABNAME);
+  private static String MAIL_SETTING_FORWARD_REDIRECT_USER_DEL = String
+      .format("UPDATE %s SET id_user_redirect = null WHERE id_user_redirect = ?", MailSettingForward.TABNAME);
 
   protected JdbcTemplate jdbcTemplate;
   private int exportOrDelete;
@@ -272,13 +252,16 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(Globalparameters.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(MultilanguageString.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(MultilanguageString.MULTILINGUESTRINGS, TENANT_USER.NONE, null, EXPORT_USE),
-      new ExportDefinition(ImportTransactionPlatform.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID),
-      new ExportDefinition(ImportTransactionTemplate.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID),
-      new ExportDefinition(TradingPlatformPlan.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID),
+      new ExportDefinition(ImportTransactionPlatform.TABNAME, TENANT_USER.NONE, null,
+          EXPORT_USE | CHANGE_USER_ID_FOR_CREATED_BY),
+      new ExportDefinition(ImportTransactionTemplate.TABNAME, TENANT_USER.NONE, null,
+          EXPORT_USE | CHANGE_USER_ID_FOR_CREATED_BY),
+      new ExportDefinition(TradingPlatformPlan.TABNAME, TENANT_USER.NONE, null,
+          EXPORT_USE | CHANGE_USER_ID_FOR_CREATED_BY),
       // Stock exchange is fully exported but data owner must be changed too user
-      new ExportDefinition(Stockexchange.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID),
+      new ExportDefinition(Stockexchange.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID_FOR_CREATED_BY),
       // Asset classes is fully exported but data owner must be changed too user
-      new ExportDefinition(Assetclass.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID),
+      new ExportDefinition(Assetclass.TABNAME, TENANT_USER.NONE, null, EXPORT_USE | CHANGE_USER_ID_FOR_CREATED_BY),
       new ExportDefinition(Tenant.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
       new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, null, EXPORT_USE | DELETE_USE),
       new ExportDefinition(Role.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
@@ -291,7 +274,7 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(Securitycurrency.TABNAME, TENANT_USER.ID_TENANT, SECURITYCURRENCY_C_SELECT, EXPORT_USE),
       new ExportDefinition(Securitycurrency.TABNAME, TENANT_USER.ID_TENANT, SECURITYCURRENCY_S_SELECT, EXPORT_USE),
       new ExportDefinition(Securitycurrency.TABNAME, TENANT_USER.ID_TENANT, SECURITYCURRENCY_DELETE,
-          DELETE_USE | CHANGE_USER_ID),
+          DELETE_USE | CHANGE_USER_ID_FOR_CREATED_BY),
       new ExportDefinition(Security.TABNAME, TENANT_USER.ID_TENANT, SECURITY_DELETE, DELETE_USE),
       new ExportDefinition(Security.TABNAME, TENANT_USER.ID_TENANT, SECURITY_SELECT, EXPORT_USE),
       new ExportDefinition(SecurityDerivedLink.TABNAME, TENANT_USER.ID_TENANT, SECURITY_DERIVED_LINK, EXPORT_USE),
@@ -324,7 +307,10 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(UserEntityChangeCount.TABNAME, TENANT_USER.ID_USER, null, DELETE_USE),
       new ExportDefinition(TradingDaysPlus.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(TradingDaysMinus.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
-      // Delete all Mails of the user, nothing is exported
+      // TODO Delete all Mails of the user, nothing is exported
+      // ...
+      new ExportDefinition(MailSettingForward.TABNAME, TENANT_USER.ID_USER, MAIL_SETTING_FORWARD_REDIRECT_USER_DEL,
+          CHANGE_USER_ID),
 
       // TODO Missing Algo export ...
       new ExportDefinition(AlgoTopAssetSecurity.TABNAME, TENANT_USER.ID_TENANT, null, DELETE_USE),
@@ -350,7 +336,9 @@ public class MyDataExportDeleteDefinition {
 
   protected String getQuery(ExportDefinition exportDefinition) {
     String query = exportDefinition.sqlStatement;
-    if (query == null) {
+    if (exportDefinition.tenantUser == TENANT_USER.ID_USER_DIFFERENT) {
+      return query;
+    } else if (query == null) {
       switch (exportDefinition.tenantUser) {
       case ID_TENANT:
         query = String.format("FROM %s WHERE id_Tenant = %d", exportDefinition.table, user.getIdTenant());
@@ -368,12 +356,15 @@ public class MyDataExportDeleteDefinition {
       if ((exportOrDelete & EXPORT_USE) == EXPORT_USE) {
         query = " * " + query;
       }
-
     }
     return ((exportOrDelete & EXPORT_USE) == EXPORT_USE ? SELECT_STR : DELETE_STR) + " " + query;
   }
 
-  protected Object[] getParamArrayOfWhereForIdTenant(ExportDefinition exportDefinition, String query) {
+  /**
+   * Counts the existing ? in the SQL statement and creates an array with this
+   * number. This array is filled with either IdUser or IdTenant.
+   */
+  protected Object[] getParamArrayOfStatementForIdTenantOrIdUser(ExportDefinition exportDefinition, String query) {
     int countIdTenant = 0;
     Matcher matcher = Pattern.compile("=\\s*\\?(\\s|$)").matcher(query);
     while (matcher.find()) {
@@ -408,21 +399,27 @@ public class MyDataExportDeleteDefinition {
       return (usage & DELETE_USE) == DELETE_USE;
     }
 
+    public boolean isChangeUserIdForCreatedBy() {
+      return (usage & CHANGE_USER_ID_FOR_CREATED_BY) == CHANGE_USER_ID_FOR_CREATED_BY;
+    }
+
     public boolean isChangeUserId() {
       return (usage & CHANGE_USER_ID) == CHANGE_USER_ID;
     }
-
   }
 
   static enum TENANT_USER {
-    // Use special SQL statment
+    // Use special SQL statement
     NONE,
     // Create statement with where clause which uses tenant id for selection
     ID_TENANT,
     // Create statement with where clause which uses id_user for selection
     ID_USER,
     // Used for shared entities which were created by this user
-    CREATED_BY
+    CREATED_BY,
+    // Used for statement where idUser is used but the table field has a different
+    // name
+    ID_USER_DIFFERENT
   }
 
 }

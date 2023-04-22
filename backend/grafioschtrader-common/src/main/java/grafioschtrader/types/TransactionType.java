@@ -1,14 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package grafioschtrader.types;
 
 /**
- *
- * @author Hugo Graf
+ * There are different types of transactions, for example, the sale of an
+ * instrument or the deposit into a cash account. This can be distinguished with
+ * the following types.
  */
 public enum TransactionType {
   /** Withdrawal cash */

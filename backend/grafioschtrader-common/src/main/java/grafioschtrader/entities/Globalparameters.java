@@ -71,7 +71,7 @@ public class Globalparameters implements Serializable {
   // The idGTNet for this Server in GTNet  
   public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GT_PREFIX + "gtnet.my.entry.id";
   
-  // Alert bitmap for sending emai
+  // Alert bitmap for sending email
   public static final String GLOB_KEY_ALERT_MAIL = GT_PREFIX + "alert.mail.bitmap";
   
   // Tenant data entity limits
@@ -103,6 +103,9 @@ public class Globalparameters implements Serializable {
       + ImportTransactionPlatform.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_TRADINGPLATFORMPLAN = GT_LIMIT_DAY
       + TradingPlatformPlan.class.getSimpleName();
+  public static final String GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD = GT_LIMIT_DAY
+      + MailSettingForward.class.getSimpleName();
+  
 
   // Tenant regulatory violations
   public static final String GLOB_KEY_MAX_LIMIT_EXCEEDED_COUNT = GT_PREFIX + "max.limit.request.exceeded.count";
@@ -123,17 +126,24 @@ public class Globalparameters implements Serializable {
     defaultLimitMap.put(GLOB_KEY_MAX_WATCHLIST_LENGTH, new MaxDefaultDBValue(200));
     defaultLimitMap.put(GLOB_KEY_MAX_CORRELATION_SET, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_MAX_CORRELATION_INSTRUMENTS, new MaxDefaultDBValue(20));
+   
+  
 
-    // Set tenant regulations violations, with daily limits on shared entries
+    // Set tenant regulations violations, with daily CRUD limits on shared entries
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_ASSETCLASS, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_STOCKEXCHANGE, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_SECURITY, new MaxDefaultDBValue(50));
-    defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAIL_SEND, new MaxDefaultDBValue(200));
+   
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_CURRENCYPAIR, new MaxDefaultDBValue(15));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONTEMPLATE, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONPLATFORM, new MaxDefaultDBValue(3));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_TRADINGPLATFORMPLAN, new MaxDefaultDBValue(3));
+   
+    // Set tenant regulations violations, with daily CRUD limits on user or tenant own entries 
+    defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAIL_SEND, new MaxDefaultDBValue(200));
+    defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD, new MaxDefaultDBValue(12));
+    
     // TODO Other entities -> otherwise null pointer exception
 
   }

@@ -34,7 +34,7 @@ public abstract class UpdateCreateDeleteAudit<T extends BaseID> extends UpdateCr
     Optional<T> entityOpt = getUpdateCreateJpaRepository().findById(id);
     if (entityOpt.isPresent()) {
       if (hasRightsForDeleteEntity(user, entityOpt.get())) {
-        log.debug("Delete by id : {}", id);
+        log.debug("Delete {} by id : {}", entityOpt.get().getClass().getSimpleName(), id);
         getUpdateCreateJpaRepository().deleteById(id);
         logAddUpdDel(user.getIdUser(), entityOpt.get(), OperationType.DELETE);
       } else {
@@ -51,5 +51,11 @@ public abstract class UpdateCreateDeleteAudit<T extends BaseID> extends UpdateCr
 
   protected boolean hasRightsForDeleteEntity(User user, T entity) {
     return UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, (Auditable) entity);
+  }
+  
+  protected void logAndAudit(Class<T> zclass, Integer id) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    log.debug("Delete {} by id : {}", zclass.getSimpleName(), id);
+    logAddUpdDel(user.getIdUser(), zclass, OperationType.DELETE);
   }
 }

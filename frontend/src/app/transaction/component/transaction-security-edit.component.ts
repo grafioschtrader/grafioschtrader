@@ -620,7 +620,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private loadSecuritiesOnce(timeValue: number): void {
-    this.securityService.getTradableSecuritiesByTenantAndIdWatschlist(this.transactionCallParam.idWatchList).subscribe(
+    this.securityService.getTradableSecuritiesByTenantAndIdWatchlist(this.transactionCallParam.idWatchList).subscribe(
       (securities: Security[]) => {
         this.securities = securities;
 

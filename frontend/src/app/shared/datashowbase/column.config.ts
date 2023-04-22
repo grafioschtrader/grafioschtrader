@@ -1,37 +1,36 @@
-import {DataType} from '../../dynamic-form/models/data.type';
 import {FilterType} from './filter.type';
 import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
+import {BaseFieldDefinition, PropertyEditShare} from '../../dynamic-form/models/base.field.definition';
+import {ValidationErrorRule} from '../../dynamic-form/models/base.field.fieldgroup.config';
 
 /**
  * It represents the field configuration for a table view. It may also be used to show some single data definition.
  */
-export class ColumnConfig {
+export interface ColumnConfig extends BaseFieldDefinition {
 
-  public dataType: DataType;
-  public field: string;
-  public headerKey: string;
-  public headerTranslated: string;
-  public headerTooltipTranslated: string;
-  public visible: boolean;
+  headerKey: string;
+  headerTranslated: string;
+  headerTooltipTranslated: string;
+  visible: boolean;
 
   /**
    * Visibility of this column can be changed
    */
-  public changeVisibility: boolean;
-  public width?: number;
-  public fieldValueFN?: (dataobject: any, field: ColumnConfig, valueField: any) => any;
-  public headerSuffix?: string;
-  public headerPrefix?: string;
-  public filterType?: FilterType;
-  public filterValues?: ValueLabelHtmlSelectOptions[];
+  changeVisibility: boolean;
+  width?: number;
+  fieldValueFN?: (dataobject: any, field: ColumnConfig, valueField: any) => any;
+  headerSuffix?: string;
+  headerPrefix?: string;
+  filterType?: FilterType;
+  filterValues?: ValueLabelHtmlSelectOptions[];
 
   /**
    * Value of the object will be translated with the translation service. The value must be in the objects value is
    * the key for the translation. This key must be defined in the translation files.
    */
-  public translateValues: TranslateValue;
-  public translatedValueMap: { [key: string]: string };
-  public fieldTranslated: string;
+  translateValues: TranslateValue;
+  translatedValueMap: { [key: string]: string };
+  fieldTranslated: string;
   /**
    * Normal used fpr a ngSwitchCase. For example, for the green/red number representation
    */
@@ -61,35 +60,10 @@ export class ColumnConfig {
    */
   userValue: any;
 
-  constructor(dataType: DataType, field: string, headerKey: string, visible: boolean,
-    changeVisibility: boolean, optionalsParams?: OptionalParams) {
-    this.dataType = dataType;
-    this.field = field;
-    this.headerKey = headerKey;
-    this.visible = visible;
-    this.changeVisibility = changeVisibility;
-
-
-    if (optionalsParams) {
-      this.width = optionalsParams.width;
-      this.fieldValueFN = optionalsParams.fieldValueFN;
-      this.headerSuffix = optionalsParams.headerSuffix;
-      this.translateValues = optionalsParams.translateValues;
-      this.headerPrefix = optionalsParams.headerPrefix;
-      this.templateName = (optionalsParams.templateName) ? optionalsParams.templateName : '';
-      this.maxFractionDigits = optionalsParams.maxFractionDigits;
-      this.minFractionDigits = optionalsParams.minFractionDigits;
-      this.columnGroupConfigs = optionalsParams.columnGroupConfigs;
-      this.filterType = optionalsParams.filterType;
-      this.filterValues = optionalsParams.filterValues;
-      this.headerTranslated = optionalsParams.headerTranslated;
-      this.export = optionalsParams.export;
-      this.frozenColumn = optionalsParams.frozenColumn;
-      this.userValue = optionalsParams.userValue;
-
-      this.fieldsetName = optionalsParams.fieldsetName;
-    }
-  }
+  /**
+   * A column may be editable
+   */
+  cec: ColumnEditConfig;
 }
 
 export interface OptionalParams {
@@ -98,7 +72,7 @@ export interface OptionalParams {
   headerSuffix?: string;
   headerPrefix?: string;
   /**
-   * Cell content may be translated in an other language
+   * Cell content may be translated into another language
    */
   translateValues?: TranslateValue;
   templateName?: string;
@@ -114,6 +88,10 @@ export interface OptionalParams {
   userValue?: any;
 }
 
+
+export interface ColumnEditConfig extends PropertyEditShare, ValidationErrorRule {
+}
+
 /**
  * Some table views present data with a group or grand total. The data to be shown is defined with this class.
  */
@@ -122,8 +100,8 @@ export class ColumnGroupConfig {
   colspan: number;
 
   constructor(public fieldValue: string, public textValueKey?: string, public fieldTextFN?: (columnConfig: ColumnConfig,
-      arrIndex: number, groupChangeIndexMap: any, rowIndex: number) => any,
-    optionalsGropuParams?: OptionalGroupParams) {
+                                                                                             arrIndex: number, groupChangeIndexMap: any, rowIndex: number) => any,
+              optionalsGropuParams?: OptionalGroupParams) {
     if (optionalsGropuParams) {
       this.colspan = optionalsGropuParams.colspan;
     }
