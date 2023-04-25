@@ -5,6 +5,7 @@ import java.io.Serializable;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +15,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+@Schema(description="""
+Describes the roles of a user. The user can have multiple roles. 
+Each user belongs to 'LIMIT_EDIT' or to 'USER'. For 'LIMIT_EDIT' the user can have only this role.  
+For the 'USER' role, the more privileged roles are added.""")
 
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Entity

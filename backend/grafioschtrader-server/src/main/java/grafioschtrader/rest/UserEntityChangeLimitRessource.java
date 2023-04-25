@@ -20,10 +20,10 @@ import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserEntityChangeLimit;
-import grafioschtrader.repository.MailSendRecvJpaRepository;
 import grafioschtrader.repository.ProposeUserTaskJpaRepository;
 import grafioschtrader.repository.UserEntityChangeLimitJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
+import grafioschtrader.service.SendMailInternalExternalService;
 import grafioschtrader.types.ReplyToRolePrivateType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,7 +40,7 @@ public class UserEntityChangeLimitRessource extends UpdateCreateDeleteAuditResou
   private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
 
   @Autowired
-  private MailSendRecvJpaRepository mailSendRecvJpaRepository;
+  private SendMailInternalExternalService sendMailInternalExternalService;
 
   @Autowired
   private MessageSource messages;
@@ -73,7 +73,7 @@ public class UserEntityChangeLimitRessource extends UpdateCreateDeleteAuditResou
         User targetUser = userJpaRepository.getReferenceById(entity.getIdUser());
         result = updateSaveEntity(entity, existingEntity);
         // Create internal mail
-        mailSendRecvJpaRepository.sendInternalMail(userAtWork.getIdUser(), entity.getIdUser(), null,
+        sendMailInternalExternalService.sendInternalMail(userAtWork.getIdUser(), entity.getIdUser(), null,
             messages.getMessage("mail.subject.admin", null, Locale.forLanguageTag(targetUser.getLocaleStr())),
             entity.getNoteRequestOrReject(), null, ReplyToRolePrivateType.REPLY_NORMAL);
         proposeChangeEntityJpaRepository.deleteById(idProposeRequest);

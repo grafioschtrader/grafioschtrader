@@ -18,9 +18,9 @@ import grafioschtrader.repository.MailSendRecvJpaRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.MAIL_SEMD_RECV_READ_MAP)
+@RequestMapping(RequestMappings.MAIL_SEMD_RECV_MAP)
 @Tag(name = RequestMappings.MAIL_SEMD_RECV, description = "Controller for mail system")
-public class MailSendRecvReadResource extends UpdateCreateResource<MailSendRecv> {
+public class MailSendRecvResource extends UpdateCreateResource<MailSendRecv> {
 
   @Autowired
   private MailSendRecvJpaRepository mailSendRecvJpaRepository;

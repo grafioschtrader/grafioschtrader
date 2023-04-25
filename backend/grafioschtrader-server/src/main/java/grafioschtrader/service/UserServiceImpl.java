@@ -57,6 +57,9 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private VerificationTokenJpaRepository verificationTokenJpaRepository;
 
+  @Autowired
+  private MailExternalService mailExternalService;
+  
   private final UserJpaRepository userJpaRepository;
 
   private final RoleJpaRepository roleJpaRepository;
@@ -156,7 +159,7 @@ public class UserServiceImpl implements UserService {
     final String subject = messages.getMessage("registraion.success.subject", null, user.createAndGetJavaLocale());
     final String confirmationUrl = hostNameAndBaseNam + "/tokenverify?token=" + token;
     final String message = messages.getMessage("registraion.success.text", null, user.createAndGetJavaLocale());
-    userJpaRepository.sendSimpleMessage(user.getUsername(), subject,
+    mailExternalService.sendSimpleMessage(user.getUsername(), subject,
         message + GlobalConstants.NEW_LINE_AND_RETURN + confirmationUrl);
   }
 

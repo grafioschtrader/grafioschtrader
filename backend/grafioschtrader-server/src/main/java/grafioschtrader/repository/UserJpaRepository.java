@@ -40,8 +40,16 @@ public interface UserJpaRepository
   @Query(nativeQuery = true)
   List<IdUserAndNickname> getIdUserAndNicknameByRoleExcludeUser(String roleName, Integer exludeIdUser);
   
+  @Query(nativeQuery = true)
+  List<EMailLocale> getEmailExcludeWhenMsgComTypeAndTargetTypeExists(Byte messageComType, Byte messageTargetType);
+  
   public interface IdUserAndNickname {
     int getIdUser();
     String getNickname();
+  }
+  
+  public interface EMailLocale {
+    String getEmail();
+    String getLocale();
   }
 }

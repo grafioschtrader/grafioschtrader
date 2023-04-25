@@ -25,6 +25,7 @@ import grafioschtrader.entities.User;
 import grafioschtrader.entities.User.AdminModify;
 import grafioschtrader.repository.ProposeUserTaskJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
+import grafioschtrader.service.MailExternalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,6 +44,9 @@ public class UserAdminResource extends UpdateCreateResource<User> {
   @Autowired
   private MessageSource messages;
 
+  @Autowired
+  private MailExternalService mailExternalService;
+  
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<User>> getAllUsers() {
     return new ResponseEntity<>(userJpaRepository.connectUserWithUserAndLimitProposals(), HttpStatus.OK);
@@ -82,7 +86,7 @@ public class UserAdminResource extends UpdateCreateResource<User> {
       Optional<ProposeUserTask> proposeUserTaskOpt = proposeUserTaskJpaRepository.findById(idProposeRequest);
       if (proposeUserTaskOpt.isPresent()) {
         result = updateSaveEntity(entity, existingEntity);
-        userJpaRepository.sendSimpleMessage(entity.getUsername(),
+        mailExternalService.sendSimpleMessageAsync(entity.getUsername(),
             messages.getMessage("mail.subject.admin", null, Locale.forLanguageTag(entity.getLocaleStr())),
             entity.getNoteRequestOrReject());
         proposeChangeEntityJpaRepository.deleteById(idProposeRequest);

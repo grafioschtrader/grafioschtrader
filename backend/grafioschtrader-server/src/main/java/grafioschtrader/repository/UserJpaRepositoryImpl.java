@@ -18,16 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;
 import grafioschtrader.usertask.UserTaskType;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 
 public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
     implements UserJpaRepositoryCustom, InfoContributor {
@@ -41,14 +36,11 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
   @Autowired
   private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
 
-  @Autowired
-  private JavaMailSender emailSender;
+  
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  @Value("${spring.mail.username}")
-  private String springMailUsername;
 
   @Value("${gt.allowed.users}")
   private int allowed;
@@ -67,7 +59,7 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
     Map<String, Role> roleMap = roleJpaRepository.findAll().stream()
         .collect(Collectors.toMap(Role::getRolename, Function.identity()));
     existingEntity.setRoleMap(roleMap);
-    if(!existingEntity.getMostPrivilegedRole().equals(user.getMostPrivilegedRole())) {
+    if (!existingEntity.getMostPrivilegedRole().equals(user.getMostPrivilegedRole())) {
       existingEntity.setLastRoleModifiedTime(new Date());
     }
     return RepositoryHelper.saveOnlyAttributes(userJpaRepository, user, existingEntity, updatePropertyLevelClasses);
@@ -92,18 +84,7 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
     });
     return users;
   }
-
-  @Override
-  public void sendSimpleMessage(final String toEmail, final String subject, final String message) throws MessagingException  {
-    final MimeMessage mineMessage = emailSender.createMimeMessage();
-    MimeMessageHelper helper = new MimeMessageHelper(mineMessage, true);
-    mineMessage.setSender(new InternetAddress(springMailUsername));
-    mineMessage.setFrom(new InternetAddress(springMailUsername));
-    helper.setTo(toEmail);
-    helper.setSubject(subject);
-    helper.setText(message);
-    emailSender.send(mineMessage);
-  }
+  
 
   @Override
   public Integer moveCreatedByUserToOtherUser(Integer fromIdUser, Integer toIdUser) throws SQLException {

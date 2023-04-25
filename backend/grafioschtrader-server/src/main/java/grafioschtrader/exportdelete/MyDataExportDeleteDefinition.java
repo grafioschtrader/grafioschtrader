@@ -76,6 +76,7 @@ public class MyDataExportDeleteDefinition {
 
   private static final String SELECT_STR = "SELECT";
   private static final String DELETE_STR = "DELETE";
+  private static final String UPDATE_STR = "UPDATE";
 
   private static String ALGO_RULE_PARAM_2_DEL = String.format(
       "ap FROM %s ap JOIN %s ars ON ap.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?",
@@ -234,8 +235,8 @@ public class MyDataExportDeleteDefinition {
   private static String PROPOSE_CHANGE_FIELD_SELDEL = String.format(
       "f.* FROM %s f INNER JOIN %s r ON f.id_propose_request = r.id_propose_request WHERE r.created_by = ?",
       ProposeChangeField.TABNAME, ProposeRequest.TABNAME);
-  private static String MAIL_SETTING_FORWARD_REDIRECT_USER_DEL = String
-      .format("UPDATE %s SET id_user_redirect = null WHERE id_user_redirect = ?", MailSettingForward.TABNAME);
+  private static String MAIL_SETTING_FORWARD_REDIRECT_USER_DEL = UPDATE_STR + String
+      .format(" %s SET id_user_redirect = null WHERE id_user_redirect = ?", MailSettingForward.TABNAME);
 
   protected JdbcTemplate jdbcTemplate;
   private int exportOrDelete;
@@ -357,7 +358,11 @@ public class MyDataExportDeleteDefinition {
         query = " * " + query;
       }
     }
-    return ((exportOrDelete & EXPORT_USE) == EXPORT_USE ? SELECT_STR : DELETE_STR) + " " + query;
+    if(query.startsWith(UPDATE_STR + " ")) {
+      return query;
+    } else {
+      return ((exportOrDelete & EXPORT_USE) == EXPORT_USE ? SELECT_STR : DELETE_STR) + " " + query;  
+    }
   }
 
   /**

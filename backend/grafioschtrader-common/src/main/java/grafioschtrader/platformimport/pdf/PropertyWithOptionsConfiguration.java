@@ -11,9 +11,6 @@ import grafioschtrader.platformimport.ImportProperties;
 
 /**
  * For each property to parse a instance of this class exists.
- *
- * @author Hugo Graf
- *
  */
 public class PropertyWithOptionsConfiguration {
 
@@ -39,6 +36,10 @@ public class PropertyWithOptionsConfiguration {
    * Contains the template first word of the same line.
    */
   public String startSL;
+  
+  /**
+   * Contains the template first word of the next line.
+   */
   public String startNL;
 
   private static Pattern startLineOptionsPattern = Pattern.compile("^\\[(.*)\\]");

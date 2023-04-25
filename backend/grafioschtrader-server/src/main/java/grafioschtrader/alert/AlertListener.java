@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.MessageSource;
@@ -16,6 +17,7 @@ import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.UserJpaRepository;
+import grafioschtrader.service.MailExternalService;
 import jakarta.mail.MessagingException;
 
 @Component
@@ -32,6 +34,8 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
   @Value("${gt.main.user.admin.mail}")
   private String mainUserAdminMail;
 
+  @Autowired
+  private MailExternalService mailExternalService;
   
   public AlertListener(@Lazy UserJpaRepository userJpaRepository, @Lazy GlobalparametersJpaRepository globalparametersJpaRepository,
       MessageSource messages) {
@@ -55,7 +59,7 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
       Locale userLang = userOpt.get().createAndGetJavaLocale();
       String subject = messages.getMessage("alert.mail.subject", null, userLang);
       try {
-        userJpaRepository.sendSimpleMessage(mainUserAdminMail, subject,
+        mailExternalService.sendSimpleMessageAsync(mainUserAdminMail, subject,
             messages.getMessage(alertType.name(), msgParams, userLang));
       } catch (NoSuchMessageException | MessagingException e) {
         log.error("Failed to send an email to {} from {} to {}", mainUserAdminMail, subject);

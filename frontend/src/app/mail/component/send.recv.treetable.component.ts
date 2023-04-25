@@ -20,7 +20,9 @@ import {AppHelper} from '../../shared/helper/app.helper';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 
-
+/**
+ * This component contains a tree structure for displaying sent and received messages. The message text is displayed in a text area.
+ */
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)"
@@ -111,7 +113,6 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     this.addColumnFeqH(DataType.String, 'idUserFrom', true, false, {width: 80});
     this.addColumnFeqH(DataType.String, 'sendRecv', true, false,
       {fieldValueFN: this.getSendRecvIcon.bind(this), templateName: 'icon', width: 25});
-
     this.addColumn(DataType.String, 'roleNameTo', 'ROLE_NAME_USER_TO', true, false,
       {fieldValueFN: this.getRollOrUser.bind(this), width: 100, translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.DateTimeString, 'sendRecvTime', true, false, {width: 80});
@@ -212,7 +213,6 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
       mailSendRecv && this.readData();
     });
   }
-
 
   deleteSingleOrGroup() {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,

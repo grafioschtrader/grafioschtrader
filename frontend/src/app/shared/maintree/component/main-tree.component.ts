@@ -37,7 +37,9 @@ import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {AlgoTop} from '../../../algo/model/algo.top';
 import {GlobalSessionNames} from '../../global.session.names';
 
-
+/**
+ * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
+ */
 @Component({
   selector: 'main-tree',
   templateUrl: '../view/maintree.html',
@@ -50,7 +52,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   /**
    * Only used to get primeng p-tabmenu working. For example when portfolio is clicked the 2nd time in the navigator, it could produce
-   * a empty p-tabmenu.
+   * an empty p-tabmenu.
    */
   lastRoute: string;
   lastId: number;
@@ -123,7 +125,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         this.globalParamService.getIdTenant(), null)
     };
     this.portfolioTrees[this.BASEDATA_INDEX] = {
-      label: 'BASE_DATA',
+      label: 'BASE_DATA_PROPOSECHANGEENTITY',
       expanded: true, children: [],
       data: new TypeNodeData(TreeNodeType.BaseDataRoot, this.addMainRoute(AppSettings.PROPOSE_CHANGE_TAB_MENU_KEY),
         null, null)
@@ -141,7 +143,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.tenantService.getTenantAndPortfolio().subscribe(tenant => {
       this.tenant = tenant;
       this.useAlgo() && this.setLangTrans('ALGO_OVERVIEW', this.portfolioTrees[this.ALGO_INDEX]);
-      this.setLangTrans(AppSettings.WATCHLIST.toUpperCase(), this.portfolioTrees[this.WATCHLIST_INDEX]);
+      this.setLangTrans('WATCHLIST_CORRELATION_MATRIX', this.portfolioTrees[this.WATCHLIST_INDEX]);
       this.addAndRefreshPortfolioToTree();
       this.addRefreshAlgoToTree();
       this.addAndRefreshWatchlistToTree();
@@ -659,18 +661,21 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     }
   }
 
-  private setLangTransNode(treeNode: TreeNode) {
+  /**
+   * Performs a language translation of the tree structure with its dependent children and its children and so on.
+   */
+  private setLangTransNode(treeNode: TreeNode): void {
     this.setLangTrans(treeNode.label, treeNode);
     if (treeNode.children) {
       this.setLangTransNodes(treeNode.children);
     }
   }
 
-  private setLangTransNodes(treeNodes: TreeNode[]) {
+  private setLangTransNodes(treeNodes: TreeNode[]): void {
     treeNodes.forEach(treeNode => this.setLangTransNode(treeNode));
   }
 
-  private setLangTrans(key: string, target: TreeNode, sufix: string = '') {
+  private setLangTrans(key: string, target: TreeNode, sufix: string = ''): void {
     this.translateService.get(key).subscribe(translated => target.label = translated + sufix);
   }
 
