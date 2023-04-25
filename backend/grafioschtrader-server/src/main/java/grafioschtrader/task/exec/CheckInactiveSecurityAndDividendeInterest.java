@@ -17,10 +17,10 @@ import grafioschtrader.entities.MailSendRecv;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.MailEntityJpaRepository;
-import grafioschtrader.repository.MailSettingForwardJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository.CheckSecurityTransIntegrity;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
+import grafioschtrader.service.SendMailInternalExternalService;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.MessageComType;
 import grafioschtrader.types.TaskDataExecPriority;
@@ -31,7 +31,7 @@ import jakarta.mail.MessagingException;
 public class CheckInactiveSecurityAndDividendeInterest implements ITask {
 
   @Autowired
-  private MailSettingForwardJpaRepository mailSettingForwardJpaRepository;
+  private SendMailInternalExternalService sendMailInternalExternalService;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -107,7 +107,7 @@ public class CheckInactiveSecurityAndDividendeInterest implements ITask {
       List<String> msgException, Integer idUser) {
     try {
       String subject = messageSource.getMessage(msg + ".subject", null, locale);
-      Integer idMailSendRecv = mailSettingForwardJpaRepository.sendMailInternOrExternal(0, idUser, subject,
+      Integer idMailSendRecv = sendMailInternalExternalService.sendMailInternOrExternal(0, idUser, subject,
           compoundMsg.toString(), MessageComType.USER_SECURITY_MISSING_DIV_INTEREST);
       if (idMailSendRecv != null) {
         mailEntityList.forEach(me -> me.setIdMailSendRecv(idMailSendRecv));

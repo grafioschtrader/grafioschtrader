@@ -6,6 +6,9 @@ import {Component, OnInit} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../shared/helper/app.helper';
 
+/**
+ * The tab menu for messages.
+ */
 @Component({
   template: `
     <p-tabMenu [model]="items" [activeItem]="items[0]"></p-tabMenu>

@@ -20,6 +20,8 @@ public class MailSendForwardDefault {
   public List<ValueKeyHtmlSelectOptions> canRedirectToUsers;
   public Map<MessageComType, MailSendForwardDefaultConfig> mailSendForwardDefaultMapForUser;
 
+  private static EnumSet<MessageTargetType> intExtTargetTypeSet = EnumSet.of(MessageTargetType.INTERNAL_MAIL,
+      MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL);
   private static EnumSet<MessageTargetType> standardTargetTypeSet = EnumSet.of(MessageTargetType.EXTERNAL_MAIL,
       MessageTargetType.INTERNAL_MAIL, MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL);
 
@@ -28,6 +30,8 @@ public class MailSendForwardDefault {
         new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_MAIL, standardTargetTypeSet, false));
     mailSendForwardDefaultMap.put(MessageComType.USER_SECURITY_MISSING_DIV_INTEREST,
         new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_MAIL, standardTargetTypeSet, false));
+    mailSendForwardDefaultMap.put(MessageComType.USER_ADMIN_ANNOUNCEMENT,
+        new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL, intExtTargetTypeSet, false));
     mailSendForwardDefaultMap.put(MessageComType.MAIN_ADMIN_RELEASE_LOGOUT,
         new MailSendForwardDefaultConfig(MessageTargetType.NO_MAIL,
             EnumHelper.cloneSetAndAddEnum(standardTargetTypeSet, MessageTargetType.NO_MAIL), true));

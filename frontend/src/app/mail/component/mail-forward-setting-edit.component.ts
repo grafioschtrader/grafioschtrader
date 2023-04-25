@@ -22,6 +22,9 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
+/**
+ * This component contains a form with which the message settings can be edited.
+ */
 @Component({
   selector: 'mail-forward-setting-edit',
   template: `

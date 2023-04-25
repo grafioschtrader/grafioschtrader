@@ -23,6 +23,8 @@ import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserEntityChangeLimit;
+import grafioschtrader.service.MailExternalService;
+import grafioschtrader.service.SendMailInternalExternalService;
 import grafioschtrader.types.MessageComType;
 import grafioschtrader.usertask.UserTaskType;
 import jakarta.mail.MessagingException;
@@ -51,8 +53,11 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
   private UserJpaRepository userJpaRepository;
 
   @Autowired
-  private MailSettingForwardJpaRepository mailSettingForwardJpaRepository;
+  private SendMailInternalExternalService sendMailInternalExternalService;
 
+  @Autowired
+  private MailExternalService mailExternalService;
+  
   @Override
   public void createReleaseLougout(Integer idTargetUser, String field, String note) throws Exception {
     ProposeUserTask proposeUserTask = new ProposeUserTask();
@@ -65,7 +70,7 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
     proposeUserTask.setProposeChangeFieldList(List.of(proposeChangeField));
     save(proposeUserTask, null, null);
     try {
-      mailSettingForwardJpaRepository.sendMailToMainAdminInternalOrExternal(idTargetUser, "reset.user.misused", note,
+      sendMailInternalExternalService.sendMailToMainAdminInternalOrExternal(idTargetUser, "reset.user.misused", note,
           MessageComType.MAIN_ADMIN_RELEASE_LOGOUT);
     } catch (MessagingException me) {
       log.warn("Could not send email to admin");
@@ -124,7 +129,7 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
       if (userOpt.isPresent()) {
         final User userAdmin = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         User user = userOpt.get();
-        userJpaRepository.sendSimpleMessage(user.getUsername(),
+        mailExternalService.sendSimpleMessageAsync(user.getUsername(),
             messagesSource.getMessage("mail.subject.admin", null, Locale.forLanguageTag(user.getLocaleStr())),
             rejectNote);
         proposeChangeEntityJpaRepository.deleteById(idProposeRequest);

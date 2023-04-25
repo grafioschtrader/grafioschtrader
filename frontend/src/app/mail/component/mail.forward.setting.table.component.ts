@@ -21,7 +21,9 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {DialogService} from 'primeng/dynamicdialog';
 import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
 
-
+/**
+ * This component shows the message settings in a table.
+ */
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
@@ -81,8 +83,6 @@ export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailS
               usersettingsService: UserSettingsService) {
     super(AppSettings.MAIL_SETTING_FORWARD, mailSettingForwardService, confirmationService, messageToastService,
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
-
-
     this.addColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_COM_TYPE, true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_TARGET_TYPE, true, false,

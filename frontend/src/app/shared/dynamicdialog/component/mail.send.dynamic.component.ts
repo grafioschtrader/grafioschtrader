@@ -106,7 +106,8 @@ export class MailSendDynamicComponent extends FormBase implements OnInit, AfterV
       this.configObject[this.ID_USER_TO].formControl.disable();
     } else {
       this.configObject[this.ROLE_NAME_TO].valueKeyHtmlOptions = SelectOptionsHelper.translateArrayKeyEqualValue(this.translateService,
-        [AppSettings.ROLE_ALL_EDIT, AppSettings.ROLE_ADMIN]);
+        [AppSettings.ROLE_ALL_EDIT, AppSettings.ROLE_ADMIN].concat(
+          this.gps.hasRole(AppSettings.ROLE_ADMIN) ? [AppSettings.ROLE_USER, AppSettings.ROLE_LIMIT_EDIT, AppSettings.ROLE_EVERY_USER] : []));
     }
     const mailReplayLine = 'MAIL_REPLY_LINE';
     const idUserFrom = AppHelper.convertPropertyForLabelOrHeaderKey(this.ID_USER_FROM);

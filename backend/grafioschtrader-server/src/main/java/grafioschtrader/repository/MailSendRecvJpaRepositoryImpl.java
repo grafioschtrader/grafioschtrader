@@ -1,7 +1,6 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,10 +11,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.MailInboxWithSend;
 import grafioschtrader.entities.MailSendRecv;
-import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.MailSendRecvJpaRepository.CountRoleSend;
-import grafioschtrader.types.ReplyToRolePrivateType;
+import grafioschtrader.service.SendMailInternalExternalService;
 import grafioschtrader.types.SendRecvType;
 
 public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryCustom {
@@ -28,6 +26,9 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
 
   @Autowired
   private MailSendRecvReadDelJpaRepository mailSendRecvReadDelJpaRepository;
+
+  @Autowired
+  private SendMailInternalExternalService sendMailInternalExternalService;
 
   @Override
   public MailInboxWithSend getMailsByUserOrRole() {
@@ -43,7 +44,7 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     mailSendRecvReadDelJpaRepository.markForRead(idMailSendRecv, user.getIdUser());
     MailSendRecv mailSendRecv = mailSendRecvJpaRepository.getReferenceById(idMailSendRecv);
-    connectRoleNameToMail(mailSendRecv);
+    sendMailInternalExternalService.connectRoleNameToMail(mailSendRecv);
     mailSendRecv.setHasBeenRead(true);
     return mailSendRecv;
   }
@@ -83,58 +84,16 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
     }
   }
 
-  @Override
-  public Integer sendInternalMail(Integer idUserFrom, Integer idUserTo, String subject, String message) {
-    return this.sendInternalMail(idUserFrom, idUserTo, null, subject, message, null,
-        ReplyToRolePrivateType.REPLY_NORMAL);
-
-  }
-
-  @Override
-  public Integer sendInternalMail(Integer idUserFrom, Integer idUserTo, String roleName, String subject, String message,
-      Integer idReplyToLocal, ReplyToRolePrivateType replyToRolePrivate) {
-    return saveInternalMail(idUserFrom, idUserTo, roleName, subject, message, idReplyToLocal, replyToRolePrivate)
-        .getIdMailSendRecv();
-  }
-
-  private MailSendRecv saveInternalMail(Integer idUserFrom, Integer idUserTo, String roleName, String subject,
-      String message, Integer idReplyToLocal, ReplyToRolePrivateType replyToRolePrivate) {
-    MailSendRecv mailSendRecvS = new MailSendRecv(SendRecvType.SEND, idUserFrom, idUserTo, roleName, subject, message,
-        idReplyToLocal, replyToRolePrivate);
-    setIdRoleToFromRoleName(mailSendRecvS);
-    mailSendRecvS = mailSendRecvJpaRepository.save(mailSendRecvS);
-    MailSendRecv mailSendRecvR = new MailSendRecv(SendRecvType.RECEIVE, idUserFrom, idUserTo, roleName, subject,
-        message, mailSendRecvS.getIdReplyToLocal() == null ? mailSendRecvS.getIdMailSendRecv()
-            : mailSendRecvS.getIdReplyToLocal(),
-        replyToRolePrivate);
-    mailSendRecvR.setIdRoleTo(mailSendRecvS.getIdRoleTo());
-    return mailSendRecvJpaRepository.save(mailSendRecvR);
-
-  }
-
+  /**
+   * This message comes in via the REST API and needs additional validation.
+   */
   @Override
   public MailSendRecv saveOnlyAttributes(MailSendRecv mailSendRecv, MailSendRecv existingMailSendRecv,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
-    MailSendRecv mailSendRecvS = saveInternalMail(mailSendRecv.getIdUserFrom(), mailSendRecv.getIdUserTo(),
-        mailSendRecv.getRoleNameTo(), mailSendRecv.getSubject(), mailSendRecv.getMessage(),
-        mailSendRecv.getIdReplyToLocal(), isRoleReplySend(mailSendRecv));
-    connectRoleNameToMail(mailSendRecvS);
-    return mailSendRecvS;
+    return sendMailInternalExternalService.sendFromRESTApiMultiSingle(mailSendRecv);
   }
 
-  private ReplyToRolePrivateType isRoleReplySend(MailSendRecv mailSendRecv) {
-    if (mailSendRecv.getIdReplyToLocal() != null && (mailSendRecv.getReplyToRolePrivate() != null
-        && mailSendRecv.getReplyToRolePrivate() != ReplyToRolePrivateType.REPLY_IS_PRIVATE
-        || mailSendRecv.getReplyToRolePrivate() == null)) {
-      Optional<MailSendRecv> groupMsr = mailSendRecvJpaRepository.findById(mailSendRecv.getIdReplyToLocal());
-      if (groupMsr.isPresent() && groupMsr.get().getIdRoleTo() != null) {
-        final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-        return user.hasIdRole(groupMsr.get().getIdRoleTo()) ? ReplyToRolePrivateType.REPLY_AS_ROLE
-            : mailSendRecv.getReplyToRolePrivate();
-      }
-    }
-    return mailSendRecv.getReplyToRolePrivate();
-  }
+ 
 
   @Override
   public Set<Class<? extends Annotation>> getUpdatePropertyLevels(MailSendRecv existingEntity) {
@@ -142,19 +101,6 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
     return null;
   }
 
-  private void connectRoleNameToMail(MailSendRecv mailSendRecv) {
-    if (mailSendRecv.getIdRoleTo() != null) {
-      List<Role> roles = roleJpaRepository.findAll();
-      roles.stream().filter(r -> r.getIdRole().equals(mailSendRecv.getIdRoleTo())).findFirst()
-          .ifPresent(r -> mailSendRecv.setRoleNameTo(r.getRolename()));
-    }
-  }
-
-  private void setIdRoleToFromRoleName(MailSendRecv mailSendRecv) {
-    if (mailSendRecv.getRoleNameTo() != null) {
-      Role role = roleJpaRepository.findByRolename(mailSendRecv.getRoleNameTo());
-      mailSendRecv.setIdRoleTo(role.getIdRole());
-    }
-  }
+ 
 
 }

@@ -60,7 +60,6 @@ export class AppSettings {
   public static readonly SECURITY_DIVIDEND_KEY = AppSettings.DIVIDEND.toLowerCase();
   public static readonly MAIL_SEND_RECV_KEY = AppSettings.MAIL_SEND_RECV.toLowerCase();
   public static readonly MAIL_SETTING_FORWARD_KEY = AppSettings.MAIL_SETTING_FORWARD.toLowerCase();
-  public static readonly MAIL_SHOW_MESSAGE_KEY = 'mailmessage';
   public static readonly USER_MESSAGE_KEY = 'usermessage';
   public static readonly WATCHLIST_TAB_MENU_KEY = 'wachtlistTabMenu';
   public static readonly WATCHLIST_PERFORMANCE_KEY = 'watchlistperformance';
@@ -190,8 +189,13 @@ export class AppSettings {
   public static readonly ROLE_USER = 'ROLE_USER';
   public static readonly ROLE_LIMIT_EDIT = 'ROLE_LIMITEDIT';
 
+  // This is not a real role. This is used to send a message to everyone.
+  public static readonly ROLE_EVERY_USER = 'ROLE_EVERY_USER';
+
+  // SVG file extension
   public static readonly SVG = '.svg';
 
+  // Some menu items reference a dialog. If this is the case, the menu item should end with "...".
   public static readonly DIALOG_MENU_SUFFIX = '...';
 
   public static readonly INSTRUMENT_HEADER = 'I';

@@ -263,9 +263,7 @@ import {
 } from './securitycurrency/component/security-historyquote-period-edit-table.component';
 import {HistoryquotePeriodService} from './securitycurrency/service/historyquote.period.service';
 import {HistoryquoteDeleteDialogComponent} from './historyquote/component/historyquote-delete-dialog.component';
-
 import {DragDropModule} from 'primeng/dragdrop';
-import {MailMessageComponent} from './mail/component/mail.message.component';
 import {MailSendDynamicComponent} from './shared/dynamicdialog/component/mail.send.dynamic.component';
 import {MailSendRecvService} from './mail/service/mail.send.recv.service';
 import {ScrollPanelModule} from 'primeng/scrollpanel';
@@ -341,7 +339,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     InstrumentYearPerformanceTableComponent, InstrumentStatisticsResultComponent, InstrumentAnnualisedReturnComponent,
     ImportTransactionEditTemplateComponent, ImportTransactionTemplateComponent, ImportTransactionTemplateTableComponent,
     IndicatorEditComponent, LimitTransactionRequestDynamicComponent, LoginComponent, LogoutReleaseRequestDynamicComponent,
-    SendRecvTreetableComponent, MailForwardSettingTableEditComponent, MailMessageComponent, MailSendDynamicComponent,
+    SendRecvTreetableComponent, MailForwardSettingTableEditComponent, MailSendDynamicComponent,
     MailForwardSettingTableComponent, MailForwardSettingEditComponent,
     MainDialogComponent, MainTreeComponent, MenubarComponent, MessageToastComponent, NicknameLangEditComponent,
     PasswordEditComponent, PortfolioCashaccountSummaryComponent, PortfolioEditComponent, PortfolioTabMenuComponent,

@@ -88,7 +88,7 @@ public interface RequestMappings {
   public static final String MAIL_SETTING_FORWARD_MAP = API + MAIL_SETTING_FORWARD;
   
   public static final String MAIL_SEMD_RECV = "mailsendrecv";
-  public static final String MAIL_SEMD_RECV_READ_MAP = API + MAIL_SEMD_RECV;
+  public static final String MAIL_SEMD_RECV_MAP = API + MAIL_SEMD_RECV;
  
   public static final String MULTIPLE_REQUEST_TO_ONE = "multiplerequesttoone";
   public static final String MULTIPLE_REQUEST_TO_ONE_MAP = API + MULTIPLE_REQUEST_TO_ONE;

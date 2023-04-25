@@ -32,8 +32,6 @@ public class GlobalConstants {
    * records.
    */
   public static final int ADMIN_ID_USER = 1;
-
- 
   
   /**
    * Normal precision for decimal numbers

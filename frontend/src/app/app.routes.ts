@@ -46,7 +46,6 @@ import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.pe
 import {
   SecurityHistoryquoteQualityTreetableComponent
 } from './securitycurrency/component/security.historyquote.quality.treetable.component';
-import {MailMessageComponent} from './mail/component/mail.message.component';
 import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
 import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
@@ -176,10 +175,6 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.HISTORYQUOTE_P_KEY, component: HistoryquoteTableComponent, outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
-      },
-      {
-        path: AppSettings.MAIL_SHOW_MESSAGE_KEY, component: MailMessageComponent,
-        outlet: AppSettings.MAIN_BOTTOM, canActivate: [authGuard]
       },
       {path: AppSettings.STRATEGY_OVERVIEW_KEY, component: StrategyOverviewComponent, canActivate: [authGuard]},
       {path: AppSettings.ALGO_TOP_KEY + '/:id', component: AlgoTopDataViewComponent, canActivate: [authGuard]},
