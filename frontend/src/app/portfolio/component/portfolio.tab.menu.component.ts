@@ -8,6 +8,9 @@ import {Portfolio} from '../../entities/portfolio';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {GlobalSessionNames} from '../../shared/global.session.names';
 
+/**
+ * Component for the tab menu of a single portfolio.
+ */
 @Component({
   template: `
       <p-tabMenu [model]="items" [activeItem]="items[idActiveItem]"></p-tabMenu>

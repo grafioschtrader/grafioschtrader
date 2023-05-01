@@ -20,7 +20,7 @@ export class MailSendRecv implements BaseID {
   message: string;
   idReplyToLocal: number;
   idReplyToRemote: number;
-  replyToRolePrivate: ReplyToRolePrivateType;
+  replyToRolePrivate: ReplyToRolePrivateType | string;
   sendRecvTime: Date;
   roleNameTo: string;
   hasBeenRead: boolean;
