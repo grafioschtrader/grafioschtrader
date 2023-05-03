@@ -15,6 +15,7 @@ public interface MailSendRecvJpaRepository
 
   MailSendRecv findFirstByIdReplyToLocalOrderByIdMailSendRecv(Integer idReplyToLocal);
   
+   
   @Query(nativeQuery = true)
   void deleteByIdReplyToLocalAndIdUser(Integer idReplyToLocal, Integer idUser);
   

@@ -22,9 +22,6 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
   private MailSendRecvJpaRepository mailSendRecvJpaRepository;
 
   @Autowired
-  private RoleJpaRepository roleJpaRepository;
-
-  @Autowired
   private MailSendRecvReadDelJpaRepository mailSendRecvReadDelJpaRepository;
 
   @Autowired
@@ -38,6 +35,7 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
             .collect(Collectors.toMap(CountRoleSend::getIdReplyToLocal, CountRoleSend::getNumberOfAnswer)));
     return mws;
   }
+  
 
   @Override
   public MailSendRecv markForRead(Integer idMailSendRecv) {
@@ -90,16 +88,16 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
   @Override
   public MailSendRecv saveOnlyAttributes(MailSendRecv mailSendRecv, MailSendRecv existingMailSendRecv,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
-    return sendMailInternalExternalService.sendFromRESTApiMultiSingle(mailSendRecv);
+    return sendMailInternalExternalService.sendFromRESTApiMultiOrSingle(mailSendRecv);
+  }
+  
+ 
+  @Override
+  public Set<Class<? extends Annotation>> getUpdatePropertyLevels(MailSendRecv existingEntity) {
+    return null;
   }
 
  
-
-  @Override
-  public Set<Class<? extends Annotation>> getUpdatePropertyLevels(MailSendRecv existingEntity) {
-    // TODO Auto-generated method stub
-    return null;
-  }
 
  
 

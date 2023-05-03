@@ -9,6 +9,7 @@ import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
 @Injectable()
 export class UserAdminService extends AuthServiceWithLogout<User> implements DeleteService, ServiceEntityUpdate<User> {
@@ -24,6 +25,12 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
 
   public getUserByIdUser(idUser: number): Observable<User> {
     return <Observable<User>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/${idUser}`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  public getIdUserAndNicknameExcludeMe(): Observable<ValueKeyHtmlSelectOptions[]> {
+    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(
+      `${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/idnicknameexcludeme`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

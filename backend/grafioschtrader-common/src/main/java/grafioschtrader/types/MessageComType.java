@@ -17,6 +17,8 @@ public enum MessageComType {
   USER_SECURITY_MISSING_DIV_INTEREST((byte) 2),
   // Administrator has sent a message to all
   USER_ADMIN_ANNOUNCEMENT((byte) 3),
+  // Administrator has sent a personal message
+  USER_ADMIN_PERSONAL_TO_USER((byte) 4),
   // User received a proposed change of the shared data
   USER_RECEIVED_PROPOSED_CHANGE((byte) 8),
   // Maybe a historical data provider is not working anymore

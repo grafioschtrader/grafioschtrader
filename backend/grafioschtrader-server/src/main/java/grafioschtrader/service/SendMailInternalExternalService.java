@@ -61,20 +61,62 @@ public class SendMailInternalExternalService {
   /**
    * This message comes in via the REST API and needs additional validation.
    */
-  public MailSendRecv sendFromRESTApiMultiSingle(MailSendRecv mailSendRecv) throws Exception {
+  public MailSendRecv sendFromRESTApiMultiOrSingle(MailSendRecv mailSendRecv) throws Exception {
 
-    final User fromUser = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    if ((Role.ROLE_LIMIT_EDIT.equals(mailSendRecv.getRoleNameTo())
-        || Role.ROLE_USER.equals(mailSendRecv.getRoleNameTo()) || ROLE_EVERY_USER.equals(mailSendRecv.getRoleNameTo()))
-        && fromUser.getMostPrivilegedRole() != Role.ROLE_ADMIN) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
-    }
-
+    boolean isAdmin = checkForSecurityPolice(mailSendRecv);
     if (ROLE_EVERY_USER.equals(mailSendRecv.getRoleNameTo())) {
       sendExternalAdminMessageToEveryUser(mailSendRecv);
       return sendInternalAdminMessageToEveryUser(mailSendRecv);
     } else {
+      MessageComType mct = isAdmin && mailSendRecv.getIdReplyToLocal() == null && mailSendRecv.getIdRoleTo() == null
+          ? MessageComType.USER_ADMIN_PERSONAL_TO_USER
+          : null;
+      if (mct != null) {
+        sendMailInternAndOrExternal(mailSendRecv.getIdUserFrom(), mailSendRecv.getIdUserTo(), mailSendRecv.getSubject(),
+            false, mailSendRecv.getMessage(), mct, false);
+      }
       return sendFromRESTApi(mailSendRecv);
+    }
+  }
+
+  private boolean checkForSecurityPolice(MailSendRecv mailSendRecv) {
+    final User fromUser = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    boolean isAdmin = fromUser.getMostPrivilegedRole() == Role.ROLE_ADMIN;
+    if ((Role.ROLE_LIMIT_EDIT.equals(mailSendRecv.getRoleNameTo())
+        || Role.ROLE_USER.equals(mailSendRecv.getRoleNameTo()) || ROLE_EVERY_USER.equals(mailSendRecv.getRoleNameTo()))
+        && !isAdmin) {
+      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+    }
+    // this.initialMsgUserToUserSecurityCheck(mailSendRecv, fromUser, isAdmin);
+    return isAdmin;
+  }
+
+  /**
+   * This test cannot be performed. Because it must be possible that a user sends
+   * an initial message to a user if it is related to entity. For example, a
+   * message to the creator of a security. Maybe the information class and entity
+   * ID should also be transferred and checked in such a scenario?
+   */
+  private void initialMsgUserToUserSecurityCheck(MailSendRecv mailSendRecv, User fromUser, boolean isAdmin) {
+    if (!isAdmin && mailSendRecv.getIdUserTo() != null) {
+      if (mailSendRecv.getIdReplyToLocal() == null) {
+        // Initial message from user to user only possible for admin
+        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      } else {
+        Optional<MailSendRecv> initialMsgOpt = mailSendRecvJpaRepository.findById(mailSendRecv.getIdReplyToLocal());
+        if (initialMsgOpt.isEmpty()) {
+          // Initial message must be present otherwise misuse is possible
+          throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        } else {
+          MailSendRecv initialMsg = initialMsgOpt.get();
+          if (!(initialMsg.getIdUserFrom().equals(fromUser.getId()) || fromUser.getId().equals(initialMsg.getIdUserTo())
+              || (initialMsg.getIdRoleTo() != null && fromUser.hasIdRole(initialMsg.getIdRoleTo())))) {
+            // There is no connection of this user with the initial messages.
+            // Neither via the sender nor the receiver or the receiver role.
+            throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+          }
+        }
+      }
     }
   }
 
@@ -83,13 +125,12 @@ public class SendMailInternalExternalService {
         MessageComType.USER_ADMIN_ANNOUNCEMENT.getValue(), MessageTargetType.INTERNAL_MAIL.getValue());
     Map<String, List<EMailLocale>> emailsPerLocale = targetEmails.stream()
         .collect(Collectors.groupingBy(EMailLocale::getLocale));
-    for (String localeStr: emailsPerLocale.keySet()) {
+    for (String localeStr : emailsPerLocale.keySet()) {
       List<EMailLocale> emailList = emailsPerLocale.get(localeStr);
       String[] usersTo = emailList.stream().map(e -> e.getEmail()).toArray(String[]::new);
-      sendExternal(MessageTargetType.EXTERNAL_MAIL, mailSendRecv.getIdUserFrom(), mailSendRecv.getSubject(), mailSendRecv.getMessage(),
-          usersTo, localeStr);
+      sendExternal(MessageTargetType.EXTERNAL_MAIL, mailSendRecv.getIdUserFrom(), mailSendRecv.getSubject(),
+          mailSendRecv.getMessage(), usersTo, localeStr);
     }
-    
   }
 
   private MailSendRecv sendInternalAdminMessageToEveryUser(MailSendRecv mailSendRecv)
@@ -146,7 +187,8 @@ public class SendMailInternalExternalService {
       MessageComType messageComType) throws MessagingException {
     Optional<User> userOpt = userJpaRepository.findByEmail(mainUserAdminMail);
     if (userOpt.isPresent()) {
-      return sendMailInternOrExternal(idUserFrom, userOpt.get().getIdUser(), subjectKey, true, message, messageComType);
+      return sendMailInternAndOrExternal(idUserFrom, userOpt.get().getIdUser(), subjectKey, true, message,
+          messageComType, true);
     }
     return null;
   }
@@ -162,9 +204,9 @@ public class SendMailInternalExternalService {
    * @return
    * @throws MessagingException
    */
-  public Integer sendMailInternOrExternal(Integer idUserFrom, Integer idUserTo, String subject, String message,
+  public Integer sendMailInternAndOrExternal(Integer idUserFrom, Integer idUserTo, String subject, String message,
       MessageComType messageComType) throws MessagingException {
-    return sendMailInternOrExternal(idUserFrom, idUserTo, subject, false, message, messageComType);
+    return sendMailInternAndOrExternal(idUserFrom, idUserTo, subject, false, message, messageComType, true);
   }
 
   public Integer sendInternalMail(Integer idUserFrom, Integer idUserTo, String subject, String message) {
@@ -199,8 +241,9 @@ public class SendMailInternalExternalService {
     }
   }
 
-  private Integer sendMailInternOrExternal(Integer idUserFrom, Integer idUserTo, String subjectOrSubjectKey,
-      boolean isSubjectKey, String message, MessageComType messageComType) throws MessagingException {
+  private Integer sendMailInternAndOrExternal(Integer idUserFrom, Integer idUserTo, String subjectOrSubjectKey,
+      boolean isSubjectKey, String message, MessageComType messageComType, boolean includeInternalMail)
+      throws MessagingException {
     Optional<MailSettingForward> msfOpt = mailSettingForwardJpaRepository.findByIdUserAndMessageComType(idUserTo,
         messageComType.getValue());
     Integer idMailSendRecv = null;
@@ -213,8 +256,8 @@ public class SendMailInternalExternalService {
       User userTo = userJpaRepository.findById(idUserTo).get();
       String subject = getSubject(userTo, subjectOrSubjectKey, isSubjectKey);
 
-      if (msgTargetType == MessageTargetType.INTERNAL_MAIL
-          || msgTargetType == MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL) {
+      if (includeInternalMail && (msgTargetType == MessageTargetType.INTERNAL_MAIL
+          || msgTargetType == MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL)) {
         idMailSendRecv = sendInternalMail(idUserFrom, idUserTo, subject, message);
       }
       sendExternal(msgTargetType, idUserFrom, subject, message, new String[] { userTo.getUsername() },

@@ -196,6 +196,8 @@ button.p-button.button-no-label > span.p-button-label {
   background: lightgoldenrodyellow !important;
 }
 
+
+
 .blank_row {
   height: 12px !important; /* overwrites any other rules */
   background-color: #FFFFFF;

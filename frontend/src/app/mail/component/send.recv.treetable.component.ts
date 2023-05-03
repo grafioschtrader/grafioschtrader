@@ -25,57 +25,61 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
+      <div class="data-container" (click)="onComponentClick($event)"
+           #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
-      <p-treeTable [value]="sendRecvRootNode" [columns]="fields" dataKey="idMailSendRecv"
-                   selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)"
-                   styleClass="p-treetable-gridlines">
-        <ng-template pTemplate="caption">
-          <div style="text-align:left">
-            <h5>{{"MAIL_TO_FROM" | translate}} {{gps.getIdUser()}}, {{"MOST_PRIVILEGED_ROLE" | translate}}
-              : {{gps.getMostPrivilegedRole() | translate}}</h5>
-          </div>
-        </ng-template>
+          <p-treeTable [value]="sendRecvRootNode" [columns]="fields" dataKey="idMailSendRecv"
+                       selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)"
+                       sortField="sendRecvTime" [sortOrder]="sortOrder" styleClass="p-treetable-gridlines">
+              <ng-template pTemplate="caption">
+                  <div style="text-align:left">
+                      <h5>{{"MAIL_TO_FROM" | translate}} {{gps.getIdUser()}}, {{"MOST_PRIVILEGED_ROLE" | translate}}
+                          : {{gps.getMostPrivilegedRole() | translate}}</h5>
+                  </div>
+              </ng-template>
 
-        <ng-template pTemplate="header" let-fields>
-          <tr>
-            <th *ngFor="let field of fields" [ttSortableColumn]="field.field" [style.width.px]="field.width"
-                [pTooltip]="field.headerTooltipTranslated">
-              {{field.headerTranslated}}
-              <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
-            </th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
-          <tr [ttSelectableRow]="rowNode">
-            <td *ngFor="let field of fields; let i = index"
-                [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+              <ng-template pTemplate="header" let-fields>
+                  <tr>
+                      <th *ngFor="let field of fields" [ttSortableColumn]="field.field" [style.width.px]="field.width"
+                          [pTooltip]="field.headerTooltipTranslated">
+                          {{field.headerTranslated}}
+                          <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
+                      </th>
+                  </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+                  <tr [ngClass]="rowNode.level === 0 && rowNode.node?.children.length > 0 ? 'row-total' : null"
+                      [ttSelectableRow]="rowNode">
+                      <td *ngFor="let field of fields; let i = index"
+                          [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
               || field.dataType===DataType.DateTimeNumeric)}">
-              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'check'">
-                  <span><i [ngClass]="{'fa fa-check': getValueByPath(rowData, field)}" aria-hidden="true"></i></span>
-                </ng-container>
-                <ng-container *ngSwitchCase="'icon'">
-                  <svg-icon [name]="getValueByPath(rowData, field)"
-                            [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  {{getValueByPath(rowData, field)}}
-                </ng-container>
-              </ng-container>
-            </td>
-          </tr>
-        </ng-template>
-      </p-treeTable>
-      <textarea [rows]="15" pInputTextarea readonly="true">{{selectedNode? selectedNode.data.message: ""}}</textarea>
+                          <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+                          <ng-container [ngSwitch]="field.templateName">
+                              <ng-container *ngSwitchCase="'check'">
+                                  <span><i [ngClass]="{'fa fa-check': getValueByPath(rowData, field)}"
+                                           aria-hidden="true"></i></span>
+                              </ng-container>
+                              <ng-container *ngSwitchCase="'icon'">
+                                  <svg-icon [name]="getValueByPath(rowData, field)"
+                                            [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+                              </ng-container>
+                              <ng-container *ngSwitchDefault>
+                                  {{getValueByPath(rowData, field)}}
+                              </ng-container>
+                          </ng-container>
+                      </td>
+                  </tr>
+              </ng-template>
+          </p-treeTable>
+          <textarea [rows]="15" pInputTextarea
+                    readonly="true">{{selectedNode ? selectedNode.data.message : ""}}</textarea>
 
-      <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length > 0 && isActivated()" [model]="contextMenuItems"
-                     [target]="cmDiv"
-                     appendTo="body">
-      </p-contextMenu>
-    </div>
+          <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length > 0 && isActivated()"
+                         [model]="contextMenuItems"
+                         [target]="cmDiv"
+                         appendTo="body">
+          </p-contextMenu>
+      </div>
   `,
   styles: ['textarea { width:100%; }'],
   providers: [DialogService]
@@ -88,15 +92,17 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     ['C']: 'download'
   };
   replyMenuItem: MenuItem = {label: 'REPLY', command: (event) => this.reply()};
-  sendToAdminMenuItem: MenuItem = {label: 'SEND_TO_GROUP', command: (event) => this.sendToGroup()};
   deleteMenuItem: MenuItem = {label: 'DELETE', command: (event) => this.deleteSingleOrGroup()};
   deleteGroupMenuItem: MenuItem = {label: 'DELETE_MAIL_GROUP', command: (event) => this.deleteSingleOrGroup()};
+  sendToUserRoleMenuItem: MenuItem = {label: 'SEND_TO_USER_ROLE', command: (event) => this.sendToUserRoleOrUser()};
+  sendToUserMenuItem: MenuItem = {label: 'SEND_TO_USER', command: (event) => this.sendToUserRoleOrUser(-1)};
 
   private static iconLoadDone = false;
 
   sendRecvRootNode: TreeNode[] = [];
   contextMenuItems: MenuItem[];
   selectedNode: TreeNode;
+  sortOrder = -1;
   private sendRecvParentMap: { [idMailInOut: number]: TreeNode } = {};
 
   constructor(private sendRecvService: MailSendRecvService,
@@ -120,8 +126,8 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     this.addColumnFeqH(DataType.NumericInteger, 'numberOfAnswer', true, false, {width: 60});
     this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false,
       {templateName: 'check', width: 60});
-    TranslateHelper.translateMenuItems([this.replyMenuItem, this.sendToAdminMenuItem, this.deleteMenuItem,
-      this.deleteGroupMenuItem], translateService);
+    TranslateHelper.translateMenuItems([this.replyMenuItem, this.sendToUserRoleMenuItem, this.deleteMenuItem,
+      this.deleteGroupMenuItem].concat(this.gps.hasRole(AppSettings.ROLE_ADMIN) ? [this.sendToUserMenuItem] : []), translateService);
     this.translateHeadersAndColumns();
   }
 
@@ -190,7 +196,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   getSendRecvIcon(entity: MailSendRecv, field: ColumnConfig,
                   valueField: any): string {
     return entity.idUserTo && (entity.idUserTo !== this.gps.getIdUser() && entity.sendRecv === SendRecvType.RECEIVE
-     || entity.idUserFrom !== this.gps.getIdUser() && entity.sendRecv === SendRecvType.SEND)?
+      || entity.idUserFrom !== this.gps.getIdUser() && entity.sendRecv === SendRecvType.SEND) ?
       SendRecvTreetableComponent.createSendRecvIconMap['C']
       : SendRecvTreetableComponent.createSendRecvIconMap[entity.sendRecv];
   }
@@ -207,9 +213,9 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     });
   }
 
-  sendToGroup(): void {
+  sendToUserRoleOrUser(idUser?: number): void {
     DynamicDialogHelper.getOpenedMailSendComponent(this.translateService, this.dialogService,
-      new MailSendParam(null)).onClose.subscribe((mailSendRecv: MailSendRecv) => {
+      new MailSendParam(idUser)).onClose.subscribe((mailSendRecv: MailSendRecv) => {
       mailSendRecv && this.readData();
     });
   }
@@ -242,7 +248,8 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   }
 
   private prepareEditMenu(): MenuItem[] {
-    const menuItems: MenuItem[] = [this.sendToAdminMenuItem];
+    const menuItems: MenuItem[] = [this.sendToUserRoleMenuItem].concat(this.gps.hasRole(AppSettings.ROLE_ADMIN) ?
+      [this.sendToUserMenuItem] : []);
     if (this.selectedNode) {
       if (this.selectedNode.data.sendRecv === SendRecvType.RECEIVE) {
         menuItems.push(this.replyMenuItem);

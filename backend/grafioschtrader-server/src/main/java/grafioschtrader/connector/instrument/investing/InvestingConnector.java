@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.IConnectorNames;
@@ -94,7 +95,8 @@ public class InvestingConnector extends BaseFeedConnector {
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-    final Connection investingConnection = Jsoup.connect(getCurrencypairIntradayDownloadLink(currencypair));
+    final Connection investingConnection = Jsoup.connect(getCurrencypairIntradayDownloadLink(currencypair))
+        .followRedirects(true).userAgent(GlobalConstants.USER_AGENT);
     updateSecuritycurrency(currencypair, investingConnection);
   }
 
@@ -105,7 +107,8 @@ public class InvestingConnector extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final Connection investingConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
+    final Connection investingConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security))
+        .followRedirects(true).userAgent(GlobalConstants.USER_AGENT);
     updateSecuritycurrency(security, investingConnection);
   }
 

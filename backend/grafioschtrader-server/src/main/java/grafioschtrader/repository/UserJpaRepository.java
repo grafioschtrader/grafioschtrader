@@ -30,6 +30,10 @@ public interface UserJpaRepository
       WHERE u.id_tenant IS NULL AND v.expiry_date < NOW()""", nativeQuery = true)
   void removeWithExpiredVerificationToken();
 
+  @Query(value = "SELECT u.id_user AS idUser, u.nickname FROM user u WHERE u.id_user != ?1", nativeQuery = true)
+  List<IdUserAndNickname> getIdUserAndNicknameExcludeUser(Integer idUser);
+ 
+  
   @Query(value = "SELECT id_Tenant FROM user WHERE email REGEXP ?1", nativeQuery = true)
   Integer[] findIdTenantByMailPattern(String mailPattern);
 
@@ -42,14 +46,15 @@ public interface UserJpaRepository
   
   @Query(nativeQuery = true)
   List<EMailLocale> getEmailExcludeWhenMsgComTypeAndTargetTypeExists(Byte messageComType, Byte messageTargetType);
-  
-  public interface IdUserAndNickname {
-    int getIdUser();
-    String getNickname();
-  }
+   
   
   public interface EMailLocale {
     String getEmail();
     String getLocale();
+  }
+  
+  public interface IdUserAndNickname {
+    int getIdUser();
+    String getNickname();
   }
 }

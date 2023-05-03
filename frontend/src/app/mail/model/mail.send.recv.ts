@@ -20,7 +20,7 @@ export class MailSendRecv implements BaseID {
   message: string;
   idReplyToLocal: number;
   idReplyToRemote: number;
-  replyToRolePrivate: ReplyToRolePrivateType | string;
+  replyToRolePrivate: ReplyToRolePrivateType | string | number;
   sendRecvTime: Date;
   roleNameTo: string;
   hasBeenRead: boolean;
@@ -66,6 +66,7 @@ export enum MessageComType {
   USER_SECURITY_HELD_INACTIVE = 1,
   USER_SECURITY_MISSING_DIV_INTEREST = 2,
   USER_ADMIN_ANNOUNCEMENT = 3,
+  USER_ADMIN_PERSONAL_TO_USER = 4,
   USER_RECEIVED_PROPOSED_CHANGE = 8,
   MAIN_ADMIN_HISTORY_PROVIDER_NOT_WORKING= 50,
   MAIN_ADMIN_RELEASE_LOGOUT = 51

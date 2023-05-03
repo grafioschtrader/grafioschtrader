@@ -107,7 +107,7 @@ public class CheckInactiveSecurityAndDividendeInterest implements ITask {
       List<String> msgException, Integer idUser) {
     try {
       String subject = messageSource.getMessage(msg + ".subject", null, locale);
-      Integer idMailSendRecv = sendMailInternalExternalService.sendMailInternOrExternal(0, idUser, subject,
+      Integer idMailSendRecv = sendMailInternalExternalService.sendMailInternAndOrExternal(0, idUser, subject,
           compoundMsg.toString(), MessageComType.USER_SECURITY_MISSING_DIV_INTEREST);
       if (idMailSendRecv != null) {
         mailEntityList.forEach(me -> me.setIdMailSendRecv(idMailSendRecv));

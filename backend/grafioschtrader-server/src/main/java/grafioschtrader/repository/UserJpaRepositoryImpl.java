@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -18,7 +19,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;
@@ -35,8 +39,6 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
 
   @Autowired
   private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
-
-  
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -91,6 +93,19 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
     String url = jdbcTemplate.getDataSource().getConnection().getMetaData().getURL();
     String databaseName = StringUtils.substringAfterLast(url, "/");
     return userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser, databaseName);
+  }
+  
+  @Override
+  public List<ValueKeyHtmlSelectOptions> getIdUserAndNicknameExcludeMe() {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    List<ValueKeyHtmlSelectOptions> vkhsoList = new ArrayList<>();
+    if(user.getMostPrivilegedRole() == Role.ROLE_ADMIN) {
+      userJpaRepository.getIdUserAndNicknameExcludeUser(user.getIdUser()).forEach(
+          rs -> vkhsoList.add(new ValueKeyHtmlSelectOptions(String.valueOf(rs.getIdUser()), rs.getIdUser() + " - " + rs.getNickname())));;
+    } else {
+      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);  
+    }
+    return vkhsoList;
   }
 
 }

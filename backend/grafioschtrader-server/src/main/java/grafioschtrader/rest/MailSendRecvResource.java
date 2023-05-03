@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafioschtrader.dto.MailInboxWithSend;
 import grafioschtrader.entities.MailSendRecv;
 import grafioschtrader.repository.MailSendRecvJpaRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -25,17 +26,24 @@ public class MailSendRecvResource extends UpdateCreateResource<MailSendRecv> {
   @Autowired
   private MailSendRecvJpaRepository mailSendRecvJpaRepository;
   
- 
+  
+  @Operation(summary = "Returning the messages for the current user and his user role", description = "", tags = {
+      RequestMappings.MAIL_SEMD_RECV })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<MailInboxWithSend> getMailsByUserOrRole() {
     return new ResponseEntity<>(mailSendRecvJpaRepository.getMailsByUserOrRole(), HttpStatus.OK);
   }
-
+  
+  @Operation(summary = "Received messages can be marked as read", description = "", tags = {
+      RequestMappings.MAIL_SEMD_RECV })
   @PostMapping(value = "/{idMailSendRecv}/markforread", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<MailSendRecv> markForRead(@PathVariable final Integer idMailSendRecv) {
     return new ResponseEntity<>(mailSendRecvJpaRepository.markForRead(idMailSendRecv), HttpStatus.OK);
   }
 
+  @Operation(summary = "Delete or mark as deleted a single message or a message topic.", 
+      description = "The message topic or message will no longer appear to the user.", tags = {
+      RequestMappings.MAIL_SEMD_RECV })
   @DeleteMapping(value = "/{idMailSendRecv}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> hideDeleteResource(@PathVariable final Integer idMailSendRecv) {
     mailSendRecvJpaRepository.hideDeleteResource(idMailSendRecv);
