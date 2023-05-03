@@ -21,7 +21,7 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Base class for mailing system. Mail also supports M2M on GT. Attention the
- * ID's of the role must be the same on all GT instances. systems.
+ * ID's of the role must be the same on all GT instances. 
  *
  */
 @Entity

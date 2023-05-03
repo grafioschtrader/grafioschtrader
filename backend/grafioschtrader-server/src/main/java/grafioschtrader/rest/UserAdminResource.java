@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.User.AdminModify;
@@ -72,6 +73,13 @@ public class UserAdminResource extends UpdateCreateResource<User> {
     return new ResponseEntity<>(userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser), HttpStatus.OK);
   }
 
+  
+  @GetMapping(value = "/idnicknameexcludeme", produces = APPLICATION_JSON_VALUE)
+  public List<ValueKeyHtmlSelectOptions> getIdUserAndNicknameExcludeMe() {
+    return userJpaRepository.getIdUserAndNicknameExcludeMe();
+  }
+  
+  
   @Override
   protected UpdateCreateJpaRepository<User> getUpdateCreateJpaRepository() {
     return userJpaRepository;

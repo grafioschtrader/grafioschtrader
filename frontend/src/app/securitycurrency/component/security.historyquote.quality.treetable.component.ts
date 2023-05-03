@@ -53,7 +53,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
             <td *ngFor="let field of fields; let i = index"
                 [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
               || field.dataType===DataType.DateTimeNumeric)}">
-              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
+              <p-treeTableToggler hidden [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
               {{getValueByPath(rowData, field)}}
             </td>
           </tr>
