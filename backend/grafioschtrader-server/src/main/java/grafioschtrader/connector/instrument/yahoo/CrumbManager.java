@@ -23,21 +23,15 @@ import org.slf4j.LoggerFactory;
 
 public class CrumbManager {
 
-  public static final String HISTQUOTES_BASE_URL = System.getProperty("yahoofinance.baseurl.histquotes", "https://ichart.yahoo.com/table.csv");
-  public static final String HISTQUOTES2_ENABLED = System.getProperty("yahoofinance.histquotes2.enabled", "true");
-  public static final String HISTQUOTES2_BASE_URL = System.getProperty("yahoofinance.baseurl.histquotes2", "https://query1.finance.yahoo.com/v7/finance/download/");
-  public static final String HISTQUOTES_QUERY2V8_BASE_URL = System.getProperty("yahoofinance.baseurl.histquotesquery2v8", "https://query2.finance.yahoo.com/v8/finance/chart/");
-  public static final String HISTQUOTES2_SCRAPE_URL = System.getProperty("yahoofinance.scrapeurl.histquotes2", "https://finance.yahoo.com/quote/%5EGSPC/options");
-  public static final String HISTQUOTES2_CRUMB_URL = System.getProperty("yahoofinance.crumburl.histquotes2", "https://query1.finance.yahoo.com/v1/test/getcrumb");
-  public static final String HISTQUOTES2_CRUMB = System.getProperty("yahoofinance.crumb", "");
-  public static final String HISTQUOTES2_COOKIE = System.getProperty("yahoofinance.cookie", "");
-  public static final String HISTQUOTES2_COOKIE_NAMESPACE = System.getProperty("yahoofinance.cookie.namespace", "yahoo");
-  public static final String HISTQUOTES2_COOKIE_AGREE = System.getProperty("yahoofinance.cookie.agree", "agree");
-  public static final String HISTQUOTES2_COOKIE_OATH_URL = System.getProperty("yahoofinance.cookie.oathurl", "https://guce.oath.com/consent");
-  public static final String HISTQUOTES2_COOKIE_OATH_HOST = System.getProperty("yahoofinance.cookie.oathhost", "guce.oath.com");
-  public static final String HISTQUOTES2_COOKIE_OATH_ORIGIN = System.getProperty("yahoofinance.cookie.oathorigin", "https://guce.oath.com");
-  public static final String HISTQUOTES2_COOKIE_OATH_DONEURL = System.getProperty("yahoofinance.cookie.oathDoneUrl", "https://guce.yahoo.com/copyConsent?sessionId=");
-  public static final int CONNECTION_TIMEOUT = 10000;
+  private static final String HISTQUOTES2_SCRAPE_URL = "https://finance.yahoo.com/quote/%5EGSPC/options";
+  private static final String HISTQUOTES2_CRUMB =  "";
+  private static final String HISTQUOTES2_COOKIE_NAMESPACE = "yahoo";
+  private static final String HISTQUOTES2_COOKIE_AGREE = "agree";
+  private static final String HISTQUOTES2_COOKIE_OATH_URL = "https://guce.oath.com/consent";
+  private static final String HISTQUOTES2_COOKIE_OATH_HOST = "guce.oath.com";
+  private static final String HISTQUOTES2_COOKIE_OATH_ORIGIN = "https://guce.oath.com";
+  private static final String HISTQUOTES2_COOKIE_OATH_DONEURL = "https://guce.yahoo.com/copyConsent?sessionId=";
+  private static final int CONNECTION_TIMEOUT = 10000;
   
   private final static Logger log = LoggerFactory.getLogger(CrumbManager.class);
 
@@ -153,12 +147,7 @@ public class CrumbManager {
   }
 
   private static void setCrumb() throws IOException {
-    if (HISTQUOTES2_CRUMB != null && !HISTQUOTES2_CRUMB.isEmpty()) {
-      crumb = HISTQUOTES2_CRUMB;
-      log.debug("Set crumb from system property: {}", crumb);
-      return;
-    }
-
+    
     URL crumbRequest = new URL("https://query1.finance.yahoo.com/v1/test/getcrumb");
     RedirectableRequest redirectableCrumbRequest = new RedirectableRequest(crumbRequest, 5);
     redirectableCrumbRequest.setConnectTimeout(CONNECTION_TIMEOUT);

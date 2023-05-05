@@ -85,7 +85,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
-  private static final String DOMAIN_NAME_WITH_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
+  private static final String DOMAIN_NAME_WITH_6_VERSION = "https://query1.finance.yahoo.com/v6/finance/";
+  private static final String DOMAIN_NAME_WITH_7_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
   private static final String CRUMB = "&crumb=";
   private static boolean USE_OLD_CRUMB = false;
 
@@ -105,7 +106,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return DOMAIN_NAME_WITH_VERSION + "quote?symbols=" + security.getUrlIntraExtend();
+    return DOMAIN_NAME_WITH_6_VERSION + "quote?symbols=" + security.getUrlIntraExtend();
   }
 
   @Override
@@ -136,7 +137,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return DOMAIN_NAME_WITH_VERSION + "quote?symbols=" + getCurrencyPairSymbol(currencypair);
+    return DOMAIN_NAME_WITH_6_VERSION + "quote?symbols=" + getCurrencyPairSymbol(currencypair);
   }
 
   @Override
@@ -171,13 +172,18 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private <T extends Securitycurrency<T>> void readAndsetQuoteResult(String urlStr, final T securitycurrency) throws StreamReadException, DatabindException, MalformedURLException, IOException {
-    try {
-      final Quote quote = objectMapper.readValue(new URL(urlStr + addCrumb(false)), Quote.class);
-      setQuoteResult(quote, securitycurrency);
-    } catch (IOException e) {
-      urlStr = urlStr.replaceFirst(CRUMB + ".*", Pattern.quote(addCrumb(true)));
+    if(urlStr.startsWith(DOMAIN_NAME_WITH_6_VERSION)) {
       final Quote quote = objectMapper.readValue(new URL(urlStr), Quote.class);
       setQuoteResult(quote, securitycurrency);
+    } else {
+      try {
+        final Quote quote = objectMapper.readValue(new URL(urlStr + addCrumb(false)), Quote.class);
+        setQuoteResult(quote, securitycurrency);
+      } catch (IOException e) {
+        urlStr = urlStr.replaceFirst(CRUMB + ".*", Pattern.quote(addCrumb(true)));
+        final Quote quote = objectMapper.readValue(new URL(urlStr), Quote.class);
+        setQuoteResult(quote, securitycurrency);
+      }  
     }
   }
   
@@ -270,7 +276,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
     List<Historyquote> historyquotes = null;
     String url = String.format(
-        DOMAIN_NAME_WITH_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s", symbol,
+        DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s", symbol,
         startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60, crumb);
     if (crumb != null) {
       url += url + "&crumb" + crumb;
@@ -402,7 +408,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, String event, String crumb) {
     return String.format(
-        DOMAIN_NAME_WITH_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=" + event
+        DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=" + event
             + "&includeAdjustedClose=true&crumb=%s",
         symbol, DateHelper.LocalDateToEpocheSeconds(fromDate), new Date().getTime() / 1000 + 23 * 60 * 60, crumb);
   }
