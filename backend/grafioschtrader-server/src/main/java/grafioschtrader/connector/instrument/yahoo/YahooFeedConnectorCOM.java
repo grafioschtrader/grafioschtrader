@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
@@ -40,6 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.exc.StreamReadException;
+import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -82,7 +86,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
   private static final String DOMAIN_NAME_WITH_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
-  private static boolean USE_CRUMB = false;
+  private static final String CRUMB = "&crumb=";
+  private static boolean USE_OLD_CRUMB = false;
 
   static {
     supportedFeed = new HashMap<>();
@@ -108,14 +113,25 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     return 900;
   }
 
+  private String addCrumb(boolean refresh) {
+    try {
+      if(refresh) {
+        CrumbManager.refresh();  
+      }
+      return CRUMB + CrumbManager.getCrumb();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
+
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
 
     // https://query1.finance.yahoo.com/v7/finance/quote?symbols=DBK.DE
 
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    final URL url = new URL(getSecurityIntradayDownloadLink(security));
-    setQuoteResult(url, security);
+    readAndsetQuoteResult(getSecurityIntradayDownloadLink(security), security);
   }
 
   @Override
@@ -127,8 +143,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
     // https://query1.finance.yahoo.com/v7/finance/quote?symbols=USDGBP=X
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    final URL url = new URL(getCurrencypairIntradayDownloadLink(currencypair));
-    setQuoteResult(url, currencypair);
+    readAndsetQuoteResult(getCurrencypairIntradayDownloadLink(currencypair), currencypair);
   }
 
   @Override
@@ -155,9 +170,19 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   }
 
-  private <T extends Securitycurrency<T>> void setQuoteResult(final URL url, final T securitycurrency)
-      throws IOException {
-    final Quote quote = objectMapper.readValue(url, Quote.class);
+  private <T extends Securitycurrency<T>> void readAndsetQuoteResult(String urlStr, final T securitycurrency) throws StreamReadException, DatabindException, MalformedURLException, IOException {
+    try {
+      final Quote quote = objectMapper.readValue(new URL(urlStr + addCrumb(false)), Quote.class);
+      setQuoteResult(quote, securitycurrency);
+    } catch (IOException e) {
+      urlStr = urlStr.replaceFirst(CRUMB + ".*", Pattern.quote(addCrumb(true)));
+      final Quote quote = objectMapper.readValue(new URL(urlStr), Quote.class);
+      setQuoteResult(quote, securitycurrency);
+    }
+  }
+  
+
+  private <T extends Securitycurrency<T>> void setQuoteResult(final Quote quote, final T securitycurrency) {
     if (quote.quoteResponse.result.length == 1) {
       double divider = FeedConnectorHelper.getGBXLondonDivider(securitycurrency);
       final Result result = quote.quoteResponse.result[0];
@@ -172,7 +197,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         ((Security) securitycurrency).setSVolume(result.regularMarketVolume);
       }
     }
-
   }
 
   @Override
@@ -228,7 +252,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
-    if (USE_CRUMB) {
+    if (USE_OLD_CRUMB) {
 
       String crumb = getCrumb(symbol, client, context);
       if (crumb != null && !crumb.isEmpty()) {
@@ -417,11 +441,11 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         StandardCharsets.UTF_8);
 
     String crumb = null;
-    if (USE_CRUMB) {
+    if (USE_OLD_CRUMB) {
       crumb = getCrumb(symbol, client, context);
     }
 
-    if (!USE_CRUMB || USE_CRUMB && crumb != null && !crumb.isEmpty()) {
+    if (!USE_OLD_CRUMB || USE_OLD_CRUMB && crumb != null && !crumb.isEmpty()) {
       String url = this.getSplitHistoricalDownloadLink(symbol, fromDate, event, crumb);
       HttpGet request = new HttpGet(url);
       request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);

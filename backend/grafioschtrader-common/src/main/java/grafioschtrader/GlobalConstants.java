@@ -106,9 +106,13 @@ public class GlobalConstants {
    */
   public static final int TiME_MUST_HAVE_PASSED_SINCE_LAST_UPDATE_IN_MINUTES = 20 * 60;
 
-  public static final int MAX_LOGIN_ATTEMPT = 5;
   /**
-   * Time in milliseconds
+   * With this number of failed attempts for a user login, the user will be blocked. The IP address is taken. 
+   */
+  public static final int MAX_LOGIN_ATTEMPT = 5;
+  
+  /**
+   * Number of miliseconds an IP address is blocked from further user login attempts.
    */
   public static final int SUSPEND_IP_ADDRESS_TIME = 60 * 60 * 24 * 1000;
 
