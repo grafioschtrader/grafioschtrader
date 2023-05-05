@@ -14,6 +14,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.FieldError;
@@ -98,6 +99,12 @@ public class RestErrorHandler {
     return new ErrorWrapper(ex.limitEntityTransactionError);
   }
 
+  @ExceptionHandler(value = { InternalAuthenticationServiceException.class })
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public ErrorWrapper processDisabledException(final SecurityException ex) {
+    return new ErrorWrapper(new ErrorWithLogout(ex.getMessage()));
+  }
+  
   @ExceptionHandler(value = { SecurityException.class })
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ErrorWrapper processSecurityException(final SecurityException ex) {

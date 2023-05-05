@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import grafioschtrader.entities.User;
 import grafioschtrader.service.UserService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -37,10 +38,15 @@ public final class JwtTokenHandler {
   }
 
   Optional<UserDetails> parseUserFromToken(final String token) {
-    final Claims jwsClaims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
-        .getBody();
-    Integer userId = (Integer) jwsClaims.get(ID_USER);
-    return Optional.ofNullable(userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject()));
+    try {
+      final Claims jwsClaims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
+          .getBody();
+      Integer userId = (Integer) jwsClaims.get(ID_USER);
+      return Optional.ofNullable(userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject()));
+    } catch (ExpiredJwtException e) {
+      // TODO create new token
+      throw e;
+    }
   }
 
   public Integer getUserId(final String token) {
@@ -50,7 +56,7 @@ public final class JwtTokenHandler {
   }
 
   public String createTokenForUser(final UserDetails user) {
-    final ZonedDateTime afterOneWeek = ZonedDateTime.now().plusWeeks(1);
+    final ZonedDateTime afterOneWeek = ZonedDateTime.now().plusDays(1);
 
     List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
         .collect(Collectors.toList());

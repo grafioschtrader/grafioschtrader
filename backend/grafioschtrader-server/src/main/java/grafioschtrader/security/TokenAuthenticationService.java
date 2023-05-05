@@ -77,6 +77,7 @@ public class TokenAuthenticationService {
     if (token == null || token.isEmpty()) {
       return null;
     }
+   
     return jwtTokenHandler.parseUserFromToken(token).map(UserAuthentication::new).orElse(null);
   }
 

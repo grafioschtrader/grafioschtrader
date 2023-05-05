@@ -53,7 +53,6 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
   }
 
   private Bucket createNewBucket() {
-
     Bandwidth limitMinute = Bandwidth.classic(GlobalConstants.BANDWITH_MINUTE_BUCKET_SIZE,
         Refill.greedy(GlobalConstants.BANDWITH_MINUTE_REFILL, Duration.ofMinutes(1)));
     Bandwidth limitHour = Bandwidth.classic(GlobalConstants.BANDWITH_HOOUR_BUCKET_SIZE,
@@ -66,8 +65,8 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
       final FilterChain chain) throws IOException, ServletException {
 
     try {
-      // System.out.println(((HttpServletRequest) servletRequest).getRequestURL().toString());
-      
+  //    System.out.println(((HttpServletRequest) servletRequest).getServletPath());
+
       Authentication authentication = tokenAuthenticationService
           .generateAuthenticationFromRequest((HttpServletRequest) servletRequest);
       SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -77,7 +76,6 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
         } else {
           chain.doFilter(servletRequest, servletResponse);
         }
-
       } else {
         chain.doFilter(servletRequest, servletResponse);
       }
@@ -85,13 +83,18 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
 //      SecurityContextHolder.getContext().setAuthentication(null);
     } catch (RequestLimitAndSecurityBreachException lee) {
       // User has to many times misused the limits of GT
-      SecurityContextHolder.clearContext();
-      RestErrorHandler.createErrorResponseForServlet((HttpServletResponse) servletResponse,
-          HttpStatus.TOO_MANY_REQUESTS, new ErrorWithLogout(lee.getMessage()));
+      createErrorMessage(servletResponse, lee, HttpStatus.TOO_MANY_REQUESTS);
     } catch (AuthenticationException | JwtException e) {
-      SecurityContextHolder.clearContext();
-      ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      createErrorMessage(servletResponse, e, HttpStatus.UNAUTHORIZED);
+
     }
+  }
+
+  private void createErrorMessage(final ServletResponse servletResponse, Exception e, HttpStatus httpStatus)
+      throws IOException {
+    SecurityContextHolder.clearContext();
+    RestErrorHandler.createErrorResponseForServlet((HttpServletResponse) servletResponse, httpStatus,
+        new ErrorWithLogout(e.getMessage()));
   }
 
   private void doFilterWithlimitWatcher(final ServletRequest servletRequest, final ServletResponse servletResponse,
@@ -110,6 +113,5 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
           HttpStatus.TOO_MANY_REQUESTS, new SingleNativeMsgError(message));
     }
   }
- 
 
 }
