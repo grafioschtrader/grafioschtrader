@@ -597,7 +597,7 @@
   "SYMBOL_IMP": "Symbol import",
   "SYMBOL_IMP_TOOLTIP": "Symbol as it was detected in the import",
   "T_TOOLTIP": "Durch den Konnektor erzeugt, importiert oder manuell erstellt",
-  "TASKDATACHANGE": "Hintergrundaufgabe",
+  "TASK_DATA_CHANGE": "Hintergrundaufgabe",
   "TASK_AS_ID": "Aufgaben ID",
   "TASK_DATA_MONITOR": "Stapelverarbeitungs Monitor",
   "TASK_INTERRUPT": "Unterbreche {{i18nRecord}}",
@@ -754,6 +754,7 @@
   "max": "Darf {{param1}} nicht übersteigen!",
   "minlength": "Eingabelänge ist nicht ausreichend!",
   "patternEmail": "Die Mailadresse hat falsches Format!",
+  "showOnlyParam1": "aaa {{param1}}",
   "primeng": {
     "startsWith": "Startet mit",
     "contains": "Enthält",

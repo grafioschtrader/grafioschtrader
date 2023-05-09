@@ -1,5 +1,10 @@
 package grafioschtrader.connector.instrument;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,6 +43,13 @@ public class FeedConnectorHelper {
   public static Long parseLongGE(String item) {
     final String text = item.replace(".", "");
     return text.trim().length() > 0 ? Long.parseLong(text) : null;
+  }
+  
+  public static HttpResponse<String> getByHttpClient(String urlStr) throws IOException, InterruptedException {
+    HttpClient client = HttpClient.newHttpClient();
+    HttpRequest request = HttpRequest.newBuilder().GET().header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
+        .uri(URI.create(urlStr)).build();
+    return client.send(request, HttpResponse.BodyHandlers.ofString());
   }
 
   public static Historyquote parseResponseLineGE(final String inputLine, final Date from, final Date to,

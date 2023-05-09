@@ -33,6 +33,8 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit, AfterViewInit {
   @Input() visibleDialog: boolean;
 
+  private static readonly passwordOld = 'passwordOld';
+
   constructor(private mainDialogService: MainDialogService,
               private messageToastService: MessageToastService,
               private loginService: LoginService,
@@ -59,7 +61,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   ngAfterViewInit(): void {
     this.form.setDefaultValuesAndEnableSubmit();
     super.afterViewInit();
-    this.configObject.oldPassword.elementRef.nativeElement.focus();
+    this.configObject[PasswordEditComponent.passwordOld].elementRef.nativeElement.focus();
   }
 
   public onShow(event) {
@@ -75,7 +77,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
       5);
     this.config = [
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('password', fdias,
-        {targetField: 'passwordOld'}),
+        {targetField: PasswordEditComponent.passwordOld}),
       ...this.configPassword,
       DynamicFieldHelper.createSubmitButton()
     ];

@@ -59,9 +59,10 @@ public class SecurityConfig {
     // It must be accessible before login
     .requestMatchers(HttpMethod.GET, RequestMappings.API + "actuator/**").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
-    .requestMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/locales").permitAll()
-    .requestMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/userformdefinition").permitAll()
-    .requestMatchers(HttpMethod.GET, RequestMappings.API + "globalparameters/properties/*").permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/locales").permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/passwordrequirements").permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/userformdefinition").permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/properties/*").permitAll()
     // Register user
     .requestMatchers(HttpMethod.POST, RequestMappings.USER_MAP).permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.API + "user/tokenverify/*").permitAll()

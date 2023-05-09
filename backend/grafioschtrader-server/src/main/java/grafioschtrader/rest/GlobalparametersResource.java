@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyChangePassword;
 import grafioschtrader.common.PropertyOnlyCreation;
+import grafioschtrader.dto.PasswordRegexProperties;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.dynamic.model.DynamicModelHelper;
@@ -41,6 +42,13 @@ public class GlobalparametersResource {
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
+  @Operation(summary = "Returns the password requirements.", description = "", tags = { Globalparameters.TABNAME })
+  @GetMapping(value = "/passwordrequirements", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<PasswordRegexProperties> getPasswordRegexProperties() throws Exception {
+    return new ResponseEntity<>(globalparametersJpaRepository.getPasswordRegexProperties(), HttpStatus.OK);
+  }
+ 
+  
   @Operation(summary = "Returns all global parameters", description = "", tags = { Globalparameters.TABNAME })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Globalparameters>> getAllAssetclass() {

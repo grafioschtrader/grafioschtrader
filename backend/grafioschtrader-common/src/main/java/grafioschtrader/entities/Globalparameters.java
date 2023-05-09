@@ -5,18 +5,30 @@
  */
 package grafioschtrader.entities;
 
+import java.beans.PropertyDescriptor;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.MaxDefaultDBValue;
@@ -44,6 +56,7 @@ public class Globalparameters implements Serializable {
   public static final String TABNAME = "globalparameters";
 
   private static final String GT_PREFIX = "gt.";
+  private static final String BLOB_PROPERTIES = ".properties";
 
   public static final String GLOB_KEY_CURRENCY_PRECISION = GT_PREFIX + "currency.precision";
   public static final String GLOB_KEY_TASK_DATA_DAYS_PRESERVE = GT_PREFIX + "task.data.days.preserve";
@@ -68,12 +81,16 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE = GT_PREFIX + "historyquote.quality.update.date";
   public static final String GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE = GT_PREFIX + "securitysplit.append.date";
 
-  // The idGTNet for this Server in GTNet  
+  // The idGTNet for this Server in GTNet
   public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GT_PREFIX + "gtnet.my.entry.id";
-  
+
   // Alert bitmap for sending email
   public static final String GLOB_KEY_ALERT_MAIL = GT_PREFIX + "alert.mail.bitmap";
-  
+
+    
+  // Password regular expression properties
+  public static final String GLOB_KEY_PASSWORT_REGEX = GT_PREFIX + "password.regex" + BLOB_PROPERTIES;
+
   // Tenant data entity limits
   private static final String MAX = "max.";
   public static final String GLOB_KEY_MAX_CASH_ACCOUNT = GT_PREFIX + MAX + "cash.account";
@@ -85,9 +102,8 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_MAX_CORRELATION_SET = GT_PREFIX + MAX + "correlation.set";
   public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GT_PREFIX + MAX + "correlation.instruments";
 
-  
   public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GT_PREFIX + "update.price.by.exchange";
-  
+
   // User day entity limits
   public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
 
@@ -105,9 +121,8 @@ public class Globalparameters implements Serializable {
       + TradingPlatformPlan.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD = GT_LIMIT_DAY
       + MailSettingForward.class.getSimpleName();
-  
 
-  // Tenant regulatory violations
+  // The limits for the tenants rule violations
   public static final String GLOB_KEY_MAX_LIMIT_EXCEEDED_COUNT = GT_PREFIX + "max.limit.request.exceeded.count";
   public static final String GLOB_KEY_MAX_SECURITY_BREACH_COUNT = GT_PREFIX + "max.security.breach.count";
 
@@ -126,24 +141,23 @@ public class Globalparameters implements Serializable {
     defaultLimitMap.put(GLOB_KEY_MAX_WATCHLIST_LENGTH, new MaxDefaultDBValue(200));
     defaultLimitMap.put(GLOB_KEY_MAX_CORRELATION_SET, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_MAX_CORRELATION_INSTRUMENTS, new MaxDefaultDBValue(20));
-   
-  
 
     // Set tenant regulations violations, with daily CRUD limits on shared entries
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_ASSETCLASS, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_STOCKEXCHANGE, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_SECURITY, new MaxDefaultDBValue(50));
-   
+
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_CURRENCYPAIR, new MaxDefaultDBValue(15));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONTEMPLATE, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONPLATFORM, new MaxDefaultDBValue(3));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_TRADINGPLATFORMPLAN, new MaxDefaultDBValue(3));
-   
-    // Set tenant regulations violations, with daily CRUD limits on user or tenant own entries 
+
+    // Set tenant regulations violations, with daily CRUD limits on user or tenant
+    // own entries
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAIL_SEND, new MaxDefaultDBValue(200));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD, new MaxDefaultDBValue(12));
-    
+
     // TODO Other entities -> otherwise null pointer exception
 
   }
@@ -164,9 +178,9 @@ public class Globalparameters implements Serializable {
   public static final Date DEFAULT_START_FEED_DATE = new GregorianCalendar(2000, Calendar.JANUARY, 1).getTime();
 
   public static final int DEFAULT_ALERT_MAIL = Integer.MAX_VALUE;
-  
+
   public static final int DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY = 5;
-  
+
   public static final int DEFAULT_UPDATE_PRICE_BY_EXCHANGE = 0;
 
   private static final long serialVersionUID = 1L;
@@ -246,10 +260,16 @@ public class Globalparameters implements Serializable {
     return this;
   }
 
+  @JsonIgnore
   public byte[] getPropertyBlob() {
     return propertyBlob;
   }
 
+  public String getPropertyBlobAsText() {
+    return propertyBlob != null && propertyName.endsWith(BLOB_PROPERTIES)? 
+       new String(propertyBlob, StandardCharsets.UTF_8): null;
+  }
+  
   public Globalparameters setPropertyBlob(byte[] propertyBlob) {
     this.propertyBlob = propertyBlob;
     return this;
@@ -277,7 +297,7 @@ public class Globalparameters implements Serializable {
 
   public static void resetDBValueOfKey(final String key) {
     MaxDefaultDBValue mddv = defaultLimitMap.get(key);
-    if(mddv != null) {
+    if (mddv != null) {
       mddv.setDbValue(null);
     }
   }
@@ -294,6 +314,61 @@ public class Globalparameters implements Serializable {
     } else {
       throw new IllegalArgumentException();
     }
+  }
+
+  public void transfomBlobPropertiesIntoClass(Object targetObj) {
+    Properties properties = new Properties();
+    PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(targetObj);
+
+    try (ByteArrayInputStream bais = new ByteArrayInputStream(propertyBlob)) {
+      properties.load(bais);
+      properties.forEach((propertyName, propertyValue) -> {
+        try {
+          setPropertyToClass(targetObj, propertyDescriptors, propertyString, propertyString);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      });
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void setPropertyToClass(Object targetObj, PropertyDescriptor[] propertyDescriptors, String propertyName,
+      String propertyValue) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    PropertyDescriptor pd = Arrays.stream(propertyDescriptors).filter(p -> p.getName().equals(propertyName)).findFirst()
+        .orElse(null);
+    if (pd != null) {
+      PropertyUtils.setProperty(targetObj, pd.getName(), propertyValue);
+    } else {
+      List<PropertyDescriptor> pdList = Arrays.stream(propertyDescriptors)
+          .filter(p -> Map.class.isAssignableFrom(p.getClass())).collect(Collectors.toList());
+    }
+  }
+
+  public void transformClassIntoBlobPropertis(Object soruceObj)
+      throws Exception {
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      Properties properties = transformClassIntoPropertis(soruceObj);
+      properties.store(baos, null);
+      this.propertyBlob = baos.toByteArray();
+    } 
+  }
+
+  private Properties transformClassIntoPropertis(Object soruceObj)
+      throws IllegalArgumentException, IllegalAccessException {
+    Field[] fields = soruceObj.getClass().getDeclaredFields();
+    var properties = new Properties();
+    for (Field field : fields) {
+      if (Map.class.isAssignableFrom(field.getType())) {
+        ((Map<?, ?>) field.get(soruceObj)).forEach((fieldName, value) -> properties.put(fieldName, value));
+      } else {
+        properties.put(field.getName(), ""+ field.get(soruceObj));
+      }
+    }
+    return properties;
+
   }
 
   @Override

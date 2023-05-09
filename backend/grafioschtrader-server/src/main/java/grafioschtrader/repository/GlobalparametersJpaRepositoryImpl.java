@@ -27,6 +27,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.config.ExposedResourceBundleMessageSource;
+import grafioschtrader.dto.PasswordRegexProperties;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
@@ -74,7 +75,6 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return getCurrencyPrecision().getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
-
   @Override
   public Integer getGTNetMyEntryID() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_GTNET_MY_ENTRY_ID)
@@ -88,8 +88,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     gp.setChangedBySystem(true);
     return globalparametersJpaRepository.save(gp);
   }
-  
-  
+
   @Override
   public int getTaskDataDaysPreserve() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_TASK_DATA_DAYS_PRESERVE)
@@ -106,13 +105,13 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS);
   }
-  
+
   @Override
   public int getAlertBitmap() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_ALERT_MAIL)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_ALERT_MAIL);
   }
-  
+
   @Override
   public int getWatchlistIntradayUpdateTimeout() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS)
@@ -173,7 +172,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_UPDATE_PRICE_BY_EXCHANGE);
   }
-  
+
   @Override
   public List<ValueKeyHtmlSelectOptions> getCountriesForSelectBox() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -199,7 +198,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     return jsonObject.toString();
   }
-  
+
   @Override
   public List<ValueKeyHtmlSelectOptions> getAllZoneIds() {
     final List<ValueKeyHtmlSelectOptions> dropdownValues = new ArrayList<>();
@@ -260,6 +259,22 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
   }
 
- 
+  @Override
+  public PasswordRegexProperties getPasswordRegexProperties() throws Exception {
+    Optional<Globalparameters> globalparametersOpt = globalparametersJpaRepository
+        .findById(Globalparameters.GLOB_KEY_PASSWORT_REGEX);
+    PasswordRegexProperties prp = null;
+    if (globalparametersOpt.isEmpty()) {
+      prp = new PasswordRegexProperties(GlobalConstants.STANDARD_PASSWORD_REGEX, GlobalConstants.GT_LANGUAGE_CODES.stream().collect(
+          Collectors.toMap(lang -> lang, lang -> messages.getMessage("gt.password.regex", null, new Locale(lang)))), false);
+      Globalparameters gp = new Globalparameters(Globalparameters.GLOB_KEY_PASSWORT_REGEX);
+      gp.transformClassIntoBlobPropertis(prp);
+      globalparametersJpaRepository.save(gp);
+    } else {
+
+    }
+
+    return prp;
+  }
 
 }
