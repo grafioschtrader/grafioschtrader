@@ -7,7 +7,6 @@
 package grafioschtrader.connector.instrument.six;
 
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -34,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
@@ -161,13 +161,11 @@ public class SixFeedConnector extends BaseFeedConnector {
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     final List<Historyquote> historyquotes = new ArrayList<>();
     final DateFormat dateFormat = new SimpleDateFormat(FROM_DATE_FORMAT_SIX);
     objectMapper.setDateFormat(dateFormat);
     final String urlStr = getSecurityHistoricalDownloadLink(security) + "&fromdate=" + dateFormat.format(from);
-    URL url = new URL(urlStr);
-    final HistoryQuote readHistoryquotes = objectMapper.readValue(url, HistoryQuote.class);
+    final HistoryQuote readHistoryquotes = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(), HistoryQuote.class);
 
     DataValues dataValues = readHistoryquotes.valors[0].data;
     for (int i = 0; i < dataValues.Date.length; i++) {

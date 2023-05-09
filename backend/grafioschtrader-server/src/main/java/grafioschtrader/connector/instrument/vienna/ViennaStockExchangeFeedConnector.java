@@ -3,12 +3,8 @@ package grafioschtrader.connector.instrument.vienna;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -260,12 +257,8 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     return historyquotes;
   }
 
-  private FullChartData getChartResponse(String url) throws IOException, InterruptedException {
-    HttpClient client = HttpClient.newHttpClient();
-    HttpRequest request = HttpRequest.newBuilder().GET().header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .uri(URI.create(url)).build();
-    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-    return objectMapper.readValue(response.body(), FullChartData.class);
+  private FullChartData getChartResponse(String urlStr) throws IOException, InterruptedException {
+      return objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(), FullChartData.class);
   }
 
   private static class FullChartData {

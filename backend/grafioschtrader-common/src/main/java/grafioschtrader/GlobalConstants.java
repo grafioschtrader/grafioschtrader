@@ -84,6 +84,8 @@ public class GlobalConstants {
   public static final int OLDEST_TRADING_YEAR = 2000;
   public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2025-12-31";
 
+  public static final String STANDARD_PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
+  
   /**
    * Sometimes the EOD of the currency pair is not yet updated, in this case the
    * existing current price can be taken if there are not more than so many days

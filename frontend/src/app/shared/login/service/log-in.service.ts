@@ -48,7 +48,7 @@ export class LoginService extends BaseAuthService<User> {
   }
 
 
-  aftersuccessfully(token: string, configurationWithLogin: ConfigurationWithLogin): void {
+  afterSuccessfulLogin(token: string, configurationWithLogin: ConfigurationWithLogin): void {
     this.gps.clearValues();
     const number = 1000.45;
 
@@ -78,7 +78,6 @@ export class LoginService extends BaseAuthService<User> {
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));
     sessionStorage.setItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE, configurationWithLogin.mostPrivilegedRole);
-
   }
 
   logout(): void {
@@ -89,7 +88,6 @@ export class LoginService extends BaseAuthService<User> {
   logoutWithLoginView() {
     this.logout();
     this.router.navigate(['/' + AppSettings.LOGIN_KEY]);
-
   }
 
   isSignedIn(): boolean {

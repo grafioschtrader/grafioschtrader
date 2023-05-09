@@ -597,7 +597,7 @@
   "SYMBOL_IMP": "Symbol import",
   "SYMBOL_IMP_TOOLTIP": "Symbol falls es aus dem Import stammt",
   "T_TOOLTIP": "Created by the connector, imported or created manually",
-  "TASKDATACHANGE": "Background task",
+  "TASK_DATA_CHANGE": "Background task",
   "TASK_AS_ID": "Task ID",
   "TASK_DATA_MONITOR": "Batch processing monitor",
   "TASK_INTERRUPT": "Interrupt {{i18nRecord}}",
@@ -754,6 +754,7 @@
   "max": "May not exceed {{param1}}!",
   "minlength": "Input length is not sufficient!",
   "patternEmail": "is not a valid email address!",
+  "showOnlyParam1": "aaa {{param1}}",
   "primeng": {
     "startsWith": "Starts with",
     "contains": "Contains",

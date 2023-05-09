@@ -79,7 +79,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   submit(value: { [name: string]: any }): void {
     this.loginService.login(value.email, value.password)
       .subscribe({ next: (response: Response) => {
-        this.loginService.aftersuccessfully(response.headers.get('x-auth-token'), (response as any).body);
+        this.loginService.afterSuccessfulLogin(response.headers.get('x-auth-token'), (response as any).body);
         if (this.gps.getIdTenant()) {
           // Navigate to the main view
           this.router.navigate([`/${AppSettings.MAINVIEW_KEY}`]);

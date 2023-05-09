@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import grafioschtrader.dto.PasswordRegexProperties;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Globalparameters;
@@ -32,6 +33,8 @@ public interface GlobalparametersJpaRepositoryCustom {
 
   List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys);
 
+  PasswordRegexProperties getPasswordRegexProperties() throws Exception;
+  
   /**
    * Return the maximum attempts. This value is determined by the global
    * parameters.
