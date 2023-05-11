@@ -209,11 +209,11 @@ export class AppHelper {
     }
   }
 
-  public static getDefaultFormConfig(gps: GlobalparameterService, labelcolums: number,
+  public static getDefaultFormConfig(gps: GlobalparameterService, labelColums: number,
                                      helpLinkFN: () => void = null, nonModal = false): FormConfig {
     return {
       locale: gps.getLocale(),
-      labelcolumns: labelcolums, language: gps.getUserLang(),
+      labelColumns: labelColums, language: gps.getUserLang(),
       thousandsSeparatorSymbol: gps.getThousandsSeparatorSymbol(),
       dateFormat: gps.getDateFormatForCalendar().toLowerCase(),
       decimalSymbol: gps.getDecimalSymbol(), helpLinkFN, nonModal

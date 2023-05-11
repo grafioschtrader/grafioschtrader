@@ -6,6 +6,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,6 +46,8 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter {
 
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
+  
   private final TokenAuthenticationService tokenAuthenticationService;
   private final UserService userService;
   private final Map<String, HoldUserValues> emailToTimezoneOffsetMap = new ConcurrentHashMap<>();
@@ -72,7 +76,14 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
       throw new LockedException("No login possible for this ip-address anymore");
     } else {
       UserDTO user = toUser(request);
-      emailToTimezoneOffsetMap.put(user.getEmail().get(), new HoldUserValues(user.getTimezoneOffset(), user.getNote()));
+      boolean passwordRegexOk = true;
+      try {
+        passwordRegexOk = userService.isPasswordAccepted(user.getPassword());
+      } catch (Exception e) {
+        log.error("Could not check password against regular expression", e);
+      }
+      emailToTimezoneOffsetMap.put(user.getEmail().get(),
+          new HoldUserValues(passwordRegexOk, user.getTimezoneOffset(), user.getNote()));
       final UsernamePasswordAuthenticationToken loginToken = user.toAuthenticationToken();
       return getAuthenticationManager().authenticate(loginToken);
     }
@@ -97,7 +108,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
       authenticatedUser = updateTimezoneOffset((User) authenticatedUser, holdUserValue.timezoneOffset);
 
       final UserAuthentication userAuthentication = new UserAuthentication(authenticatedUser);
-      tokenAuthenticationService.addJwtTokenToHeader(response, userAuthentication);
+      tokenAuthenticationService.addJwtTokenToHeader(response, userAuthentication, holdUserValue.passwordRegexOk);
       SecurityContextHolder.getContext().setAuthentication(userAuthentication);
 
     } catch (RequestLimitAndSecurityBreachException lee) {
@@ -170,11 +181,12 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
   }
 
   static class HoldUserValues {
+    public final boolean passwordRegexOk;
     public final Integer timezoneOffset;
     public final String note;
 
-    public HoldUserValues(Integer timezoneOffset, String note) {
-      super();
+    public HoldUserValues(boolean passwordRegexOk, Integer timezoneOffset, String note) {
+      this.passwordRegexOk = passwordRegexOk;
       this.timezoneOffset = timezoneOffset;
       this.note = note;
     }

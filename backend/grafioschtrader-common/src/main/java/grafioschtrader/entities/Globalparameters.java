@@ -5,9 +5,9 @@
  */
 package grafioschtrader.entities;
 
-import java.beans.PropertyDescriptor;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -20,17 +20,20 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.dto.IPropertiesSelfCheck;
 import grafioschtrader.dto.MaxDefaultDBValue;
 import grafioschtrader.dto.MaxDefaultDBValueWithKey;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -41,6 +44,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -55,8 +59,10 @@ public class Globalparameters implements Serializable {
 
   public static final String TABNAME = "globalparameters";
 
+  private static final Logger log = LoggerFactory.getLogger(Globalparameters.class);
+
   private static final String GT_PREFIX = "gt.";
-  private static final String BLOB_PROPERTIES = ".properties";
+  public static final String BLOB_PROPERTIES = ".properties";
 
   public static final String GLOB_KEY_CURRENCY_PRECISION = GT_PREFIX + "currency.precision";
   public static final String GLOB_KEY_TASK_DATA_DAYS_PRESERVE = GT_PREFIX + "task.data.days.preserve";
@@ -87,7 +93,6 @@ public class Globalparameters implements Serializable {
   // Alert bitmap for sending email
   public static final String GLOB_KEY_ALERT_MAIL = GT_PREFIX + "alert.mail.bitmap";
 
-    
   // Password regular expression properties
   public static final String GLOB_KEY_PASSWORT_REGEX = GT_PREFIX + "password.regex" + BLOB_PROPERTIES;
 
@@ -211,6 +216,9 @@ public class Globalparameters implements Serializable {
   @Column(name = "changed_by_system")
   private boolean changedBySystem = false;
 
+  @Transient
+  private String propertyBlobAsText;
+
   public Globalparameters() {
   }
 
@@ -266,10 +274,15 @@ public class Globalparameters implements Serializable {
   }
 
   public String getPropertyBlobAsText() {
-    return propertyBlob != null && propertyName.endsWith(BLOB_PROPERTIES)? 
-       new String(propertyBlob, StandardCharsets.UTF_8): null;
+    return propertyBlob != null && propertyName.endsWith(BLOB_PROPERTIES)
+        ? new String(propertyBlob, StandardCharsets.UTF_8)
+        : null;
   }
-  
+
+  public void setPropertyBlobAsText(String propertyBlobAsText) {
+    this.propertyBlobAsText = propertyBlobAsText;
+  }
+
   public Globalparameters setPropertyBlob(byte[] propertyBlob) {
     this.propertyBlob = propertyBlob;
     return this;
@@ -316,44 +329,69 @@ public class Globalparameters implements Serializable {
     }
   }
 
-  public void transfomBlobPropertiesIntoClass(Object targetObj) {
-    Properties properties = new Properties();
-    PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(targetObj);
+  public String checkBlobPropertyBeforeSave(IPropertiesSelfCheck targetObj) throws IOException {
+    propertyBlob = propertyBlobAsText.getBytes(StandardCharsets.UTF_8);
+    transformBlobPropertiesIntoClass(targetObj);
+    return targetObj.checkForValid();
+  }
 
+  public Object transformBlobPropertiesIntoClass(Object targetObj) {
+    Properties properties = new Properties();
     try (ByteArrayInputStream bais = new ByteArrayInputStream(propertyBlob)) {
       properties.load(bais);
-      properties.forEach((propertyName, propertyValue) -> {
-        try {
-          setPropertyToClass(targetObj, propertyDescriptors, propertyString, propertyString);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      });
+      transformBlobPropertiesIntoClass(properties, targetObj);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("failed transform properties into class", e);
     }
+    return targetObj;
   }
 
-  private void setPropertyToClass(Object targetObj, PropertyDescriptor[] propertyDescriptors, String propertyName,
+  private Object transformBlobPropertiesIntoClass(Properties properties, Object targetObj) {
+    List<Field> allFields = Arrays.asList(targetObj.getClass().getDeclaredFields());
+    List<Field> mapFields = allFields.stream().filter(f -> Map.class.isAssignableFrom(f.getType()))
+        .collect(Collectors.toList());
+
+    for (Entry<Object, Object> property : properties.entrySet()) {
+      try {
+        setPropertyToClass(targetObj, allFields, mapFields, (String) property.getKey(), (String) property.getValue());
+      } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        log.error("failed transform blob into class", e);
+      }
+    }
+    return targetObj;
+  }
+
+  private void setPropertyToClass(Object targetObj, List<Field> allFields, List<Field> mapFields, String propertyName,
       String propertyValue) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-    PropertyDescriptor pd = Arrays.stream(propertyDescriptors).filter(p -> p.getName().equals(propertyName)).findFirst()
-        .orElse(null);
-    if (pd != null) {
-      PropertyUtils.setProperty(targetObj, pd.getName(), propertyValue);
+
+    Field field = allFields.stream().filter(f -> f.getName().equals(propertyName)).findAny().orElse(null);
+    if (field != null) {
+      Class<?> fieldType = field.getType();
+      if (fieldType == String.class) {
+        field.set(targetObj, propertyValue);
+      } else if (fieldType == int.class || fieldType == Integer.class) {
+        field.set(targetObj, Integer.parseInt(propertyValue));
+      } else if (fieldType == double.class || fieldType == Double.class) {
+        field.set(targetObj, Double.parseDouble(propertyValue));
+      } else if (fieldType == boolean.class || fieldType == Boolean.class) {
+        field.set(targetObj, Boolean.parseBoolean(propertyValue));
+      }
     } else {
-      List<PropertyDescriptor> pdList = Arrays.stream(propertyDescriptors)
-          .filter(p -> Map.class.isAssignableFrom(p.getClass())).collect(Collectors.toList());
+      // Set value to string map
+      if (mapFields.size() == 1) {
+        @SuppressWarnings("unchecked")
+        Map<String, String> map = (Map<String, String>) mapFields.get(0).get(targetObj);
+        map.put(propertyName, propertyValue);
+      }
     }
   }
 
-  public void transformClassIntoBlobPropertis(Object soruceObj)
-      throws Exception {
+  public void transformClassIntoBlobPropertis(Object soruceObj) throws Exception {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
       Properties properties = transformClassIntoPropertis(soruceObj);
       properties.store(baos, null);
       this.propertyBlob = baos.toByteArray();
-    } 
+    }
   }
 
   private Properties transformClassIntoPropertis(Object soruceObj)
@@ -364,11 +402,10 @@ public class Globalparameters implements Serializable {
       if (Map.class.isAssignableFrom(field.getType())) {
         ((Map<?, ?>) field.get(soruceObj)).forEach((fieldName, value) -> properties.put(fieldName, value));
       } else {
-        properties.put(field.getName(), ""+ field.get(soruceObj));
+        properties.put(field.getName(), "" + field.get(soruceObj));
       }
     }
     return properties;
-
   }
 
   @Override

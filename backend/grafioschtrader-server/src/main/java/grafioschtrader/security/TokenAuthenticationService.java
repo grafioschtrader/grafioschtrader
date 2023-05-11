@@ -56,13 +56,14 @@ public class TokenAuthenticationService {
     this.jwtTokenHandler = jwtTokenHandler;
   }
 
-  public void addJwtTokenToHeader(final HttpServletResponse response, final UserAuthentication authentication)
-      throws IOException {
+  public void addJwtTokenToHeader(final HttpServletResponse response, final UserAuthentication authentication,
+      boolean passwordRegexOk) throws IOException {
 
     final UserDetails user = authentication.getDetails();
     response.addHeader(AUTH_HEADER_NAME, jwtTokenHandler.createTokenForUser(user));
     PrintWriter out = response.getWriter();
-    jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(((User) user).isUiShowMyProperty(), ((User) user).getMostPrivilegedRole()));
+    jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(((User) user).isUiShowMyProperty(),
+        ((User) user).getMostPrivilegedRole(), passwordRegexOk));
   }
 
   /**
@@ -77,7 +78,7 @@ public class TokenAuthenticationService {
     if (token == null || token.isEmpty()) {
       return null;
     }
-   
+
     return jwtTokenHandler.parseUserFromToken(token).map(UserAuthentication::new).orElse(null);
   }
 
@@ -104,10 +105,12 @@ public class TokenAuthenticationService {
   }
 
   @Transactional
-  public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole) {
+  public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole,
+      boolean passwordRegexOk) {
     Map<String, Integer> standardPrecision = new HashMap<>();
     ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(useWebsockt, useAlgo,
-        globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision, uiShowMyProperty, mostPrivilegedRole);
+        globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision, uiShowMyProperty, mostPrivilegedRole,
+        passwordRegexOk);
 
     Field[] fields = GlobalConstants.class.getDeclaredFields();
     for (Field f : fields) {
@@ -141,15 +144,18 @@ public class TokenAuthenticationService {
     public final Map<String, Integer> standardPrecision;
     public final boolean uiShowMyProperty;
     public final String mostPrivilegedRole;
+    public final boolean passwordRegexOk;
 
     public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo, Map<String, Integer> currencyPrecision,
-        Map<String, Integer> standardPrecision, boolean uiShowMyProperty, String mostPrivilegedRole) {
+        Map<String, Integer> standardPrecision, boolean uiShowMyProperty, String mostPrivilegedRole,
+        boolean passwordRegexOk) {
       this.useWebsocket = useWebsocket;
       this.useAlgo = useAlgo;
       this.currencyPrecision = currencyPrecision;
       this.standardPrecision = standardPrecision;
       this.uiShowMyProperty = uiShowMyProperty;
       this.mostPrivilegedRole = mostPrivilegedRole;
+      this.passwordRegexOk = passwordRegexOk;
     }
   }
 

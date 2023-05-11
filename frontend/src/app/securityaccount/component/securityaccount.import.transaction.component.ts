@@ -98,7 +98,7 @@ export class SecurityaccountImportTransactionComponent
       'IMPORT_SET', importTransactionHeadService, confirmationService, messageToastService, activePanelService,
       translateService);
 
-    this.formConfig = {labelcolumns: 2, nonModal: true};
+    this.formConfig = {labelColumns: 2, nonModal: true};
 
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber(SecurityaccountImportTransactionComponent.MAIN_FIELD,

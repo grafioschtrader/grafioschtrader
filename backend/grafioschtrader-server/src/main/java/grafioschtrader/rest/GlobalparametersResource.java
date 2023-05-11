@@ -123,7 +123,7 @@ public class GlobalparametersResource {
       Globalparameters.TABNAME })
   @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Globalparameters> replacePropertyValue(
-      @Valid @RequestBody final Globalparameters globalparameters) {
+      @Valid @RequestBody final Globalparameters globalparameters) throws Exception {
     return new ResponseEntity<>(globalparametersJpaRepository.saveOnlyAttributes(globalparameters), HttpStatus.OK);
   }
 

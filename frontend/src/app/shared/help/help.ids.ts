@@ -59,7 +59,7 @@ export enum HelpIds {
   HELP_MESSAGE_SYSTEM = 'admindata',
   HELP_TRADING_CALENDAR = 'admindata/tradingcalendar',
   HELP_HISTORYQUOTE_QUALITY = 'admindata/historyquotequality/',
-  HELP_GLOBAL_SETTINGS = 'admindata/tradingcalendar',
+  HELP_GLOBAL_SETTINGS = 'admindata/globalsettings',
   HELP_GTNET = 'admindata/gtnet',
   HELP_GTNET_SETUP = 'admindata/gtnet/setup',
   HELP_GTNET_AUTOANSWER = 'admindata/gtnet/autoanswer',

@@ -11,7 +11,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {BaseParam} from '../../entities/view/base.param';
 import {DynamicFieldHelper, FieldOptions, FieldOptionsCc, VALIDATION_SPECIAL} from './dynamic.field.helper';
 import {dateRange, gteDate} from '../validator/validator';
-import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.message.rules';
+import {ErrorMessageRules} from '../../dynamic-form/error/error.message.rules';
 import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
 
 /**
@@ -32,10 +32,10 @@ export class DynamicFieldModelHelper {
             const fdDate1 = cdias.fieldDescriptorInputAndShows.find(f => f.fieldName === value.startField);
             const fdDate2 = cdias.fieldDescriptorInputAndShows.find(f => f.fieldName === value.endField);
             const fieldConfigs = this.createConfigFieldsFromDescriptor([fdDate1, fdDate2], labelPreffix, addSubmitButton, submitText);
-            const fieldFormGroup: FieldFormGroup = {formGroupName: 'dateRange' + counter, fieldConfig: fieldConfigs };
+            const fieldFormGroup: FieldFormGroup = {formGroupName: 'dateRange' + counter, fieldConfig: fieldConfigs};
             fieldFormGroup.validation = [dateRange(fdDate1.fieldName, fdDate2.fieldName, fdDate2.fieldName)];
 
-            fieldFormGroup.errors=[{
+            fieldFormGroup.errors = [{
               name: 'dateRange',
               keyi18n: 'dateRange',
               rules: ['dirty']
@@ -49,7 +49,8 @@ export class DynamicFieldModelHelper {
       }
       return config;
     } else {
-      return cdias? this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPreffix, addSubmitButton, null, submitText): [];
+      return cdias ? this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPreffix, addSubmitButton,
+        null, submitText) : [];
     }
   }
 
@@ -67,7 +68,8 @@ export class DynamicFieldModelHelper {
 
   public static createConfigFieldsFromDescriptor(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
                                                  labelPreffix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
-    return <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(fieldDescriptorInputAndShows, labelPreffix, addSubmitButton, null, submitText);
+    return <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(fieldDescriptorInputAndShows, labelPreffix, addSubmitButton,
+      null, submitText);
   }
 
   public static ccFieldsFromDescriptorWithGroup(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
@@ -157,7 +159,6 @@ export class DynamicFieldModelHelper {
           break;
 
         default:
-
       }
     } else {
       fieldConfig = DynamicFieldHelper.createFieldInputString(targetField, labelKey, fd.max, fd.required,

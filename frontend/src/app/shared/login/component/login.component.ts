@@ -47,6 +47,9 @@ import {AppHelper} from '../../helper/app.helper';
         </p-card>
       </div>
     </div>
+    <password-edit *ngIf="visiblePasswordDialog" [forcePasswordChange]="true"
+                   [visibleDialog]="visiblePasswordDialog">
+    </password-edit>
   `,
   providers: [DialogService]
 })
@@ -55,6 +58,8 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   applicationInfo: ApplicationInfo;
   queryParams: any;
   successLastRegistration: string;
+  visiblePasswordDialog = false;
+
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -76,25 +81,38 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       }
     );
   }
+
   submit(value: { [name: string]: any }): void {
     this.loginService.login(value.email, value.password)
-      .subscribe({ next: (response: Response) => {
-        this.loginService.afterSuccessfulLogin(response.headers.get('x-auth-token'), (response as any).body);
-        if (this.gps.getIdTenant()) {
-          // Navigate to the main view
-          this.router.navigate([`/${AppSettings.MAINVIEW_KEY}`]);
-        } else {
-          // It is a new tenant -> setup is required
-          this.router.navigate([`/${AppSettings.TENANT_KEY}`]);
-        }
-      }, error: (errorBackend) => {
-      this.configObject.submit.disabled = false;
+      .subscribe({
+        next: (response: Response) => {
+          const passwordRegexOk: boolean = this.loginService.afterSuccessfulLogin(response.headers.get('x-auth-token'),
+            (response as any).body);
+          if (this.gps.getIdTenant()) {
+            this.navigateToMainView(passwordRegexOk);
+          } else {
+            // It is a new tenant -> setup is required
+            this.router.navigate([`/${AppSettings.TENANT_KEY}`]);
+          }
+        }, error: (errorBackend) => {
+          this.configObject.submit.disabled = false;
 
-      if (errorBackend.bringUpDialog) {
-        DynamicDialogHelper.getOpenedLogoutReleaseRequestDynamicComponent(
-          this.translateService, this.dialogService, value.email, value.password);
-      }
-    }});
+          if (errorBackend.bringUpDialog) {
+            DynamicDialogHelper.getOpenedLogoutReleaseRequestDynamicComponent(
+              this.translateService, this.dialogService, value.email, value.password);
+          }
+        }
+      });
+  }
+
+  private navigateToMainView(passwordRegexOk: boolean): void {
+    if (!passwordRegexOk) {
+      this.visiblePasswordDialog = true;
+      this.configObject.submit.disabled = false;
+      this.configObject.password.formControl.setValue('');
+    } else {
+      this.router.navigate([`/${AppSettings.MAINVIEW_KEY}`]);
+    }
   }
 
   ngOnDestroy(): void {
@@ -107,7 +125,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
 
   private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
     this.formConfig = {
-      labelcolumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      labelColumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
       language: AppHelper.getNonUserDefinedLanguage(this.translateService.currentLang)
     };
     this.applicationInfo.users;
@@ -134,6 +152,7 @@ export interface ConfigurationWithLogin {
   currencyPrecision: { [curreny: string]: number };
   uiShowMyProperty: boolean;
   mostPrivilegedRole: string;
+  passwordRegexOk: boolean;
 }
 
 export interface EntityNameWithKeyName {

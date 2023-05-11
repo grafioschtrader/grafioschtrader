@@ -95,7 +95,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
       'IMPORTTRANSACTIONGROUP', importTransactionPlatformService,
       confirmationService, messageToastService, activePanelService, translateService);
 
-    this.formConfig = {labelcolumns: 2, nonModal: true};
+    this.formConfig = {labelColumns: 2, nonModal: true};
 
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber(ImportTransactionTemplateComponent.MAIN_FIELD, 'NAME', false,

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
 import {TranslateService} from '@ngx-translate/core';
 import {LoginService} from '../service/log-in.service';
@@ -14,6 +14,7 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {ProcessedAction} from '../../types/processed.action';
 
 /**
  * Change the password with a dialog.
@@ -23,6 +24,7 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
   template: `
     <p-dialog header="{{'PASSWORD_CHANGE' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '450px'}"
+              [closeOnEscape]="!forcePasswordChange" [closable]="!forcePasswordChange"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
@@ -30,7 +32,8 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
       </dynamic-form>
     </p-dialog>`
 })
-export class PasswordEditComponent extends PasswordBaseComponent implements OnInit, AfterViewInit {
+export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {
+  @Input() forcePasswordChange: boolean;
   @Input() visibleDialog: boolean;
 
   private static readonly passwordOld = 'passwordOld';
@@ -38,13 +41,20 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   constructor(private mainDialogService: MainDialogService,
               private messageToastService: MessageToastService,
               private loginService: LoginService,
-              private gps: GlobalparameterService,
+              gps: GlobalparameterService,
               translateService: TranslateService) {
-    super(translateService);
+    super(gps, translateService);
+    this.changePasswdFormDefinition(JSON.parse(sessionStorage.getItem(GlobalSessionNames.USER_FORM_DEFINITION)));
   }
 
   ngOnInit(): void {
-    this.changePasswdFormDefinition(JSON.parse(sessionStorage.getItem(GlobalSessionNames.USER_FORM_DEFINITION)));
+    this.gps.getPasswordRegexProperties().subscribe(prp => {
+        this.passwordRegexProperties = prp;
+        this.form.setDefaultValuesAndEnableSubmit();
+        super.preparePasswordFields();
+        this.configObject[PasswordEditComponent.passwordOld].elementRef.nativeElement.focus();
+      }
+    );
   }
 
   submit(value: { [name: string]: any }): void {
@@ -55,13 +65,11 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
       this.messageToastService.showMessage(InfoLevelType.INFO, successfullyChanged.message);
       this.loginService.logoutWithLoginView();
     });
-    this.mainDialogService.visibleDialog(false, UserSettingsDialogs.Password);
-  }
-
-  ngAfterViewInit(): void {
-    this.form.setDefaultValuesAndEnableSubmit();
-    super.afterViewInit();
-    this.configObject[PasswordEditComponent.passwordOld].elementRef.nativeElement.focus();
+    if (!this.forcePasswordChange) {
+      this.mainDialogService.visibleDialog(false, UserSettingsDialogs.Password);
+    } else {
+      this.visibleDialog = false;
+    }
   }
 
   public onShow(event) {

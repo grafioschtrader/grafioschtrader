@@ -80,7 +80,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     super();
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, null, false);
-    this.formConfig.labelcolumns = 2;
+    this.formConfig.labelColumns = 2;
 
     this.dateFormatPipe = gps.getDateFormat().replace(/Y/g, 'y').replace(/D/g, 'd');
     TranslateHelper.translateMenuItems(this.menuItems, this.translateService);

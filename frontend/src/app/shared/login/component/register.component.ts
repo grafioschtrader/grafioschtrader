@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../message/message.toast.service';
-import {GlobalparameterService} from '../../service/globalparameter.service';
+import {GlobalparameterService, PasswordRegexProperties} from '../../service/globalparameter.service';
 import {AppSettings} from '../../app.settings';
 import {User} from '../../../entities/user';
 import {InfoLevelType} from '../../message/info.leve.type';
@@ -19,7 +19,7 @@ import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 /**
- * Shows the register form.
+ * Shows the user register form.
  */
 @Component({
   template: `
@@ -56,22 +56,26 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   confirmEmail = false;
   applicationInfo: ApplicationInfo;
 
-  constructor(private gps: GlobalparameterService,
-              private messageToastService: MessageToastService,
+  constructor(private messageToastService: MessageToastService,
               private actuatorService: ActuatorService,
               private activatedRoute: ActivatedRoute,
               private router: Router,
               private loginService: LoginService,
+              gps: GlobalparameterService,
               translateService: TranslateService) {
-    super(translateService);
+    super(gps, translateService);
   }
 
   ngOnInit(): void {
-    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions()]).subscribe({
-        next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[]]) => {
+    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions(),
+      this.gps.getPasswordRegexProperties()]).subscribe({
+        next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[],
+        prp: PasswordRegexProperties]) => {
           this.applicationInfo = data[0];
           sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
           this.loginFormDefinition(data[1]);
+          this.passwordRegexProperties = data[2];
+          setTimeout(() => this.preparePasswordFields());
         }, error: err => this.applicationInfo = null
       }
     );
@@ -103,7 +107,6 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
       this.progressValue = this.progressValue + Math.floor(Math.random() * 10) + 1;
       if (this.progressValue >= 100) {
         this.progressValue = 100;
-
         clearInterval(interval);
       }
     }, 1000);
@@ -120,7 +123,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
     super.init(fdias, false);
     this.formConfig = {
-      labelcolumns: 3, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      labelColumns: 3, helpLinkFN: this.helpLink.bind(this), nonModal: true,
       language: this.translateService.currentLang
     };
 
@@ -143,7 +146,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     });
     this.gps.getSupportedLocales().subscribe(data => {
         this.configObject.localeStr.valueKeyHtmlOptions = data;
-        super.afterViewInit();
+        super.preparePasswordFields();
         this.configObject.nickname.elementRef.nativeElement.focus();
       }
     );
