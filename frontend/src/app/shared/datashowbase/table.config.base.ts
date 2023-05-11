@@ -152,6 +152,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     // startsWith
   }
 
+
   changeToUserSetting() {
     let i = 0;
     this.fields.forEach(columnConfig => columnConfig.visible = this.visibleRestore[i++]);

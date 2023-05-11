@@ -4,6 +4,10 @@ import {ChangedViewSizeType, ViewSizeChangedService} from '../service/view.size.
 
 declare function Split(ids, options);
 
+/**
+ * This component defines the global split layout of GT. There is a division into navigation, main and additional area.
+ * The size of these areas can be adjusted.
+ */
 @Component({
   selector: 'split-layout',
   template: `

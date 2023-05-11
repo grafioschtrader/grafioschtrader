@@ -13,12 +13,13 @@ import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TranslateHelper} from '../helper/translate.helper';
 import {AppHelper} from '../helper/app.helper';
+import {AppSettings} from '../app.settings';
 
 @Component({
   selector: 'globalsettings-edit',
   template: `
     <p-dialog header="{{'GLOBAL_SETTINGS' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
+              [responsive]="true" [style]="{width: '800px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <h5>{{globalparameters.propertyName}}</h5>
@@ -42,7 +43,7 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      6, this.helpLink.bind(this));
+      3, this.helpLink.bind(this));
     this.config = [
       this.getPropertyDefinition(this.globalparameters),
       DynamicFieldHelper.createSubmitButton()
@@ -59,7 +60,11 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
   }
 
   private getPropertyDefinition(globalparameters: Globalparameters): FieldConfig {
-    if (globalparameters.propertyDate) {
+    if (globalparameters.propertyBlobAsText) {
+      this.selectedPropertyField = 'propertyBlobAsText';
+      return DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.selectedPropertyField, AppSettings.FID_MAX_LETTERS, true,
+        {textareaRows: 10});
+    } else if (globalparameters.propertyDate) {
       this.selectedPropertyField = 'propertyDate';
       return DynamicFieldHelper.createFieldPcalendar(DataType.DateString, this.selectedPropertyField,
         globalparameters.propertyName, true);

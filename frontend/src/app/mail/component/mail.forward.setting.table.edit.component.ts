@@ -175,9 +175,9 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
       this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec = {};
       this.refreshNotSetMessageComType();
       this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE).cec = {};
-      this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE).cec.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        MessageTargetType, [], true);
-
+      this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE).cec.valueKeyHtmlOptions =
+        SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
+          MessageTargetType, [], true);
       this.prepareTableAndTranslate();
       this.createTranslatedValueStoreAndFilterField(this.mailSettingForwardList);
     });

@@ -46,7 +46,7 @@ export class TranslateHelper {
   }
 
   public static translateMessageError(translateService: TranslateService, fieldConfig: FieldConfig) {
-    fieldConfig.errors.forEach(error => translateService.get(error.keyi18n, {
+    fieldConfig.errors.filter(e => !e.text).forEach(error => translateService.get(error.keyi18n, {
       param1: error.param1,
       param2: error.param2
     })

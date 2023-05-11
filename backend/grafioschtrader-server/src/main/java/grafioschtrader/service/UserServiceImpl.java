@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.ChangePasswordDTO;
+import grafioschtrader.dto.PasswordRegexProperties;
 import grafioschtrader.dto.UserDTO;
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.TaskDataChange;
@@ -59,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private MailExternalService mailExternalService;
-  
+
   private final UserJpaRepository userJpaRepository;
 
   private final RoleJpaRepository roleJpaRepository;
@@ -133,9 +134,9 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public User createUserForVerification(final UserDTO userDTO, final String hostNameAndBaseName)
-      throws MessagingException {
+  public User createUserForVerification(final UserDTO userDTO, final String hostNameAndBaseName) throws Exception {
     checkApplExeedsUserLimit(userDTO.getLocaleStr());
+    checkPasswordAgainstRegex(userDTO.getPassword());
     // Unique
     Optional<User> user = userJpaRepository.findByEmail(userDTO.getEmail().get());
     if (user.isPresent()) {
@@ -152,7 +153,6 @@ public class UserServiceImpl implements UserService {
   }
 
   private void confirmRegistration(User user, final String hostNameAndBaseNam) throws MessagingException {
-
     final String token = UUID.randomUUID().toString();
     verificationTokenJpaRepository.createVerificationTokenForUser(user, token);
 
@@ -212,13 +212,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public SuccessfullyChanged changePassword(final ChangePasswordDTO changePasswordDTO) {
+  public SuccessfullyChanged changePassword(final ChangePasswordDTO changePasswordDTO) throws Exception {
     final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
     RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
 
     if (bCryptPasswordEncoder.matches(changePasswordDTO.passwordOld, user.getPassword())) {
+      checkPasswordAgainstRegex(changePasswordDTO.passwordNew);
       user.setPassword(bCryptPasswordEncoder.encode(changePasswordDTO.passwordNew));
       userJpaRepository.save(user);
       return new SuccessfullyChanged(true,
@@ -226,6 +227,21 @@ public class UserServiceImpl implements UserService {
     }
     throw new DataViolationException("oldpassword", "password.changed.old.wrong", null);
   }
+
+  private void checkPasswordAgainstRegex(String password) throws Exception {
+    String regex = globalparametersJpaRepository.getPasswordRegexProperties().regex;
+    if (!password.matches(regex)) {
+        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+    }
+  }
+  
+  @Override
+  public boolean isPasswordAccepted(String password) throws Exception {
+    PasswordRegexProperties prp = globalparametersJpaRepository.getPasswordRegexProperties();
+    return !prp.forceRegex || password.matches(prp.regex);
+  }
+
+  
 
   @Override
   public User incrementRightsLimitCount(Integer userId, UserRightLimitCounter userRightLimitCounter) {
@@ -241,4 +257,5 @@ public class UserServiceImpl implements UserService {
     return userJpaRepository.save(user);
   }
 
+  
 }

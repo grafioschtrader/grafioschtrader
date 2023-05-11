@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafioschtrader.entities.Role;
@@ -52,6 +53,11 @@ public final class UserDTO {
 
   public Optional<String> getEmail() {
     return Optional.ofNullable(email);
+  }
+
+  @JsonIgnore
+  public String getPassword() {
+    return password;
   }
 
   public String getNote() {

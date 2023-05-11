@@ -73,7 +73,7 @@ public interface GlobalparametersJpaRepositoryCustom {
 
   List<ValueKeyHtmlSelectOptions> getSupportedLocales();
 
-  Globalparameters saveOnlyAttributes(Globalparameters globalparameters);
+  Globalparameters saveOnlyAttributes(Globalparameters globalparameters) throws Exception;
 
   List<ValueKeyHtmlSelectOptions> getCurrencies();
   

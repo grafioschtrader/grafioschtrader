@@ -33,7 +33,6 @@ import grafioschtrader.repository.VerificationTokenJpaRepository;
 import grafioschtrader.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.mail.MessagingException;
 
 @RestController
 @RequestMapping(RequestMappings.USER_MAP)
@@ -64,7 +63,7 @@ public class UserResource {
   @Operation(summary = "Creates a new user for GT", description = "", tags = { User.TABNAME })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<User> createUserForVerification(@RequestBody final UserDTO userDTO,
-      @RequestHeader final HttpHeaders headers) throws MessagingException {
+      @RequestHeader final HttpHeaders headers) throws Exception {
     log.debug("Create User: {}", userDTO);
     String referer = headers.get("referer").get(0).replace("/api", "");
     return ResponseEntity.ok()
@@ -90,7 +89,7 @@ public class UserResource {
   @Operation(summary = "Change the current password to a new one", description = "", tags = { User.TABNAME })
   @PutMapping(value = "/password", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessfullyChanged> changePassword(
-      @Validated(PropertyChangePassword.class) @RequestBody final ChangePasswordDTO changePasswordDTO) {
+      @Validated(PropertyChangePassword.class) @RequestBody final ChangePasswordDTO changePasswordDTO) throws Exception {
     return ResponseEntity.ok().body(userService.changePassword(changePasswordDTO));
   }
 

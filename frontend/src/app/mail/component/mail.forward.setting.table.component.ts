@@ -70,7 +70,6 @@ export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailS
   selectedEntity: MailSettingForward;
   private mailSendForwardDefault: MailSendForwardDefault;
 
-
   constructor(private mailSettingForwardService: MailSettingForwardService,
               private productIconService: ProductIconService,
               confirmationService: ConfirmationService,

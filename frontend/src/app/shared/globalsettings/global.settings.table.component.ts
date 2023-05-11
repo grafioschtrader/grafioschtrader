@@ -19,7 +19,7 @@ import {ProcessedAction} from '../types/processed.action';
 import {TranslateHelper} from '../helper/translate.helper';
 
 /**
- * Shows global settings in table
+ * Shows global settings in table. Here TableCrudSupportMenu is not derived because no entities can be deleted or added.
  */
 @Component({
   template: `
@@ -35,6 +35,7 @@ import {TranslateHelper} from '../helper/translate.helper';
         </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
+            <td style="max-width:24px">
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
                 [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -43,8 +44,13 @@ import {TranslateHelper} from '../helper/translate.helper';
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-el let-columns="fields">
+        <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
+            <td style="max-width:24px">
+              <a *ngIf="el.propertyBlobAsText" href="#" [pRowToggler]="el">
+                <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+              </a>
+            </td>
             <td *ngFor="let field of fields" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
@@ -55,6 +61,14 @@ import {TranslateHelper} from '../helper/translate.helper';
                   {{getValueByPath(el, field)}}
                 </ng-container>
               </ng-container>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="rowexpansion" let-gp let-columns="fields">
+          <tr>
+            <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
+              <textarea [rows]="10" pInputTextarea style="width: 100%;"
+                        readonly="true">{{gp.propertyBlobAsText}}</textarea>
             </td>
           </tr>
         </ng-template>
@@ -128,7 +142,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
   }
 
   onComponentClick(event): void {
-    this.resetMenu();
+    this.resetMenu(this.selectedEntity);
   }
 
   handleEditEntity(globalparameters: Globalparameters): void {
@@ -165,10 +179,14 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
       this.globalparametersList = globalparametersList;
       this.prepareTableAndTranslate();
       this.createTranslatedValueStoreAndFilterField(globalparametersList);
+      if (this.selectedEntity) {
+        this.resetMenu(this.globalparametersList.find(gp => gp.propertyName === this.selectedEntity.propertyName));
+      }
     });
   }
 
-  private resetMenu(): void {
+  private resetMenu(gp: Globalparameters): void {
+    this.selectedEntity = gp;
     this.activePanelService.activatePanel(this, {
       showMenu: this.getMenuShowOptions(),
       editMenu: this.getEditMenu()

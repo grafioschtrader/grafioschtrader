@@ -63,8 +63,9 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   }
 
   public getUserLang(): string {
-    return sessionStorage.getItem(GlobalSessionNames.LANGUAGE);
+    return sessionStorage.getItem(GlobalSessionNames.LANGUAGE) || 'en';
   }
+
 
   public getLocale(): string {
     return sessionStorage.getItem(GlobalSessionNames.LOCALE) || 'de-CH';
@@ -215,6 +216,12 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return this._numberFormat;
   }
 
+  public getPasswordRegexProperties(): Observable<PasswordRegexProperties> {
+    return <Observable<PasswordRegexProperties>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/passwordrequirements`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   public getCurrencies(): Observable<ValueKeyHtmlSelectOptions[]> {
     return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/${AppSettings.CURRENCIES_P_KEY}`,
@@ -283,4 +290,10 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
         catchError(this.handleError.bind(this)));
     }
   }
+}
+
+export interface PasswordRegexProperties {
+  regex: string;
+  languageErrorMsgMap: {[language: string]: string};
+  forceRegex: boolean;
 }

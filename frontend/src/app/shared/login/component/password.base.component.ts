@@ -1,7 +1,7 @@
 import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {FormConfig} from '../../../dynamic-form/models/form.config';
 import {TranslateService} from '@ngx-translate/core';
-import {RuleEvent} from '../../../dynamic-form/error/error.message.rules';
+import {ErrorMessageRules, RuleEvent} from '../../../dynamic-form/error/error.message.rules';
 import {FieldFormGroup} from '../../../dynamic-form/models/form.group.definition';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {Directive, ViewChild} from '@angular/core';
@@ -9,7 +9,8 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {equalTo} from '../../validator/validator';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
-import {Validators} from '@angular/forms';
+import {ValidatorFn, Validators} from '@angular/forms';
+import {GlobalparameterService, PasswordRegexProperties} from '../../service/globalparameter.service';
 
 /**
  * Certain forms such as registration or password change will involve entering a password twice.
@@ -29,36 +30,39 @@ export abstract class PasswordBaseComponent {
   config: FieldFormGroup[] = [];
   configPassword: FieldConfig[];
   configObject: { [name: string]: FieldConfig };
+  protected passwordRegexProperties: PasswordRegexProperties;
 
-  protected constructor(public translateService: TranslateService) {
+
+  protected constructor(protected gps: GlobalparameterService, protected translateService: TranslateService) {
   }
 
-  afterViewInit(): void {
-    this.configObject[PasswordBaseComponent.passwordConfirm].errors.push({
-      name: 'equalTo',
-      keyi18n: 'equalToPassword',
-      rules: [RuleEvent.TOUCHED, 'dirty']
-    });
-    this.configObject[PasswordBaseComponent.password].validation.push( Validators.pattern('^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$'));
-    this.configObject[PasswordBaseComponent.password].errors.push({
+  protected preparePasswordFields(): void {
+    this.setValidators(PasswordBaseComponent.password, Validators.pattern(this.passwordRegexProperties.regex), {
       name: 'pattern',
       keyi18n: null,
-      text: 'Es muss eine Zahl und ein Buchstabe',
+      text: this.passwordRegexProperties.languageErrorMsgMap[this.gps.getUserLang()],
       rules: [RuleEvent.TOUCHED, 'dirty']
     });
-    this.configObject[PasswordBaseComponent.password].formControl.setValidators(this.configObject.password.validation);
-    this.configObject[PasswordBaseComponent.password].formControl.updateValueAndValidity();
 
-
+    this.setValidators(PasswordBaseComponent.passwordConfirm, equalTo(this.configObject.password.formControl),
+      {
+        name: 'equalTo',
+        keyi18n: 'equalToPassword',
+        rules: [RuleEvent.TOUCHED, 'dirty']
+      });
     TranslateHelper.translateMessageError(this.translateService, this.configObject[PasswordBaseComponent.passwordConfirm]);
-    this.configObject[PasswordBaseComponent.passwordConfirm].validation.push(equalTo(this.configObject.password.formControl));
-    this.configObject[PasswordBaseComponent.passwordConfirm].formControl.setValidators(this.configObject.passwordConfirm.validation);
-    this.configObject[PasswordBaseComponent.passwordConfirm].formControl.updateValueAndValidity();
   }
+
+  private setValidators(targetField: string, validators: ValidatorFn, error: ErrorMessageRules) {
+    this.configObject[targetField].validation.push(validators);
+    this.configObject[targetField].errors.push(error);
+    this.configObject[targetField].formControl.setValidators(this.configObject[targetField].validation);
+    this.configObject[targetField].formControl.updateValueAndValidity();
+  }
+
 
   protected init(fdias: FieldDescriptorInputAndShow[], newPassword: boolean): void {
     this.configPassword = [
-      // TODO Should only accept better passwords
       DynamicFieldModelHelper.ccWithFieldsFromDescriptor(PasswordBaseComponent.password,
         (newPassword) ? 'PASSWORD_NEW' : 'PASSWORD', fdias),
       DynamicFieldModelHelper.ccWithFieldsFromDescriptor(PasswordBaseComponent.password,

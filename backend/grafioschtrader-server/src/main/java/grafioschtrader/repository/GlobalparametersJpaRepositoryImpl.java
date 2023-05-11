@@ -27,6 +27,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.config.ExposedResourceBundleMessageSource;
+import grafioschtrader.dto.IPropertiesSelfCheck;
 import grafioschtrader.dto.PasswordRegexProperties;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
@@ -36,6 +37,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRepositoryCustom {
+
+  final static public Map<String, Class<?>> propertiesClassMap = new HashMap<>();
+  static {
+    propertiesClassMap.put(Globalparameters.GLOB_KEY_PASSWORT_REGEX, PasswordRegexProperties.class);
+  }
+  
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -244,12 +251,13 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   }
 
   @Override
-  public Globalparameters saveOnlyAttributes(Globalparameters updGp) {
+  public Globalparameters saveOnlyAttributes(Globalparameters updGp) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     if (UserAccessHelper.isAdmin(user)) {
       Optional<Globalparameters> existingGpOpt = globalparametersJpaRepository.findById(updGp.getPropertyName());
       if (existingGpOpt.isPresent()) {
         Globalparameters existingGp = existingGpOpt.get();
+        checkBlobPropertyBeforeSave(updGp);
         existingGp.replaceExistingPropertyValue(updGp);
         existingGp = globalparametersJpaRepository.save(existingGp);
         Globalparameters.resetDBValueOfKey(existingGp.getPropertyName());
@@ -259,19 +267,33 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
   }
 
+  private void checkBlobPropertyBeforeSave(Globalparameters updGp) throws Exception {
+    if (updGp.getPropertyName().endsWith(Globalparameters.BLOB_PROPERTIES)) {
+      Class<?> clazz = propertiesClassMap.get(updGp.getPropertyName());
+      String errorMsg = updGp
+          .checkBlobPropertyBeforeSave((IPropertiesSelfCheck) clazz.getDeclaredConstructor().newInstance());
+      if (errorMsg != null) {
+        final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        throw new IllegalArgumentException(messages.getMessage(errorMsg, null, user.createAndGetJavaLocale()));
+      }
+    }
+  }
+
   @Override
   public PasswordRegexProperties getPasswordRegexProperties() throws Exception {
     Optional<Globalparameters> globalparametersOpt = globalparametersJpaRepository
         .findById(Globalparameters.GLOB_KEY_PASSWORT_REGEX);
-    PasswordRegexProperties prp = null;
+    PasswordRegexProperties prp = new PasswordRegexProperties();
     if (globalparametersOpt.isEmpty()) {
-      prp = new PasswordRegexProperties(GlobalConstants.STANDARD_PASSWORD_REGEX, GlobalConstants.GT_LANGUAGE_CODES.stream().collect(
-          Collectors.toMap(lang -> lang, lang -> messages.getMessage("gt.password.regex", null, new Locale(lang)))), false);
+      prp = new PasswordRegexProperties(GlobalConstants.STANDARD_PASSWORD_REGEX,
+          GlobalConstants.GT_LANGUAGE_CODES.stream().collect(
+              Collectors.toMap(lang -> lang, lang -> messages.getMessage("gt.password.regex", null, new Locale(lang)))),
+          false);
       Globalparameters gp = new Globalparameters(Globalparameters.GLOB_KEY_PASSWORT_REGEX);
       gp.transformClassIntoBlobPropertis(prp);
       globalparametersJpaRepository.save(gp);
     } else {
-
+      prp = (PasswordRegexProperties) globalparametersOpt.get().transformBlobPropertiesIntoClass(prp);
     }
 
     return prp;

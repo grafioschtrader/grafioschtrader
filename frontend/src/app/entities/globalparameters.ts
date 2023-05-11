@@ -4,5 +4,6 @@ export class Globalparameters {
   propertyString: string = null;
   propertyDate: string = null;
   propertyBlob: string = null;
+  propertyBlobAsText: string = null;
   changedBySystem: boolean = null;
 }
