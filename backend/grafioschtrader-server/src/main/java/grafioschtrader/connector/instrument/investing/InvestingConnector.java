@@ -119,12 +119,21 @@ public class InvestingConnector extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency,
       final Connection investingConnection) throws IOException {
-    final Document doc = investingConnection.timeout(10000).get();
-    Element div = doc.select("#last_last").parents().first();
-
-    if (div == null) {
-      div = doc.select("div[class^=instrument-price_instrument-price]").first();
-    }
+    Element div = null;
+    int i = 0;
+    do {
+      i++;
+      final Document doc = investingConnection.timeout(10000).get();
+      div = doc.select("[data-test='instrument-price-last']").parents().first();
+      if (div == null) {
+        div = doc.select("#quotes_summary_current_data").first();
+      }
+      try {
+        Thread.sleep(800);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    } while (div == null && i <= 2);
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
         .split(" ");
     var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;

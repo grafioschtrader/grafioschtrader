@@ -67,7 +67,7 @@ public class GlobalConstants {
    */
   public static boolean AUTO_CORRECT_TO_AMOUNT = true;
 
-  public static final String USER_AGENT = "\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36\"";
+  public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42";
 
   /**
    * The standard note text size
