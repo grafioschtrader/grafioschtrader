@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
@@ -30,6 +32,7 @@ import grafioschtrader.search.SecuritycurrencySearch;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(RequestMappings.WATCHLIST_MAP)
@@ -113,7 +116,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
     return new ResponseEntity<>(watchlistJpaRepository.getSecuritiesCurrenciesWachlistLimits(idWatchlist),
         HttpStatus.OK);
   }
-
+  
   /////////////////////////////////////////////////////////////
   // Modify content of Watchlist - Report
   /////////////////////////////////////////////////////////////
@@ -138,6 +141,15 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
       @PathVariable final Integer idSecuritycurrency) {
     return ResponseEntity.ok()
         .body(watchlistJpaRepository.removeSecurityFromWatchlistAndDelete(idWatchlist, idSecuritycurrency));
+  }
+  
+  @Operation(summary = "Adding active instruments with price data problems. Both intraday and historical price data.", 
+      description = "The watchlist must not yet contain any instruments.", tags = { Watchlist.TABNAME })
+  @PatchMapping(value = "{idWatchlist}/pricedataproblems", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Watchlist> addInstrumentsWithPriceDataProblems(@PathVariable final Integer idWatchlist,
+      @Valid @RequestBody final IntraHistoricalWatchlistProblem ihwp) {
+    return new ResponseEntity<>(watchlistJpaRepository.addInstrumentsWithPriceDataProblems(idWatchlist, ihwp),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Remove a currency pair from specified watchlist and deletet it", description = "It can only deleted if the currency pair is not referenced", tags = {

@@ -54,7 +54,8 @@
                       tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
               </ng-container>
               <ng-container *ngSwitchCase="'greenRed'">
-                <span [style.color]='isValueByPathMinus(spl, field)? "red": "green"'>{{getValueByPath(spl, field)}}</span>
+                <span
+                  [style.color]='isValueByPathMinus(spl, field)? "red": "green"'>{{getValueByPath(spl, field)}}</span>
               </ng-container>
               <ng-container *ngSwitchCase="'check'">
                 <span><i [ngClass]="{'fa fa-check': getValueByPath(spl, field)}" aria-hidden="true"></i></span>
@@ -65,7 +66,8 @@
                           class="cell-move" draggable="true"></svg-icon>
               </ng-container>
               <ng-container *ngSwitchDefault>
-                <span [pTooltip]="getValueByPath(spl, field)" tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
+                <span [pTooltip]="getValueByPath(spl, field)"
+                      tooltipPosition="top">{{getValueByPath(spl, field)}}</span>
               </ng-container>
             </ng-container>
           </td>
@@ -141,5 +143,13 @@
                        [visibleDialog]="visibleEditSecurityDerivedDialog">
 </security-derived-edit>
 
+
+<ng-container *ngIf="watchlistType === WatchListType.PRICE_FEED">
+  <watchlist-add-edit-price-problem-instrument (closeDialog)="handleCloseAddPriceProblemInstrument($event)"
+                                               *ngIf="visibleAddPriceProblemDialog"
+                                               [idWatchlist]="idWatchlist"
+                                               [visibleDialog]="visibleAddPriceProblemDialog">
+  </watchlist-add-edit-price-problem-instrument>
+</ng-container>
 
 

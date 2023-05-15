@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.UserAccessHelper;
+import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Globalparameters;
@@ -23,7 +24,7 @@ import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.search.SecuritycurrencySearch;
 
-public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> implements WatchlistJapRepositoryCustom {
+public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> implements WatchlistJpaRepositoryCustom {
 
   @Autowired
   private WatchlistJpaRepository watchlistJpaRepository;
@@ -206,21 +207,29 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   @Override
   public SecuritycurrencyLists tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(Integer idWatchlist) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    List<Security> securityList = securityJpaRepository
-        .tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(user.getIdTenant(), idWatchlist);
-    List<Currencypair> currencypair = currencypairJpaRepository
-        .tryUpToDateIntraDataWhenRetryIntraLoadGreaterThan0(user.getIdTenant(), idWatchlist);
-    return new SecuritycurrencyLists(securityList, currencypair);
+    if (UserAccessHelper.hasHigherPrivileges(user)) {
+      List<Security> securityList = securityJpaRepository
+          .tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(user.getIdTenant(), idWatchlist);
+      List<Currencypair> currencypair = currencypairJpaRepository
+          .tryUpToDateIntraDataWhenRetryIntraLoadGreaterThan0(user.getIdTenant(), idWatchlist);
+      return new SecuritycurrencyLists(securityList, currencypair);
+    } else {
+      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+    }
   }
 
   @Override
   public SecuritycurrencyLists tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(Integer idWatchlist) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    List<Security> securityList = securityJpaRepository
-        .tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(user.getIdTenant(), idWatchlist);
-    List<Currencypair> currencypairList = currencypairJpaRepository
-        .tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(user.getIdTenant(), idWatchlist);
-    return new SecuritycurrencyLists(securityList, currencypairList);
+    if (UserAccessHelper.hasHigherPrivileges(user)) {
+      List<Security> securityList = securityJpaRepository
+          .tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(user.getIdTenant(), idWatchlist);
+      List<Currencypair> currencypairList = currencypairJpaRepository
+          .tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(user.getIdTenant(), idWatchlist);
+      return new SecuritycurrencyLists(securityList, currencypairList);
+    } else {
+      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+    }
   }
 
   @Override
@@ -238,6 +247,25 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
         Globalparameters.GLOB_KEY_MAX_SECURITIES_CURRENCIES, Watchlist.class.getSimpleName());
 
     return tenantLimits;
+  }
+
+  @Override
+  public Watchlist addInstrumentsWithPriceDataProblems(Integer idWatchlist, IntraHistoricalWatchlistProblem ihwp) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final Watchlist watchlist = watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
+    if(watchlist != null && watchlist.getSecuritycurrencyList().isEmpty() && UserAccessHelper.hasHigherPrivileges(user)) {
+      if(ihwp.addHistorical) {
+        watchlistJpaRepository.addInstrumentsWithHistoricalPriceDataTrouble(idWatchlist, ihwp.daysSinceLastWork,
+            globalparametersJpaRepository.getMaxHistoryRetry());  
+      }
+      if(ihwp.addIntraday) {
+        watchlistJpaRepository.addInstrumentsWithIntradayPriceDataTrouble(idWatchlist, ihwp.daysSinceLastWork,
+            globalparametersJpaRepository.getMaxIntraRetry());
+      }
+    } else {
+      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+    }
+    return watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
   }
 
 }

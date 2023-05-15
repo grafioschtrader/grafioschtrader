@@ -11,6 +11,7 @@ import {FormTemplateCheck} from '../component/form.template.check';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ImportTransactionPos} from '../../entities/import.transaction.pos';
 
 
 @Injectable()
@@ -41,6 +42,13 @@ export class ImportTransactionTemplateService extends AuthServiceWithLogout<Impo
       + `${AppSettings.IMP_TRANS_TEMPLATE_KEY}/${AppSettings.IMP_TRANS_PLATFORM_KEY}/`
       + `${AppSettings.TRADING_PLATFORM_PLAN_KEY}/csv/${idTradingPlatformPlan}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  setIdTransactionMayBe(idTransactionMayBe: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
+    return <Observable<ImportTransactionPos[]>>this.httpClient.patch(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setidtransactionmaybe`,
+      {idTransactionMayBe, idTransactionPosList},
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
   getPossibleLanguagesForTemplate(): Observable<ValueKeyHtmlSelectOptions[]> {

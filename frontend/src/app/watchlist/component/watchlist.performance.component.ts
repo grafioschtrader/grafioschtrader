@@ -24,7 +24,7 @@ import {combineLatest, Observable, Subscription} from 'rxjs';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 
 /**
@@ -131,7 +131,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   }
 
 
-
   public getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST_PERFORMANCE;
   }
@@ -140,7 +139,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.topicSubscription && this.topicSubscription.unsubscribe();
     super.ngOnDestroy();
   }
-
 
 
   protected getWatchlistWithoutUpdate() {
@@ -154,8 +152,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     });
   }
 
-  protected updateAllPrice(): void {
-     this.updateAllPriceThruRest();
+  protected override updateAllPrice(): void {
+    this.updateAllPriceThruRest();
   }
 
   protected getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
