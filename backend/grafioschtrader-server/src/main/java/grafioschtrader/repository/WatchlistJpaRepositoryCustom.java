@@ -2,12 +2,13 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
+import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.search.SecuritycurrencySearch;
 
-public interface WatchlistJapRepositoryCustom extends BaseRepositoryCustom<Watchlist> {
+public interface WatchlistJpaRepositoryCustom extends BaseRepositoryCustom<Watchlist> {
 
   TenantLimit[] getSecuritiesCurrenciesWachlistLimits(Integer idWatchlist);
 
@@ -30,7 +31,9 @@ public interface WatchlistJapRepositoryCustom extends BaseRepositoryCustom<Watch
   SecuritycurrencyLists searchByCriteria(Integer idWatchlist, SecuritycurrencySearch securitycurrencySearch);
 
   SecuritycurrencyLists tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(Integer idWatchlist);
-
+  
+  Watchlist addInstrumentsWithPriceDataProblems(Integer idWatchlist, IntraHistoricalWatchlistProblem ihwp);
+  
   SecuritycurrencyLists tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(Integer idWatchlist);
 
   Boolean moveSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget, Integer idSecuritycurrency);

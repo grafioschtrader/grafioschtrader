@@ -318,6 +318,9 @@ import {SendRecvForwardTabMenuComponent} from './mail/component/send.recv.forwar
 import {MailSettingForwardService} from './mail/service/mail.setting.forward.service';
 import {MailForwardSettingTableComponent} from './mail/component/mail.forward.setting.table.component';
 import {MailForwardSettingEditComponent} from './mail/component/mail-forward-setting-edit.component';
+import {
+  WatchlistAddEditPriceProblemInstrumentComponent
+} from './watchlist/component/watchlist-add-edit-price-problem-instrument.component';
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
   {prefix: './assets/i18n/', suffix: '.json'},
@@ -368,7 +371,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     UploadFileDialogComponent, UserEditComponent, UserEntityChangeLimitEditComponent, UserEntityChangeLimitTableComponent,
     UserTableComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
     CorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent,
-    SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent,
+    SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent, WatchlistAddEditPriceProblemInstrumentComponent,
     WatchlistPerformanceComponent, WatchlistTabMenuComponent, WatchlistDividendSplitFeedComponent,
     WatchlistSecuritysplitTableComponent, WatchlistDividendTableComponent, YourProposalTableComponent
   ],

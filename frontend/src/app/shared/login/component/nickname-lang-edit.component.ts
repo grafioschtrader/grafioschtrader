@@ -16,7 +16,7 @@ import {MessageToastService} from '../../message/message.toast.service';
 import {TranslateHelper} from '../../helper/translate.helper';
 
 /**
- * Change nickname and locale of an user
+ * Change nickname and locale of a user
  */
 @Component({
   selector: 'nickname-lang-edit',
@@ -61,7 +61,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
     }, error: () => this.configObject.submit.disabled = false});
   }
 
-  onHide(event) {
+  onHide(event): void {
     this.mainDialogService.visibleDialog(false, UserSettingsDialogs.NicknameLocale);
   }
 

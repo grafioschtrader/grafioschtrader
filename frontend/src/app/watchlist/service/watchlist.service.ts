@@ -18,6 +18,7 @@ import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {AddSearchToListService} from '../component/add-instrument-table.component';
+import {IntraHistoricalWatchlistProblem} from '../model/intra.historical.watchlist.problem';
 
 
 @Injectable()
@@ -100,6 +101,12 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
     const securitycurrencyLists = new SecuritycurrencyLists();
     securitycurrencyLists.securityList = [security];
     return this.addSecuritycurrenciesToList(idWatchlist, securitycurrencyLists);
+  }
+
+  addInstrumentsWithPriceDataProblems(idWatchlist: number, intraHistoricalWatchlistProblem: IntraHistoricalWatchlistProblem): Observable<Watchlist> {
+    return <Observable<Watchlist>>this.httpClient.patch(`${AppSettings.API_ENDPOINT}`
+      + `${AppSettings.WATCHLIST_KEY}/${idWatchlist}/pricedataproblems`, intraHistoricalWatchlistProblem,
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
   addSecuritycurrenciesToList(idWatchlist: number, securitycurrencyLists: SecuritycurrencyLists): Observable<Watchlist> {

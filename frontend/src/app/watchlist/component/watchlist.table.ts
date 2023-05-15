@@ -208,18 +208,18 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   /**
    * Data of child was changed.
    */
-  handleCloseTransactionDialog(processedActionData: ProcessedActionData) {
+  handleCloseTransactionDialog(processedActionData: ProcessedActionData): void {
     this.visibleSecurityTransactionDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.updateAllPrice();
     }
   }
 
-  handleCloseAddInstrumentDialog(processedActionData: ProcessedActionData) {
+  handleCloseAddInstrumentDialog(processedActionData: ProcessedActionData): void {
     this.visibleAddInstrumentDialog = false;
   }
 
-  handleCloseEditSecuritycurrencyDialog(processedActionData: ProcessedActionData) {
+  handleCloseEditSecuritycurrencyDialog(processedActionData: ProcessedActionData): void {
     this.visibleEditSecurityDialog = false;
     this.visibleEditCurrencypairDialog = false;
     this.visibleEditSecurityDerivedDialog = false;

@@ -159,7 +159,7 @@ export class DynamicFieldModelHelper {
           break;
 
         default:
-      }
+     }
     } else {
       fieldConfig = DynamicFieldHelper.createFieldInputString(targetField, labelKey, fd.max, fd.required,
         fieldOptions);

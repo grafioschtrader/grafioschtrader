@@ -29,8 +29,6 @@ import jakarta.validation.constraints.Min;
 /**
  * Rest service for one or more import transactions.
  *
- * @author Hugo Graf
- *
  */
 @RestController
 @RequestMapping(RequestMappings.IMPORTTRANSACTIONPOS_MAP)

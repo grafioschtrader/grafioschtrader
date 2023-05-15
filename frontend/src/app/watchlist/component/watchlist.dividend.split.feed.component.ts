@@ -29,12 +29,6 @@ import {HelpIds} from '../../shared/help/help.ids';
 @Component({
   templateUrl: '../view/watchlist.data.html',
   styles: [`
-    :host ::ng-deep .ui-table .ui-table-thead > tr > th {
-      position: -webkit-sticky;
-      position: sticky;
-      top: 0px;
-    }
-
     .cell-move {
       cursor: move !important;
     }
@@ -111,7 +105,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     return HelpIds.HELP_WATCHLIST_DIVIDEND_SPLIT_FEED;
   }
 
-  protected updateAllPrice() {
+  protected override updateAllPrice() {
     this.loading = true;
     this.getWatchlistWithoutUpdate();
   }

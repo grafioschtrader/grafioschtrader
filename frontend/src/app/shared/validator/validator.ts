@@ -18,6 +18,9 @@ export const atLeastOneFieldValidator = (group: UntypedFormGroup): { [key: strin
   return isAtLeastOne ? null : {required: true};
 };
 
+
+
+
 export const gtWithMask = (gt: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
   if (!isPresent(gt)) {
     return null;
@@ -66,6 +69,8 @@ export const dateRange = (dateField1: string, dateField2: string, validatorField
   }
   return null;
 };
+
+
 
 
 export const gteWithMaskIncludeNegative = (gte: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
@@ -176,9 +181,7 @@ export const equalTo = (equalControl: AbstractControl): ValidatorFn => {
         control.updateValueAndValidity();
       });
     }
-
     const v: string = control.value;
-
     return equalControl.value === v ? null : {equalTo: {control: equalControl, value: equalControl.value}};
   };
 };

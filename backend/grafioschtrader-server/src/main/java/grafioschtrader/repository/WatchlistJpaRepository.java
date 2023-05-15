@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
-public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer>, WatchlistJapRepositoryCustom,
+public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer>, WatchlistJpaRepositoryCustom,
     UpdateCreateDeleteWithTenantJpaRepository<Watchlist> {
 
   Watchlist findByName(String name);
@@ -44,6 +44,12 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Query(nativeQuery = true)
   List<Object[]> watchlistsOfTenantHasSecurity(Integer idTenant);
 
+  @Query(nativeQuery = true)
+  void addInstrumentsWithIntradayPriceDataTrouble(Integer idWatchlist, Integer daysSinceLastWork, Short retryIntraCounter);
+  
+  @Query(nativeQuery = true)
+  void addInstrumentsWithHistoricalPriceDataTrouble(Integer idWatchlist, Integer daysSinceLastWork, Short retryHistoricalCounter);
+  
   /**
    * Returns the Security ids from used Securities. They can be referenced by a
    * watchlist or a transaction. The watchlist in of the parameter is excluded. It
