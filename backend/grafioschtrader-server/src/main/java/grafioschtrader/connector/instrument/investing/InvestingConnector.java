@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -19,6 +20,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -134,7 +136,8 @@ public class InvestingConnector extends BaseFeedConnector {
         e.printStackTrace();
       }
     } while (div == null && i <= 2);
-    String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
+    String joinedText = div.select("span").eachText().stream().collect(Collectors.joining(" "));
+    String[] numbers = StringUtils.normalizeSpace(joinedText.replace("%", "").replace("(", " ").replace(")", ""))
         .split(" ");
     var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;
     securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]));
@@ -143,7 +146,8 @@ public class InvestingConnector extends BaseFeedConnector {
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
-
+  
+  
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     return getSecurityCurrencyHistoricalDownloadLink(security);

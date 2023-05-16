@@ -20,6 +20,7 @@ class InvestingConnectorTest {
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
 
+    securities.add(ConnectorTestHelper.createIntraSecurity("CS", "equities/credit-suisse"));
     securities.add(ConnectorTestHelper.createIntraSecurity(
         "db x-trackers Emerging MARKETS LIQUID EUROBOND INDEX ETF (EUR)22.10.2010",
         "etfs/db-em-liquid-eurobond---eur"));
@@ -31,7 +32,6 @@ class InvestingConnectorTest {
    securities.add(ConnectorTestHelper.createIntraSecurity("Apple Inc (AAPL)", "equities/apple-computer-inc"));
     securities.add(ConnectorTestHelper.createIntraSecurity("iShares MSCI Emerging Markets ETF (EEM)",
         "etfs/ishares-msci-emg-markets"));
-
 
     securities.parallelStream().forEach(security -> {
       try {

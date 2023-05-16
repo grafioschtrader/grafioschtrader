@@ -1,6 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../shared/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {WatchlistService} from '../service/watchlist.service';
@@ -36,7 +35,6 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditB
   @Input() idWatchlist: number;
 
   constructor(public translateService: TranslateService,
-              private messageToastService: MessageToastService,
               private watchlistService: WatchlistService,
               gps: GlobalparameterService) {
     super(HelpIds.HELP_WATCHLIST_PRICE_FEED, gps);
