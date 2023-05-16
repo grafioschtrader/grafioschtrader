@@ -44,7 +44,6 @@ public final class JwtTokenHandler {
       Integer userId = (Integer) jwsClaims.get(ID_USER);
       return Optional.ofNullable(userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject()));
     } catch (ExpiredJwtException e) {
-      // TODO create new token
       throw e;
     }
   }
@@ -55,8 +54,8 @@ public final class JwtTokenHandler {
     return (Integer) jwsClaims.get(ID_USER);
   }
 
-  public String createTokenForUser(final UserDetails user) {
-    final ZonedDateTime afterOneWeek = ZonedDateTime.now().plusDays(1);
+  public String createTokenForUser(final UserDetails user, int expirationMinutes) {
+    final ZonedDateTime afterSomeMinutes = ZonedDateTime.now().plusMinutes(expirationMinutes);
 
     List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
         .collect(Collectors.toList());
@@ -64,7 +63,7 @@ public final class JwtTokenHandler {
     return Jwts.builder().setSubject(user.getUsername()).claim(ID_USER, ((User) user).getIdUser())
         .claim("idTenant", ((User) user).getIdTenant()).claim("localeStr", ((User) user).getLocaleStr())
         .claim("roles", roles).signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
-        .setExpiration(Date.from(afterOneWeek.toInstant())).compact();
+        .setExpiration(Date.from(afterSomeMinutes.toInstant())).compact();
   }
 
 }

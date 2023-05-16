@@ -130,6 +130,13 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_MAX_LIMIT_EXCEEDED_COUNT)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_MAX_LIMIT_EXCEEDED_COUNT);
   }
+  
+  
+  @Override
+  public int getJWTExpirationMinutes() {
+    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_JWT_EXPIRATION_MINUTES)
+        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_GLOB_KEY_JWT_EXPIRATION_MINUTES);
+  }
 
   @Override
   public int getMaxSecurityBreachCount() {

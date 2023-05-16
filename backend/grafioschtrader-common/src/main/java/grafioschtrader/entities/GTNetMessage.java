@@ -30,7 +30,10 @@ import jakarta.persistence.TemporalType;
 @Table(name = GTNetMessage.TABNAME)
 @Schema(description = """
     This entity records the basic messages between the instances of the GT network.
-    In addition, these messages are also used to communicate between the GT instances.""")
+    In addition, these messages are also used to communicate between the GT instances.
+    Mininmal there will always be a message on the sender and the receiver. 
+    However, a message can be sent to several recipients, so the number of records on the sender 
+    depends on the number of recipients.""")
 public class GTNetMessage extends BaseID {
 
   public static final String TABNAME = "gt_net_message";
@@ -41,7 +44,9 @@ public class GTNetMessage extends BaseID {
   @Column(name = "id_gt_net_message")
   private Integer idGtNetMessage;
 
-  @Schema(description = "Connection to GTNet")
+  @Schema(description = """
+     Connection to GTNet, for the sender it is the ID of the receiver 
+     and for the receiver it is the ID of the sender.""")
   @Column(name = "id_gt_net")
   private Integer idGtNet;
 
@@ -49,11 +54,17 @@ public class GTNetMessage extends BaseID {
   @Column(name = "timestamp")
   @Temporal(TemporalType.TIMESTAMP)
   private Date timestamp;
-
+  
   @Schema(description = "Distinguish whether the message was sent or received")
   @Column(name = "send_recv")
   private byte sendRecv;
+  
+  @Schema(description = "Source idGtNetMessage, is needed for the reply (replyTo) to it.")
+  @PropertyOnlyCreation
+  @Column(name = "id_source_gt_net_message")
+  private Integer idSourceGtNetMessage;
 
+  
   @Schema(description = "Used if this message refers to a previous one")
   @PropertyOnlyCreation
   @Column(name = "reply_to")
