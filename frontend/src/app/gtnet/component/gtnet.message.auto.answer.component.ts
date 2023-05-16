@@ -18,6 +18,7 @@ import {AppSettings} from '../../shared/app.settings';
   template: `
     Auto Answer Message
   `,
+  providers: [DialogService]
 })
 export class GTNetMessageAutoAnswerComponent extends TableCrudSupportMenu<GTNetMessageAnswer> {
 
