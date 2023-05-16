@@ -56,6 +56,8 @@ public interface GlobalparametersJpaRepositoryCustom {
   short getMaxSplitRetry();
 
   int getMaxFillDaysCurrency();
+  
+  int getJWTExpirationMinutes();
 
   Date getStartFeedDate() throws ParseException;
 

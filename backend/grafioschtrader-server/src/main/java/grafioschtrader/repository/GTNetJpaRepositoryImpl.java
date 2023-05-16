@@ -66,7 +66,6 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         .findAllByOrderByIdGtNetAscTimestampAsc().collect(Collectors.groupingBy(GTNetMessage::getIdGtNet)),
         globalparametersJpaRepository.getGTNetMyEntryID());
   }
-
   
 
   @Override

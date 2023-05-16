@@ -60,7 +60,8 @@ public class TokenAuthenticationService {
       boolean passwordRegexOk) throws IOException {
 
     final UserDetails user = authentication.getDetails();
-    response.addHeader(AUTH_HEADER_NAME, jwtTokenHandler.createTokenForUser(user));
+    response.addHeader(AUTH_HEADER_NAME,
+        jwtTokenHandler.createTokenForUser(user, globalparametersJpaRepository.getJWTExpirationMinutes()));
     PrintWriter out = response.getWriter();
     jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(((User) user).isUiShowMyProperty(),
         ((User) user).getMostPrivilegedRole(), passwordRegexOk));
