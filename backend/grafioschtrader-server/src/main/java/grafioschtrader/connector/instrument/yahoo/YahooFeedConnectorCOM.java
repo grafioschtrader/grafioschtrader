@@ -87,6 +87,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
   private static final String DOMAIN_NAME_WITH_6_VERSION = "https://query1.finance.yahoo.com/v6/finance/";
   private static final String DOMAIN_NAME_WITH_7_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
+  private static final String DOMAIN_NAME_WITH_11_VERSION = "https://query2.finance.yahoo.com/v11/finance/";
   private static final String CRUMB = "&crumb=";
   private static boolean USE_OLD_CRUMB = false;
 
@@ -106,7 +107,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return DOMAIN_NAME_WITH_6_VERSION + "quote?symbols=" + security.getUrlIntraExtend();
+    return DOMAIN_NAME_WITH_11_VERSION + "quoteSummary/" + security.getUrlIntraExtend() + "?modules=price";
   }
 
   @Override
@@ -128,21 +129,19 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-
-    // https://query1.finance.yahoo.com/v7/finance/quote?symbols=DBK.DE
-
+    // https://query2.finance.yahoo.com/v11/finance/quoteSummary/^GSPC?modules=price
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     readAndsetQuoteResult(getSecurityIntradayDownloadLink(security), security);
   }
 
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return DOMAIN_NAME_WITH_6_VERSION + "quote?symbols=" + getCurrencyPairSymbol(currencypair);
+    return DOMAIN_NAME_WITH_11_VERSION + "quoteSummary/" + getCurrencyPairSymbol(currencypair) + "?modules=price";
   }
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
-    // https://query1.finance.yahoo.com/v7/finance/quote?symbols=USDGBP=X
+   // https://query2.finance.yahoo.com/v11/finance/quoteSummary/USDCHF=X?modules=price
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     readAndsetQuoteResult(getCurrencypairIntradayDownloadLink(currencypair), currencypair);
   }
@@ -172,7 +171,10 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private <T extends Securitycurrency<T>> void readAndsetQuoteResult(String urlStr, final T securitycurrency) throws StreamReadException, DatabindException, MalformedURLException, IOException {
-    if(urlStr.startsWith(DOMAIN_NAME_WITH_6_VERSION)) {
+    if(urlStr.startsWith(DOMAIN_NAME_WITH_11_VERSION)) {
+      final QuoteSummaryV11 quoteSummary = objectMapper.readValue(new URL(urlStr), QuoteSummaryV11.class);
+      setQuoteSummary(quoteSummary, securitycurrency);
+    } else if(urlStr.startsWith(DOMAIN_NAME_WITH_6_VERSION)) {
       final Quote quote = objectMapper.readValue(new URL(urlStr), Quote.class);
       setQuoteResult(quote, securitycurrency);
     } else {
@@ -187,6 +189,21 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     }
   }
   
+  private  <T extends Securitycurrency<T>> void setQuoteSummary(final QuoteSummaryV11 quoteSummary, final T securitycurrency) {
+    if (quoteSummary.quoteSummary.result.length == 1) {
+      double divider = FeedConnectorHelper.getGBXLondonDivider(securitycurrency);
+      Price price = quoteSummary.quoteSummary.result[0].price; 
+      securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+      securitycurrency.setSLast(price.regularMarketPrice.raw/ divider);
+      securitycurrency.setSHigh(price.regularMarketDayHigh.raw / divider);
+      securitycurrency.setSLow(price.regularMarketDayLow.raw / divider);
+      securitycurrency.setSOpen(price.regularMarketOpen.raw / divider);
+      securitycurrency.setSChangePercentage(price.regularMarketChangePercent.raw * 100);
+      if (securitycurrency instanceof Security s) {
+        s.setSVolume(price.regularMarketVolume.raw);
+      }
+    }
+  }
 
   private <T extends Securitycurrency<T>> void setQuoteResult(final Quote quote, final T securitycurrency) {
     if (quote.quoteResponse.result.length == 1) {
@@ -546,6 +563,51 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private interface IReadData<S> {
     void readData(final BufferedReader in, Integer idSecurity, List<S> securitysplits, String currency)
         throws IOException, ParseException;
+  }
+  
+  static class QuoteSummaryV11 {
+    public QuoteSummary quoteSummary;
+  }
+  
+  static class QuoteSummary {
+    public PriceV11 result[];
+  }
+  
+  static class PriceV11 {
+    public Price price;
+  }
+  
+  static class Price {
+    public RegularMarketChangePercent regularMarketChangePercent;
+    public RegularMarketPrice regularMarketPrice;
+    public RegularMarketDayHigh regularMarketDayHigh;
+    public RegularMarketDayLow regularMarketDayLow;
+    public RegularMarketOpen regularMarketOpen;
+    public RegularMarketVolume regularMarketVolume;
+  }
+  
+  static class RegularMarketChangePercent {
+    public double raw;
+  }
+  
+  static class RegularMarketPrice {
+    public double raw;
+  }
+  
+  static class RegularMarketDayHigh {
+    public double raw;
+  }
+  
+  static class RegularMarketDayLow {
+    public double raw;
+  }
+  
+  static class RegularMarketOpen {
+    public double raw;
+  }
+  
+  static class RegularMarketVolume {
+    public Long raw;
   }
 
 }

@@ -79,6 +79,8 @@ class YahooFeedConnectorCOMTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
+      System.out.println(String.format("%s/%s last:%f change: %f high: %f low: %f", currencyPair.getFromCurrency(), currencyPair.getToCurrency(),
+          currencyPair.getSLast(), currencyPair.getSChangePercentage(), currencyPair.getSHigh(), currencyPair.getSLow() ));
       assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
     });
   }
@@ -122,12 +124,15 @@ class YahooFeedConnectorCOMTest {
     final List<Security> securities = new ArrayList<>();
     securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.add(createSecurity("csco", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    securities.add(createSecurity("^NDX", "NYSE", "USD", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
     securities.parallelStream().forEach(security -> {
       try {
         yahooFeedConnector.updateSecurityLastPrice(security);
       } catch (final Exception e) {
         e.printStackTrace();
       }
+      System.out.println(String.format("%s last:%f change: %f high: %f low: %f", security.getUrlIntraExtend(),
+          security.getSLast(), security.getSChangePercentage(), security.getSHigh(), security.getSLow() ));
       assertThat(security.getSLast()).isNotNull().isGreaterThan(0.0);
     });
 
