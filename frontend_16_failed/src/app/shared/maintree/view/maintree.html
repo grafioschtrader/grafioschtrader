@@ -1,0 +1,44 @@
+<div (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+     dynamicItems>
+  <p-tree (keydown)="onKeydown($event)" (onNodeContextMenuSelect)="onNodeContextMenuSelect($event)" (onNodeSelect)="onNodeSelect($event)" [(selection)]="selectedNode"
+          [contextMenu]="cm"
+          [value]="portfolioTrees" selectionMode="single">
+    <ng-template let-node pTemplate="default">
+        <span (dragover)="dragOver($event, node)" (drop)="drop($event, node)">
+            {{node.label}}
+        </span>
+    </ng-template>
+  </p-tree>
+
+  <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+</div>
+
+<p-confirmDialog #cd header="Confirmation" icon="fa fa-question-circle" width="425">
+  <p-footer>
+    <button (click)="cd.accept()" icon="pi pi-check" label="{{'YES' | translate}}" pButton type="button"></button>
+    <button (click)="cd.reject()" icon="pi pi-times" label="{{'NO' | translate}}" pButton type="button"></button>
+  </p-footer>
+</p-confirmDialog>
+
+
+<tenant-edit-dialog (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvTenant]"
+                    [callParam]="callParam"
+                    [onlyCurrency]="onlyCurrency"
+                    [visibleTenantDialog]="visibleDialogs[DialogVisible.DvTenant]">
+</tenant-edit-dialog>
+<portfolio-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvPortfolio]"
+                [callParam]="callParam"
+                [visibleDialog]="visibleDialogs[DialogVisible.DvPortfolio]">
+</portfolio-edit>
+<securityaccount-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvSecurityaccount]"
+                      [callParam]="callParam"
+                      [visibleDialog]="visibleDialogs[DialogVisible.DvSecurityaccount]">
+</securityaccount-edit>
+<watchlist-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvWatchlist]"
+                [callParam]="callParam"
+                [visibleDialog]="visibleDialogs[DialogVisible.DvWatchlist]">
+</watchlist-edit>
+<algo-rule-strategy-create (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvAlgoRuleStrategy]"
+                           [callParam]="callParam"
+                           [visibleDialog]="visibleDialogs[DialogVisible.DvAlgoRuleStrategy]">
+</algo-rule-strategy-create>

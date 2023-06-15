@@ -6,9 +6,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -29,6 +32,7 @@ import org.apache.commons.math3.fraction.FractionFormat;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
@@ -87,9 +91,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
   private static final String DOMAIN_NAME_WITH_6_VERSION = "https://query1.finance.yahoo.com/v6/finance/";
   private static final String DOMAIN_NAME_WITH_7_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
-  private static final String DOMAIN_NAME_WITH_11_VERSION = "https://query2.finance.yahoo.com/v11/finance/";
-  private static final String CRUMB = "&crumb=";
-  private static boolean USE_OLD_CRUMB = false;
+  private static final String DOMAIN_NAME_WITH_7_VERSION_Q2 = "https://query2.finance.yahoo.com/v7/finance/";
+  private static final String DOMAIN_NAME_WITH_11_VERSION = "https://query2.finance.yahoo.com/v11/finance/quoteSummary/";
+  private static final boolean USE_V11_LASTPRICE = false;
 
   static {
     supportedFeed = new HashMap<>();
@@ -107,7 +111,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return DOMAIN_NAME_WITH_11_VERSION + "quoteSummary/" + security.getUrlIntraExtend() + "?modules=price";
+    String symbol = URLEncoder.encode(security.getUrlIntraExtend(), StandardCharsets.UTF_8);
+    return USE_V11_LASTPRICE ? DOMAIN_NAME_WITH_11_VERSION + symbol + "?modules=price"
+        : DOMAIN_NAME_WITH_7_VERSION_Q2 + "quote?symbols=" + symbol;
   }
 
   @Override
@@ -115,33 +121,21 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     return 900;
   }
 
-  private String addCrumb(boolean refresh) {
-    try {
-      if(refresh) {
-        CrumbManager.refresh();  
-      }
-      return CRUMB + CrumbManager.getCrumb();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return "";
-  }
-
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    // https://query2.finance.yahoo.com/v11/finance/quoteSummary/^GSPC?modules=price
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     readAndsetQuoteResult(getSecurityIntradayDownloadLink(security), security);
   }
 
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return DOMAIN_NAME_WITH_11_VERSION + "quoteSummary/" + getCurrencyPairSymbol(currencypair) + "?modules=price";
+    return USE_V11_LASTPRICE ? DOMAIN_NAME_WITH_11_VERSION + getCurrencyPairSymbol(currencypair) + "?modules=price"
+        : DOMAIN_NAME_WITH_7_VERSION_Q2 + "quote?symbols=" + getCurrencyPairSymbol(currencypair);
+
   }
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
-   // https://query2.finance.yahoo.com/v11/finance/quoteSummary/USDCHF=X?modules=price
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     readAndsetQuoteResult(getCurrencypairIntradayDownloadLink(currencypair), currencypair);
   }
@@ -170,31 +164,51 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   }
 
-  private <T extends Securitycurrency<T>> void readAndsetQuoteResult(String urlStr, final T securitycurrency) throws StreamReadException, DatabindException, MalformedURLException, IOException {
-    if(urlStr.startsWith(DOMAIN_NAME_WITH_11_VERSION)) {
+  private <T extends Securitycurrency<T>> void readAndsetQuoteResult(String urlStr, final T securitycurrency)
+      throws StreamReadException, DatabindException, MalformedURLException, IOException {
+    if (urlStr.startsWith(DOMAIN_NAME_WITH_11_VERSION)) {
       final QuoteSummaryV11 quoteSummary = objectMapper.readValue(new URL(urlStr), QuoteSummaryV11.class);
       setQuoteSummary(quoteSummary, securitycurrency);
-    } else if(urlStr.startsWith(DOMAIN_NAME_WITH_6_VERSION)) {
+    } else if (urlStr.startsWith(DOMAIN_NAME_WITH_6_VERSION)) {
       final Quote quote = objectMapper.readValue(new URL(urlStr), Quote.class);
       setQuoteResult(quote, securitycurrency);
     } else {
-      try {
-        final Quote quote = objectMapper.readValue(new URL(urlStr + addCrumb(false)), Quote.class);
-        setQuoteResult(quote, securitycurrency);
-      } catch (IOException e) {
-        urlStr = urlStr.replaceFirst(CRUMB + ".*", Pattern.quote(addCrumb(true)));
-        final Quote quote = objectMapper.readValue(new URL(urlStr), Quote.class);
-        setQuoteResult(quote, securitycurrency);
-      }  
+      v7LastPrice(urlStr, securitycurrency);
     }
   }
-  
-  private  <T extends Securitycurrency<T>> void setQuoteSummary(final QuoteSummaryV11 quoteSummary, final T securitycurrency) {
+
+  private <T extends Securitycurrency<T>> void v7LastPrice(String urlStr, final T securitycurrency)
+      throws ClientProtocolException, IOException {
+    Quote quote = null;
+    for(int i = 0; i <= 2 && (quote == null || quote.quoteResponse == null); i++){
+      i++;
+      HttpClient client = HttpClientBuilder.create()
+          .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
+      HttpClientContext context = HttpClientContext.create();
+      String cookie = CrumbManager.getCookie();
+      HttpGet request = new HttpGet(urlStr + "&crumb=" + CrumbManager.getCrumb());
+      request.addHeader("Cookie", cookie);
+      request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
+
+      HttpResponse response = client.execute(request, context);
+      HttpEntity entity = response.getEntity();
+
+      quote = objectMapper.readValue(entity.getContent(), Quote.class);
+      if(quote.quoteResponse != null) {
+        setQuoteResult(quote, securitycurrency);
+      } else {
+        CrumbManager.resetCookieCrumb();
+      }
+    }
+  }
+
+  private <T extends Securitycurrency<T>> void setQuoteSummary(final QuoteSummaryV11 quoteSummary,
+      final T securitycurrency) {
     if (quoteSummary.quoteSummary.result.length == 1) {
       double divider = FeedConnectorHelper.getGBXLondonDivider(securitycurrency);
-      Price price = quoteSummary.quoteSummary.result[0].price; 
+      Price price = quoteSummary.quoteSummary.result[0].price;
       securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
-      securitycurrency.setSLast(price.regularMarketPrice.raw/ divider);
+      securitycurrency.setSLast(price.regularMarketPrice.raw / divider);
       securitycurrency.setSHigh(price.regularMarketDayHigh.raw / divider);
       securitycurrency.setSLow(price.regularMarketDayLow.raw / divider);
       securitycurrency.setSOpen(price.regularMarketOpen.raw / divider);
@@ -269,35 +283,24 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
       final double divider) throws IOException, URISyntaxException {
 
     List<Historyquote> historyquotes = null;
-    symbol = URLEncoder.encode(symbol, "UTF-8");
+    symbol = URLEncoder.encode(symbol, StandardCharsets.UTF_8);
     CookieStore cookieStore = new BasicCookieStore();
     HttpClient client = HttpClientBuilder.create()
         .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
-    if (USE_OLD_CRUMB) {
+    historyquotes = getEodHistory(symbol, startDate, endDate, isCurrency, divider, client, context);
 
-      String crumb = getCrumb(symbol, client, context);
-      if (crumb != null && !crumb.isEmpty()) {
-        historyquotes = getEodHistory(symbol, startDate, endDate, isCurrency, divider, client, context, crumb);
-      }
-    } else {
-      historyquotes = getEodHistory(symbol, startDate, endDate, isCurrency, divider, client, context, null);
-    }
     return historyquotes;
   }
 
   private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
-      final double divider, HttpClient client, HttpClientContext context, String crumb)
-      throws IOException, URISyntaxException {
+      final double divider, HttpClient client, HttpClientContext context) throws IOException, URISyntaxException {
 
     List<Historyquote> historyquotes = null;
     String url = String.format(
-        DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=history&crumb=%s", symbol,
-        startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60, crumb);
-    if (crumb != null) {
-      url += url + "&crumb" + crumb;
-    }
+        DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=history", symbol,
+        startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60);
 
     HttpGet request = new HttpGet(url);
     request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
@@ -311,54 +314,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     }
     HttpClientUtils.closeQuietly(response);
     return historyquotes;
-  }
-
-  private String getCrumb(String symbol, HttpClient client, HttpClientContext context) throws IOException {
-    return findCrumb(splitPageData(getPage(symbol, client, context)));
-  }
-
-  private String findCrumb(List<String> lines) {
-    String crumb = "";
-    String rtn = "";
-    for (String l : lines) {
-      if (l.indexOf("CrumbStore") > -1) {
-        rtn = l;
-        break;
-      }
-    }
-    // ,"CrumbStore":{"crumb":"OKSUqghoLs8"
-    if (rtn != null && !rtn.isEmpty()) {
-      String[] vals = rtn.split(":"); // get third item
-      crumb = vals[2].replace("\"", ""); // strip quotes
-      crumb = StringEscapeUtils.unescapeJava(crumb); // unescape escaped values (particularly, \u002f
-    }
-    return crumb;
-  }
-
-  private List<String> splitPageData(String page) {
-    // Return the page as a list of string using } to split the page
-    return Arrays.asList(page.split("}"));
-  }
-
-  private String getPage(String symbol, HttpClient client, HttpClientContext context) throws IOException {
-    String rtn = null;
-    String url = String.format("https://finance.yahoo.com/quote/%s/?p=%s", symbol, symbol);
-    HttpGet request = new HttpGet(url);
-
-    request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
-
-    HttpResponse response = client.execute(request, context);
-
-    BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-    StringBuffer result = new StringBuffer();
-    String line = "";
-    while ((line = rd.readLine()) != null) {
-      result.append(line);
-    }
-    rtn = result.toString();
-    HttpClientUtils.closeQuietly(response);
-
-    return rtn;
   }
 
   private List<Historyquote> readBackfillStream(final BufferedReader in, final boolean isCurrency, final double divider)
@@ -394,7 +349,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public String getDividendHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security.getUrlSplitExtend(),
-        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), DIVDEND_EVENT, null);
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), DIVDEND_EVENT);
   }
 
   @Override
@@ -420,14 +375,14 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public String getSplitHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security.getUrlSplitExtend(),
-        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), SPLIT_EVENT, null);
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), SPLIT_EVENT);
   }
 
-  private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, String event, String crumb) {
+  private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, String event) {
     return String.format(
         DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=" + event
-            + "&includeAdjustedClose=true&crumb=%s",
-        symbol, DateHelper.LocalDateToEpocheSeconds(fromDate), new Date().getTime() / 1000 + 23 * 60 * 60, crumb);
+            + "&includeAdjustedClose=true",
+        symbol, DateHelper.LocalDateToEpocheSeconds(fromDate), new Date().getTime() / 1000 + 23 * 60 * 60);
   }
 
   @Override
@@ -458,31 +413,24 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
     HttpClientContext context = HttpClientContext.create();
     context.setCookieStore(cookieStore);
-
     String symbol = URLEncoder.encode(
         event.equals(SPLIT_EVENT) ? security.getUrlSplitExtend() : security.getUrlDividendExtend(),
         StandardCharsets.UTF_8);
 
-    String crumb = null;
-    if (USE_OLD_CRUMB) {
-      crumb = getCrumb(symbol, client, context);
-    }
+    String url = this.getSplitHistoricalDownloadLink(symbol, fromDate, event);
+    HttpGet request = new HttpGet(url);
+    request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
 
-    if (!USE_OLD_CRUMB || USE_OLD_CRUMB && crumb != null && !crumb.isEmpty()) {
-      String url = this.getSplitHistoricalDownloadLink(symbol, fromDate, event, crumb);
-      HttpGet request = new HttpGet(url);
-      request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
+    HttpResponse response = client.execute(request, context);
+    HttpEntity entity = response.getEntity();
 
-      HttpResponse response = client.execute(request, context);
-      HttpEntity entity = response.getEntity();
-
-      if (entity != null) {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent()))) {
-          reader.readData(in, security.getIdSecuritycurrency(), records, security.getCurrency());
-        }
+    if (entity != null) {
+      try (BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent()))) {
+        reader.readData(in, security.getIdSecuritycurrency(), records, security.getCurrency());
       }
-      HttpClientUtils.closeQuietly(response);
     }
+    HttpClientUtils.closeQuietly(response);
+
     return records;
   }
 
@@ -564,19 +512,19 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     void readData(final BufferedReader in, Integer idSecurity, List<S> securitysplits, String currency)
         throws IOException, ParseException;
   }
-  
+
   static class QuoteSummaryV11 {
     public QuoteSummary quoteSummary;
   }
-  
+
   static class QuoteSummary {
     public PriceV11 result[];
   }
-  
+
   static class PriceV11 {
     public Price price;
   }
-  
+
   static class Price {
     public RegularMarketChangePercent regularMarketChangePercent;
     public RegularMarketPrice regularMarketPrice;
@@ -585,27 +533,27 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     public RegularMarketOpen regularMarketOpen;
     public RegularMarketVolume regularMarketVolume;
   }
-  
+
   static class RegularMarketChangePercent {
     public double raw;
   }
-  
+
   static class RegularMarketPrice {
     public double raw;
   }
-  
+
   static class RegularMarketDayHigh {
     public double raw;
   }
-  
+
   static class RegularMarketDayLow {
     public double raw;
   }
-  
+
   static class RegularMarketOpen {
     public double raw;
   }
-  
+
   static class RegularMarketVolume {
     public Long raw;
   }

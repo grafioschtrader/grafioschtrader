@@ -138,7 +138,8 @@ public class DateTransactionCurrencypairMap {
     searchDateCurrency.fromCurrency = fromCurrency;
     Double closePrice = dateFromCurrencyMap.get(searchDateCurrency);
     if (closePrice == null && (!hasTradingDaysBetweenUntilDateAndYesterday
-        && DateHelper.getDateDiff(date, untilDate, TimeUnit.DAYS) <= 1)) {
+        && DateHelper.getDateDiff(date, untilDate, TimeUnit.DAYS) <= 1 
+        || untilDate.after(new Date()))) {
       closePrice = getClosePriceFromLastPrice(date, fromCurrency);
     }
 

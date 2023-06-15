@@ -1,0 +1,105 @@
+<div (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+     class="data-container">
+  <div class="datatable">
+
+    <p-table [columns]="fields" [value]="accountPositionSummaryAll" selectionMode="single" sortMode="none"
+             responsiveLayout="scroll"
+             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+      <ng-template pTemplate="caption">
+        <div class="flex-two-columns">
+          <div class="left-half">
+            <h4>{{'PORTFOLIOS' | translate}}:
+              <p-dropdown (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup"
+                          [options]="groupOptions">
+              </p-dropdown>
+            </h4>
+          </div>
+          <div class="right-half">
+            <label [pTooltip]="'UNTIL_DATE_TOOLTIP' | translate" for="untilDate" style="margin-right: 5px; margin-top: 5px;">
+              {{'UNTIL_DATE' | translate}}</label>
+            <p-calendar #cal (onSelect)="filterDate($event)"
+                        [(ngModel)]="untilDate"
+                        [dateFormat]="baseLocale.dateFormat"
+                        appendTo="body"
+                        id="untilDate">
+            </p-calendar>
+            <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header" let-fields>
+        <tr>
+          <th *ngFor="let field of fields" [pTooltip]="field.headerTooltipTranslated" [style.width.px]="field.width">
+            {{field.headerTranslated}}
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-columns="fields" let-el let-rowIndex="rowIndex">
+        <tr [pContextMenuRow]="el" [pSelectableRow]="el">
+          <ng-container *ngFor="let field of fields">
+            <td *ngIf="field.visible"
+                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+              <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'greenRed'">
+                  <span [pTooltip]="getValueByPath(el, field)" [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+                        tooltipPosition="top">
+                    {{getValueByPath(el, field)}}
+                  </span>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
+                </ng-container>
+              </ng-container>
+            </td>
+          </ng-container>
+        </tr>
+        <ng-container *ngIf="groupChangeIndexMap.get(rowIndex)">
+          <tr class="rowgroup-total">
+            <td *ngFor="let columnConfig of fields"
+                [class]="(columnConfig.dataType===DataType.Numeric || columnConfig.dataType===DataType.NumericInteger
+                || columnConfig.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
+              <ng-container [ngSwitch]="columnConfig.templateName">
+                <ng-container *ngSwitchCase="'greenRed'">
+                  <span
+                    [style.color]='isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap, rowIndex)? "red": "inherit"'>
+                    {{getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap, rowIndex)}}
+                  </span>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  {{getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap, rowIndex)}}
+                </ng-container>
+              </ng-container>
+            </td>
+          </tr>
+          <tr class="blank_row">
+            <td [attr.colspan]="numberOfVisibleColumns"></td>
+          </tr>
+        </ng-container>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <tr>
+          <ng-container *ngFor="let field of fields">
+            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
+                class="row-total">
+              <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'greenRed'">
+                <span [style.color]='isValueColumnTotalMinus(field, 1, accountPositionGrandSummary, null)? "red": "inherit"'>
+                  {{getValueColumnTotal(field, 1, accountPositionGrandSummary, null)}}
+                </span>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <span>{{getValueColumnTotal(field, 1, accountPositionGrandSummary, null)}}</span>
+                </ng-container>
+              </ng-container>
+            </td>
+          </ng-container>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

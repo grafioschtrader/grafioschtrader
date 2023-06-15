@@ -8,7 +8,7 @@ public enum GTNetServerStateTypes {
   SS_CLOSED((byte) 1), 
   // The system is in maintenance but will come back
   SS_MAINTENANCE((byte) 2), 
-  // There is support for last price or entity, but no more remote domain is allowed
+  // There is support for last price or entity
   SS_OPEN((byte) 3);
 
   private final Byte value;

@@ -1,0 +1,52 @@
+<div class="col-md-12">
+  <ng-container *ngFor="let tenantLimit of tenantLimits">
+    <h5>{{tenantLimit.actual}} {{tenantLimit.msgKey | translate}} {{tenantLimit.limit}}</h5>
+  </ng-container>
+  <p-table [(selection)]="selectedSecuritycurrencies" [columns]="fields" [multiSortMeta]="multiSortMeta"
+           [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [rows]="10" [value]="securitycurrencyList"
+           dataKey="idSecuritycurrency" sortMode="multiple"
+           responsiveLayout="scroll"
+           styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+    <ng-template pTemplate="header" let-fields >
+      <tr>
+        <th style="width: 2.25em">
+          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+        </th>
+        <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+          {{field.headerTranslated}}
+          <p-sortIcon [field]="field.field"></p-sortIcon>
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-columns="fields" let-el>
+      <tr [pSelectableRow]="el">
+        <td>
+          <p-tableCheckbox [value]="el"></p-tableCheckbox>
+        </td>
+        <ng-container *ngFor="let field of fields">
+          <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+              [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            {{getValueByPath(el, field)}}
+          </td>
+        </ng-container>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="paginatorleft" let-state>
+      {{selectedSecuritycurrencies.length}} {{'SELECTED_FROM' | translate}} {{securitycurrencyList.length}}
+      {{"ALLOWED" | translate}}: <span *ngFor="let tenantLimit of tenantLimits"
+                                       [style.color]='selectedSecuritycurrencies.length>
+                                            tenantLimit.limit - tenantLimit.actual? "red": "green"'>
+          {{tenantLimit.limit - tenantLimit.actual - selectedSecuritycurrencies.length}},</span>
+    </ng-template>
+  </p-table>
+</div>
+
+<div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+  <button (click)="onClickAdd()" [disabled]="selectedSecuritycurrencies.length === 0 || reachedListLimits()"
+          [label]="'ADD' | translate" class="btn pull-right"
+          pButton type="button">
+  </button>
+</div>

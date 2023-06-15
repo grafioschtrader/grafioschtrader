@@ -43,8 +43,6 @@ import grafioschtrader.types.TransactionType;
  * Attention: This class shoud not have a member variable, because there exist
  * only one instance.
  *
- * @author Hugo Graf
- *
  */
 @Component
 public class SecurityDividendsReport {

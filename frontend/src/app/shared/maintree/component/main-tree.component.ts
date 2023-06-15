@@ -1,4 +1,4 @@
-import {Component, Injectable, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TreeNodeType} from '../types/treeNodeType';
 import {AppSettings} from '../../app.settings';
 import {Router} from '@angular/router';
@@ -223,7 +223,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         null, null, null)
     });
 
-    // this.addGTNetToTree();
+   // this.addGTNetToTree();
 
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
       label: 'TASK_DATA_MONITOR',
@@ -248,26 +248,26 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   private addGTNetToTree(): void {
     const gtNetNode: TreeNode = {
       expanded: true, children: [],
-      label: 'GTNET_CONSUME_MONITOR',
-      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_CONSUME_MONITOR_KEY),
+      label: 'GT_NET_NET_AND_MESSAGE',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_KEY),
         null, null, null)
     };
 
     gtNetNode.children.push({
-      label: 'GTNET_SETUP',
-      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_KEY),
+      label: 'GT_NET_AUTO_ANSWER',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_AUTO_ANSWER_KEY),
         null, null, null)
     });
 
     gtNetNode.children.push({
-      label: 'GTNET_AUTOANWSER',
-      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_AUTO_ANWSER_KEY),
+      label: 'GT_NET_CONSUME_MONITOR',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_CONSUME_MONITOR_KEY),
         null, null, null)
     });
 
     gtNetNode.children.push({
-      label: 'GTNET_PROVIDER_MONITOR',
-      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GTNET_PROVIDER_MONITOR_KEY),
+      label: 'GT_NET_PROVIDER_MONITOR',
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_PROVIDER_MONITOR_KEY),
         null, null, null)
     });
 

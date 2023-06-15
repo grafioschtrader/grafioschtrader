@@ -88,7 +88,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   @Query(value = """
       SELECT s FROM Watchlist w JOIN w.securitycurrencyList s
-      WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND s.assetClass.specialInvestmentInstrument != 10 ORDER BY s.name""")
+      WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND s.assetClass.specialInvestmentInstrument <> 10 ORDER BY s.name""")
   List<Security> getTradableSecuritiesByTenantAndIdWatschlist(Integer idTenant, Integer idWatchlist);
 
   @Query(value = "SELECT s FROM Security s WHERE s.idSecuritycurrency = ?1 AND (s.idTenantPrivate IS NULL OR s.idTenantPrivate = ?2)")

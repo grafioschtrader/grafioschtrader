@@ -1,0 +1,82 @@
+<div (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+     class="data-container">
+  <div class="datatable">
+    <p-table [(selection)]="securityDividendsGrandTotalSelected" [columns]="fields" [multiSortMeta]="multiSortMeta"
+             [paginator]="true" [rows]="20" [value]="securityDividendsYearGroup"
+             responsiveLayout="scroll"
+             dataKey="year" selectionMode="single" sortMode="multiple"
+             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+      <ng-template pTemplate="caption">
+        <ng-container *ngIf="securityDividendsGrandTotal">
+          <h4 [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"
+              [translate]="'PORTFOLIO_DIVIDENDS_YEAR'"></h4>
+          <h4 [translateParams]="{select: selectedCashAccounts, total: totalCashAccounts}"
+              [translate]="'PORTFOLIO_INTEREST_YEAR'"></h4>
+        </ng-container>
+      </ng-template>
+
+      <ng-template pTemplate="header" let-fields>
+        <tr>
+          <th style="width:24px"></th>
+          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+              [pTooltip]="field.headerTooltipTranslated">
+            {{field.headerTranslated}}
+            <p-sortIcon [field]="field.field"></p-sortIcon>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-columns="fields" let-el let-expanded="expanded">
+        <tr [pContextMenuRow]="el" [pSelectableRow]="el">
+          <td>
+            <a [pRowToggler]="el" href="#">
+              <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+            </a>
+          </td>
+          <ng-container *ngFor="let field of fields">
+            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              {{getValueByPath(el, field)}}
+            </td>
+          </ng-container>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <tr>
+          <td></td>
+          <ng-container *ngFor="let field of fields">
+            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
+                class="row-total">
+              {{getValueColumnTotal(field, 0, securityDividendsGrandTotal, null)}}
+            </td>
+          </ng-container>
+        </tr>
+      </ng-template>
+
+      <ng-template let-columns="fields" let-sDYG pTemplate="rowexpansion">
+        <tr>
+          <td [attr.colspan]="numberOfVisibleColumns + 1">
+            <tenant-dividends-extended
+              (dateChanged)="transactionDataChanged($event)"
+              [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
+              [securityDividendsGrandTotal]="securityDividendsGrandTotal"
+              [securityDividendsPositions]="sDYG.securityDividendsPositions">
+            </tenant-dividends-extended>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<tenant-dividend-security-account-selection-dialog (closeDialog)="handleOnProcessedDialog($event)"
+                                                   *ngIf="visibleSecurityaccountDialog"
+                                                   [idsAccounts]="idsAccounts"
+                                                   [portfolios]="securityDividendsGrandTotal.portfolioList"
+                                                   [visibleDialog]="visibleSecurityaccountDialog">
+</tenant-dividend-security-account-selection-dialog>

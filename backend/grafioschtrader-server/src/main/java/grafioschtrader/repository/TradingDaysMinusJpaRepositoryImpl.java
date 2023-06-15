@@ -23,10 +23,10 @@ import jakarta.transaction.Transactional;
 public class TradingDaysMinusJpaRepositoryImpl implements TradingDaysMinusJpaRepositoryCustom {
 
   @Autowired
-  StockexchangeJpaRepository stockexchangeJpaRepository;
+  private StockexchangeJpaRepository stockexchangeJpaRepository;
 
   @Autowired
-  TradingDaysMinusJpaRepository tradingDaysMinusJpaRepository;
+  private TradingDaysMinusJpaRepository tradingDaysMinusJpaRepository;
 
   @Autowired
   private MessageSource messageSource;
