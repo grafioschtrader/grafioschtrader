@@ -8,8 +8,8 @@ import grafioschtrader.gtnet.GTNetMessageCodeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public class MsgRequest {
-  @Schema(description = "ID's of the target remote machines")
-  public List<Integer> idGTNetTargetDomains;
+  @Schema(description = "ID of the target remote machine")
+  public Integer idGTNetTargetDomain;
 
   @Schema(description = "Used if this message refers to a previous one")
   public Integer replyTo;

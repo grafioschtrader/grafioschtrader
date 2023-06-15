@@ -50,13 +50,13 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * @param idSecuritycurrency
    * @return
    */
-  @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.createType != 1 ORDER BY h.date ASC", nativeQuery = false)
+  @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.createType <> 1 ORDER BY h.date ASC", nativeQuery = false)
   List<Historyquote> findByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(Integer idSecuritycurrency);
 
   @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND DAYOFWEEK(h.date) IN (1, 6, 7) ORDER BY h.date DESC", nativeQuery = false)
   List<Historyquote> findByIdFridayAndWeekend(Integer idSecuritycurrency);
 
-  @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.createType != 1 ORDER BY h.date DESC", nativeQuery = false)
+  @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.createType <> 1 ORDER BY h.date DESC", nativeQuery = false)
   List<Historyquote> findByIdSecuritycurrencyAndCreateTypeFalseOrderByDateDesc(Integer idSecuritycurrency);
 
   @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.date = ?2 AND h.createType = 1", nativeQuery = false)

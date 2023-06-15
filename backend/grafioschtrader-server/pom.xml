@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.31.0</version>
+		<version>0.31.1</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.31.0</version>
+			<version>0.31.1</version>
 		</dependency>
 
 
@@ -161,6 +161,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
+			<version>4.5.14</version>
 		</dependency>
 
 		<dependency>
@@ -257,7 +258,7 @@
 		<dependency>
      		 <groupId>com.ezylang</groupId>
      		 <artifactId>EvalEx</artifactId>
-     		 <version>3.0.4</version>
+     		 <version>3.0.5</version>
    		 </dependency>
 
 		<!-- Not really used -->

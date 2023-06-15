@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.31.0</version>
+		<version>0.31.1</version>
 	</parent>
 
 
@@ -37,7 +37,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<!-- <version>3.1</version> -->
 				<configuration>
 					<release>17</release>
 				</configuration>
@@ -106,7 +105,7 @@
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>2.0.27</version>
+			<version>2.0.28</version>
 		</dependency>
 		
 		<dependency>

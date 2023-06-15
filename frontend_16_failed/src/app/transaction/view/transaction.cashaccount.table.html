@@ -1,0 +1,101 @@
+<div #cmDiv (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+     class="data-container">
+  <div class="datatable  nestedtable">
+    <p-table #table (onPage)="onPage($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+             (sortFunction)="customSort($event)" [(selection)]="pageFirstRowSelectedRow.selectedRow"
+             [columns]="fields" [customSort]="true"
+             [first]="pageFirstRowSelectedRow.topPageRow" [multiSortMeta]="multiSortMeta" [paginator]="true"
+             [rowsPerPageOptions]="[20,30,50,100]" responsiveLayout="scroll" [rows]="50"
+             [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single" sortMode="multiple"
+             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+      <ng-template pTemplate="header" let-fields>
+        <tr>
+          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            {{field.headerTranslated}}
+            <p-sortIcon [field]="field.field"></p-sortIcon>
+          </th>
+        </tr>
+        <tr *ngIf="hasFilter">
+          <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
+            <ng-container *ngSwitchCase="FilterType.likeDataType">
+              <ng-container [ngSwitch]="field.dataType">
+
+                <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
+                              ? field.dataType : ''" [field]="field.field" [matchModeOptions]="customMatchModeOptions"
+                                [matchMode]="'gtNoFilter'"
+                                [showOperator]="true" display="menu">
+                  <ng-template let-filter="filterCallback" let-value pTemplate="filter">
+                    <p-calendar #cal (onInput)="filter(cal.value)" (onSelect)="filter($event)"
+                                [dateFormat]="baseLocale.dateFormat"
+                                [ngModel]="value">
+                    </p-calendar>
+                  </ng-template>
+                </p-columnFilter>
+                <p-columnFilter *ngSwitchCase="DataType.Numeric" [field]="field.field" [locale]="formLocale" display="menu"
+                                minFractionDigits="2" type="numeric"></p-columnFilter>
+              </ng-container>
+            </ng-container>
+            <ng-container *ngSwitchCase="FilterType.withOptions">
+              <p-dropdown (onChange)="table.filter($event.value, field.field, 'equals')" [options]="field.filterValues"
+                          [style]="{'width':'100%'}"></p-dropdown>
+            </ng-container>
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-columns="fields" let-el>
+        <tr [pContextMenuRow]="el" [pSelectableRow]="el">
+          <ng-container *ngFor="let field of fields">
+
+            <td *ngIf="field.visible"
+                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              <ng-container [ngSwitch]="field.templateName">
+                <ng-container *ngSwitchCase="'greenRed'">
+                  <span [pTooltip]="getValueByPath(el, field)" [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+                        tooltipPosition="top">
+                    {{getValueByPath(el, field)}}
+                  </span>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
+                </ng-container>
+              </ng-container>
+            </td>
+          </ng-container>
+        </tr>
+      </ng-template>
+
+    </p-table>
+    <p-contextMenu #cm *ngIf="contextMenuItems && contextMenuItems.length > 0" [model]="contextMenuItems"
+                   [target]="cmDiv" appendTo="body">
+    </p-contextMenu>
+  </div>
+</div>
+
+<transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
+                           *ngIf="visibleSecurityTransactionDialog"
+                           [transactionCallParam]="transactionCallParam"
+                           [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+</transaction-security-edit>
+
+<transaction-cashaccount-editsingle (closeDialog)="handleCloseTransactionDialog($event)"
+                                    *ngIf="visibleCashaccountTransactionSingleDialog"
+                                    [transactionCallParam]="transactionCallParam"
+                                    [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
+</transaction-cashaccount-editsingle>
+
+<transaction-cashaccount-editdouble (closeDialog)="handleCloseTransactionDialog($event)"
+                                    *ngIf="visibleCashaccountTransactionDoubleDialog"
+                                    [transactionCallParam]="transactionCallParam"
+                                    [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
+</transaction-cashaccount-editdouble>
+
+<transaction-cashaccount-connect-debit-credit (closeDialog)="handleCloseTransactionDialog($event)"
+                                              *ngIf="visibleConnectDebitCreditDialog"
+                                              [transactionCallParam]="transactionCallParam"
+                                              [visibleDialog]="visibleConnectDebitCreditDialog">
+</transaction-cashaccount-connect-debit-credit>
+

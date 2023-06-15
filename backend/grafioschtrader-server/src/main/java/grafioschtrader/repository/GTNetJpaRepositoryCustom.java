@@ -11,5 +11,5 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   
   GTNetWithMessages submitMsg(MsgRequest msgRequest);
   
-  MessageEnvelope getMsgResponse(MessageEnvelope messageEnvelope);
+  MessageEnvelope getMsgResponse(MessageEnvelope messageEnvelope) throws Exception;
 }

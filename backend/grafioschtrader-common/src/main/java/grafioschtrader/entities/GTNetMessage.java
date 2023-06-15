@@ -63,7 +63,6 @@ public class GTNetMessage extends BaseID {
   @PropertyOnlyCreation
   @Column(name = "id_source_gt_net_message")
   private Integer idSourceGtNetMessage;
-
   
   @Schema(description = "Used if this message refers to a previous one")
   @PropertyOnlyCreation

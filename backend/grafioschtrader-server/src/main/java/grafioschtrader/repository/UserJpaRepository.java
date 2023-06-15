@@ -30,7 +30,7 @@ public interface UserJpaRepository
       WHERE u.id_tenant IS NULL AND v.expiry_date < NOW()""", nativeQuery = true)
   void removeWithExpiredVerificationToken();
 
-  @Query(value = "SELECT u.id_user AS idUser, u.nickname FROM user u WHERE u.id_user != ?1", nativeQuery = true)
+  @Query(value = "SELECT u.id_user AS idUser, u.nickname FROM user u WHERE u.id_user <> ?1", nativeQuery = true)
   List<IdUserAndNickname> getIdUserAndNicknameExcludeUser(Integer idUser);
  
   
