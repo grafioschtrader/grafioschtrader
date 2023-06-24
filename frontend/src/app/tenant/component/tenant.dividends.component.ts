@@ -91,12 +91,24 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
 
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'valueAtEndOfYearMC', 'VALUE_AT_END_OF_YEAR', true, false));
 
-    const idsCashaccount = this.usersettingsService.readArray(AppSettings.DIV_CASHACCOUNTS);
-    this.idsAccounts = new IdsAccounts(this.usersettingsService.readArray(AppSettings.DIV_SECURITYACCOUNTS),
+    const idsCashaccount = this.getAccountSettings(AppSettings.DIV_CASHACCOUNTS);
+    this.idsAccounts = new IdsAccounts(this.getAccountSettings(AppSettings.DIV_SECURITYACCOUNTS),
       idsCashaccount.length === 0 ? [-1] : idsCashaccount);
     this.readData();
     this.multiSortMeta.push({field: 'year', order: 1});
     this.onComponentClick(null);
+  }
+
+  private getAccountSettings(propertyKey: string): any[] {
+    return this.usersettingsService.readArray(this.getStorePropertyPrefix() + propertyKey);
+  }
+
+  private writeAccountSettings(propertyKey: string, values: any[]): void {
+    this.usersettingsService.saveArray(this.getStorePropertyPrefix() + propertyKey, values);
+  }
+
+  private getStorePropertyPrefix(): string {
+    return this.gps.getIdTenant() + '_';
   }
 
   isActivated(): boolean {
@@ -137,8 +149,8 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     this.visibleSecurityaccountDialog = false;
     if (processedActionData.action === ProcessedAction.CREATED) {
       this.idsAccounts = processedActionData.data;
-      this.usersettingsService.saveArray(AppSettings.DIV_SECURITYACCOUNTS, this.idsAccounts.idsSecurityaccount);
-      this.usersettingsService.saveArray(AppSettings.DIV_CASHACCOUNTS, this.idsAccounts.idsCashaccount);
+      this.writeAccountSettings(AppSettings.DIV_SECURITYACCOUNTS, this.idsAccounts.idsSecurityaccount);
+      this.writeAccountSettings(AppSettings.DIV_CASHACCOUNTS, this.idsAccounts.idsCashaccount);
       this.readData();
     }
   }
