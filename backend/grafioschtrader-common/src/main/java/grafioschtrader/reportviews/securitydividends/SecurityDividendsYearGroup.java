@@ -1,5 +1,7 @@
 package grafioschtrader.reportviews.securitydividends;
 
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,14 +10,14 @@ import java.util.stream.Collectors;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.entities.Securitysplit.SplitFactorAfterBefore;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.MapGroup;
 import grafioschtrader.reportviews.SecurityCostGroup;
 
 /**
  * Represent a year of the dividends report.
- *
- * @author Hugo Graf
  *
  */
 public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDividendsPosition> {
@@ -80,10 +82,16 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     securityCostGroup.calcAverages(yearCountPaidTransactions);
   }
 
-  public void adjustUnits(Map<Integer, UnitsCounter> unitsCounterBySecurityMap) {
+  public void fillYearWithOpenPositions(Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
+      final Map<Integer, List<Securitysplit>> securitysplitMap) {
+    Date fromDate = new GregorianCalendar(year, 0, 1).getTime();
+    Date untilDate = new GregorianCalendar(year, 11, 31).getTime();
     for (Map.Entry<Integer, UnitsCounter> entry : unitsCounterBySecurityMap.entrySet()) {
       SecurityDividendsPosition securityDividendsPosition = groupMap.get(entry.getKey());
       if (securityDividendsPosition == null && entry.getValue().units != 0) {
+        SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(entry.getKey(),
+            fromDate, untilDate, securitysplitMap);
+        entry.getValue().units = entry.getValue().units * splitFactorAfterBefore.fromToDateFactor;
         securityDividendsPosition = this.getOrCreateSecurityDividendsPosition(entry.getValue().security);
       }
       if (securityDividendsPosition != null) {

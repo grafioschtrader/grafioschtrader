@@ -40,7 +40,7 @@ import grafioschtrader.types.TransactionType;
  * dividends and interest by year.
  *
  *
- * Attention: This class shoud not have a member variable, because there exist
+ * Attention: This class should not have a member variable, because there exist
  * only one instance.
  *
  */
@@ -153,11 +153,12 @@ public class SecurityDividendsReport {
       calendar.setTime(transaction.getTransactionTime());
       year = calendar.get(Calendar.YEAR);
       if (yearChangeWatcher != year) {
-        // For some Security the maybe no transaction in a certain year, no we need to
-        // add this securities
+        // For some securities, there may have been no transactions in a given year.
+        // Nevertheless, these open positions must be listed for that year.
         if (yearChangeWatcher != 0) {
           for (; yearChangeWatcher < year; yearChangeWatcher++) {
-            adjustUnits(securityDividendsGrandTotal, yearChangeWatcher, unitsCounterBySecurityMap);
+            createFillYearWithOpenPositions(securityDividendsGrandTotal, yearChangeWatcher, unitsCounterBySecurityMap,
+                securitysplitMap);
           }
         }
         yearChangeWatcher = year;
@@ -167,7 +168,6 @@ public class SecurityDividendsReport {
 
       if (transaction.getSecurity() != null) {
         dateCurrencyMap.setUntilDate(new GregorianCalendar(year, 11, 31).getTime());
-
         calcSecurityTransaction(dateCurrencyMap, securityDividendsYearGroup, transaction, security, securitysplitMap,
             unitsCounterBySecurityMap);
       } else {
@@ -175,7 +175,7 @@ public class SecurityDividendsReport {
       }
     }
     if (year != 0) {
-      adjustUnits(securityDividendsGrandTotal, year, unitsCounterBySecurityMap);
+      createFillYearWithOpenPositions(securityDividendsGrandTotal, year, unitsCounterBySecurityMap, securitysplitMap);
     }
 
     return securityDividendsGrandTotal;
@@ -204,7 +204,6 @@ public class SecurityDividendsReport {
       createOrGetUnitsCounter(transaction.getSecurity(), unitsSplited * -1, unitsCounterBySecurityMap);
       securityDividendsPosition.updateAccumulateReduce(transaction, securityDividendsYearGroup, dateCurrencyMap);
       break;
-
     case DIVIDEND:
       if (unitsCounterBySecurityMap.get(transaction.getSecurity().getIdSecuritycurrency()) == null) {
         System.err.println(transaction.getSecurity());
@@ -240,11 +239,20 @@ public class SecurityDividendsReport {
     securityDividendsGrandTotal.calcDivInterest();
   }
 
-  private void adjustUnits(final SecurityDividendsGrandTotal securityDividendsGrandTotal, final Integer year,
-      final Map<Integer, UnitsCounter> unitsCounterBySecurityMap) {
+  /**
+   * There may be no transaction for a given year, or there may be no transaction
+   * on an open position in a given year. Nevertheless, this year must contain all
+   * open positions.
+   * 
+   * @param securityDividendsGrandTotal
+   * @param year
+   * @param unitsCounterBySecurityMap
+   */
+  private void createFillYearWithOpenPositions(final SecurityDividendsGrandTotal securityDividendsGrandTotal,
+      final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap, final Map<Integer, List<Securitysplit>> securitysplitMap) {
     final SecurityDividendsYearGroup securityDividendsYearGroupLast = securityDividendsGrandTotal
         .getOrCreateGroup(year);
-    securityDividendsYearGroupLast.adjustUnits(unitsCounterBySecurityMap);
+    securityDividendsYearGroupLast.fillYearWithOpenPositions(unitsCounterBySecurityMap, securitysplitMap);
   }
 
   private void createOrGetUnitsCounter(final Security security, final Double addRecudeUntis,

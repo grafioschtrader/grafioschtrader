@@ -1,6 +1,9 @@
 package grafioschtrader.reportviews.securitydividends;
 
+import java.util.Date;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
@@ -13,9 +16,7 @@ import grafioschtrader.reportviews.SecurityCostPosition;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * For each year and security combination there is one of this Object.
- *
- * @author Hugo Graf
+ * For each year and security combination there is one of this object.
  *
  */
 public class SecurityDividendsPosition {
@@ -40,6 +41,7 @@ public class SecurityDividendsPosition {
   public Double exchangeRateEndOfYear;
   public int countPaidTransactions;
 
+  
   private int precisionMC;
   private Map<String, Integer> currencyPrecisionMap;
 

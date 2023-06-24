@@ -200,7 +200,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       return hasDerivedFieldsChanged(securityCurrencyChanged, targetSecurity);
     } else {
       return !(Objects.equals(securityCurrencyChanged.getIdConnectorHistory(), targetSecurity.getIdConnectorHistory())
-          && Objects.equals(securityCurrencyChanged.getUrlHistoryExtend(), targetSecurity.getUrlHistoryExtend()));
+          && Objects.equals(securityCurrencyChanged.getUrlHistoryExtend(), targetSecurity.getUrlHistoryExtend()))
+          || securityCurrencyChanged.getActiveFromDate().before(targetSecurity.getActiveFromDate());
     }
   }
 
