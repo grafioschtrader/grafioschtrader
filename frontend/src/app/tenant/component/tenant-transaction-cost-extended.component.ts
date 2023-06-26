@@ -137,7 +137,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
     super.destroy();
   }
 
-  protected getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
+  protected override getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
     const localContextMenu: MenuItem[] = [
       {separator: true},
 

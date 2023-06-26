@@ -270,7 +270,6 @@ import {ScrollPanelModule} from 'primeng/scrollpanel';
 import {CommonModule} from '@angular/common';
 import {InputNumberModule} from 'primeng/inputnumber';
 import {FormInputNumberComponent} from './dynamic-form/components/form-input/form-input-number.component';
-import {NgxCurrencyModule} from 'ngx-currency';
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
 import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
 import {WatchlistSecuritysplitTableComponent} from './watchlist/component/watchlist-securitysplit-table.component';
@@ -321,6 +320,8 @@ import {MailForwardSettingEditComponent} from './mail/component/mail-forward-set
 import {
   WatchlistAddEditPriceProblemInstrumentComponent
 } from './watchlist/component/watchlist-add-edit-price-problem-instrument.component';
+import {NgxCurrencyDirective} from 'ngx-currency';
+
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
   {prefix: './assets/i18n/', suffix: '.json'},
@@ -405,7 +406,6 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
       FormPCalendarComponent,
       FormPInputTextareaComponent
     ]),
-    NgxCurrencyModule,
     NgxFileDropModule,
     FormsModule,
     FullyearcalendarLibModule,
@@ -442,7 +442,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
       }
     }),
     TreeModule,
-    CommonModule
+    CommonModule,
+    NgxCurrencyDirective
   ],
   providers: [ActivePanelService, ActuatorService, AlgoTopService, AlgoAssetclassService,
     AssetclassService, CashaccountService, ChartDataService, AlgoStrategyService, AlgoSecurityService,

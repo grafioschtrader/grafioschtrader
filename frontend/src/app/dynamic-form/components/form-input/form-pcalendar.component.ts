@@ -38,7 +38,7 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
 
   public language;
 
-  ngOnInit() {
+  override ngOnInit() {
     super.ngOnInit();
     this.language = Helper.CALENDAR_LANG[this.formConfig.language];
   }

@@ -11,7 +11,7 @@ import {Auditable} from '../../entities/auditable';
 import {BaseAuthService} from '../login/service/base.auth.service';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
 import * as moment from 'moment';
-import {CurrencyMaskConfig, CurrencyMaskInputMode} from 'ngx-currency';
+import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 import {ServiceEntityUpdate} from '../edit/service.entity.update';
 import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
 import NumberFormat = Intl.NumberFormat;
@@ -109,8 +109,8 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   }
 
 
-  public getNumberCurrencyMask(): CurrencyMaskConfig {
-    return <CurrencyMaskConfig>{
+  public getNumberCurrencyMask(): NgxCurrencyConfig {
+    return <NgxCurrencyConfig>{
       align: 'right',
       allowNegative: true,
       allowZero: true,
@@ -122,7 +122,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       nullable: true,
       min: null,
       max: null,
-      inputMode: CurrencyMaskInputMode.NATURAL
+      inputMode: NgxCurrencyInputMode.Natural
     };
   }
 

@@ -50,7 +50,7 @@ export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBas
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 
-  closeSearchDialog(event): void {
+  override closeSearchDialog(event): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 

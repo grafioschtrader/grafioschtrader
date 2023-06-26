@@ -75,7 +75,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
       );
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT;
   }
 

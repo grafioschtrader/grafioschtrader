@@ -163,7 +163,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   }
 
 
-  getMenuShowOptions(): MenuItem[] {
+  override getMenuShowOptions(): MenuItem[] {
     const otherMenuShowOptions: MenuItem[] = super.getMenuShowOptions();
 
     const menuItems: MenuItem[] = [];

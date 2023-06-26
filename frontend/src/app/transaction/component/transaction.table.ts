@@ -80,7 +80,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
     this.setMenuItemsToActivePanel();
   }
 
-  handleCloseTransactionDialog(processedActionData: ProcessedActionData) {
+  override handleCloseTransactionDialog(processedActionData: ProcessedActionData) {
     super.handleCloseTransactionDialog(processedActionData);
     if (processedActionData.action === ProcessedAction.UPDATED) {
       if (processedActionData.data instanceof Array) {
@@ -94,7 +94,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
     processedActionData.action !== ProcessedAction.NO_CHANGE && this.initialize();
   }
 
-  afterDelete(transaction: Transaction): void {
+  override afterDelete(transaction: Transaction): void {
     this.selectedTransaction = null;
     this.initialize();
   }

@@ -13,7 +13,7 @@ export class Assetclass extends Auditable implements BaseID {
   subCategoryNLS: MultilanguageString = new MultilanguageString();
 
   @Exclude()
-  getId(): number {
+  override getId(): number {
     return this.idAssetClass;
   }
 

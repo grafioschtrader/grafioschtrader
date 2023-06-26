@@ -135,7 +135,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
     return this.productIconService.getIconForAssetclass(assetclass, null);
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_BASEDATA_ASSETCLASS;
   }
 

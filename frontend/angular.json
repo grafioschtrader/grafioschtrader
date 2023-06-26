@@ -15,8 +15,10 @@
             "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "tsConfig": "src/tsconfig.app.json",
-            "polyfills": "src/polyfills.ts",
+            "tsConfig": "./tsconfig.app.json",
+            "polyfills": [
+              "zone.js"
+            ],
             "assets": [
               "src/assets",
               "src/assets/i18n",
@@ -48,7 +50,6 @@
               "angular2-uuid",
               "plotly.js-locales/de-ch",
               "plotly.js-locales/fr"
-
             ]
           },
           "configurations": {
@@ -109,7 +110,7 @@
               "zone.js",
               "zone.js/testing"
             ],
-            "tsConfig": "src/tsconfig.spec.json",
+            "tsConfig": "./tsconfig.spec.json",
             "scripts": [
               "node_modules/moment/min/moment.min.js",
               "node_modules/split.js/split.js"
@@ -127,24 +128,8 @@
               "src/favicon.ico"
             ]
           }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
-          }
         }
       }
     }
-  },
-
-  "cli": {
-    "schematicCollections": [
-      "@angular-eslint/schematics"
-    ],
-    "analytics": false
   }
 }

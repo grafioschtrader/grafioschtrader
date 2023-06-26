@@ -65,11 +65,11 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     super.destroy();
   }
 
-  protected getTitleChart(): string {
+  protected override getTitleChart(): string {
     return this.translatedTitle;
   }
 
-  protected getComponentId(): string {
+  protected override getComponentId(): string {
     return AppSettings.DEPOT_CASH_KEY;
   }
 

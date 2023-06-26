@@ -9,7 +9,7 @@ export class TreeAlgoAssetclass extends TreeAlgoTopAssetSecurityBase<AlgoAssetcl
     super(data);
   }
 
-  get children(): TreeNode[] {
+  override get children(): TreeNode[] {
     if (!this.treeNodes) {
       this.treeNodes = super.getStrategyNodes();
       this.data.algoSecurityList.forEach(algoSecurity => {

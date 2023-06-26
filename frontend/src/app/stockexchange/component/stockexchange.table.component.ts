@@ -144,7 +144,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     return this.countriesAsKeyValue[dataobject['countryCode']];
   }
 
-  onComponentClick(event): void {
+  override onComponentClick(event): void {
     if (!event[this.consumedGT]) {
       this.resetMenu(this.selectedEntity);
     }

@@ -8,7 +8,7 @@ export class UserEntityChangeLimit extends Auditable implements BaseID {
   dayLimit?: string = null;
   untilDate?: Date = null;
 
-  public getId(): number {
+  public override getId(): number {
     return this.idUserEntityChangeLimit;
   }
 }

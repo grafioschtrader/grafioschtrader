@@ -50,10 +50,10 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   // InputMask from parent view
   @Input() visibleCashaccountTransactionDoubleDialog: boolean;
-  @Input() transactionCallParam: TransactionCallParam;
+ // @Input() transactionCallParam: TransactionCallParam;
 
   // Access the form
-  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
+//  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
   formConfig: FormConfig;
 
@@ -307,7 +307,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         this.configObject.currencyExRate.formControl.enable();
         this.getCurrencypair();
       }
-
       this.adjustNumberInputFractions();
     }
     this.disableEnableExchangeRateButtons();
@@ -372,22 +371,17 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private viewToBusinessModel(cashAccountTransfer: CashAccountTransfer): CashAccountTransfer {
     const values: any = {};
     this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
-
     cashAccountTransfer.withdrawalTransaction.cashaccount = this.getCashaccountByIdCashaccountFormPortfolios(this.portfolios,
       values.idDebitCashaccount).cashaccount;
-
     cashAccountTransfer.withdrawalTransaction.transactionCost = values.transactionCost;
     cashAccountTransfer.depositTransaction.cashaccount = this.getCashaccountByIdCashaccountFormPortfolios(this.portfolios,
       values.idCreditCashaccount).cashaccount;
     cashAccountTransfer.depositTransaction.cashaccountAmount = values.creditAmount;
-
     if (this.currencypair != null) {
       cashAccountTransfer.withdrawalTransaction.idCurrencypair = this.currencypair.idSecuritycurrency;
       cashAccountTransfer.depositTransaction.idCurrencypair = this.currencypair.idSecuritycurrency;
     }
-
     cashAccountTransfer.withdrawalTransaction.cashaccountAmount = this.calcDebitAmount(values);
-
     return cashAccountTransfer;
   }
 }

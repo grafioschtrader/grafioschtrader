@@ -248,7 +248,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new Historyquote()));
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST_HISTORYQUOTES;
   }
 
@@ -283,7 +283,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.visibleUploadFileDialog = true;
   }
 
-  handleCloseDialog(processedActionData: ProcessedActionData): void {
+  override handleCloseDialog(processedActionData: ProcessedActionData): void {
     super.handleCloseDialog(processedActionData);
   }
 
@@ -302,7 +302,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.visibleFillGapsDialog = true;
   }
 
-  resetMenu(historyquote: Historyquote): void {
+  override resetMenu(historyquote: Historyquote): void {
     if (!this.security || !this.security.idLinkSecuritycurrency) {
       this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
       this.contextMenuItems.push({separator: true});
@@ -324,7 +324,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     return AppHelper.getDateByFormat(this.gps, date);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     this.rowsPerPage = this.usersettingsService.readSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE) || 30;
     this.routeSubscribe = this.activatedRoute.paramMap.subscribe(paramMap => {
       const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
@@ -338,18 +338,18 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.callParam = new HistoryquoteSecurityCurrency(entity, this.nameSecuritycurrency.getSecuritycurrency());
   }
 
-  protected getId(entity: Historyquote): number {
+  protected override getId(entity: Historyquote): number {
     return entity.idHistoryQuote;
   }
 
-  protected beforeDelete(entity: Historyquote): Historyquote {
+  protected override beforeDelete(entity: Historyquote): Historyquote {
     return plainToClass(Historyquote, entity);
   }
 
   /**
    * The creation of a history quote depends on the right on the security or currency
    */
-  protected hasRightsForCreateEntity(histroyquote: Historyquote): boolean {
+  protected override hasRightsForCreateEntity(histroyquote: Historyquote): boolean {
     return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
       this.nameSecuritycurrency.getSecuritycurrency());
   }

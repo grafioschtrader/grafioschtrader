@@ -67,7 +67,7 @@ import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support
 export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailSettingForward> implements OnDestroy {
   callParam: MailSettingForwardParam;
   mailSettingForwardList: MailSettingForward[];
-  selectedEntity: MailSettingForward;
+  // selectedEntity: MailSettingForward;
   private mailSendForwardDefault: MailSendForwardDefault;
 
   constructor(private mailSettingForwardService: MailSettingForwardService,
@@ -122,7 +122,7 @@ export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailS
     this.activePanelService.destroyPanel(this);
   }
 
-  getHelpContextId(): HelpIds {
+  override getHelpContextId(): HelpIds {
     return HelpIds.HELP_MESSAGE_SYSTEM;
   }
 

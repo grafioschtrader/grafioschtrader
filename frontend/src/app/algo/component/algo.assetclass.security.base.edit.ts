@@ -30,7 +30,7 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
       messageToastService, serviceEntityUpdate);
   }
 
-  onHide(event): void {
+  override onHide(event): void {
     this.securityaccount1ChangedSub && this.securityaccount1ChangedSub.unsubscribe();
     super.onHide(event);
   }

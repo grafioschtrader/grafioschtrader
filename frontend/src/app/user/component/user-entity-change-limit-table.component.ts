@@ -144,9 +144,8 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
 
 
   getLimitProposeIcon(userEntityChangeLimit: UserEntityChangeLimit, field: ColumnConfig): string {
-    if (!userEntityChangeLimit.idUserEntityChangeLimit || this.proposeMap.has(userEntityChangeLimit.idUserEntityChangeLimit)) {
-      return 'user_limit_update';
-    }
+   return !userEntityChangeLimit.idUserEntityChangeLimit || this.proposeMap.has(userEntityChangeLimit.idUserEntityChangeLimit)?
+      'user_limit_update': null;
   }
 
   onComponentClick(event): void {

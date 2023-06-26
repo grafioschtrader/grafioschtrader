@@ -101,7 +101,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     });
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST_DIVIDEND_SPLIT_FEED;
   }
 

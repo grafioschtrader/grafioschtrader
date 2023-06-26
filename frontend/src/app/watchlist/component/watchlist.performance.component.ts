@@ -131,11 +131,11 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   }
 
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST_PERFORMANCE;
   }
 
-  ngOnDestroy(): void {
+  override ngOnDestroy(): void {
     this.topicSubscription && this.topicSubscription.unsubscribe();
     super.ngOnDestroy();
   }
@@ -156,7 +156,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.updateAllPriceThruRest();
   }
 
-  protected getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
+  protected override getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     const menuItems = [...this.getShowContextMenuItems(securitycurrencyPosition, false), {separator: true},
       this.getMenuTimeFrame(), ...this.getMenuShowOptions()];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);

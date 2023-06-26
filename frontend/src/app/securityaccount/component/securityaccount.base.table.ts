@@ -147,7 +147,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.contextMenu && this.contextMenu.hide();
   }
 
-  public filterDate(event) {
+  public override filterDate(event) {
     this.readData();
   }
 

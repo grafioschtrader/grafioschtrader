@@ -25,7 +25,7 @@ export class FormFileUploadComponent extends BaseInputComponent {
     }
   }
 
-  reEvaluateRequired(): void {
+  override reEvaluateRequired(): void {
     this.isRequired = this.config.validation && this.config.validation.indexOf(FileRequiredValidator.validate) >= 0;
   }
 

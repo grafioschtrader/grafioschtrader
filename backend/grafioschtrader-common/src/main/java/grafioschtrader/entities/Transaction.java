@@ -551,7 +551,6 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       // Withdrawal
       idSecurityaccount = null;
       taxCost = null;
-      transactionCost = null;
     }
     this.clearCurrencypairExRate();
   }

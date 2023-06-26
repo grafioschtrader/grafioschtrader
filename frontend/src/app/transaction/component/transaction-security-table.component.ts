@@ -76,7 +76,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
     super.destroy();
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_TRANSACTION_CASH_BASED;
   }
 

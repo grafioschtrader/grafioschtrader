@@ -6,10 +6,7 @@ export class TwoKeyMap<T> {
   }
 
   public get(key: string, nestedKey: string): T {
-    if (!this.map[key] || this.map[key] && !this.map[key][nestedKey]) {
-      return;
-    }
-    return this.map[key][nestedKey];
+    return (!this.map[key] || this.map[key] && !this.map[key][nestedKey])? null: this.map[key][nestedKey];
   }
 
   public set(key: string, nestedKey: string, value: T): void {

@@ -178,7 +178,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     }, error: () => this.configObject.submit.disabled = false});
   }
 
-  onHide(event): void {
+  override onHide(event): void {
     this.securityEditSupport.destroy();
     this.formulaSubscribe && this.formulaSubscribe.unsubscribe();
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));

@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {CurrencyMaskInputMode} from 'ngx-currency';
+import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 
 @Component({
   template: `
@@ -44,14 +44,14 @@ export class StrategyOverviewComponent {
     prefix: 'CHF ',
     thousands: '\'',
     decimal: '.',
-    inputMode: CurrencyMaskInputMode.NATURAL,
+    inputMode: NgxCurrencyInputMode.Natural,
     precision: 2
   };
   optionsInput02 = {
     prefix: 'USD ',
     thousands: '\'',
     decimal: '.',
-    inputMode: CurrencyMaskInputMode.NATURAL,
+    inputMode: NgxCurrencyInputMode.Natural,
     precision: 2
   };
   price1 = 100.20;

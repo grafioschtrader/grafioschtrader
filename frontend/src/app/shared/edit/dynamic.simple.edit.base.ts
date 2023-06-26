@@ -3,7 +3,7 @@ import {Directive} from '@angular/core';
 
 @Directive()
 export abstract class DynamicSimpleEditBase extends SimpleEditBase {
-  public onShow(event) {
+  public override onShow(event) {
     this.initialize();
   }
 }

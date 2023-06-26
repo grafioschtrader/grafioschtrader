@@ -108,11 +108,11 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     });
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST_PRICE_FEED;
   }
 
-  protected getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
+  protected override getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     if (this.securityPositionList && AuditHelper.hasHigherPrivileges(this.gps)) {
       const menuItems: MenuItem[] = [
         {

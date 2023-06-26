@@ -20,11 +20,11 @@ export class Securitycurrency extends Auditable {
   sLow?: number;
   sHigh?: number;
   historyquoteList?: Historyquote[];
-  name: string;
+  name: string = null;
 
   sTimestamp?: number = null;
 
-  public getId(): number {
+  public override getId(): number {
     return this.idSecuritycurrency;
   }
 

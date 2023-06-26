@@ -76,7 +76,7 @@ export class SecurityaccountImportTransactionComponent
   visibleImportEditHeadDialog = false;
   visibleUploadFileDialog = false;
   fileUploadParam: FileUploadParam;
-  callParam: CallParam;
+  // callParam: CallParam;
   importTransactionTemplates: ImportTransactionTemplate[];
   successFailedDirectImportTransaction: SuccessFailedDirectImportTransaction;
 
@@ -219,7 +219,7 @@ export class SecurityaccountImportTransactionComponent
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
-  protected prepareShowMenu(): MenuItem[] {
+  protected override prepareShowMenu(): MenuItem[] {
     const menuItems = this.sitdc.prepareShowMenu();
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
