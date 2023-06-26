@@ -2,7 +2,7 @@ import {GroupItem, ValueKeyHtmlSelectOptions} from './value.key.html.select.opti
 import {InputType} from './input.type';
 import {BaseInputComponent} from '../components/base.input.component';
 import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';
-import {CurrencyMaskConfig} from 'ngx-currency';
+import {NgxCurrencyConfig} from 'ngx-currency';
 import {BaseFieldDefinition, PropertyEditShare} from './base.field.definition';
 
 /**
@@ -180,7 +180,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   /**
    * See https://github.com/nbfontana/ngx-currency/blob/master/src/currency-mask.config.ts
    */
-  currencyMaskConfig?: CurrencyMaskConfig;
+  currencyMaskConfig?: NgxCurrencyConfig;
 }
 
 export interface InputNumberSetting {

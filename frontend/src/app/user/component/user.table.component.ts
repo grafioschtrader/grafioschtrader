@@ -176,18 +176,14 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   }
 
   getReleaseLogoutProposeIcon(user: User, field: ColumnConfig): string {
-    if (user.userChangePropose) {
-      return UserTableComponent.createTypeIconMap[UserTaskType.RELEASE_LOGOUT];
-    }
+    return user.userChangePropose? UserTableComponent.createTypeIconMap[UserTaskType.RELEASE_LOGOUT]: null;
   }
 
   getLimitProposeIcon(user: User, field: ColumnConfig): string {
-    if (user.userChangeLimitProposeList.length > 0) {
-      return UserTableComponent.createTypeIconMap[UserTaskType.LIMIT_CUD_CHANGE];
-    }
+    return (user.userChangeLimitProposeList.length > 0)? UserTableComponent.createTypeIconMap[UserTaskType.LIMIT_CUD_CHANGE]: null;
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_USER;
   }
 
@@ -195,7 +191,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.activePanelService.destroyPanel(this);
   }
 
-  onComponentClick(event): void {
+  override onComponentClick(event): void {
     if (!event[this.consumedGT]) {
       this.resetMenu(this.selectedEntity);
     }
@@ -224,7 +220,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.readData();
   }
 
-  handleCloseDialog(processedActionData: ProcessedActionData): void {
+  override handleCloseDialog(processedActionData: ProcessedActionData): void {
     this.visibleDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.REJECT_DATA_CHANGE) {
@@ -243,7 +239,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     }
   }
 
-  resetMenu(user: User): void {
+  override resetMenu(user: User): void {
     this.selectedEntity = user;
     if (this.selectedEntity) {
       // Menus for the user -> only edit

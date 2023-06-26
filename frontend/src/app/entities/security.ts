@@ -14,7 +14,6 @@ export class Security extends Securitycurrency implements BaseID {
   isin?: string = null;
   tickerSymbol?: string = null;
   sVolume?: number = null;
-  name: string = null;
   assetClass?: Assetclass = null;
   denomination?: number = null;
   stockexchange?: Stockexchange = null;

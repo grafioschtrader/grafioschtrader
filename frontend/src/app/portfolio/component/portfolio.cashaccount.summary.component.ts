@@ -242,7 +242,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     }
   }
 
-  public filterDate(event) {
+  public override filterDate(event) {
     this.readData();
   }
 

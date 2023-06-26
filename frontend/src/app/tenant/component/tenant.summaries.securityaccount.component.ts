@@ -60,7 +60,7 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
     super.destroy();
   }
 
-  protected getComponentId(): string {
+  protected override getComponentId(): string {
     return AppSettings.DEPOT_KEY;
   }
 

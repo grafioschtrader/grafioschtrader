@@ -125,8 +125,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   callParam: TaskDataChange;
   ProgressStateType: typeof ProgressStateType = ProgressStateType;
 
-  contextMenuItems: MenuItem[] = [];
-  selectedEntity: TaskDataChange;
+ // contextMenuItems: MenuItem[] = [];
+ // selectedEntity: TaskDataChange;
   taskDataChangeList: TaskDataChange[];
   editMenu: MenuItem;
 
@@ -184,7 +184,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.callParam = entity;
   }
 
-  getHelpContextId(): HelpIds {
+  override getHelpContextId(): HelpIds {
     return HelpIds.HELP_TASK_DATA_CHANGE_MONITOR;
   }
 
@@ -198,12 +198,12 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     });
   }
 
-  protected addCustomMenusToSelectedEntity(taskDataChange: TaskDataChange, menuItems: MenuItem[]): void {
+  protected override addCustomMenusToSelectedEntity(taskDataChange: TaskDataChange, menuItems: MenuItem[]): void {
     if (this.gps.hasRole(AppSettings.ROLE_ADMIN)) {
       menuItems.push({
         label: 'COPY_RECORD|' + this.entityNameUpper,
         command: (event) => this.copyTaskDataChange(taskDataChange),
-        disabled: taskDataChange.idTask > this.tdcFormConstraints.maxUserCreateTask
+        disabled: taskDataChange[taskDataChange.idTask] > this.tdcFormConstraints.maxUserCreateTask
       });
 
       menuItems.push({

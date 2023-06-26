@@ -133,7 +133,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     this.activePanelService.destroyPanel(this);
   }
 
-  getMenuShowOptions(): MenuItem[] {
+  override getMenuShowOptions(): MenuItem[] {
     const menuItems = [{
       label: 'DIV_INCLUDE_SECURITYACCOUNT', command: (event) => this.showPortfolioSelectionDialog()
     }];

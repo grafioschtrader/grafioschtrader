@@ -17,7 +17,7 @@ export class Stockexchange extends Auditable implements BaseID {
   lastDirectPriceUpdate: number;
   website: string = null;
   @Exclude()
-  public getId(): number {
+  public override getId(): number {
     return this.idStockexchange;
   }
 

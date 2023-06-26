@@ -10,8 +10,8 @@ import {Validators} from '@angular/forms';
 import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
 
 export abstract class TableEditConfigBase extends TableConfigBase {
-  protected constructor(protected filterService: FilterService,
-                        protected usersettingsService: UserSettingsService,
+  protected constructor(filterService: FilterService,
+                        usersettingsService: UserSettingsService,
                         translateService: TranslateService,
                         gps: GlobalparameterService) {
     super(filterService, usersettingsService, translateService, gps);

@@ -6,7 +6,7 @@ export class ImportTransactionPlatform extends Auditable implements BaseID {
   name: string = null;
   idCsvImportImplementation: string = null;
 
-  public getId() {
+  public override getId() {
     return this.idTransactionImportPlatform;
   }
 

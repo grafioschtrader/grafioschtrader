@@ -107,7 +107,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
     });
   }
 
-  onHide(event) {
+  override onHide(event) {
     super.onHide(event);
     this.decimalSeparatorSub && this.decimalSeparatorSub.unsubscribe();
   }

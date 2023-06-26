@@ -104,7 +104,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     }, error: () => this.configObject.submit.disabled = false});
   }
 
-  onHide(event): void {
+  override onHide(event): void {
     this.fromCurrencyChangedSub && this.fromCurrencyChangedSub.unsubscribe();
     super.onHide(event);
   }

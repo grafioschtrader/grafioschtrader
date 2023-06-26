@@ -130,7 +130,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     super.onRowUnselect(event);
   }
 
-  public getHelpContextId(): HelpIds {
+  public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_TRANSACTION_MARGIN_BASED;
   }
 
@@ -152,7 +152,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     });
   }
 
-  protected getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
+  protected override getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
     const localContextMenu: MenuItem[] = [];
     if (transaction && !transaction.connectedIdTransaction) {
       localContextMenu.push({
@@ -171,7 +171,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     return localContextMenu.concat(super.getMenuItemsOnTransaction(transaction));
   }
 
-  protected canDeleteTransaction(transaction): boolean {
+  protected override canDeleteTransaction(transaction): boolean {
     return transaction.connectedIdTransaction !== null || !this.selectedNode.data[this.OPEN_HAS_CLOSE_POSITION];
   }
 

@@ -203,12 +203,9 @@ export class DynamicFieldModelHelper {
   }
 
   public static getFieldPercentageSuffix(fDIAS: FieldDescriptorInputAndShow): string {
-    if (fDIAS.dynamicFormPropertyHelps
+    return (fDIAS.dynamicFormPropertyHelps
       && (<string[]>fDIAS.dynamicFormPropertyHelps)
-        .indexOf(DynamicFormPropertyHelps[DynamicFormPropertyHelps.PERCENTAGE]) >= 0) {
-      return '%';
-    }
-    return null;
+        .indexOf(DynamicFormPropertyHelps[DynamicFormPropertyHelps.PERCENTAGE]) >= 0)? '%': null;
   }
 
   public static isDataModelEqual(model1: any, model2: any, fDIASs: FieldDescriptorInputAndShow[]) {

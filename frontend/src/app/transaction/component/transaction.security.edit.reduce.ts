@@ -49,7 +49,7 @@ export class TransactionSecurityEditDividendReduce implements ITransactionEditTy
 
 export class TransactionSecurityEditFinanceCost extends TransactionSecurityEditDividendReduce
   implements ITransactionEditType {
-  calcPosTotal(quotation: number, units: number, taxCost: number, transactionCost: number, accruedInterest: number,
+  override calcPosTotal(quotation: number, units: number, taxCost: number, transactionCost: number, accruedInterest: number,
                valuePerPoint: number): number {
     return (quotation * units * valuePerPoint - taxCost - transactionCost + accruedInterest) * -1;
   }

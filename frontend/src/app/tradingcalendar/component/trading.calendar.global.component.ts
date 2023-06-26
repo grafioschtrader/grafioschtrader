@@ -52,7 +52,7 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
       });
   }
 
-  getEditMenu(): MenuItem[] {
+  override getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
     if (this.hasRightsToModify()) {
       menuItems.push({label: '_TRADING_CALENDAR_MARK_YEAR', command: (e) => this.markWorkingDaysOfFullYear()});

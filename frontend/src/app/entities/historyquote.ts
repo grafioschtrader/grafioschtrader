@@ -15,7 +15,7 @@ export class Historyquote extends ProposeTransientTransfer implements BaseID {
   createModifyTime: string | Date;
 
   @Exclude()
-  getId(): number {
+  override getId(): number {
     return this.idHistoryQuote;
   }
 }

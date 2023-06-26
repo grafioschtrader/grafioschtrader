@@ -8,7 +8,7 @@ export class SecurityPrepareEdit extends GeneralEntityPrepareEdit implements Pre
     super(Security);
   }
 
-  redirectEntityMapping(proposedEntity: Security): string {
+  override redirectEntityMapping(proposedEntity: Security): string {
     return proposedEntity.idLinkSecuritycurrency ? this.derivedEntityMapping : null;
   }
 

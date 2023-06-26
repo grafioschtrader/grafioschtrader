@@ -48,6 +48,8 @@ export class Year {
         return DayOfWeek.FRIDAY;
       case 6:
         return DayOfWeek.SATURDAY;
+      default:
+        return null;
     }
   }
 

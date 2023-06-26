@@ -14,7 +14,7 @@ export abstract class AuthServiceWithLogout<T> extends BaseAuthService<T> {
     super(httpClient, messageToastService);
   }
 
-  protected toLogout(): void {
+  protected override toLogout(): void {
     this.loginService.logoutWithLoginView();
   }
 

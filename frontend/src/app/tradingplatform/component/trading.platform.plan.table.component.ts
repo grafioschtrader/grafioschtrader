@@ -109,7 +109,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     });
   }
 
-  protected beforeDelete(entity: TradingPlatformPlan): TradingPlatformPlan {
+  protected override beforeDelete(entity: TradingPlatformPlan): TradingPlatformPlan {
     const tradingPlatformPlan = new TradingPlatformPlan();
     return Object.assign(tradingPlatformPlan, entity);
   }

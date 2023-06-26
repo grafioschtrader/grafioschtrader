@@ -18,66 +18,40 @@ export const atLeastOneFieldValidator = (group: UntypedFormGroup): { [key: strin
   return isAtLeastOne ? null : {required: true};
 };
 
-
-
-
 export const gtWithMask = (gt: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
-  if (!isPresent(gt)) {
+  if (!isPresent(gt) || isPresent(Validators.required(control))) {
     return null;
   }
-  if (isPresent(Validators.required(control))) {
-    return null;
-  }
-
   const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
   return v > +gt ? null : {gt: {requiredGt: gt, actualValue: v}};
 };
 
 export const gteWithMask = (gte: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
-  if (!isPresent(gte)) {
+  if (!isPresent(gte) || isPresent(Validators.required(control))) {
     return null;
   }
-  if (isPresent(Validators.required(control))) {
-    return null;
-  }
-
   const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
   return v >= +gte ? null : {gte: {requiredGt: gte, actualValue: v}};
 };
 
-
 export const gteDate = (minDate: Date): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
-  if (!isPresent(minDate)) {
+  if (!isPresent(minDate) || isPresent(Validators.required(control))) {
     return null;
   }
-
-  if (isPresent(Validators.required(control))) {
-    return null;
-  }
-
   return control.value.getTime() >= minDate.getTime() ? null :
     {gteDate: {requiredGt: gteDate, actualValue: control.value}};
 };
-
 
 export const dateRange = (dateField1: string, dateField2: string, validatorField: string):
   ValidatorFn => (group: FormGroup): ValidationErrors | null => {
   const date1 = group.get(dateField1).value;
   const date2 = group.get(dateField2).value;
-  if ((date1 !== null && date2 !== null) && date1 > date2) {
-    return {dateRange: {requiredGt: dateRange, actualValue: group.get(validatorField).value}};
-  }
-  return null;
+  return (date1 !== null && date2 !== null) && date1 > date2?
+    {dateRange: {requiredGt: dateRange, actualValue: group.get(validatorField).value}}: null;
 };
 
-
-
-
 export const gteWithMaskIncludeNegative = (gte: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
-  if (!isPresent(gte)) {
-    return null;
-  }
-  if (isPresent(Validators.required(control))) {
+  if (!isPresent(gte) || isPresent(Validators.required(control))) {
     return null;
   }
   const v: number = (typeof control.value === 'string') ? +control.value.replace(/[^\d.-]/g, '') : control.value;
@@ -136,17 +110,13 @@ export const webUrl: ValidatorFn = (control: AbstractControl): { [key: string]: 
 
 
 export const rangeLength = (rangeLengthParam: Array<number>): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
-  if (!isPresent(rangeLength)) {
-    return null;
-  }
-  if (isPresent(Validators.required(control))) {
+  if (!isPresent(rangeLength) || isPresent(Validators.required(control))) {
     return null;
   }
   const v: string = control.value;
   return v.length >= rangeLengthParam[0] && v.length <= rangeLengthParam[1] ? null :
     {rangeLength: {param1: rangeLengthParam[0], param2: rangeLengthParam[1]}};
 };
-
 
 export const email: ValidatorFn = (control: AbstractControl): ValidationErrors => {
   if (isPresent(Validators.required(control))) {
@@ -160,13 +130,9 @@ export const email: ValidatorFn = (control: AbstractControl): ValidationErrors =
 };
 
 export const maxValue = (value: number): ValidatorFn => (control: AbstractControl): ValidationErrors => {
-  if (!isPresent(value)) {
+  if (!isPresent(value) || isPresent(Validators.required(control))) {
     return null;
   }
-  if (isPresent(Validators.required(control))) {
-    return null;
-  }
-
   const v: number = +control.value;
   return v <= +value ? null : {max: {value}};
 };
@@ -188,17 +154,12 @@ export const equalTo = (equalControl: AbstractControl): ValidatorFn => {
 
 
 export const range = (value: Array<number>): ValidatorFn => (control: AbstractControl): ValidationErrors => {
-  if (!isPresent(value)) {
+  if (!isPresent(value) || isPresent(Validators.required(control))) {
     return null;
   }
-  if (isPresent(Validators.required(control))) {
-    return null;
-  }
-
   const v: number = +control.value;
   return v >= value[0] && v <= value[1] ? null : {range: {value}};
 };
-
 
 export const validISIN: ValidatorFn = (control: AbstractControl): { [key: string]: boolean } => {
 

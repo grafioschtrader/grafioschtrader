@@ -57,7 +57,7 @@ export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
-  onHide(event) {
+  override onHide(event) {
     this.mainDialogService.visibleDialog(false, UserSettingsDialogs.NicknameLocale);
   }
 

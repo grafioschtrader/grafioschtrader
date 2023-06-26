@@ -24,10 +24,7 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
   }
 
   get errors() {
-    if (!this.ready) {
-      return;
-    }
-    return this.control.errors;
+    return this.ready? this.control.errors: null;
   }
 
   get hasErrors() {
@@ -69,7 +66,7 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
 
   private checkPropState(prop: string, field: string, conditions: ErrorOptions): boolean {
     if (!this.ready) {
-      return;
+      return null;
     }
     const controlPropsState = (
       !conditions || toArray(conditions).every((condition: string) => this.control[condition])

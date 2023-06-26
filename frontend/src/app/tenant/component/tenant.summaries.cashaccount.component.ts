@@ -148,7 +148,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     this.readData();
   }
 
-  public filterDate(event): void {
+  public override filterDate(event): void {
     this.readData();
   }
 
@@ -157,7 +157,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     this.readData();
   }
 
-  getMenuShowOptions(): MenuItem[] {
+  override getMenuShowOptions(): MenuItem[] {
     const otherMenuShowOptions: MenuItem[] = super.getMenuShowOptions();
 
     const menuItems: MenuItem[] = [];

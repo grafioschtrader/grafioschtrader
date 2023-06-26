@@ -32,6 +32,7 @@ export class BusinessHelper {
         return n;
       }
     }
+    return null;
   }
 
   public static getTotalAmountFromTransaction(transaction: Transaction) {

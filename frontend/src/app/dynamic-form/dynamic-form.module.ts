@@ -36,13 +36,13 @@ import {FilterOutPipe} from './pipe/FilterOutPipe';
 import {FormInputButtonComponent} from './components/form-input/form-input-button.component';
 import {DisableControlDirective} from './components/disable.control.directive';
 import {FormInputNumberComponent} from './components/form-input/form-input-number.component';
-import {NgxCurrencyModule} from 'ngx-currency';
 import {FormInputCurrencyNumberComponent} from './components/form-input/form-input-currency-number.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {HttpClientModule} from '@angular/common/http';
 import {FormInputDropdownComponent} from './components/form-input/form-input-dropdown.component';
 import {DropdownModule} from 'primeng/dropdown';
 import {InputNumberModule} from 'primeng/inputnumber';
+import {NgxCurrencyDirective} from 'ngx-currency';
 
 
 @NgModule({
@@ -50,7 +50,6 @@ import {InputNumberModule} from 'primeng/inputnumber';
     AutoCompleteModule,
     CalendarModule,
     InputNumberModule,
-    NgxCurrencyModule,
     CommonModule,
     DropdownModule,
     ReactiveFormsModule,
@@ -62,7 +61,7 @@ import {InputNumberModule} from 'primeng/inputnumber';
     OverlayPanelModule,
     TooltipModule,
     TranslateModule,
-    HttpClientModule, AngularSvgIconModule.forRoot()
+    HttpClientModule, AngularSvgIconModule.forRoot(), NgxCurrencyDirective
   ],
   declarations: [
     ErrorMessageComponent,

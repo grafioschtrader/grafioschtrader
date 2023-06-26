@@ -19,7 +19,7 @@ export class User extends Auditable implements BaseID {
   userChangePropose: ProposeUserTask;
   userChangeLimitProposeList: ProposeUserTask[];
 
-  public getId(): number {
+  public override getId(): number {
     return this.idUser;
   }
 }

@@ -33,6 +33,6 @@ import {BaseInputComponent} from '../base.input.component';
 })
 
 export class FormInputNumberComponent extends BaseInputComponent implements OnInit {
-  ngOnInit() {
+  override ngOnInit() {
   }
 }

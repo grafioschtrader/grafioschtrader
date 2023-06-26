@@ -17,7 +17,7 @@ import {FilterService} from 'primeng/api';
   templateUrl: '../view/split.period.table.html'
 })
 export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTableBase<HistoryquotePeriod> {
-  readonly dataSortKey = 'fromDate';
+ // readonly dataSortKey = 'fromDate';
 
   constructor(historyquotePeriodService: HistoryquotePeriodService,
               messageToastService: MessageToastService,
@@ -27,7 +27,7 @@ export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTab
               gps: GlobalparameterService) {
     super('fromDate', 'SECURITY_PERIODS_FROM_MAX', HistoryquotePeriod, messageToastService, historyquotePeriodService,
       filterService, usersettingsService, translateService, gps);
-    this.addColumn(DataType.DateString, this.dataSortKey, 'FROM_DATE_NEW_PRICE', true, false);
+    this.addColumn(DataType.DateString, 'fromDate', 'FROM_DATE_NEW_PRICE', true, false);
     this.addColumn(DataType.Numeric, 'price', 'CLOSE', true, false);
     this.prepareTableAndTranslate();
   }

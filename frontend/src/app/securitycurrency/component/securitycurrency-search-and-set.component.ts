@@ -67,7 +67,7 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
     this.sissdc.loadData(securitycurrencySearch);
   }
 
-  protected initialize(): void {
+  protected override initialize(): void {
     super.initialize();
   }
 

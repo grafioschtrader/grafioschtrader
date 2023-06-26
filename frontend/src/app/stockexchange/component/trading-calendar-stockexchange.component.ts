@@ -107,7 +107,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   /**
    * A stock exchange trading day was clicked.
    */
-  onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void {
+  override onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void {
     if (ranges.length === 2 && this.hasRightsToModify()) {
       this.addRemoveOnOffDay(range.start);
     }
@@ -133,7 +133,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
       });
   }
 
-  getEditMenu(): MenuItem[] {
+  override getEditMenu(): MenuItem[] {
     let menuItems: MenuItem[];
     if (this.hasRightsToModify()) {
       menuItems = [
@@ -176,7 +176,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
     return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, this.stockexchange);
   }
 
-  protected getExistingColor(date: Date): string {
+  protected override getExistingColor(date: Date): string {
     return this.dateCreateTypes[date.getTime()] === CreateType.ADD_MODIFIED_USER ?
       TradingCalendarStockexchangeComponent.USER_CREATED_COLOR : TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR;
   }

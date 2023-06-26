@@ -48,11 +48,12 @@ public class SecurityConfig {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-    http.csrf().disable();
+    http.csrf((csrf) -> csrf.disable());
 
-    http.exceptionHandling().and().anonymous().and().servletApi().and().headers().cacheControl();
+  //  http.exceptionHandling().and().anonymous().and().servletApi().and().headers().cacheControl();
 
-    http.authorizeHttpRequests().requestMatchers("/").permitAll()
+    http.authorizeHttpRequests(authz -> authz
+    .requestMatchers("/").permitAll()
     // Swagger
     .requestMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
     .requestMatchers(HttpMethod.GET, "/api-docs/**").permitAll()
@@ -78,7 +79,7 @@ public class SecurityConfig {
     .requestMatchers(RequestMappings.USER_ENTITY_CHANGE_LIMIT_MAP + "/**").hasRole(Role.ADMIN)
     .requestMatchers(RequestMappings.USERADMIN_MAP + "/**").hasRole(Role.ADMIN)
     // For all users
-    .requestMatchers(RequestMappings.API + "**").hasAnyRole(Role.USER, Role.LIMIT_EDIT);
+    .requestMatchers(RequestMappings.API + "**").hasAnyRole(Role.USER, Role.LIMIT_EDIT));
 
     http.addFilterBefore(new StatelessLoginFilter("/api/login", tokenAuthenticationService, userService,
         authenticationManager, proposeUserTaskJpaRepository, messages), UsernamePasswordAuthenticationFilter.class);

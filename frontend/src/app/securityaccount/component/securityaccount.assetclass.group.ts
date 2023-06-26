@@ -21,7 +21,7 @@ export class SecurityaccountAssetclassGroup extends SecurityaccountGroupBaseDyna
     this.language = gps.getUserLang();
   }
 
-  public translateGroupValues(securityPositionGroupSummaries: SecurityPositionDynamicGroupSummary<number>[]) {
+  public override translateGroupValues(securityPositionGroupSummaries: SecurityPositionDynamicGroupSummary<number>[]) {
     securityPositionGroupSummaries.forEach(spgs => {
       const groupFieldValue: string = this.getGroupFieldAsString(spgs.groupField);
       const valueKeyHtmlSelectOptions = SelectOptionsHelper.translateAssetclass(this.translateService, this.language,

@@ -48,11 +48,11 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
   private static readonly maxAssetclassRows = 9;
   private static readonly NO_OF_BUTTONS = 3;
 
-  @Input() visibleDialog: boolean;
+  // @Input() visibleDialog: boolean;
   @Input() callParam: CallParam;
 
   // Output for parent view
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
+  // @Output() closeDialog = new EventEmitter<ProcessedActionData>();
   assetclassCounter = 0;
   algoTitleKey: string;
   valueKeyHtmlOptionsAssetclasses: ValueKeyHtmlSelectOptions[];
@@ -155,7 +155,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
     });
   }
 
-  onHide(event): void {
+  override onHide(event): void {
     this.watchlistChangedSub && this.watchlistChangedSub.unsubscribe();
     this.assetclassChangeSubList.forEach(assetclassChangeSub => assetclassChangeSub && assetclassChangeSub.unsubscribe());
     super.onHide(event);

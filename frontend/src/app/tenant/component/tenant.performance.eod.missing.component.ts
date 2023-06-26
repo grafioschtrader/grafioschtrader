@@ -124,7 +124,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     });
   }
 
-  getEditMenu(): MenuItem[] {
+  override getEditMenu(): MenuItem[] {
     return null;
   }
 
@@ -181,7 +181,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     this.subscriptionHistoryquoteChanged && this.subscriptionHistoryquoteChanged.unsubscribe();
   }
 
-  protected getMenuShowOptions(): MenuItem[] {
+  protected override getMenuShowOptions(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     if (this.selectedSecurity) {
       menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(this.selectedSecurity.idSecuritycurrency,

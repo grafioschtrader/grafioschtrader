@@ -89,7 +89,7 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
     this.changeGroupToView(this.groupMapping.get(this.selectedGroup));
   }
 
-  protected getTitleChart(): string {
+  protected override getTitleChart(): string {
     return this.groupOptions.find(item => item.value === this.selectedGroup).label;
   }
 

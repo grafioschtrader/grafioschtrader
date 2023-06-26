@@ -45,7 +45,7 @@ export class TenantEditDialogComponent extends TenantEditComponent implements On
     setTimeout(() => this.loadData());
   }
 
-  submit(value: { [name: string]: any }) {
+  override submit(value: { [name: string]: any }) {
     if (this.onlyCurrency) {
       this.tenantService.changeCurrencyTenantAndPortfolios(value.currency).subscribe({next: tenant => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CLIENT'});
