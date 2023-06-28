@@ -718,7 +718,7 @@
   "VALUE_SECURITY": "Total Position",
   "VALUE_SECURITY_TOOLTIP": "Total of the open position in the corresponding currency",
   "VERIFYING_TOKEN": "Verifying token...",
-  "n": "Extension of the number format for amounts and rates",
+  "V_0_29_0": "Extension of the number format for amounts and rates",
   "V_0_30_0": "Message forwarding setting and certain consistency checks on held positions",
   "V_0_31_0": "Regular expression for password strength",
   "WACHTLIST_DIVIDEND_SPLIT_FEED": "Dividends/Split feed",

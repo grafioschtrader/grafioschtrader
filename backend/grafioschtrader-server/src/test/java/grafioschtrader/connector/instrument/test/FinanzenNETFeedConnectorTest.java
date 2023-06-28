@@ -31,32 +31,31 @@ class FinanzenNETFeedConnectorTest {
     final List<Security> securities = new ArrayList<>();
     final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
 
-    securities.add(createSecurityIntra("rohstoffe/goldpreis/chf",
-        AssetclassType.COMMODITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, ""));
+    // For some securities, there is a redirect to the corresponding country page. These securities can therefore not be queried.
+//    securities.add(createSecurityIntra("rohstoffe/goldpreis/chf", AssetclassType.COMMODITIES,
+//        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, ""));
+//    securities.add(createSecurityIntra("rohstoffe/oelpreis", AssetclassType.COMMODITIES,
+//        SpecialInvestmentInstruments.CFD, null, ""));
+//    securities.add(createSecurityIntra("index/smi", AssetclassType.EQUITIES,
+//        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, GlobalConstants.STOCK_EX_MIC_SIX));
 
-    securities.add(createSecurityIntra("rohstoffe/oelpreis",
-        AssetclassType.COMMODITIES, SpecialInvestmentInstruments.CFD, null, ""));
-  
-    securities.add(createSecurityIntra("fonds/uniimmo-europa-de0009805515",
-        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.MUTUAL_FUND, null, GlobalConstants.STOCK_EX_MIC_XETRA));
-  
+    securities.add(createSecurityIntra("fonds/uniimmo-europa-de0009805515", AssetclassType.REAL_ESTATE,
+        SpecialInvestmentInstruments.MUTUAL_FUND, null, GlobalConstants.STOCK_EX_MIC_XETRA));
+
     securities.add(createSecurityIntra("etf/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, null, GlobalConstants.STOCK_EX_MIC_XETRA));
 
-    securities.add(createSecurityIntra("index/smi", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, GlobalConstants.STOCK_EX_MIC_SIX));
-        
-     securities.add(createSecurityIntra("aktien/lufthansa-aktie@stBoerse_XETRA", AssetclassType.EQUITIES,
+    securities.add(createSecurityIntra("aktien/lufthansa-aktie@stBoerse_XETRA", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_XETRA));
-    
+
     securities.add(createSecurityIntra("anleihen/a19jgw-grande-dixence-anleihe", AssetclassType.FIXED_INCOME,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_SIX));
 
+    securities.add(createSecurityIntra("etf/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
+        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.ETF, null, GlobalConstants.STOCK_EX_MIC_XETRA));
+
     securities.add(createSecurityIntra("aktien/apple-aktie@stBoerse_NAS", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_NASDAQ));
-
-    securities.add(createSecurityIntra("/etf/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
-        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.ETF, null, GlobalConstants.STOCK_EX_MIC_XETRA));
 
     securities.parallelStream().forEach(security -> {
       try {
@@ -64,23 +63,19 @@ class FinanzenNETFeedConnectorTest {
       } catch (IOException | ParseException e) {
         e.printStackTrace();
       }
-      System.out.println(security);
-      assertThat(security.getSLast()).as("Security %s", security.getIdConnectorIntra()).isNotNull().isGreaterThan(0.0);
+      // System.out.println(security);
+      assertThat(security.getSLast()).isGreaterThan(0.0);
 
     });
   }
-
- 
 
   private Security createSecurityIntra(final String historyExtend, final AssetclassType assectClass,
       SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol) {
     return createSecurity(historyExtend, assectClass, specialInvestmentInstruments, isin, stockexchangeSymbol, false);
   }
 
-
   private Security createSecurity(final String urlExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String mic,
-      boolean historical) {
+      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String mic, boolean historical) {
     final Security security = new Security();
     if (historical) {
       security.setUrlHistoryExtend(urlExtend);
@@ -93,7 +88,5 @@ class FinanzenNETFeedConnectorTest {
     security.setStockexchange(new Stockexchange("XXXX", mic, null, null, false, true));
     return security;
   }
-
-  
 
 }

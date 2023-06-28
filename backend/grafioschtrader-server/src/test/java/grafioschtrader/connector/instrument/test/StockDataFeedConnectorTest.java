@@ -43,8 +43,9 @@ public class StockDataFeedConnectorTest {
       .withLocale(Locale.GERMAN);
 
   @Test
+  // Attention: Needs a subscription for Standard or more.
   void getEodSecurityHistoryTest() {
-
+    
     final List<Security> securities = new ArrayList<>();
 
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
@@ -87,6 +88,7 @@ public class StockDataFeedConnectorTest {
   }
 
   @Test
+  // Attention: Needs a subscription for Standard or more.
   void getEodCurrencyHistoryTest() {
     final LocalDate from = LocalDate.parse("2000-01-01");
     final LocalDate to = LocalDate.parse("2022-01-28");

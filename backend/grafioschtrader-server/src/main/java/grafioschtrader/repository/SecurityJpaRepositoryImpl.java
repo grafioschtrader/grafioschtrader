@@ -197,12 +197,16 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       return false;
     }
     if (securityCurrencyChanged.isDerivedInstrument()) {
-      return hasDerivedFieldsChanged(securityCurrencyChanged, targetSecurity);
+      return hasDerivedFieldsChanged(securityCurrencyChanged, targetSecurity) || activeFromDateWasSetToOlder(securityCurrencyChanged, targetSecurity);
     } else {
       return !(Objects.equals(securityCurrencyChanged.getIdConnectorHistory(), targetSecurity.getIdConnectorHistory())
           && Objects.equals(securityCurrencyChanged.getUrlHistoryExtend(), targetSecurity.getUrlHistoryExtend()))
-          || securityCurrencyChanged.getActiveFromDate().before(targetSecurity.getActiveFromDate());
+          || activeFromDateWasSetToOlder(securityCurrencyChanged, targetSecurity);
     }
+  }
+  
+  private boolean activeFromDateWasSetToOlder(final Security securityCurrencyChanged, final Security targetSecurity) {
+    return securityCurrencyChanged.getActiveFromDate().before(targetSecurity.getActiveFromDate());
   }
 
   private boolean hasDerivedFieldsChanged(final Security securityCurrencyChanged, final Security targetSecurity) {

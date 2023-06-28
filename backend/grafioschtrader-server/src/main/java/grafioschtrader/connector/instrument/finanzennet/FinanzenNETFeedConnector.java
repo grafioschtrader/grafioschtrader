@@ -30,6 +30,10 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /*-
+ * For some securities, there is a redirect to the corresponding country page. 
+ * These securities can therefore not be queried. There is a finance.net, ch, and at. 
+ * Therefore, Finanzen.net should not be used to query the prices of Austrian and Swiss securities.
+ * 
  * Stocks, Bond, ETF:<br>
  * It difficult to check the url extension with a regex pattern
  *
@@ -159,14 +163,14 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
         }
         break;
 
-      case "Eröffnung/Vortag":  
+      case "Eröffnung/Vortag":
       case "Eröffnung / Vortag":
         String openDayBefore[] = value.split(" / ");
         security.setSOpen(FeedConnectorHelper.parseDoubleGE(openDayBefore[0]));
         security.setSPrevClose(FeedConnectorHelper.parseDoubleGE(openDayBefore[1]));
         break;
 
-      case "Tageshoch/Tagestief":  
+      case "Tageshoch/Tagestief":
       case "Tageshoch / Tagestief":
         String highLow[] = value.split(" / ");
         if (!highLow[0].equals("-")) {

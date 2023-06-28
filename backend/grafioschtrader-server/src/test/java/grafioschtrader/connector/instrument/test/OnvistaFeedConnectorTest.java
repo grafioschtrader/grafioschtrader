@@ -40,7 +40,7 @@ class OnvistaFeedConnectorTest {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquote.size()).isEqualByComparingTo(7169);
+      assertThat(historyquote.size()).isEqualByComparingTo(7198);
     });
   }
 
@@ -57,11 +57,11 @@ class OnvistaFeedConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-    securities.add(createSecurity("Siemens", "STOCK/82902/eod_history?idNotation=1929749", 5826));
-    securities.add(createSecurity("iShares Core DAX", "FUND/3567527/eod_history?idNotation=28520648", 3476));
-    securities.add(createSecurity("BGF World Energy Fund I2 USD", "FUND/20982583/eod_history?idNotation=26071169", 3142));
-    securities.add(createSecurity("Amazon", "STOCK/90929/eod_history?idNotation=9386187", 4631));
-    securities.add(createSecurity("Autoneum Holding AG SF-Anl. 2017(25)", "BOND/130304815/eod_history?idNotation=202439144", 1079));
+    securities.add(createSecurity("Siemens", "STOCK/82902/eod_history?idNotation=1929749", 5847));
+    securities.add(createSecurity("iShares Core DAX", "FUND/3567527/eod_history?idNotation=28520648", 3492));
+    securities.add(createSecurity("BGF World Energy Fund I2 USD", "FUND/20982583/eod_history?idNotation=26071169", 3278));
+    securities.add(createSecurity("Amazon", "STOCK/90929/eod_history?idNotation=9386187", 4652));
+    securities.add(createSecurity("Autoneum Holding AG SF-Anl. 2017(25)", "BOND/130304815/eod_history?idNotation=202439144", 1087));
         
     securities.parallelStream().forEach(security -> {
 
