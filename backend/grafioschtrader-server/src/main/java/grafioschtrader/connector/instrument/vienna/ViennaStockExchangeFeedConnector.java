@@ -192,7 +192,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     historyquote.setHigh(Double.parseDouble(items[2]));
     historyquote.setLow(Double.parseDouble(items[3]));
     historyquote.setClose(Double.parseDouble(items[4]));
-    if (items.length == 8) {
+    if (items.length == 8 && !items[7].equals("-")) {
       historyquote.setVolume(Long.parseLong(items[7].replace(",", "")));
     }
     return historyquote;

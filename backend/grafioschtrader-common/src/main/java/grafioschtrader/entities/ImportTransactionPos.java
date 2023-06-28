@@ -345,7 +345,8 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         Double df = security.getSecurityTransImportDistributionFrequency();
         distributionFrequency = df == null ? distributionFrequency : df;
       }
-      quotation = quotation - diffCashaccountAmount * distributionFrequency / units;
+      double factor = cashaccountAmount < 0? -1.0: 1.0;
+      quotation = quotation - (diffCashaccountAmount  * factor) * distributionFrequency / units;
     }
   }
 
