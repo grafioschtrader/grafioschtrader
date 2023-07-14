@@ -428,7 +428,7 @@
   "NAME_ID_RIGHTS": "Name, ID, höchste Autorisierung",
   "NAME_SECURITY": "Name",
   "NAME_SECURITY_TOOLTIP": "Bei Aktien und ETF den Namen ohne Zusatz verwenden - wird für die Split-Erkennung genutzt",
-  "NETTO_VALUE_TRANSACTION": "Nettopreis",
+  "NET_VALUE_TRANSACTION": "Nettopreis",
   "NEW": "Neues {{i18nRecord}}",
   "NICKNAME": "Spitzname",
   "NICKNAME_LOCALE_CHANGE": "Spitzname und Land/Sprache ändern",

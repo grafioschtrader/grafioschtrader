@@ -183,7 +183,7 @@ export class AuditHelper {
       const field = fieldConfig.dataproperty ? fieldConfig.dataproperty : key;
       let oldValue = Helper.getValueByPath(proposeChangeEntityWithEntity.entity, field);
       if (oldValue !== Helper.getValueByPath(proposeChangeEntityWithEntity.proposedEntity, field)) {
-        if (fieldConfig.inputType === InputType.Select && fieldConfig.valueKeyHtmlOptions) {
+        if (oldValue != null && fieldConfig.inputType === InputType.Select && fieldConfig.valueKeyHtmlOptions) {
           oldValue = fieldConfig.valueKeyHtmlOptions.find(v => v.key === oldValue).value;
         }
         configObject[key].labelTitle = oldValue;

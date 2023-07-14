@@ -108,7 +108,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
 
     this.addColumn(DataType.Numeric, 'taxCostMC', 'TAX_COST', true, false,
       {headerSuffix: this.transactionCostGrandSummary.mainCurrency});
-    this.addColumn(DataType.Numeric, 'basePriceForTransactionCostMC', 'NETTO_VALUE_TRANSACTION', true, false,
+    this.addColumn(DataType.Numeric, 'basePriceForTransactionCostMC', 'NET_VALUE_TRANSACTION', true, false,
       {headerSuffix: this.transactionCostGrandSummary.mainCurrency});
 
 
