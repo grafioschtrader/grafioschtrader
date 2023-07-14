@@ -4,3 +4,5 @@ export docroot=/var/www/example
 export builddir=~/build
 # Directory where grafioschtrader is placed inside docroot
 export basehref=grafioschtrader/
+# Stop angular cli asking for collecting analytics when I use ng build
+export NG_CLI_ANALYTICS=ci
