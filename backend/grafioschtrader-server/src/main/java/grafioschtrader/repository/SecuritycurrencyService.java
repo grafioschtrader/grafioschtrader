@@ -42,7 +42,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
-
 public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U extends SecuritycurrencyPositionSummary<S>>
     extends BaseRepositoryImpl<S>
     implements IHistoryquoteEntityAccess<S>, IIntradayEntityAccess<S>, ISecuritycurrencyService<S> {
@@ -55,7 +54,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   @Autowired
   protected HistoryquoteJpaRepository historyquoteJpaRepository;
- 
+
   @PersistenceContext
   protected EntityManager entityManager;
 
@@ -66,9 +65,8 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   @Autowired(required = false)
   public List<IFeedConnector> feedConnectorbeans = new ArrayList<>();
 
- // public abstract JpaRepository<S, Integer> getJpaRepository();
-  
-  
+  // public abstract JpaRepository<S, Integer> getJpaRepository();
+
   /**
    * Checks if the data provider was changed by the user and the EOD must be
    * reloaded.
@@ -89,11 +87,9 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   }
 
   protected S createWithHistoryQuote(final S securitycurrency) throws Exception {
-    return getHistorquoteLoad(securitycurrency).createHistoryQuotesAndSave(this, securitycurrency, null,
-        null);
+    return getHistorquoteLoad(securitycurrency).createHistoryQuotesAndSave(this, securitycurrency, null, null);
   }
 
- 
   protected void reloadAsyncHistoryquotes(S createEditSecuritycurrency) {
     getHistorquoteLoad(createEditSecuritycurrency).reloadAsyncFullHistoryquote(securityServiceAsyncExectuion, this,
         createEditSecuritycurrency);
@@ -246,6 +242,4 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         : Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class);
   }
 
-  
-  
 }

@@ -42,9 +42,8 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
             sc = securitycurrencyService.getJpaRepository().getReferenceById(sc.getIdSecuritycurrency());
           }
           sc = securitycurrencyService.updateLastPriceSecurityCurrency(sc, maxIntraRetry, scIntradayUpdateTimeout);
-          securitycurrencyService.createWithHistoryQuote(sc);
+          sc = securitycurrencyService.createWithHistoryQuote(sc);
           securitycurrencyService.afterFullLoad(sc);
-
         } catch (final Exception ex) {
           log.error(ex.getMessage(), ex);
           transactionStatus.setRollbackOnly();

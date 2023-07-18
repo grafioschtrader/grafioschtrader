@@ -197,14 +197,15 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       return false;
     }
     if (securityCurrencyChanged.isDerivedInstrument()) {
-      return hasDerivedFieldsChanged(securityCurrencyChanged, targetSecurity) || activeFromDateWasSetToOlder(securityCurrencyChanged, targetSecurity);
+      return hasDerivedFieldsChanged(securityCurrencyChanged, targetSecurity)
+          || activeFromDateWasSetToOlder(securityCurrencyChanged, targetSecurity);
     } else {
       return !(Objects.equals(securityCurrencyChanged.getIdConnectorHistory(), targetSecurity.getIdConnectorHistory())
           && Objects.equals(securityCurrencyChanged.getUrlHistoryExtend(), targetSecurity.getUrlHistoryExtend()))
           || activeFromDateWasSetToOlder(securityCurrencyChanged, targetSecurity);
     }
   }
-  
+
   private boolean activeFromDateWasSetToOlder(final Security securityCurrencyChanged, final Security targetSecurity) {
     return securityCurrencyChanged.getActiveFromDate().before(targetSecurity.getActiveFromDate());
   }
@@ -462,7 +463,6 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {
-
     if (historyAccessHasChanged) {
       taskDataChangeJpaRepository
           .save(new TaskDataChange(TaskType.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA, TaskDataExecPriority.PRIO_NORMAL,
@@ -545,12 +545,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         security.getStockexchange().getIdIndexUpdCalendar(), security.getIdSecuritycurrency());
     List<Historyquote> historyquotesFill = new ArrayList<>();
     if (!missingDates.isEmpty()) {
-      
+
       int missingDateCounter = 0;
-      int historyIdxFirst = Collections.binarySearch(security.getHistoryquoteList(), new Historyquote(missingDates.get(0)),
-          (h1, h2) -> h1.getDate().compareTo(h2.getDate())) * -1 - 1;
+      int historyIdxFirst = Collections.binarySearch(security.getHistoryquoteList(),
+          new Historyquote(missingDates.get(0)), (h1, h2) -> h1.getDate().compareTo(h2.getDate())) * -1 - 1;
       if (historyIdxFirst > 0) {
-        fillGapEODAfterFirstHistoryquote(security, historyquotesFill, historyIdxFirst, missingDates, missingDateCounter);
+        fillGapEODAfterFirstHistoryquote(security, historyquotesFill, historyIdxFirst, missingDates,
+            missingDateCounter);
       } else {
         fillGapEODBeforeFirstHistoryquote(security, historyquotesFill, missingDates, missingDateCounter);
       }
@@ -576,25 +577,23 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   private void fillGapEODAfterFirstHistoryquote(Security security, List<Historyquote> historyquotesFill, int historyIdx,
       List<Date> missingDates, int missingDateCounter) {
     List<Historyquote> hql = security.getHistoryquoteList();
-    while(missingDateCounter < missingDates.size()) {
-      if (historyIdx == hql.size() || historyIdx < hql.size()
-          && missingDates.get(missingDateCounter).before(hql.get(historyIdx).getDate())) {
+    while (missingDateCounter < missingDates.size()) {
+      if (historyIdx == hql.size()
+          || historyIdx < hql.size() && missingDates.get(missingDateCounter).before(hql.get(historyIdx).getDate())) {
         historyquotesFill
             .add(new Historyquote(security.getIdSecuritycurrency(), HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR,
                 missingDates.get(missingDateCounter), hql.get(historyIdx - 1).getClose()));
         missingDateCounter++;
       } else {
-        historyIdx = Collections.binarySearch(hql,
-            new Historyquote(missingDates.get(missingDateCounter)), (h1, h2) -> h1.getDate().compareTo(h2.getDate()))
-            * -1 - 1; 
+        historyIdx = Collections.binarySearch(hql, new Historyquote(missingDates.get(missingDateCounter)),
+            (h1, h2) -> h1.getDate().compareTo(h2.getDate())) * -1 - 1;
       }
     }
   }
-  
+
   @Override
   public HistoryquoteJpaRepository getHistoryquoteJpaRepository() {
     return historyquoteJpaRepository;
   }
-
 
 }
