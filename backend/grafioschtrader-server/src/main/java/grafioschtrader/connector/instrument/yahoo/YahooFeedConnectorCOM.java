@@ -3,33 +3,26 @@ package grafioschtrader.connector.instrument.yahoo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -89,11 +82,10 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
-  private static final String DOMAIN_NAME_WITH_6_VERSION = "https://query1.finance.yahoo.com/v6/finance/";
   private static final String DOMAIN_NAME_WITH_7_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
   private static final String DOMAIN_NAME_WITH_7_VERSION_Q2 = "https://query2.finance.yahoo.com/v7/finance/";
-  private static final String DOMAIN_NAME_WITH_11_VERSION = "https://query2.finance.yahoo.com/v11/finance/quoteSummary/";
-  private static final boolean USE_V11_LASTPRICE = false;
+  private static final String DOMAIN_NAME_WITH_10_VERSION = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/";
+  private static final boolean USE_V10_LASTPRICE = false;
 
   static {
     supportedFeed = new HashMap<>();
@@ -112,7 +104,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     String symbol = URLEncoder.encode(security.getUrlIntraExtend(), StandardCharsets.UTF_8);
-    return USE_V11_LASTPRICE ? DOMAIN_NAME_WITH_11_VERSION + symbol + "?modules=price"
+    return USE_V10_LASTPRICE ? DOMAIN_NAME_WITH_10_VERSION + symbol + "?modules=price"
         : DOMAIN_NAME_WITH_7_VERSION_Q2 + "quote?symbols=" + symbol;
   }
 
@@ -124,12 +116,12 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    readAndsetQuoteResult(getSecurityIntradayDownloadLink(security), security);
+    readLastPriceWithCrumb(getSecurityIntradayDownloadLink(security), security);
   }
 
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return USE_V11_LASTPRICE ? DOMAIN_NAME_WITH_11_VERSION + getCurrencyPairSymbol(currencypair) + "?modules=price"
+    return USE_V10_LASTPRICE ? DOMAIN_NAME_WITH_10_VERSION + getCurrencyPairSymbol(currencypair) + "?modules=price"
         : DOMAIN_NAME_WITH_7_VERSION_Q2 + "quote?symbols=" + getCurrencyPairSymbol(currencypair);
 
   }
@@ -137,7 +129,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    readAndsetQuoteResult(getCurrencypairIntradayDownloadLink(currencypair), currencypair);
+    readLastPriceWithCrumb(getCurrencypairIntradayDownloadLink(currencypair), currencypair);
   }
 
   @Override
@@ -161,26 +153,14 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private String getHistoricalDownloadLink(final String symbol) {
     return "https://finance.yahoo.com/quote/" + symbol + "/history?p=" + symbol;
-
   }
 
-  private <T extends Securitycurrency<T>> void readAndsetQuoteResult(String urlStr, final T securitycurrency)
-      throws StreamReadException, DatabindException, MalformedURLException, IOException {
-    if (urlStr.startsWith(DOMAIN_NAME_WITH_11_VERSION)) {
-      final QuoteSummaryV11 quoteSummary = objectMapper.readValue(new URL(urlStr), QuoteSummaryV11.class);
-      setQuoteSummary(quoteSummary, securitycurrency);
-    } else if (urlStr.startsWith(DOMAIN_NAME_WITH_6_VERSION)) {
-      final Quote quote = objectMapper.readValue(new URL(urlStr), Quote.class);
-      setQuoteResult(quote, securitycurrency);
-    } else {
-      v7LastPrice(urlStr, securitycurrency);
-    }
-  }
-
-  private <T extends Securitycurrency<T>> void v7LastPrice(String urlStr, final T securitycurrency)
+ 
+  private <T extends Securitycurrency<T>> void readLastPriceWithCrumb(String urlStr, final T securitycurrency)
       throws ClientProtocolException, IOException {
-    Quote quote = null;
-    for(int i = 0; i <= 2 && (quote == null || quote.quoteResponse == null); i++){
+   
+    boolean success = false;
+    for(int i = 0; i <= 2 && !success; i++){
       i++;
       HttpClient client = HttpClientBuilder.create()
           .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
@@ -193,16 +173,38 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
       HttpResponse response = client.execute(request, context);
       HttpEntity entity = response.getEntity();
 
-      quote = objectMapper.readValue(entity.getContent(), Quote.class);
-      if(quote.quoteResponse != null) {
-        setQuoteResult(quote, securitycurrency);
-      } else {
+      if (urlStr.startsWith(DOMAIN_NAME_WITH_10_VERSION)) {
+        success = processV10LastPrice(entity.getContent(), securitycurrency);
+      } else {;
+         success = processV7LastPrice(entity.getContent(), securitycurrency);
+      }   
+      
+      if(!success) {
         CrumbManager.resetCookieCrumb();
       }
     }
   }
+  
+  private <T extends Securitycurrency<T>> boolean processV7LastPrice(InputStream is, final T securitycurrency) throws StreamReadException, DatabindException, IOException {
+    Quote quote = objectMapper.readValue(is, Quote.class);
+    if(quote.quoteResponse != null) {
+      setQuoteResult(quote, securitycurrency);
+      return true;
+    }
+    return false;
+  }
+  
+  private <T extends Securitycurrency<T>> boolean processV10LastPrice(InputStream is, final T securitycurrency) throws StreamReadException, DatabindException, IOException {
+    final QuoteSummaryV10 quoteSummary = objectMapper.readValue(is, QuoteSummaryV10.class);
+    if(quoteSummary.quoteSummary != null) {
+      setQuoteSummary(quoteSummary, securitycurrency);
+      return true;
+    }
+    return false;
+  }
+  
 
-  private <T extends Securitycurrency<T>> void setQuoteSummary(final QuoteSummaryV11 quoteSummary,
+  private <T extends Securitycurrency<T>> void setQuoteSummary(final QuoteSummaryV10 quoteSummary,
       final T securitycurrency) {
     if (quoteSummary.quoteSummary.result.length == 1) {
       double divider = FeedConnectorHelper.getGBXLondonDivider(securitycurrency);
@@ -467,7 +469,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     DateHelper.setTimeToZero(day);
 
     final Historyquote historyQuote = new Historyquote();
-
     historyQuote.setDate(day.getTime());
     historyQuote.setOpen(parseAndRound(item[1], divider));
     historyQuote.setHigh(parseAndRound(item[2], divider));
@@ -513,15 +514,15 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         throws IOException, ParseException;
   }
 
-  static class QuoteSummaryV11 {
+  static class QuoteSummaryV10 {
     public QuoteSummary quoteSummary;
   }
 
   static class QuoteSummary {
-    public PriceV11 result[];
+    public PriceV10 result[];
   }
 
-  static class PriceV11 {
+  static class PriceV10 {
     public Price price;
   }
 

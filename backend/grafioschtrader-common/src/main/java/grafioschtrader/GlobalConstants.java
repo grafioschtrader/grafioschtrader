@@ -7,16 +7,27 @@ public class GlobalConstants {
 
   public static final String STOCK_EX_MIC_UK = "XLON";
   public static final String STOCK_EX_MIC_NASDAQ = "XNAS";
+  public static final String STOCK_EX_MIC_NYSE = "XNYS";
   public static final String STOCK_EX_MIC_SIX = "XSWX";
   public static final String STOCK_EX_MIC_XETRA = "XSWX";
   public static final String STOCK_EX_MIC_SPAIN = "XMAD";
   public static final String STOCK_EX_MIC_ITALY = "XMIL";
   public static final String STOCK_EX_MIC_JAPAN = "XTKS";
   public static final String STOCK_EX_MIC_AUSTRIA = "XVIE";
+  public static final String STOCK_EX_MIC_FRANCE = "XPAR";
+  
   public static final String STOCK_EX_MIC_ZKB = "ZKBX";
   public static final String STOCK_EX_MIC_STUTTGART = "XSTU";
   public static final String STOCK_EX_MIC_WARSAW = "XWAR";
 
+  public static final String MC_USD = "USD";
+  public static final String MC_EUR = "EUR";
+  public static final String MC_GBP = "GBP";
+  public static final String MC_JPY = "JPY";
+  public static final String MC_CHF = "CHF";
+  
+  public static final String CC_BTC = "BTC";
+  
   /**
    * Supported languages in this application
    */
@@ -148,7 +159,8 @@ public class GlobalConstants {
    * Contains the supported crypto currencies. When a new is added, check
    * references. Maybe a connector must be extended to this new cryptocurrency.
    */
-  public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of("BTC", "BNB", "ETH", "ETC", "LTC", "XRP");
+  
+  public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of(CC_BTC, "BNB", "ETH", "ETC", "LTC", "XRP");
 
   /**
    * The Email verification expiration time in minutes

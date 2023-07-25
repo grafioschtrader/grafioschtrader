@@ -90,7 +90,7 @@ public class FeedConnectorHelper {
       return security.getAssetClass()
           .getSpecialInvestmentInstrument() != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES
           && GlobalConstants.STOCK_EX_MIC_UK.equals(security.getStockexchange().getMic())
-          && security.getCurrency().equals("GBP") ? 100.0 : 1.0;
+          && security.getCurrency().equals(GlobalConstants.MC_GBP) ? 100.0 : 1.0;
     }
     return 1.0;
   }

@@ -60,6 +60,7 @@ public class SecurityConfig {
     // It must be accessible before login
     .requestMatchers(HttpMethod.GET, RequestMappings.API + "actuator/**").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
+    .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/locales").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/passwordrequirements").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/userformdefinition").permitAll()

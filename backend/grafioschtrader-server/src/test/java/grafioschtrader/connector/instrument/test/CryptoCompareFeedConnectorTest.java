@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.cryptocompare.CryptoCompareFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -26,7 +27,7 @@ class CryptoCompareFeedConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("CHF", "BTC"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, GlobalConstants.CC_BTC));
     
     currencies.parallelStream().forEach(currencyPair -> {
       try {
@@ -50,8 +51,8 @@ class CryptoCompareFeedConnectorTest {
     
     
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("CHF", "BTC"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "CHF"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, GlobalConstants.CC_BTC));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_CHF));
     
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();

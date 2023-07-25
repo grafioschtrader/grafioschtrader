@@ -47,15 +47,15 @@ class FinnhubConnectorTest {
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
   
     // Indices may not be supported anymore
-    // securities.add(createSecurity("^NDX", "NYSE", "USD", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
-    // securities.add(createSecurity("^GSPC", "NYSE", "USD", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
+    // securities.add(createSecurity("^NDX", GlobalConstants.STOCK_EX_MIC_NYSE, GlobalConstants.MC_USD, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
+    // securities.add(createSecurity("^GSPC", GlobalConstants.STOCK_EX_MIC_NYSE, GlobalConstants.MC_USD, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
 
-    securities.add(createSecurity("csco", "NYSE", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-   // securities.add(createSecurity("XSGL.MI", "MTA", "EUR", SpecialInvestmentInstruments.ETF));
-   // securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-   //  securities.add(createSecurity("XSGL.MI", "MTA", "EUR", SpecialInvestmentInstruments.ETF));
-   // securities.add(createSecurity("CAC.PA", "Euronext", "EUR", SpecialInvestmentInstruments.ETF));
-   // securities.add(createSecurity("OILUSA.SW", "SIX", "USD", SpecialInvestmentInstruments.ETF));
+    securities.add(createSecurity("csco", GlobalConstants.STOCK_EX_MIC_NYSE, GlobalConstants.MC_USD, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+   // securities.add(createSecurity("XSGL.MI", "MTA", GlobalConstants.MC_EUR, SpecialInvestmentInstruments.ETF));
+   // securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+   //  securities.add(createSecurity("XSGL.MI", "MTA", GlobalConstants.MC_EUR, SpecialInvestmentInstruments.ETF));
+   // securities.add(createSecurity("CAC.PA", "Euronext", GlobalConstants.MC_EUR, SpecialInvestmentInstruments.ETF));
+   // securities.add(createSecurity("OILUSA.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_USD, SpecialInvestmentInstruments.ETF));
 
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
@@ -75,14 +75,14 @@ class FinnhubConnectorTest {
     final List<Security> securities = new ArrayList<>();
     
     // Indices may not be supported anymore
-    //  securities.add(createSecurity("^GSPC", "NYSE", "USD", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
+    //  securities.add(createSecurity("^GSPC", GlobalConstants.STOCK_EX_MIC_NYSE, GlobalConstants.MC_USD, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
     
     // Not supporting for free
-    // securities.add(createSecurity("LYHLT.SW", "SIX", "EUR", SpecialInvestmentInstruments.ETF)); 
-    securities.add(createSecurity("NESN.SW", "SIX", "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    // securities.add(createSecurity("LYHLT.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_EUR, SpecialInvestmentInstruments.ETF)); 
+    securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
 
     // Only US Market for free
-    // securities.add(createSecurity("csco", "America/New_York", "USD", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    // securities.add(createSecurity("csco", "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
    
     securities.parallelStream().forEach(security -> {
       try {
@@ -104,7 +104,7 @@ class FinnhubConnectorTest {
   void getSplitHistoryTest() {
     final List<Security> securities = new ArrayList<>();
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-    securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, "CHF", SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     securities.parallelStream().forEach(security -> {
       List<Securitysplit> splits = new ArrayList<>();
       try {

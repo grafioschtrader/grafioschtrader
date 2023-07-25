@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.exchangeratehost.ExchangerateHostFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -29,8 +30,8 @@ class ExchangerateHostFeedConnectorTest {
     
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "SEK"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_JPY, "SEK"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
     
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();

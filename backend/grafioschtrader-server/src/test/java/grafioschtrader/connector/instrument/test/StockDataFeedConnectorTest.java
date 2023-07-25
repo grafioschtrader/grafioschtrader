@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.stockdata.StockDataFeedConnector;
 import grafioschtrader.connector.instrument.stockdata.StockDataFeedConnector.StockexchangeStockdata;
 import grafioschtrader.entities.Currencypair;
@@ -56,9 +57,9 @@ public class StockDataFeedConnectorTest {
     securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco",
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "CSSMIM.SW",
-        SpecialInvestmentInstruments.ETF, "SIX"));
+        SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "ZGLD.SW",
-        SpecialInvestmentInstruments.ETF, "SIX"));
+        SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -96,10 +97,10 @@ public class StockDataFeedConnectorTest {
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "SEK"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_JPY, "SEK"));
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -115,11 +116,11 @@ public class StockDataFeedConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ETH", "USD"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "GBP"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ETH", GlobalConstants.MC_USD));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_GBP));
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         stockdataConnector.updateCurrencyPairLastPrice(currencyPair);

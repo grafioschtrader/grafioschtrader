@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.eodhistoricaldata.EodHistoricalDataConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
@@ -44,8 +45,8 @@ public class EodHistoricalDataConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "CSSMIM.SW", SpecialInvestmentInstruments.ETF, "SIX"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "ZGLD.SW", SpecialInvestmentInstruments.ETF, "SIX"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "CSSMIM.SW", SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "ZGLD.SW", SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
       securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -69,9 +70,9 @@ public class EodHistoricalDataConnectorTest {
     
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "SEK"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_JPY, "SEK"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -103,9 +104,9 @@ public class EodHistoricalDataConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "GBP"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_GBP));
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         eodHistoricalDataConnector.updateCurrencyPairLastPrice(currencyPair);

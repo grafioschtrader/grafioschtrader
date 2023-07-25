@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.finanzench.FinanzenCHFeedConnector;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
@@ -77,7 +78,7 @@ class FinanzenCHFeedConnectorTest {
   void updateCurrencyPairLastPriceTest() {
     final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(createCurrencypairIntra("CHF", "EUR", "devisen/schweizer_franken-euro-kurs"));
+    currencies.add(createCurrencypairIntra(GlobalConstants.MC_CHF, GlobalConstants.MC_EUR, "devisen/schweizer_franken-euro-kurs"));
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         finanzenCHFeedConnector.updateCurrencyPairLastPrice(currencyPair);
@@ -92,7 +93,7 @@ class FinanzenCHFeedConnectorTest {
 
   private Currencypair createCurrencypairIntra(final String fromCurrency, String toCurrency,
       final String urlIntraExtend) {
-    Currencypair currencypair = ConnectorTestHelper.createCurrencyPair("USD", "CHF");
+    Currencypair currencypair = ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF);
     currencypair.setUrlIntraExtend(urlIntraExtend);
     return currencypair;
   }
