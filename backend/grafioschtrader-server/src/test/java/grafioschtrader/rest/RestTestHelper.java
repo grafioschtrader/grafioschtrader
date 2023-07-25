@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.security.JwtTokenHandler;
@@ -37,20 +38,16 @@ public class RestTestHelper {
   public static final String LIMIT1 = "limit1";
   public static final String LIMIT2 = "limit2";
 
-  public static final String C_CHF = "CHF";
-  public static final String C_USD = "USD";
-  public static final String C_EUR = "EUR";
-
   public static final Random random = new Random();
 
   public static final String[] ALL_USERS = new String[] { ADMIN, ALLEDIT, USER, LIMIT1, LIMIT2 };
   public static final String[] LIMIT_USERS = new String[] { LIMIT1, LIMIT2 };
 
-  public static UserRegister[] users = { new UserRegister("hg@hugograf.com", "a", ADMIN, "de-CH", -60, C_CHF),
-      new UserRegister("hugo.graf@grafiosch.com", "a", ALLEDIT, "de-CH", -60, C_CHF),
-      new UserRegister("hugo.graf@outlook.com", "a", USER, "de-CH", -60, C_USD),
-      new UserRegister("grafiosch@outlook.com", "a", LIMIT1, "de-CH", -60, C_EUR),
-      new UserRegister("hugo.graf@wirtschaftsfilz.ch", "a", LIMIT2, "de-CH", -60, C_CHF) };
+  public static UserRegister[] users = { new UserRegister("hg@hugograf.com", "a", ADMIN, "de-CH", -60, GlobalConstants.MC_CHF),
+      new UserRegister("hugo.graf@grafiosch.com", "a", ALLEDIT, "de-CH", -60, GlobalConstants.MC_CHF),
+      new UserRegister("hugo.graf@outlook.com", "a", USER, "de-CH", -60, GlobalConstants.MC_USD),
+      new UserRegister("grafiosch@outlook.com", "a", LIMIT1, "de-CH", -60, GlobalConstants.MC_EUR),
+      new UserRegister("hugo.graf@wirtschaftsfilz.ch", "a", LIMIT2, "de-CH", -60, GlobalConstants.MC_CHF) };
 
   public static String getRadomUser() {
     return ALL_USERS[random.nextInt(4) + 1];

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.comdirect.ComdirectFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
@@ -48,7 +49,7 @@ public class ComdirectFeedConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("EUR", "CHF", "waehrungen/euro-schweizer_franken-kurs"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, "waehrungen/euro-schweizer_franken-kurs"));
 
     currencies.parallelStream().forEach(currencyPair -> {
       try {

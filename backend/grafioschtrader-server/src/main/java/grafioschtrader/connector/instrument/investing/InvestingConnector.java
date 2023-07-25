@@ -51,7 +51,7 @@ public class InvestingConnector extends BaseFeedConnector {
   private static final String URL_HISTORICAL_REGEX = "^\\d+$";
   private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
 
-  Map<String, String> cryptoCurrencyMap = Map.of("BTC", "bitcoin", "BNB", "binance-coin", "ETH", "ethereum", "ETC",
+  Map<String, String> cryptoCurrencyMap = Map.of(GlobalConstants.CC_BTC, "bitcoin", "BNB", "binance-coin", "ETH", "ethereum", "ETC",
       "ethereum-classic", "LTC", "litecoin", "XPR", "xrp");
 
   static {

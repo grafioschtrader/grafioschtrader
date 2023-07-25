@@ -13,6 +13,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.onvista.OnvistaFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -28,7 +29,7 @@ class OnvistaFeedConnectorTest {
         .withLocale(Locale.GERMAN);
    
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair("GBP", "USD", "CURRENCY/GBPUSD/eod_history?idNotation=1305587"));
+    currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair(GlobalConstants.MC_GBP, GlobalConstants.MC_USD, "CURRENCY/GBPUSD/eod_history?idNotation=1305587"));
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final LocalDate to = LocalDate.parse("27.07.2022", germanFormatter);

@@ -13,6 +13,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.boursorama.BoursoramaFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -38,8 +39,8 @@ public class BoursoramaFeedConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "CSCO", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "2aCSSMIM", SpecialInvestmentInstruments.ETF, "SIX"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "2aZGLD", SpecialInvestmentInstruments.ETF, "SIX"));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("iShares SMIM ETF (CH)", "2aCSSMIM", SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
+    securities.add(ConnectorTestHelper.createHistoricalSecurity("ZKB Gold ETF (CHF)", "2aZGLD", SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -65,10 +66,10 @@ public class BoursoramaFeedConnectorTest {
 
     final List<Currencypair> currencies = new ArrayList<>();
 
-    currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "USD", "3fJPY_USD"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("CAD", "EUR", "3fCAD_EUR"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("CHF", "GBP", "3fCHF_GBP"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD", "9xXBTUSDSPOT"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_JPY, GlobalConstants.MC_USD, "3fJPY_USD"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("CAD", GlobalConstants.MC_EUR, "3fCAD_EUR"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, GlobalConstants.MC_GBP, "3fCHF_GBP"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, "9xXBTUSDSPOT"));
     
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
@@ -85,11 +86,11 @@ public class BoursoramaFeedConnectorTest {
   @Test
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
-    securities.add(ConnectorTestHelper.createIntraSecurity("2 AEVIS 22 BDS", "2aAEV16",  SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SIX"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("2 AEVIS 22 BDS", "2aAEV16",  SpecialInvestmentInstruments.DIRECT_INVESTMENT, GlobalConstants.STOCK_EX_MIC_SIX));
     securities.add(ConnectorTestHelper.createIntraSecurity("Xtrackers II Eurozone Government Bond UCITS ETF 1C", "1zDBXN",  SpecialInvestmentInstruments.ETF, "FSX"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core CHF Corporate Bond ETF (CH)", "2aCHCORP",  SpecialInvestmentInstruments.ETF, "SIX"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("iShares SMIM ETF (CH)", "2aCSSMIM",  SpecialInvestmentInstruments.ETF, "SIX"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("ZKB Gold ETF (CHF)", "2aZGLD",  SpecialInvestmentInstruments.ETF, "SIX"));
+    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core CHF Corporate Bond ETF (CH)", "2aCHCORP",  SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
+    securities.add(ConnectorTestHelper.createIntraSecurity("iShares SMIM ETF (CH)", "2aCSSMIM",  SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
+    securities.add(ConnectorTestHelper.createIntraSecurity("ZKB Gold ETF (CHF)", "2aZGLD",  SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_SIX));
 
     securities.parallelStream().forEach(security -> {
       try {
@@ -106,10 +107,10 @@ public class BoursoramaFeedConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("JPY", "USD", "3fJPY_USD"));
-    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("CAD", "EUR", "3fCAD_EUR"));
-    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("CHF", "GBP", "3fCHF_GBP"));
-    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("BTC", "USD", "9xXBTUSDSPOT"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair(GlobalConstants.MC_JPY, GlobalConstants.MC_USD, "3fJPY_USD"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair("CAD", GlobalConstants.MC_EUR, "3fCAD_EUR"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair(GlobalConstants.MC_CHF, GlobalConstants.MC_GBP, "3fCHF_GBP"));
+    currencies.add(ConnectorTestHelper.createIntraCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, "9xXBTUSDSPOT"));
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         boursoramaFeedConnector.updateCurrencyPairLastPrice(currencyPair);

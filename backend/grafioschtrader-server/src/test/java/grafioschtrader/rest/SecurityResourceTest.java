@@ -114,7 +114,7 @@ class SecurityResourceTest {
     s.setActiveFromDate(new SimpleDateFormat("yyyyMMdd").parse("20000101"));
     s.setActiveToDate(new SimpleDateFormat("yyyyMMdd").parse("20251231"));
     s.setAssetClass(assetclass);
-    s.setCurrency("CHF");
+    s.setCurrency(GlobalConstants.MC_CHF);
     s.setIdConnectorHistory("gt.datafeed.six");
     s.setIdConnectorIntra("gt.datafeed.swissquote");
     s.setIsin("CH0012032048");

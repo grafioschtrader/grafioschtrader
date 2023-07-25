@@ -8,6 +8,8 @@ import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafioschtrader.GlobalConstants;
+
 public class CrumbManager {
 
   private final static Logger log = LoggerFactory.getLogger(CrumbManager.class);
@@ -33,9 +35,9 @@ public class CrumbManager {
     try {
       URL url = new URL("https://query2.finance.yahoo.com/v1/test/getcrumb");
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
       // Set the cookie
       connection.setRequestProperty("Cookie", cookie);
+      connection.addRequestProperty("User-Agent", GlobalConstants.USER_AGENT);
 
       // Make the HTTP request
       connection.setRequestMethod("GET");

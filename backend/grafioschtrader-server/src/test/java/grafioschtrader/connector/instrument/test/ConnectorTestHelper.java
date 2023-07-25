@@ -77,6 +77,14 @@ public class ConnectorTestHelper {
     return security;
   }
   
+  public static Security createIntraSecurity(final String name, final String urlIntraExtend,
+      SpecialInvestmentInstruments specialInvestmentInstrument, String mic, String currency) {
+    Security security = setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA),
+        specialInvestmentInstrument, mic);
+    security.setCurrency(currency);
+    return security;
+  }
+  
   
   public static Security createIntraSecurity(final String name, final String urlIntraExtend,
       SpecialInvestmentInstruments specialInvestmentInstrument, String mic) {
@@ -96,6 +104,14 @@ public class ConnectorTestHelper {
     return createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA);
   }
 
+  public static Security createHistoricalSecurity(final String name, final String urlHistoryExtend,
+      SpecialInvestmentInstruments specialInvestmentInstrument, String mic, String currency) {
+    Security security = setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlHistoryExtend, ExtendKind.EOD),
+        specialInvestmentInstrument, mic);
+    security.setCurrency(currency);
+    return security;
+  }
+  
   public static Security createHistoricalSecurity(final String name, final String urlHistoryExtend,
       SpecialInvestmentInstruments specialInvestmentInstrument, String mic) {
     return setAssetclassAndStockexchange(createIntraHistoricalSecurity(name, urlHistoryExtend, ExtendKind.EOD),
@@ -167,6 +183,19 @@ public class ConnectorTestHelper {
       setAssetclassAndStockexchange(security, specialInvestmentInstrument, assetclassType, mic);
     }
 
+    public HisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
+        String urlExtend, String mic, String currency, int expectedRows, String fromStr, String toStr)
+        throws ParseException {
+      security = new Security();
+      security.setName(name);
+      security.setUrlHistoryExtend(urlExtend);
+      security.setCurrency(currency);
+      this.expectedRows = expectedRows;
+      this.from = sdf.parse(fromStr);
+      this.to = sdf.parse(toStr);
+      setAssetclassAndStockexchange(security, specialInvestmentInstrument, mic);
+    }
+    
   }
 
 }

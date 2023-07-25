@@ -33,7 +33,7 @@ import {HelpIds} from '../../shared/help/help.ids';
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable nestedtable">
         <p-treeTable [value]="transactionNodes" [columns]="fields" [(selection)]="selectedNode"
-                     selectionMode="single" [scrollable]="true" dataKey="transaction.idTransaction"
+                     selectionMode="single" [scrollable]="false" dataKey="transaction.idTransaction"
                      (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
                      [paginator]="true" [rows]="20" styleClass="p-treetable-gridlines">
           <ng-template pTemplate="header" let-fields>

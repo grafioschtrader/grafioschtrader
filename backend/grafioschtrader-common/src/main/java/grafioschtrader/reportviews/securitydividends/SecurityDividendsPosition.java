@@ -1,9 +1,6 @@
 package grafioschtrader.reportviews.securitydividends;
 
-import java.util.Date;
 import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;

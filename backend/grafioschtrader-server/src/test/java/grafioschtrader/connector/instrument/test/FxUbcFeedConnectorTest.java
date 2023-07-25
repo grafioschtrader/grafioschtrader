@@ -13,6 +13,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.fxubc.FxUbcFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -31,10 +32,10 @@ class FxUbcFeedConnectorTest {
   void getEodCurrencyHistoryLongPeriodTest() {
 
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("EUR", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "JPY"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "USD"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_JPY));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", GlobalConstants.MC_USD));
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
   
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
@@ -62,9 +63,9 @@ class FxUbcFeedConnectorTest {
   void getEodCurrencyHistoryShortPeriodTest() {
 
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("EUR", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "JPY"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_JPY));
 
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);

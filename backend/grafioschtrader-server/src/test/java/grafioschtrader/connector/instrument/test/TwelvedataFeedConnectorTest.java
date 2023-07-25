@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.twelvedata.TwelvedataFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -42,11 +43,11 @@ public class TwelvedataFeedConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     securities.add(ConnectorTestHelper.createHistoricalSecurity("Cisco Systems", "csco",
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NAS"));
+        SpecialInvestmentInstruments.DIRECT_INVESTMENT, GlobalConstants.STOCK_EX_MIC_NASDAQ));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("SPDR S&P 500 ETF Trust", "SPY",
-        SpecialInvestmentInstruments.ETF, "NYSE"));
+        SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_NYSE));
     securities.add(ConnectorTestHelper.createHistoricalSecurity("General Electric Company", "GE",
-        SpecialInvestmentInstruments.ETF, "NYSE"));
+        SpecialInvestmentInstruments.ETF, GlobalConstants.STOCK_EX_MIC_NYSE));
     securities.parallelStream().forEach(security -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -69,9 +70,9 @@ public class TwelvedataFeedConnectorTest {
     
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("JPY", "SEK"));
-    // currencies.add(ConnectorTestHelper.createCurrencyPair("BTC", "USD"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_JPY, "SEK"));
+    // currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
@@ -104,9 +105,9 @@ public class TwelvedataFeedConnectorTest {
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "CHF"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("USD", "GBP"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_GBP));
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         twelvedataFeedConnector.updateCurrencyPairLastPrice(currencyPair);
