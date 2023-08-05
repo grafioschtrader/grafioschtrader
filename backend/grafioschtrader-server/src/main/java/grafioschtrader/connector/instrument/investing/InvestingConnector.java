@@ -125,18 +125,16 @@ public class InvestingConnector extends BaseFeedConnector {
     do {
       i++;
       final Document doc = investingConnection.timeout(10000).get();
-      div = doc.select("[data-test='instrument-price-last']").parents().first();
-      if (div == null) {
-        div = doc.select("#quotes_summary_current_data").first();
-      }
+      div = securitycurrency instanceof Security? doc.getElementsByClass("md:text-[42px]").first().parent():
+        doc.select("div[class^=instrument-price_instrument-price]").first();
       try {
         Thread.sleep(800);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     } while (div == null && i <= 2);
-    String joinedText = div.select("span").eachText().stream().collect(Collectors.joining(" "));
-    String[] numbers = StringUtils.normalizeSpace(joinedText.replace("%", "").replace("(", " ").replace(")", ""))
+    
+    String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
         .split(" ");
     var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;
     securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]));
