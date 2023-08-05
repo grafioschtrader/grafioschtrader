@@ -21,16 +21,18 @@ class InvestingConnectorTest {
   void updateSecurityLastPriceTest() {
     final List<Security> securities = new ArrayList<>();
 
-    securities.add(ConnectorTestHelper.createIntraSecurity("CS", "equities/credit-suisse"));
+    
+    securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40", "indices/france-40"));
     securities.add(ConnectorTestHelper.createIntraSecurity(
         "db x-trackers Emerging MARKETS LIQUID EUROBOND INDEX ETF (EUR)22.10.2010",
         "etfs/db-em-liquid-eurobond---eur"));
-
-    securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40", "indices/france-40-chart"));
+    
+    securities.add(ConnectorTestHelper.createIntraSecurity("Apple Inc (AAPL)", "equities/apple-computer-inc"));
+    
     securities.add(ConnectorTestHelper.createIntraSecurity("MOEX Russia (IMOEX)", "indices/mcx"));
     securities.add(ConnectorTestHelper.createIntraSecurity("Bitcoin Tracker EUR XBT Provider (SE0007525332)",
         "etfs/bitcoin-tracker-eur-xbt-provider"));
-   securities.add(ConnectorTestHelper.createIntraSecurity("Apple Inc (AAPL)", "equities/apple-computer-inc"));
+ 
     securities.add(ConnectorTestHelper.createIntraSecurity("iShares MSCI Emerging Markets ETF (EEM)",
         "etfs/ishares-msci-emg-markets"));
 
@@ -56,7 +58,7 @@ class InvestingConnectorTest {
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_EUR));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_GBP, GlobalConstants.MC_EUR));
-    
+
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         investingConnector.updateCurrencyPairLastPrice(currencyPair);
