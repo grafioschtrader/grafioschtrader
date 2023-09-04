@@ -141,7 +141,7 @@ public interface IFeedConnector {
    * trading has also taken place on that day.
    * 
    * @param security
-   * @return 
+   * @return
    */
   public boolean needHistoricalGapFiller(final Security security);
 
@@ -225,6 +225,17 @@ public interface IFeedConnector {
    * @return
    */
   String getSplitHistoricalDownloadLink(Security security);
+
+  /**
+   * Sometimes it takes a few days for a split to be reflected in the historical
+   * price data. This gives you the number of days to wait before the next attempt
+   * to check the historical quotes should be made. If the split is too far in the
+   * past, no check should take place.
+   * 
+   * @param splitDate
+   * @return
+   */
+  public Integer getNextAttemptInDaysForSplitHistorical(Date splitDate);
 
   /**
    * Get split data for a security from a specified day until now.

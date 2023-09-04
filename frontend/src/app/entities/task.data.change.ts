@@ -22,6 +22,14 @@ export class TaskDataChange implements BaseID {
   }
 }
 
+
+export interface TaskDataChangeSecurityInfo {
+  taskDataChangeList: TaskDataChange[];
+  securityInfo: { [idSecuritycurrency: number]: string};
+}
+
+
+
 export enum ProgressStateType {
   PROG_WAITING = 0,
   PROG_PROCESSED = 1,

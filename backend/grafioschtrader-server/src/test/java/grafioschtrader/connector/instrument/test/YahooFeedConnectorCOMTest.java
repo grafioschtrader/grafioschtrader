@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.HisoricalDate;
-import grafioschtrader.connector.instrument.xetra.XetraFeedConnector;
 import grafioschtrader.connector.instrument.yahoo.YahooFeedConnectorCOM;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
@@ -27,7 +26,6 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class YahooFeedConnectorCOMTest {

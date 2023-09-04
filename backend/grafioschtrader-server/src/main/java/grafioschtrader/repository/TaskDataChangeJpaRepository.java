@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -28,8 +29,17 @@ public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChang
   long removeByExecEndTimeBefore(LocalDateTime dateTime);
   
   
+  @Query(nativeQuery = true)
+  Stream<IdSecurityInfo>getAllTaskDataChangeSecurityInfoWithId();
+  
+  
   @Modifying
   @Transactional
   @Query("UPDATE TaskDataChange t SET t.progressStateType = ?2 WHERE t.progressStateType = ?1")
   int changeFromToProgressState(byte fromState, byte toState);
+  
+  public static interface IdSecurityInfo {
+    public Integer getIdSecuritycurrency();
+    public String getTooltip();
+  }
 }

@@ -1,6 +1,5 @@
 package grafioschtrader.task.exec;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -16,11 +15,9 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
@@ -65,17 +62,7 @@ public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
       List<Securitysplit> securitysplits = securitysplitJpaRepository
           .findByIdSecuritycurrencyOrderBySplitDateAsc(security.getIdSecuritycurrency());
       if (!securitysplits.isEmpty()) {
-        if (securityJpaRepository.isYoungestSplitHistoryquotePossibleAdjusted(security, securitysplits,
-            true) == SplitAdjustedHistoryquotes.ADJUSTED
-            && securityJpaRepository.isYoungestSplitHistoryquotePossibleAdjusted(security, securitysplits,
-                false) == SplitAdjustedHistoryquotes.NOT_ADJUSTED) {
-          securityJpaRepository.rebuildSecurityCurrencypairHisotry(security);
-
-        } else {
-          taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
-              TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(1L), security.getIdSecuritycurrency(),
-              Security.class.getSimpleName()));
-        }
+        securitysplitJpaRepository.historicalDataUpdateWhenAdjusted(security, securitysplits, Optional.empty(), true);
       }
     } catch (final Exception ex) {
       log.error(ex.getMessage() + " " + security, ex);

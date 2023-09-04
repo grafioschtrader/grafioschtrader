@@ -15,7 +15,7 @@ public class GlobalConstants {
   public static final String STOCK_EX_MIC_JAPAN = "XTKS";
   public static final String STOCK_EX_MIC_AUSTRIA = "XVIE";
   public static final String STOCK_EX_MIC_FRANCE = "XPAR";
-  
+
   public static final String STOCK_EX_MIC_ZKB = "ZKBX";
   public static final String STOCK_EX_MIC_STUTTGART = "XSTU";
   public static final String STOCK_EX_MIC_WARSAW = "XWAR";
@@ -25,9 +25,9 @@ public class GlobalConstants {
   public static final String MC_GBP = "GBP";
   public static final String MC_JPY = "JPY";
   public static final String MC_CHF = "CHF";
-  
+
   public static final String CC_BTC = "BTC";
-  
+
   /**
    * Supported languages in this application
    */
@@ -43,7 +43,7 @@ public class GlobalConstants {
    * records.
    */
   public static final int ADMIN_ID_USER = 1;
-  
+
   /**
    * Normal precision for decimal numbers
    */
@@ -55,10 +55,10 @@ public class GlobalConstants {
    * Number maybe rounded to this precision
    */
   public static final int FID_MAX_FRACTION_DIGITS = 8;
-  
+
   public static final int FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
   public static final int FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;
-  
+
   // public static final int FID_MAX_INTEGER_DIGITS = 11;
   // public static final int FID_MAX_DIGITS = 16;
 
@@ -96,7 +96,7 @@ public class GlobalConstants {
   public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2025-12-31";
 
   public static final String STANDARD_PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
-  
+
   /**
    * Sometimes the EOD of the currency pair is not yet updated, in this case the
    * existing current price can be taken if there are not more than so many days
@@ -112,7 +112,7 @@ public class GlobalConstants {
 
   public static final String NEW_LINE = "\n";
   public static final String NEW_LINE_AND_RETURN = "\r\n";
-  
+
   /**
    * Time that had to elapse before the next obtainment of historical prices from
    * the external data source.
@@ -120,12 +120,14 @@ public class GlobalConstants {
   public static final int TiME_MUST_HAVE_PASSED_SINCE_LAST_UPDATE_IN_MINUTES = 20 * 60;
 
   /**
-   * With this number of failed attempts for a user login, the user will be blocked. The IP address is taken. 
+   * With this number of failed attempts for a user login, the user will be
+   * blocked. The IP address is taken.
    */
   public static final int MAX_LOGIN_ATTEMPT = 5;
-  
+
   /**
-   * Number of miliseconds an IP address is blocked from further user login attempts.
+   * Number of miliseconds an IP address is blocked from further user login
+   * attempts.
    */
   public static final int SUSPEND_IP_ADDRESS_TIME = 60 * 60 * 24 * 1000;
 
@@ -159,7 +161,7 @@ public class GlobalConstants {
    * Contains the supported crypto currencies. When a new is added, check
    * references. Maybe a connector must be extended to this new cryptocurrency.
    */
-  
+
   public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of(CC_BTC, "BNB", "ETH", "ETC", "LTC", "XRP");
 
   /**
@@ -171,6 +173,11 @@ public class GlobalConstants {
   public static final int SPLIT_DAYS_FOR_AVERAGE_CALC = 5;
   public static final int EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE = 4;
   public static final double ACCEPTESD_PERCENTAGE_EXCHANGE_RATE_DIFF = 8.0;
+  /**
+   * It is possible that the split from the calendar was internally assigned to a
+   * wrong security, therefore after reaching this number of days the repetitive
+   * query to the connector is terminated.
+   */
   public static final double MAX_DAYS_FOR_SECURITY_IS_REFLECTING_SPLIT = 5;
 
   public static final int BANDWITH_MINUTE_BUCKET_SIZE = 30;

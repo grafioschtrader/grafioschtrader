@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
@@ -335,6 +337,19 @@ public abstract class BaseFeedConnector implements IFeedConnector {
 
   protected boolean isConnectionOk(HttpURLConnection huc) {
     return true;
+  }
+  
+  public Integer getNextAttemptInDaysForSplitHistorical(Date splitDate) {
+    Integer addDaysForNextAttempt = null;
+    long diffNowSplitDate = DateHelper.getDateDiff(splitDate, new Date(), TimeUnit.DAYS);
+    if(diffNowSplitDate < 5) {
+      return 1;
+    } else if(diffNowSplitDate < 10) {
+      return 2;
+    } else if(diffNowSplitDate < 30) {
+      return 3;
+    }
+    return addDaysForNextAttempt;
   }
 
   @Override

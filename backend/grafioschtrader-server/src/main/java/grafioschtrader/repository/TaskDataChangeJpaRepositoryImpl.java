@@ -10,11 +10,13 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import grafioschtrader.dto.TaskDataChangeFormConstraints;
+import grafioschtrader.dto.TaskDataChangeSecurityInfo;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.ProgressStateType;
 import grafioschtrader.types.TaskDataExecPriority;
+import jakarta.transaction.Transactional;
 
 public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskDataChange>
     implements TaskDataChangeJpaRepositoryCustom {
@@ -24,6 +26,14 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
 
   @Autowired(required = false)
   private List<ITask> tasks = new ArrayList<>();
+
+  @Override
+  @Transactional
+  public TaskDataChangeSecurityInfo getAllTaskDataChangeSecurityInfo() {
+    return new TaskDataChangeSecurityInfo(taskDataChangeRepository.findAll(),
+        taskDataChangeRepository.getAllTaskDataChangeSecurityInfoWithId()
+            .collect(Collectors.toMap(isi -> isi.getIdSecuritycurrency(), isi -> isi.getTooltip())));
+  }
 
   @Override
   public TaskDataChange saveOnlyAttributes(final TaskDataChange taskDataChange, final TaskDataChange existingEntity,
