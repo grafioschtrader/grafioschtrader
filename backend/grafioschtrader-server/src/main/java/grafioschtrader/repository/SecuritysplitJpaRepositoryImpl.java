@@ -36,6 +36,7 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
+import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
@@ -156,7 +157,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
   }
 
   @Override
-  public List<String> loadAllSplitDataFromConnector(Security security, Date requestedSplitdate) {
+  public List<String> loadAllSplitDataFromConnectorForSecurity(Security security, Date requestedSplitdate) {
     List<String> errorMessages = new ArrayList<>();
     short retrySplitLoad = security.getRetrySplitLoad();
     try {
@@ -187,27 +188,12 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         .findByIdSecuritycurrencyOrderBySplitDateAsc(security.getIdSecuritycurrency());
     List<Securitysplit> createdSplits = DividendSplitsHelper.updateDividendSplitData(security, securitysplitsRead,
         existingSplits, this.securitysplitJpaRepository);
-    Optional<Date> maxSplitDate = createdSplits.stream().map(Securitysplit::getSplitDate).max(Date::compareTo);
+    Optional<Date> youngestSplitDate = createdSplits.stream().map(Securitysplit::getSplitDate).max(Date::compareTo);
 
     if (requestedSplitdate == null
-        || !maxSplitDate.isEmpty() && DateHelper.isSameDay(maxSplitDate.get(), requestedSplitdate)) {
-      // Expected split was found
-      if (securityJpaRepository.isYoungestSplitHistoryquotePossibleAdjusted(security, securitysplitsRead,
-          true) == SplitAdjustedHistoryquotes.ADJUSTED) {
-        if (!maxSplitDate.isEmpty() && security.getFullLoadTimestamp() != null
-            && maxSplitDate.get().after(security.getFullLoadTimestamp())) {
-          securityJpaRepository.reloadAsyncFullHistoryquote(security);
-        }
-        if (!createdSplits.isEmpty()) {
-          taskDataChangeJpaRepository
-              .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
-                  LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
-        }
-      } else {
-        taskDataChangeJpaRepository.save(
-            new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES, TaskDataExecPriority.PRIO_LOW,
-                LocalDateTime.now().plusDays(1L), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
-      }
+        || !youngestSplitDate.isEmpty() && DateHelper.isSameDay(youngestSplitDate.get(), requestedSplitdate)) {
+      historicalDataUpdateWhenAdjusted(security, securitysplitsRead, youngestSplitDate, !createdSplits.isEmpty());
+
     } else {
       // Expected Split could not be read
       if (DateHelper.getDateDiff(requestedSplitdate, new Date(),
@@ -219,6 +205,28 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
             new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).format(requestedSplitdate));
         taskDataChangeJpaRepository.save(taskDataChange);
       }
+
+    }
+  }
+
+  public void historicalDataUpdateWhenAdjusted(Security security, List<Securitysplit> securitysplits,
+      Optional<Date> youngestSplitDate, boolean requireHoldingBuild) throws Exception {
+    SplitAdjustedHistoryquotesResult sahr = securityJpaRepository.isLatestSplitHistoryquotePossibleAdjusted(security,
+        securitysplits);
+
+    if (sahr.sah == SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED || (!youngestSplitDate.isEmpty()
+        && security.getFullLoadTimestamp() != null && youngestSplitDate.get().after(security.getFullLoadTimestamp()))) {
+      securityJpaRepository.reloadAsyncFullHistoryquote(security);
+
+      if (requireHoldingBuild) {
+        taskDataChangeJpaRepository
+            .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
+                LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
+      }
+    } else {
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
+          TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(sahr.addDaysForNextAttempt),
+          security.getIdSecuritycurrency(), Security.class.getSimpleName()));
 
     }
 

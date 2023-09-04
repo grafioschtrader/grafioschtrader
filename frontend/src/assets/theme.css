@@ -3482,7 +3482,7 @@ p-togglebutton.ng-dirty.ng-invalid > .p-togglebutton.p-button {
         color: #212529; }
       .p-contextmenu .p-menuitem.p-menuitem-active > .p-menuitem-link .p-menuitem-icon, .p-contextmenu .p-menuitem.p-menuitem-active > .p-menuitem-link .p-submenu-icon {
         color: #212529; }
-  .p-contextmenu .p-menu-separator {
+  .p-contextmenu .p-menuitem-separator {
     border-top: 1px solid #dee2e6;
     margin: 0.5rem 0; }
   .p-contextmenu .p-submenu-icon {

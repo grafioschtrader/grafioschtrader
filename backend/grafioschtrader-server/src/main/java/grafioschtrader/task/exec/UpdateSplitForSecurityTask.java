@@ -49,10 +49,11 @@ public class UpdateSplitForSecurityTask implements ITask {
     Security security = securityJpaRepository.getReferenceById(taskDataChange.getIdEntity());
     if (security.getIdConnectorSplit() != null) {
       try {
+        // If the split connector has been changed, the split date is zero.
         Date requestSplitDate = taskDataChange.getOldValueString() == null ? null
             : new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)
                 .parse(taskDataChange.getOldValueString());
-        List<String> errorMessages = securitysplitJpaRepository.loadAllSplitDataFromConnector(security,
+        List<String> errorMessages = securitysplitJpaRepository.loadAllSplitDataFromConnectorForSecurity(security,
             requestSplitDate);
         if (!errorMessages.isEmpty()) {
           throw new TaskBackgroundException("gt.split.connector.failure", errorMessages, false);

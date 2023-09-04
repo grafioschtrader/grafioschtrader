@@ -31,6 +31,7 @@ import grafioschtrader.reports.ReportHelper.CurrencyRequired;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
+import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SamplingPeriodType;
 import grafioschtrader.types.TimePeriodType;
 
@@ -44,7 +45,7 @@ public class InstrumentStatisticsSummary {
 
   private String tenantCurrency = null;
   private Securitycurrency<?> securityCurrency;
-  private boolean securtyTenantSameCurrency;
+  private boolean securityTenantSameCurrency;
   private List<Currencypair> currencypairs = null;
   private String currencyOfSecurity = null;
 
@@ -59,35 +60,36 @@ public class InstrumentStatisticsSummary {
   public void prepareSecurityCurrencypairs(Integer idSecuritycurrency) {
     Optional<Currencypair> currencypairOpt = currencypairJpaRepository.findById(idSecuritycurrency);
     if (currencypairOpt.isEmpty()) {
-      prepareSecurity(idSecuritycurrency);
+      loadSecurityAndPerhapsCurrencyForSecurity(idSecuritycurrency);
     } else {
       securityCurrency = currencypairOpt.get();
-      securtyTenantSameCurrency = true;
+      securityTenantSameCurrency = true;
     }
   }
 
-  private void prepareSecurity(Integer idSecuritycurrency) {
+  private void loadSecurityAndPerhapsCurrencyForSecurity(Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Tenant tenant = tenantJpaRepository.getReferenceById(user.getIdTenant());
     tenantCurrency = tenant.getCurrency();
     securityCurrency = securityJpaRepository
         .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency, user.getIdTenant());
     currencyOfSecurity = ((Security) securityCurrency).getCurrency();
-    securtyTenantSameCurrency = tenantCurrency.equals(currencyOfSecurity);
-    if (!securtyTenantSameCurrency) {
+    securityTenantSameCurrency = tenantCurrency.equals(currencyOfSecurity)
+        || ((Security) securityCurrency).getAssetClass().getCategoryType() == AssetclassType.CURRENCY_PAIR;
+    if (!securityTenantSameCurrency) {
       currencypairs = currencypairJpaRepository
           .findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency(currencyOfSecurity, tenantCurrency);
-    }
-    if (!securtyTenantSameCurrency && currencypairs.isEmpty()) {
-      // Required currency pair is missing
-      currencypairs = new ArrayList<>();
-      currencypairs.add(
-          currencypairJpaRepository.createNonExistingCurrencypair(tenant.getCurrency(), currencyOfSecurity, false));
+      if (currencypairs.isEmpty()) {
+        // Required currency pair is missing
+        currencypairs = new ArrayList<>();
+        currencypairs.add(
+            currencypairJpaRepository.createNonExistingCurrencypair(tenant.getCurrency(), currencyOfSecurity, false));
+      }
     }
   }
 
   public AnnualisedPerformance getAnnualisedSecurityPerformance() {
-    List<SecurityYearClose> sycList = securtyTenantSameCurrency
+    List<SecurityYearClose> sycList = securityTenantSameCurrency
         ? securityJpaRepository.getSecurityYearCloseDivSum(securityCurrency.getIdSecuritycurrency())
         : securityJpaRepository.getSecurityYearDivSumCurrencyClose(securityCurrency.getIdSecuritycurrency(),
             currencypairs.get(0).getIdSecuritycurrency());
@@ -101,9 +103,9 @@ public class InstrumentStatisticsSummary {
         sycList.get(0).getDate());
     for (int i = 0; i < sycList.size() - 1; i++) {
       SecurityYearClose syc = sycList.get(i);
-      double fcur = securtyTenantSameCurrency ? 1.0 : divide ? 1.0 / syc.getCurrencyClose() : syc.getCurrencyClose();
+      double fcur = securityTenantSameCurrency ? 1.0 : divide ? 1.0 / syc.getCurrencyClose() : syc.getCurrencyClose();
       SecurityYearClose sycBefore = sycList.get(i + 1);
-      double fcurBefore = securtyTenantSameCurrency ? 1.0
+      double fcurBefore = securityTenantSameCurrency ? 1.0
           : divide ? 1.0 / sycBefore.getCurrencyClose() : sycBefore.getCurrencyClose();
       double performance = ((syc.getSecurityClose() + syc.getYearDiv()) / sycBefore.getSecurityClose() - 1.0) * 100.0;
       double performanceMC = ((syc.getSecurityClose() + syc.getYearDiv()) * fcur
@@ -143,7 +145,7 @@ public class InstrumentStatisticsSummary {
 
   private boolean divideOrMultiplyCurrency(String mainCurrency) {
     boolean divide = false;
-    if (!securtyTenantSameCurrency) {
+    if (!securityTenantSameCurrency) {
       if (currencypairs.get(0).getFromCurrency().equals(mainCurrency)) {
         divide = true;
       }
@@ -155,15 +157,14 @@ public class InstrumentStatisticsSummary {
       boolean adjustCurrency) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 
     StatisticsSummary statsSummary = new StatisticsSummary();
-    statsSummary.addProperties(TimePeriodType.DAILY, StatisticsSummary.STANDARD_DEVIATION,
-        StatisticsSummary.MIN, StatisticsSummary.MAX);
+    statsSummary.addProperties(TimePeriodType.DAILY, StatisticsSummary.STANDARD_DEVIATION, StatisticsSummary.MIN,
+        StatisticsSummary.MAX);
     statsSummary.addProperties(TimePeriodType.MONTHLY, StatisticsSummary.STANDARD_DEVIATION);
     statsSummary.addProperties(TimePeriodType.ANNUAL, StatisticsSummary.STANDARD_DEVIATION);
 
     for (TimePeriodType key : statsSummary.statsPropertyMap.keySet()) {
       if (key != TimePeriodType.ANNUAL) {
-        createStatisticsSummaryByPeriod(jdbcTemplate, dateFrom, dateTo, adjustCurrency, 
-            key, statsSummary);
+        createStatisticsSummaryByPeriod(jdbcTemplate, dateFrom, dateTo, adjustCurrency, key, statsSummary);
       }
     }
     statsSummary.createAnnualByMonthly();
@@ -179,7 +180,8 @@ public class InstrumentStatisticsSummary {
         securitycurrencyList);
 
     ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
-        securitycurrencyList,SamplingPeriodType.getSamplingPeriodTypeByValue(timePeriodType.getValue()), dateFrom, dateTo, adjustCurrency);
+        securitycurrencyList, SamplingPeriodType.getSamplingPeriodTypeByValue(timePeriodType.getValue()), dateFrom,
+        dateTo, adjustCurrency);
     adjustCloseOfDifferentTenantCurrency(securitycurrencyList, currencyAvailableRequired, closePrices);
     int columns = currencyAvailableRequired == null ? 1 : 2;
     double[][] percentageChange = ReportHelper.transformToPercentageChange(closePrices.dateCloseTree, columns);
@@ -202,13 +204,13 @@ public class InstrumentStatisticsSummary {
 
   private CurrencyAvailableRequired prepareFakeSecurityWhenNotTenantCurrency(
       List<Securitycurrency<?>> securitycurrencyList) {
-    if (!securtyTenantSameCurrency) {
+    if (!securityTenantSameCurrency) {
       Currencypair cp = currencypairs.get(0);
       Security security = (Security) securityCurrency;
-      Security faseSecurity = new Security();
-      faseSecurity.setIdSecuritycurrency(security.getIdSecuritycurrency());
-      faseSecurity.setCurrency(security.getCurrency());
-      securitycurrencyList.add(faseSecurity);
+      Security fakeSecurity = new Security();
+      fakeSecurity.setIdSecuritycurrency(security.getIdSecuritycurrency());
+      fakeSecurity.setCurrency(security.getCurrency());
+      securitycurrencyList.add(fakeSecurity);
       securitycurrencyList.add(cp);
       return new CurrencyAvailableRequired(securitycurrencyList.size() - 1, cp.getIdSecuritycurrency(),
           cp.getFromCurrency(), cp.getToCurrency());

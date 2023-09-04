@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -60,6 +61,7 @@ import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
+import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
 import grafioschtrader.search.SecuritySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
@@ -371,6 +373,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
+  @Deprecated
   public SplitAdjustedHistoryquotes isYoungestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits, boolean useConnector) throws Exception {
 
@@ -378,14 +381,15 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     Optional<Securitysplit> maxSecuritysplitOpt = securitysplits.stream()
         .max(Comparator.comparing(Securitysplit::getSplitDate));
     if (!maxSecuritysplitOpt.isEmpty()) {
-      Securitysplit maxSplit = maxSecuritysplitOpt.get();
-      if (maxSplit.getFactor() < 1.0 && maxSplit.getFactor() >= 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
-          || maxSplit.getFactor() > 1.0
-              && maxSplit.getFactor() >= 1 + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP) {
+      Securitysplit youngestSplit = maxSecuritysplitOpt.get();
+      if (youngestSplit.getFactor() < 1.0
+          && youngestSplit.getFactor() >= 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
+          || youngestSplit.getFactor() > 1.0
+              && youngestSplit.getFactor() >= 1 + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP) {
 
-        Date fromDate = DateHelper.setTimeToZeroAndAddDay(maxSplit.getSplitDate(),
+        Date fromDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
             GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC * -1);
-        Date toDate = DateHelper.setTimeToZeroAndAddDay(maxSplit.getSplitDate(),
+        Date toDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
             GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC);
 
         List<Historyquote> historyquotes = useConnector ? getDataByConnnector(security, fromDate, toDate)
@@ -393,25 +397,68 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
                 .findByIdSecuritycurrencyAndDateBetweenOrderByDate(security.getIdSecuritycurrency(), fromDate, toDate);
 
         OptionalDouble averageCloseBeforeOpt = historyquotes.stream()
-            .filter(h -> h.getDate().before(maxSplit.getSplitDate())).mapToDouble(h -> h.getClose()).average();
+            .filter(h -> h.getDate().before(youngestSplit.getSplitDate())).mapToDouble(h -> h.getClose()).average();
         OptionalDouble averageCloseAfterOpt = historyquotes.stream()
-            .filter(h -> !h.getDate().before(maxSplit.getSplitDate())).mapToDouble(h -> h.getClose()).average();
+            .filter(h -> !h.getDate().before(youngestSplit.getSplitDate())).mapToDouble(h -> h.getClose()).average();
 
         if (averageCloseBeforeOpt.isPresent() && averageCloseAfterOpt.isPresent()) {
           double changeFactor = averageCloseAfterOpt.getAsDouble() / averageCloseBeforeOpt.getAsDouble();
           // If the historical prices after and before the split date are similar, it is
           // assumed that the split is included in the historical prices.
-          return maxSplit.getFactor() >= 1
-              && changeFactor < 1 / maxSplit.getFactor() + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
-                  ? SplitAdjustedHistoryquotes.NOT_ADJUSTED
-                  : maxSplit.getFactor() < 1
-                      && changeFactor < 1 * maxSplit.getFactor() + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
-                          ? SplitAdjustedHistoryquotes.NOT_ADJUSTED
-                          : SplitAdjustedHistoryquotes.ADJUSTED;
+          return youngestSplit.getFactor() >= 1
+              && changeFactor < 1 / youngestSplit.getFactor() + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
+                  ? SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED
+                  : youngestSplit.getFactor() < 1 && changeFactor < 1 * youngestSplit.getFactor()
+                      + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
+                          ? SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED
+                          : SplitAdjustedHistoryquotes.ADJUSTED_WITH_CONNECTOR;
         }
       }
     }
     return sah;
+  }
+
+  @Override
+  public SplitAdjustedHistoryquotesResult isLatestSplitHistoryquotePossibleAdjusted(Security security,
+      List<Securitysplit> securitysplits) throws Exception {
+
+    SplitAdjustedHistoryquotesResult sahr = new SplitAdjustedHistoryquotesResult(
+        SplitAdjustedHistoryquotes.NOT_DETCTABLE, null);
+    Optional<Securitysplit> maxSecuritysplitOpt = securitysplits.stream()
+        .max(Comparator.comparing(Securitysplit::getSplitDate));
+    if (!maxSecuritysplitOpt.isEmpty()) {
+      Securitysplit youngestSplit = maxSecuritysplitOpt.get();
+
+      Date fromDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
+          GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC * -1);
+
+      List<Historyquote> hqConnectorList = getDataByConnnector(security, fromDate, youngestSplit.getSplitDate());
+      List<Historyquote> hqPersistentList = historyquoteJpaRepository.findByIdSecuritycurrencyAndDateBetweenOrderByDate(
+          security.getIdSecuritycurrency(), fromDate, youngestSplit.getSplitDate());
+
+      Map<Date, Historyquote> hqPersistentMap = hqPersistentList.stream()
+          .collect(Collectors.toMap(Historyquote::getDate, Function.identity()));
+
+      for (Historyquote hqConnector : hqConnectorList) {
+        Historyquote hqPersistent = hqPersistentMap.get(hqConnector.getDate());
+        if (hqPersistent != null) {
+          sahr.sah = hqPersistent.getClose() != hqConnector.getClose() ? SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED
+              : SplitAdjustedHistoryquotes.NOT_DETCTABLE;
+          break;
+        }
+      }
+
+      if (sahr.sah == SplitAdjustedHistoryquotes.NOT_DETCTABLE) {
+        sahr.addDaysForNextAttempt = getNextAttemptInDaysForSplitHistorical(security, youngestSplit.getSplitDate());
+      }
+    }
+    return sahr;
+  }
+
+  private Integer getNextAttemptInDaysForSplitHistorical(Security security, Date splitDate) throws Exception {
+    IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
+        security.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY);
+    return feedConnector.getNextAttemptInDaysForSplitHistorical(splitDate);
   }
 
   private List<Historyquote> getDataByConnnector(Security security, Date fromDate, Date toDate) throws Exception {

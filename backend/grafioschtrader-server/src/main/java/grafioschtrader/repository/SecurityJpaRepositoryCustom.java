@@ -16,6 +16,7 @@ import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
+import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
 import grafioschtrader.search.SecuritycurrencySearch;
 
 public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Security> {
@@ -98,9 +99,22 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * @return
    * @throws Exception
    */
+  @Deprecated
   SplitAdjustedHistoryquotes isYoungestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits, boolean useConnector) throws Exception;
 
+  /**
+   * Tries to determine if the supplier's historical price data already reflects the split.
+   * 
+   * @param security
+   * @param securitysplits
+   * @return
+   * @throws Exception
+   */
+  SplitAdjustedHistoryquotesResult isLatestSplitHistoryquotePossibleAdjusted(Security security,
+      List<Securitysplit> securitysplits) throws Exception;
+  
+  
   // TODO remove it
   void checkAndClearSecuritycurrencyConnectors(final Security security);
 

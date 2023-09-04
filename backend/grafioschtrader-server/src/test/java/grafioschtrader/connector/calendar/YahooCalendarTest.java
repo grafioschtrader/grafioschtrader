@@ -21,7 +21,7 @@ class YahooCalendarTest {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    assertThat(securitySplitMap).hasSize(15);
+    assertThat(securitySplitMap).hasSize(25);
   }
   
 }

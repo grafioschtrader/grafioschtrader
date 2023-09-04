@@ -3,6 +3,7 @@ package grafioschtrader.repository;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import grafioschtrader.dto.SecuritysplitDeleteAndCreateMultiple;
 import grafioschtrader.entities.Security;
@@ -21,5 +22,22 @@ public interface SecuritysplitJpaRepositoryCustom {
   List<Securitysplit> deleteAndCreateMultiple(
       SecuritysplitDeleteAndCreateMultiple securitysplitDeleteAndCreateMultiple);
 
-  List<String> loadAllSplitDataFromConnector(Security security, Date requestedSplitdate);
+  /**
+   * If the split comes from a split calendar, it may take a few days until the
+   * split is also mapped to the corresponding security at the data provider.
+   * Thus, the data provider must be queried periodically for the requested split.
+   * It is possible that the split from the calendar was internally assigned to a
+   * wrong security, therefore the repetitive query is terminated after a certain
+   * time.
+   * 
+   * 
+   * @param security
+   * @param requestedSplitdate
+   * @return
+   */
+  List<String> loadAllSplitDataFromConnectorForSecurity(Security security, Date requestedSplitdate);
+  
+  
+  public void historicalDataUpdateWhenAdjusted(Security security,  List<Securitysplit> securitysplits,
+      Optional<Date> youngestSplitDate, boolean requireHoldingBuild) throws Exception;
 }

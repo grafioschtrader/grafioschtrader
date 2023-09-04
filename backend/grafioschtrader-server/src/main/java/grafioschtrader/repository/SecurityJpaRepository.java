@@ -43,20 +43,22 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<Security> findByTickerSymbolInOrderByIdSecuritycurrency(Set<String> tickers);
 
   /**
-   * Determination of the positions held by instruments that are no longer traded, using the "active until" property.
+   * Determination of the positions held by instruments that are no longer traded,
+   * using the "active until" property.
    */
   @Query(nativeQuery = true)
   List<CheckSecurityTransIntegrity> getHoldingsOfInactiveSecurties();
-  
+
   /**
-   * A new payment of interest or dividend is expected: 
-   * - Last payment with this client plus the addition of days determined based on the frequency of payments.</br>
-   * TODO First interest of a bond determined on the basis of the trading date plus addition of the frequency.</br>
-   * TODO Use of the dividend table with its optional "Pay day".</br> 
+   * A new payment of interest or dividend is expected: - Last payment with this
+   * client plus the addition of days determined based on the frequency of
+   * payments.</br>
+   * TODO First interest of a bond determined on the basis of the trading date
+   * plus addition of the frequency.</br>
+   * TODO Use of the dividend table with its optional "Pay day".</br>
    */
   @Query(nativeQuery = true)
   List<CheckSecurityTransIntegrity> getPossibleMissingDivInterest();
-  
 
   @Query(nativeQuery = true)
   List<Security> getUnusedSecurityForAlgo(Integer idTenantPrivate, Integer idAlgoAssetclassSecurity);
@@ -145,15 +147,33 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
       Date untilDate);
 
+  public static class SplitAdjustedHistoryquotesResult {
+    public SplitAdjustedHistoryquotes sah;
+    public Integer addDaysForNextAttempt;
+
+    public SplitAdjustedHistoryquotesResult(SplitAdjustedHistoryquotes sah, Integer addDaysForNextAttempt) {
+      this.sah = sah;
+      this.addDaysForNextAttempt = addDaysForNextAttempt;
+    }
+
+  }
+
   public enum SplitAdjustedHistoryquotes {
-    NOT_DETCTABLE, ADJUSTED, NOT_ADJUSTED
+    // It cannot be determined whether the historical data have been adjusted.
+    NOT_DETCTABLE,
+    // Probably, the historical data of the last split is correctly mapped in the
+    // persistence.
+    ADJUSTED_WITH_CONNECTOR,
+    // The connector provides adjusted data in the persistence they were not
+    // adjusted. All historical data must be reloaded.
+    ADJUSTED_NOT_LOADED
   }
 
   public static interface CheckSecurityTransIntegrity {
     int getIdUser();
 
     String getLocaleStr();
-    
+
     String getCurrency();
 
     int getIdSecuritycurrency();
