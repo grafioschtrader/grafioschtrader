@@ -167,16 +167,24 @@ public class ConnectorTestHelper {
      
     public HisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend, String mic, int expectedRows, String fromStr, String toStr) throws ParseException {
-      this(name, isin, specialInvestmentInstrument, null, urlExtend, mic, expectedRows, fromStr, toStr);
+      this(name, isin, specialInvestmentInstrument, null, urlExtend, mic, null, expectedRows, fromStr, toStr);
     }
 
     public HisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
         AssetclassType assetclassType, String urlExtend, String mic, int expectedRows, String fromStr, String toStr)
         throws ParseException {
+      this(name, isin, specialInvestmentInstrument, assetclassType, urlExtend, mic, null, expectedRows, fromStr, toStr);
+    }
+    
+    
+    public HisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
+        AssetclassType assetclassType, String urlExtend, String mic, String currency, int expectedRows, String fromStr, String toStr)
+        throws ParseException {
       security = new Security();
       security.setName(name);
       security.setIsin(isin);
       security.setUrlHistoryExtend(urlExtend);
+      security.setCurrency(currency);
       this.expectedRows = expectedRows;
       this.from = sdf.parse(fromStr);
       this.to = sdf.parse(toStr);
