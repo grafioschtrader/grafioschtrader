@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.exc.StreamReadException;
@@ -28,6 +29,8 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @Component
 public class BoursoramaFeedConnector extends BaseFeedConnector {
@@ -36,9 +39,11 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   private static List<BoursoramaPeriodEOD> boursoramaPeriods;
   private static String BASE_URL = "https://www.boursorama.com/bourse/action/graph/ws/";
 
-  // Intraday main contain only a empty array when there was no trading. Because of that ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT is enabled
+  // Intraday main contain only a empty array when there was no trading. Because
+  // of that ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT is enabled
   private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
 
   static {
     supportedFeed = new HashMap<>();
@@ -57,26 +62,29 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     super(supportedFeed, "boursorama", "Boursorama", null);
   }
 
-  private String getSecurityCurrecnypairHistoricalDownloadLink(final Securitycurrency<?> securitycurrency, Date from) {
+  private String getSecurityCurrecnypairHistoricalDownloadLink(final Securitycurrency<?> securitycurrency, Date from,
+      boolean useHistoricalExtend) {
     long daysUntilNow = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS);
     BoursoramaPeriodEOD boursoramaPeriod = boursoramaPeriods.stream().filter(bp -> daysUntilNow <= bp.maxDays)
         .findFirst().orElse(boursoramaPeriods.get(boursoramaPeriods.size() - 1));
-    return BASE_URL + "GetTicksEOD?symbol=" + securitycurrency.getUrlHistoryExtend() + "&length="
-        + boursoramaPeriod.lengthParam + "&period=" + boursoramaPeriod.period + "guid=";
+    return BASE_URL + "GetTicksEOD?symbol="
+        + (useHistoricalExtend ? securitycurrency.getUrlHistoryExtend() : securitycurrency.getUrlIntraExtend())
+        + "&length=" + boursoramaPeriod.lengthParam + "&period=" + boursoramaPeriod.period + "&guid=";
   }
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     Date toDate = new Date();
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityCurrecnypairHistoricalDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate));
+    return getSecurityCurrecnypairHistoricalDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate),
+        true);
   }
 
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
     return getEodSecurityCurrencypairHistory(from, to,
-        new URL(getSecurityCurrecnypairHistoricalDownloadLink(security, from)),
+        getSecurityCurrecnypairHistoricalDownloadLink(security, from, true),
         FeedConnectorHelper.getGBXLondonDivider(security));
   }
 
@@ -84,24 +92,26 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
     Date toDate = new Date();
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityCurrecnypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate));
+    return getSecurityCurrecnypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate),
+        true);
   }
 
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws IOException, ParseException, URISyntaxException {
+      throws IOException, ParseException, URISyntaxException, InterruptedException {
     return getEodSecurityCurrencypairHistory(from, to,
-        new URL(getSecurityCurrecnypairHistoricalDownloadLink(currencyPair, from)), 1.0);
+        getSecurityCurrecnypairHistoricalDownloadLink(currencyPair, from, true), 1.0);
   }
 
-  private List<Historyquote> getEodSecurityCurrencypairHistory(final Date from, final Date to, URL url, double divider)
-      throws StreamReadException, DatabindException, IOException {
+  private List<Historyquote> getEodSecurityCurrencypairHistory(final Date from, final Date to, String urlStr,
+      double divider) throws StreamReadException, DatabindException, IOException, InterruptedException {
 
     long startDay = DateHelper.getLocalDate(from).toEpochDay();
     long endDay = DateHelper.getLocalDate(to).toEpochDay();
 
     final List<Historyquote> historyquotes = new ArrayList<>();
-    final HeaderEOD header = objectMapper.readValue(url, HeaderEOD.class);
+    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(),
+        HeaderEOD.class);
     for (QuoteTabEOD data : header.d.QuoteTab) {
       if (data.d >= startDay && data.d <= endDay) {
         final Historyquote histroyquote = new Historyquote();
@@ -120,7 +130,14 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return getUpdateSecurityCurrecnypairLastPriceLink(security);
+    return isYearSecurityForLastPrice(security)
+        ? getSecurityCurrecnypairHistoricalDownloadLink(security, DateUtils.addDays(new Date(), -190), false)
+        : getUpdateSecurityCurrecnypairLastPriceLink(security);
+  }
+
+  private boolean isYearSecurityForLastPrice(Security security) {
+    return security.getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME
+        && security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
   }
 
   @Override
@@ -139,8 +156,12 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    updateSecuritycurrency(security, getUpdateSecurityCurrecnypairLastPriceLink(security),
-        FeedConnectorHelper.getGBXLondonDivider(security));
+    if (isYearSecurityForLastPrice(security)) {
+      getLastPriceFromHistoryQuotes(security, getSecurityIntradayDownloadLink(security));
+    } else {
+      updateSecuritycurrency(security, getUpdateSecurityCurrecnypairLastPriceLink(security),
+          FeedConnectorHelper.getGBXLondonDivider(security));
+    }
   }
 
   @Override
@@ -150,24 +171,32 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String urlStr, double divider)
       throws IOException {
-   
     final HeaderIntra header = objectMapper.readValue(new URL(urlStr), HeaderIntra.class);
     if (header != null) {
       header.d[0].setValues(securitycurrency, divider);
     } else {
       securitycurrency.setSChangePercentage(0.0);
     }
-      
     setSTimestamp(securitycurrency);
+  }
+
+  private void getLastPriceFromHistoryQuotes(Security security, String urlStr) throws Exception {
+    final HeaderEOD header = objectMapper.readValue(new URL(urlStr), HeaderEOD.class);
+    QuoteTabEOD lastPrice = header.d.QuoteTab[header.d.QuoteTab.length - 1];
+    lastPrice.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security));
+    setSTimestamp(security);
   }
 
   private void setSTimestamp(Securitycurrency<?> securitycurrency) {
     securitycurrency.setSTimestamp(new Date(new Date().getTime() - getIntradayDelayedSeconds() * 1000));
   }
-  
+
   private static class BoursoramaPeriodEOD {
+    // Maximum days this period can handle
     public int maxDays;
+    // This number is taken over as a value in the query for the "length" parameter
     public int lengthParam;
+    // This value is probably always 0
     public int period;
 
     public BoursoramaPeriodEOD(int maxDays, int lengthParam, int period) {
@@ -188,45 +217,53 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     public QuoteTabEOD[] QuoteTab;
   }
 
-  private static class QuoteTabEOD {
+  private static class QuoteTabEOD extends QuoteTab {
     public int d;
-    public double o;
-    public double h;
-    public double l;
-    public double c;
-    public long v;
+
   }
 
   private static class HeaderIntra {
     public QuoteTabIntra[] d;
   }
 
-  private static class QuoteTabIntra {
-    public double o;
-    public double h;
-    public double l;
-    public double c;
-    // public long v;
+  private static class QuoteTabIntra extends QuoteTab {
     public double var;
     // public QtIntra[] qt;
 
     public void setValues(Securitycurrency<?> securitycurrency, double divider) {
-      securitycurrency.setSLast(c / divider);
-      securitycurrency.setSOpen(o / divider);
-      securitycurrency.setSLow(l / divider);
-      securitycurrency.setSHigh(h / divider);
-      if(o > 0 && var != 0.0) {
-         securitycurrency.setSChangePercentage(DataHelper.roundStandard(var / o * 100));
+      super.setValues(securitycurrency, divider);
+      if (o > 0 && var != 0.0) {
+        securitycurrency.setSChangePercentage(DataHelper.roundStandard(var / o * 100));
       } else {
         securitycurrency.setSChangePercentage(0.0);
       }
     }
-   
+
   }
-/*
-  private static class QtIntra {
-    // public double d;
-    // public double o;
+
+  private static class QuoteTab {
+    public double o;
+    public double h;
+    public double l;
+    public double c;
+    public long v;
+
+    public void setValues(Securitycurrency<?> securitycurrency, double divider) {
+      securitycurrency.setSLast(c / divider);
+      if (o > 0d) {
+        securitycurrency.setSOpen(o / divider);
+      }
+      if (l > 0d) {
+        securitycurrency.setSLow(l / divider);
+      }
+      if (h > 0d) {
+        securitycurrency.setSHigh(h / divider);
+      }
+      if (o > 0d && c > 0d) {
+        securitycurrency.setSChangePercentage((c - o) / o * 100);
+      }
+    }
+
   }
-*/
+
 }

@@ -162,8 +162,6 @@ public class EodHistoricalDataConnectorTest {
 
   }
   
-  
-
   private List<HisoricalDate> getHistoricalSecurities() {
     List<HisoricalDate> hisoricalDate = new ArrayList<>();
     try {
