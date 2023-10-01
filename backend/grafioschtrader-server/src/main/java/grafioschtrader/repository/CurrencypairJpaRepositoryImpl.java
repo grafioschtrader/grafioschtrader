@@ -135,13 +135,13 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
-  protected void afterFullLoad(final Currencypair currencypair) throws Exception {
+  protected Currencypair afterFullLoad(final Currencypair currencypair) throws Exception {
     final int maxFillDays = globalparametersJpaRepository.getMaxFillDaysCurrency();
     currencypair.getHistoryquoteList().sort((h1, h2) -> h1.getDate().compareTo(h2.getDate()));
-    currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays);
+    return currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays);
   }
 
-  private void currencyFillEmptyDaysInHistoryquote(Currencypair currencypair, int maxFillDays) {
+  private Currencypair currencyFillEmptyDaysInHistoryquote(Currencypair currencypair, int maxFillDays) {
     if (currencypair.getHistoryquoteList() != null) {
       for (int i = currencypair.getHistoryquoteList().size() - 1; i >= 1; i--) {
         final Historyquote dayBeforHoleHistoryquote = currencypair.getHistoryquoteList().get(i - 1);
@@ -177,6 +177,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
         }
       }
     }
+    return currencypair;
   }
 
   @Override

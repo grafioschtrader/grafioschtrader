@@ -40,8 +40,6 @@ import grafioschtrader.entities.Historyquote;
  * possible that the provider does not supply any data for one or all of these
  * requests due to its load.
  *
- *
- * @author Hugo Graf
  */
 
 @Component
@@ -94,7 +92,9 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
       } else {
         toDate = (Calendar) startDate.clone();
         toDate.add(Calendar.YEAR, 4);
-        toDate.add(Calendar.DATE, -1);
+        if (!DateHelper.isSameDay(toDate.getTime(), to)) {
+          toDate.add(Calendar.DATE, -1);
+        }
         startDate.add(Calendar.DATE, 1);
       }
 
@@ -113,6 +113,7 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
 
       toDate = (Calendar) startDate.clone();
       toDate.add(Calendar.DATE, -1);
+
       againstLoseDataCounter++;
     } while (startDate.after(fromDate));
     return historyquotes;

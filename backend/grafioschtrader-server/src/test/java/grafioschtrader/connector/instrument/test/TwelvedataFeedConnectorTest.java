@@ -2,11 +2,14 @@ package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -16,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
 import grafioschtrader.connector.instrument.twelvedata.TwelvedataFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -61,29 +65,32 @@ public class TwelvedataFeedConnectorTest {
   }
   
   @Test
-  void getEodCurrencyHistoryTest() {
-    final LocalDate from = LocalDate.parse("2000-01-03");
-    final LocalDate to = LocalDate.parse("2022-01-28");
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-  
-    
-    final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_JPY, "SEK"));
-    // currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
-    currencies.parallelStream().forEach(currencyPair -> {
-      List<Historyquote> historyquote = new ArrayList<>();
-      try {
-        historyquote = twelvedataFeedConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println(historyquote.size());
-      assertThat(historyquote.size()).isGreaterThan(1000);
-    });
+  void getEodCurrencyHistoryTest() throws ParseException {
+      final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
+
+      currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6192, "2000-01-03",
+          "2023-09-29"));
+      currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6193, "2000-01-03",
+          "2023-09-29"));
+      currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_JPY, "SEK", 6426, "2000-01-03",
+          "2023-09-29"));
+      currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3118, "2014-09-17",
+          "2023-09-29"));
+      currencies.parallelStream().forEach(cphd -> {
+        List<Historyquote> historyquotes = new ArrayList<>();
+        try {
+          historyquotes = twelvedataFeedConnector.getEodCurrencyHistory(cphd.currencypair, cphd.from, cphd.to);
+          Collections.sort(historyquotes, Comparator.comparing(Historyquote::getDate));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
+        assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
+        assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
+        ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
+      });
   }
+  
   
   @Test
   void updateSecurityLastPriceTest() {

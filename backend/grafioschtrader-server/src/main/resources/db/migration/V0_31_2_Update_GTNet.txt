@@ -1,4 +1,0 @@
-
-# Forgot to delete when naming convention was changed
-DROP TABLE IF EXISTS `gt_network_exchange`;
-DROP TABLE IF EXISTS `gt_network`;
