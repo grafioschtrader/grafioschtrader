@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.boursorama.BoursoramaFeedConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.HisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.types.AssetclassType;
@@ -29,7 +29,7 @@ public class BoursoramaFeedConnectorTest {
   @Test
   void getEodSecurityHistoryTest() {
 
-    List<HisoricalDate> hisoricalDate = getHistoricalSecurities();
+    List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
     hisoricalDate.parallelStream().forEach(hd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
@@ -79,7 +79,7 @@ public class BoursoramaFeedConnectorTest {
 
   @Test
   void updateSecurityLastPriceTest() {
-    final List<HisoricalDate> hisoricalDate = getHistoricalSecurities();
+    final List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
     hisoricalDate.parallelStream().forEach(hd -> {
       hd.security.setUrlIntraExtend(hd.security.getUrlHistoryExtend());
       hd.security.setUrlHistoryExtend(null);
@@ -117,22 +117,22 @@ public class BoursoramaFeedConnectorTest {
 
   }
 
-  private List<HisoricalDate> getHistoricalSecurities() {
-    List<HisoricalDate> hisoricalDate = new ArrayList<>();
+  private List<SecurityHisoricalDate> getHistoricalSecurities() {
+    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
     String dateTo = "2023-08-31";
     try {
-      hisoricalDate.add(new HisoricalDate("iShares SMIM ETF (CH)", SpecialInvestmentInstruments.ETF, "2aCSSMIM",
+      hisoricalDate.add(new SecurityHisoricalDate("iShares SMIM ETF (CH)", SpecialInvestmentInstruments.ETF, "2aCSSMIM",
           GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 3195, "2010-12-09", dateTo));
-      hisoricalDate.add(new HisoricalDate("0.362 Bank of New Zealand 21-29", null,
+      hisoricalDate.add(new SecurityHisoricalDate("0.362 Bank of New Zealand 21-29", null,
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME, "2aBNZ01",
           GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 135, "2021-12-15", dateTo));
-      hisoricalDate.add(new HisoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CSCO",
+      hisoricalDate.add(new SecurityHisoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CSCO",
           GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4686, "2005-01-03", dateTo));
-      hisoricalDate.add(new HisoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "1rPCAC",
+      hisoricalDate.add(new SecurityHisoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "1rPCAC",
           GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4007, "2008-01-02", dateTo));
-      hisoricalDate.add(new HisoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "2aZGLD",
+      hisoricalDate.add(new SecurityHisoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "2aZGLD",
           GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4370, "2006-03-15", dateTo));
-      hisoricalDate.add(new HisoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "$COMPX",
+      hisoricalDate.add(new SecurityHisoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "$COMPX",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 4698, "2005-01-03", dateTo));
 
     } catch (ParseException pe) {

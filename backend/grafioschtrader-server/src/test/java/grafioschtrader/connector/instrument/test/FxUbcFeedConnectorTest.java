@@ -2,90 +2,64 @@ package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.fxubc.FxUbcFeedConnector;
-import grafioschtrader.entities.Currencypair;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
 import grafioschtrader.entities.Historyquote;
 
 /**
  * This test can often fail, because the provider may be to busy. 
- * 
- * @author Hugo Graf
  *
  */
 class FxUbcFeedConnectorTest {
 
   private FxUbcFeedConnector fxUbcFeedConnector = new FxUbcFeedConnector();
   
-  @Test
-  void getEodCurrencyHistoryLongPeriodTest() {
-
-    final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_JPY));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", GlobalConstants.MC_USD));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("ZAR", "NOK"));
   
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-
-    final LocalDate from = LocalDate.parse("01.01.2000", germanFormatter);
-    final LocalDate to = LocalDate.parse("25.10.2019", germanFormatter);
-
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-    currencies.parallelStream().forEach(currencyPair -> {
-      List<Historyquote> historyquote = new ArrayList<>();
-      try {
-        historyquote = fxUbcFeedConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      assertThat(historyquote.size()).isGreaterThan(4000);
-    });
-
-  }
-
+  
   @Test
-  void getEodCurrencyHistoryShortPeriodTest() {
-
-    final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_JPY));
-
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-
-    final LocalDate from = LocalDate.parse("21.10.2019", germanFormatter);
-    final LocalDate to = LocalDate.parse("25.10.2019", germanFormatter);
-
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-    currencies.parallelStream().forEach(currencyPair -> {
-      List<Historyquote> historyquote = new ArrayList<>();
+  void getEodCurrencyHistoryTest() throws ParseException {
+    String oldestDate= "2000-01-04";
+    String youngFromDate = "2023-09-18";
+    String toDate = "2023-09-29";
+    
+    final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
+//    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 10, youngFromDate,
+//        toDate));
+//    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 10, youngFromDate,
+//        toDate));
+//    
+    
+    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 5944, oldestDate,
+        "2023-09-29"));
+//    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 7007, oldestDate,
+//        "2023-09-29"));
+//    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 5945, oldestDate,
+//        "2023-09-29"));
+//    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 7028, oldestDate,
+//        "2023-09-29"));
+//   
+    currencies.parallelStream().forEach(cphd -> {
+      List<Historyquote> historyquotes = new ArrayList<>();
       try {
-        historyquote = fxUbcFeedConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
+        historyquotes = fxUbcFeedConnector.getEodCurrencyHistory(cphd.currencypair, cphd.from, cphd.to);
+        Collections.sort(historyquotes, Comparator.comparing(Historyquote::getDate));
       } catch (Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquote.size()).isEqualTo(5);
+      assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
+      assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
+      assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
+      ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
     });
-
   }
+  
 
 }

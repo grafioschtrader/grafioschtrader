@@ -1,12 +1,19 @@
 package grafioschtrader.connector.instrument.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.types.AssetclassType;
@@ -16,6 +23,15 @@ public class ConnectorTestHelper {
 
   final static SimpleDateFormat sdf = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
 
+  public static void checkHistoryquoteUniqueDate(String name, List<Historyquote> historyquotes) {
+    Set<Date> dateSet = new HashSet<>();
+    
+    List<Historyquote> historyquotesDuplicateByDate = historyquotes.stream()
+                .filter(h -> !dateSet.add(h.getDate()))
+                .collect(Collectors.toList());
+    assertThat(historyquotesDuplicateByDate.size()).as("Duplicate date entries for %s", name).isEqualTo(0);
+  }
+  
   public static Currencypair createCurrencyPair(final String fromCurrency, final String toCurrency) {
     return createCurrencyPair(fromCurrency, toCurrency, null);
   }
@@ -156,51 +172,71 @@ public class ConnectorTestHelper {
   private static enum ExtendKind {
     EOD, INTRA, DIVIDEND, SPLIT;
   }
-
+  
   public static class HisoricalDate {
-
-    public Security security;
     public int expectedRows;
     public Date from;
     public Date to;
+    
+    public HisoricalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
+      this.expectedRows = expectedRows;
+      this.from = sdf.parse(fromStr);
+      this.to = sdf.parse(toStr);
+    }
+    
+  }
+  
+  public static class CurrencyPairHisoricalDate extends HisoricalDate {
+    public Currencypair currencypair;
 
+    public CurrencyPairHisoricalDate(final String fromCurrency, final String toCurrency,
+        int expectedRows, String fromStr, String toStr)
+        throws ParseException {
+      super(expectedRows, fromStr, toStr);
+      this.currencypair = createCurrencyPair(fromCurrency, toCurrency);
+    }
+    
+    
+  }
+  
+
+  public static class SecurityHisoricalDate extends HisoricalDate {
+
+    public Security security;
      
-    public HisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
+    public SecurityHisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend, String mic, int expectedRows, String fromStr, String toStr) throws ParseException {
       this(name, isin, specialInvestmentInstrument, null, urlExtend, mic, null, expectedRows, fromStr, toStr);
     }
 
-    public HisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
+    public SecurityHisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
         AssetclassType assetclassType, String urlExtend, String mic, int expectedRows, String fromStr, String toStr)
         throws ParseException {
       this(name, isin, specialInvestmentInstrument, assetclassType, urlExtend, mic, null, expectedRows, fromStr, toStr);
     }
     
-    
-    public HisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
+    public SecurityHisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
         AssetclassType assetclassType, String urlExtend, String mic, String currency, int expectedRows, String fromStr, String toStr)
         throws ParseException {
+      super(expectedRows, fromStr, toStr);
       security = new Security();
       security.setName(name);
       security.setIsin(isin);
       security.setUrlHistoryExtend(urlExtend);
       security.setCurrency(currency);
-      this.expectedRows = expectedRows;
-      this.from = sdf.parse(fromStr);
-      this.to = sdf.parse(toStr);
+      
       setAssetclassAndStockexchange(security, specialInvestmentInstrument, assetclassType, mic);
     }
 
-    public HisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
+    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend, String mic, String currency, int expectedRows, String fromStr, String toStr)
         throws ParseException {
+      super(expectedRows, fromStr, toStr);
       security = new Security();
       security.setName(name);
       security.setUrlHistoryExtend(urlExtend);
       security.setCurrency(currency);
-      this.expectedRows = expectedRows;
-      this.from = sdf.parse(fromStr);
-      this.to = sdf.parse(toStr);
+     
       setAssetclassAndStockexchange(security, specialInvestmentInstrument, mic);
     }
     

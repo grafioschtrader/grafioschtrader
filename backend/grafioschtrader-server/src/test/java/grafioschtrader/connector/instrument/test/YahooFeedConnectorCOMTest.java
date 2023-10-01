@@ -1,23 +1,20 @@
 package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.HisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
 import grafioschtrader.connector.instrument.yahoo.YahooFeedConnectorCOM;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
@@ -33,32 +30,28 @@ class YahooFeedConnectorCOMTest {
   private YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
 
   @Test
-  void getEodCurrencyHistoryTest() {
+  void getEodCurrencyHistoryTest() throws ParseException {
 
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
+    final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
 
-    final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
-    final LocalDate from = LocalDate.parse("08.08.2019", germanFormatter);
-    final LocalDate to = LocalDate.parse("15.01.2021", germanFormatter);
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 4863, "2005-01-03",
+        "2023-09-29"));
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 4875, "2005-01-03",
+        "2023-09-29"));
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3300, "2014-09-17",
+        "2023-09-29"));
 
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.of(GlobalConstants.TIME_ZONE)).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.of(GlobalConstants.TIME_ZONE)).toInstant());
-
-    currencies.parallelStream().forEach(currencyPair -> {
+    currencies.parallelStream().forEach(cphd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
-        historyquotes = yahooFeedConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
+        historyquotes = yahooFeedConnector.getEodCurrencyHistory(cphd.currencypair, cphd.from, cphd.to);
       } catch (Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquotes.size()).isGreaterThan(350);
-      assertTrue(DateHelper.isSameDay(historyquotes.get(0).getDate(), fromDate));
-      assertTrue(DateHelper.isSameDay(historyquotes.get(historyquotes.size() - 1).getDate(), toDate));
-
+      assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
+      assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
+      assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
+      ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
     });
   }
 
@@ -89,7 +82,7 @@ class YahooFeedConnectorCOMTest {
 
   @Test
   void getEodSecurityHistoryTest() {
-    List<HisoricalDate> hisoricalDate = getHistoricalSecurities();
+    List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
     hisoricalDate.parallelStream().forEach(hd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
@@ -105,23 +98,24 @@ class YahooFeedConnectorCOMTest {
     });
   }
 
-  private List<HisoricalDate> getHistoricalSecurities() {
-    List<HisoricalDate> hisoricalDate = new ArrayList<>();
+  private List<SecurityHisoricalDate> getHistoricalSecurities() {
+    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(new HisoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
+      hisoricalDate.add(new SecurityHisoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5926, "2000-01-03", "2023-07-24"));
-      hisoricalDate.add(new HisoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "^NDX",
-          GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5926, "2000-01-03", "2023-07-24"));
-      hisoricalDate.add(new HisoricalDate("Tesla", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "TSLA",
+      hisoricalDate.add(new SecurityHisoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+          "^NDX", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5926, "2000-01-03", "2023-07-24"));
+      hisoricalDate.add(new SecurityHisoricalDate("Tesla", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "TSLA",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 3289, "2010-06-29", "2023-07-24"));
-      hisoricalDate.add(new HisoricalDate("Nestlé S.A", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "NESN.SW",
-          GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 5620, "2000-04-21", "2023-07-24"));
-      hisoricalDate.add(new HisoricalDate("Tesco PLC", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "TSCO.L",
+      hisoricalDate.add(new SecurityHisoricalDate("Nestlé S.A", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+          "NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 5620, "2000-04-21", "2023-07-24"));
+      hisoricalDate.add(new SecurityHisoricalDate("Tesco PLC", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "TSCO.L",
           GlobalConstants.STOCK_EX_MIC_UK, GlobalConstants.MC_GBP, 5999, "2000-01-03", "2023-07-24"));
-      hisoricalDate.add(new HisoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "CAC.PA",
+      hisoricalDate.add(new SecurityHisoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "CAC.PA",
           GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 3982, "2008-01-02", "2023-07-24"));
-      hisoricalDate.add(new HisoricalDate("UBSFund Solutions - CMCI Oil SF ETF", SpecialInvestmentInstruments.ETF,
-          "OILUSA.SW", GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_USD, 3282, "2010-06-15", "2023-07-24"));
+      hisoricalDate.add(new SecurityHisoricalDate("UBSFund Solutions - CMCI Oil SF ETF",
+          SpecialInvestmentInstruments.ETF, "OILUSA.SW", GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_USD,
+          3282, "2010-06-15", "2023-07-24"));
     } catch (ParseException pe) {
       pe.printStackTrace();
     }
@@ -130,7 +124,7 @@ class YahooFeedConnectorCOMTest {
 
   @Test
   void updateSecurityLastPriceTest() {
-    final List<HisoricalDate> hisoricalDate = getHistoricalSecurities();
+    final List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
     hisoricalDate.parallelStream().forEach(hd -> {
       hd.security.setUrlIntraExtend(hd.security.getUrlHistoryExtend());
       hd.security.setUrlHistoryExtend(null);

@@ -95,7 +95,8 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         createEditSecuritycurrency);
   }
 
-  protected void afterFullLoad(final S securitycurrency) throws Exception {
+  protected S afterFullLoad(final S securitycurrency) throws Exception {
+    return securitycurrency;
   }
 
   @Override

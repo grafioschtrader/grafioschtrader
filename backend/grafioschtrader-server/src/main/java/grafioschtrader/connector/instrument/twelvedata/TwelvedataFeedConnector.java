@@ -103,7 +103,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
     return DOMAIN_NAME + "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
-        + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + getApiKeyString();
+        + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + " 23:59:59" + getApiKeyString();
   }
 
   @Override
@@ -128,8 +128,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
     Date toDate = null;
-    if (DateHelper.getDateDiff(from, to, TimeUnit.DAYS) / 7 * 5 > MAX_DATA_POINTS) {
-      toDate = DateHelper.setTimeToZeroAndAddDay(from, MAX_DATA_POINTS / 5 * 7);
+    if (DateHelper.getDateDiff(from, to, TimeUnit.DAYS) / 7 * 5 > MAX_DATA_POINTS - 100) {
+      toDate = DateHelper.setTimeToZeroAndAddDay(from, (MAX_DATA_POINTS - 100) / 5 * 7);
       historyquotes.addAll(getEodSecurityCurrencypairHistoryMax5000(
           new URL(getSecurityCurrencyHistoricalDownloadLink(ticker, from, toDate)), dateFormat, divider, hasVolume));
     }
