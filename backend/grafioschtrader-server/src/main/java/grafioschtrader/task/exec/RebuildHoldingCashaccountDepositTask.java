@@ -9,7 +9,7 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
 @Component
-public class RebuildHoldingCashaccountDeposit implements ITask {
+public class RebuildHoldingCashaccountDepositTask implements ITask {
 
   @Autowired
   private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;

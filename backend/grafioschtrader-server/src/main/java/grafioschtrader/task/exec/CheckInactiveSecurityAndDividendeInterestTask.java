@@ -28,7 +28,7 @@ import grafioschtrader.types.TaskType;
 import jakarta.mail.MessagingException;
 
 @Component
-public class CheckInactiveSecurityAndDividendeInterest implements ITask {
+public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
 
   @Autowired
   private SendMailInternalExternalService sendMailInternalExternalService;

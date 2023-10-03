@@ -13,7 +13,7 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
 @Component
-public class LoadEmptyCurrencypairHistoryquotes implements ITask {
+public class LoadEmptyCurrencypairHistoryquotesTask implements ITask {
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;

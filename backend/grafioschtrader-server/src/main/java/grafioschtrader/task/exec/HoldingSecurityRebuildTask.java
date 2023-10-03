@@ -15,7 +15,7 @@ import grafioschtrader.types.TaskType;
  *
  */
 @Component
-public class HoldingSecurityRebuild implements ITask {
+public class HoldingSecurityRebuildTask implements ITask {
 
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;

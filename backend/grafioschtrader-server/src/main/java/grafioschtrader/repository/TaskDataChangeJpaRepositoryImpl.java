@@ -29,9 +29,9 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
 
   @Override
   @Transactional
-  public TaskDataChangeSecurityInfo getAllTaskDataChangeSecurityInfo() {
+  public TaskDataChangeSecurityInfo getAllTaskDataChangeSecurityCurrencyPairInfo() {
     return new TaskDataChangeSecurityInfo(taskDataChangeRepository.findAll(),
-        taskDataChangeRepository.getAllTaskDataChangeSecurityInfoWithId()
+        taskDataChangeRepository.getAllTaskDataChangeSecurityCurrencyPairInfoWithId()
             .collect(Collectors.toMap(isi -> isi.getIdSecuritycurrency(), isi -> isi.getTooltip())));
   }
 

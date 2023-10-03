@@ -25,7 +25,7 @@ import grafioschtrader.types.TaskType;
  * that in adjusted historical prices
  */
 @Component
-public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
+public class CheckReloadSecurityAdjustedPricesAfterSplitTask implements ITask {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -35,9 +35,7 @@ public class CheckReloadSecurityAdjustedPricesAfterSplit implements ITask {
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
-  @Autowired
-  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
-
+  
   @Override
   public TaskType getTaskType() {
     return TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES;

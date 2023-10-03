@@ -1,0 +1,90 @@
+package grafioschtrader.connector.instrument.ecb;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
+import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
+import grafioschtrader.repository.EcbExchangeRatesRepository;
+import grafioschtrader.repository.EcbExchangeRatesRepository.CalcRates;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.HistoryquoteCreateType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
+
+@Component
+public class EcbCrossRateConnector extends BaseFeedConnector {
+
+  @Autowired
+  private EcbExchangeRatesRepository ecbExchangeRatesRepository;
+
+  private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
+  static {
+    supportedFeed = new HashMap<>();
+    supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
+  }
+
+  public EcbCrossRateConnector() {
+    super(supportedFeed, "ecb", "ECB Cross Rate CET 16:00", null);
+  }
+
+  @Override
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
+      throws IOException, ParseException, InterruptedException {
+    List<CalcRates> calcRates = null;
+    final List<Historyquote> historyquotes = new ArrayList<>();
+
+    if (currencyPair.getFromCurrency().equals(GlobalConstants.MC_EUR)) {
+      calcRates = ecbExchangeRatesRepository.getRatesByFromToDate(currencyPair.getToCurrency(), from, to, true);
+    } else if (currencyPair.getToCurrency().equals(GlobalConstants.MC_EUR)) {
+      calcRates = ecbExchangeRatesRepository.getRatesByFromToDate(currencyPair.getFromCurrency(), from, to, false);
+    } else {
+      // Cross currency calculation
+      calcRates = ecbExchangeRatesRepository.getCrossCurrencyRateForPeriod(currencyPair.getFromCurrency(),
+          currencyPair.getToCurrency(), from, to);
+    }
+    for (CalcRates calcRate : calcRates) {
+      historyquotes.add(new Historyquote(currencyPair.getIdSecuritycurrency(), HistoryquoteCreateType.CONNECTOR_CREATED,
+          calcRate.getDate(), calcRate.getRate()));
+    }
+
+    return historyquotes;
+  }
+
+  @Override
+  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+      Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
+      FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
+      AssetclassType assetclassType) {
+
+    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey,
+        feedIdentifier, specialInvestmentInstruments, assetclassType);
+    checkForExistenceCurrencies((Currencypair) securitycurrency);
+    return clear;
+  }
+
+  private void checkForExistenceCurrencies(Currencypair currencypair) {
+    String[] currencies = ecbExchangeRatesRepository.checkForExistenceCurrencies(currencypair.getFromCurrency(),
+        currencypair.getToCurrency());
+    if (!((currencies.length == 1 && (currencypair.getFromCurrency().equals(GlobalConstants.MC_EUR)
+        || currencypair.getToCurrency().equals(GlobalConstants.MC_EUR))) || currencies.length == 2)) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.connector.ecb.not.supported.currency", null);
+    }
+  }
+
+}

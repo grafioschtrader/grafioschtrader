@@ -12,7 +12,7 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
 @Component
-public class MoveCreatedByUserToOtherUser implements ITask {
+public class MoveCreatedByUserToOtherUserTask implements ITask {
 
   @Autowired
   private UserJpaRepository userJpaRepository;
