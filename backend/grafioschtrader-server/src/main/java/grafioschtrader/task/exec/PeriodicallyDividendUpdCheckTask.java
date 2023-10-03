@@ -17,7 +17,7 @@ import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 @Component
-public class PeriodicallyDividendUpdCheck implements ITask {
+public class PeriodicallyDividendUpdCheckTask implements ITask {
 
   @Autowired
   private DividendJpaRepository dividendJpaRepository;

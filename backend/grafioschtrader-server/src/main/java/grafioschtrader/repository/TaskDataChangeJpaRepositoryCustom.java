@@ -8,7 +8,7 @@ public interface TaskDataChangeJpaRepositoryCustom extends BaseRepositoryCustom<
   
   TaskDataChangeFormConstraints getFormConstraints();
   
-  TaskDataChangeSecurityInfo getAllTaskDataChangeSecurityInfo();
+  TaskDataChangeSecurityInfo getAllTaskDataChangeSecurityCurrencyPairInfo();
   
  
 }

@@ -23,7 +23,7 @@ export class TaskDataChange implements BaseID {
 }
 
 
-export interface TaskDataChangeSecurityInfo {
+export interface TaskDataChangeSecurityCurrencyPairInfo {
   taskDataChangeList: TaskDataChange[];
   securityInfo: { [idSecuritycurrency: number]: string};
 }
@@ -65,6 +65,7 @@ export enum TaskType {
   PERIODICALLY_DIVIDEND_UPDATE_CHECK = 13,
   CHECK_INACTIVE_SECURITY_AND_DIVIDEND_INTEREST = 14,
   TOKEN_USER_REGISTRATION_PURGE = 15,
+  LOAD_ECB_CURRENCY_EXCHNAGE_RATES = 16,
 
   MOVE_CREATED_BY_USER_TO_OTHER_USER = 31,
   UPD_V_0_11_0 = 51,

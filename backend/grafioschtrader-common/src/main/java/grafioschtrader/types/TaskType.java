@@ -41,7 +41,9 @@ public enum TaskType {
   CHECK_INACTIVE_SECURITY_AND_DIVIDEND_INTEREST((byte) 14),
   // Deletes all expired token of the registration process with its created user
   TOKEN_USER_REGISTRATION_PURGE((byte) 15),
-  
+  // Loading historical exchange rates from the European Central Bank (ECB).
+  // Should be done daily if possible but not necessarily on weekends.
+  LOAD_ECB_CURRENCY_EXCHNAGE_RATES((byte) 16),
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////
   // Moves shared entities from one user to another user by changing field

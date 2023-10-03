@@ -30,7 +30,7 @@ public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChang
   
   
   @Query(nativeQuery = true)
-  Stream<IdSecurityInfo>getAllTaskDataChangeSecurityInfoWithId();
+  Stream<IdSecurityCurrencyPairInfo>getAllTaskDataChangeSecurityCurrencyPairInfoWithId();
   
   
   @Modifying
@@ -38,7 +38,7 @@ public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChang
   @Query("UPDATE TaskDataChange t SET t.progressStateType = ?2 WHERE t.progressStateType = ?1")
   int changeFromToProgressState(byte fromState, byte toState);
   
-  public static interface IdSecurityInfo {
+  public static interface IdSecurityCurrencyPairInfo {
     public Integer getIdSecuritycurrency();
     public String getTooltip();
   }

@@ -2,7 +2,7 @@ import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.
 import {
   TaskDataChange,
   TaskDataChangeFormConstraints,
-  TaskDataChangeSecurityInfo
+  TaskDataChangeSecurityCurrencyPairInfo
 } from '../../../entities/task.data.change';
 import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
@@ -21,8 +21,8 @@ export class TaskDataChangeService extends AuthServiceWithLogout<TaskDataChange>
     super(loginService, httpClient, messageToastService);
   }
 
-  getAllTaskDataChangeSecurityInfo(): Observable<TaskDataChangeSecurityInfo> {
-    return <Observable<TaskDataChangeSecurityInfo>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}`,
+  getAllTaskDataChangeSecurityInfo(): Observable<TaskDataChangeSecurityCurrencyPairInfo> {
+    return <Observable<TaskDataChangeSecurityCurrencyPairInfo>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TASK_DATA_CHANGE_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

@@ -21,9 +21,8 @@ import {Validators} from '@angular/forms';
   selector: 'task-data-change-edit',
   template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
+              [style]="{width: '500px'}" (onShow)="onShow($event)"
+              (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
@@ -39,11 +38,11 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   private entitySubscribe: Subscription;
 
   constructor(translateService: TranslateService,
-    gps: GlobalparameterService,
-    messageToastService: MessageToastService,
-    private taskDataChangeService: TaskDataChangeService) {
-    super(HelpIds.HELP_TASK_DATA_CHANGE_MONITOR, AppSettings.TASK_DATE_CHANGE.toUpperCase(), translateService, gps,
-      messageToastService, taskDataChangeService);
+              gps: GlobalparameterService,
+              messageToastService: MessageToastService,
+              private taskDataChangeService: TaskDataChangeService) {
+    super(HelpIds.HELP_TASK_DATA_CHANGE_MONITOR, AppHelper.convertPropertyNameToUppercase(AppSettings.TASK_DATE_CHANGE),
+      translateService, gps, messageToastService, taskDataChangeService);
   }
 
   ngOnInit(): void {
