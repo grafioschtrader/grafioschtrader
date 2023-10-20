@@ -223,10 +223,10 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     }
   }
 
-  parentSelectionChanged(seclectImportTransactionHead: ImportTransactionHead,
+  parentSelectionChanged(selectImportTransactionHead: ImportTransactionHead,
                          parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>,
                          importTransactionTemplates: ImportTransactionTemplate[]) {
-    this.selectImportTransactionHead = seclectImportTransactionHead;
+    this.selectImportTransactionHead = selectImportTransactionHead;
     this.parentChildRowSelection = parentChildRowSelection;
     this.importTransactionTemplates = importTransactionTemplates;
     this.readData();
@@ -238,6 +238,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
         this.selectImportTransactionHead.idTransactionHead).subscribe((combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos[]) => {
         this.createTranslatedValueStoreAndFilterField(combineTemplateAndImpTransPos);
         this.entityList = combineTemplateAndImpTransPos;
+        this.replaceSelectedElements(this.selectedEntities, this.entityList);
         this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, null);
       });
     } else {
@@ -260,7 +261,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       });
     }
   }
-
 
   public prepareShowMenu(): MenuItem[] {
     return super.getMenuShowOptions();
@@ -412,6 +412,21 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
   ngOnDestroy(): void {
     this.writeTableDefinition(AppSettings.IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE);
+  }
+
+  /**
+   * The selected elements are not automatically updated with the newly read data. Therefore, this must be done explicitly.
+   * @param selectedEntities
+   * @param entityList
+   * @private
+   */
+  private replaceSelectedElements(selectedEntities: CombineTemplateAndImpTransPos[], entityList: CombineTemplateAndImpTransPos[]): void {
+    for (let i = 0; i < selectedEntities.length; i++) {
+      let match = entityList.find((elem) => elem.importTransactionPos.idTransactionPos === entityList[i].importTransactionPos.idTransactionPos);
+      if (match) {
+        selectedEntities[i] = match;
+      }
+    }
   }
 
   private hasTransactionOrMaybe(itp: ImportTransactionPos): boolean {

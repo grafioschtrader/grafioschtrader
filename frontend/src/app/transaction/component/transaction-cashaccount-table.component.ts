@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TransactionService} from '../service/transaction.service';
 import {Transaction} from '../../entities/transaction';
 import {Currencypair} from '../../entities/currencypair';
@@ -36,6 +36,7 @@ import {AppSettings} from '../../shared/app.settings';
 })
 export class TransactionCashaccountTableComponent extends TransactionContextMenu
   implements ChildPreservePage, OnInit, OnDestroy {
+
 
   @Input() idSecuritycashAccount: number;
   @Input() portfolio: Portfolio;
@@ -85,7 +86,6 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     if (data && this.cashaccountTransactionPositionSelected) {
       const transactions: Transaction[] = Array.isArray(data) ? data : [data];
       if (!transactions.find(transaction => transaction.idTransaction === this.cashaccountTransactionPositionSelected.idTransaction)) {
-
         this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions.find(ctps =>
           ctps.idTransaction === transactions[0].idTransaction);
         if (!this.cashaccountTransactionPositionSelected && transactions.length > 1) {

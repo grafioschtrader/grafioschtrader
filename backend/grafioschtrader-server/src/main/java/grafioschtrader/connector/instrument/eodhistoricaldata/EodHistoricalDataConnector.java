@@ -205,15 +205,15 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   @Override
   public String getDividendHistoricalDownloadLink(Security security) {
     return getDividendSplitHistoricalDownloadLink(security.getUrlDividendExtend(),
-        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), DIVDEND_EVENT);
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), LocalDate.now(), DIVDEND_EVENT);
   }
 
   @Override
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
     List<Dividend> dividends = new ArrayList<>();
-    DividendRead[] dividendRead = objectMapper.readValue(
-        new URL(getDividendSplitHistoricalDownloadLink(security.getUrlDividendExtend(), fromDate, DIVDEND_EVENT)),
-        DividendRead[].class);
+    DividendRead[] dividendRead = objectMapper
+        .readValue(new URL(getDividendSplitHistoricalDownloadLink(security.getUrlDividendExtend(), fromDate,
+            LocalDate.now(), DIVDEND_EVENT)), DividendRead[].class);
     for (int i = 0; i < dividendRead.length; i++) {
       Dividend dividend = new Dividend(security.getIdSecuritycurrency(), dividendRead[i].date,
           dividendRead[i].paymentDate, dividendRead[i].unadjustedValue, dividendRead[i].value, dividendRead[i].currency,
@@ -223,21 +223,23 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
     return dividends;
   }
 
-  private String getDividendSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, String event) {
-    return DOMAIN_NAME_API + event + "/" + symbol + "?from=" + fromDate + "&" + JSON_PARAM + getApiKeyString();
+  private String getDividendSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, LocalDate toDate,
+      String event) {
+    return DOMAIN_NAME_API + event + "/" + symbol + "?from=" + fromDate + "&to=" + toDate + "&" + JSON_PARAM
+        + getApiKeyString();
   }
 
   @Override
   public String getSplitHistoricalDownloadLink(Security security) {
     return getDividendSplitHistoricalDownloadLink(security.getUrlSplitExtend(),
-        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), SPLIT_EVENT);
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), LocalDate.now(), SPLIT_EVENT);
   }
 
   @Override
-  public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate) throws Exception {
+  public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate, LocalDate toDate) throws Exception {
     List<Securitysplit> securitySplits = new ArrayList<>();
     Split[] splits = objectMapper.readValue(
-        new URL(getDividendSplitHistoricalDownloadLink(security.getUrlSplitExtend(), fromDate, SPLIT_EVENT)),
+        new URL(getDividendSplitHistoricalDownloadLink(security.getUrlSplitExtend(), fromDate, toDate, SPLIT_EVENT)),
         Split[].class);
     FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
     for (int i = 0; i < splits.length; i++) {
@@ -250,15 +252,15 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   }
 
   private static class Quote {
-   // public String code;
-   // public long timestamp;
-   // public int gmtoffset;
+    // public String code;
+    // public long timestamp;
+    // public int gmtoffset;
     public double open;
     public double high;
     public double low;
     public double close;
     public double previousClose;
-   // public double change;
+    // public double change;
     public double change_p;
 
     public void setValues(Securitycurrency<?> securitycurrency, double divider, int delaySeconds) {

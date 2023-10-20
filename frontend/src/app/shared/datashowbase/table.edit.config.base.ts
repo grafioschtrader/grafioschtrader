@@ -19,7 +19,7 @@ export abstract class TableEditConfigBase extends TableConfigBase {
 
   addEditColumnFeqH(dataType: DataType, field: string, required: boolean,
                     optionalParams?: OptionalParams): ColumnConfig {
-    return this.addEditColumn(dataType, field, AppHelper.convertPropertyForLabelOrHeaderKey(field), required, optionalParams);
+    return this.addEditColumn(dataType, field, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field), required, optionalParams);
   }
 
   addEditColumn(dataType: DataType, field: string, headerKey: string, required: boolean,

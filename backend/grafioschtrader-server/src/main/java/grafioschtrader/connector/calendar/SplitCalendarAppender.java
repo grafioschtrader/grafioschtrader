@@ -74,15 +74,15 @@ public class SplitCalendarAppender {
 
   public void appendSecuritySplitsUntilToday() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE);
+        .findById(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
     gpLastAppend.ifPresentOrElse(gp -> loadSplitData(gp.getPropertyDate().plusDays(1)),
         () -> loadSplitData(LocalDate.now()));
   }
 
-  private void loadSplitData(LocalDate forDate) {
+  private void loadSplitData(LocalDate fromDate) {
     LocalDate now = LocalDate.now();
     List<TradingDaysPlus> tradingDaysPlusList = tradingDaysPlusJpaRepository
-        .findByTradingDateBetweenOrderByTradingDate(forDate, now);
+        .findByTradingDateBetweenOrderByTradingDate(fromDate, now);
     String[] countryCodes = stockexchangeJpaRepository.findDistinctCountryCodes();
     SimilarityScore<Double> similarityAlgo = new JaroWinklerSimilarity();
     calendarFeedConnectors.sort(Comparator.comparingInt(ICalendarFeedConnector::getPriority));
@@ -101,7 +101,7 @@ public class SplitCalendarAppender {
         }
       }
     }
-    Globalparameters globalparameters = new Globalparameters(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE, now,
+    Globalparameters globalparameters = new Globalparameters(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE, now,
         true);
     globalparametersJpaRepository.save(globalparameters);
   }

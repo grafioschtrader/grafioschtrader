@@ -36,7 +36,7 @@ public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyE
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_YOUNGES_SPLIT_APPEND_DATE);
+        .findById(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
     if (gpLastAppend.isEmpty() || gpLastAppend.get().getPropertyDate().isBefore(LocalDate.now().minusDays(1L))) {
       addDataUpdateTask();
     } else if (taskDataChangeJpaRepository.count() == 0) {

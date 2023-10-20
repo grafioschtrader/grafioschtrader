@@ -96,12 +96,12 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   protected override initialize(): void {
-    const obserables: Observable<any>[] = [this.gps.getTimezones()];
+    const observables: Observable<any>[] = [this.gps.getTimezones()];
     if (this.callParam.stockexchange) {
-      obserables.push(this.getSecurityObservable());
+      observables.push(this.getSecurityObservable());
     }
 
-    combineLatest(obserables).subscribe(data => {
+    combineLatest(observables).subscribe(data => {
       this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
       this.configObject.mic.groupItem = this.createMicOptions(true);
       this.configObject.timeZone.valueKeyHtmlOptions = data[0];

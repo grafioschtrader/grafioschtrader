@@ -120,8 +120,7 @@ import {DialogService} from 'primeng/dynamicdialog';
             </tr>
           </ng-template>
         </p-table>
-        <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
-                       appendTo="body"></p-contextMenu>
+        <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       </div>
     </div>
     <historyquote-edit *ngIf="visibleDialog"

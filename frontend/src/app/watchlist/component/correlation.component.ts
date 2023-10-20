@@ -34,8 +34,7 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
                     #form="dynamicForm" (submitBt)="saveAndCalculate($event)">
       </dynamic-form>
 
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
-                     appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       <br/>
       <p
         *ngIf="timePeriod">{{'TIME_PERIOD' | translate}} {{timePeriod}} {{'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate}}</p>

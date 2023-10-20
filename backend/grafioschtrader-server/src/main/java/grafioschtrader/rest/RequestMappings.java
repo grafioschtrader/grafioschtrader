@@ -13,6 +13,7 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
 
@@ -126,6 +127,9 @@ public interface RequestMappings {
   public static final String TRANSACTION_MAP = API + Transaction.TABNAME;
 
   public static final String WATCHLIST_MAP = API + Watchlist.TABNAME;
+
+  public static final String UDFMETADATASECURITY = "udfmetadatasecurity";
+  public static final String UDF_METADATA_SECURITY_MAP = API + UDFMETADATASECURITY;
 
   public static final String USER_MAP = API + User.TABNAME;
 

@@ -1,7 +1,7 @@
 package grafioschtrader.dynamic.model;
 
 /**
- * Data type as used in the GUI. These may be different from Java's datatype.
+ * Data type as used in the GUI. These may be different from Java's data type.
  *
  */
 public enum DataType {

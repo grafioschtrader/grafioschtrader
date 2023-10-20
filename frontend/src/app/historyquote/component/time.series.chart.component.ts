@@ -99,7 +99,7 @@ interface Traces {
       </div>
       <div #chart class="plot-container">
       </div>
-      <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container" appendTo="body"></p-contextMenu>
+      <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container"></p-contextMenu>
     </div>
     <indicator-edit *ngIf="visibleTaDialog"
                     [visibleDialog]="visibleTaDialog" [taEditParam]="taEditParam"

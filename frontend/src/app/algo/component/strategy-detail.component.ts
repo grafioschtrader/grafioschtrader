@@ -67,7 +67,7 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
         optinalParams.headerSuffix = '%';
       }
       this.addFieldProperty(DataType[fDIAS.dataType], fDIAS.fieldName,
-        AppSettings.PREFIX_ALGO_FIELD + AppHelper.convertPropertyNameToUppercase(fDIAS.fieldName),
+        AppSettings.PREFIX_ALGO_FIELD + AppHelper.toUpperCaseWithUnderscore(fDIAS.fieldName),
         optinalParams);
 
     });

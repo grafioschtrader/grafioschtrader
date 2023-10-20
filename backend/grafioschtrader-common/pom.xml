@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.31.3</version>
+		<version>0.31.4</version>
 	</parent>
 
 
@@ -105,10 +105,14 @@
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>2.0.29</version>
+			<version>3.0.0</version>
 		</dependency>
 		
-		
+		<dependency>
+    		<groupId>io.hypersistence</groupId>
+    		<artifactId>hypersistence-utils-hibernate-62</artifactId>
+    		<version>3.5.2</version>
+		</dependency>
 		
 		<dependency>
       		<groupId>org.springdoc</groupId>

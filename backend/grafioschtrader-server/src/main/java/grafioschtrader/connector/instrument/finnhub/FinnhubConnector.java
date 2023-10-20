@@ -114,17 +114,18 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public String getSplitHistoricalDownloadLink(Security security) {
-    return getSplitHistoricalDownloadLink(security, LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY));
+    return getSplitHistoricalDownloadLink(security, LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY),
+        LocalDate.now());
   }
 
-  private String getSplitHistoricalDownloadLink(Security security, LocalDate from) {
+  private String getSplitHistoricalDownloadLink(Security security, LocalDate from, LocalDate to) {
     return DOMAIN_NAME_WITH_VERSION + "stock/split?symbol=" + security.getUrlSplitExtend().toUpperCase() + "&from="
-        + from + "&to=" + LocalDate.now() + "&token=" + this.getApiKey();
+        + from + "&to=" + to + "&token=" + this.getApiKey();
   }
 
   @Override
-  public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate) throws Exception {
-    URL url = new URL(getSplitHistoricalDownloadLink(security, fromDate));
+  public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate, LocalDate toDate) throws Exception {
+    URL url = new URL(getSplitHistoricalDownloadLink(security, fromDate, toDate));
     final List<Securitysplit> securitysplits = new ArrayList<>();
     final Split[] splits = objectMapper.readValue(url, Split[].class);
     for (Split split : splits) {
@@ -173,7 +174,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   private static class Quote {
     public double o;
     public double h;
-  //  public double d;
+    // public double d;
     public double dp;
     public double l;
     public double c;
@@ -183,7 +184,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   }
 
   private static class Split {
-  //  public String symbol;
+    // public String symbol;
     public Date date;
     public int fromFactor;
     public int toFactor;

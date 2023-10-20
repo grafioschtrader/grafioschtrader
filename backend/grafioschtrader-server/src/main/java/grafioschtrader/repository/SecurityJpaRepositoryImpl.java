@@ -431,23 +431,30 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
       Date fromDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
           GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC * -1);
-
-      List<Historyquote> hqConnectorList = getDataByConnnector(security, fromDate, youngestSplit.getSplitDate());
+      Date toDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
+          GlobalConstants.SPLIT_DAYS_LOOK_BACK * -1);
+          
+      
+      List<Historyquote> hqConnectorList = getDataByConnnector(security, fromDate, toDate);
       List<Historyquote> hqPersistentList = historyquoteJpaRepository.findByIdSecuritycurrencyAndDateBetweenOrderByDate(
-          security.getIdSecuritycurrency(), fromDate, youngestSplit.getSplitDate());
+          security.getIdSecuritycurrency(), fromDate, toDate);
 
       Map<Date, Historyquote> hqPersistentMap = hqPersistentList.stream()
           .collect(Collectors.toMap(Historyquote::getDate, Function.identity()));
 
+      int differentCloseCount = 0;
+      int theSameDateCount = 0;
       for (Historyquote hqConnector : hqConnectorList) {
         Historyquote hqPersistent = hqPersistentMap.get(hqConnector.getDate());
         if (hqPersistent != null) {
-          sahr.sah = hqPersistent.getClose() != hqConnector.getClose() ? SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED
-              : SplitAdjustedHistoryquotes.NOT_DETCTABLE;
-          break;
+          if (hqPersistent.getClose() != hqConnector.getClose()) {
+            differentCloseCount++;
+          }
+          theSameDateCount++;
         }
       }
-
+      sahr.sah = (differentCloseCount != theSameDateCount) ? SplitAdjustedHistoryquotes.NOT_DETCTABLE
+          : SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED;
       if (sahr.sah == SplitAdjustedHistoryquotes.NOT_DETCTABLE) {
         sahr.addDaysForNextAttempt = getNextAttemptInDaysForSplitHistorical(security, youngestSplit.getSplitDate());
       }

@@ -20,7 +20,7 @@ import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
  */
 export class DynamicFieldModelHelper {
 
-  public static createFieldsFromClassDescriptorInputAndShow(cdias: ClassDescriptorInputAndShow, labelPreffix: string,
+  public static createFieldsFromClassDescriptorInputAndShow(cdias: ClassDescriptorInputAndShow, labelPrefix: string,
                                                             addSubmitButton = false, submitText?: string): FieldFormGroup[] {
     let config: FieldFormGroup[];
     if (cdias?.constraintValidatorMap) {
@@ -31,7 +31,7 @@ export class DynamicFieldModelHelper {
           case ConstraintValidatorType.DateRange:
             const fdDate1 = cdias.fieldDescriptorInputAndShows.find(f => f.fieldName === value.startField);
             const fdDate2 = cdias.fieldDescriptorInputAndShows.find(f => f.fieldName === value.endField);
-            const fieldConfigs = this.createConfigFieldsFromDescriptor([fdDate1, fdDate2], labelPreffix, addSubmitButton, submitText);
+            const fieldConfigs = this.createConfigFieldsFromDescriptor([fdDate1, fdDate2], labelPrefix, addSubmitButton, submitText);
             const fieldFormGroup: FieldFormGroup = {formGroupName: 'dateRange' + counter, fieldConfig: fieldConfigs};
             fieldFormGroup.validation = [dateRange(fdDate1.fieldName, fdDate2.fieldName, fdDate2.fieldName)];
 
@@ -42,21 +42,21 @@ export class DynamicFieldModelHelper {
             }];
 
             const rfwg = new ReplaceFieldWithGroup(fdDate1.fieldName, fieldFormGroup, fdDate2.fieldName);
-            config = this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPreffix, addSubmitButton,
+            config = this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
               rfwg, submitText);
             break;
         }
       }
       return config;
     } else {
-      return cdias ? this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPreffix, addSubmitButton,
+      return cdias ? this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
         null, submitText) : [];
     }
   }
 
   public static ccWithFieldsFromDescriptorHeqF(fieldName: string, fieldDescriptorInputAndShows:
     FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
-    return this.ccWithFieldsFromDescriptor(fieldName, AppHelper.convertPropertyForLabelOrHeaderKey(fieldName),
+    return this.ccWithFieldsFromDescriptor(fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
       fieldDescriptorInputAndShows, fieldOptionsCc);
   }
 
@@ -67,13 +67,13 @@ export class DynamicFieldModelHelper {
   }
 
   public static createConfigFieldsFromDescriptor(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-                                                 labelPreffix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
-    return <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(fieldDescriptorInputAndShows, labelPreffix, addSubmitButton,
+                                                 labelPrefix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
+    return <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
       null, submitText);
   }
 
   public static ccFieldsFromDescriptorWithGroup(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-                                                labelPreffix: string, addSubmitButton = false,
+                                                labelPrefix: string, addSubmitButton = false,
                                                 rpg: ReplaceFieldWithGroup, submitText?: string): FieldFormGroup[] {
     const fieldConfigs: FieldFormGroup[] = [];
 
@@ -83,7 +83,7 @@ export class DynamicFieldModelHelper {
           fieldConfigs.push(rpg.fieldFormGroup);
         }
       } else {
-        const fieldConfig: FieldConfig = this.createConfigFieldFromDescriptor(fd, labelPreffix, null);
+        const fieldConfig: FieldConfig = this.createConfigFieldFromDescriptor(fd, labelPrefix, null);
         if (fieldConfig) {
           fieldConfigs.push(fieldConfig);
         }
@@ -100,7 +100,7 @@ export class DynamicFieldModelHelper {
                                                  labelKey: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
     let fieldConfig: FieldConfig;
     const targetField = fieldOptionsCc && fieldOptionsCc.targetField ? fieldOptionsCc.targetField : fd.fieldName;
-    labelKey = labelKey ? labelKey : labelPreffix + AppHelper.convertPropertyNameToUppercase(fd.fieldName);
+    labelKey = labelKey ? labelKey : labelPreffix + AppHelper.toUpperCaseWithUnderscore(fd.fieldName);
 
     switch (DataType[fd.dataType]) {
       case DataType.String:

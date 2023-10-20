@@ -27,7 +27,6 @@
         </div>
       </ng-template>
 
-
       <ng-template pTemplate="header" let-fields>
         <tr>
           <th style="width:24px"></th>
@@ -105,8 +104,7 @@
     </p-table>
 
   </div>
-  <p-contextMenu #contextMenuPCD *ngIf="contextMenuItems" [model]="contextMenuItems" [target]="cmDiv"
-                 appendTo="body"></p-contextMenu>
+  <p-contextMenu #contextMenuPCD *ngIf="contextMenuItems" [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
 </div>
 
 

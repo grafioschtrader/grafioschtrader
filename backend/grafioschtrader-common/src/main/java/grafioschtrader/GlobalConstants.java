@@ -170,7 +170,8 @@ public class GlobalConstants {
   public static final int EMAIL_VERIFICATION_EXPIRATION_MINUTES = 180;
 
   public static final double DETECT_SPLIT_ADJUSTED_FACTOR_STEP = 18.0;
-  public static final int SPLIT_DAYS_FOR_AVERAGE_CALC = 5;
+  public static final int SPLIT_DAYS_LOOK_BACK = 2;
+  public static final int SPLIT_DAYS_FOR_AVERAGE_CALC = SPLIT_DAYS_LOOK_BACK + 5;
   public static final int EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE = 4;
   public static final double ACCEPTESD_PERCENTAGE_EXCHANGE_RATE_DIFF = 8.0;
   /**

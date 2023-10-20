@@ -75,9 +75,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
                     readonly="true">{{selectedNode ? selectedNode.data.message : ""}}</textarea>
 
           <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length > 0 && isActivated()"
-                         [model]="contextMenuItems"
-                         [target]="cmDiv"
-                         appendTo="body">
+                         [model]="contextMenuItems" [target]="cmDiv">
           </p-contextMenu>
       </div>
   `,

@@ -46,8 +46,6 @@ import {GlobalSessionNames} from '../../global.session.names';
   // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
-
-  // @ViewChild('cm', {static: true}) contextMenu: ContextMenu;
   @ViewChild('cm', {static: true}) contextMenu: any;
 
   /**
@@ -196,7 +194,12 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
           label: 'IMPORTTRANSACTIONGROUP',
           data: new TypeNodeData(TreeNodeType.ImpTransTemplate, this.addMainRoute(AppSettings.IMP_TRANS_TEMPLATE_KEY),
             null, null, null)
-        }
+        },
+        // {
+        //   label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
+        //   data: new TypeNodeData(TreeNodeType.UDFMetadataSecurity, this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),
+        //     null, null, null)
+        // }
       ];
     this.setLangTransNode(this.portfolioTrees[this.BASEDATA_INDEX]);
   }
@@ -280,7 +283,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     const securityAccountNode: TreeNode = {
       expanded: true,
       data: new TypeNodeData(TreeNodeType.SecurityaccountRoot,
-        this.addMainRoute((portfolio.securityaccountList.length > 0) ? AppSettings.SECURITYACCOUNT_SUMMERIES_ROUTE_KEY :
+        this.addMainRoute((portfolio.securityaccountList.length > 0) ? AppSettings.SECURITYACCOUNT_SUMMARIES_ROUTE_KEY :
           AppSettings.SECURITYACCOUNT_EMPTY_ROUTE_KEY),
         portfolio.idPortfolio, null, portfolioJson),
       children: this.addSecurityaccountsToTree(portfolioJson, portfolio.securityaccountList)

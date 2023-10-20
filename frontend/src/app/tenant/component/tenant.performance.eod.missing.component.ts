@@ -58,7 +58,7 @@ import {AppSettings} from '../../shared/app.settings';
         (changedSecurity)="handleChangedSecurity($event)">
       </tenant-performance-eod-missing-table>
 
-      <p-contextMenu *ngIf="contextMenuItems" #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body">
+      <p-contextMenu *ngIf="contextMenuItems" #contextMenu [model]="contextMenuItems" [target]="cmDiv">
       </p-contextMenu>
     </div>
   `

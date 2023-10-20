@@ -44,8 +44,7 @@ import {FieldConfig} from '../../dynamic-form/models/field.config';
                     #form="dynamicForm">
       </dynamic-form>
 
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
-                     appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       <br/>
       <securityaccount-import-transaction-table></securityaccount-import-transaction-table>
     </div>
@@ -69,7 +68,7 @@ export class SecurityaccountImportTransactionComponent
 
   private static readonly MAIN_FIELD = 'idTransactionHead';
 
-  // Access child components
+  // Access child component
   @ViewChild(SecurityaccountImportTransactionTableComponent, {static: true}) sitdc: SecurityaccountImportTransactionTableComponent;
 
   // Child Dialogs

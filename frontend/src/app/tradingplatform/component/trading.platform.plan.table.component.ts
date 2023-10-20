@@ -49,8 +49,7 @@ import {AppSettings} from '../../shared/app.settings';
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
-                     appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
     </div>
     <trading-platform-plan-edit *ngIf="visibleDialog"
                                 [visibleDialog]="visibleDialog"

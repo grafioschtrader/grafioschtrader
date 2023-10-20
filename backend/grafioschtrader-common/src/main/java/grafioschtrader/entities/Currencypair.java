@@ -22,10 +22,7 @@ import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
-/**
- *
- * @author Hugo Graf
- */
+
 @Entity
 @Table(name = Currencypair.TABNAME)
 @DiscriminatorValue("C")

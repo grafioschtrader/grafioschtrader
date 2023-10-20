@@ -20,9 +20,9 @@ export class SendRecvForwardTabMenuComponent implements OnInit {
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
     this.items = [
-      {label: AppHelper.convertPropertyNameToUppercase(AppSettings.MAIL_SEND_RECV), command: (event) => this.navigateToChangeRequest(true)},
+      {label: AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SEND_RECV), command: (event) => this.navigateToChangeRequest(true)},
       {
-        label: AppHelper.convertPropertyNameToUppercase(AppSettings.MAIL_SETTING_FORWARD),
+        label: AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SETTING_FORWARD),
         command: (event) => this.router.navigate([AppSettings.MAIL_SETTING_FORWARD_KEY],
           {relativeTo: this.activatedRoute})
       }
