@@ -73,16 +73,20 @@ export class AppHelper {
   }
 
   /**
-   * Returns 'ABC_DEF_GH' from 'abcDefGh', and TRANSACTION_GAIN_LOSS_MC from 'transactionGainLossMC'
+   * Transform
+   * - abcDefGh -> ABC_DEF_GH
+   * - transactionGainLossMC -> TRANSACTION_GAIN_LOSS_MC
+   * - UDFMetadataSecurity -> UDF_METADATA_SECURITY
    */
-  public static convertPropertyNameToUppercase(upperLower: string): string {
+  public static toUpperCaseWithUnderscore(upperLower: string): string {
     let startPoint = upperLower.indexOf('.');
     startPoint = startPoint < 0 ? 0 : startPoint + 1;
-    return upperLower.substring(startPoint).replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
+    let str =  upperLower.substring(startPoint).replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    return str.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
   }
 
-  public static convertPropertyForLabelOrHeaderKey(upperLower: string): string {
-    return this.convertPropertyNameToUppercase(upperLower.replace(this.fieldToLabelRegex, ''));
+  public static removeSomeStringAndToUpperCaseWithUnderscore(upperLower: string): string {
+    return this.toUpperCaseWithUnderscore(upperLower.replace(this.fieldToLabelRegex, ''));
   }
 
   public static invisibleAndHide(fieldConfig: FieldConfig, hide: boolean): void {

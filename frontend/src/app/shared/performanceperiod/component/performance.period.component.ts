@@ -266,7 +266,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
         if (i === 0) {
           // Create the trace
           trace = PlotlyHelper.initializeChartTrace(key, 'scatter', 'lines');
-          this.translateService.get(AppHelper.convertPropertyForLabelOrHeaderKey(key))
+          this.translateService.get(AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(key))
             .subscribe(translated => trace.name = translated);
           this.chartData.push(trace);
         } else {

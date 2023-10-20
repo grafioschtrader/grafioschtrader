@@ -149,8 +149,8 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
 
   private sendResponseToMessage(): void {
     const mailReplayLine = 'MAIL_REPLY_LINE';
-    const idUserFrom = AppHelper.convertPropertyForLabelOrHeaderKey(this.ID_USER_FROM);
-    const subject = AppHelper.convertPropertyForLabelOrHeaderKey(this.SUBJECT);
+    const idUserFrom = AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(this.ID_USER_FROM);
+    const subject = AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(this.SUBJECT);
 
     this.translateService.get([mailReplayLine, idUserFrom, subject]).subscribe(
       replyLines => {

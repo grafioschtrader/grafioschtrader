@@ -59,6 +59,7 @@ import {SendRecvTreetableComponent} from './mail/component/send.recv.treetable.c
 import {adminGuard, authGuard} from './shared/service/guards.definition';
 import {SendRecvForwardTabMenuComponent} from './mail/component/send.recv.forward.tab.menu.component';
 import {MailForwardSettingTableComponent} from './mail/component/mail.forward.setting.table.component';
+import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf.metadata.security.table.component';
 
 
 const APP_ROUTES: Routes = [
@@ -124,7 +125,7 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
       {
-        path: AppSettings.SECURITYACCOUNT_SUMMERIES_ROUTE_KEY + '/:id',
+        path: AppSettings.SECURITYACCOUNT_SUMMARIES_ROUTE_KEY + '/:id',
         component: SecurityaccountSummariesComponent,
         canActivate: [authGuard]
       },
@@ -211,6 +212,11 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.IMP_TRANS_TEMPLATE_KEY,
         component: ImportTransactionTemplateComponent,
+        canActivate: [authGuard]
+      },
+      {
+        path:  AppSettings.UDF_METADATA_SECURITY_KEY,
+        component: UDFMetadataSecurityTableComponent,
         canActivate: [authGuard]
       },
       // Admin data

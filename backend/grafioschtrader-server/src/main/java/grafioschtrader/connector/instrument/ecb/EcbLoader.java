@@ -32,11 +32,12 @@ import grafioschtrader.repository.EcbExchangeRatesRepository;
  */
 public class EcbLoader {
 
-  private static final String SOURCE_URL = "https://www.ecb.europa.eu/stats/eurofxref/";
+  static final String ECB_BASE_URL = "https://www.ecb.europa.eu/stats/eurofxref/";
+  static final String ECB_SINGLE_DAY_EXTEND = "eurofxref-daily.xml";
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   public void update(EcbExchangeRatesRepository ecbExchangeRatesRepository) {
-    String volumeRequestUrlPart = "eurofxref-daily.xml";
+    String volumeRequestUrlPart = ECB_SINGLE_DAY_EXTEND;
 
     Date youngestDate = ecbExchangeRatesRepository.getMaxDate();
     Date yesterDay = DateHelper.setTimeToZeroAndAddDay(new Date(), -1);
@@ -66,7 +67,7 @@ public class EcbLoader {
       String volumeRequestUrlPart) throws Exception {
     HttpURLConnection connection = null;
     try {
-      URL feedUrl = new URI(SOURCE_URL + volumeRequestUrlPart).toURL();
+      URL feedUrl = new URI(ECB_BASE_URL + volumeRequestUrlPart).toURL();
       connection = (HttpURLConnection) feedUrl.openConnection();
       InputStream input = connection.getInputStream();
       XMLInputFactory factory = XMLInputFactory.newInstance();

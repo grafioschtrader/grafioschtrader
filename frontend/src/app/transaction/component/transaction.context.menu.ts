@@ -80,7 +80,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
     this.visibleConnectDebitCreditDialog = true;
   }
 
-  afterDelete(transaction): void {
+  afterDelete(transaction: Transaction): void {
     this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED,
       this.getSecurity(transaction)));
   }

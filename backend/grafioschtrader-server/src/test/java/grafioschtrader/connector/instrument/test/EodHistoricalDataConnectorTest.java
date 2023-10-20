@@ -143,27 +143,10 @@ public class EodHistoricalDataConnectorTest {
     });
   }
   
+
   @Test
-  void getSplitsTest() {
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-
-    final List<Security> securities = new ArrayList<>();
-    securities.add(ConnectorTestHelper.createSplitSecurity("Nestlé", "NESN.SW"));
-    securities.add(ConnectorTestHelper.createSplitSecurity("Apple", "AAPL"));
-
-    securities.parallelStream().forEach(security -> {
-      List<Securitysplit> seucritysplitList = new ArrayList<>();
-      try {
-        seucritysplitList = eodHistoricalDataConnector.getSplitHistory(security, from);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      seucritysplitList.forEach(System.out::println);
-      assertThat(seucritysplitList.size()).isGreaterThanOrEqualTo(1);
-    });
-
+  void getSplitsTest() throws ParseException {
+    ConnectorTestHelper.standardSplitTest(eodHistoricalDataConnector);
   }
   
   private List<SecurityHisoricalDate> getHistoricalSecurities() {

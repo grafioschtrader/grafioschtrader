@@ -29,6 +29,7 @@ import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.SecuritysplitDeleteAndCreateMultiple;
+import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.ProposeChangeEntity;
 import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.entities.Security;
@@ -63,6 +64,9 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
   @Autowired(required = false)
   private List<IFeedConnector> feedConnectors = new ArrayList<>();
 
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  
   @Override
   public Map<Integer, List<Securitysplit>> getSecuritysplitMapByIdTenant(final Integer idTenant) {
     return getMapForList(securitysplitJpaRepository.getByIdTenant(idTenant));
@@ -138,7 +142,6 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
       taskDataChangeJpaRepository
           .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
-
     } else {
       // User can't change splits directly if another user created the security ->
       // create a proposal change
@@ -164,7 +167,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
       IFeedConnector connector = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
           security.getIdConnectorSplit(), IFeedConnector.FeedSupport.SPLIT);
       List<Securitysplit> securitysplitsRead = connector.getSplitHistory(security,
-          LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY));
+          LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), getSplitToDate());
       updateSplitData(security, securitysplitsRead, requestedSplitdate);
       retrySplitLoad = 0;
     } catch (ParseException pe) {
@@ -178,6 +181,14 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
     security.setRetrySplitLoad(retrySplitLoad);
     securityJpaRepository.save(security);
     return errorMessages;
+  }
+  
+  private LocalDate getSplitToDate() {
+    Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
+        .findById(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
+    
+    return gpLastAppend.isPresent()? gpLastAppend.get().getPropertyDate(): LocalDate.now().minusDays(1);
+   
   }
 
   private void updateSplitData(Security security, List<Securitysplit> securitysplitsRead, Date requestedSplitdate)
@@ -223,13 +234,11 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
             .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
                 LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
       }
-    } else {
+    } else if(security.getFullLoadTimestamp() != null) {
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
           TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(sahr.addDaysForNextAttempt),
           security.getIdSecuritycurrency(), Security.class.getSimpleName()));
-
     }
-
   }
 
 }

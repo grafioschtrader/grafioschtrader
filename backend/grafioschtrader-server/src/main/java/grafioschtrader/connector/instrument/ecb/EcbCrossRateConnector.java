@@ -8,17 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedIdentifier;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
-import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.repository.EcbExchangeRatesRepository;
@@ -44,6 +40,11 @@ public class EcbCrossRateConnector extends BaseFeedConnector {
   }
 
   @Override
+  public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
+    return EcbLoader.ECB_BASE_URL + EcbLoader.ECB_SINGLE_DAY_EXTEND;
+  }
+    
+  @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws IOException, ParseException, InterruptedException {
     List<CalcRates> calcRates = null;
@@ -62,7 +63,6 @@ public class EcbCrossRateConnector extends BaseFeedConnector {
       historyquotes.add(new Historyquote(currencyPair.getIdSecuritycurrency(), HistoryquoteCreateType.CONNECTOR_CREATED,
           calcRate.getDate(), calcRate.getRate()));
     }
-
     return historyquotes;
   }
 

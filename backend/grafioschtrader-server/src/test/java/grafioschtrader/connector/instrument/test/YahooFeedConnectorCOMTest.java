@@ -1,6 +1,7 @@
 package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.from;
 
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SplitCount;
 import grafioschtrader.connector.instrument.yahoo.YahooFeedConnectorCOM;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
@@ -141,28 +143,8 @@ class YahooFeedConnectorCOMTest {
   }
 
   @Test
-  void getSplitsTest() {
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-
-    final List<Security> securities = new ArrayList<>();
-    securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-    securities.add(createSecurity("csco", "America/New_York", GlobalConstants.MC_USD,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-
-    securities.parallelStream().forEach(security -> {
-      List<Securitysplit> seucritysplitList = new ArrayList<>();
-      try {
-        seucritysplitList = yahooFeedConnector.getSplitHistory(security, from);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      seucritysplitList.forEach(System.out::println);
-      assertThat(seucritysplitList.size()).isGreaterThanOrEqualTo(1);
-    });
-
+  void getSplitsTest() throws ParseException {
+    ConnectorTestHelper.standardSplitTest(yahooFeedConnector);
   }
 
   @Test

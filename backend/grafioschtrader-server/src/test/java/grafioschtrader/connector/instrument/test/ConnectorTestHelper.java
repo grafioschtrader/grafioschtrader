@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -11,10 +14,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SplitCount;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -22,6 +28,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 public class ConnectorTestHelper {
 
   final static SimpleDateFormat sdf = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+
 
   public static void checkHistoryquoteUniqueDate(String name, List<Historyquote> historyquotes) {
     Set<Date> dateSet = new HashSet<>();
@@ -169,6 +176,26 @@ public class ConnectorTestHelper {
     return security;
   }
 
+  
+  public static void standardSplitTest(BaseFeedConnector baseFeedConnector) throws ParseException {
+    List<SplitCount> splitCount = new ArrayList<>();
+      splitCount.add(new SplitCount("Apple Inc", "AAPL", 3, "2000-01-03", "2014-06-09" ));
+    splitCount.add(new SplitCount("Apple Inc", "AAPL", 4, "2000-01-03", "2023-06-09" ));
+    splitCount.add(new SplitCount("NIKE", "NKE", 3, "2007-04-03", "2023-06-09" ));
+    splitCount.add(new SplitCount("NIKE", "NKE", 3, "2000-01-03", "2023-06-09" ));
+    
+    splitCount.parallelStream().forEach(sc -> {
+      List<Securitysplit> seucritysplitList = new ArrayList<>();
+      try {
+        seucritysplitList = baseFeedConnector.getSplitHistory(sc.security, sc.from, sc.to);
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+      assertThat(seucritysplitList.size()).isEqualTo(sc.expectedRows);
+    });
+  }
+  
+  
   private static enum ExtendKind {
     EOD, INTRA, DIVIDEND, SPLIT;
   }
@@ -182,6 +209,19 @@ public class ConnectorTestHelper {
       this.expectedRows = expectedRows;
       this.from = sdf.parse(fromStr);
       this.to = sdf.parse(toStr);
+    }
+    
+  }
+  
+  public static class HisoricalDateLocalDate {
+    public int expectedRows;
+    public LocalDate from;
+    public LocalDate to;
+    
+    public HisoricalDateLocalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
+      this.expectedRows = expectedRows;
+      this.from = LocalDate.parse(fromStr);
+      this.to = LocalDate.parse(toStr);
     }
     
   }
@@ -241,5 +281,33 @@ public class ConnectorTestHelper {
     }
     
   }
+  
+  
+  
+ public static class SplitCount extends DividendSplitCount {
+    public SplitCount(String name, String urlSplitExtend, int expectedRows, String fromStr, String toStr ) throws ParseException {
+      super(name, expectedRows, fromStr, toStr);
+      security.setUrlSplitExtend(urlSplitExtend);
+    }
+  }
 
+  public static class DividendCount extends DividendSplitCount {
+    
+    public DividendCount(String name, String urlDividendExtend, int expectedRows, String fromStr, String toStr ) throws ParseException {
+      super(name, expectedRows, fromStr, toStr);
+      security.setUrlDividendExtend(urlDividendExtend);
+    }
+    
+  }
+  
+  public static abstract class DividendSplitCount extends HisoricalDateLocalDate {
+    public Security security = new Security();
+    
+    public DividendSplitCount(String name, int expectedRows, String fromStr, String toStr ) throws ParseException {
+      super(expectedRows, fromStr, toStr);
+      security.setName(name);
+    }
+    
+  }
+  
 }

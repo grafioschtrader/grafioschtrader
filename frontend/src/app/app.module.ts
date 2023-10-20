@@ -321,6 +321,9 @@ import {
   WatchlistAddEditPriceProblemInstrumentComponent
 } from './watchlist/component/watchlist-add-edit-price-problem-instrument.component';
 import {NgxCurrencyDirective} from 'ngx-currency';
+import {UDFMetadataSecurityService} from './shared/udfmeta/service/udf.metadata.security.service';
+import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf.metadata.security.table.component';
+import {UDFMetadataSecurityEditComponent} from './shared/udfmeta/components/udf-metadata-security-edit.component';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -368,10 +371,10 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TimeSeriesChartComponent, TradingCalendarGlobalComponent, TradingCalendarStockexchangeComponent,
     TradingPlatformPlanTableComponent, TradingPlatformPlanEditComponent, TransactionCashaccountConnectDebitCreditComponent,
     TransactionCashaccountEditDoubleComponent, TransactionCashaccountEditSingleComponent, TransactionCashaccountTableComponent,
-    TransactionSecurityEditComponent, TransactionSecurityTableComponent, TransformPdfToTxtDialogComponent,
-    UploadFileDialogComponent, UserEditComponent, UserEntityChangeLimitEditComponent, UserEntityChangeLimitTableComponent,
-    UserTableComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
-    CorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent,
+    TransactionSecurityEditComponent, TransactionSecurityTableComponent, TransformPdfToTxtDialogComponent, UDFMetadataSecurityTableComponent,
+    UDFMetadataSecurityEditComponent, UploadFileDialogComponent, UserEditComponent, UserEntityChangeLimitEditComponent,
+    UserEntityChangeLimitTableComponent, UserTableComponent, WatchlistAddInstrumentComponent,
+    WatchlistAddInstrumentTableComponent, CorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent,
     SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent, WatchlistAddEditPriceProblemInstrumentComponent,
     WatchlistPerformanceComponent, WatchlistTabMenuComponent, WatchlistDividendSplitFeedComponent,
     WatchlistSecuritysplitTableComponent, WatchlistDividendTableComponent, YourProposalTableComponent
@@ -455,8 +458,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     MultipleRequestToOneService, TaskDataChangeService, CorrelationSetService, ConnectorApiKeyService,
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,
-    TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UserAdminService,
-    UserEntityChangeLimitService, UserSettingsService, ViewSizeChangedService,
+    TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UDFMetadataSecurityService,
+    UserAdminService, UserEntityChangeLimitService, UserSettingsService, ViewSizeChangedService,
     WatchlistService],
   bootstrap: [AppComponent]
 })

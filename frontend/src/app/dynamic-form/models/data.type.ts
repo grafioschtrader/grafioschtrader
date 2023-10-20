@@ -83,7 +83,13 @@ export enum DataType {
    */
   Files = 15,
 
+  /**
+   * Date and time without conversion to from number.
+   */
   DateTimeString = 16,
 
+  /**
+   * Date and time including seconds without conversion from a number.
+   */
   DateTimeSecondString = 17
 }

@@ -11,9 +11,6 @@ import jakarta.persistence.Transient;
  * Only surrogate key with Integer type is supported, since some public data
  * changes may be only a proposal. It would be complicated to save composite key
  * in the {@link ProposeChangeEntity}.
- *
- * @author Hugo Graf
- *
  */
 public abstract class BaseID {
 

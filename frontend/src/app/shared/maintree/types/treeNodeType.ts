@@ -14,6 +14,7 @@ export enum TreeNodeType {
   Stockexchange,
   TradingPlatformPlan,
   ImpTransTemplate,
+  UDFMetadataSecurity,
   NO_MENU
 }
 

@@ -41,7 +41,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               private taskDataChangeService: TaskDataChangeService) {
-    super(HelpIds.HELP_TASK_DATA_CHANGE_MONITOR, AppHelper.convertPropertyNameToUppercase(AppSettings.TASK_DATE_CHANGE),
+    super(HelpIds.HELP_TASK_DATA_CHANGE_MONITOR, AppHelper.toUpperCaseWithUnderscore(AppSettings.TASK_DATE_CHANGE),
       translateService, gps, messageToastService, taskDataChangeService);
   }
 

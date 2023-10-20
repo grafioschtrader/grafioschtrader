@@ -245,7 +245,7 @@ public interface IFeedConnector {
    * @return
    * @throws Exception
    */
-  List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate) throws Exception;
+  List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate, LocalDate toDate) throws Exception;
 
   class Description {
 

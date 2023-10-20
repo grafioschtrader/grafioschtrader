@@ -47,7 +47,7 @@ export class MailForwardSettingEditComponent extends SimpleEntityEditBase<MailSe
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               mailSettingForwardService: MailSettingForwardService) {
-    super(HelpIds.HELP_MESSAGE_SYSTEM, AppHelper.convertPropertyNameToUppercase(AppSettings.MAIL_SETTING_FORWARD),
+    super(HelpIds.HELP_MESSAGE_SYSTEM, AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SETTING_FORWARD),
       translateService, gps, messageToastService, mailSettingForwardService);
   }
 

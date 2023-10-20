@@ -53,7 +53,7 @@ export abstract class ShowRecordConfigBase {
    */
   addColumnFeqH(dataType: DataType, field: string, visible: boolean = true, changeVisibility: boolean = true,
                 optionalParams?: OptionalParams): ColumnConfig {
-    return this.addColumnToFields(this.fields, dataType, field, AppHelper.convertPropertyForLabelOrHeaderKey(field), visible,
+    return this.addColumnToFields(this.fields, dataType, field, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field), visible,
       changeVisibility, optionalParams);
   }
 
@@ -101,7 +101,7 @@ export abstract class ShowRecordConfigBase {
 
   insertColumnFeqH(index: number, dataType: DataType, field: string, visible: boolean, changeVisibility: boolean,
                    optionalParams?: OptionalParams): ColumnConfig {
-    return this.insertColumn(index, dataType, field, AppHelper.convertPropertyForLabelOrHeaderKey(field), visible,
+    return this.insertColumn(index, dataType, field, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field), visible,
       changeVisibility, optionalParams);
   }
 

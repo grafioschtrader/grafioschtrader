@@ -208,7 +208,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     JSONObject jsonObject = new JSONObject();
     for (Entry<Object, Object> entry : properties.entrySet()) {
       String key = entry.getKey().toString();
-      jsonObject.put(key.startsWith("gt.") ? key : key.toUpperCase().replaceAll("\\.", "_"), entry.getValue());
+      jsonObject.put(key.startsWith("gt.") || key.startsWith("UDF_") ? key : key.toUpperCase().replaceAll("\\.", "_"), entry.getValue());
     }
     return jsonObject.toString();
   }

@@ -406,7 +406,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   @Override
-  public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate) throws Exception {
+  public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate, LocalDate toDate) throws Exception {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 

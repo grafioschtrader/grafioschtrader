@@ -80,8 +80,7 @@ import {StockexchangeHelper} from './stockexchange.helper';
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems && isActivated()" [target]="cmDiv" [model]="contextMenuItems"
-                     appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems && isActivated()" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
     </div>
 
     <stockexchange-edit *ngIf="visibleDialog" [visibleDialog]="visibleDialog"

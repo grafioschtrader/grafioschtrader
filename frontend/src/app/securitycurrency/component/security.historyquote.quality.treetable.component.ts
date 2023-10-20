@@ -74,7 +74,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
                                            [groupTitle]="groupTitle"
                                            (changedIdSecurity)="handleChangedIdSecurity($event)">
       </security-historyquote-quality-table>
-      <p-contextMenu *ngIf="contextMenuItems" #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body">
+      <p-contextMenu *ngIf="contextMenuItems" #contextMenu [model]="contextMenuItems" [target]="cmDiv">
       </p-contextMenu>
     </div>
   `,

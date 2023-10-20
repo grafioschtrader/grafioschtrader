@@ -81,7 +81,7 @@ export class TranslateHelper {
   public static createTranslatedValueStore(translateService: TranslateService, fields: ColumnConfig[], data: any[]): void {
     const columnConfigs = fields.filter(columnConfig => !!columnConfig.translateValues);
     if (columnConfigs.length > 0) {
-      data.forEach(datavalue => TranslateHelper.createTranslatedValueStoreForTranslation(translateService, columnConfigs, datavalue));
+      data.forEach(dataValue => TranslateHelper.createTranslatedValueStoreForTranslation(translateService, columnConfigs, dataValue));
       columnConfigs.forEach(columnConfig => columnConfig.fieldTranslated = columnConfig.field + AppSettings.FIELD_SUFFIX);
     }
   }

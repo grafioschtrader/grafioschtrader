@@ -155,12 +155,11 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     return "https://finance.yahoo.com/quote/" + symbol + "/history?p=" + symbol;
   }
 
- 
   private <T extends Securitycurrency<T>> void readLastPriceWithCrumb(String urlStr, final T securitycurrency)
       throws ClientProtocolException, IOException {
-   
+
     boolean success = false;
-    for(int i = 0; i <= 2 && !success; i++){
+    for (int i = 0; i <= 2 && !success; i++) {
       i++;
       HttpClient client = HttpClientBuilder.create()
           .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
@@ -175,34 +174,36 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
       if (urlStr.startsWith(DOMAIN_NAME_WITH_10_VERSION)) {
         success = processV10LastPrice(entity.getContent(), securitycurrency);
-      } else {;
-         success = processV7LastPrice(entity.getContent(), securitycurrency);
-      }   
-      
-      if(!success) {
+      } else {
+        ;
+        success = processV7LastPrice(entity.getContent(), securitycurrency);
+      }
+
+      if (!success) {
         CrumbManager.resetCookieCrumb();
       }
     }
   }
-  
-  private <T extends Securitycurrency<T>> boolean processV7LastPrice(InputStream is, final T securitycurrency) throws StreamReadException, DatabindException, IOException {
+
+  private <T extends Securitycurrency<T>> boolean processV7LastPrice(InputStream is, final T securitycurrency)
+      throws StreamReadException, DatabindException, IOException {
     Quote quote = objectMapper.readValue(is, Quote.class);
-    if(quote.quoteResponse != null) {
+    if (quote.quoteResponse != null) {
       setQuoteResult(quote, securitycurrency);
       return true;
     }
     return false;
   }
-  
-  private <T extends Securitycurrency<T>> boolean processV10LastPrice(InputStream is, final T securitycurrency) throws StreamReadException, DatabindException, IOException {
+
+  private <T extends Securitycurrency<T>> boolean processV10LastPrice(InputStream is, final T securitycurrency)
+      throws StreamReadException, DatabindException, IOException {
     final QuoteSummaryV10 quoteSummary = objectMapper.readValue(is, QuoteSummaryV10.class);
-    if(quoteSummary.quoteSummary != null) {
+    if (quoteSummary.quoteSummary != null) {
       setQuoteSummary(quoteSummary, securitycurrency);
       return true;
     }
     return false;
   }
-  
 
   private <T extends Securitycurrency<T>> void setQuoteSummary(final QuoteSummaryV10 quoteSummary,
       final T securitycurrency) {
@@ -351,64 +352,67 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public String getDividendHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security.getUrlSplitExtend(),
-        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), DIVDEND_EVENT);
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), LocalDate.now(), DIVDEND_EVENT);
   }
 
   @Override
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
     double divider = FeedConnectorHelper.getGBXLondonDivider(security);
-    return getDividendSplitHistory(security, fromDate, DIVDEND_EVENT, (in, idSecurity, dividends, currency) -> {
-      String inputLine = in.readLine();
-      while ((inputLine = in.readLine()) != null) {
-        if (!Character.isDigit(inputLine.charAt(0))) {
-          continue;
-        }
-        String[] values = inputLine.split(",");
-        LocalDate exdDate = LocalDate.parse(values[0]);
-        Double amountAdjusted = Double.parseDouble(values[1]);
-        if (amountAdjusted > 0.0) {
-          dividends.add(new Dividend(idSecurity, exdDate, null, null, amountAdjusted / divider, currency,
-              CreateType.CONNECTOR_CREATED));
-        }
-      }
-    });
+    return getDividendSplitHistory(security, fromDate, LocalDate.now(), DIVDEND_EVENT,
+        (in, idSecurity, dividends, currency) -> {
+          String inputLine = in.readLine();
+          while ((inputLine = in.readLine()) != null) {
+            if (!Character.isDigit(inputLine.charAt(0))) {
+              continue;
+            }
+            String[] values = inputLine.split(",");
+            LocalDate exdDate = LocalDate.parse(values[0]);
+            Double amountAdjusted = Double.parseDouble(values[1]);
+            if (amountAdjusted > 0.0) {
+              dividends.add(new Dividend(idSecurity, exdDate, null, null, amountAdjusted / divider, currency,
+                  CreateType.CONNECTOR_CREATED));
+            }
+          }
+        });
   }
 
   @Override
   public String getSplitHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security.getUrlSplitExtend(),
-        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), SPLIT_EVENT);
+        LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), LocalDate.now(), SPLIT_EVENT);
   }
 
-  private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, String event) {
+  private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, LocalDate toDate, String event) {
     return String.format(
         DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=" + event
             + "&includeAdjustedClose=true",
-        symbol, DateHelper.LocalDateToEpocheSeconds(fromDate), new Date().getTime() / 1000 + 23 * 60 * 60);
+        symbol, DateHelper.LocalDateToEpocheSeconds(fromDate), DateHelper.LocalDateToEpocheSeconds(toDate) + (24*60*60) - 1);
   }
 
   @Override
-  public List<Securitysplit> getSplitHistory(final Security security, LocalDate fromDate) throws Exception {
-    return getDividendSplitHistory(security, fromDate, SPLIT_EVENT, (in, idSecurity, securitysplits, currency) -> {
-      final SimpleDateFormat dateFormatSplit = new SimpleDateFormat(DATE_FORMAT_SPLIT, Locale.US);
-      FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
-      String inputLine = in.readLine();
-      while ((inputLine = in.readLine()) != null) {
-        if (!Character.isDigit(inputLine.charAt(0))) {
-          continue;
-        }
-        String[] values = inputLine.split(",");
-        Date splitDate = dateFormatSplit.parse(values[0]);
-        String fractionStr = values[1].replace(":", "/").replaceAll("\\s+", "");
-        Fraction fraction = fractionFormat.parse(fractionStr);
-        securitysplits.add(new Securitysplit(idSecurity, splitDate, fraction.getDenominator(), fraction.getNumerator(),
-            CreateType.CONNECTOR_CREATED));
-      }
-    });
+  public List<Securitysplit> getSplitHistory(final Security security, LocalDate fromDate, LocalDate toDate)
+      throws Exception {
+    return getDividendSplitHistory(security, fromDate, toDate, SPLIT_EVENT,
+        (in, idSecurity, securitysplits, currency) -> {
+          final SimpleDateFormat dateFormatSplit = new SimpleDateFormat(DATE_FORMAT_SPLIT, Locale.US);
+          FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
+          String inputLine = in.readLine();
+          while ((inputLine = in.readLine()) != null) {
+            if (!Character.isDigit(inputLine.charAt(0))) {
+              continue;
+            }
+            String[] values = inputLine.split(",");
+            Date splitDate = dateFormatSplit.parse(values[0]);
+            String fractionStr = values[1].replace(":", "/").replaceAll("\\s+", "");
+            Fraction fraction = fractionFormat.parse(fractionStr);
+            securitysplits.add(new Securitysplit(idSecurity, splitDate, fraction.getDenominator(),
+                fraction.getNumerator(), CreateType.CONNECTOR_CREATED));
+          }
+        });
   }
 
-  private <S> List<S> getDividendSplitHistory(Security security, LocalDate fromDate, String event, IReadData<S> reader)
-      throws Exception {
+  private <S> List<S> getDividendSplitHistory(Security security, LocalDate fromDate, LocalDate toDate, String event,
+      IReadData<S> reader) throws Exception {
     List<S> records = new ArrayList<>();
     CookieStore cookieStore = new BasicCookieStore();
     HttpClient client = HttpClientBuilder.create()
@@ -419,7 +423,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         event.equals(SPLIT_EVENT) ? security.getUrlSplitExtend() : security.getUrlDividendExtend(),
         StandardCharsets.UTF_8);
 
-    String url = this.getSplitHistoricalDownloadLink(symbol, fromDate, event);
+    String url = this.getSplitHistoricalDownloadLink(symbol, fromDate, toDate, event);
     HttpGet request = new HttpGet(url);
     request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
 

@@ -79,7 +79,7 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
           </tr>
         </ng-template>
       </p-treeTable>
-      <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body"></p-contextMenu>
+      <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
       <strategy-detail *ngIf="algoStrategyShowParamCall.algoStrategy"
                        [algoStrategyParamCall]="algoStrategyShowParamCall">
       </strategy-detail>
@@ -217,7 +217,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   }
 
   handleDeleteEntity<T extends BaseID>(entity: T, deleteService: DeleteService): void {
-    const entityMsg = AppHelper.convertPropertyNameToUppercase(entity.constructor.name);
+    const entityMsg = AppHelper.toUpperCaseWithUnderscore(entity.constructor.name);
 
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + entityMsg, () => {

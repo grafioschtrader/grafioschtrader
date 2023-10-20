@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
@@ -23,11 +25,16 @@ public abstract class ImportTransactionHelperPdf {
    * @throws IOException
    */
   public static String transFormPDFToTxt(InputStream is) throws IOException {
-    try (PDDocument document = PDDocument.load(is)) {
+    String text = null;
+    try (RandomAccessReadBuffer randomAccessRead = new RandomAccessReadBuffer(is)) {
+      PDDocument document = Loader.loadPDF(randomAccessRead);
       PDFTextStripper textStripper = new PDFTextStripper();
       textStripper.setSortByPosition(true);
-      return textStripper.getText(document);
+      text = textStripper.getText(document);
+      document.close();
     }
+    
+    return text;
   }
 
   /**

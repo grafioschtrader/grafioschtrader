@@ -27,9 +27,8 @@ import {AppSettings} from '../../shared/app.settings';
   selector: 'assetclass-edit',
   template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
+              [style]="{width: '500px'}" (onShow)="onShow($event)" (onHide)="onHide($event)"
+              [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
@@ -59,7 +58,7 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectString('categoryType', AppSettings.ASSETCLASS.toUpperCase(), true),
+      DynamicFieldHelper.createFieldSelectString(AppSettings.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true),
       DynamicFieldHelper.createFieldSuggestionInputString('en', 'SUB_ASSETCLASS', 64, true,
         {dataproperty: 'subCategoryNLS.map.en', labelSuffix: 'EN', suggestionsFN: this.filterSuggestionsEN.bind(this)}),
       DynamicFieldHelper.createFieldSuggestionInputString('de', 'SUB_ASSETCLASS', 64, true,

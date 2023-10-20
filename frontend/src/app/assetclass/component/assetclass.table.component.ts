@@ -66,8 +66,7 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"
-                     appendTo="body"></p-contextMenu>
+      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
     </div>
 
     <assetclass-edit *ngIf="visibleDialog"
@@ -80,10 +79,7 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
   providers: [DialogService]
 })
 export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> implements OnDestroy {
-
   callParam: AssetclassCallParam = new AssetclassCallParam();
-
-  readonly categoryType = 'categoryType';
 
   constructor(private assetclassService: AssetclassService,
               private productIconService: ProductIconService,
@@ -98,7 +94,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
     super(AppSettings.ASSETCLASS, assetclassService, confirmationService, messageToastService,
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
 
-    this.addColumn(DataType.String, this.categoryType, AppSettings.ASSETCLASS.toUpperCase(), true, false,
+    this.addColumn(DataType.String, AppSettings.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true, false,
       {translateValues: TranslateValue.NORMAL, templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'assetclassIcon', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getAssetclassIcon.bind(this), templateName: 'icon', width: 25});
@@ -107,7 +103,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
     this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false,
       {translateValues: TranslateValue.NORMAL});
 
-    this.multiSortMeta.push({field: this.categoryType, order: 1});
+    this.multiSortMeta.push({field: AppSettings.CATEGORY_TYPE, order: 1});
     this.prepareTableAndTranslate();
   }
 

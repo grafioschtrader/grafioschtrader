@@ -250,7 +250,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   onRightClick(event): void {
-    this.isActivated() ? this.contextMenu.show() : this.hideContextMenu();
+  //  this.isActivated() ? this.contextMenu.show() : this.hideContextMenu();
   }
 
   onComponentClick(event): void {

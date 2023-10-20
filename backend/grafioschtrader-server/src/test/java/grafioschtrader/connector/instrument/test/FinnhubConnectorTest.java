@@ -2,6 +2,7 @@ package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -101,20 +102,8 @@ class FinnhubConnectorTest {
    */
   @Test
   @Disabled
-  void getSplitHistoryTest() {
-    final List<Security> securities = new ArrayList<>();
-    final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-    securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-    securities.parallelStream().forEach(security -> {
-      List<Securitysplit> splits = new ArrayList<>();
-      try {
-        splits = finnhubConnector.getSplitHistory(security, from);
-      } catch (Exception e) {
-
-        e.printStackTrace();
-      }
-      assertThat(splits.size()).isGreaterThanOrEqualTo(1);
-    });
+  void getSplitsTest() throws ParseException {
+    ConnectorTestHelper.standardSplitTest(finnhubConnector);
   }
   
   

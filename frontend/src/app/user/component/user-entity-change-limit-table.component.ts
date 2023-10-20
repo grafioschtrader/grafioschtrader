@@ -72,8 +72,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
             </tr>
           </ng-template>
         </p-table>
-        <p-contextMenu *ngIf="contextMenuItems" #cm [target]="cmDiv" [model]="contextMenuItems"
-                       appendTo="body"></p-contextMenu>
+        <p-contextMenu *ngIf="contextMenuItems" #cm [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       </div>
     </div>
 
