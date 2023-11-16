@@ -89,7 +89,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     this.loadData();
   }
 
-  getWatchlistWithoutUpdate() {
+  protected override getWatchlistWithoutUpdate(): void {
     const watchListObservable: Observable<SecuritycurrencyGroup> =
       this.watchlistService.getWatchlistForSplitAndDividend(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
@@ -105,7 +105,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     return HelpIds.HELP_WATCHLIST_DIVIDEND_SPLIT_FEED;
   }
 
-  protected override updateAllPrice() {
+  protected override updateAllPrice(): void {
     this.loading = true;
     this.getWatchlistWithoutUpdate();
   }

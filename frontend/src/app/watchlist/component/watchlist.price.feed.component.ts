@@ -96,7 +96,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     return this.feedConnectorsKV[valueField];
   }
 
-  getWatchlistWithoutUpdate() {
+  protected override getWatchlistWithoutUpdate(): void {
     const watchListObservable: Observable<SecuritycurrencyGroup> =
       this.watchlistService.getWatchlistWithoutUpdateAndMaxHistoryquote(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
@@ -141,7 +141,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     }
   }
 
-  protected override updateAllPrice() {
+  protected override updateAllPrice(): void {
     this.loading = true;
     this.getWatchlistWithoutUpdate();
   }

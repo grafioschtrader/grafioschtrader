@@ -6,5 +6,7 @@ export enum SpecialInvestmentInstruments {
   CFD = 4,
   FOREX = 5,
   ISSUER_RISK_PRODUCT = 6,
-  NON_INVESTABLE_INDICES = 10
+  NON_INVESTABLE_INDICES = 10,
+  ALL = 99
+
 }

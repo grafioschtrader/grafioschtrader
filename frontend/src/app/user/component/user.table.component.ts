@@ -30,11 +30,11 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
+    <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                sortField="nickname" [dataKey]="entityKeyName"
-               responsiveLayout="scroll"
+               responsiveLayout="scroll" [contextMenu]="cmDiv"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
         <ng-template pTemplate="caption">
           <h4>{{entityNameUpper | translate}}</h4>
@@ -51,7 +51,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-el let-expanded="expanded" let-columns="fields">
-          <tr [pSelectableRow]="el">
+          <tr [pContextMenuRow] [pSelectableRow]="el">
             <td>
               <a *ngIf="el.userEntityChangeLimitList.length + el.userChangeLimitProposeList.length > 0" href="#"
                  [pRowToggler]="el">
@@ -87,7 +87,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      <p-contextMenu #cmDiv appendTo="body"  [model]="contextMenuItems"></p-contextMenu>
     </div>
     <user-edit *ngIf="visibleDialog" [visibleDialog]="visibleDialog"
                [callParam]="callParam"

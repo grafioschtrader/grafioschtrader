@@ -5,20 +5,15 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {AssetclassService} from '../service/assetclass.service';
 import {TranslateService} from '@ngx-translate/core';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {HelpIds} from '../../shared/help/help.ids';
-import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {AssetclassCallParam} from './assetclass.call.param';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
-import {Subscription} from 'rxjs';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {AppSettings} from '../../shared/app.settings';
+import {AssetClassTypeSpecInstrument} from '../../shared/udfmeta/components/asset.class.type.spec.instrument';
 
 /**
  * Edit asset classes in a dialog
@@ -36,20 +31,17 @@ import {AppSettings} from '../../shared/app.settings';
     </p-dialog>
   `
 })
-export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> implements OnInit {
+export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetclass> implements OnInit {
 
   @Input() callParam: AssetclassCallParam;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
-  private assetclassSpezInstMap: { [key in AssetclassType]: SpecialInvestmentInstruments[] };
-  private categoryTypeSubscribe: Subscription;
-  private valueKeyHtmlOptionsSpecInvest: ValueKeyHtmlSelectOptions[];
 
   constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              assetclassService: AssetclassService) {
-    super(HelpIds.HELP_BASEDATA_ASSETCLASS, AppSettings.ASSETCLASS.toUpperCase(), translateService, gps,
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    assetclassService: AssetclassService) {
+    super(false, HelpIds.HELP_BASEDATA_ASSETCLASS, AppSettings.ASSETCLASS.toUpperCase(), translateService, gps,
       messageToastService, assetclassService);
   }
 
@@ -81,16 +73,8 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
       suggestion => suggestion.toLocaleLowerCase().startsWith(query));
   }
 
-  valueChangedOnCategoryType(): void {
-    this.categoryTypeSubscribe = this.configObject.categoryType
-      .formControl.valueChanges.subscribe(categoryType => {
-        if (!this.callParam.assetclass && categoryType && categoryType.length > 0) {
-          this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest.filter(
-            v => this.assetclassSpezInstMap[categoryType].includes(v.key));
-          this.configObject.specialInvestmentInstrument.formControl.setValue(
-            this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions[0].key);
-        }
-      });
+  protected override canChangeValues(): boolean {
+    return !this.callParam.assetclass;
   }
 
   override onHide(event): void {
@@ -98,26 +82,16 @@ export class AssetclassEditComponent extends SimpleEntityEditBase<Assetclass> im
     super.onHide(event);
   }
 
-  protected override initialize(): void {
-    (<AssetclassService>this.serviceEntityUpdate).getPossibleAssetclassInstrumentMap().subscribe(assetclassSpezInstMap => {
-      this.assetclassSpezInstMap = assetclassSpezInstMap;
-      this.form.setDefaultValuesAndEnableSubmit();
-      this.configObject.categoryType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        AssetclassType, [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN], true);
-      this.valueKeyHtmlOptionsSpecInvest = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService, SpecialInvestmentInstruments);
-      this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest;
-      this.configObject.en.suggestions = this.callParam.subCategorySuggestionsEN;
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
-        this.callParam.assetclass, this.form, this.configObject, this.proposeChangeEntityWithEntity);
-      this.valueChangedOnCategoryType();
-      FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.categoryType,
-        this.configObject.specialInvestmentInstrument]);
+  protected override initializeOthers(): void {
+    this.configObject.en.suggestions = this.callParam.subCategorySuggestionsEN;
+    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
+      this.callParam.assetclass, this.form, this.configObject, this.proposeChangeEntityWithEntity);
+    FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.categoryType,
+      this.configObject.specialInvestmentInstrument]);
+    if (!this.callParam.assetclass) {
+      setTimeout(() => this.configObject.categoryType.elementRef.nativeElement.focus());
+    }
 
-      if (!this.callParam.assetclass) {
-        setTimeout(() => this.configObject.categoryType.elementRef.nativeElement.focus());
-      }
-    });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Assetclass {

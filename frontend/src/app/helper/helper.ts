@@ -57,18 +57,18 @@ export abstract class Helper {
     schema[pList[len - 1]] = value;
   }
 
-  public static getValueByPath(dataobject: any, path: string): any {
-    if (dataobject) {
+  public static getValueByPath(dataObject: any, path: string): any {
+    if (dataObject) {
       const iPath = path.split('.');
       const len = iPath.length;
       for (let i = 0; i < len; i++) {
-        if (!dataobject) {
+        if (!dataObject) {
           return null;
         }
-        dataobject = dataobject[iPath[i]];
+        dataObject = dataObject[iPath[i]];
       }
     }
-    return dataobject;
+    return dataObject;
   }
 
   public static hasValue(value: string | number) {
@@ -128,6 +128,22 @@ export abstract class Helper {
       }
     });
     return res;
+  }
+
+  public static findPropertyNamesInObjectTree(obj: object, propertyName: string, path: string =''):  string[] {
+    let result: string[] = [];
+    for (const key in obj) {
+      const currentPath = path.length === 0? path.concat(key): path.concat('.' + key) ;
+      if (typeof obj[key] === "object") {
+        if (key === propertyName) {
+          result.push(currentPath);
+        }
+        result = result.concat(Helper.findPropertyNamesInObjectTree(obj[key], propertyName, currentPath));
+      } else if (key === propertyName) {
+        result.push(currentPath);
+      }
+    }
+    return result;
   }
 
 }

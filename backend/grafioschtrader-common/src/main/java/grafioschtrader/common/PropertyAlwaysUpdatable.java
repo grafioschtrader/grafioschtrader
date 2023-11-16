@@ -11,8 +11,6 @@ import java.lang.annotation.Target;
  * and other properties depend on the state of its entity. Normally it is used,
  * when it can changed always.
  *
- * @author Hugo Graf
- *
  */
 @Target({ ElementType.FIELD })
 @Retention(value = RetentionPolicy.RUNTIME)

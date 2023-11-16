@@ -167,11 +167,7 @@
                 </tr>
             </ng-template>
         </p-table>
-
-        <p-contextMenu #contextMenu *ngIf="contextMenuItems && isActivated()" [model]="contextMenuItems"
-                       [target]="cmDiv">
-        </p-contextMenu>
-
+        <p-contextMenu *ngIf="isActivated() && contextMenuItems" [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
     </div>
 </div>
 

@@ -37,6 +37,17 @@ export class SelectOptionsHelper {
     });
   }
 
+  public static createValueKeyHtmlSelectOptionsForNumberRange(startNum: number, endNum: number,
+  excludeNum: number[]): ValueKeyHtmlSelectOptions[] {
+    const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
+    for (let i = startNum; i <= endNum; i += 1) {
+      if(excludeNum.indexOf(i) < 0) {
+        valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(i, ''+ i));
+      }
+    }
+    return valueKeyHtmlSelectOptions
+  }
+
   public static assetclassCreateValueKeyHtmlSelectOptions(gps: GlobalparameterService,
                                                           translateService: TranslateService,
                                                           assetClasses: Assetclass[]): ValueKeyHtmlSelectOptions[] {
@@ -80,11 +91,14 @@ export class SelectOptionsHelper {
     return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, allowedEnums, deny);
   }
 
+
+
   public static createHtmlOptionsFromEnum(translateService: TranslateService, e: EnumI, allowedEnums?: any[],
-                                          deny?: boolean): ValueKeyHtmlSelectOptions[] {
+    deny?: boolean): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
     return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, allowedEnums, deny);
   }
+
 
   public static createHtmlOptionsFromEnumDisabled(translateService: TranslateService, e: EnumI,
                                                   disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {

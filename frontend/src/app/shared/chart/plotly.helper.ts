@@ -53,18 +53,26 @@ export class PlotlyHelper {
    * the property is an array element.
    */
   public static translateLayout(translateService: TranslateService, layout: any): void {
-    PlotlyHelper.translateLayoutTitle(translateService, layout);
+    PlotlyHelper.translateLayoutTitles(translateService, layout);
     const LABEL = 'label';
     const founds: any = [];
-    this.searchArrayInTree(layout, founds);
+    this.searchArrayInObjectTree(layout, founds);
 
     founds.forEach(elements => elements.filter(e => e.hasOwnProperty(LABEL)).filter(f => f[LABEL] =
       f[LABEL].toUpperCase()).map(match => translateService.get(Helper.getValueByPath(match, LABEL)).subscribe(
       trans => Helper.setValueByPath(match, LABEL, trans))));
   }
 
-  private static translateLayoutTitle(translateService: TranslateService, layout: any): void {
-    const labelParts: string[] = layout.title.split('|');
+  private static translateLayoutTitles(translateService: TranslateService, layout: any): void {
+    const TITLE = 'title';
+    const founds: any = [];
+
+    Helper.findPropertyNamesInObjectTree(layout, TITLE).forEach(keywordPath =>
+      this.translateLayoutTitle(translateService,  layout, keywordPath));
+  }
+
+  private static translateLayoutTitle(translateService: TranslateService, layout: any, keywordPath: string): void {
+    const labelParts: string[] = Helper.getValueByPath(layout, keywordPath).split('|');
     if (labelParts.length > 1) {
       const paramKey: string[] = [];
       const wordKey: string[] = [];
@@ -79,21 +87,21 @@ export class PlotlyHelper {
         for (let i = 0; i < wordKey.length; i++) {
           params['p' + i] = paramTrans[wordKey[i]];
         }
-        translateService.get(labelParts[0], params).subscribe(trans => layout.title = trans);
+        translateService.get(labelParts[0], params).subscribe(trans => Helper.setValueByPath(layout, keywordPath, trans));
       });
     } else {
-      translateService.get(labelParts[0]).subscribe(trans => layout.title = trans);
+      translateService.get(labelParts[0]).subscribe(trans => Helper.setValueByPath(layout, keywordPath, trans));
     }
   }
 
-  public static searchArrayInTree(tree: any, founds: any[]): void {
+  public static searchArrayInObjectTree(tree: any, founds: any[]): void {
     if (tree !== null && typeof tree === 'object') {
       Object.entries(tree).forEach(([key, value]) => {
         // key is either an array index or object key
         if (value.constructor === Array) {
           founds.push(value);
         } else {
-          this.searchArrayInTree(value, founds);
+          this.searchArrayInObjectTree(value, founds);
         }
       });
     } else {

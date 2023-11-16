@@ -4,6 +4,8 @@ import static jakarta.persistence.InheritanceType.JOINED;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.types.UDFDataType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -37,26 +39,31 @@ public abstract class UDFMetadata extends UserBaseID {
   @Schema(description = "This is the property name used by the user interface.")
   @Column(name = "description")
   @NotNull
+  @PropertyOnlyCreation
   private String description;
 
   @Schema(description = "This optional help text is provided as a tooltip in the user interface of the property")
   @Column(name = "description_help")
+  @PropertyAlwaysUpdatable
   private String descriptionHelp;
  
   
   @Schema(description = "For validation and other purposes the data type is required")
   @Column(name = "udf_data_type")
   @NotNull
+  @PropertyOnlyCreation
   private byte udfDataType;
 
   @Schema(description = "The field length must be limited")
   @Column(name = "field_size")
   @NotNull
+  @PropertyOnlyCreation
   private String fieldSize;
   
   @Schema(description = "Controls the order of the fields during user input ")
   @Column(name = "ui_order")
   @NotNull
+  @PropertyAlwaysUpdatable
   private byte uiOrder;
 
   public UDFMetadata() {

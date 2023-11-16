@@ -6,6 +6,10 @@ import {Subscription} from 'rxjs';
 import {Watchlist} from '../../entities/watchlist';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {MenuItem} from 'primeng/api';
+import {UDFMetadataSecurityService} from '../../shared/udfmeta/service/udf.metadata.security.service';
+import {plainToInstance} from 'class-transformer';
+import {UDFMetadataSecurity} from '../../shared/udfmeta/model/udf.metadata';
+import {GlobalSessionNames} from '../../shared/global.session.names';
 
 @Component({
   template: `
@@ -23,7 +27,9 @@ export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
   private lastRouteKey = AppSettings.WATCHLIST_PERFORMANCE_KEY;
   private lastItemIndex = 0;
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
+  constructor(private uDFMetadataSecurityService: UDFMetadataSecurityService, private router: Router,
+    private activatedRoute: ActivatedRoute,
+    public translateService: TranslateService) {
     this.items = [
       {
         label: 'WATCHLIST_PERFORMANCE',
@@ -42,6 +48,13 @@ export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+   this.uDFMetadataSecurityService.getAllByIdUser().subscribe(umss => {
+     sessionStorage.setItem(GlobalSessionNames.UDF_METADATA_SECURITY, JSON.stringify(umss));
+      this.subscribeWatchlistChange();
+    })
+  }
+
+  private subscribeWatchlistChange(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       this.watchlist = JSON.parse(params['object']);
       this.navigateToRoute(this.lastRouteKey, this.lastItemIndex);

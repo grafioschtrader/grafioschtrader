@@ -22,5 +22,6 @@ export enum GlobalSessionNames {
   CURRENCY_PRECISION = 'currencyPrecision',
   UI_SHOW_MY_PROPERTY = 'uiShowMyProperty',
   USER_FORM_DEFINITION = 'userFormDefinition',
-  MOST_PRIVILEGED_ROLE = 'mostPrivilegedRole'
+  MOST_PRIVILEGED_ROLE = 'mostPrivilegedRole',
+  UDF_METADATA_SECURITY = 'udfMetadataSecurity'
 }

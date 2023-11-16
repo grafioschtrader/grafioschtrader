@@ -65,8 +65,7 @@ import {HelpIds} from '../../shared/help/help.ids';
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length >0" #cm
-                       [target]="cmDiv" [model]="contextMenuItems" appendTo="body">
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body">
         </p-contextMenu>
       </div>
       <transaction-security-edit *ngIf="visibleSecurityTransactionDialog"

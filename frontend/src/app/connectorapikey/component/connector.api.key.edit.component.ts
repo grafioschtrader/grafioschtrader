@@ -23,7 +23,7 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
   selector: 'connector-api-key-edit',
   template: `
     <p-dialog header="{{'CONNECTOR_API_KEY' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '600px'}"
+              [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

@@ -15,7 +15,7 @@ public enum DataTypeJava {
   IntegerC(Integer.class), 
   StringC(String.class), 
   LocalDate(LocalDate.class), 
-  LccalDateTime(LocalDateTime.class),
+  LocalDateTime(LocalDateTime.class),
   UNKNOWN(null);
 
   private final Class<?> targetClass;

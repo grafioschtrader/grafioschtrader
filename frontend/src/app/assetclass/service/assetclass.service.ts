@@ -26,15 +26,14 @@ export class AssetclassService extends AuthServiceWithLogout<Assetclass> impleme
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
+  public getPossibleAssetclassForExistingSecurityOrAll(idSecuritycurrency: number): Observable<Assetclass[]> {
+    return <Observable<Assetclass[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ASSETCLASS_KEY}/`
+      + `possible/${idSecuritycurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   public getInvestableAssetclassesByWatchlist(idWatchlist: number): Observable<Assetclass[]> {
     return <Observable<Assetclass[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ASSETCLASS_KEY}/`
       + `${AppSettings.WATCHLIST_KEY}/${idWatchlist}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
-  }
-
-  public getPossibleAssetclassInstrumentMap(): Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }> {
-    return <Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }>>
-      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ASSETCLASS_KEY}/possibleassetclassspezinstrument`,
-        this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getAssetclass(idAssetclass: number): Observable<Assetclass> {

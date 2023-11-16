@@ -52,7 +52,7 @@ public class FieldDescriptorInputAndShow implements Serializable {
       dataType = DataType.String;
       break;
 
-    case LccalDateTime:
+    case LocalDateTime:
       dataType = DataType.DateTimeNumeric;
       break;
 

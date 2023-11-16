@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
@@ -355,6 +357,10 @@ public class SecruityTransactionsReport {
 
     if (secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)) {
       quotationSplitCorrection(security.getIdSecuritycurrency(), securityTransactionSummary, securitySplitMap);
+      if(security.isMarginInstrument()) {
+        Collections.sort(securityTransactionSummary.transactionPositionList, Comparator.comparing(tp -> tp.transaction.getTransactionTime()));
+        
+      }
     }
 
     return securityTransactionSummary;

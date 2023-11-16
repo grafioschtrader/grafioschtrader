@@ -22,7 +22,9 @@ public enum SpecialInvestmentInstruments {
   // A product with issuer risk like certificate, ETC, ETN
   ISSUER_RISK_PRODUCT((byte) 6),
   // Can never have dividends
-  NON_INVESTABLE_INDICES((byte) 10);
+  NON_INVESTABLE_INDICES((byte) 10),
+  // Only used for UDF. Is also persisted 
+  ALL((byte) 99);
 
   private final Byte value;
 

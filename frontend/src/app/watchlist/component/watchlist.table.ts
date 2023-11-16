@@ -75,7 +75,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   private routeSubscribe: Subscription;
   private subscriptionWatchlistAdded: Subscription;
 
-  constructor(public watchlistType: WatchListType,
+  protected constructor(public watchlistType: WatchListType,
     protected storeKey: string,
     protected dialogService: DialogService,
     protected timeSeriesQuotesService: TimeSeriesQuotesService,

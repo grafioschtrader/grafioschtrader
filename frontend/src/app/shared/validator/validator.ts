@@ -156,11 +156,11 @@ export const equalTo = (equalControl: AbstractControl): ValidatorFn => {
 };
 
 
-export const notContainString = (strArray: Array<string>): ValidatorFn => (control: AbstractControl): ValidationErrors => {
+export const notContainStringInList = (strArray: Array<string>): ValidatorFn => (control: AbstractControl): ValidationErrors => {
     if (!isPresent(strArray) || isPresent(Validators.required(control))) {
         return null;
     }
-    return strArray.indexOf(control.value) > -1 ? {notContainString: true} : null;
+    return strArray.indexOf(control.value) > -1 ? {notContainStringInList: true} : null;
 };
 
 export const range = (value: Array<number>): ValidatorFn => (control: AbstractControl): ValidationErrors => {

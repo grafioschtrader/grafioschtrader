@@ -137,7 +137,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
     // contextMenuItems: MenuItem[] = [];
     // selectedEntity: TaskDataChange;
-    taskDataChangeSecurityCurrencyPairInfo: TaskDataChangeSecurityCurrencyPairInfo;
+    taskDataChangeSecurityCurrencyPairInfo: TaskDataChangeSecurityCurrencyPairInfo= new TaskDataChangeSecurityCurrencyPairInfo();
     editMenu: MenuItem;
 
     private tdcFormConstraints: TaskDataChangeFormConstraints;

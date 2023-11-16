@@ -1,12 +1,14 @@
-<div #cmDiv (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+<div #cmDiv (click)="onComponentClick($event)"
+     [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
      class="data-container">
   <div class="datatable nestedtable">
-    <p-table (onPage)="onPage($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+    <p-table #table (onPage)="onPage($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
              (sortFunction)="customSort($event)" [(selection)]="pageFirstRowSelectedRow.selectedRow"
              [columns]="fields" [customSort]="true"
              [first]="pageFirstRowSelectedRow.topPageRow" [multiSortMeta]="multiSortMeta" [paginator]="true"
              [rowsPerPageOptions]="[20,30,50,100]" responsiveLayout="scroll" [rows]="50"
-             [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single" sortMode="multiple"
+             [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single"
+             sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
       <ng-template pTemplate="header" let-fields>
         <tr>
@@ -32,7 +34,8 @@
                     </p-calendar>
                   </ng-template>
                 </p-columnFilter>
-                <p-columnFilter *ngSwitchCase="DataType.Numeric" [field]="field.field" [locale]="formLocale" display="menu"
+                <p-columnFilter *ngSwitchCase="DataType.Numeric" [field]="field.field" [locale]="formLocale"
+                                display="menu"
                                 minFractionDigits="2" type="numeric"></p-columnFilter>
               </ng-container>
             </ng-container>
@@ -54,7 +57,8 @@
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <ng-container [ngSwitch]="field.templateName">
                 <ng-container *ngSwitchCase="'greenRed'">
-                  <span [pTooltip]="getValueByPath(el, field)" [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+                  <span [pTooltip]="getValueByPath(el, field)"
+                        [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
                         tooltipPosition="top">
                     {{getValueByPath(el, field)}}
                   </span>
@@ -69,8 +73,7 @@
       </ng-template>
     </p-table>
 
-    <p-contextMenu #cm *ngIf="contextMenuItems && contextMenuItems.length > 0" [model]="contextMenuItems"
-                   [target]="cmDiv" appendTo="body">
+    <p-contextMenu #cm [model]="contextMenuItems" [target]="cmDiv" appendTo="body">
     </p-contextMenu>
 
   </div>

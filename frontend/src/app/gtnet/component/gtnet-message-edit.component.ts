@@ -33,7 +33,7 @@ import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
   selector: 'gtnet-message-edit',
   template: `
     <p-dialog header="{{'GT_NET_MESSAGE_SEND' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
+             [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

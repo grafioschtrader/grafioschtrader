@@ -120,6 +120,9 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
       HAVING s.activeToDate >= MAX(h.date) ORDER BY s.idSecuritycurrency""")
   List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithCalculation(short maxHistoryRetry);
 
+  @Query(value="SELECT IF(EXISTS(SELECT * FROM transaction t WHERE t.id_securitycurrency=?1) = 1, 'true', 'false' ); ", nativeQuery = true)
+  boolean hasSecurityTransaction(Integer idSecuritycurency);
+  
   // Catch history quotes as well for this Security
   @EntityGraph(value = "graph.security.historyquote", type = EntityGraphType.FETCH)
   Security findByIdSecuritycurrency(Integer idSecuritycurrency);

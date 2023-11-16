@@ -13,6 +13,7 @@ import {UDFMetadataSecurity, UDFMetadataSecurityParam} from '../model/udf.metada
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {TranslateValue} from '../../datashowbase/column.config';
 import {plainToInstance} from 'class-transformer';
+import {Assetclass} from '../../../entities/assetclass';
 
 @Component({
     template: `
@@ -111,6 +112,8 @@ export class UDFMetadataSecurityTableComponent extends TableCrudSupportMenuSecur
             this.createTranslatedValueStoreAndFilterField(this.entityList);
         })
     }
+
+
 
     ngOnDestroy(): void {
         this.activePanelService.destroyPanel(this);

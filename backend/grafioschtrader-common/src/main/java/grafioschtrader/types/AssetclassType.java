@@ -43,7 +43,10 @@ public enum AssetclassType {
   CURRENCY_CASH((byte) 11),
   // Exist only for Client and is not saved to repository. It may be used for
   // grouping
-  CURRENCY_FOREIGN((byte) 12);
+  CURRENCY_FOREIGN((byte) 12),
+  
+  //Only used for UDF. Is also persisted 
+  ALL((byte) 99);
 
   private final Byte value;
 

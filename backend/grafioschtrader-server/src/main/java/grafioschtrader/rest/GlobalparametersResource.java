@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Set;
 
@@ -26,9 +27,12 @@ import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.dynamic.model.DynamicModelHelper;
 import grafioschtrader.dynamic.model.FieldDescriptorInputAndShow;
+import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -125,6 +129,13 @@ public class GlobalparametersResource {
   public ResponseEntity<Globalparameters> replacePropertyValue(
       @Valid @RequestBody final Globalparameters globalparameters) throws Exception {
     return new ResponseEntity<>(globalparametersJpaRepository.saveOnlyAttributes(globalparameters), HttpStatus.OK);
+  }
+    
+  @Operation(summary = "Return of the possible combination of asset class to financial instrument.", description = "", tags = {
+      Globalparameters.TABNAME })
+  @GetMapping(value = "/possibleassetclassspezinstrument", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<EnumMap<AssetclassType, SpecialInvestmentInstruments[]>> getPossibleAssetclassInstrumentMap() {
+    return new ResponseEntity<>(Assetclass.possibleInstrumentsMap, HttpStatus.OK);
   }
 
 }
