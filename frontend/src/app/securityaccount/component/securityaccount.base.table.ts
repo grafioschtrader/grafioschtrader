@@ -261,7 +261,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.addColumn(DataType.String, AppSettings.SECURITY.toLowerCase(), AppSettings.INSTRUMENT_HEADER, true, true,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
 
-    this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false, {width: 55});
+    this.addColumn(DataType.Numeric, 'units', 'HOLDING', true, false, {width: 55});
     this.addColumnFeqH(DataType.String, 'security.currency', true, false, {width: 35});
 
     this.addColumn(DataType.DateTimeNumeric, 'closeDate', 'TIMEDATE', true, false,

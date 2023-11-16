@@ -37,4 +37,15 @@ public interface AssetclassJpaRepository
   @Query(nativeQuery = true)
   List<Assetclass> getUnusedAssetclassForAlgo(Integer idTenant, Integer idAlgoAssetclassSecurity);
 
+  /**
+   * If a security has a transaction, the category and type of instrument can no
+   * longer be changed. Return of all asset classes that are still possible, if
+   * transaction exists.
+   * 
+   * @param idSecuritycurrency
+   * @return
+   */
+  @Query(nativeQuery = true)
+  List<Assetclass> getPossibleAssetclassForExistingSecurity(Integer idSecuritycurrency);
+
 }

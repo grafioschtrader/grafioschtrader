@@ -27,7 +27,6 @@
       </div>
     </p-footer>
   </p-panel>
-  <p-contextMenu #contextMenu *ngIf="contextMenuItems && contextMenuItems.length > 0" [model]="contextMenuItems"
-                 [target]="cmDiv">
+  <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv">
   </p-contextMenu>
 </div>

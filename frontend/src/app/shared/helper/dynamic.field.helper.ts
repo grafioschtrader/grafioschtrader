@@ -5,18 +5,26 @@ import {AppHelper} from './app.helper';
 import {ValidatorFn, Validators} from '@angular/forms';
 import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.message.rules';
 
-import {email, gtWithMask, maxValue, range, rangeLength, validISIN, webUrl} from '../validator/validator';
+import {
+  email,
+  gtWithMask,
+  maxValue,
+  notContainStringInList,
+  range,
+  rangeLength,
+  validISIN,
+  webUrl
+} from '../validator/validator';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {FileRequiredValidator} from '../../dynamic-form/components/form-input-file/file-input.validator';
-
-import {AppSettings} from '../app.settings';
-import {NgxCurrencyConfig } from 'ngx-currency';
+import {NgxCurrencyConfig} from 'ngx-currency';
 
 export enum VALIDATION_SPECIAL {
   ISIN,
   EMail,
   WEB_URL,
-  GT_With_Mask_Param
+  GT_With_Mask_Param,
+  NOT_CONTAIN_STRING_IN_LIST
 }
 
 
@@ -55,7 +63,10 @@ export class DynamicFieldHelper {
     },
     [VALIDATION_SPECIAL.GT_With_Mask_Param]: {
       msgR: {name: 'gt', keyi18n: 'gt', rules: [RuleEvent.DIRTY]}
-    }
+    },
+    [VALIDATION_SPECIAL.NOT_CONTAIN_STRING_IN_LIST]: {
+      msgR: {name: 'notContainStringInList', keyi18n: 'notContainStringInList', rules: [RuleEvent.DIRTY]}
+    },
   };
   private static readonly ADJUST_INPUT_WITH_UNTIL_MAX_LENGTH = 25;
 
@@ -148,6 +159,12 @@ export class DynamicFieldHelper {
       validationSpecials, fieldOptions);
   }
 
+  public static createFieldInputStringVSParam(fieldName: string, labelKey: string, maxLength: number, required: boolean,
+    validationSpecial: VALIDATION_SPECIAL, param: any, fieldOptions?: FieldOptions): FieldConfig {
+    return DynamicFieldHelper.addValidationParam(DynamicFieldHelper.createFieldDAInputString(DataType.String, fieldName,
+      labelKey, maxLength, required, fieldOptions), validationSpecial, param);
+  }
+
   public static createFieldInputStringVS(fieldName: string, labelKey: string, maxLength: number, required: boolean,
                                          validationSpecials: VALIDATION_SPECIAL[], fieldOptions?: FieldOptions): FieldConfig {
     return DynamicFieldHelper.createFieldDAInputStringVS(DataType.String, fieldName, labelKey, maxLength, required,
@@ -173,6 +190,8 @@ export class DynamicFieldHelper {
     return DynamicFieldHelper.createFieldDAInputString(DataType.String, fieldName,
       AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), maxLength, required, fieldOptions);
   }
+
+
 
   public static createFieldInputButtonHeqF(dataType: DataType, fieldName: string, buttonFN: (event?: any) => void,
                                            required: boolean, fieldOptions?: FieldOptions): FieldConfig {
@@ -497,7 +516,7 @@ export class DynamicFieldHelper {
     return fieldConfig;
   }
 
-  private static addValidationParam(fieldConfig: FieldConfig, validationSpecial: VALIDATION_SPECIAL, param1: any,
+  public static addValidationParam(fieldConfig: FieldConfig, validationSpecial: VALIDATION_SPECIAL, param1: any,
                                     param2?: any): FieldConfig {
     const validError: ValidError = DynamicFieldHelper.validationsErrorMap[validationSpecial];
     (fieldConfig.errors = fieldConfig.errors || []).push(validError.msgR);
@@ -506,6 +525,11 @@ export class DynamicFieldHelper {
         validError.vFN = gtWithMask(param1);
         validError.msgR.param1 = param1;
         break;
+      case VALIDATION_SPECIAL.NOT_CONTAIN_STRING_IN_LIST:
+        validError.vFN = notContainStringInList(param1);
+        validError.msgR.param1 = param1;
+        break;
+
     }
     (fieldConfig.validation = fieldConfig.validation || []).push(validError.vFN);
     return fieldConfig;

@@ -3,6 +3,7 @@ package grafioschtrader.repository;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,6 +24,14 @@ public class AssetclassJpaRepositoryImpl extends BaseRepositoryImpl<Assetclass>
 
   @Autowired
   private AssetclassJpaRepository assetclassJpaRepository;
+
+  public List<Assetclass> getPossibleAssetclassForExistingSecurityOrAll(Integer idSecuritycurrency) {
+    List<Assetclass> assetklassList = Collections.emptyList();
+    if (idSecuritycurrency != null) {
+      assetklassList = assetclassJpaRepository.getPossibleAssetclassForExistingSecurity(idSecuritycurrency);
+    }
+    return assetklassList.isEmpty()? assetclassJpaRepository.findAll(): assetklassList;
+  }
 
   @Override
   public Assetclass saveOnlyAttributes(final Assetclass assetclass, final Assetclass existingEntity,

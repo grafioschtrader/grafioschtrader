@@ -186,7 +186,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
           data: new TypeNodeData(TreeNodeType.Stockexchange, this.addMainRoute(AppSettings.STOCKEXCHANGE_KEY), null, null, null)
         },
         {
-          label: AppSettings.TRADING_PLATFORM_PLAN.toUpperCase(),
+          label: AppHelper.toUpperCaseWithUnderscore(AppSettings.TRADING_PLATFORM_PLAN),
           data: new TypeNodeData(TreeNodeType.TradingPlatformPlan, this.addMainRoute(AppSettings.TRADING_PLATFORM_PLAN_KEY),
             null, null, null)
         },

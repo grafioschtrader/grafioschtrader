@@ -1,7 +1,7 @@
 import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -29,7 +29,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
 @Component({
   selector: 'user-entity-change-limit-table',
   template: `
-    <div #cmDiv class="data-container" (click)="onComponentClick($event)"
+    <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable nestedtable">
         <p-table [columns]="fields" [value]="user.userEntityChangeLimitList" selectionMode="single"
@@ -37,7 +37,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
                  (onPage)="onPage($event)" dataKey="idUserEntityChangeLimit" [paginator]="true" [rows]="20"
                  (sortFunction)="customSort($event)" [customSort]="true"
                  sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                 responsiveLayout="scroll"
+                 responsiveLayout="scroll" [contextMenu]="cm"
                  styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
           <ng-template pTemplate="header" let-fields>
             <tr>
@@ -51,7 +51,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
           </ng-template>
 
           <ng-template pTemplate="body" let-el let-columns="fields">
-            <tr [pSelectableRow]="el">
+            <tr [pContextMenuRow] [pSelectableRow]="el">
               <ng-container *ngFor="let field of fields">
 
                 <td *ngIf="field.visible" [style.max-width.px]="field.width"
@@ -72,7 +72,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
             </tr>
           </ng-template>
         </p-table>
-        <p-contextMenu *ngIf="contextMenuItems" #cm [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
       </div>
     </div>
 
@@ -85,7 +85,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
     </user-entity-change-limit-edit>
   `
 })
-export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
+export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   public static readonly USER_ENTITY_CHANGE_LIMIT = 'USER_ENTITY_CHANGE_LIMIT';
   public readonly UPPER_CASE_ENTITY_NAME = 'entityNameUpperCase';
@@ -217,6 +217,10 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
   }
 
   callMeDeactivate(): void {
+  }
+
+  ngOnDestroy(): void {
+    this.contextMenu && this.contextMenu.hide();
   }
 
   public getHelpContextId(): HelpIds {

@@ -33,6 +33,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 
 
@@ -95,6 +96,14 @@ public class Assetclass extends Auditable implements Serializable {
     possibleInstrumentsMap.put(AssetclassType.CURRENCY_PAIR, new SpecialInvestmentInstruments[] {
         SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.FOREX, 
         SpecialInvestmentInstruments.ETF });
+    
+    possibleInstrumentsMap.put(AssetclassType.ALL,
+        new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT.ALL, 
+            SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+            SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
+            SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.CFD,
+            SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, 
+            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
   }
 
@@ -109,11 +118,13 @@ public class Assetclass extends Auditable implements Serializable {
   @NotNull
   @Column(name = "category_type")
   @PropertySelectiveUpdatableOrWhenNull
+  @Max(98)
   private byte categoryType;
 
   @NotNull
   @Column(name = "spec_invest_instrument")
   @PropertySelectiveUpdatableOrWhenNull
+  @Max(98)
   private byte specialInvestmentInstrument;
 
   @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

@@ -40,7 +40,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 
 /**
- * To create a derived instrument a base instrument is required. Additional a formula can be added. Prices depend on other instrument,
+ * To create a derived instrument a base instrument is required. Additionally, a formula can be added. Prices depend on other instrument,
  * so there is no connector.
  */
 @Component({

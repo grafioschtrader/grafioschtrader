@@ -15,6 +15,8 @@ import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 import {ServiceEntityUpdate} from '../edit/service.entity.update';
 import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
 import NumberFormat = Intl.NumberFormat;
+import {AssetclassType} from '../types/assetclass.type';
+import {SpecialInvestmentInstruments} from '../types/special.investment.instruments';
 
 
 @Injectable()
@@ -274,6 +276,12 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
+  public getPossibleAssetclassInstrumentMap(): Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }> {
+    return <Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }>>
+        this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.GLOBALPARAMETERS_P_KEY}/possibleassetclassspezinstrument`,
+            this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   private getDateFormatYearCalendar(yearReplace: string): string {
     moment.locale(this.getLocale());
     const formatYear = moment.localeData().longDateFormat('L');
@@ -290,6 +298,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
         catchError(this.handleError.bind(this)));
     }
   }
+
 }
 
 export interface PasswordRegexProperties {

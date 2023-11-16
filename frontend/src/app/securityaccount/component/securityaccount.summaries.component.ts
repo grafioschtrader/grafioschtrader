@@ -17,7 +17,7 @@ import {FilterService} from 'primeng/api';
 
 
 /**
- * It is the summary for all security accounts with its Securities of a certain portfolio. The id of a portfolio
+ * It is the summary for all security accounts with its securities of a certain portfolio. The id of a portfolio
  * is expected.
  */
 @Component({

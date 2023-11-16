@@ -54,8 +54,7 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu *ngIf="contextMenuItems && contextMenuItems.length >0" #cm
-                       [target]="cmDiv" [model]="contextMenuItems">
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems">
         </p-contextMenu>
       </div>
     </div>

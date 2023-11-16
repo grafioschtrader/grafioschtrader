@@ -49,7 +49,7 @@ import {AppHelper} from '../../shared/helper/app.helper';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm">
       </dynamic-form>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      <p-contextMenu *ngIf="isActivated() && contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       <br/>
       <import-transaction-template-table></import-transaction-template-table>
     </div>

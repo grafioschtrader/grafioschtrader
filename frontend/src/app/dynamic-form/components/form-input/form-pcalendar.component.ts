@@ -13,7 +13,6 @@ import {Helper} from '../../../helper/helper';
                   [inputStyleClass]="'form-control ' + (isRequired? 'required-input': '')"
                   [showTime]="config.dataType === DataType.DateTimeNumeric"
                   [dateFormat]="formConfig.dateFormat"
-                  monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
                   dataType="date"
                   [timeOnly]="config.dataType === DataType.TimeString"
                   pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"

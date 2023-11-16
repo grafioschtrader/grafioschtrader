@@ -23,7 +23,7 @@ export class TaskDataChange implements BaseID {
 }
 
 
-export interface TaskDataChangeSecurityCurrencyPairInfo {
+export class TaskDataChangeSecurityCurrencyPairInfo {
   taskDataChangeList: TaskDataChange[];
   securityInfo: { [idSecuritycurrency: number]: string};
 }

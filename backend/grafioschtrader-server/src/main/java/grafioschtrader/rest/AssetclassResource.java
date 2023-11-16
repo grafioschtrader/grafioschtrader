@@ -32,13 +32,21 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
   @Autowired
   private AssetclassJpaRepository assetclassJpaRepository;
 
-  @Operation(summary = "Return of all asset classes unsorted.", description = "", tags = { RequestMappings.ALGOASSETCLASS })
+  @Operation(summary = "Return of all asset classes unsorted.", description = "", tags = { Assetclass.TABNAME })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Assetclass>> getAllAssetclass() {
     return new ResponseEntity<>(assetclassJpaRepository.findAll(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Return of an asset class by its Id", description = "", tags = { RequestMappings.ALGOASSETCLASS })
+  @Operation(summary = """
+    If a security has a transaction, the category and type of instrument can no longer be changed. 
+    Return of all asset classes that are still possible, if transaction exists.""", description = "", tags = { Assetclass.TABNAME })
+  @GetMapping(value="/possible/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Assetclass>> getPossibleAssetclassForExistingSecurityOrAll(@PathVariable final Integer idSecuritycurrency) {
+    return new ResponseEntity<>(assetclassJpaRepository.getPossibleAssetclassForExistingSecurityOrAll(idSecuritycurrency), HttpStatus.OK);
+  }
+  
+  @Operation(summary = "Return of an asset class by its Id", description = "", tags = { Assetclass.TABNAME })
   @GetMapping(value = "/{idAssetClass}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Assetclass> getAssetclass(@PathVariable final Integer idAssetClass) {
     return new ResponseEntity<>(assetclassJpaRepository.findById(idAssetClass).get(), HttpStatus.OK);
@@ -58,12 +66,7 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
     return new ResponseEntity<>(assetclassJpaRepository.assetclassHasSecurity(idAssetClass) > 0, HttpStatus.OK);
   }
 
-  @Operation(summary = "Return of the possible combination of asset class to financial instrument.", description = "", tags = {
-      Assetclass.TABNAME })
-  @GetMapping(value = "/possibleassetclassspezinstrument", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<EnumMap<AssetclassType, SpecialInvestmentInstruments[]>> getPossibleAssetclassInstrumentMap() {
-    return new ResponseEntity<>(Assetclass.possibleInstrumentsMap, HttpStatus.OK);
-  }
+ 
 
   @Operation(summary = "Return of all investable asset classes used in a specific watchlist. CFD is excluded.", description = "", tags = {
       Assetclass.TABNAME })

@@ -10,7 +10,7 @@ export interface ErrorMessageRules {
   name: string;
   /** Must match with the key in the translation file */
   keyi18n: string;
-  param1?: string | number;
+  param1?: string | number | string[];
   param2?: string | number;
   rules: string[];
   /** Will be set from the translation service */

@@ -1,5 +1,6 @@
 package grafioschtrader.entities;
 
+import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,13 +14,14 @@ import jakarta.persistence.Table;
 public class UDFMetadataSecurity extends UDFMetadata {
 
   public static final String TABNAME = "udf_metadata_security";
-
   
   @Column(name = "category_type")
+  @PropertyAlwaysUpdatable
   private byte categoryType;
 
 
   @Column(name = "spec_invest_instrument")
+  @PropertyAlwaysUpdatable
   private byte specialInvestmentInstrument;
 
   public UDFMetadataSecurity() {

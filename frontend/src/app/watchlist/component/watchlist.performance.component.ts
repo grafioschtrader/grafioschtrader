@@ -106,7 +106,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.Numeric, 'timeFrameAnnualChangePercentage', 'TIME_FRAME_ANNUAL', true, true, {
       headerSuffix: '%', templateName: 'greenRed'
     });
-    this.addColumnFeqH(DataType.Numeric, 'units', true, true,
+    this.addColumn(DataType.Numeric, 'units', 'HOLDING', true, true,
       {templateName: 'greenRed'});
 
     this.addColumnFeqH(DataType.Numeric, 'positionGainLossPercentage', true, true, {
@@ -141,7 +141,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   }
 
 
-  protected getWatchlistWithoutUpdate() {
+  protected override getWatchlistWithoutUpdate(): void {
     const watchListObservable: Observable<SecuritycurrencyGroup> = this.watchlistService.getWatchlistWithoutUpdate(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
     combineLatest([watchListObservable, tenantLimitObservable]).subscribe(result => {

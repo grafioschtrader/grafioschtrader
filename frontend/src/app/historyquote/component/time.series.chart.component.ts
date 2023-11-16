@@ -34,7 +34,6 @@ import {
   TaIndicators,
   TaTraceIndicatorData
 } from './indicator.definitions';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -47,12 +46,22 @@ import {TwoKeyMap} from '../../shared/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {Moment} from 'moment/moment';
 import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
+
 declare let Plotly: any;
 
 interface Traces {
-  [key: string]: { x: string[]; y: number[]; text: string[] };
+  [key: string]: Data;
 }
 
+interface Data {
+  x?: string[];
+  y?: number[];
+  text?: string[];
+  yaxis?: string;
+  type?: string;
+  name?: string;
+  line?: any;
+}
 
 /**
  * Technical indicator (TA) can only be shown for one security or currency pair. When there are a 2nd trace is added the TA is
@@ -66,7 +75,6 @@ interface Traces {
         <label for="fromDate">{{'FROM_DATE' | translate}}</label>
         <p-calendar #cal appendTo="body"
                     baseZIndex="100"
-                    [yearRange]="yearRange"
                     [(ngModel)]="fromDate" id="fromDate"
                     [dateFormat]="dateFormat"
                     [disabledDays]="[0,6]"
@@ -80,16 +88,19 @@ interface Traces {
         <button type="button" (click)="threeMonth($event)">3M</button>
         <button type="button" (click)="yearToDate($event)">YTD</button>
         <button type="button" (click)="oneYear($event)">1{{"Y" | translate}}</button>
-        <!--
-          <ng-container *ngIf="this.loadedData.length===1">
-         -->
-        <label>{{'PERCENTAGE' | translate}}</label>
-        <input type="checkbox" [(ngModel)]="usePercentage" (change)="togglePercentage($event)">
-        <!--
+        <button type="button" (click)="oldestTrade($event)" title="{{'OLDEST_TRADE_TOOLTIP' | translate}}">
+            {{"OLDEST_TRADE" | translate}}
+       </button>
+        <ng-container *ngIf="this.loadedData.length===1">
+          <label>{{'HOLDING' | translate}}</label>
+          <input type="checkbox" [(ngModel)]="showHolding" (change)="toggleCheckbox($event)">
         </ng-container>
-        -->
+
+        <label>{{'PERCENTAGE' | translate}}</label>
+        <input type="checkbox" [(ngModel)]="usePercentage" (change)="toggleCheckbox($event)">
+
         <label>{{'CONNECT_GAPS' | translate}}</label>
-        <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleConnectGaps($event)">
+        <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleCheckbox($event)">
 
         <label>{{'CURRENCY' | translate}}</label>
         <p-dropdown [options]="currenciesOptions" [(ngModel)]="requestedCurrency"
@@ -116,9 +127,10 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   startDate = new Date('2000-01-03');
   endDate = new Date();
   fromDate: Date;
+  oldestTradeDate: number;
+  showHolding: boolean = true;
   usePercentage: boolean;
   connectGaps = true;
-  yearRange: string;
   dateFormat: string;
   loadedData: LoadedData[] = [];
   oldestMatchDate: string;
@@ -154,7 +166,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     private activePanelService: ActivePanelService) {
 
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
-    this.yearRange = `2000:${new Date().getFullYear()}`;
+    //  this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();
 
   }
@@ -176,7 +188,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);
-    // this.setCalendarRange();
     this.activatedRoute.paramMap.subscribe(paramMap => {
       const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
       this.prepareChart(paramObject.allParam);
@@ -273,17 +284,18 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.goNextWorkDay(moment().add(-1, 'year'), event);
   }
 
+  oldestTrade(event): void {
+    this.fromDate = new Date(this.oldestTradeDate);
+    this.onBlurFromDate(event);
+  }
+
   private goNextWorkDay(momentDate: Moment, event): void {
     momentDate = momentDate.day() % 6 === 0 ? momentDate.add(1, 'day').day(1) : momentDate;
     this.fromDate = momentDate.toDate();
     this.onBlurFromDate(event);
   }
 
-  togglePercentage(event): void {
-    this.prepareLoadedDataAndPlot(true);
-  }
-
-  toggleConnectGaps(event): void {
+  toggleCheckbox(event): void {
     this.prepareLoadedDataAndPlot(true);
   }
 
@@ -291,6 +303,54 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.requestedCurrency = event.value;
     this.normalizeAllSecurityPrices();
     this.prepareLoadedDataAndPlot(true);
+  }
+
+  private prepareLoadedDataAndPlot(userUserInputDate: boolean) {
+    const element = this.chartElement.nativeElement;
+    !userUserInputDate && this.evaluateOldestYoungestMatchDate();
+    let traces = this.createAllQuotesLines();
+    traces = traces.concat(this.createAllMarkerTraces());
+    if (this.showHolding && this.loadedData.length === 1 && this.loadedData[0].currencySecurity) {
+      const holdingsData = this.getHoldingTraceForSecurity(<SecurityTransactionSummary>this.loadedData[0].nameSecuritycurrency);
+      traces = traces.concat(holdingsData);
+    }
+    const layout: any = this.getLayout(this.getHoldingLayout());
+    this.plot(element, traces, layout);
+    this.redoTaAfterDateChange();
+  }
+
+  private getHoldingLayout() {
+    return {
+      yaxis2: {
+        title: 'HOLDING',
+        titlefont: {color: 'rgb(148, 103, 189)'},
+        tickfont: {color: 'rgb(148, 103, 189)'},
+        overlaying: 'y',
+        side: 'right'
+      }
+    }
+  }
+
+  private createAllMarkerTraces(): any[] {
+    const traces: Traces = {};
+    this.oldestTradeDate = new Date().getTime();
+    for (const ld of this.loadedData) {
+      if (ld.currencySecurity) {
+        const sts = <SecurityTransactionSummary>ld.nameSecuritycurrency;
+        this.oldestTradeDate = sts.transactionPositionList.length > 0 ? Math.min(this.oldestTradeDate,
+          sts.transactionPositionList[0].transaction.transactionTime) : this.oldestTradeDate;
+        this.getBuySellDivMarkForSecurity(traces, ld, sts);
+      } else {
+        const cwt = <CurrencypairWithTransaction>ld.nameSecuritycurrency;
+        this.oldestTradeDate = cwt.transactionList.length > 0 ? Math.min(this.oldestTradeDate,
+          cwt.transactionList[0].transactionTime) : this.oldestTradeDate;
+        this.getBuySellDivMarkForCurrency(traces, ld.historicalLine, cwt);
+      }
+    }
+    this.oldestTradeDate = Math.max(this.oldestTradeDate, this.startDate.getTime());
+
+
+    return Object.values(traces);
   }
 
   getHistoricalLineTrace(loadedData: LoadedData): any {
@@ -320,8 +380,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     };
   }
 
-  getBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, currencypairWithTransaction: CurrencypairWithTransaction): Traces {
-
+  private getBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, currencypairWithTransaction: CurrencypairWithTransaction): Traces {
     const cptv = new CurrencyPairTraceValues();
     this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.transactionList, cptv, false);
     currencypairWithTransaction.cwtReverse && this.addBuySellDivMarkForCurrency(traces, historicalLine,
@@ -387,7 +446,36 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
   }
 
-  getBuySellDivMarkForSecurity(traces: Traces, loadedData: LoadedData, securityTransactionSummary: SecurityTransactionSummary): Traces {
+  private getHoldingTraceForSecurity(securityTransactionSummary: SecurityTransactionSummary): Data {
+    const trace: Data = {
+      x: [], y: [], yaxis: 'y2', name: 'HOLDING', type: 'scatter', line: {
+        dash: 'dashdot',
+        width: 1, color: 'rgb(148, 103, 189)'
+      }
+    };
+    let before = 0;
+    securityTransactionSummary.transactionPositionList.filter(stp =>
+      stp.transaction.transactionType === TransactionType[TransactionType.ACCUMULATE]
+      || stp.transaction.transactionType === TransactionType[TransactionType.REDUCE])
+      .forEach(securityTransactionPosition => {
+        if (securityTransactionPosition.transaction.transactionTime >= this.fromDate.getTime()) {
+          const transaction = securityTransactionPosition.transaction;
+          this.getDateTimeAsStringPutAsX(transaction, trace.x);
+          trace.y.push(before);
+          this.getDateTimeAsStringPutAsX(transaction, trace.x);
+          trace.y.push(securityTransactionPosition.holdingsSplitAdjusted);
+        }
+        before = securityTransactionPosition.holdingsSplitAdjusted;
+      });
+    if (before != 0) {
+      trace.y.push(before);
+      trace.x.push(moment(this.endDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
+    }
+    this.translateTraceName(trace);
+    return trace;
+  }
+
+  private getBuySellDivMarkForSecurity(traces: Traces, loadedData: LoadedData, securityTransactionSummary: SecurityTransactionSummary): Traces {
     securityTransactionSummary.transactionPositionList.filter(stp => stp.transaction.transactionTime >= this.fromDate.getTime())
       .forEach(securityTransactionPosition => {
 
@@ -401,8 +489,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
             traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
           }
 
-          const transactionDateStr = moment(transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
-          traces[transactionTypeStr].x.push(transactionDateStr);
+          const transactionDateStr = this.getDateTimeAsStringPutAsX(transaction, traces[transactionTypeStr].x);
           if (transactionType === TransactionType.DIVIDEND || this.loadedData.length > 1 || this.usePercentage) {
             const foundIndex = AppHelper.binarySearch(loadedData.historicalLine.x, transactionDateStr, this.compareXaxisFN);
             traces[transactionTypeStr].y.push(loadedData.historicalLine.y[Math.abs(foundIndex)]);
@@ -424,10 +511,16 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return traces;
   }
 
+  private getDateTimeAsStringPutAsX(transaction: Transaction, xaxis: string[]): string {
+    const transactionDateStr = moment(transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
+    xaxis.push(transactionDateStr);
+    return transactionDateStr;
+  }
+
   chartDataPointClicked(dataPointIndex: number) {
   }
 
-  initializeBuySellTrace(transactionTypeStr: string, transactionType: TransactionType) {
+  private initializeBuySellTrace(transactionTypeStr: string, transactionType: TransactionType) {
     const trace = {
       x: [], y: [], text: [],
       mode: 'markers',
@@ -439,11 +532,11 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       },
       marker: {size: transactionType === TransactionType.DIVIDEND ? 6 : 8}
     };
-    this.translateTrace(trace);
+    this.translateTraceName(trace);
     return trace;
   }
 
-  translateTrace(trace) {
+  translateTraceName(trace) {
     this.translateService.get(trace.name).subscribe(transText => trace.name = transText);
   }
 
@@ -646,30 +739,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     });
   }
 
-  private prepareLoadedDataAndPlot(userUserInputDate: boolean) {
-    const element = this.chartElement.nativeElement;
-    !userUserInputDate && this.evaluateOldestYoungestMatchDate();
-    let traces = this.createAllQuotesLines();
-    traces = traces.concat(this.createAllMarkerTraces());
-    const layout: any = this.getLayout();
-    this.plot(element, traces, layout);
-    this.redoTaAfterDateChange();
-  }
-
-  /**
-   * Attention: Year range of calendar can only set once
-   */
-  private setCalendarRange(): void {
-    if (this.oldestDate && this.youngestDate) {
-      // Not used yet
-      this.yearRange = `${this.oldestDate.getFullYear()}:${this.youngestDate.getFullYear()}`;
-    } else {
-      this.gps.getStartFeedDateAsTime().subscribe(time => {
-          this.yearRange = `${new Date(time).getFullYear()}:${new Date().getFullYear()}`;
-        }
-      );
-    }
-  }
 
   private evaluateOldestYoungestMatchDate(): void {
     this.oldestMatchDate = null;
@@ -714,18 +783,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return traces;
   }
 
-  private createAllMarkerTraces(): any[] {
-    const traces: Traces = {};
-    for (const ld of this.loadedData) {
-      if (ld.currencySecurity) {
-        this.getBuySellDivMarkForSecurity(traces, ld, <SecurityTransactionSummary>ld.nameSecuritycurrency);
-      } else {
-        this.getBuySellDivMarkForCurrency(traces, ld.historicalLine, <CurrencypairWithTransaction>ld.nameSecuritycurrency);
-      }
-    }
-    return Object.values(traces);
-  }
-
   private plot(element: any, traces: any, layout: any): void {
     const config = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
@@ -757,7 +814,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     PlotlyHelper.attachTooltip(Plotly, this.legendTooltipMap, this.chartElement);
   }
 
-  private getLayout(): any {
+  private getLayout(holdingLayout): any {
     const dateNative = moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
     const layout = {
       title: 'LINE_CHART',
@@ -779,6 +836,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         type: 'linear'
       }
     };
+    if (holdingLayout) {
+      Object.assign(layout, holdingLayout);
+    }
     PlotlyHelper.translateLayout(this.translateService, layout);
     return layout;
   }
@@ -802,7 +862,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         this.calculateHistoryquotes(loadedData, [requestToSecurityCurrency],
           [requestToSecurityCurrency.currencypair.fromCurrency === this.mainCurrency]);
       } else {
-        // Main currency is in the middle linke EUR -> CHF -> USD (requested currency: EUR, main currency: CHF,
+        // Main currency is in the middle like EUR -> CHF -> USD (requested currency: EUR, main currency: CHF,
         // security currency: USD
         const mainToRequestCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.mainCurrency, this.requestedCurrency);
         this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency, mainToRequestCurrency],

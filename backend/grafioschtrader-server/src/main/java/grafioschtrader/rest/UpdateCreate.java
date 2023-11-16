@@ -116,6 +116,9 @@ public abstract class UpdateCreate<T extends BaseID> {
         throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
       }
     } else {
+      if (entity instanceof UserBaseID) {
+        checkAndSetEntityWithUser(entity, user);
+      }  
       checkDailyLimitOnCRUDOperations(entity, user);
     }
     final T result = getUpdateCreateJpaRepository().saveOnlyAttributes(entity, null,
@@ -125,7 +128,7 @@ public abstract class UpdateCreate<T extends BaseID> {
     if (entity instanceof UserEntityChangeLimit && ((UserEntityChangeLimit) entity).getIdProposeRequest() != null) {
       // UserEntityChangeLimit can have a proposal request without an existing
       // UserEntityChangeLimit, because the
-      // user which caused it, product only a proposal on no entity
+      // user which caused it, produces only a proposal on non existing entity
       updateEntity(entity);
     }
     return ResponseEntity.ok().body(result);
@@ -192,7 +195,7 @@ public abstract class UpdateCreate<T extends BaseID> {
         resultEntity = checkProposeChangeAndSave(user, entity, (Auditable) entity, false);
       }
       logAddUpdDel(user.getIdUser(), entity, OperationType.UPDATE);
-    } else if(entity instanceof UserBaseID) {
+    } else if (entity instanceof UserBaseID) {
       existingEntity = checkAndSetEntityWithUser(entity, user);
       resultEntity = updateSaveEntity(entity, existingEntity);
       logAddUpdDel(user.getIdUser(), entity.getClass().getSimpleName(), OperationType.UPDATE);
@@ -202,7 +205,7 @@ public abstract class UpdateCreate<T extends BaseID> {
     }
     return resultEntity;
   }
-  
+
   protected void logAddUpdDel(Integer idUser, Class<T> zclass, OperationType operationType) {
     logAddUpdDel(idUser, zclass.getSimpleName(), operationType);
   }
@@ -357,6 +360,15 @@ public abstract class UpdateCreate<T extends BaseID> {
     return existingEntity;
   }
 
+  /**
+   * Certain entities have a relation with the user and not with the tenant.
+   * Therefore, this must be checked to ensure that it is not misused. The user ID
+   * in the security context must match the user ID of the entity.
+   * 
+   * @param entity
+   * @param user
+   * @return
+   */
   protected T checkAndSetEntityWithUser(T entity, final User user) {
     T existingEntity = null;
 
@@ -384,5 +396,5 @@ public abstract class UpdateCreate<T extends BaseID> {
     }
     return existingEntity;
   }
-  
+
 }

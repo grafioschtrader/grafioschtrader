@@ -45,39 +45,40 @@ import {FormConfig} from '../../dynamic-form/models/form.config';
 @Component({
   selector: 'security-edit',
   template: `
-    <p-dialog styleClass="big-dialog"
-              header="{{'SECURITY' | translate}}" [(visible)]="visibleEditSecurityDialog"
-              [style]="{width: '600px', minHeight: '500px'}"
-              [responsive]="true" [resizable]="false"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <p-tabView>
-        <p-tabPanel header="{{'SECURITY' | translate}}">
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                        #dynamicFieldsetForm="dynamicForm" (submitBt)="submit($event)">
-          </dynamic-form>
-        </p-tabPanel>
-        <p-tabPanel header="{{'SECURITY_SPLITS' | translate}}" *ngIf="canHaveSplits || !dataLoaded">
-          <dynamic-form [config]="configSplit" [formConfig]="formConfig" [translateService]="translateService"
-                        #splitForm="dynamicForm" (submitBt)="addSplit($event)">
-          </dynamic-form>
-          <securitysplit-edit-table (editData)="onSelectedSecuritysplit($event)"
-                                    (savedData)="onDependingDialogSave($event)"
-                                    [maxRows]="maxSplits">
-          </securitysplit-edit-table>
-        </p-tabPanel>
-        <p-tabPanel header="{{'HISTORYQUOTE_FOR_PERIOD' | translate}}" *ngIf="!this.securityEditSupport?.hasMarketValue
+      <p-dialog styleClass="big-dialog"
+                header="{{'SECURITY' | translate}}" [(visible)]="visibleEditSecurityDialog"
+                [style]="{width: '600px', minHeight: '500px'}"
+                [resizable]="false"
+                (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+          <p-tabView>
+              <p-tabPanel header="{{'SECURITY' | translate}}">
+                  <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                                #dynamicFieldsetForm="dynamicForm" (submitBt)="submit($event)">
+                  </dynamic-form>
+              </p-tabPanel>
+              <p-tabPanel header="{{'SECURITY_SPLITS' | translate}}" *ngIf="canHaveSplits || !dataLoaded">
+                  <dynamic-form [config]="configSplit" [formConfig]="formConfig" [translateService]="translateService"
+                                #splitForm="dynamicForm" (submitBt)="addSplit($event)">
+                  </dynamic-form>
+                  <securitysplit-edit-table (editData)="onSelectedSecuritysplit($event)"
+                                            (savedData)="onDependingDialogSave($event)"
+                                            [maxRows]="maxSplits">
+                  </securitysplit-edit-table>
+              </p-tabPanel>
+              <p-tabPanel header="{{'HISTORYQUOTE_FOR_PERIOD' | translate}}" *ngIf="!this.securityEditSupport?.hasMarketValue
         || !dataLoaded">
-          <p>{{'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate}}</p>
-          <dynamic-form [config]="periodPrices" [formConfig]="formConfigPeriod" [translateService]="translateService"
-                        #periodPriceForm="dynamicForm" (submitBt)="addHistoryquotePeriod($event)">
-          </dynamic-form>
-          <security-historyquote-period-edit-table (editData)="onSelectedHistoryquote($event)"
-                                                   (savedData)="onDependingDialogSave($event)"
-                                                   [maxRows]="maxHistoryquotePeriods">
-          </security-historyquote-period-edit-table>
-        </p-tabPanel>
-      </p-tabView>
-    </p-dialog>`
+                  <p>{{'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate}}</p>
+                  <dynamic-form [config]="periodPrices" [formConfig]="formConfigPeriod"
+                                [translateService]="translateService"
+                                #periodPriceForm="dynamicForm" (submitBt)="addHistoryquotePeriod($event)">
+                  </dynamic-form>
+                  <security-historyquote-period-edit-table (editData)="onSelectedHistoryquote($event)"
+                                                           (savedData)="onDependingDialogSave($event)"
+                                                           [maxRows]="maxHistoryquotePeriods">
+                  </security-historyquote-period-edit-table>
+              </p-tabPanel>
+          </p-tabView>
+      </p-dialog>`
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
   // Access child components
@@ -198,25 +199,27 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   submit(value: { [name: string]: any }): void {
     const security = this.securityEditSupport.prepareForSave(this, this.proposeChangeEntityWithEntity,
       <Security>this.securityCurrencypairCallParam, this.dynamicForm, value);
-    this.securityService.update(security).subscribe({next: newSecurity => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
-      let savedDepending = false;
-      if (this.securityEditSupport.hasMarketValue) {
-        if (this.canHaveSplits && this.seetc) {
-          savedDepending = true;
-          this.seetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
+    this.securityService.update(security).subscribe({
+      next: newSecurity => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
+        let savedDepending = false;
+        if (this.securityEditSupport.hasMarketValue) {
+          if (this.canHaveSplits && this.seetc) {
+            savedDepending = true;
+            this.seetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
+          }
+        } else {
+          // Save historical periods
+          if (this.shpetc) {
+            savedDepending = true;
+            this.shpetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
+          }
         }
-      } else {
-        // Save historical periods
-        if (this.shpetc) {
-          savedDepending = true;
-          this.shpetc.save(newSecurity, this.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value);
+        if (!savedDepending) {
+          this.onDependingDialogSave(new SaveSecuritySuccess(newSecurity, true));
         }
-      }
-      if (!savedDepending) {
-        this.onDependingDialogSave(new SaveSecuritySuccess(newSecurity, true));
-      }
-    }, error: () => this.configObject.submit.disabled = false});
+      }, error: () => this.configObject.submit.disabled = false
+    });
   }
 
   onDependingDialogSave(saveSecuritySuccess: SaveSecuritySuccess): void {
@@ -261,7 +264,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       | Securitysplit[] | HistoryquotePeriod[]>[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
     observables.push(this.gps.getCurrencies());
-    observables.push(this.assetclassService.getAllAssetclass());
+    observables.push(this.securityCurrencypairCallParam ?
+      this.assetclassService.getPossibleAssetclassForExistingSecurityOrAll(this.securityCurrencypairCallParam.idSecuritycurrency) :
+      this.assetclassService.getAllAssetclass());
     observables.push(this.securityService.getFeedConnectors());
 
     if (this.securityCurrencypairCallParam) {
@@ -270,7 +275,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
     if (this.securityCurrencypairCallParam) {
       if (this.securityEditSupport.hasMarketValue) {
-        // Only load security splits for a existing security
+        // Only load security splits for an existing security
         if ((<Security>this.securityCurrencypairCallParam).splitPropose) {
           // Propose change
           this.seetc.setDataList((<Security>this.securityCurrencypairCallParam).splitPropose, true);

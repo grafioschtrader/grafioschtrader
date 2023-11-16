@@ -40,6 +40,7 @@ import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.InstrumentStatisticsResult;
+import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
@@ -433,11 +434,10 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
           GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC * -1);
       Date toDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
           GlobalConstants.SPLIT_DAYS_LOOK_BACK * -1);
-          
-      
+
       List<Historyquote> hqConnectorList = getDataByConnnector(security, fromDate, toDate);
-      List<Historyquote> hqPersistentList = historyquoteJpaRepository.findByIdSecuritycurrencyAndDateBetweenOrderByDate(
-          security.getIdSecuritycurrency(), fromDate, toDate);
+      List<Historyquote> hqPersistentList = historyquoteJpaRepository
+          .findByIdSecuritycurrencyAndDateBetweenOrderByDate(security.getIdSecuritycurrency(), fromDate, toDate);
 
       Map<Date, Historyquote> hqPersistentMap = hqPersistentList.stream()
           .collect(Collectors.toMap(Historyquote::getDate, Function.identity()));
@@ -480,6 +480,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     if (security.getIdTenantPrivate() != null && !user.getIdTenant().equals(security.getIdTenantPrivate())) {
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
+    checkAssetclassAndSpezInstrumentForExisting(security, existingSecurity);
     security.clearProperties();
     ThruCalculationHelper.checkFormulaAgainstInstrumetLinks(security, user.getLocaleStr());
     if (existingSecurity != null && existingSecurity.isDerivedInstrument()) {
@@ -496,6 +497,17 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     }
 
     return cloneSecurity;
+  }
+
+  private void checkAssetclassAndSpezInstrumentForExisting(Security security, Security existingSecurity) {
+    if (existingSecurity != null && !security.isDerivedInstrument()) {
+      if ((existingSecurity.getAssetClass().getSpecialInvestmentInstrument() != security.getAssetClass()
+          .getSpecialInvestmentInstrument()
+          || existingSecurity.getAssetClass().getCategoryType() != security.getAssetClass().getCategoryType())
+              && securityJpaRepository.hasSecurityTransaction(existingSecurity.getIdSecuritycurrency())) {
+        throw new IllegalArgumentException("Property financial instrument and asset class can no longer be changed!");
+      }
+    }
   }
 
   @Override
