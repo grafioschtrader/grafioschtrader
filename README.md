@@ -1,3 +1,6 @@
+## Update to Java 21
+With the next version, we are switching from Java 17 to Java 21, so please configure the corresponding Java environment for GT. In addition to the configuration of [Java 21](wiki/Install-Java), the existing [Maven Installation](wiki/Installing-the-Latest-Release-of-Apache-Maven) may also need to be adapted.
+
 ## Preface
 - **Unless otherwise described, GT will only get a new version if the new features require an update of the database. It is the goal that the master branch always contains the most reliable and feature rich source code.** 
 - For importing transactions we refer to the [gt-import-transaction-template](//github.com/grafioschtrader/gt-import-transaction-template) and [gt-pdf-transform](//github.com/grafioschtrader/gt-pdf-transform) projects.
