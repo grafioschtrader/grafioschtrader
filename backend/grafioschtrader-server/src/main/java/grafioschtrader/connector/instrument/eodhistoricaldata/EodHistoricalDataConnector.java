@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +39,12 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 
+/**
+ * There is no regex pattern check for the URL. The URL check with connection
+ * establishment can only be used for historical course data. For intraday,
+ * response body is equal to an existing security with the value "NA".
+ * 
+ */
 @Component
 public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
 
@@ -46,6 +53,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   private static final String DIVDEND_EVENT = "div";
   private static final String SPLIT_EVENT = "splits";
   private static final String JSON_PARAM = "fmt=json";
+  private static final String TOKEN_PARAM_NAME = "api_token";
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule());
@@ -60,11 +68,17 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   }
 
   public EodHistoricalDataConnector() {
-    super(supportedFeed, "eodhistoricaldata", "EOD Historical Data", null);
+    super(supportedFeed, "eodhistoricaldata", "EOD Historical Data", null,
+        EnumSet.of(UrlCheck.HISTORY));
   }
 
   private String getApiKeyString() {
-    return "&api_token=" + getApiKey();
+    return "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
+  }
+
+  @Override
+  protected String hideApiKeyForError(String url) {
+    return url.replaceFirst("(.*" + TOKEN_PARAM_NAME + "=)([^&]*)(.*)", "$1" + ERROR_API_KEY_REPLACEMENT + "$3");
   }
 
   @Override

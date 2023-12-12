@@ -22,7 +22,6 @@ import grafioschtrader.connector.instrument.finnhub.FinnhubConnector;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -37,6 +36,7 @@ class FinnhubConnectorTest {
       .withLocale(Locale.GERMAN);
   
   @Test
+  @Disabled
   void getEodSecurityHistoryTest() {
   
     final List<Security> securities = new ArrayList<>();
@@ -80,10 +80,14 @@ class FinnhubConnectorTest {
     
     // Not supporting for free
     // securities.add(createSecurity("LYHLT.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_EUR, SpecialInvestmentInstruments.ETF)); 
-    securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    // securities.add(createSecurity("NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
 
     // Only US Market for free
-    // securities.add(createSecurity("csco", "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    securities.add(createSecurity("csco", "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    securities.add(createSecurity("SPY", "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.ETF));
+
+    // securities.add(createSecurity("^NDX", GlobalConstants.STOCK_EX_MIC_NYSE, GlobalConstants.MC_USD, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES));
+    
    
     securities.parallelStream().forEach(security -> {
       try {

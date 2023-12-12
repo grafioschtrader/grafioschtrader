@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -15,7 +14,6 @@ import java.util.stream.Collectors;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SplitCount;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -201,9 +199,11 @@ public class ConnectorTestHelper {
     public Date to;
 
     public HisoricalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
-      this.expectedRows = expectedRows;
-      this.from = sdf.parse(fromStr);
-      this.to = sdf.parse(toStr);
+      if(fromStr != null) {
+        this.expectedRows = expectedRows;
+        this.from = sdf.parse(fromStr);
+        this.to = sdf.parse(toStr);
+      }
     }
 
   }
@@ -235,6 +235,24 @@ public class ConnectorTestHelper {
 
     public Security security;
 
+    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument, 
+        String urlExtend) throws ParseException  {
+      this(name, null, specialInvestmentInstrument, urlExtend, null, 0, null, null);
+    }
+    
+    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument, 
+        String urlExtend, int expectedRows,
+        String fromStr, String toStr) throws ParseException  {
+      this(name, null, specialInvestmentInstrument, urlExtend, null, expectedRows, fromStr, toStr);
+    }
+    
+    
+    public SecurityHisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument, 
+        int expectedRows,
+        String fromStr, String toStr) throws ParseException  {
+      this(name, isin, specialInvestmentInstrument, null, null, expectedRows, fromStr, toStr);
+    }
+    
     public SecurityHisoricalDate(final String name, String isin,
         SpecialInvestmentInstruments specialInvestmentInstrument, String urlExtend, String mic, int expectedRows,
         String fromStr, String toStr) throws ParseException {

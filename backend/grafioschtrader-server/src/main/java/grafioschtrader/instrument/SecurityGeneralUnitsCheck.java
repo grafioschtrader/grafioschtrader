@@ -20,9 +20,6 @@ import grafioschtrader.types.TransactionType;
  * possible does units gets less than zero or dividend is paid for non existing
  * units.
  *
- *
- * @author Hugo Graf
- *
  */
 public class SecurityGeneralUnitsCheck {
 
@@ -44,7 +41,6 @@ public class SecurityGeneralUnitsCheck {
     transactionAfter.forEach(transaction -> {
       checkUnitsIntegrity(securitySplitMap, security, transaction, transactionTimeUnits, dataViolationException);
       if (!transactionTimeUnits.isEmpty() && transactionTimeUnits.get(0).units < 0.0) {
-        System.out.println( transactionTimeUnits.get(0).units);
         dataViolationException.addDataViolation(GlobalConstants.UNITS, "units.less.zero",
             transaction.getTransactionTime());
       }

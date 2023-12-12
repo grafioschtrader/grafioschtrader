@@ -11,13 +11,13 @@
     <groupId>grafioschtrader</groupId>
     <artifactId>grafioschtrader</artifactId>
 	<packaging>pom</packaging>
-	<version>0.31.5</version>
+	<version>0.35.6</version>
 	
 	
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.5</version>
+		<version>3.2.0</version>
 		<relativePath/>
 	</parent>
 	
@@ -32,7 +32,9 @@
     
 
 	<properties>
-
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>21</java.version>
     </properties>
 
     <!-- define the sub-modules - Maven will work out the build order based on their inter-dependencies -->

@@ -3,6 +3,7 @@ package grafioschtrader.connector.instrument.vienna;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,8 @@ import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
 
@@ -44,6 +48,11 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * access to more precise figures is available via the "Profi Chart". The
  * disadvantage there is that only figures for the trading days are delivered if
  * they were traded on this day.
+ * 
+ * The URL extension consists of a number and is therefore subjected to a regex
+ * check. The check via the connector obviously always results in an HTTP OK.
+ * However, the body of the return contains an error code, which is checked
+ * here.
  *
  */
 @Component
@@ -55,6 +64,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   private static final String QUERY_CSV_DATE_FORMAT = "MM/dd/yyyy";
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   static {
     supportedFeed = new HashMap<>();
@@ -63,7 +73,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   }
 
   public ViennaStockExchangeFeedConnector() {
-    super(supportedFeed, "vienna", "Wiener Boerse", "[0-9]*");
+    super(supportedFeed, "vienna", "Wiener Boerse", "[0-9]*", EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
   }
 
   @Override
@@ -136,9 +146,9 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   }
 
   public boolean needHistoricalGapFiller(final Security security) {
-    return useCSVEOD(security)? false: true;
+    return useCSVEOD(security) ? false : true;
   }
-  
+
   private boolean useCSVEOD(Security security) {
     return security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
         && security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES
@@ -198,6 +208,16 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     return historyquote;
   }
 
+  @Override
+  protected boolean isConnectionOk(HttpURLConnection huc) {
+    try {
+      return getBodyAsString(huc).indexOf("\"errorCode\":\"-1\"") == -1;
+    } catch (IOException e) {
+      log.error("Could not open connection", e);
+    }
+    return true;
+  }
+
   private String createUrlForHistoricalData(final Security security, final Date from, final Date to,
       SimpleDateFormat sdf) throws Exception {
     String urlPrefix = "market-data/";
@@ -215,6 +235,8 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     case ISSUER_RISK_PRODUCT:
       urlPrefix += "certificates";
       break;
+    default:
+      throw new IllegalArgumentException(getReadableName() + " does not support this kind of security!");
     }
 
     String url = "https://www.wienerborse.at/en/" + urlPrefix + "/historical-data/?ISIN=" + security.getIsin()
@@ -258,7 +280,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   }
 
   private FullChartData getChartResponse(String urlStr) throws IOException, InterruptedException {
-      return objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(), FullChartData.class);
+    return objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(), FullChartData.class);
   }
 
   private static class FullChartData {

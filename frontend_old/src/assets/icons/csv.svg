@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;" version="1.1" viewBox="0 0 17 18" width="100%"
+     xml:space="preserve"
+     xmlns="http://www.w3.org/2000/svg">
+    <g transform="matrix(1,0,0,1,-81.5,-63.4099)">
+        <g>
+            <g transform="matrix(1,0,0,1,19,-21)">
+                <g>
+                    <g transform="matrix(1.06667,0,0,1,-4.2,0)">
+                        <path d="M63,101L78,101L78,90L72.972,84.91L63,84.91L63,101Z"
+                              style="fill:none;stroke:black;stroke-width:0.97px;"/>
+                    </g>
+                  <path d="M73.637,84.91L73.637,90L79,90" style="fill:none;stroke:black;stroke-width:1px;"/>
+                </g>
+            </g>
+          <g transform="matrix(5.0659,0,0,1.71486,-253.01,-85.8668)">
+                <rect height="5.586" style="fill:rgb(0,171,0);" width="2.722" x="66.334" y="90.667"/>
+            <g transform="matrix(0.264771,0,0,1.07,48.7706,-6.66352)">
+                    <text style="font-family:'ArialMT', 'Arial', sans-serif;font-size:5px;fill:white;fill-opacity:0.99;" x="66.334px"
+                          y="95.193px">CSV</text>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,9 +1,11 @@
 package grafioschtrader.connector.instrument.cryptocompare;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,18 +27,23 @@ import grafioschtrader.entities.Historyquote;
 /**
  * It has a max row limit
  *
+ * A regex check of the URL extension is not necessary. The connector for
+ * checking the instrument apparently always returns an HTTP OK. However, the
+ * body of the return contains a text that indicates an unsupported currency
+ * pair. This is evaluated here.
  */
 @Component
 public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
 
   private static final String DOMAIN_NAME = "https://min-api.cryptocompare.com/data/";
+  private static final String TOKEN_PARAM_NAME = "api_key";
   private static final int MAX_ROWS = 2000;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
- 
+
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
@@ -44,14 +51,13 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   public CryptoCompareFeedConnector() {
-    super(supportedFeed, "cryptocompare", "CryptoCompare", null);
+    super(supportedFeed, "cryptocompare", "CryptoCompare", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
   }
 
-  
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return DOMAIN_NAME + "price?fsym=" + currencypair.getFromCurrency() + "&tsyms=" + currencypair.getToCurrency()
-        + "&api_key=" + getApiKey();
+    return DOMAIN_NAME + "price?fsym=" + currencypair.getFromCurrency() + "&tsyms=" + currencypair.getToCurrency() + "&"
+        + TOKEN_PARAM_NAME + "=" + getApiKey();
   }
 
   @Override
@@ -77,7 +83,7 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
 
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, int limit, Date toDate) {
     return DOMAIN_NAME + "v2/histoday?fsym=" + currencypair.getFromCurrency() + "&tsym=" + currencypair.getToCurrency()
-        + "&limit=" + limit + "&toTs=" + (toDate.getTime() / 1000) + "&api_key=" + getApiKey();
+        + "&limit=" + limit + "&toTs=" + (toDate.getTime() / 1000) + "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
   }
 
   @Override
@@ -121,6 +127,21 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
       }
     }
     return historyquotes;
+  }
+
+  @Override
+  protected boolean isConnectionOk(HttpURLConnection huc) {
+    try {
+      return getBodyAsString(huc).indexOf("\"Response\":\"Error\"") == -1;
+    } catch (IOException e) {
+      log.error("Could not open connection", e);
+    }
+    return true;
+  }
+
+  @Override
+  protected String hideApiKeyForError(String url) {
+    return url.replaceFirst("(.*" + TOKEN_PARAM_NAME + "=)([^&]*)(.*)", "$1" + ERROR_API_KEY_REPLACEMENT + "$3");
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)

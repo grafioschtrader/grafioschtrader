@@ -8,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +28,10 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 
+/**
+ * A regex check of the URL extension is not active. The connector for checking
+ * the instrument works partially and returns an unequal HTTP-OK.
+ */
 @Component
 public class ComdirectFeedConnector extends BaseFeedConnector {
 
@@ -40,7 +45,7 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
   }
 
   public ComdirectFeedConnector() {
-    super(supportedFeed, "comdirect", "comdirect", null);
+    super(supportedFeed, "comdirect", "comdirect", null, EnumSet.of(UrlCheck.INTRADAY));
   }
 
   @Override
@@ -70,11 +75,6 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
 
   private synchronized <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String url)
       throws Exception {
-
-    // final Connection comdirectConnection = Jsoup.connect(url);
-    // final Document doc =
-    // comdirectConnection.userAgent(GlobalConstants.USER_AGENT).timeout(2000).get();
-
     Document doc = Jsoup.parseBodyFragment(getResponseByHttpClient(url));
 
     final Element div = doc.select("#keyelement_kurs_update").first();
@@ -98,6 +98,5 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
       response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }
     return response.body();
-
   }
 }

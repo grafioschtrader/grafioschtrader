@@ -3,6 +3,7 @@ package grafioschtrader.connector.instrument.finanzennet;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -30,6 +31,11 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /*-
+* At one time, historical data could also be queried via this connector.
+ * However, access to these pages was better protected against non-browser
+ * queries. At present, the source code does not yet fully reflect this
+ * situation.
+ * 
  * For some securities, there is a redirect to the corresponding country page. 
  * These securities can therefore not be queried. There is a finance.net, ch, and at. 
  * Therefore, Finanzen.net should not be used to query the prices of Austrian and Swiss securities.
@@ -39,6 +45,8 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  *
  * Dividend: Value are summarized, can not be used in this application.
  * Splits: Not supported
+ * 
+ * A regex pattern check is not active. However, the accessibility of the instrument is checked.
  */
 @Component
 public class FinanzenNETFeedConnector extends BaseFeedConnector {
@@ -53,7 +61,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   }
 
   public FinanzenNETFeedConnector() {
-    super(supportedFeed, "finanzennet", "Finanzen NET", null);
+    super(supportedFeed, "finanzennet", "Finanzen NET", null, EnumSet.of(UrlCheck.INTRADAY));
   }
 
   @Override

@@ -13,7 +13,6 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
 

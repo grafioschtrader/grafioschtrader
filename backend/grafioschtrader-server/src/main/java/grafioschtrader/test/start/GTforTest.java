@@ -25,7 +25,9 @@ import jakarta.annotation.PostConstruct;
 @EntityScan(basePackages = { "grafioschtrader.entities" })
 @ComponentScan(basePackages = { "grafioschtrader" }, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class) })
-@PropertySource("classpath:application-test.properties")
+
+// Since Spring Boot 3.2 it requires and read this properties
+// @PropertySource("classpath:application-test.properties")
 @EnableConfigurationProperties
 
 public class GTforTest {

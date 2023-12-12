@@ -1,0 +1,58 @@
+:host {
+  .calcontainer table {
+    width: auto;
+  }
+
+  td {
+    overflow: visible;
+  }
+
+  .calcontainer {
+    padding: 10px;
+  }
+
+  font-size: 14px;
+
+  .day {
+    cursor: pointer;
+    padding: 4px;
+    margin-left: -2px;
+  }
+
+  .dayenabled {
+    font-weight: bold;
+  }
+
+  .disabledHeaderDay {
+    color: red;
+  }
+
+  .day:hover {
+    background: lightgray !important;
+    border: 0;
+    border-radius: 3px;
+  }
+
+  .caltooltip .tooltiptext {
+    visibility: hidden;
+    background-color: rgba(230, 222, 222, 0.986);
+    color: rgb(27, 26, 26);
+    text-align: center;
+    border-radius: 4px;
+    padding: 4px;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+  }
+
+  .daydisabled {
+    color: gray;
+    font-weight: normal;
+  }
+
+  .caltooltip:hover .tooltiptext {
+    visibility: visible;
+  }
+
+}

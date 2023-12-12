@@ -17,7 +17,6 @@ import grafioschtrader.entities.Historyquote;
 
 /**
  * This test can often fail, because the provider may be to busy. 
- *
  */
 class FxUbcFeedConnectorTest {
 
@@ -36,13 +35,13 @@ class FxUbcFeedConnectorTest {
         toDate));
     currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 10, youngFromDate,
         toDate));
-    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 5944, oldestDate,
+    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 5945, oldestDate,
         "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 7007, oldestDate,
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 5946, oldestDate,
         "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 5945, oldestDate,
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 5946, oldestDate,
         "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 7028, oldestDate,
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 5946, oldestDate,
         "2023-09-29"));
    
     currencies.parallelStream().forEach(cphd -> {

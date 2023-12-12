@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -61,6 +62,8 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /*-
  * Stock, Bond, ETF:
+ * There is a regex pattern check for the URL. The URL check with connection establishment cannot 
+ * be used as the download links are not used for downloading the data.
  *
  * Dividend:
  * Dividend data may not include all payments, see IEBB.SW for example.
@@ -97,7 +100,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   public YahooFeedConnectorCOM() {
-    super(supportedFeed, "yahoo", "Yahoo USA Finance", null);
+    super(supportedFeed, "yahoo", "Yahoo USA Finance", null, EnumSet.noneOf(UrlCheck.class));
 
   }
 
@@ -255,13 +258,13 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   @Override
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+  protected <S extends Securitycurrency<S>> boolean clearAndCheckUrlPatternSecuritycurrencyConnector(
       Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
       FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
       AssetclassType assetclassType) {
 
-    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey,
-        feedIdentifier, specialInvestmentInstruments, assetclassType);
+    boolean clear = super.clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend,
+        errorMsgKey, feedIdentifier, specialInvestmentInstruments, assetclassType);
     if (!clear) {
       switch (specialInvestmentInstruments) {
       case CFD, NON_INVESTABLE_INDICES:
@@ -386,7 +389,14 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     return String.format(
         DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=" + event
             + "&includeAdjustedClose=true",
-        symbol, DateHelper.LocalDateToEpocheSeconds(fromDate), DateHelper.LocalDateToEpocheSeconds(toDate) + (24*60*60) - 1);
+        symbol, DateHelper.LocalDateToEpocheSeconds(fromDate),
+        DateHelper.LocalDateToEpocheSeconds(toDate) + (24 * 60 * 60) - 1);
+  }
+
+  // TODO
+  @Override
+  protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
+
   }
 
   @Override
@@ -449,7 +459,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
    */
   private boolean isDifferentDay(final List<Historyquote> historyquotes, final Historyquote historyquote) {
     return historyquotes.size() < 1 || historyquotes.size() > 0
-        && !historyquote.getDate().equals(historyquotes.get(historyquotes.size() - 1).getDate());
+        && !historyquote.getDate().equals(historyquotes.getLast().getDate());
   }
 
   private Historyquote parseResponseLine(final String inputLine, final SimpleDateFormat dateFormatSecurity,

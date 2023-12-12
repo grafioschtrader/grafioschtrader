@@ -24,7 +24,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Connector interface for data provider.
  *
- * @author Hugo Graf
  */
 public interface IFeedConnector {
 
@@ -52,7 +51,11 @@ public interface IFeedConnector {
     SPLIT,
     // Supports split only with using extended url
     SPLIT_URL
-
+  }
+  
+  public enum UrlCheck {
+    INTRADAY,
+    HISTORY
   }
 
   @Schema(description = "Id of the connector as it is used in the database")
@@ -98,6 +101,20 @@ public interface IFeedConnector {
 
   boolean hasFeedIndentifier(FeedIdentifier feedIdentifier);
 
+  /**
+   * A URL can be checked with a regex pattern. A valid regex pattern is no
+   * guarantee that the data provider will offer the corresponding instrument.
+   * Therefore, the check can be extended with a connection to the data provider
+   * with the corresponding instrument. The return code is checked for HTTP_OK.
+   * HTTP_OK does not guarantee that the data provider will also deliver the
+   * corresponding data. The content of the return body must also be evaluated for
+   * this. This must be specially implemented for each supplier. An unsuccessful
+   * check must throw an error, which appears on the user interface.
+   * 
+   * @param <S>
+   * @param securitycurrency
+   * @param feedSupport
+   */
   <S extends Securitycurrency<S>> void checkAndClearSecuritycurrencyUrlExtend(Securitycurrency<S> securitycurrency,
       FeedSupport feedSupport);
 

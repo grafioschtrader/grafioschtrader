@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
 
 /*-
  * Supports history quotes for securities. Unfortunately, quotes are only
@@ -32,8 +34,8 @@ import grafioschtrader.entities.Security;
  *
  * It produces Server returned HTTP response code: 429 (Too many requests)
  *
- * @author Hugo Graf
- *
+ * Regex pattern recognition for checking the URL extension is not implemented.
+ * However, the URL extension is checked with a connection to the connector.
  */
 @Component
 public class OnvistaFeedConnector extends BaseFeedConnector {
@@ -57,7 +59,7 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   }
 
   public OnvistaFeedConnector() {
-    super(supportedFeed, "onvista", "onvista", null);
+    super(supportedFeed, "onvista", "onvista", null, EnumSet.of(UrlCheck.HISTORY));
   }
 
   @Override
@@ -67,10 +69,19 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   }
 
   @Override
+  public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
+    return getDownloadLink(currencypair);
+  }
+
+  @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
+    return getDownloadLink(security);
+  }
+
+  private <S extends Securitycurrency<S>> String getDownloadLink(S securitycurrency) {
     final Calendar fromCal = Calendar.getInstance();
     fromCal.add(Calendar.YEAR, -MAX_YEAR_DOWNLOAD);
-    return this.getSecurityHistoricalDownloadLink(security.getUrlHistoryExtend(), fromCal.getTime(),
+    return this.getSecurityHistoricalDownloadLink(securitycurrency.getUrlHistoryExtend(), fromCal.getTime(),
         monthToStrings[monthToStrings.length - 1].traslate);
   }
 
@@ -88,10 +99,9 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Synchronized is introduced to avoid the reposen 429 (Too many requests)
+   * Synchronized is introduced to avoid the response 429 (Too many requests)
    */
-  private List<Historyquote> getHistoricalData(String productUrlPart, final Date from, final Date to)
-      throws Exception {
+  private List<Historyquote> getHistoricalData(String productUrlPart, final Date from, final Date to) throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
     LocalDate lFrom = DateHelper.getLocalDate(from);
     LocalDate lTo = DateHelper.getLocalDate(to);
@@ -121,14 +131,17 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
         timeSpan);
     final Quotes quotes = objectMapper.readValue(new URL(url), Quotes.class);
     for (int i = 0; i < quotes.datetimeLast.length; i++) {
-      final Historyquote historyquote = new Historyquote();
-      historyquotes.add(historyquote);
-      historyquote.setDate(new Date(quotes.datetimeLast[i] * 1000));
-      historyquote.setClose(quotes.last[i]);
-      historyquote.setOpen(quotes.first[i]);
-      historyquote.setHigh(quotes.high[i]);
-      historyquote.setLow(quotes.low[i]);
-      historyquote.setVolume(quotes.volume[i]);
+      Date date = DateHelper.setTimeToZeroAndAddDay(new Date(quotes.datetimeLast[i] * 1000), 0);
+      if(!to.before(date)) {
+        final Historyquote historyquote = new Historyquote();
+        historyquotes.add(historyquote);
+        historyquote.setDate(date);
+        historyquote.setClose(quotes.last[i]);
+        historyquote.setOpen(quotes.first[i]);
+        historyquote.setHigh(quotes.high[i]);
+        historyquote.setLow(quotes.low[i]);
+        historyquote.setVolume(quotes.volume[i]);
+      }
     }
   }
 
@@ -139,7 +152,6 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
     public double[] high;
     public double[] low;
     public long[] volume;
-
   }
 
 }

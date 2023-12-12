@@ -39,7 +39,7 @@ public final class JwtTokenHandler {
 
   Optional<UserDetails> parseUserFromToken(final String token) {
     try {
-      final Claims jwsClaims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
+      final Claims jwsClaims = Jwts.parser().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
           .getBody();
       Integer userId = (Integer) jwsClaims.get(ID_USER);
       return Optional.ofNullable(userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject()));
@@ -49,7 +49,7 @@ public final class JwtTokenHandler {
   }
 
   public Integer getUserId(final String token) {
-    final Claims jwsClaims = Jwts.parserBuilder().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
+    final Claims jwsClaims = Jwts.parser().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
         .getBody();
     return (Integer) jwsClaims.get(ID_USER);
   }

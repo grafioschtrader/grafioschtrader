@@ -24,7 +24,6 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
-import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;

@@ -2,7 +2,6 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.EnumMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,6 @@ import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.AssetclassJpaRepository;
-import grafioschtrader.types.AssetclassType;
-import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 

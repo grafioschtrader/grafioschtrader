@@ -8,6 +8,7 @@ import java.net.http.HttpResponse;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,14 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
+/**
+ * Historical data could also be downloaded from Investing.com. Since 2022-10-18
+ * this no longer works, as access is secured via Cloudflare. However, the
+ * methods for historical data are still available in the source code.
+ * 
+ * There is both a regex pattern check and a connector check for the URL
+ * extension of the corresponding instrument.
+ */
 @Component
 public class InvestingConnector extends BaseFeedConnector {
 
@@ -50,8 +59,8 @@ public class InvestingConnector extends BaseFeedConnector {
   private static final String URL_HISTORICAL_REGEX = "^\\d+$";
   private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
 
-  Map<String, String> cryptoCurrencyMap = Map.of(GlobalConstants.CC_BTC, "bitcoin", "BNB", "binance-coin", "ETH", "ethereum", "ETC",
-      "ethereum-classic", "LTC", "litecoin", "XPR", "xrp");
+  Map<String, String> cryptoCurrencyMap = Map.of(GlobalConstants.CC_BTC, "bitcoin", "BNB", "binance-coin", "ETH",
+      "ethereum", "ETC", "ethereum-classic", "LTC", "litecoin", "XPR", "xrp");
 
   static {
     supportedFeed = new HashMap<>();
@@ -59,17 +68,17 @@ public class InvestingConnector extends BaseFeedConnector {
   }
 
   public InvestingConnector() {
-    super(supportedFeed, INVESTING, "Investing.com", null);
+    super(supportedFeed, INVESTING, "Investing.com", null, EnumSet.of(UrlCheck.INTRADAY));
   }
 
   @Override
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+  protected <S extends Securitycurrency<S>> boolean clearAndCheckUrlPatternSecuritycurrencyConnector(
       Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
       FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
       AssetclassType assetclassType) {
 
-    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey,
-        feedIdentifier, specialInvestmentInstruments, assetclassType);
+    boolean clear = super.clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend,
+        errorMsgKey, feedIdentifier, specialInvestmentInstruments, assetclassType);
     if (feedIdentifier != null) {
       switch (feedSupport) {
       case HISTORY:
@@ -124,15 +133,15 @@ public class InvestingConnector extends BaseFeedConnector {
     do {
       i++;
       final Document doc = investingConnection.timeout(10000).get();
-      div = securitycurrency instanceof Security? doc.getElementsByClass("md:text-[42px]").first().parent():
-        doc.select("div[class^=instrument-price_instrument-price]").first();
+      div = securitycurrency instanceof Security ? doc.getElementsByClass("md:text-[42px]").first().parent()
+          : doc.select("div[class^=instrument-price_instrument-price]").first();
       try {
         Thread.sleep(800);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     } while (div == null && i <= 2);
-    
+
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
         .split(" ");
     var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;
@@ -142,8 +151,7 @@ public class InvestingConnector extends BaseFeedConnector {
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
-  
-  
+
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     return getSecurityCurrencyHistoricalDownloadLink(security);

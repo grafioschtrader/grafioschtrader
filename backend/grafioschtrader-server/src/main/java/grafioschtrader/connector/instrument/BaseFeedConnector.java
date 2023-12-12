@@ -1,6 +1,7 @@
 package grafioschtrader.connector.instrument;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -8,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -51,13 +53,15 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   private String shortId;
   protected String readableName;
   protected String regexStrPattern;
+  protected EnumSet<UrlCheck> urlCheckSet;
 
   public BaseFeedConnector(final Map<FeedSupport, FeedIdentifier[]> supportedFeed, final String id,
-      final String readableNameKey, String regexStrPattern) {
+      final String readableName, String regexStrPattern, EnumSet<UrlCheck> urlCheckSet) {
     this.supportedFeed = supportedFeed;
     this.shortId = id;
-    this.readableName = readableNameKey;
+    this.readableName = readableName;
     this.regexStrPattern = regexStrPattern;
+    this.urlCheckSet = urlCheckSet;
   }
 
   @Override
@@ -99,8 +103,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   public boolean needHistoricalGapFiller(final Security security) {
     return false;
   }
-  
-  
+
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     return null;
@@ -219,54 +222,69 @@ public abstract class BaseFeedConnector implements IFeedConnector {
 
     switch (feedSupport) {
     case HISTORY:
-      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, securitycurrency.getUrlHistoryExtend(),
-          "gt.connector.historical.url.failure", getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null),
-          specInst, assetclassType)) {
+      if (clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport,
+          securitycurrency.getUrlHistoryExtend(), "gt.connector.historical.url.failure",
+          getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null), specInst, assetclassType)) {
         securitycurrency.setUrlHistoryExtend(null);
+        checkUrlForHistory(specInst, securitycurrency);
       } else {
-        if (specInst != null) {
-          if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
-            checkUrl(getSecurityHistoricalDownloadLink((Security) securitycurrency),
-                "gt.connector.historical.url.connect.failure");
-          }
-        } else {
-          checkUrl(getCurrencypairHistoricalDownloadLink((Currencypair) securitycurrency),
-              "gt.connector.historical.url.connect.failure");
-        }
+        checkUrlForHistory(specInst, securitycurrency);
       }
       break;
     case INTRA:
-      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, securitycurrency.getUrlIntraExtend(),
-          "gt.connector.intra.url.failure", getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null), specInst,
-          assetclassType)) {
+      if (clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport,
+          securitycurrency.getUrlIntraExtend(), "gt.connector.intra.url.failure",
+          getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null), specInst, assetclassType)) {
         securitycurrency.setUrlIntraExtend(null);
+        checkUrlForIntraday(specInst, securitycurrency);
       } else {
-        if (specInst != null) {
-          if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
-            checkUrl(getSecurityIntradayDownloadLink((Security) securitycurrency),
-                "gt.connector.intra.url.connect.failure");
-          }
-        } else {
-          checkUrl(getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency),
-              "gt.connector.intra.url.connect.failure");
-        }
+        checkUrlForIntraday(specInst, securitycurrency);
       }
       break;
     case DIVIDEND:
-      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport,
+      if (clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport,
           ((Security) securitycurrency).getUrlDividendExtend(), "gt.connector.dividend.url.failure",
           FeedIdentifier.DIVIDEND_URL, specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlDividendExtend(null);
       }
       break;
     case SPLIT:
-      if (checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport,
+      if (clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport,
           ((Security) securitycurrency).getUrlSplitExtend(), "gt.connector.split.url.failure", FeedIdentifier.SPLIT_URL,
           specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlSplitExtend(null);
       }
       break;
+    }
+  }
 
+  private <S extends Securitycurrency<S>> void checkUrlForHistory(SpecialInvestmentInstruments specInst,
+      Securitycurrency<S> securitycurrency) {
+    if (urlCheckSet.contains(UrlCheck.HISTORY)) {
+      if (specInst != null) {
+        if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
+          checkUrl(getSecurityHistoricalDownloadLink((Security) securitycurrency),
+              "gt.connector.historical.url.connect.failure", FeedSupport.HISTORY);
+        }
+      } else {
+        checkUrl(getCurrencypairHistoricalDownloadLink((Currencypair) securitycurrency),
+            "gt.connector.historical.url.connect.failure", FeedSupport.HISTORY);
+      }
+    }
+  }
+
+  private <S extends Securitycurrency<S>> void checkUrlForIntraday(SpecialInvestmentInstruments specInst,
+      Securitycurrency<S> securitycurrency) {
+    if (urlCheckSet.contains(UrlCheck.INTRADAY)) {
+      if (specInst != null) {
+        if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
+          checkUrl(getSecurityIntradayDownloadLink((Security) securitycurrency),
+              "gt.connector.intra.url.connect.failure", FeedSupport.INTRA);
+        }
+      } else {
+        checkUrl(getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency),
+            "gt.connector.intra.url.connect.failure", FeedSupport.INTRA);
+      }
     }
   }
 
@@ -278,7 +296,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
             : FeedIdentifier.CURRENCY_URL;
   }
 
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+  protected <S extends Securitycurrency<S>> boolean clearAndCheckUrlPatternSecuritycurrencyConnector(
       Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
       FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
       AssetclassType assetclassType) {
@@ -313,9 +331,10 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     return false;
   }
 
-  private void checkUrl(String url, String failureMsgKey) {
+  protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
     try {
       URL u = new URL(url);
+      System.out.println("URL:" + url);
       HttpURLConnection.setFollowRedirects(true);
       HttpURLConnection huc = (HttpURLConnection) u.openConnection();
       huc.setRequestProperty("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
@@ -324,29 +343,53 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       huc.connect();
       int code = huc.getResponseCode();
       if (code != HttpURLConnection.HTTP_OK) {
-        throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
+        throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { hideApiKeyForError(url) });
       } else {
         if (!isConnectionOk(huc)) {
-          throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
+          throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { hideApiKeyForError(url) });
         }
       }
+    } catch (GeneralNotTranslatedWithArgumentsException ge) {
+      throw ge;
     } catch (Exception e) {
       log.error("URL: {}", url);
     }
   }
 
+  protected String hideApiKeyForError(String url) {
+    return url;
+  }
+
+  /**
+   * During a URL check, HTTP status 200 may be returned even though the
+   * corresponding instrument was not found. Therefore, the body of the response
+   * should also be evaluated according to the data provider.
+   * 
+   * @param huc
+   * @return
+   */
   protected boolean isConnectionOk(HttpURLConnection huc) {
     return true;
   }
-  
+
+  protected String getBodyAsString(HttpURLConnection huc) throws IOException {
+    var br = new BufferedReader(new InputStreamReader((huc.getInputStream())));
+    var sb = new StringBuilder();
+    String output;
+    while ((output = br.readLine()) != null) {
+      sb.append(output);
+    }
+    return sb.toString();
+  }
+
   public Integer getNextAttemptInDaysForSplitHistorical(Date splitDate) {
     Integer addDaysForNextAttempt = null;
     long diffNowSplitDate = DateHelper.getDateDiff(splitDate, new Date(), TimeUnit.DAYS);
-    if(diffNowSplitDate < 5) {
+    if (diffNowSplitDate < 5) {
       return 1;
-    } else if(diffNowSplitDate < 10) {
+    } else if (diffNowSplitDate < 10) {
       return 2;
-    } else if(diffNowSplitDate < 30) {
+    } else if (diffNowSplitDate < 30) {
       return 3;
     }
     return addDaysForNextAttempt;

@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,11 +27,15 @@ import grafioschtrader.entities.Security;
 /*-
  * Stock, Bond, ETF:
  *
+ * The Stock World connector is very slow, as the number of requests increases
+ * linearly with the length of time.
  *
  * Dividend: Not Supported
  * Splits: Not Supported
  *
- *
+ * There is a regex check for URL extension. A check of the instrument with the
+ * connector always returns an HTTP OK and the evaluation of the response body
+ * is not useful.
  */
 @Component
 public class StockworldFeedConnector extends BaseFeedConnector {
@@ -44,7 +49,7 @@ public class StockworldFeedConnector extends BaseFeedConnector {
   }
 
   public StockworldFeedConnector() {
-    super(supportedFeed, "stockworld", "Stockworld", URL_EXTENDED_REGEX);
+    super(supportedFeed, "stockworld", "Stockworld", URL_EXTENDED_REGEX, EnumSet.noneOf(UrlCheck.class));
   }
 
   @Override
@@ -150,6 +155,4 @@ public class StockworldFeedConnector extends BaseFeedConnector {
     return null;
   }
 
- 
- 
 }

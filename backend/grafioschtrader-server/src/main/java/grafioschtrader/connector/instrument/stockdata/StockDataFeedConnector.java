@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,14 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 
+/**
+ * The historical price data should be subscribed to "Standard", as otherwise
+ * the period of the price data offered is far too short.
+ * 
+ * Regex pattern recognition for checking the URL extension is not implemented.
+ * In addition, the check of an incorrect URL extension by the connector does
+ * not return a usable response.
+ */
 @Component
 public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
@@ -47,11 +56,11 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   public StockDataFeedConnector() {
-    super(supportedFeed, "stockdata", "StockData", null);
+    super(supportedFeed, "stockdata", "StockData", null, EnumSet.noneOf(UrlCheck.class));
   }
 
   private String getApiKeyString(boolean firstArgument) {
-    return (firstArgument? "": "&") +  "api_token=" + getApiKey();
+    return (firstArgument ? "" : "&") + "api_token=" + getApiKey();
   }
 
   @Override
@@ -175,7 +184,6 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
     public Double low;
     public Double close;
     public Long volume;
-
   }
 
   private static class QuoteSecurity {
@@ -240,14 +248,13 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
     public String timezone_dst;
     public String timezone_name;
     public byte is_dst;
+
     @Override
     public String toString() {
       return "StockexchangeStockdata [mic_code=" + mic_code + ", exchange=" + exchange + ", stock_exchange_long="
           + stock_exchange_long + ", country=" + country + ", append=" + append + ", timezone=" + timezone
           + ", timezone_dst=" + timezone_dst + ", timezone_name=" + timezone_name + ", is_dst=" + is_dst + "]";
     }
-    
-    
-    
+
   }
 }

@@ -16,7 +16,6 @@ import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 

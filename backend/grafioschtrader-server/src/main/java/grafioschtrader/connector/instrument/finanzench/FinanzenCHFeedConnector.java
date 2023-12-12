@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.text.NumberFormat;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +34,15 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
+/**
+ * At one time, historical data could also be queried via this connector.
+ * However, access to these pages was better protected against non-browser
+ * queries. At present, the source code does not yet fully reflect this
+ * situation.
+ * 
+ * A regex pattern check is active. In addition, a check of the URL by the
+ * accessibility of the instrument .
+ */
 @Component
 public class FinanzenCHFeedConnector extends BaseFeedConnector {
 
@@ -49,7 +59,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   }
 
   public FinanzenCHFeedConnector() {
-    super(supportedFeed, "finanzench", "Finanzen CH", null);
+    super(supportedFeed, "finanzench", "Finanzen CH", null, EnumSet.of(UrlCheck.INTRADAY));
   }
 
   @Override
@@ -68,13 +78,13 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+  protected <S extends Securitycurrency<S>> boolean clearAndCheckUrlPatternSecuritycurrencyConnector(
       Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
       FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
       AssetclassType assetclassType) {
 
-    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey, feedIdentifier,
-        specialInvestmentInstruments, assetclassType);
+    boolean clear = super.clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend,
+        errorMsgKey, feedIdentifier, specialInvestmentInstruments, assetclassType);
     switch (feedSupport) {
     case HISTORY:
       checkUrlExtendsionWithRegex(new String[] { URL_HISTORICAL_REGEX }, urlExtend);

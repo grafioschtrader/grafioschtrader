@@ -1,87 +1,52 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.six.SixFeedConnector;
-import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.Historyquote;
-import grafioschtrader.entities.Security;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-class SixFeedConnectorTest {
+class SixFeedConnectorTest extends BaseFeedConnectorCheck {
 
-  private SixFeedConnector swissquoteConnector = new SixFeedConnector();
-  
-  @Test
-  void getEodSecurityHistoryTest() {
-
-    final List<Security> securities = new ArrayList<>();
-
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("03.12.2018", germanFormatter);
-    final LocalDate to = LocalDate.parse("04.06.2021", germanFormatter);
-
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-    securities.add(createSecurity("SMI PR", "CH0009980894CHF9", false));
-    securities.add(createSecurity("1 HOLCIM 15-25", "CH0306179125CHF4", false));
-    securities.add(createSecurity("ABB Ltd", "CH0012221716CHF4", false));
-
-    securities.parallelStream().forEach(security -> {
-      List<Historyquote> historyquote = new ArrayList<>();
-      try {
-        historyquote = swissquoteConnector.getEodSecurityHistory(security, fromDate, toDate);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      assertThat(historyquote.size()).isEqualTo(624);
-    });
-  }
+  private SixFeedConnector sixFeedConnector = new SixFeedConnector();
 
   @Test
   void updateSecurityLastPriceTest() {
-    final List<Security> securities = new ArrayList<>();
-
-    securities.add(createSecurity("ZKB Silver ETF - A (CHF)", "CH0183135976CHF4", true));
-    securities.add(createSecurity("SMI PR", "CH0009980894CHF9", true));
-    securities.add(createSecurity("1 HOLCIM 15-25", "CH0306179125CHF4", true));
-    securities.add(createSecurity("ABB Ltd", "CH0012221716CHF4", true));
-    securities.parallelStream().forEach(security -> {
-      try {
-        swissquoteConnector.updateSecurityLastPrice(security);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      assertThat(security.getSLast()).isGreaterThan(0.0);
-    });
-
+    updateSecurityLastPrice();
   }
 
-  private Security createSecurity(final String name, final String ticker, boolean intra) {
-    final Security security = new Security();
-    security.setName(name);
-    if(intra) {
-      security.setUrlIntraExtend(ticker);
-    } else {
-      security.setUrlHistoryExtend(ticker);
+  @Test
+  void getEodSecurityHistoryTest() {
+    getEodSecurityHistory(false);
+  }
+
+  @Override
+  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
+    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
+    try {
+      hisoricalDate
+          .add(new SecurityHisoricalDate("SMI PR", "CH0009980894", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+              "CH0009980894CHF9", null, 6041, "2000-01-04", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("1 HOLCIM 15-25", "CH0306179125",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0306179125CHF4", null, 2017, "2015-12-07", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("ABB Ltd", "CH0012221716",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0012221716CHF4", null, 6022, "2000-01-04", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("ZKB Silver ETF - A (CHF)", "CH0183135976",
+          SpecialInvestmentInstruments.ETF, "CH0183135976CHF4", null, 4172, "2007-05-10", "2023-12-08"));
+    } catch (ParseException pe) {
+      pe.printStackTrace();
     }
-    final Assetclass assetclass = new Assetclass();
-    assetclass.setSpecialInvestmentInstrument(SpecialInvestmentInstruments.ETF);
-    security.setAssetClass(assetclass);
-    return security;
+    return hisoricalDate;
+  }
+
+  @Override
+  protected IFeedConnector getIFeedConnector() {
+    return sixFeedConnector;
   }
 
 }

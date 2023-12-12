@@ -36,8 +36,6 @@ spring:
           sharedCache:
             mode: ENABLE_SELECTIVE
       hibernate:
-        # The SQL dialect makes Hibernate generate better SQL for the chosen database
-        dialect: org.hibernate.dialect.MariaDBDialect
         javax:
           cache:
             missing_cache_strategy: create

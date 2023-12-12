@@ -3,6 +3,7 @@ package grafioschtrader.connector.instrument.twelvedata;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -12,11 +13,15 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -30,16 +35,29 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
+import grafioschtrader.types.SubscriptionType;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Refill;
 
+/**
+ * Twelvedata's pricing model regulates both the number of accesses per minute
+ * and the availability of the functionality. A maximum number of accesses per
+ * minute or even per day is not implemented. The "Basic Free" price model also
+ * only provides US data.
+ *
+ * A regex check of the URL ending is not implemented. However, a check via the
+ * connector is available.
+ */
 @Component
 public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   private static final int MAX_DATA_POINTS = 5000;
   private static final String DOMAIN_NAME = "https://api.twelvedata.com/";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
+  private static final String TOKEN_PARAM_NAME = "apikey";
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -54,7 +72,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   public TwelvedataFeedConnector() {
-    super(supportedFeed, "twelvedata", "Twelve Data", null);
+    super(supportedFeed, "twelvedata", "Twelve Data", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
     Bandwidth limit = Bandwidth.classic(8, Refill.intervally(8, Duration.ofMinutes(1)));
     this.bucket = Bucket.builder().addLimit(limit).build();
   }
@@ -65,7 +83,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   private String getApiKeyString() {
-    return "&apikey=" + getApiKey();
+    return "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
   }
 
   private void waitForTokenOrGo() {
@@ -82,6 +100,32 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
         }
       }
     } while (true);
+  }
+
+  @Override
+  protected boolean isConnectionOk(HttpURLConnection huc) {
+    try {
+      return getBodyAsString(huc).indexOf("\"code\":404") == -1;
+    } catch (IOException e) {
+      log.error("Could not open connection", e);
+    }
+    return true;
+  }
+
+  @Override
+  protected String hideApiKeyForError(String url) {
+    return url.replaceFirst("(.*" + TOKEN_PARAM_NAME + "=)([^&]*)(.*)", "$1" + ERROR_API_KEY_REPLACEMENT + "$3");
+  }
+
+  @Override
+  public <S extends Securitycurrency<S>> void hasAPISubscriptionSupport(Securitycurrency<S> securitycurrency,
+      FeedSupport feedSupport) {
+    if (getSubscriptionType() == SubscriptionType.TWELVEDATA_FREE && securitycurrency instanceof Security security) {
+      if (!security.getStockexchange().getCountryCode().equals(Locale.US.getCountry())) {
+        throw new GeneralNotTranslatedWithArgumentsException("gt.connector.subscription.failure",
+            new Object[] { getReadableName(), feedSupport.name() });
+      }
+    }
   }
 
   @Override
@@ -158,8 +202,9 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
         if (items.length == 5 + (hasVolume ? 1 : 0)) {
           Historyquote hq = parseResponseLineItems(items, dateFormat, divider, hasVolume);
           // Sometimes we get two rows for one date
-          if(historyquotes.isEmpty() || !historyquotes.isEmpty() && !historyquotes.get(historyquotes.size() - 1).getDate().equals(hq.getDate())) {
-            historyquotes.add(hq);  
+          if (historyquotes.isEmpty() || !historyquotes.isEmpty()
+              && !historyquotes.getLast().getDate().equals(hq.getDate())) {
+            historyquotes.add(hq);
           }
         }
       }

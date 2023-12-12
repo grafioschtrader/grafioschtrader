@@ -1,7 +1,6 @@
 package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.from;
 
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -14,93 +13,37 @@ import java.util.Locale;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SplitCount;
 import grafioschtrader.connector.instrument.yahoo.YahooFeedConnectorCOM;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-class YahooFeedConnectorCOMTest {
+class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
 
   private YahooFeedConnectorCOM yahooFeedConnector = new YahooFeedConnectorCOM();
 
-  @Test
-  void getEodCurrencyHistoryTest() throws ParseException {
-
-    final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
-
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 4863, "2005-01-03",
-        "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 4875, "2005-01-03",
-        "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3300, "2014-09-17",
-        "2023-09-29"));
-
-    currencies.parallelStream().forEach(cphd -> {
-      List<Historyquote> historyquotes = new ArrayList<>();
-      try {
-        historyquotes = yahooFeedConnector.getEodCurrencyHistory(cphd.currencypair, cphd.from, cphd.to);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
-      assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
-      assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
-      ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
-    });
-  }
-
-  @Test
-  void updateCurrencyPairLastPriceTest() {
-
-    final List<Currencypair> currencies = new ArrayList<>();
-
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, "AUD"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_EUR));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_GBP, GlobalConstants.MC_EUR));
-
-    currencies.parallelStream().forEach(currencyPair -> {
-      try {
-        yahooFeedConnector.updateCurrencyPairLastPrice(currencyPair);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println(String.format("%s/%s last:%f change: %f high: %f low: %f", currencyPair.getFromCurrency(),
-          currencyPair.getToCurrency(), currencyPair.getSLast(), currencyPair.getSChangePercentage(),
-          currencyPair.getSHigh(), currencyPair.getSLow()));
-      assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
-    });
-  }
-
+  // Security price tests
+  //=======================================
   @Test
   void getEodSecurityHistoryTest() {
-    List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
-    hisoricalDate.parallelStream().forEach(hd -> {
-      List<Historyquote> historyquotes = new ArrayList<>();
-      try {
-        historyquotes = yahooFeedConnector.getEodSecurityHistory(hd.security, hd.from, hd.to);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println("Ticker=" + hd.security.getUrlHistoryExtend() + " Historyquote-Size=" + historyquotes.size()
-          + " first date: " + historyquotes.get(0).getDate());
-      assertThat(historyquotes.size()).isEqualTo(hd.expectedRows);
-      assertThat(historyquotes.get(0).getDate()).isEqualTo(hd.from);
-      assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(hd.to);
-    });
+    getEodSecurityHistory(false);
   }
 
-  private List<SecurityHisoricalDate> getHistoricalSecurities() {
+  @Test
+  void updateSecurityLastPriceTest() {
+    updateSecurityLastPrice();
+  }
+  
+  
+  @Override
+  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
     List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
     try {
       hisoricalDate.add(new SecurityHisoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
@@ -123,25 +66,60 @@ class YahooFeedConnectorCOMTest {
     }
     return hisoricalDate;
   }
+  
+  
+ // Currency pair price tests
+ //=======================================
+  @Test
+  void getEodCurrencyHistoryTest() throws ParseException {
+    final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 4863, "2005-01-03",
+        "2023-09-29"));
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 4875, "2005-01-03",
+        "2023-09-29"));
+    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3300, "2014-09-17",
+        "2023-09-29"));
+    currencies.parallelStream().forEach(cphd -> {
+      List<Historyquote> historyquotes = new ArrayList<>();
+      try {
+        historyquotes = yahooFeedConnector.getEodCurrencyHistory(cphd.currencypair, cphd.from, cphd.to);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
+      assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
+      assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
+      ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
+    });
+  }
 
   @Test
-  void updateSecurityLastPriceTest() {
-    final List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
-    hisoricalDate.parallelStream().forEach(hd -> {
-      hd.security.setUrlIntraExtend(hd.security.getUrlHistoryExtend());
-      hd.security.setUrlHistoryExtend(null);
+  void updateCurrencyPairLastPriceTest() {
+    final List<Currencypair> currencies = new ArrayList<>();
+
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, "AUD"));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_EUR));
+    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_GBP, GlobalConstants.MC_EUR));
+
+    currencies.parallelStream().forEach(currencyPair -> {
       try {
-        yahooFeedConnector.updateSecurityLastPrice(hd.security);
+        yahooFeedConnector.updateCurrencyPairLastPrice(currencyPair);
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      System.out.println(String.format("%s last:%f change: %f high: %f low: %f", hd.security.getUrlIntraExtend(),
-          hd.security.getSLast(), hd.security.getSChangePercentage(), hd.security.getSHigh(), hd.security.getSLow()));
-      assertThat(hd.security.getSLast()).isNotNull().isGreaterThan(0.0);
+      System.out.println(String.format("%s/%s last:%f change: %f high: %f low: %f", currencyPair.getFromCurrency(),
+          currencyPair.getToCurrency(), currencyPair.getSLast(), currencyPair.getSChangePercentage(),
+          currencyPair.getSHigh(), currencyPair.getSLow()));
+      assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
     });
-
   }
 
+  
+  // Split and dividend tests
+  //=======================================
   @Test
   void getSplitsTest() throws ParseException {
     ConnectorTestHelper.standardSplitTest(yahooFeedConnector);
@@ -186,6 +164,11 @@ class YahooFeedConnectorCOMTest {
     security.setUrlDividendExtend(ticker);
     security.setCurrency(currency);
     return security;
+  }
+
+  @Override
+  protected IFeedConnector getIFeedConnector() {
+    return yahooFeedConnector;
   }
 
 }

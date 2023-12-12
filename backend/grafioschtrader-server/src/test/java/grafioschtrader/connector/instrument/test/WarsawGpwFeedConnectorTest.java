@@ -1,68 +1,50 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
 import grafioschtrader.connector.instrument.warsawgpw.WarsawGpwFeedConnector;
-import grafioschtrader.entities.Historyquote;
-import grafioschtrader.entities.Security;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-public class WarsawGpwFeedConnectorTest {
+public class WarsawGpwFeedConnectorTest extends BaseFeedConnectorCheck {
 
   private WarsawGpwFeedConnector warsawGpwFeedConnector = new WarsawGpwFeedConnector();
 
   @Test
   void updateSecurityLastPriceTest() {
-    final List<Security> securities = new ArrayList<>();
-    securities.add(ConnectorTestHelper.createIntraSecurity("WIG", "PL9999999995",
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, GlobalConstants.STOCK_EX_MIC_WARSAW));
-    securities.add(ConnectorTestHelper.createIntraSecurity("PKOBP", "PLPKO0000016",
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, GlobalConstants.STOCK_EX_MIC_WARSAW));
-    securities.add(ConnectorTestHelper.createIntraSecurity("GETIN", "PLGSPR000014",
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, GlobalConstants.STOCK_EX_MIC_WARSAW));
-  
-  
-    securities.parallelStream().forEach(security -> {
-      try {
-        warsawGpwFeedConnector.updateSecurityLastPrice(security);
-        System.out.println(security);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      assertThat(security.getSLast()).isNotNull().isGreaterThan(0.0);
-    });
+    updateSecurityLastPrice();
   }
 
   @Test
   void getEodSecurityHistoryTest() {
-    final List<Security> securities = new ArrayList<>();
-    final LocalDate from = LocalDate.parse("2000-03-01");
-    final LocalDate to = LocalDate.parse("2022-11-18");
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+    getEodSecurityHistory(false);
+  }
+  
+  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
+    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
+    try {
+      hisoricalDate.add(new SecurityHisoricalDate("WIG", "PL9999999995",
+          SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, 5954, "2000-03-01", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("PKOBP", "PLPKO0000016",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, 4778, "2004-11-10", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("GETIN", "PLGSPR000014",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, 5658, "2001-05-10", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("ETFBW20LV", "PLBEW2L00019",
+          SpecialInvestmentInstruments.ETF, 954, "2020-02-25", "2023-12-08"));
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+    }
+    return hisoricalDate;
+  }
 
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("WIG20", "PL9999999987"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("PKO BANK POLSKI SA", "PLPKO0000016"));
-    securities.add(ConnectorTestHelper.createHistoricalSecurity("BETA ETF WIG20LEV Portfelowy", "PLBEW2L00019"));
-    securities.parallelStream().forEach(security -> {
-      List<Historyquote> historyquote = new ArrayList<>();
-      try {
-        historyquote = warsawGpwFeedConnector.getEodSecurityHistory(security, fromDate, toDate);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println("Ticker=" + security.getUrlHistoryExtend() + " Historyquote-Size=" + historyquote.size());
-      assertThat(historyquote.size()).isGreaterThan(687);
-    });
+  @Override
+  protected IFeedConnector getIFeedConnector() {
+    return warsawGpwFeedConnector;
   }
 
 }

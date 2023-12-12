@@ -1,14 +1,19 @@
 package grafioschtrader.connector.instrument.finnhub;
 
+import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriUtils;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,8 +23,11 @@ import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.types.CreateType;
+import grafioschtrader.types.SubscriptionType;
 
 /**
  * Finnhub connector
@@ -31,6 +39,7 @@ import grafioschtrader.types.CreateType;
  */
 @Component
 public class FinnhubConnector extends BaseFeedApiKeyConnector {
+
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -47,7 +56,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   private static final String DOMAIN_NAME_WITH_VERSION = "https://finnhub.io/api/v1/";
 
   public FinnhubConnector() {
-    super(supportedFeed, "finnhub", "Finnhub", null);
+    super(supportedFeed, "finnhub", "Finnhub", null, EnumSet.noneOf(UrlCheck.class));
   }
 
   @Override
@@ -96,7 +105,8 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    URL url = new URL(getSecurityIntradayDownloadLink(security));
+    var urlStr = UriUtils.encodeFragment(getSecurityIntradayDownloadLink(security), StandardCharsets.UTF_8);
+    URL url = new URI(urlStr).toURL();
     final Quote quote = objectMapper.readValue(url, Quote.class);
     security.setSLast(quote.c);
     security.setSOpen(quote.o);
@@ -113,6 +123,17 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   }
 
   @Override
+  public <S extends Securitycurrency<S>> void hasAPISubscriptionSupport(Securitycurrency<S> securitycurrency,
+      FeedSupport feedSupport) {
+    if (getSubscriptionType() == SubscriptionType.FINNHUB_FREE && securitycurrency instanceof Security security) {
+      if (!security.getStockexchange().getCountryCode().equals(Locale.US.getCountry())) {
+        throw new GeneralNotTranslatedWithArgumentsException("gt.connector.subscription.failure",
+            new Object[] { getReadableName(), feedSupport.name() });
+      }
+    }
+  }
+
+  @Override
   public String getSplitHistoricalDownloadLink(Security security) {
     return getSplitHistoricalDownloadLink(security, LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY),
         LocalDate.now());
@@ -125,7 +146,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate, LocalDate toDate) throws Exception {
-    URL url = new URL(getSplitHistoricalDownloadLink(security, fromDate, toDate));
+    URL url = new URI(getSplitHistoricalDownloadLink(security, fromDate, toDate)).toURL();
     final List<Securitysplit> securitysplits = new ArrayList<>();
     final Split[] splits = objectMapper.readValue(url, Split[].class);
     for (Split split : splits) {
