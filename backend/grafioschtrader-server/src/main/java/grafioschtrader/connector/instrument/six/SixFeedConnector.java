@@ -16,6 +16,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,10 @@ import grafioschtrader.entities.Security;
  *
  * Splits: Not Supported
  *
+ * There is a regex sample check. The URL extension consists of an ISIN and a
+ * suffix that refers to the currency. The ISIN is currently not verified for
+ * correctness. A connector check with the security would have to be programmed,
+ * as an HTTP-OK is returned even if the URL extension is incorrect.
  */
 @Component
 public class SixFeedConnector extends BaseFeedConnector {
@@ -64,7 +69,7 @@ public class SixFeedConnector extends BaseFeedConnector {
   private static final String URL_EXTENDED_REGEX = "^([A-Z]{2})([A-Z0-9]{9})([0-9]{1})[A-Za-z]{3}\\d$";
 
   public SixFeedConnector() {
-    super(supportedFeed, "six", "Swiss Stock Exchange", URL_EXTENDED_REGEX);
+    super(supportedFeed, "six", "Swiss Stock Exchange", URL_EXTENDED_REGEX, EnumSet.noneOf(UrlCheck.class));
   }
 
   @Override
@@ -165,7 +170,8 @@ public class SixFeedConnector extends BaseFeedConnector {
     final DateFormat dateFormat = new SimpleDateFormat(FROM_DATE_FORMAT_SIX);
     objectMapper.setDateFormat(dateFormat);
     final String urlStr = getSecurityHistoricalDownloadLink(security) + "&fromdate=" + dateFormat.format(from);
-    final HistoryQuote readHistoryquotes = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(), HistoryQuote.class);
+    final HistoryQuote readHistoryquotes = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(),
+        HistoryQuote.class);
 
     DataValues dataValues = readHistoryquotes.valors[0].data;
     for (int i = 0; i < dataValues.Date.length; i++) {

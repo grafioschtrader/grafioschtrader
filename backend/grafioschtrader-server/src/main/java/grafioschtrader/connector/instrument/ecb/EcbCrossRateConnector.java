@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,14 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
+/**
+ * This connector offers the Euro foreign exchange reference rates. This
+ * connector differs from the others in that the historical price data is read
+ * directly from the repository. Cross rates are calculated, e.g. for the
+ * USD/CHF currency pair, the EUR/USD and EUR/CHF currency rates are used.
+ * 
+ * The check for an existing currency pair can be checked via the repository.
+ */
 @Component
 public class EcbCrossRateConnector extends BaseFeedConnector {
 
@@ -36,14 +45,14 @@ public class EcbCrossRateConnector extends BaseFeedConnector {
   }
 
   public EcbCrossRateConnector() {
-    super(supportedFeed, "ecb", "ECB Cross Rate CET 16:00", null);
+    super(supportedFeed, "ecb", "ECB Cross Rate CET 16:00", null, EnumSet.noneOf(UrlCheck.class));
   }
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
     return EcbLoader.ECB_BASE_URL + EcbLoader.ECB_SINGLE_DAY_EXTEND;
   }
-    
+
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws IOException, ParseException, InterruptedException {
@@ -67,13 +76,13 @@ public class EcbCrossRateConnector extends BaseFeedConnector {
   }
 
   @Override
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+  protected <S extends Securitycurrency<S>> boolean clearAndCheckUrlPatternSecuritycurrencyConnector(
       Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
       FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
       AssetclassType assetclassType) {
 
-    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey,
-        feedIdentifier, specialInvestmentInstruments, assetclassType);
+    boolean clear = super.clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend,
+        errorMsgKey, feedIdentifier, specialInvestmentInstruments, assetclassType);
     checkForExistenceCurrencies((Currencypair) securitycurrency);
     return clear;
   }

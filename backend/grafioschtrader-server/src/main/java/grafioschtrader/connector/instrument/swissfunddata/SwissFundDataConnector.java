@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,11 @@ import grafioschtrader.entities.Security;
  *
  * Dividend: Not Supported
  * Splits: Not Supported
+ * With Swiss Fund Data, the entire period is always downloaded as a CSV file.
+ * This connector should therefore only be used to a limited extent.
+ * 
+ * A regex check for URL extension is performed. A check via the connector is
+ * not possible as a CSV is downloaded.
  *
  */
 @Component
@@ -45,7 +51,7 @@ public class SwissFundDataConnector extends BaseFeedConnector {
   }
 
   public SwissFundDataConnector() {
-    super(supportedFeed, "swissfunddata", "Swiss Fund Data", URL_EXTENDED_REGEX);
+    super(supportedFeed, "swissfunddata", "Swiss Fund Data", URL_EXTENDED_REGEX, EnumSet.noneOf(UrlCheck.class));
   }
 
   @Override

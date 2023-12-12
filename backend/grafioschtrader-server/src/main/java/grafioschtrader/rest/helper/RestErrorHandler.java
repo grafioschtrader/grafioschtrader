@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.StaleObjectStateException;
@@ -51,7 +52,6 @@ public class RestErrorHandler {
 
   @Autowired
   private UserService userService;
-
 
   public RestErrorHandler(final MessageSource messageSource) {
     this.messageSource = messageSource;
@@ -104,7 +104,7 @@ public class RestErrorHandler {
   public ErrorWrapper processDisabledException(final SecurityException ex) {
     return new ErrorWrapper(new ErrorWithLogout(ex.getMessage()));
   }
-  
+
   @ExceptionHandler(value = { SecurityException.class })
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ErrorWrapper processSecurityException(final SecurityException ex) {
@@ -167,7 +167,7 @@ public class RestErrorHandler {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final Locale userLocale = user.createAndGetJavaLocale();
     return new ErrorWrapper(
-        new SingleNativeMsgError(messageSource.getMessage(ex.getMessageKey(), ex.getArguments(), userLocale)));
+        new SingleNativeMsgError(translateArguments(ex.getMessageKey(), ex.getArguments(), userLocale)));
   }
 
   @ExceptionHandler(value = { ConstraintViolationException.class })
@@ -178,7 +178,6 @@ public class RestErrorHandler {
     for (final ConstraintViolation<?> violation : ex.getConstraintViolations()) {
       validationErrorDTO.addFieldError(violation.getPropertyPath().toString(), violation.getMessage());
     }
-
     return new ErrorWrapper(validationErrorDTO);
   }
 
@@ -202,6 +201,27 @@ public class RestErrorHandler {
     httpResponse.setStatus(status.value());
     PrintWriter out = httpResponse.getWriter();
     mapper.writeValue(out, new ErrorWrapper(error));
+  }
+
+  /**
+   * Sometimes the argument should also be translated. This can be done by
+   * defining it as ":{0}:T" instead of "{0}" in the message.
+   * 
+   * @param messageKey
+   * @param args
+   * @param locale
+   * @return
+   */
+  private String translateArguments(String messageKey, Object[] args, Locale locale) {
+    String msg = messageSource.getMessage(messageKey, args, locale);
+    var replacePattern = ":(.*):T";
+    var pattern = Pattern.compile(replacePattern);
+    var matcher = pattern.matcher(msg);
+    while (matcher.find()) {
+      var argTranslated = messageSource.getMessage(matcher.group(1), null, locale);
+      msg = msg.replaceFirst(replacePattern, argTranslated);
+    }
+    return msg;
   }
 
 }

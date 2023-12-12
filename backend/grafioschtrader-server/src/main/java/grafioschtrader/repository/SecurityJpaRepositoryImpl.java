@@ -40,7 +40,6 @@ import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.InstrumentStatisticsResult;
-import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;

@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,12 @@ public class ArivaFeedConnector extends BaseFeedConnector {
    *
    * Splits:
    * Splits are mixed with dividends, please refere to https://www.ariva.de/apple-aktie/historische_ereignisse
+   *
+   * A regex check of the URL extension is active. The connector for checking the
+   * instrument would return an HTTP OK and an empty CVS file. This would
+   * therefore have to be implemented specifically.
    */
+
   private static final String DATE_FORMAT_GE = "dd.MM.yyyy";
   private static final int TIMEOUT = 15000;
   private static final String URL_EXTENDED_REGEX = "^\\d+&boerse_id=\\d+(&currency=[A-Za-z]{3})?$";
@@ -49,7 +55,7 @@ public class ArivaFeedConnector extends BaseFeedConnector {
   }
 
   public ArivaFeedConnector() {
-    super(supportedFeed, "ariva", "Ariva", URL_EXTENDED_REGEX);
+    super(supportedFeed, "ariva", "Ariva", URL_EXTENDED_REGEX, EnumSet.noneOf(UrlCheck.class));
   }
 
   @Override

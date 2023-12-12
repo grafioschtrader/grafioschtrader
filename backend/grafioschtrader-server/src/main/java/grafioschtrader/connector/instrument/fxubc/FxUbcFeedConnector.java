@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,10 +37,12 @@ import grafioschtrader.entities.Historyquote;
 /**
  *
  * This provider can only deliver historical rates for 4 years in one request.
- * Therefore 3 requests are needed for the period from 2000 to 2019. It is also
+ * Therefore 4 requests are needed for the period from 2000 to 2023. It is also
  * possible that the provider does not supply any data for one or all of these
  * requests due to its load.
  *
+ * No regex pattern is used, as the user cannot make an entry regarding the URL
+ * extension. However, the presence of the currency pair is checked.
  */
 
 @Component
@@ -56,12 +59,12 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
   }
 
   public FxUbcFeedConnector() {
-    super(supportedFeed, "fxubc", "Pacific Exchange Rate Service", null);
+    super(supportedFeed, "fxubc", "Pacific Exchange Rate Service", null, EnumSet.of(UrlCheck.HISTORY));
   }
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
-    return "http://fx.sauder.ubc.ca/cgi/fxdata?c=" + currencypair.getFromCurrency() + "&b="
+    return "https://fx.sauder.ubc.ca/cgi/fxdata?c=" + currencypair.getFromCurrency() + "&b="
         + currencypair.getToCurrency();
   }
 

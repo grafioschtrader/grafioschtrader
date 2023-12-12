@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final int TIMEOUT = 15000;
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
+  private static final String TOKEN_PARAM_NAME = "apikey";
 
   /**
    * returns only the latest 100 data points
@@ -60,18 +62,28 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   public AlphaVantageFeedConnector() {
-    super(supportedFeed, "alphavantage", "Alpha Vantage", URL_NORMAL_REGEX);
+    super(supportedFeed, "alphavantage", "Alpha Vantage", URL_NORMAL_REGEX,
+        EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
   }
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return ALPHAVANTAGE_BASE + "GLOBAL_QUOTE&datatype=csv&symbol=" + security.getUrlIntraExtend() + "&apikey="
-        + getApiKey();
+    return ALPHAVANTAGE_BASE + "GLOBAL_QUOTE&datatype=csv&symbol=" + security.getUrlIntraExtend() + "&"
+        + TOKEN_PARAM_NAME + "=" + getApiKey();
+  }
+
+  /**
+   * Probably this method will never be called because it will always return HTTP
+   * status code 200
+   */
+  @Override
+  protected String hideApiKeyForError(String url) {
+    return url.replaceFirst("(.*" + TOKEN_PARAM_NAME + "=)([^&]*)(.*)", "$1" + ERROR_API_KEY_REPLACEMENT + "$3");
   }
 
   public String getSecurityHistoricalDownloadLink(final Security security, String outputsize) {
     return ALPHAVANTAGE_BASE + "TIME_SERIES_DAILY_ADJUSTED&datatype=csv&symbol=" + security.getUrlHistoryExtend()
-        + "&outputsize=" + outputsize + "&apikey=" + getApiKey();
+        + "&outputsize=" + outputsize + "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
   }
 
   @Override
@@ -87,7 +99,6 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
    */
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-
     Date date = new Date();
     final List<Historyquote> historyquotes = this.getEodSecurityHistory(security, date, date, true);
     if (historyquotes.size() == 1) {

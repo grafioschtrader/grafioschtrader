@@ -616,6 +616,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   public void validateCashaccountAmount(Transaction openPositionMarginTransaction, Integer currencyFraction) {
     double calcCashaccountAmount = 0;
+    double buyQuotation = 0;
     switch (getTransactionType()) {
     case ACCUMULATE:
     case REDUCE:
@@ -623,6 +624,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     case FINANCE_COST:
       checkNegativeQuoataion();
       if (this.security.isMarginInstrument()) {
+        buyQuotation = openPositionMarginTransaction.getQuotation();
         calcCashaccountAmount = validateSecurityMarginCashaccountAmount(openPositionMarginTransaction);
       } else {
         calcCashaccountAmount = validateSecurityGeneralCashaccountAmount(0);
@@ -638,7 +640,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       if (quotation != null && GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {
         if (calcCashaccountAmount != DataHelper.round(cashaccountAmount,
             Math.min(GlobalConstants.FID_MAX_FRACTION_DIGITS, currencyFraction + (currencyExRate == null? 3: 5)))) {
-          correctSecurityTransactionToAmount(roundCashaccountAmount - cashaccountAmount);
+          correctSecurityTransactionToAmount(roundCashaccountAmount - cashaccountAmount, buyQuotation);
         }
       }
     } else {
@@ -684,12 +686,12 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return validateSecurityGeneralCashaccountAmount(buyQuotation);
   }
 
-  private void correctSecurityTransactionToAmount(double diff) {
+  private void correctSecurityTransactionToAmount(double diff, double buyQuotation) {
     if (idCurrencypair != null) {
       double oldCurrencyExRate = currencyExRate;
       currencyExRate = DataHelper.round(
-          (validateSecurityGeneralCashaccountAmount(0) + diff)
-              / calculateSecurityTransactionAmountWithoutExchangeRate(0),
+          (validateSecurityGeneralCashaccountAmount(buyQuotation) + diff)
+              / calculateSecurityTransactionAmountWithoutExchangeRate(buyQuotation),
           GlobalConstants.FID_MAX_CURRENCY_EX_RATE_FRACTION);
       log.debug("Corrected currency exchange rate for difference {} from {} to {}", diff, oldCurrencyExRate,
           currencyExRate);
@@ -700,7 +702,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
           GlobalConstants.FID_MAX_FRACTION_DIGITS);
       log.debug("Corrected quotation for difference {} from {} to {}", diff, oldQuotation, quotation);
     }
-    cashaccountAmount = this.validateSecurityGeneralCashaccountAmount(0);
+    cashaccountAmount = this.validateSecurityGeneralCashaccountAmount(buyQuotation);
   }
 
   // It is public for test

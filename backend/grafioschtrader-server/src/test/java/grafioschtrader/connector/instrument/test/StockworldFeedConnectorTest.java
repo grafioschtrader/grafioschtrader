@@ -1,68 +1,46 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.stockworld.StockworldFeedConnector;
-import grafioschtrader.entities.Historyquote;
-import grafioschtrader.entities.Security;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
-class StockworldFeedConnectorTest {
+class StockworldFeedConnectorTest extends BaseFeedConnectorCheck {
 
   private StockworldFeedConnector stockworldFeedConnector = new StockworldFeedConnector();
-  
+    
   @Test
   void getEodSecurityHistoryTest() {
-
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("10.03.2018", germanFormatter);
-    final LocalDate to = LocalDate.parse("21.05.2021", germanFormatter);
-
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-    final List<Security> securities = getStocks();
-
-    securities.parallelStream().forEach(security -> {
-      List<Historyquote> historyquote = new ArrayList<>();
-      try {
-        historyquote = stockworldFeedConnector.getEodSecurityHistory(security, fromDate, toDate);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println(security.getName() + " Size: " + historyquote.size());
-      assertThat(historyquote.size()).isEqualTo(security.getDenomination());
-    });
+    getEodSecurityHistory(true);
   }
   
-
-  private List<Security> getStocks() {
-    final List<Security> securities = new ArrayList<>();
-    securities.add(createSecurity("ComStage STOXXEurope 600 Food & Beverage NR UCITS ETF", "LU0378435803", "149970851", 764));
-    securities.add(createSecurity("BASF", "DE000BASF111", "293", 764));
-    securities.add(createSecurity("Bayerische Landesbank 2,5% 17/27", "DE000BLB4UP9", "128405128", 763));
-    return securities;
+  @Override
+  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
+    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
+    try {
+      hisoricalDate.add(new SecurityHisoricalDate("1 HOLCIM 15-25", "CH0306179125",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, "124100141", null, 1916, "2015-12-07", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("ABB Ltd", "CH0012221716",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, "2798", null, 4571, "2002-10-02", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("ZKB Silver ETF - A (CHF)", "CH0183135976",
+          SpecialInvestmentInstruments.ETF, "102758344", null, 1597, "2017-05-11", "2023-12-08"));
+      hisoricalDate.add(new SecurityHisoricalDate("Bayerische Landesbank 2,5% 17/27", "DE000BLB4UP9",
+          SpecialInvestmentInstruments.ETF, "128405128", null, 1656, "2017-01-26", "2023-12-08"));
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+    }
+    return hisoricalDate;
   }
 
-  private Security createSecurity(final String name, final String intraTicker, final String urlQuoteFeedExtend,
-      final int expectedRows) {
-    final Security security = new Security();
-    security.setName(name);
-    security.setUrlHistoryExtend(urlQuoteFeedExtend);
-    security.setUrlIntraExtend(urlQuoteFeedExtend);
-    security.setDenomination(expectedRows);
-    return security;
+  @Override
+  protected IFeedConnector getIFeedConnector() {
+    return stockworldFeedConnector;
   }
-
-}
+  
+ }

@@ -54,8 +54,8 @@ public class EcbCrossRateConnectorTest {
         e.printStackTrace();
       }
       assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
-      assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
-      assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
+      assertThat(historyquotes.getFirst().getDate()).isEqualTo(cphd.from);
+      assertThat(historyquotes.getLast().getDate()).isEqualTo(cphd.to);
       ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
     });
   }

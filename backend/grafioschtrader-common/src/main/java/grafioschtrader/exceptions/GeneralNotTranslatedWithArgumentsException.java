@@ -4,8 +4,6 @@ package grafioschtrader.exceptions;
  * Sometime the language of the user is not accesible in a such case it will be
  * translated later.
  *
- * @author Hugo Graf
- *
  */
 public class GeneralNotTranslatedWithArgumentsException extends RuntimeException {
   private static final long serialVersionUID = 1L;

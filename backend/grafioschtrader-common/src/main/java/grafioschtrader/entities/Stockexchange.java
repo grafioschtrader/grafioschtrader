@@ -302,7 +302,6 @@ public class Stockexchange extends Auditable implements Serializable {
     closedMinutes += nowTimeZone.getDayOfWeek() == DayOfWeek.MONDAY && nowTimeZone.toLocalTime().isBefore(timeOpen)
         ? 24 * 60
         : 0;
-    System.out.println("Name:" + name + ", Day:" + nowTimeZone.getDayOfWeek() + ", closed:" + closedMinutes);
     return closedMinutes;
   }
 
@@ -320,7 +319,6 @@ public class Stockexchange extends Auditable implements Serializable {
             && lastEspectedUpdateDateTime.toLocalTime().isBefore(timeClose)
         || nowTimeZone.getDayOfWeek() == DayOfWeek.MONDAY && nowTimeZone.toLocalTime().isAfter(timeClose)
             && lastDirectPriceUpdate.getDayOfWeek() != DayOfWeek.MONDAY;
-    System.out.println("May Have Price Update: " + hasPriceUpdate);
     return hasPriceUpdate;
   }
 

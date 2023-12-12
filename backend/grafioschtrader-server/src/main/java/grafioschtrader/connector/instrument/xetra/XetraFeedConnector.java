@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,10 @@ import grafioschtrader.entities.Security;
  * calculated in the user interface. GT will not implement this calculation and
  * therefore this access via this API call is not possible.
  *
+ * No regex check of the URL extension is performed. This is usually the ISIN,
+ * but a URL such as "ARIVA:US631101102" is also possible. The connector has not
+ * yet been checked for functioning URL extensions. The check of the connector
+ * with the URL extension provides the expected response and is therefore used.
  */
 @Component
 public class XetraFeedConnector extends BaseFeedConnector {
@@ -48,7 +53,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
   }
 
   public XetraFeedConnector() {
-    super(supportedFeed, "xetra", "Xetra", null);
+    super(supportedFeed, "xetra", "Xetra", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
   }
 
   @Override

@@ -213,8 +213,7 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
       holdCashaccount.setDepositPortfolioCurrency(DataHelper.round(holdDepositForTenant.depositPortfolioCurrency));
       holdCashaccount.setToHoldDate(toHoldDate);
       if (!holdCashaccountList.isEmpty()) {
-        holdCashaccountList.get(holdCashaccountList.size() - 1)
-            .setToHoldDate(transaction.getTransactionDate().minusDays(1));
+        holdCashaccountList.getLast().setToHoldDate(transaction.getTransactionDate().minusDays(1));
       }
       holdCashaccountList.add(holdCashaccount);
     }

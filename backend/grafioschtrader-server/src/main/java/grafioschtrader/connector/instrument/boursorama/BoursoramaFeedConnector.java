@@ -1,6 +1,7 @@
 package grafioschtrader.connector.instrument.boursorama;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
@@ -8,12 +9,15 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.exc.StreamReadException;
@@ -32,6 +36,11 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
+/**
+ * A regex check of the URL extension is not active. The connector for checking
+ * the instrument always returns an HTTP OK. In such a case, the body of the
+ * response is "[]", so there is a special implementation here.
+ */
 @Component
 public class BoursoramaFeedConnector extends BaseFeedConnector {
 
@@ -44,6 +53,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
       .enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   static {
     supportedFeed = new HashMap<>();
@@ -59,7 +69,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   public BoursoramaFeedConnector() {
-    super(supportedFeed, "boursorama", "Boursorama", null);
+    super(supportedFeed, "boursorama", "Boursorama", null, EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
   }
 
   private String getSecurityCurrecnypairHistoricalDownloadLink(final Securitycurrency<?> securitycurrency, Date from,
@@ -187,6 +197,16 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     setSTimestamp(security);
   }
 
+  @Override
+  protected boolean isConnectionOk(HttpURLConnection huc) {
+    try {
+      return !"[]".equals(getBodyAsString(huc));
+    } catch (IOException e) {
+      log.error("Could not open connection", e);
+    }
+    return true;
+  }
+
   private void setSTimestamp(Securitycurrency<?> securitycurrency) {
     securitycurrency.setSTimestamp(new Date(new Date().getTime() - getIntradayDelayedSeconds() * 1000));
   }
@@ -238,7 +258,6 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
         securitycurrency.setSChangePercentage(0.0);
       }
     }
-
   }
 
   private static class QuoteTab {
@@ -263,7 +282,6 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
         securitycurrency.setSChangePercentage((c - o) / o * 100);
       }
     }
-
   }
 
 }

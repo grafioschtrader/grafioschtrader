@@ -2,8 +2,6 @@ package grafioschtrader.entities;
 
 import static jakarta.persistence.InheritanceType.JOINED;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.types.UDFDataType;

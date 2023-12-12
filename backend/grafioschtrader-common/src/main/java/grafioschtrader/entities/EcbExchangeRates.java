@@ -9,7 +9,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
-@Schema(description = "Contains the exchange rates of the European Central Bank")
+@Schema(description = "Contains the exchange rates of the European Central Bank. The prices usually start at around 14:10 CET.")
 @Entity
 @Table(name = EcbExchangeRates.TABNAME)
 public class EcbExchangeRates {
@@ -19,6 +19,7 @@ public class EcbExchangeRates {
   @EmbeddedId
   private DateCurrencyKey dateCurrencyKey;
 
+  @Schema(description = "The EUR exchange rate to this currency")
   @Column(name = "rate")
   private double rate;
 
@@ -35,9 +36,11 @@ public class EcbExchangeRates {
   }
 
   public static class DateCurrencyKey {
+    @Schema(description = "Date of the exchange rate currency")
     @Column(name = "date")
     public Date date;
 
+    @Schema(description = "The base currency EUR for this exchange rate currency as an ISO code")
     @Column(name = "currency")
     public String currency;
 
@@ -68,7 +71,6 @@ public class EcbExchangeRates {
       DateCurrencyKey other = (DateCurrencyKey) obj;
       return Objects.equals(currency, other.currency) && Objects.equals(date, other.date);
     }
-
    
 
   }

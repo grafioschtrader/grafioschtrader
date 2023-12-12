@@ -17,8 +17,6 @@ import grafioschtrader.repository.GlobalparametersJpaRepository;
 /**
  * Update intraday prices thru the connector for securities or currency pair.
  *
- * @author Hugo Graf
- *
  * @param <S>
  */
 public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIntradayThru<S> {

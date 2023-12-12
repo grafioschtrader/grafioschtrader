@@ -3,6 +3,7 @@ package grafioschtrader.connector.instrument.divvydiary;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,7 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
   private static final String DOMAIN_NAME_WITH_VERSION = "https://api.divvydiary.com/";
 
   public DivvyDiaryConnector() {
-    super(supportedFeed, "divvydiary", "DivvyDiary", null);
+    super(supportedFeed, "divvydiary", "DivvyDiary", null, EnumSet.noneOf(UrlCheck.class));
   }
 
   @Override

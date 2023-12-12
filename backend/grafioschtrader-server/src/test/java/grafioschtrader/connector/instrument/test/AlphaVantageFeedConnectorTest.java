@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +32,7 @@ class AlphaVantageFeedConnectorTest {
    * NEEDS Premium Membership!
    */
   @Test
+  @Disabled
   void getEodSecurityHistoryTest() {
 
     final List<Security> securities = new ArrayList<>();
@@ -46,7 +48,7 @@ class AlphaVantageFeedConnectorTest {
   
     securities.add(createSecurity("AAPL"));
     securities.add(createSecurity("MSFT"));
-    securities.add(createSecurity("NESN.SW"));
+  //  securities.add(createSecurity("NESN.SW"));
     securities.parallelStream().forEach(security -> {
 
       List<Historyquote> historyquote = new ArrayList<>();

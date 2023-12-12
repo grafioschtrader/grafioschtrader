@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,14 @@ import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
+/**
+ * The Euronext connector can obtain data from several different stock exchanges
+ * in Europe.
+ *
+ * A regex check of the URL extension is not necessary as it is not edited by
+ * the user. The connector for checking the instrument would obviously always
+ * return an HTTP OK. Both checks are omitted.
+ */
 @Component
 public class EuronextFeedConnector extends BaseFeedConnector {
 
@@ -68,7 +77,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   public EuronextFeedConnector() {
-    super(supportedFeed, "euronext", "Euronext", null);
+    super(supportedFeed, "euronext", "Euronext", null, EnumSet.noneOf(UrlCheck.class));
   }
 
   @Override
@@ -141,13 +150,13 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  protected <S extends Securitycurrency<S>> boolean checkAndClearSecuritycurrencyConnector(
+  protected <S extends Securitycurrency<S>> boolean clearAndCheckUrlPatternSecuritycurrencyConnector(
       Securitycurrency<S> securitycurrency, FeedSupport feedSupport, String urlExtend, String errorMsgKey,
       FeedIdentifier feedIdentifier, SpecialInvestmentInstruments specialInvestmentInstruments,
       AssetclassType assetclassType) {
 
-    boolean clear = super.checkAndClearSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend, errorMsgKey,
-        feedIdentifier, specialInvestmentInstruments, assetclassType);
+    boolean clear = super.clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend,
+        errorMsgKey, feedIdentifier, specialInvestmentInstruments, assetclassType);
     if (securitycurrency instanceof Security security && (StringUtils.isBlank(security.getIsin())
         || !EN_STOCK_EXCHANGES_SET.contains(security.getStockexchange().getMic()))) {
       throw new GeneralNotTranslatedWithArgumentsException("gt.connector.euronext.setting.failure", null);
@@ -158,7 +167,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   public boolean needHistoricalGapFiller(final Security security) {
     return true;
   }
-  
+
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
