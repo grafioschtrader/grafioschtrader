@@ -624,7 +624,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     case FINANCE_COST:
       checkNegativeQuoataion();
       if (this.security.isMarginInstrument()) {
-        buyQuotation = openPositionMarginTransaction.getQuotation();
+        if(openPositionMarginTransaction != null) {
+          buyQuotation = openPositionMarginTransaction.getQuotation();  
+        }
         calcCashaccountAmount = validateSecurityMarginCashaccountAmount(openPositionMarginTransaction);
       } else {
         calcCashaccountAmount = validateSecurityGeneralCashaccountAmount(0);
