@@ -1,7 +1,7 @@
 package grafioschtrader.connector.instrument.stockdata;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
@@ -87,7 +87,8 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
-    return getEodSecurityCurrencypairHistory(from, to, new URL(getSecurityHistoricalDownloadLink(security, from, to)));
+    return getEodSecurityCurrencypairHistory(from, to,
+        new URI(getSecurityHistoricalDownloadLink(security, from, to)).toURL());
   }
 
   @Override
@@ -101,7 +102,7 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws IOException, ParseException, URISyntaxException {
     return getEodSecurityCurrencypairHistory(from, to,
-        new URL(getCurrencypairHistoricalDownloadLink(currencyPair, from, to)));
+        new URI(getCurrencypairHistoricalDownloadLink(currencyPair, from, to)).toURL());
   }
 
   private List<Historyquote> getEodSecurityCurrencypairHistory(final Date from, final Date to, URL url)
@@ -131,7 +132,7 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final QuoteSecurity quote = objectMapper.readValue(new URL(getSecurityIntradayDownloadLink(security)),
+    final QuoteSecurity quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(),
         QuoteSecurity.class);
     for (QuoteDataSecurity data : quote.data) {
       data.setValues(security);
@@ -150,18 +151,18 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   @Override
-  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
-    final QuoteCurrencypair quote = objectMapper.readValue(new URL(getCurrencypairIntradayDownloadLink(currencypair)),
-        QuoteCurrencypair.class);
+  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
+    final QuoteCurrencypair quote = objectMapper
+        .readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL(), QuoteCurrencypair.class);
     for (QuoteDataCurrencypair data : quote.data[0]) {
       data.setValues(currencypair);
     }
   }
 
   @JsonIgnore
-  public StockexchangeAllStockdata getAllStockexchanges()
-      throws StreamReadException, DatabindException, MalformedURLException, IOException {
-    return objectMapper.readValue(new URL(DOMAIN_NAME_WITH_VERSION + "entity/exchange/list?" + getApiKeyString(true)),
+  public StockexchangeAllStockdata getAllStockexchanges() throws Exception {
+    return objectMapper.readValue(
+        new URI(DOMAIN_NAME_WITH_VERSION + "entity/exchange/list?" + getApiKeyString(true)).toURL(),
         StockexchangeAllStockdata.class);
   }
 

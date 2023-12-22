@@ -82,7 +82,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
       throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
 
-    URL url = new URL(getSecurityHistoricalDownloadLink(security, from, to));
+    URL url = new URI(getSecurityHistoricalDownloadLink(security, from, to)).toURL();
     final CandleData candleData = objectMapper.readValue(url, CandleData.class);
 
     if (candleData.s.equals("ok")) {

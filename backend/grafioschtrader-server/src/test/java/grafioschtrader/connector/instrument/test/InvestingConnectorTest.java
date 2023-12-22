@@ -1,7 +1,6 @@
 package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.investing.InvestingConnector;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Security;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class InvestingConnectorTest extends BaseFeedConnectorCheck {

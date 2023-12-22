@@ -22,12 +22,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import grafioschtrader.test.start.GTforTest;
 import jakarta.annotation.PostConstruct;
 
+
+//Spring ehcache is not working,
+//@EnableCaching
+@EnableScheduling
 @SpringBootApplication()
 @EnableAsync
-@EnableScheduling
 @EnableConfigurationProperties
-// Spring ehcache is not working,
-// @EnableCaching
 @Configuration
 @ComponentScan(basePackages = { "grafioschtrader" }, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GTforTest.class) })

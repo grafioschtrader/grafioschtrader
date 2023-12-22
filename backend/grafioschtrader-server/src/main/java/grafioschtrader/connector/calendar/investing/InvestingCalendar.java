@@ -85,7 +85,7 @@ public class InvestingCalendar implements ICalendarFeedConnector {
     String[] countryNames = new String[countryCodes.length];
     Locale english = Locale.ENGLISH;
     for (int i = 0; i < countryNames.length; i++) {
-      Locale l = new Locale("", countryCodes[i]);
+      Locale l = Locale.of("", countryCodes[i]);
       countryNames[i] = l.getDisplayCountry(english);
     }
     Arrays.sort(countryNames);

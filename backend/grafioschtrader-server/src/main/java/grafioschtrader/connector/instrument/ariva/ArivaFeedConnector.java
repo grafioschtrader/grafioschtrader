@@ -2,6 +2,7 @@ package grafioschtrader.connector.instrument.ariva;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -80,7 +81,7 @@ public class ArivaFeedConnector extends BaseFeedConnector {
     final SimpleDateFormat dateFormatUS = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
 
-    URL request = new URL(getSecurityHistoricalDownloadLink(security, from, to, dateFormatGE));
+    URL request = new URI(getSecurityHistoricalDownloadLink(security, from, to, dateFormatGE)).toURL();
     URLConnection connection = request.openConnection();
     connection.setConnectTimeout(TIMEOUT);
     connection.setReadTimeout(TIMEOUT);

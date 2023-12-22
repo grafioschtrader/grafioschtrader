@@ -98,7 +98,7 @@ public class Assetclass extends Auditable implements Serializable {
         SpecialInvestmentInstruments.ETF });
     
     possibleInstrumentsMap.put(AssetclassType.ALL,
-        new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.DIRECT_INVESTMENT.ALL, 
+        new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ALL, 
             SpecialInvestmentInstruments.DIRECT_INVESTMENT,
             SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
             SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.CFD,

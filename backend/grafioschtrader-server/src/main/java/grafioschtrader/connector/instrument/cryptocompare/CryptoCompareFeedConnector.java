@@ -2,6 +2,7 @@ package grafioschtrader.connector.instrument.cryptocompare;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,10 +62,10 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   @Override
-  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException {
+  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     TypeReference<Map<String, Double>> typeRef = new TypeReference<>() {
     };
-    final URL url = new URL(getCurrencypairIntradayDownloadLink(currencypair));
+    final URL url = new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL();
 
     final Map<String, Double> map = objectMapper.readValue(url, typeRef);
     currencypair.setSLast(map.get(currencypair.getToCurrency()));
@@ -98,7 +99,7 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
       toDateCalc = DateHelper.setTimeToZeroAndAddDay(fromDateCalc, rows);
       fromDateCalc = DateHelper.setTimeToZeroAndAddDay(toDateCalc, 1);
 
-      final URL url = new URL(getCurrencypairHistoricalDownloadLink(currencyPair, rows, toDateCalc));
+      final URL url = new URI(getCurrencypairHistoricalDownloadLink(currencyPair, rows, toDateCalc)).toURL();
       final CryptoCompareInput ci = objectMapper.readValue(url, CryptoCompareInput.class);
       List<Historyquote> readHistroyquotes = readCurrencyHistory(ci);
       if (!readHistroyquotes.isEmpty()) {

@@ -50,7 +50,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   private static final String domain = "https://www.finanzen.ch/";
   private static final String URL_HISTORICAL_REGEX = "^[a-z]+\\/historisch\\/[A-Za-z0-9\\-\\_%]+(\\/[A-Za-z]{2,10})?$";
   private static final String URL_INTRA_REGEX = "^[a-z]+\\/[A-Za-z0-9\\-\\_%]+(\\/[A-Za-z]{2,10})?$";
-  private static final Locale FC_LOCALE = new Locale("de", "CH");
+  private static final Locale FC_LOCALE = Locale.of("de", "CH");
 
   static {
     supportedFeed = new HashMap<>();

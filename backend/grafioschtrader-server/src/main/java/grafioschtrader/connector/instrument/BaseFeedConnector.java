@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -333,8 +334,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
 
   protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
     try {
-      URL u = new URL(url);
-      System.out.println("URL:" + url);
+      URL u = new URI(url).toURL();
       HttpURLConnection.setFollowRedirects(true);
       HttpURLConnection huc = (HttpURLConnection) u.openConnection();
       huc.setRequestProperty("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);

@@ -1,6 +1,6 @@
 package grafioschtrader.connector.instrument.onvista;
 
-import java.net.URL;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -129,7 +129,7 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
 
     String url = getSecurityHistoricalDownloadLink(productUrlPart, DateHelper.getDateFromLocalDate(startRange),
         timeSpan);
-    final Quotes quotes = objectMapper.readValue(new URL(url), Quotes.class);
+    final Quotes quotes = objectMapper.readValue(new URI(url).toURL(), Quotes.class);
     for (int i = 0; i < quotes.datetimeLast.length; i++) {
       Date date = DateHelper.setTimeToZeroAndAddDay(new Date(quotes.datetimeLast[i] * 1000), 0);
       if(!to.before(date)) {

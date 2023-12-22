@@ -3,14 +3,11 @@ package grafioschtrader.connector.instrument.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,7 +23,6 @@ import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHis
 import grafioschtrader.connector.instrument.twelvedata.TwelvedataFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
-import grafioschtrader.entities.Security;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 

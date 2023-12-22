@@ -2,8 +2,8 @@ package grafioschtrader.connector.instrument.boursorama;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -175,13 +175,14 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
+  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     updateSecuritycurrency(currencypair, getUpdateSecurityCurrecnypairLastPriceLink(currencypair), 1.0);
   }
 
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String urlStr, double divider)
-      throws IOException {
-    final HeaderIntra header = objectMapper.readValue(new URL(urlStr), HeaderIntra.class);
+      throws Exception {
+    final HeaderIntra header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 10).body(),
+        HeaderIntra.class);
     if (header != null) {
       header.d[0].setValues(securitycurrency, divider);
     } else {
@@ -191,7 +192,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   private void getLastPriceFromHistoryQuotes(Security security, String urlStr) throws Exception {
-    final HeaderEOD header = objectMapper.readValue(new URL(urlStr), HeaderEOD.class);
+    final HeaderEOD header = objectMapper.readValue(new URI(urlStr).toURL(), HeaderEOD.class);
     QuoteTabEOD lastPrice = header.d.QuoteTab[header.d.QuoteTab.length - 1];
     lastPrice.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security));
     setSTimestamp(security);
