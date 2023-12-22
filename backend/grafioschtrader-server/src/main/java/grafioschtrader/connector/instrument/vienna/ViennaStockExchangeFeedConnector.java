@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -168,7 +168,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
 
     final List<Historyquote> historyquotes = new ArrayList<>();
 
-    URLConnection connection = new URL(csvUrl).openConnection();
+    URLConnection connection = new URI(csvUrl).toURL().openConnection();
     try (InputStreamReader inputStream = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStream)) {
 

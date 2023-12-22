@@ -1,6 +1,6 @@
 package grafioschtrader.connector.instrument.xetra;
 
-import java.net.URL;
+import java.net.URI;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -71,7 +71,8 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final Quotes quotes = objectMapper.readValue(new URL(getSecurityIntradayDownloadLink(security)), Quotes.class);
+    final Quotes quotes = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(),
+        Quotes.class);
     if (quotes.s.equals("ok")) {
       int last = quotes.t.length - 1;
       security.setSLast(quotes.c[last]);
@@ -98,7 +99,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
     final Quotes quotes = objectMapper.readValue(
-        new URL(getSecurityDownloadLink(security, from, to, security.getUrlHistoryExtend(), DAY_RESOLUTION)),
+        new URI(getSecurityDownloadLink(security, from, to, security.getUrlHistoryExtend(), DAY_RESOLUTION)).toURL(),
         Quotes.class);
     final List<Historyquote> historyquotes = new ArrayList<>();
     if (quotes.s.equals("ok")) {

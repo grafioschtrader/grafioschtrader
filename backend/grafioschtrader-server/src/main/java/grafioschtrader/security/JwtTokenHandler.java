@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,7 +19,6 @@ import grafioschtrader.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
@@ -28,19 +29,19 @@ public final class JwtTokenHandler {
   /**
    * HS256 is used, the secret should at least be 32 characters long
    */
-  private String secret;
+  private SecretKey secretKey;
 
   @Autowired
   private UserService userService;
 
   public void setSecret(String secret) {
-    this.secret = secret;
+    this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
   }
 
   Optional<UserDetails> parseUserFromToken(final String token) {
     try {
-      final Claims jwsClaims = Jwts.parser().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
-          .getBody();
+      final Claims jwsClaims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token)
+          .getPayload();
       Integer userId = (Integer) jwsClaims.get(ID_USER);
       return Optional.ofNullable(userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject()));
     } catch (ExpiredJwtException e) {
@@ -49,8 +50,8 @@ public final class JwtTokenHandler {
   }
 
   public Integer getUserId(final String token) {
-    final Claims jwsClaims = Jwts.parser().setSigningKey(secret.getBytes()).build().parseClaimsJws(token)
-        .getBody();
+    final Claims jwsClaims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token)
+        .getPayload();
     return (Integer) jwsClaims.get(ID_USER);
   }
 
@@ -60,10 +61,10 @@ public final class JwtTokenHandler {
     List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
         .collect(Collectors.toList());
 
-    return Jwts.builder().setSubject(user.getUsername()).claim(ID_USER, ((User) user).getIdUser())
+    return Jwts.builder().subject(user.getUsername()).claim(ID_USER, ((User) user).getIdUser())
         .claim("idTenant", ((User) user).getIdTenant()).claim("localeStr", ((User) user).getLocaleStr())
-        .claim("roles", roles).signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
-        .setExpiration(Date.from(afterSomeMinutes.toInstant())).compact();
+        .claim("roles", roles).signWith(secretKey)
+        .expiration(Date.from(afterSomeMinutes.toInstant())).compact();
   }
 
 }

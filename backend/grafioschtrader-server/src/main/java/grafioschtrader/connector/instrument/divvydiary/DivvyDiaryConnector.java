@@ -1,5 +1,6 @@
 package grafioschtrader.connector.instrument.divvydiary;
 
+import java.net.URI;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
     objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     List<Dividend> dividends = new ArrayList<>();
-    URL url = new URL(getDividendHistoricalDownloadLink(security));
+    URL url = new URI(getDividendHistoricalDownloadLink(security)).toURL();
     final DividendHead dividendHead = objectMapper.readValue(url, DividendHead.class);
 
     for (DividendDetail dd : dividendHead.dividends) {

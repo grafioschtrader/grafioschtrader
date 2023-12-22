@@ -39,8 +39,8 @@ class FinanzenNETFeedConnectorTest {
 //    securities.add(createSecurityIntra("index/smi", AssetclassType.EQUITIES,
 //        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, GlobalConstants.STOCK_EX_MIC_SIX));
 
-    securities.add(createSecurityIntra("fonds/uniimmo-europa-de0009805515", AssetclassType.REAL_ESTATE,
-        SpecialInvestmentInstruments.MUTUAL_FUND, null, GlobalConstants.STOCK_EX_MIC_XETRA));
+//    securities.add(createSecurityIntra("fonds/uniimmo-europa-de0009805515", AssetclassType.REAL_ESTATE,
+//        SpecialInvestmentInstruments.MUTUAL_FUND, null, GlobalConstants.STOCK_EX_MIC_XETRA));
 
     securities.add(createSecurityIntra("etf/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
         AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, null, GlobalConstants.STOCK_EX_MIC_XETRA));

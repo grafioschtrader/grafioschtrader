@@ -3,7 +3,7 @@ package grafioschtrader.connector.instrument.swissfunddata;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -69,7 +69,7 @@ public class SwissFundDataConnector extends BaseFeedConnector {
     final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(GlobalConstants.STANDARD_DATE_FORMAT);
     String urlAsString = getSecurityHistoricalDownloadLink(security);
     log.info("In {} for security {} is URL for download csv file {}", getID(), security.getName(), urlAsString);
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(urlAsString).openStream()))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(new URI(urlAsString).toURL().openStream()))) {
       parseLines(historyquotes, br, dateFormatter, fromDate, toDate);
     }
     return historyquotes;

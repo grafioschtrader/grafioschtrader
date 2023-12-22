@@ -7,6 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -69,10 +70,10 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    HttpClient httpClient = HttpClient.newBuilder().build();
+    HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(getSecurityIntradayDownloadLink(security))).GET()
         .build();
-    HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+    HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 
     parseJsonData(security, response.body());
   }

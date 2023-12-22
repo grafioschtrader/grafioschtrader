@@ -2,8 +2,10 @@ package grafioschtrader.connector.instrument.alphavantage;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -68,8 +70,9 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return ALPHAVANTAGE_BASE + "GLOBAL_QUOTE&datatype=csv&symbol=" + security.getUrlIntraExtend() + "&"
-        + TOKEN_PARAM_NAME + "=" + getApiKey();
+    return ALPHAVANTAGE_BASE + "GLOBAL_QUOTE&datatype=csv&symbol="
+        + URLEncoder.encode(security.getUrlIntraExtend(), StandardCharsets.UTF_8) + "&" + TOKEN_PARAM_NAME + "="
+        + getApiKey();
   }
 
   /**
@@ -134,8 +137,8 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
     final List<Historyquote> historyquotes = new ArrayList<>();
     String outputsize = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) / 7 * 5 >= 100.0 ? FULL : COMPACT;
 
-    URL request = new URL((intraday) ? getSecurityIntradayDownloadLink(security)
-        : getSecurityHistoricalDownloadLink(security, outputsize));
+    URL request = new URI((intraday) ? getSecurityIntradayDownloadLink(security)
+        : getSecurityHistoricalDownloadLink(security, outputsize)).toURL();
     URLConnection connection = request.openConnection();
     connection.setConnectTimeout(TIMEOUT);
     connection.setReadTimeout(TIMEOUT);

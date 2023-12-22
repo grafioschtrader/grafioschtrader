@@ -32,8 +32,8 @@ class FinanzenCHFeedConnectorTest {
         SpecialInvestmentInstruments.ETF, "CH0139101593"));
     securities.add(createSecurityIntra("aktien/swiss_re-aktie", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0126881561"));
-    securities.add(createSecurityIntra("obligationen/swiss_life_holdingsf-anl_201323-obligation-2023-ch0212184078",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0212184078"));
+    securities.add(createSecurityIntra("obligationen/crédit_agricole_sasf-preferred_mtn_202129-obligation-2029-ch1118460984",
+        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH1118460984"));
     securities.add(createSecurityIntra("index/SLI", AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "CH0030252883"));
 

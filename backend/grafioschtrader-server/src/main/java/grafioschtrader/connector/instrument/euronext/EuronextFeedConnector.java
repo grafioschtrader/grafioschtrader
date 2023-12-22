@@ -1,7 +1,7 @@
 package grafioschtrader.connector.instrument.euronext;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -177,7 +177,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     objectMapper.setDateFormat(dateFormat);
     String maxOr1M = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) > 30 ? PERIOD_MAX : PERIOD_1M;
     String url = getSecurityHistoricalDownloadLink(security, maxOr1M);
-    final DailyClose[] dailyCloseArr = objectMapper.readValue(new URL(url), DailyClose[].class);
+    final DailyClose[] dailyCloseArr = objectMapper.readValue(new URI(url).toURL(), DailyClose[].class);
     for (int i = 0; i < dailyCloseArr.length; i++) {
       DailyClose dailyClose = dailyCloseArr[i];
       Date date = DateHelper.setTimeToZeroAndAddDay(dailyClose.time, 0);

@@ -194,7 +194,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     List<ValueKeyHtmlSelectOptions> valueKeyHtmlSelectOptions = new ArrayList<>();
     Locale userLocale = user.createAndGetJavaLocale();
     for (String countryCode : locales) {
-      Locale obj = new Locale("", countryCode);
+      Locale obj = Locale.of("", countryCode);
       valueKeyHtmlSelectOptions.add(new ValueKeyHtmlSelectOptions(obj.getCountry(), obj.getDisplayCountry(userLocale)));
     }
     Collections.sort(valueKeyHtmlSelectOptions);
@@ -294,7 +294,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     if (globalparametersOpt.isEmpty()) {
       prp = new PasswordRegexProperties(GlobalConstants.STANDARD_PASSWORD_REGEX,
           GlobalConstants.GT_LANGUAGE_CODES.stream().collect(
-              Collectors.toMap(lang -> lang, lang -> messages.getMessage("gt.password.regex", null, new Locale(lang)))),
+              Collectors.toMap(lang -> lang, lang -> messages.getMessage("gt.password.regex", null, Locale.of(lang)))),
           false);
       Globalparameters gp = new Globalparameters(Globalparameters.GLOB_KEY_PASSWORT_REGEX);
       gp.transformClassIntoBlobPropertis(prp);

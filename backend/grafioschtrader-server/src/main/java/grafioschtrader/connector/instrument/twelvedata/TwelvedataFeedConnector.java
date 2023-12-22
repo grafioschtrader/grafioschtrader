@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -146,8 +147,9 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
-    return DOMAIN_NAME + "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
-        + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + " 23:59:59" + getApiKeyString();
+    return DOMAIN_NAME
+        +  "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
+                + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + "+23:59:59" + getApiKeyString();
   }
 
   @Override
@@ -175,11 +177,13 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
     if (DateHelper.getDateDiff(from, to, TimeUnit.DAYS) / 7 * 5 > MAX_DATA_POINTS - 100) {
       toDate = DateHelper.setTimeToZeroAndAddDay(from, (MAX_DATA_POINTS - 100) / 5 * 7);
       historyquotes.addAll(getEodSecurityCurrencypairHistoryMax5000(
-          new URL(getSecurityCurrencyHistoricalDownloadLink(ticker, from, toDate)), dateFormat, divider, hasVolume));
+          new URI(getSecurityCurrencyHistoricalDownloadLink(ticker, from, toDate)).toURL(), dateFormat, divider,
+          hasVolume));
     }
     Date fromDate = toDate == null ? from : DateHelper.setTimeToZeroAndAddDay(toDate, 1);
     historyquotes.addAll(getEodSecurityCurrencypairHistoryMax5000(
-        new URL(getSecurityCurrencyHistoricalDownloadLink(ticker, fromDate, to)), dateFormat, divider, hasVolume));
+        new URI(getSecurityCurrencyHistoricalDownloadLink(ticker, fromDate, to)).toURL(), dateFormat, divider,
+        hasVolume));
 
     return historyquotes;
   }
@@ -202,8 +206,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
         if (items.length == 5 + (hasVolume ? 1 : 0)) {
           Historyquote hq = parseResponseLineItems(items, dateFormat, divider, hasVolume);
           // Sometimes we get two rows for one date
-          if (historyquotes.isEmpty() || !historyquotes.isEmpty()
-              && !historyquotes.getLast().getDate().equals(hq.getDate())) {
+          if (historyquotes.isEmpty()
+              || !historyquotes.isEmpty() && !historyquotes.getLast().getDate().equals(hq.getDate())) {
             historyquotes.add(hq);
           }
         }
@@ -244,7 +248,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     waitForTokenOrGo();
-    var quote = objectMapper.readValue(new URL(getSecurityIntradayDownloadLink(security)), Quote.class);
+    var quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(), Quote.class);
     quote.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security), getIntradayDelayedSeconds());
   }
 
@@ -258,9 +262,9 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   @Override
-  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
+  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     waitForTokenOrGo();
-    var quote = objectMapper.readValue(new URL(getCurrencypairIntradayDownloadLink(currencypair)), Quote.class);
+    var quote = objectMapper.readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL(), Quote.class);
     quote.setValues(currencypair, 1.0, getIntradayDelayedSeconds());
   }
 
@@ -283,7 +287,6 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
       securitycurrency.setSPrevClose(previous_close / divider);
       securitycurrency.setSTimestamp(new Date(new Date().getTime() - delaySeconds * 1000));
     }
-
   }
 
 }

@@ -7,8 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * A template can be checked against form data.
- *
- *
  */
 public class FormTemplateCheck {
   @Schema(description = "Form data as text which is used to check the templates.")

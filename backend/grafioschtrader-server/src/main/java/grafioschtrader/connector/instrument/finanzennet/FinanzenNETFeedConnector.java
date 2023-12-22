@@ -120,8 +120,10 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
     switch (sii) {
     case CFD:
     case DIRECT_INVESTMENT:
-      if (assetClassType == AssetclassType.EQUITIES) {
-        // select = "#ShareQuotes_1 table tr";
+      if (assetClassType == AssetclassType.FIXED_INCOME) {
+        select = "table.table--headline-first-col.table--content-right:contains(Kurszeit) tr";        
+      } else if (assetClassType == AssetclassType.EQUITIES) {
+
         select = "[data-sg-tab-region-content=0] table tr";
       } else if (assetClassType == AssetclassType.COMMODITIES) {
         select = "div.table-quotes table tr";
@@ -131,7 +133,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
       select = "div#SnapshotQuoteData table tr";
       break;
     case MUTUAL_FUND:
-      select = "div.table-responsive:eq(3) table.table-small tr";
+      select = "table.table--headline-first-col.table--content-right:contains(Kurszeit) tr";
       break;
     default:
       // Do nothing
@@ -152,7 +154,8 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
       String value = cols.get(1).text().strip();
       switch (cols.get(0).text().strip()) {
       case "Kurs":
-        String quote = value.substring(0, value.indexOf(' '));
+        String quote = value.replace('%', ' ');
+        quote = quote.substring(0, quote.indexOf(' '));
         security.setSLast(FeedConnectorHelper.parseDoubleGE(quote));
         security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
         break;
@@ -173,7 +176,10 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
 
       case "Eröffnung/Vortag":
       case "Eröffnung / Vortag":
-        String openDayBefore[] = value.split(" / ");
+        String[] openDayBefore = value.split(" / ");
+        if(openDayBefore.length == 1) {
+          openDayBefore = value.split(" ");
+        }
         security.setSOpen(FeedConnectorHelper.parseDoubleGE(openDayBefore[0]));
         security.setSPrevClose(FeedConnectorHelper.parseDoubleGE(openDayBefore[1]));
         break;

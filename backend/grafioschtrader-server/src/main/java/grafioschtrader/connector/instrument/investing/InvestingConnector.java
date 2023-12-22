@@ -133,8 +133,10 @@ public class InvestingConnector extends BaseFeedConnector {
     do {
       i++;
       final Document doc = investingConnection.timeout(10000).get();
-      div = securitycurrency instanceof Security ? doc.getElementsByClass("md:text-[42px]").first().parent()
-          : doc.select("div[class^=instrument-price_instrument-price]").first();
+      div = securitycurrency instanceof Security
+          || securitycurrency instanceof Currencypair cp && cp.getIsCryptocurrency()
+              ? doc.getElementsByClass("md:text-[42px]").first().parent()
+              : doc.select("div[class^=instrument-price_instrument-price]").first();
       try {
         Thread.sleep(800);
       } catch (InterruptedException e) {

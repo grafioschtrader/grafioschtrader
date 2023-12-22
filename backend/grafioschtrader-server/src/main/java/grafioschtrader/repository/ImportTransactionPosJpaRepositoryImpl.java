@@ -419,7 +419,9 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       ISecuritycurrencyIdDateClose idc = historyquoteJpaRepository
           .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime(), false);
       itp.setCurrencyExRate(idc.getClose());
-      // itp.setCashaccountAmount(itp.getCashaccountAmount() * idc.getClose());
+      if(itp.getTaxCost() != null) {
+        itp.setTaxCost(itp.getTaxCost() / idc.getClose(), 0.0, false);
+      }
       itp.setQuotation(itp.getQuotation() / idc.getClose());
       return idCurrencypair;
     }

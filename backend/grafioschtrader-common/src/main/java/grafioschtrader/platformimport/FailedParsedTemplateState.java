@@ -5,9 +5,6 @@ import java.util.Date;
 /**
  * A template can fail to parse form data. An instance of this class references
  * the failed template and contains the last matching property.
- *
- * @author Hugo Graf
- *
  */
 public class FailedParsedTemplateState extends ParsedTemplateState {
 

@@ -7,6 +7,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -46,7 +47,12 @@ public class FeedConnectorHelper {
   }
   
   public static HttpResponse<String> getByHttpClient(String urlStr) throws IOException, InterruptedException {
-    HttpClient client = HttpClient.newHttpClient();
+     return getByHttpClient(urlStr, null); 
+  }  
+  public static HttpResponse<String> getByHttpClient(String urlStr, Integer seconds) throws IOException, InterruptedException {
+    HttpClient client = (seconds != null)? HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(seconds))
+        .build(): HttpClient.newHttpClient();
     HttpRequest request = HttpRequest.newBuilder().GET().header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
         .uri(URI.create(urlStr)).build();
     return client.send(request, HttpResponse.BodyHandlers.ofString());
