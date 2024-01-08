@@ -13,7 +13,7 @@ There are three [property](./grafioschtrader-server/src/main/resources) files in
 - **application-production.properties**: Here you can make your own settings. These properties remain unaffected by an update. GT delivers an empty file here. A value in this property file overrides the value in the other two property files. Therefore, certain properties should only be overwritten with enough basic knowledge.
 
 #### application.properties
-GT has some properties in the configuration file **backend/grafioschtrader-server/src/main/resources/application.properties**. The properties which settings starts with *ENC* must have a new value and other properties should be checked:
+GT has some properties in the configuration file `backend/grafioschtrader-server/src/main/resources/application.properties`. **Properties whose value begins with *ENC* must be given a new value and then begin with *DEC*. The following properties should be checked and possibly adjusted**:
 - spring.datasource.url
 - spring.datasource.username
 - spring.datasource.password
@@ -29,7 +29,7 @@ Some propertis are encrypted with **Jasypt**. Those properties values starts wit
 # In directory backend/grafioschtrader-server
 mvn jasypt:encrypt -Djasypt.encryptor.password="YOUR_Jasypt_PASSWORD"
 ```
-All properties values with "DEC(...)" are now encrypted with "ENC(...).  **If you follow the installation path of Wiki, then go back to the main path.**
+All properties values with "DEC(...)" are now encrypted with "ENC(...)".  **If you follow the installation path of Wiki, then go back to the main path.**
 
 ### Build and execute without scripts
 GT provides some shell scripts which make the following manual creation of the backend unnecessary. We recommend you to use these shell scripts.
