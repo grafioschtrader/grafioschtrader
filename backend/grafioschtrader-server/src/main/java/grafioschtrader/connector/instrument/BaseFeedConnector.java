@@ -222,7 +222,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         : ((Security) securitycurrency).getAssetClass().getCategoryType();
 
     switch (feedSupport) {
-    case HISTORY:
+    case FS_HISTORY:
       if (clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport,
           securitycurrency.getUrlHistoryExtend(), "gt.connector.historical.url.failure",
           getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null), specInst, assetclassType)) {
@@ -232,7 +232,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         checkUrlForHistory(specInst, securitycurrency);
       }
       break;
-    case INTRA:
+    case FS_INTRA:
       if (clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport,
           securitycurrency.getUrlIntraExtend(), "gt.connector.intra.url.failure",
           getFeedIdentifierWhenUrlRequired(feedSupport, specInst != null), specInst, assetclassType)) {
@@ -242,14 +242,14 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         checkUrlForIntraday(specInst, securitycurrency);
       }
       break;
-    case DIVIDEND:
+    case FS_DIVIDEND:
       if (clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport,
           ((Security) securitycurrency).getUrlDividendExtend(), "gt.connector.dividend.url.failure",
           FeedIdentifier.DIVIDEND_URL, specInst, assetclassType)) {
         ((Security) securitycurrency).setUrlDividendExtend(null);
       }
       break;
-    case SPLIT:
+    case FS_SPLIT:
       if (clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport,
           ((Security) securitycurrency).getUrlSplitExtend(), "gt.connector.split.url.failure", FeedIdentifier.SPLIT_URL,
           specInst, assetclassType)) {
@@ -265,11 +265,11 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       if (specInst != null) {
         if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
           checkUrl(getSecurityHistoricalDownloadLink((Security) securitycurrency),
-              "gt.connector.historical.url.connect.failure", FeedSupport.HISTORY);
+              "gt.connector.historical.url.connect.failure", FeedSupport.FS_HISTORY);
         }
       } else {
         checkUrl(getCurrencypairHistoricalDownloadLink((Currencypair) securitycurrency),
-            "gt.connector.historical.url.connect.failure", FeedSupport.HISTORY);
+            "gt.connector.historical.url.connect.failure", FeedSupport.FS_HISTORY);
       }
     }
   }
@@ -280,11 +280,11 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       if (specInst != null) {
         if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
           checkUrl(getSecurityIntradayDownloadLink((Security) securitycurrency),
-              "gt.connector.intra.url.connect.failure", FeedSupport.INTRA);
+              "gt.connector.intra.url.connect.failure", FeedSupport.FS_INTRA);
         }
       } else {
         checkUrl(getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency),
-            "gt.connector.intra.url.connect.failure", FeedSupport.INTRA);
+            "gt.connector.intra.url.connect.failure", FeedSupport.FS_INTRA);
       }
     }
   }

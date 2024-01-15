@@ -40,7 +40,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   public S updateLastPriceSecurityCurrency(final S securitycurrency, final short maxIntraRetry,
       final int scIntradayUpdateTimeout) {
     final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
-        securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.INTRA);
+        securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.FS_INTRA);
 
     Date now = new Date();
     if (feedConnector != null && (securitycurrency.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
@@ -61,7 +61,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   @Override
   public String getSecuritycurrencyIntraDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
-        securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.INTRA);
+        securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.FS_INTRA);
     if (ConnectorHelper.canAccessConnectorApiKey(feedConnector)) {
       if (securitycurrency instanceof Security) {
         return (feedConnector == null) ? null

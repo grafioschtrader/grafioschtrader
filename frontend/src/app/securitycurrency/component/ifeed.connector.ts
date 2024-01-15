@@ -14,10 +14,10 @@ export class Description {
 }
 
 export enum FeedSupport {
-  HISTORY,
-  INTRA,
-  DIVIDEND,
-  SPLIT
+  FS_HISTORY,
+  FS_INTRA,
+  FS_DIVIDEND,
+  FS_SPLIT
 }
 
 export interface SecuritycurrencyFeedSupport {

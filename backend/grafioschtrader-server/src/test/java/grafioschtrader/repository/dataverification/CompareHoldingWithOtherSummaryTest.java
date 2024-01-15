@@ -29,8 +29,11 @@ import grafioschtrader.repository.helper.GroupPortfolio;
  * holding tables, this way it may be faster. But the holding tables have a
  * small risk to get outdated.
  */
-@SpringBootTest
+
 @Transactional
+@SpringBootTest
+// @SpringBootTest(classes = GTforTest.class)
+// @ActiveProfiles("test")
 class CompareHoldingWithOtherSummaryTest {
 
   @Autowired
@@ -47,8 +50,8 @@ class CompareHoldingWithOtherSummaryTest {
   @Disabled
   void tenantCompareSummaryTest() {
     DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDate fromDate = LocalDate.parse("2020-12-30", format);
-    LocalDate toDate = LocalDate.parse("2021-02-17", format);
+    LocalDate fromDate = LocalDate.parse("2022-12-30", format);
+    LocalDate toDate = LocalDate.parse("2023-12-29", format);
     Integer idTenant = 7;
 
     List<IPeriodHolding> totalsOverPeriodList = holdSecurityaccountSecurityRepository

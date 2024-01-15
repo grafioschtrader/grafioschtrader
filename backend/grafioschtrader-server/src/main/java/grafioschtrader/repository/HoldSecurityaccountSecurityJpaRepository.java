@@ -203,21 +203,21 @@ public interface HoldSecurityaccountSecurityJpaRepository
   }
 
   public static interface IHoldSecuritySplitTransactionBySecurity {
-    public Integer getIdTenant();
+    Integer getIdTenant();
 
-    public Integer getIdPortfolio();
+    Integer getIdPortfolio();
 
-    public Integer getIdSecurityaccount();
+    Integer getIdSecurityaccount();
 
-    public LocalDateTime getTsDate();
+    LocalDateTime getTsDate();
 
-    public Double getFactorUnits();
+    Double getFactorUnits();
 
-    public String getTenantCurrency();
+    String getTenantCurrency();
 
-    public String getPorfolioCurrency();
+    String getPorfolioCurrency();
 
-    public Integer getIdTransactionMargin();
+    Integer getIdTransactionMargin();
   }
 
 }

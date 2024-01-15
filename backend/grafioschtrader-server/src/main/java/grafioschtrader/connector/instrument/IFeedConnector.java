@@ -31,7 +31,7 @@ public interface IFeedConnector {
    * Return which Feeds are supported
    */
   public enum FeedSupport {
-    HISTORY, INTRA, DIVIDEND, SPLIT
+    FS_HISTORY, FS_INTRA, FS_DIVIDEND, FS_SPLIT
   }
 
   public enum FeedIdentifier {

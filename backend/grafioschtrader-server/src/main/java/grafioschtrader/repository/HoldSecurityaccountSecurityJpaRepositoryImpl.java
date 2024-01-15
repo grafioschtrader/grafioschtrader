@@ -166,6 +166,8 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
           security.getIdSecuritycurrency(), hstbs.getTsDate(), hstbs.getFactorUnits(), hstbs.getIdTransactionMargin(),
           hstbs.getIdPortfolio() == null ? null : security.getCurrency());
 
+      
+      
       boolean isNextMarginSameDate = security.isMarginInstrument() && (i + 1) < hstbsList.size()
           ? isNextMarginSameDate(hstbs, hstbsList.get(i + 1), marginTransactionMap)
           : false;
@@ -275,6 +277,17 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       }
       Transaction marginTransaction = tss.getIdTransactionMargin() == null ? null
           : marginTransactionMap.get(tss.getIdTransactionMargin());
+     
+          
+      if(idSecuritycashAccount.equals(189) && tss.getIdSecuritycurrency().equals(3996)) {
+        if(tss.getIdTransactionMargin().equals(286622)) {
+          System.out.println("First");
+        }
+        System.out.println("Date: " + tss.getTsDate() + " Transaction: " + tss.getIdTransactionMargin()
+        + " Units: " +  tss.getFactorUnits());
+      }
+      
+      
       boolean isNextMarginSameDate = marginTransaction != null
           ? isNextMarginAndSameDate(marginTransaction, tss, transactionSecuritySplitList, i, marginTransactionMap)
           : false;
@@ -546,7 +559,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
     private void setToHoldDateOnLastTransSplit(LocalDate toHoldDate) {
       if (units != 0) {
         HoldSecurityaccountSecurity lastHoldSecurity = this.getLastTransSplit();
-        if (lastHoldSecurity != null) {
+        if (lastHoldSecurity != null && lastHoldSecurity.getToHoldDate() == null) {
           lastHoldSecurity.setToHoldDate(toHoldDate);
         }
       }
@@ -566,7 +579,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       if (toSaveHoldForSecurityList.isEmpty()) {
         return null;
       } else {
-        return this.toSaveHoldForSecurityList.get(toSaveHoldForSecurityList.size() - 1);
+        return this.toSaveHoldForSecurityList.getLast();
       }
     }
 

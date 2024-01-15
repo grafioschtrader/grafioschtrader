@@ -165,7 +165,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
     short retrySplitLoad = security.getRetrySplitLoad();
     try {
       IFeedConnector connector = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
-          security.getIdConnectorSplit(), IFeedConnector.FeedSupport.SPLIT);
+          security.getIdConnectorSplit(), IFeedConnector.FeedSupport.FS_SPLIT);
       List<Securitysplit> securitysplitsRead = connector.getSplitHistory(security,
           LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), getSplitToDate());
       updateSplitData(security, securitysplitsRead, requestedSplitdate);

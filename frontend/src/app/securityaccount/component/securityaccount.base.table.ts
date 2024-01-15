@@ -379,7 +379,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       && (AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR
         || (AssetclassType[securityPositionSummary.security.assetClass.categoryType] === AssetclassType.CURRENCY_PAIR
           && SpecialInvestmentInstruments[securityPositionSummary.security.assetClass.specialInvestmentInstrument]
-          === SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT))) {
+          === SpecialInvestmentInstruments.FOREX))) {
       menuItems = [];
       menuItems.push({
         label: 'ACCUMULATE',
@@ -394,7 +394,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
       if (!BusinessHelper.isMarginProduct(securityPositionSummary.security)) {
         menuItems.push({
-          label: AppSettings.DIVIDEND.toUpperCase(),
+          label: AppSettings.DIVIDEND.toUpperCase() + AppSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.handleTransaction(TransactionType.DIVIDEND, securityPositionSummary.security)
         });
       }

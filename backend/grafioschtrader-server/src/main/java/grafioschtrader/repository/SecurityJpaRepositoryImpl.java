@@ -234,7 +234,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   public void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition) {
     if (securitycurrencyPosition.securitycurrency.getIdConnectorDividend() != null) {
       IFeedConnector iFeedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
-          securitycurrencyPosition.securitycurrency.getIdConnectorDividend(), IFeedConnector.FeedSupport.DIVIDEND);
+          securitycurrencyPosition.securitycurrency.getIdConnectorDividend(), IFeedConnector.FeedSupport.FS_DIVIDEND);
       securitycurrencyPosition.dividendUrl = iFeedConnector
           .getDividendHistoricalDownloadLink(securitycurrencyPosition.securitycurrency);
     }
@@ -463,13 +463,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   private Integer getNextAttemptInDaysForSplitHistorical(Security security, Date splitDate) throws Exception {
     IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
-        security.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY);
+        security.getIdConnectorHistory(), IFeedConnector.FeedSupport.FS_HISTORY);
     return feedConnector.getNextAttemptInDaysForSplitHistorical(splitDate);
   }
 
   private List<Historyquote> getDataByConnnector(Security security, Date fromDate, Date toDate) throws Exception {
     IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
-        security.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY);
+        security.getIdConnectorHistory(), IFeedConnector.FeedSupport.FS_HISTORY);
     return getHistoryQuote(security, fromDate, toDate, feedConnector);
   }
 
@@ -513,13 +513,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   public void checkAndClearSecuritycurrencyConnectors(final Security security) {
     super.checkAndClearSecuritycurrencyConnectors(security);
     if (security.getIdConnectorDividend() != null) {
-      FeedSupport fd = IFeedConnector.FeedSupport.DIVIDEND;
+      FeedSupport fd = IFeedConnector.FeedSupport.FS_DIVIDEND;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
           security.getIdConnectorDividend(), fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);
     }
     if (security.getIdConnectorSplit() != null) {
-      FeedSupport fd = IFeedConnector.FeedSupport.SPLIT;
+      FeedSupport fd = IFeedConnector.FeedSupport.FS_SPLIT;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, security.getIdConnectorSplit(),
           fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);

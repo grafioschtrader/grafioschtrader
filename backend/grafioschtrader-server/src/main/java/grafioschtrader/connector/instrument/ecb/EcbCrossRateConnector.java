@@ -41,7 +41,7 @@ public class EcbCrossRateConnector extends BaseFeedConnector {
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
   }
 
   public EcbCrossRateConnector() {

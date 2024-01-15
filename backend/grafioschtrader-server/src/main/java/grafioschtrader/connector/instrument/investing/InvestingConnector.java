@@ -64,7 +64,7 @@ public class InvestingConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
   }
 
   public InvestingConnector() {
@@ -81,7 +81,7 @@ public class InvestingConnector extends BaseFeedConnector {
         errorMsgKey, feedIdentifier, specialInvestmentInstruments, assetclassType);
     if (feedIdentifier != null) {
       switch (feedSupport) {
-      case HISTORY:
+      case FS_HISTORY:
         checkUrlExtendsionWithRegex(new String[] { URL_HISTORICAL_REGEX }, urlExtend);
         break;
       default:

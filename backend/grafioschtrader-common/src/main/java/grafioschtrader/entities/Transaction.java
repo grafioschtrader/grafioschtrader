@@ -52,7 +52,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Column(name = "id_transaction")
   private Integer idTransaction;
 
-  @Schema(description = "Quantity when buying and selling securities or the number of days when financing costs")
+  @Schema(description = """
+          Quantity when buying and selling securities or the number of days when financing costs
+          The value is always positive when selling or buying a position.""")
   @Basic(optional = true)
   @Column(name = "units")
   @NotNull(groups = { SecurityTransaction.class })
