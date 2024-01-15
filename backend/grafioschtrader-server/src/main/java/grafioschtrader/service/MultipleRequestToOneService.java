@@ -31,8 +31,8 @@ public class MultipleRequestToOneService {
   public DataForCurrencySecuritySearch getDataForCurrencySecuritySearch() {
     return new DataForCurrencySecuritySearch(globalparametersJpaRepository.getCurrencies(),
         assetclassJpaRepository.getSubcategoryForLanguage(),
-        securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.HISTORY),
-        securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.INTRA),
+        securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.FS_HISTORY),
+        securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.FS_INTRA),
         stockexchangeJpaRepository.getAllStockExchanges(false));
   }
 

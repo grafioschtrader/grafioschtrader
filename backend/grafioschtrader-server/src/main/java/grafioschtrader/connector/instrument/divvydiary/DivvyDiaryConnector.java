@@ -37,7 +37,7 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.DIVIDEND, new FeedIdentifier[] { FeedIdentifier.DIVIDEND });
+    supportedFeed.put(FeedSupport.FS_DIVIDEND, new FeedIdentifier[] { FeedIdentifier.DIVIDEND });
   }
 
   private static final String DOMAIN_NAME_WITH_VERSION = "https://api.divvydiary.com/";

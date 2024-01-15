@@ -128,7 +128,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
 
   private IFeedConnector getConnectorHistoricalForSecuritycurrency(final Securitycurrency<?> securitycurrency) {
     return ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, securitycurrency.getIdConnectorHistory(),
-        IFeedConnector.FeedSupport.HISTORY);
+        IFeedConnector.FeedSupport.FS_HISTORY);
   }
 
   /**
@@ -249,10 +249,10 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
         String readableName = null;
         String readableNamePrefix = "";
         IFeedConnector ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
-            historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.HISTORY);
+            historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.FS_HISTORY);
         if (ifeedConnector == null) {
           ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
-              historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.INTRA);
+              historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.FS_INTRA);
           readableNamePrefix = "† - ";
 
         }

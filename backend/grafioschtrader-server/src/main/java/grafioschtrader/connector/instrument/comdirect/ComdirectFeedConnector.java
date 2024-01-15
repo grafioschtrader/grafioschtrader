@@ -40,7 +40,7 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.INTRA,
+    supportedFeed.put(FeedSupport.FS_INTRA,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 

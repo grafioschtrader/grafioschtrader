@@ -72,8 +72,8 @@ export abstract class SecuritycurrencyEdit extends FormBase {
 
   protected prepareFeedConnectors(feedConnectors: IFeedConnector[], isCurrency: boolean): void {
     this.feedPriceConnectors = feedConnectors;
-    this.feedConnectorsCreateValueKeyHtmlSelectOptions(this.configObject[this.ID_CONNECTOR_HISTORY], FeedSupport.HISTORY, isCurrency);
-    this.feedConnectorsCreateValueKeyHtmlSelectOptions(this.configObject[this.ID_CONNECTOR_INTRA], FeedSupport.INTRA, isCurrency);
+    this.feedConnectorsCreateValueKeyHtmlSelectOptions(this.configObject[this.ID_CONNECTOR_HISTORY], FeedSupport.FS_HISTORY, isCurrency);
+    this.feedConnectorsCreateValueKeyHtmlSelectOptions(this.configObject[this.ID_CONNECTOR_INTRA], FeedSupport.FS_INTRA, isCurrency);
   }
 
   protected prepareExistingSecuritycurrency(focusControl: FieldConfig): void {
@@ -107,22 +107,22 @@ export abstract class SecuritycurrencyEdit extends FormBase {
             urlExtends[i].labelHelpText = (this.configObject[this.ID_CONNECTOR_HISTORY] === connectorIdConfigs[i]) ?
               foundConnector.description.historicalDescription : foundConnector.description.intraDescription;
             if (this.ID_CONNECTOR_INTRA === connectorIdConfigs[i].field
-              && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.INTRA]]) {
+              && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_INTRA]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
-                foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.INTRA]],
+                foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_INTRA]],
                 feedIdentifier);
             } else if (this.ID_CONNECTOR_HISTORY === connectorIdConfigs[i].field
-              && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.HISTORY]]) {
+              && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_HISTORY]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
-                foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.HISTORY]],
+                foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_HISTORY]],
                 feedIdentifier);
-            } else if (foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.DIVIDEND]]) {
+            } else if (foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_DIVIDEND]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
-                foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.DIVIDEND]],
+                foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_DIVIDEND]],
                 FeedIdentifier.DIVIDEND);
-            } else if (foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.SPLIT]]) {
+            } else if (foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_SPLIT]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
-                foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.SPLIT]],
+                foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_SPLIT]],
                 FeedIdentifier.SPLIT);
             }
           } else {

@@ -67,9 +67,9 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.HISTORY,
+    supportedFeed.put(FeedSupport.FS_HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
-    supportedFeed.put(FeedSupport.INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
   }
 
   public TwelvedataFeedConnector() {

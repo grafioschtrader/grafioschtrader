@@ -55,7 +55,7 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
   }
 
   public FxUbcFeedConnector() {

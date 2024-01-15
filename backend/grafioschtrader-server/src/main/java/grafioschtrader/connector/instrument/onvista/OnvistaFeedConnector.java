@@ -51,7 +51,7 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
     // supportedFeed.put(FeedSupport.HISTORY, new FeedIdentifier[] {
     // FeedIdentifier.SECURITY_URL,
     // FeedIdentifier.CURRENCY_URL });
-    supportedFeed.put(FeedSupport.HISTORY,
+    supportedFeed.put(FeedSupport.FS_HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
     monthToStrings = new MonthToString[] { new MonthToString(1, "M1"), new MonthToString(3, "M3"),
         new MonthToString(6, "M6"), new MonthToString(12, "Y1"), new MonthToString(36, "Y3"),

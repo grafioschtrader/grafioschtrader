@@ -210,13 +210,13 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   protected void checkAndClearSecuritycurrencyConnectors(final S securitycurrency) {
     if (securitycurrency.getIdConnectorIntra() != null) {
-      FeedSupport fd = IFeedConnector.FeedSupport.INTRA;
+      FeedSupport fd = IFeedConnector.FeedSupport.FS_INTRA;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
           securitycurrency.getIdConnectorIntra(), fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
     }
     if (securitycurrency.getIdConnectorHistory() != null) {
-      FeedSupport fd = IFeedConnector.FeedSupport.HISTORY;
+      FeedSupport fd = IFeedConnector.FeedSupport.FS_HISTORY;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
           securitycurrency.getIdConnectorHistory(), fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);

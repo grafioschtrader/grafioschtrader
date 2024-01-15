@@ -57,9 +57,9 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.HISTORY,
+    supportedFeed.put(FeedSupport.FS_HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
-    supportedFeed.put(FeedSupport.INTRA,
+    supportedFeed.put(FeedSupport.FS_INTRA,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
 
     boursoramaPeriods = Arrays.asList(new BoursoramaPeriodEOD(30, 30, 0), new BoursoramaPeriodEOD(90, 90, 0),

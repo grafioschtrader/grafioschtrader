@@ -2,6 +2,7 @@ package grafioschtrader.entities;
 
 import java.time.LocalDate;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -11,8 +12,6 @@ import jakarta.persistence.Table;
  * It tracks the holdings of securities, which depends accumulation and
  * reduction transactions. This entity delivers information over the holding
  * periods for securities.
- *
- * @author Hugo Graf
  *
  */
 @Entity
@@ -34,9 +33,14 @@ public class HoldSecurityaccountSecurity extends HoldBase {
   @Column(name = "split_price_factor ")
   private double splitPriceFactor;
 
+  @Schema(description = """
+      Margin positions can be leveraged. If not equal to 'NULL', this value must be used for the number of units.""")
   @Column(name = "margin_real_holdings")
   private Double marginRealHoldings;
 
+  @Schema(description = """
+          If several margin positions are opened, the average price of the open positions must be calculated. 
+          This makes it possible to calculate the return.""")
   @Column(name = "margin_average_price")
   private Double marginAveragePrice;
 

@@ -321,9 +321,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   protected prepareSplitDividendConnector(feedConnectors: IFeedConnector[]): void {
-    this.splitDividendCreateValueKeyHtmlSelectOptions(this.configObject.idConnectorSplit, FeedSupport.SPLIT);
+    this.splitDividendCreateValueKeyHtmlSelectOptions(this.configObject.idConnectorSplit, FeedSupport.FS_SPLIT);
     this.splitDividendCreateValueKeyHtmlSelectOptions(this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND],
-      FeedSupport.DIVIDEND);
+      FeedSupport.FS_DIVIDEND);
   }
 
   private enableDisableDividendSplitConnector(assetClass: Assetclass): void {

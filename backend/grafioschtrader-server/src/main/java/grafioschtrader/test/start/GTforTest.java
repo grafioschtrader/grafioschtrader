@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import grafioschtrader.GlobalConstants;
@@ -27,7 +26,7 @@ import jakarta.annotation.PostConstruct;
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class) })
 
 // Since Spring Boot 3.2 it requires and read this properties
-@PropertySource("classpath:application-test.properties")
+// @PropertySource("classpath:application-test.properties")
 @EnableConfigurationProperties
 
 public class GTforTest {

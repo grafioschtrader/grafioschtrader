@@ -54,7 +54,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.INTRA,
+    supportedFeed.put(FeedSupport.FS_INTRA,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 
@@ -86,7 +86,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     boolean clear = super.clearAndCheckUrlPatternSecuritycurrencyConnector(securitycurrency, feedSupport, urlExtend,
         errorMsgKey, feedIdentifier, specialInvestmentInstruments, assetclassType);
     switch (feedSupport) {
-    case HISTORY:
+    case FS_HISTORY:
       checkUrlExtendsionWithRegex(new String[] { URL_HISTORICAL_REGEX }, urlExtend);
       break;
     default:

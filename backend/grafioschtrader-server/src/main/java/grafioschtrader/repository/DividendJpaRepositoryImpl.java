@@ -84,7 +84,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
     short retryDividendLoad = security.getRetryDividendLoad();
     try {
       IFeedConnector connector = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
-          security.getIdConnectorDividend(), IFeedConnector.FeedSupport.DIVIDEND);
+          security.getIdConnectorDividend(), IFeedConnector.FeedSupport.FS_DIVIDEND);
       List<Dividend> dividendsRead = connector.getDividendHistory(security,
           LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY));
       retryDividendLoad = 0;
