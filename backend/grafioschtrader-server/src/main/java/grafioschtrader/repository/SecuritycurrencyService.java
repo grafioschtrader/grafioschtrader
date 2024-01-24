@@ -164,6 +164,8 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     }
   }
 
+  
+
   @Override
   public List<IFeedConnector> getFeedConnectors(final boolean isCurrency) {
     return feedConnectorbeans.stream()
@@ -222,6 +224,17 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
     }
   }
+  
+  protected String getContentOfPageRequest(String httpPageUrl) {
+    String contentPage = null;
+    try {
+      contentPage = ConnectorHelper.getContentOfHttpRequestAsString(httpPageUrl, true);
+    } catch (Exception e) {
+      contentPage = "Failure!";
+    }
+    return contentPage;
+  }
+  
 
   protected S beforeSave(S securitycurrency, S existingEntity, User user) throws Exception {
     return null;

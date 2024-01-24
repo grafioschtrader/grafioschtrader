@@ -25,6 +25,7 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.User;
+import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
@@ -122,7 +123,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
             : feedConnector.getCurrencypairHistoricalDownloadLink((Currencypair) securitycurrency);
       }
     } else {
-      return null;
+      return ThruCalculationHelper.getDownlinkWithApiKey(securitycurrency, false);
     }
   }
 

@@ -28,7 +28,9 @@ import org.springframework.util.ObjectUtils;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
+import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.CrossRateResponse.CurrenciesAndClosePrice;
@@ -178,6 +180,16 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
       }
     }
     return currencypair;
+  }
+  
+  @Override
+  public String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday) {
+    Currencypair currencypair = currencypairJpaRepository.getReferenceById(idSecuritycurrency);
+    String idConnector = isIntraday ? currencypair.getIdConnectorIntra() : currencypair.getIdConnectorHistory();
+    IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, idConnector,
+        isIntraday ? FeedSupport.FS_INTRA : FeedSupport.FS_HISTORY);
+    return getContentOfPageRequest(isIntraday ? feedConnector.getCurrencypairIntradayDownloadLink(currencypair)
+          : feedConnector.getCurrencypairHistoricalDownloadLink(currencypair));
   }
 
   @Override

@@ -67,6 +67,8 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   Currencypair createNonExistingCurrencypair(String fromCurrency, String toCurrency, boolean loadAsync);
 
+  String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
+  
   List<Currencypair> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch);
 
   /**

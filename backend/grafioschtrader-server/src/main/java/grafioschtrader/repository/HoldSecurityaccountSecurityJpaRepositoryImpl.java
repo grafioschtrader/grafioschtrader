@@ -277,16 +277,6 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       }
       Transaction marginTransaction = tss.getIdTransactionMargin() == null ? null
           : marginTransactionMap.get(tss.getIdTransactionMargin());
-     
-          
-      if(idSecuritycashAccount.equals(189) && tss.getIdSecuritycurrency().equals(3996)) {
-        if(tss.getIdTransactionMargin().equals(286622)) {
-          System.out.println("First");
-        }
-        System.out.println("Date: " + tss.getTsDate() + " Transaction: " + tss.getIdTransactionMargin()
-        + " Units: " +  tss.getFactorUnits());
-      }
-      
       
       boolean isNextMarginSameDate = marginTransaction != null
           ? isNextMarginAndSameDate(marginTransaction, tss, transactionSecuritySplitList, i, marginTransactionMap)

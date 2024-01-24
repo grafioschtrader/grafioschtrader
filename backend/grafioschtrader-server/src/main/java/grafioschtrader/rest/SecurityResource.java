@@ -40,6 +40,7 @@ import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityIds;
 import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithSecurityProp;
 import grafioschtrader.reportviews.securityaccount.SecurityOpenPositionPerSecurityaccount;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
+import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
@@ -55,6 +56,9 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
+
+  @Autowired
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
   private SecruityTransactionsReport secruityTransactionsReport;
@@ -73,6 +77,14 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     Security security = securityJpaRepository
         .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency, user.getIdTenant());
     return new ResponseEntity<>(security, HttpStatus.OK);
+  }
+
+  @GetMapping(value = RequestMappings.SECURITY_DATAPROVIDER_RESPONSE + "{idSecuritycurrency}")
+  public String getDataProviderResponse(@PathVariable final Integer idSecuritycurrency,
+      @Parameter(description = "True when for intraday otherwise false", required = true) @RequestParam() final boolean intraday,
+      @Parameter(description = "True when whenn security, false for currency", required = true) @RequestParam() final boolean isSecurity) {
+    return isSecurity ? securityJpaRepository.getDataProviderResponseForUser(idSecuritycurrency, intraday)
+        : currencypairJpaRepository.getDataProviderResponseForUser(idSecuritycurrency, intraday);
   }
 
   @GetMapping(value = "/algounused/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)

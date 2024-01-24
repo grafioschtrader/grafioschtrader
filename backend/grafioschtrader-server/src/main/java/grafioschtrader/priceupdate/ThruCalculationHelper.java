@@ -18,10 +18,12 @@ import com.ezylang.evalex.parser.ParseException;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
+import grafioschtrader.rest.RequestMappings;
 import grafioschtrader.types.HistoryquoteCreateType;
 
 /*-
@@ -32,7 +34,7 @@ import grafioschtrader.types.HistoryquoteCreateType;
 public abstract class ThruCalculationHelper {
 
   private static final Logger log = LoggerFactory.getLogger(ThruCalculationHelper.class);
-  
+
   public static List<Historyquote> loadDataAndCreateHistoryquotes(
       final SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository,
       HistoryquoteJpaRepository historyquoteJpaRepository, IFormulaInSecurity security, Date correctedFromDate,
@@ -167,6 +169,12 @@ public abstract class ThruCalculationHelper {
       expression.evaluate();
 
     }
+  }
+
+  public static <S extends Securitycurrency<S>> String getDownlinkWithApiKey(S securitycurrency, boolean isIntraday) {
+    return "--" + RequestMappings.SECURITY_MAP + RequestMappings.SECURITY_DATAPROVIDER_RESPONSE
+        + securitycurrency.getIdSecuritycurrency() + "?intraday=" + isIntraday + "&isSecurity="
+        + (securitycurrency instanceof Security ? true : false);
   }
 
 }
