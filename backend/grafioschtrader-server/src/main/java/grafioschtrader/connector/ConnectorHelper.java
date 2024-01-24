@@ -1,5 +1,10 @@
 package grafioschtrader.connector;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,6 +45,24 @@ public class ConnectorHelper {
     return UserAccessHelper.isAdmin(user) && feedConnector instanceof BaseFeedApiKeyConnector 
         || !(feedConnector instanceof BaseFeedApiKeyConnector); 
       
+  }
+  
+  public static String getContentOfHttpRequestAsString(String urlString, boolean addHttpNewlines) throws Exception {
+    URL url = new URI(urlString).toURL();
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setRequestMethod("GET");
+
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+      String line;
+      StringBuilder responseContent = new StringBuilder();
+      while ((line = reader.readLine()) != null) {
+        responseContent.append(line);
+        if(addHttpNewlines) {
+          responseContent.append("<br />");
+        }
+      }
+      return responseContent.toString();
+    }
   }
   
 }

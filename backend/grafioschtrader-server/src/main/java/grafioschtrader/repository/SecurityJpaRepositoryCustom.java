@@ -72,6 +72,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
 
   void reloadAsyncFullHistoryquoteExternal(Integer idSecuritycurrency);
 
+  String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
+  
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy);
 
   boolean checkUserCanChangeDerivedFields(User user, Security security, Security existingSecurity);

@@ -140,5 +140,8 @@ public interface RequestMappings {
 
   public static final String USER_ENTITY_CHANGE_LIMIT = "userentitychangelimit";
   public static final String USER_ENTITY_CHANGE_LIMIT_MAP = API + USER_ENTITY_CHANGE_LIMIT;
+  
+  // Used for path part
+  public static final String SECURITY_DATAPROVIDER_RESPONSE = "/dataproviderresponse/";
 
 }

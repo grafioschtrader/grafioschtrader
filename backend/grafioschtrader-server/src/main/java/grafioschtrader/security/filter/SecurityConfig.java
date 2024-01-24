@@ -58,6 +58,7 @@ public class SecurityConfig {
     .requestMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
     .requestMatchers(HttpMethod.GET, "/api-docs/**").permitAll()
     // It must be accessible before login
+    .requestMatchers(HttpMethod.GET, RequestMappings.SECURITY_MAP + RequestMappings.SECURITY_DATAPROVIDER_RESPONSE + "*").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.API + "actuator/**").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
     .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll()

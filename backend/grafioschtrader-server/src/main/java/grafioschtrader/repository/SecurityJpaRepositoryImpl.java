@@ -101,7 +101,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   private MessageSource messages;
 
   @Autowired
-  private JdbcTemplate jdbcTemplate;
+  protected JdbcTemplate jdbcTemplate;
 
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
@@ -244,6 +244,17 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   protected IHistoryquoteLoad<Security> getHistorquoteLoad(Security security) {
     return security.isDerivedInstrument() ? historyquoteThruCalculation : historyquoteThruConnector;
   }
+
+  @Override
+  public String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday) {
+    Security security = securityJpaRepository.getReferenceById(idSecuritycurrency);
+    String idConnector = isIntraday ? security.getIdConnectorIntra() : security.getIdConnectorHistory();
+    IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, idConnector,
+        isIntraday ? FeedSupport.FS_INTRA : FeedSupport.FS_HISTORY);
+    return getContentOfPageRequest(isIntraday ? feedConnector.getSecurityIntradayDownloadLink(security)
+          : feedConnector.getSecurityHistoricalDownloadLink(security));
+  }
+  
 
   ////////////////////////////////////////////////////////////////
   // Intraday prices
@@ -503,7 +514,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       if ((existingSecurity.getAssetClass().getSpecialInvestmentInstrument() != security.getAssetClass()
           .getSpecialInvestmentInstrument()
           || existingSecurity.getAssetClass().getCategoryType() != security.getAssetClass().getCategoryType())
-              && securityJpaRepository.hasSecurityTransaction(existingSecurity.getIdSecuritycurrency())) {
+          && securityJpaRepository.hasSecurityTransaction(existingSecurity.getIdSecuritycurrency())) {
         throw new IllegalArgumentException("Property financial instrument and asset class can no longer be changed!");
       }
     }

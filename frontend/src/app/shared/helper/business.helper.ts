@@ -158,7 +158,6 @@ export class BusinessHelper {
     return menuItems;
   }
 
-
   public static toExternalHelpWebpage(language: string, helpIds: HelpIds) {
     this.toExternalWebpage(AppSettings.HELP_DOMAIN + '/' + language + '/' + helpIds, 'help');
   }
@@ -175,6 +174,10 @@ export class BusinessHelper {
   }
 
   public static toExternalWebpage(url: string, target: string = 'blank'): void {
+    if(url.startsWith('--')) {
+      url = location.host + url.substring(2);
+    }
+
     if (!url.match(/^https?:\/\//i)) {
       url = 'http://' + url;
     }

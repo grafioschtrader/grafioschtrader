@@ -63,7 +63,7 @@ public class GlobalparametersResource {
   public ResponseEntity<Integer> getIntraUpdateQuotesTimeoutSeconds() {
     return new ResponseEntity<>(globalparametersJpaRepository.getWatchlistIntradayUpdateTimeout(), HttpStatus.OK);
   }
-
+  
   @GetMapping(value = "/startfeeddate", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Date> getStartFeedDate() throws ParseException {
     return new ResponseEntity<>(globalparametersJpaRepository.getStartFeedDate(), HttpStatus.OK);

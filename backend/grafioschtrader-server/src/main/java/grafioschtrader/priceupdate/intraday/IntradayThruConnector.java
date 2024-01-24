@@ -12,6 +12,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 
 /**
@@ -71,7 +72,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
             : feedConnector.getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency);
       }
     } else {
-      return null;
+      return ThruCalculationHelper.getDownlinkWithApiKey(securitycurrency, true);
     }
   }
 
