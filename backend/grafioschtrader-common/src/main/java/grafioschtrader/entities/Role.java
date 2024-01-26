@@ -17,8 +17,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(description="""
-Describes the roles of a user. The user can have multiple roles. 
-Each user belongs to 'LIMIT_EDIT' or to 'USER'. For 'LIMIT_EDIT' the user can have only this role.  
+Describes the roles of a user. The user can have multiple roles.
+Each user belongs to 'LIMIT_EDIT' or to 'USER'. For 'LIMIT_EDIT' the user can have only this role.
 For the 'USER' role, the more privileged roles are added.""")
 
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

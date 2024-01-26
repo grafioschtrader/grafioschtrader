@@ -19,16 +19,16 @@ public class UDFDataTest {
 
   @Autowired
   private UDFDataJpaRepository uDFDataJpaRepository;
-  
-  
+
+
   @Test
   @Rollback(false)
   void saveReadData() {
     Map<String, String> values = new HashMap<>();
     values.put("Überschuldet", "true");
     values.put("ShortSkala", "8");
-    
-    
+
+
    UDFData udfData = new UDFData(new UDFDataKey(0, Security.TABNAME, 1), values);
    uDFDataJpaRepository.save(udfData);
   }

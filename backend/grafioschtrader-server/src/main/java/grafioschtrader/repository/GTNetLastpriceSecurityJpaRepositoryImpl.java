@@ -15,9 +15,9 @@ public class GTNetLastpriceSecurityJpaRepositoryImpl
   @Autowired
   private GTNetLastpriceSecurityJpaRepository gtNetLastpriceSecurityJpaRepository;
 
- 
-  
-  
+
+
+
   protected List<GTNetLastpriceSecurity> readUpdateGetLastpriceValues(List<Security> securities) {
     List<String> isins = securities.stream().map(Security::getIsin)
         .collect(Collectors.toList());

@@ -86,7 +86,7 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
     });
     return users;
   }
-  
+
 
   @Override
   public Integer moveCreatedByUserToOtherUser(Integer fromIdUser, Integer toIdUser) throws SQLException {
@@ -94,16 +94,16 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
     String databaseName = StringUtils.substringAfterLast(url, "/");
     return userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser, databaseName);
   }
-  
+
   @Override
   public List<ValueKeyHtmlSelectOptions> getIdUserAndNicknameExcludeMe() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     List<ValueKeyHtmlSelectOptions> vkhsoList = new ArrayList<>();
     if(user.getMostPrivilegedRole() == Role.ROLE_ADMIN) {
       userJpaRepository.getIdUserAndNicknameExcludeUser(user.getIdUser()).forEach(
-          rs -> vkhsoList.add(new ValueKeyHtmlSelectOptions(String.valueOf(rs.getIdUser()), rs.getIdUser() + " - " + rs.getNickname())));;
+          rs -> vkhsoList.add(new ValueKeyHtmlSelectOptions(String.valueOf(rs.getIdUser()), rs.getIdUser() + " - " + rs.getNickname())));
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);  
+      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
     return vkhsoList;
   }

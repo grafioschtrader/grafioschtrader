@@ -46,7 +46,7 @@ class FinanzenCHFeedConnectorTest {
       assertThat(security.getSLast()).as("Security %s", security.getIdConnectorIntra()).isNotNull().isGreaterThan(0.0);
     });
   }
-  
+
 
   private Security createSecurityIntra(final String quoteFeedExtend, final AssetclassType assectClass,
       SpecialInvestmentInstruments specialInvestmentInstruments, String isin) {
@@ -89,7 +89,7 @@ class FinanzenCHFeedConnectorTest {
     });
   }
 
-  
+
 
   private Currencypair createCurrencypairIntra(final String fromCurrency, String toCurrency,
       final String urlIntraExtend) {

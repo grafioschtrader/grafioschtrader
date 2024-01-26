@@ -17,7 +17,7 @@ public interface MailSendRecvDTO {
    public String getMessage();
    public Integer getIdReplyToLocal();
    public Integer getIdReplyToRemote();
-   
+
    @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME)
    public LocalDateTime getSendRecvTime();
    public Integer getIdGtNet();

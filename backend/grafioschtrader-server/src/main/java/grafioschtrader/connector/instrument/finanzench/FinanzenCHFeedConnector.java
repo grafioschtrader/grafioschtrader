@@ -39,7 +39,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * However, access to these pages was better protected against non-browser
  * queries. At present, the source code does not yet fully reflect this
  * situation.
- * 
+ *
  * A regex pattern check is active. In addition, a check of the URL by the
  * accessibility of the instrument .
  */

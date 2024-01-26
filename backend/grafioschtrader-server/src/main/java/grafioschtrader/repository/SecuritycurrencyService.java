@@ -164,8 +164,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     }
   }
 
-  
-
   @Override
   public List<IFeedConnector> getFeedConnectors(final boolean isCurrency) {
     return feedConnectorbeans.stream()
@@ -224,17 +222,8 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
     }
   }
-  
-  protected String getContentOfPageRequest(String httpPageUrl) {
-    String contentPage = null;
-    try {
-      contentPage = ConnectorHelper.getContentOfHttpRequestAsString(httpPageUrl, true);
-    } catch (Exception e) {
-      contentPage = "Failure!";
-    }
-    return contentPage;
-  }
-  
+
+ 
 
   protected S beforeSave(S securitycurrency, S existingEntity, User user) throws Exception {
     return null;
@@ -254,6 +243,27 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   public Set<Class<? extends Annotation>> getUpdatePropertyLevels(final S existingSecurity) {
     return existingSecurity == null ? Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class)
         : Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class);
+  }
+
+  protected ConnectorData<S> getConnectorData(final Integer idSecuritycurrency, final boolean isIntraday,
+      SecurityCurrencypairJpaRepository<S> repository) {
+    ConnectorData<S> ct = new ConnectorData<>(repository.getReferenceById(idSecuritycurrency));
+    ct.idConnector = isIntraday ? ct.securitycurrency.getIdConnectorIntra()
+        : ct.securitycurrency.getIdConnectorHistory();
+    ct.feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, ct.idConnector,
+        isIntraday ? FeedSupport.FS_INTRA : FeedSupport.FS_HISTORY);
+    return ct;
+  }
+
+  protected static class ConnectorData<S extends Securitycurrency<S>> {
+
+    public ConnectorData(S currencypair) {
+      this.securitycurrency = currencypair;
+    }
+
+    public S securitycurrency;
+    public String idConnector;
+    public IFeedConnector feedConnector;
   }
 
 }

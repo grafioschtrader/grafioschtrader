@@ -66,7 +66,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         .findAllByOrderByIdGtNetAscTimestampAsc().collect(Collectors.groupingBy(GTNetMessage::getIdGtNet)),
         globalparametersJpaRepository.getGTNetMyEntryID());
   }
-  
+
 
   @Override
   public GTNet saveOnlyAttributes(final GTNet gtNet, final GTNet existingEntity,
@@ -95,11 +95,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     return false;
   }
 
-  
+
   @Override
   public GTNetWithMessages submitMsg(MsgRequest msgRequest) {
     GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(msgRequest.messageCode);
-    
+
     // Object model = objectMapper.convertValue(msgRequest.gtNetMessageParamMap, gtNetMsgRequest.model);
     // TODO check model integrity
     List<GTNet> gtNetList = getTargetDomains(msgRequest);
@@ -108,10 +108,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         gtNetList, gtNetMsgRequest, msgRequest);
     return this.getAllGTNetsWithMessages();
   }
-  
+
   private List<GTNet> getTargetDomains(MsgRequest msgRequest) {
     if(msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
-      if(msgRequest.messageCode == GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C 
+      if(msgRequest.messageCode == GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C
           || msgRequest.messageCode == GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
         return gtNetJpaRepository.findByAcceptEntityRequestOrAcceptLastpriceRequest(true, true);
       } else {
@@ -123,13 +123,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       return gtNetList;
     }
   }
-  
+
 
   // Send Message
   ///////////////////////////////////////////////////////////////////////
   /**
    * Message is created and send to the remote servers.
-   * 
+   *
    * @param gtNetList
    * @param msgRequest
    */
@@ -176,9 +176,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
     return msgMap;
   }
-  
+
   private Object convertMapToPojo(Class<?> clazz, Map<String, GTNetMessageParam> map) {
-    final ObjectMapper mapper = new ObjectMapper(); 
+    final ObjectMapper mapper = new ObjectMapper();
     return mapper.convertValue(map, clazz);
   }
 
@@ -190,7 +190,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
     return null;
   }
-  
+
   private MessageEnvelope sendMessage(String tokenRemote, String domainRemoteName, GTNetMessage gtNetMessage, Object payLoadObject) {
     MessageEnvelope meRequest = new MessageEnvelope(domainRemoteName, gtNetMessage);
     if(payLoadObject != null) {
@@ -198,13 +198,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
     return baseDataClient.sendToMsg(tokenRemote, domainRemoteName, meRequest);
   }
-  
+
   private MessageEnvelope sendPing(String tokenRemote, String domainRemoteName) {
     GTNetMessage gtNetMessagePing = new GTNetMessage(null, new Date(), SendReceivedType.SEND.getValue(), null,
         GTNetMessageCodeType.GT_NET_PING.getValue(), null, null);
     return sendMessage(tokenRemote, domainRemoteName, gtNetMessagePing, null);
   }
-  
+
   // Receive Message
   ///////////////////////////////////////////////////////////////////////
   @Override
@@ -213,41 +213,41 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNet myGTNet = gtNetJpaRepository.getReferenceById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository));
     switch(GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(me.messageCode)) {
     case GT_NET_PING:
-      meResponse = getGTNetPingResponse(myGTNet); 
+      meResponse = getGTNetPingResponse(myGTNet);
       break;
-    
+
     case GT_NET_FIRST_HANDSHAKE_S:
       meResponse = checkHandshake(myGTNet, me);
       break;
     case GT_NET_UPDATE_SERVERLIST_SEL_C:
       break;
-      
+
     default:
       break;
-      
+
     }
     return meResponse;
   }
-  
+
   private MessageEnvelope getGTNetPingResponse(GTNet myGTnet) {
     GTNetMessage msgRespone = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
         GTNetMessageCodeType.GT_NET_PING.getValue(), null, null);
     MessageEnvelope meResponse = new MessageEnvelope(myGTnet.getDomainRemoteName(), msgRespone);
     return meResponse;
   }
-  
+
   private MessageEnvelope checkHandshake(GTNet myGTNet, MessageEnvelope meRequest) throws JsonProcessingException, IllegalArgumentException {
     GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S);
     FirstHandshakeMsg firstHandshakeMsg = (FirstHandshakeMsg) convertMapToPojo(gtNetMsgRequest.model, meRequest.gtNetMessageParamMap);
     GTNet remoteGTNet = objectMapper.treeToValue(meRequest.payload, GTNet.class);
-    
+
     // TODO add Ping to check if the remote machine is reachable
     remoteGTNet = addGTNetRemoteWhenNotExists(remoteGTNet, firstHandshakeMsg.tokenThis);
-    
-    
+
+
     return null;
   }
-  
+
   private GTNet addGTNetRemoteWhenNotExists(GTNet gtNetRemote, String remoteToken) {
     GTNet gtNetRemoteExisting = gtNetJpaRepository.findByDomainRemoteName(gtNetRemote.getDomainRemoteName());
     if(gtNetRemoteExisting == null) {
@@ -256,6 +256,6 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     gtNetRemoteExisting.setTokenRemote(remoteToken);
     return gtNetJpaRepository.save(gtNetRemoteExisting);
   }
-  
-  
+
+
 }

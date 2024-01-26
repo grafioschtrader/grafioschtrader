@@ -46,7 +46,7 @@ public class StockDataFeedConnectorTest {
   @Test
   // Attention: Needs a subscription for Standard or more.
   void getEodSecurityHistoryTest() {
-    
+
     final List<Security> securities = new ArrayList<>();
 
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);

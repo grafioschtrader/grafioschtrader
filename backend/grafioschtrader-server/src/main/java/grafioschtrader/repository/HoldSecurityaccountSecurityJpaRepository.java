@@ -85,12 +85,12 @@ public interface HoldSecurityaccountSecurityJpaRepository
   Set<Date> getCombinedHolidayOfHoldingsByPortfolio(Integer idPortfolio);
 
   @Query("""
-        SELECT MIN(hss.hssk.fromHoldDate) AS firstTradingDate 
+        SELECT MIN(hss.hssk.fromHoldDate) AS firstTradingDate
         FROM HoldSecurityaccountSecurity hss WHERE hss.idTenant = ?1""")
   LocalDate findByIdTenantMinFromHoldDate(Integer idTenant);
 
   @Query("""
-         SELECT MIN(hss.hssk.fromHoldDate) AS firstTradingDate 
+         SELECT MIN(hss.hssk.fromHoldDate) AS firstTradingDate
          FROM HoldSecurityaccountSecurity hss WHERE hss.idPortfolio = ?1""")
   LocalDate findByIdPortfolioMinFromHoldDate(Integer idTenant);
 

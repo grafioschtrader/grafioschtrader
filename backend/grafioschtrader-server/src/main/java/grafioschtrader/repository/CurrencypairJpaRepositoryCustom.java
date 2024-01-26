@@ -68,7 +68,9 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
   Currencypair createNonExistingCurrencypair(String fromCurrency, String toCurrency, boolean loadAsync);
 
   String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
-  
+
+  String getDataProviderLinkForUser(final Integer idSecuritycurrency, final boolean isIntraday);
+
   List<Currencypair> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch);
 
   /**
@@ -76,7 +78,7 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
    * cross currency can contain a maximum of three nodes. For example,
    * USD(requested currency)-CHF(main currency)-EUR(currency security). This
    * results in two currency pairs CHF/USD or USD/CHF and CHF/EUR or EUR/CHF.
-   * 
+   *
    * @param crossRateRequest
    * @return
    */

@@ -8,9 +8,11 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.priceupdate.BaseQuoteThru;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 
-public abstract class BaseIntradayThru<S extends Securitycurrency<S>> implements IIntradayLoad<S> {
+public abstract class BaseIntradayThru<S extends Securitycurrency<S>> extends BaseQuoteThru
+    implements IIntradayLoad<S> {
 
   protected final GlobalparametersJpaRepository globalparametersJpaRepository;
 

@@ -28,15 +28,15 @@ public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stock
 
   @Autowired
   private StockexchangeJpaRepository stockexchangeJpaRepository;
-  
-  
+
+
   @Operation(summary = "Returns all stock exchanges and other base data", description = "", tags = { Stockexchange.TABNAME })
   @GetMapping(value = "/basedata", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<StockexchangeBaseData> getAllStockexchangesBaseData() {
     return new ResponseEntity<>(stockexchangeJpaRepository.getAllStockexchangesBaseData(),
         HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Returns all stock exchanges sorted by name", description = "", tags = { Stockexchange.TABNAME })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Stockexchange>> getAllStockexchanges(

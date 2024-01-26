@@ -243,7 +243,7 @@ public class SecurityDividendsReport {
    * There may be no transaction for a given year, or there may be no transaction
    * on an open position in a given year. Nevertheless, this year must contain all
    * open positions.
-   * 
+   *
    * @param securityDividendsGrandTotal
    * @param year
    * @param unitsCounterBySecurityMap

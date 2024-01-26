@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 public class UDFMetadataSecurity extends UDFMetadata {
 
   public static final String TABNAME = "udf_metadata_security";
-  
+
   @Column(name = "category_type")
   @PropertyAlwaysUpdatable
   private byte categoryType;
@@ -26,7 +26,7 @@ public class UDFMetadataSecurity extends UDFMetadata {
 
   public UDFMetadataSecurity() {
   }
-  
+
   public AssetclassType getCategoryType() {
     return AssetclassType.getAssetClassTypeByValue(this.categoryType);
   }
@@ -43,5 +43,5 @@ public class UDFMetadataSecurity extends UDFMetadata {
     this.specialInvestmentInstrument = specialInvestmentInstrument.getValue();
   }
 
-  
+
 }

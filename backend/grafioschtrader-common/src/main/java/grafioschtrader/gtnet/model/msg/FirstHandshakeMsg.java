@@ -5,10 +5,10 @@ public class FirstHandshakeMsg {
 
   public FirstHandshakeMsg() {
   }
-  
+
   public FirstHandshakeMsg(String tokenThis) {
     this.tokenThis = tokenThis;
   }
-  
-  
+
+
 }

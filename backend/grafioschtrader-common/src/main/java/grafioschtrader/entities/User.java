@@ -124,7 +124,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @JsonIgnore
   @Column(name = "last_role_modified_time")
   private Date lastRoleModifiedTime;
-  
+
   @Schema(description = "Show if an entity was created by my in the user interface")
   @Column(name = "ui_show_my_property")
   @PropertyAlwaysUpdatable
@@ -304,11 +304,11 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
       }
     }
   }
-  
+
   public boolean hasIdRole(Integer idRole) {
     return roles.stream().filter(r -> r.getIdRole().equals(idRole)).findFirst().isPresent();
   }
-  
+
   public Date getLastRoleModifiedTime() {
     return lastRoleModifiedTime;
   }

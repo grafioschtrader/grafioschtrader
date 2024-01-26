@@ -22,7 +22,7 @@ public interface RequestMappings {
   public static final String M2M_API = "/m2m/";
 
   public static final String ACTUATOR_MAP = API + "actuator";
-  
+
   public static final String ASSETCLASS_MAP = API + Assetclass.TABNAME;
 
   public static final String ALGOASSETCLASS = "algoassetclass";
@@ -41,7 +41,7 @@ public interface RequestMappings {
 
   public static final String CONNECTOR_API_KEY = "connectorapikey";
   public static final String CONNECTOR_API_KEY_MAP = API + CONNECTOR_API_KEY;
-  
+
   public static final String CORRELATION_SET = "correlationset";
   public static final String CORRELATION_SET_MAP = API + CORRELATION_SET;
 
@@ -53,17 +53,17 @@ public interface RequestMappings {
 
   public static final String GTNET = "gtnet";
   public static final String GTNET_MAP = API + GTNET;
-  
+
   public static final String GTNET_M2M = GTNET + M2M;
   public static final String GTNET_M2M_MAP = M2M_API + GTNET;
- 
-  
+
+
   public static final String GTNET_MESSAGE = "gtnetmessage";
   public static final String GTNET_MESSAGE_MAP = API + GTNET_MESSAGE;
-  
+
   public static final String GTNET_MESSAGE_ANSWER = "gtnetmessageanswer";
   public static final String GTNET_MESSAGE_ANSWER_MAP = API + GTNET_MESSAGE_ANSWER;
-  
+
   public static final String HISTORYQUOTE_MAP = API + Historyquote.TABNAME;
 
   public static final String HISTORYQUOTE_PERIOD = "historyquoteperiod";
@@ -86,10 +86,10 @@ public interface RequestMappings {
 
   public static final String MAIL_SETTING_FORWARD = "mailsettingforward";
   public static final String MAIL_SETTING_FORWARD_MAP = API + MAIL_SETTING_FORWARD;
-  
+
   public static final String MAIL_SEMD_RECV = "mailsendrecv";
   public static final String MAIL_SEMD_RECV_MAP = API + MAIL_SEMD_RECV;
- 
+
   public static final String MULTIPLE_REQUEST_TO_ONE = "multiplerequesttoone";
   public static final String MULTIPLE_REQUEST_TO_ONE_MAP = API + MULTIPLE_REQUEST_TO_ONE;
 
@@ -140,7 +140,7 @@ public interface RequestMappings {
 
   public static final String USER_ENTITY_CHANGE_LIMIT = "userentitychangelimit";
   public static final String USER_ENTITY_CHANGE_LIMIT_MAP = API + USER_ENTITY_CHANGE_LIMIT;
-  
+
   // Used for path part
   public static final String SECURITY_DATAPROVIDER_RESPONSE = "/dataproviderresponse/";
 

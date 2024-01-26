@@ -47,11 +47,11 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   public SecurityaccountResource() {
     super(Securityaccount.class);
   }
-  
+
   /*
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
- 
+
   @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteSecurityaccount(@PathVariable final Integer idSecuritycashaccount) {
     log.debug("Delete by id Securityaccount : {}", idSecuritycashaccount);

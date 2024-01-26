@@ -44,7 +44,7 @@ public class SecurityConfig {
 
   @Autowired
   private AuthenticationManager authenticationManager;
- 
+
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -58,7 +58,7 @@ public class SecurityConfig {
     .requestMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
     .requestMatchers(HttpMethod.GET, "/api-docs/**").permitAll()
     // It must be accessible before login
-    .requestMatchers(HttpMethod.GET, RequestMappings.SECURITY_MAP + RequestMappings.SECURITY_DATAPROVIDER_RESPONSE + "*").permitAll()
+    .requestMatchers(HttpMethod.GET, RequestMappings.WATCHLIST_MAP + RequestMappings.SECURITY_DATAPROVIDER_RESPONSE + "*").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.API + "actuator/**").permitAll()
     .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
     .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll()
@@ -89,12 +89,12 @@ public class SecurityConfig {
     http.addFilterBefore(
         new StatelessAuthenticationFilter(tokenAuthenticationService, messages, userService, limitRequest),
         UsernamePasswordAuthenticationFilter.class);
-       
+
     http.authenticationProvider(authenticationProvider());
-    
+
     return http.build();
   }
-  
+
   @Bean
   DaoAuthenticationProvider authenticationProvider() {
       DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -108,5 +108,5 @@ public class SecurityConfig {
           AuthenticationConfiguration authConfig) throws Exception {
       return authConfig.getAuthenticationManager();
   }
-  
+
 }

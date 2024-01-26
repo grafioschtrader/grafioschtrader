@@ -33,7 +33,7 @@ public abstract class ImportTransactionHelperPdf {
       text = textStripper.getText(document);
       document.close();
     }
-    
+
     return text;
   }
 

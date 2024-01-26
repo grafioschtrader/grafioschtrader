@@ -25,7 +25,7 @@ public class UDFMetadataSecurityResource extends UpdateCreateDeleteAuditResource
   @Autowired
   private UDFMetadataSecurityJpaRepository uDFMetadataSecurityJpaRepository;
 
-  
+
   @Operation(summary = "Return all UDF for the current user", description = "", tags = {
       RequestMappings.UDFMETADATASECURITY })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -33,14 +33,14 @@ public class UDFMetadataSecurityResource extends UpdateCreateDeleteAuditResource
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(uDFMetadataSecurityJpaRepository.getAllByIdUser(user.getIdUser()), HttpStatus.OK);
   }
-  
-  
-  
+
+
+
   @Override
   protected UpdateCreateJpaRepository<UDFMetadataSecurity> getUpdateCreateJpaRepository() {
     return uDFMetadataSecurityJpaRepository;
   }
-  
-  
+
+
 
 }

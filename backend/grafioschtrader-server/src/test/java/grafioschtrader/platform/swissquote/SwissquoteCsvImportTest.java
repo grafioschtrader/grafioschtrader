@@ -26,5 +26,5 @@ public class SwissquoteCsvImportTest {
 
     MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     mockMvc.perform(multipart("/upload").file(file)).andExpect(status().isOk());
-  };
+  }
 }

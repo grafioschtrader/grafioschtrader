@@ -10,7 +10,7 @@ public class LastpricesExchange {
 
   @Schema(description = "The supplier could neither write nor read prices.")
   public int notWriteNorReadCount;
-  
+
   public Collection<LastpriceSecurity> lastpriceSecurities = new ArrayList<>();
   public Collection<LastpriceCurrency> lastpriceCurrencies = new ArrayList<>();
 

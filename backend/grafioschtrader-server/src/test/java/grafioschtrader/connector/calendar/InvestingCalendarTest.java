@@ -11,7 +11,7 @@ import grafioschtrader.connector.calendar.ICalendarFeedConnector.TickerSecuritys
 import grafioschtrader.connector.calendar.investing.InvestingCalendar;
 
 class InvestingCalendarTest {
-  
+
   @Test
   void calendarSplitTest() {
     InvestingCalendar investingCalendar = new InvestingCalendar();

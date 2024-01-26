@@ -27,7 +27,7 @@ class AlphaVantageFeedConnectorTest {
   @Autowired
   private AlphaVantageFeedConnector alphaVantageConnector;
 
-  
+
   /**
    * NEEDS Premium Membership!
    */
@@ -45,7 +45,7 @@ class AlphaVantageFeedConnectorTest {
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-  
+
     securities.add(createSecurity("AAPL"));
     securities.add(createSecurity("MSFT"));
   //  securities.add(createSecurity("NESN.SW"));

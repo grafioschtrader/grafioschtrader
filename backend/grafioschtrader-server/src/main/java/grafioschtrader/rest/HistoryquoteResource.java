@@ -103,12 +103,12 @@ public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> 
     return new ResponseEntity<>(TaIndicatorHelper.getTaFormMap(), HttpStatus.OK);
   }
 
-  
+
   @Operation(summary = "Returns requested data for a tecnical indicator like SMA, EMA ", description = "", tags = {
       Historyquote.TABNAME })
   @PostMapping(value = "/{idSecuritycurrency}/taindicator/{taIndicator}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TaTraceIndicatorData>> getTaWithShortMediumLongInputPeriod(
-      @PathVariable final Integer idSecuritycurrency, 
+      @PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "The required tecnical indicator", required = true) @PathVariable final TaIndicators taIndicator,
       @RequestBody String dynamicModel) throws IOException {
     List<TaTraceIndicatorData> taTraceIndicatorData = new ArrayList<>();

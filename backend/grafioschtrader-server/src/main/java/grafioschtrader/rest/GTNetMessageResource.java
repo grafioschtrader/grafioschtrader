@@ -26,7 +26,7 @@ public class GTNetMessageResource extends UpdateCreateDeleteAudit<GTNetMessage> 
 
   @Autowired
   private GTNetMessageJpaRepository gtNetMessageJpaRepository;
-  
+
   @Operation(summary = "Returns all form defintion of messages", description = "", tags = {
       RequestMappings.GTNET_MESSAGE })
   @GetMapping(value = "/msgformdefinition", produces = APPLICATION_JSON_VALUE)
@@ -38,5 +38,5 @@ public class GTNetMessageResource extends UpdateCreateDeleteAudit<GTNetMessage> 
   protected UpdateCreateJpaRepository<GTNetMessage> getUpdateCreateJpaRepository() {
     return gtNetMessageJpaRepository;
   }
-    
+
 }

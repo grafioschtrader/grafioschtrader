@@ -64,7 +64,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @Size(min = 4, max = 4)
   @PropertySelectiveUpdatableOrWhenNull
   private String mic;
-  
+
   @Schema(description = "The name of the stock exchange")
   @Basic(optional = false)
   @Column(name = "name")
@@ -84,7 +84,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @Column(name = "no_market_value")
   @PropertySelectiveUpdatableOrWhenNull
   private boolean noMarketValue;
-  
+
   @Schema(description = "Defines whether secondary trading is supported by this exchange")
   @Basic(optional = false)
   @Column(name = "secondary_market")
@@ -99,16 +99,16 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private LocalTime timeOpen;
 
-  @Schema(description = "The official time of the close of trading of this stock exchange")  
+  @Schema(description = "The official time of the close of trading of this stock exchange")
   @Basic(optional = false)
   @Column(name = "time_close")
   @JsonFormat(pattern = "HH:mm")
   @NotNull
   @PropertyAlwaysUpdatable
   private LocalTime timeClose;
-  
 
-  @Schema(description = "The time zone of this stock exchange")  
+
+  @Schema(description = "The time zone of this stock exchange")
   @Basic(optional = false)
   @NotNull
   @Size(min = 1, max = 50)
@@ -116,12 +116,12 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyOnlyCreation
   private String timeZone;
 
-  @Schema(description = "ID of the index through which the trading calendar receives its update")  
+  @Schema(description = "ID of the index through which the trading calendar receives its update")
   @PropertyAlwaysUpdatable
   @Column(name = "id_index_upd_calendar")
   private Integer idIndexUpdCalendar;
-  
-  @Schema(description = "Until this date, the update of the trading calendar was performed via the index. This date is set by the system")  
+
+  @Schema(description = "Until this date, the update of the trading calendar was performed via the index. This date is set by the system")
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   @Column(name = "max_calendar_upd_date")
   private LocalDate maxCalendarUpdDate;
@@ -130,7 +130,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME)
   @Column(name = "last_direct_price_update")
   private LocalDateTime lastDirectPriceUpdate;
-  
+
   @Schema(description = "HTML link to the website of the exchange")
   @Column(name = "website")
   @WebUrl
@@ -224,7 +224,7 @@ public class Stockexchange extends Auditable implements Serializable {
   public void setTimeOpen(LocalTime timeOpen) {
     this.timeOpen = timeOpen;
   }
- 
+
   public Integer getIdIndexUpdCalendar() {
     return idIndexUpdCalendar;
   }
@@ -240,7 +240,7 @@ public class Stockexchange extends Auditable implements Serializable {
   public void setNameIndexUpdCalendar(String nameIndexUpdCalendar) {
     this.nameIndexUpdCalendar = nameIndexUpdCalendar;
   }
-  
+
   public LocalDate getMaxCalendarUpdDate() {
     return maxCalendarUpdDate;
   }
@@ -252,7 +252,7 @@ public class Stockexchange extends Auditable implements Serializable {
   public void setLastDirectPriceUpdate(LocalDateTime lastDirectPriceUpdate) {
     this.lastDirectPriceUpdate = lastDirectPriceUpdate;
   }
-  
+
   public String getWebsite() {
     return website;
   }
@@ -289,7 +289,7 @@ public class Stockexchange extends Auditable implements Serializable {
   /**
    * Return of minutes since the exchange is closed. If stock exchange is open,
    * then negative number of minutes until the next closing.
-   * 
+   *
    * @return
    */
   @JsonIgnore
@@ -331,6 +331,6 @@ public class Stockexchange extends Auditable implements Serializable {
         + ", website=" + website + ", nameIndexUpdCalendar=" + nameIndexUpdCalendar + "]";
   }
 
-  
+
 
 }

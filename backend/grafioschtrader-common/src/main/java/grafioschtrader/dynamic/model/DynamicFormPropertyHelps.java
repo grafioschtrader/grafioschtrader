@@ -3,11 +3,11 @@ package grafioschtrader.dynamic.model;
 
 public enum DynamicFormPropertyHelps {
   // Input as percentage
-  PERCENTAGE, 
+  PERCENTAGE,
   // Input of a password
-  PASSWORD, 
+  PASSWORD,
   // Input of a Email address
-  EMAIL, 
+  EMAIL,
   // Input with select option
   SELECT_OPTIONS,
   // Date must be in the future

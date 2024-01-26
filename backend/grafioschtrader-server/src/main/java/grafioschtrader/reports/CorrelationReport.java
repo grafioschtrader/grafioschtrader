@@ -107,9 +107,9 @@ public class CorrelationReport {
         correlationSet.getSecuritycurrencyList().size()));
 
     var rw = new RollingWindow(correlationSet.getRolling());
-    for (int i = 0; i < securityIdsPairs.length; i++) {
-      int sc1 = getColumnNoOfMatrix(correlationSet, securityIdsPairs[i][0]);
-      int sc2 = getColumnNoOfMatrix(correlationSet, securityIdsPairs[i][1]);
+    for (Integer[] securityIdsPair : securityIdsPairs) {
+      int sc1 = getColumnNoOfMatrix(correlationSet, securityIdsPair[0]);
+      int sc2 = getColumnNoOfMatrix(correlationSet, securityIdsPair[1]);
       Double[] correlation = rollingCovCorrBeta(realMatrix.getColumn(sc1), realMatrix.getColumn(sc2), rw);
       LocalDate[] dates = closePrices.dateCloseTree.keySet()
           .toArray(new LocalDate[closePrices.dateCloseTree.keySet().size()]);
@@ -142,9 +142,9 @@ public class CorrelationReport {
   private Double[] rollingCovCorrBeta(double[] x, double[] y, RollingWindow rollingWindow) {
 
 //    if (a.pop) {
-//      check_xy1(x, y, a.rolling); 
+//      check_xy1(x, y, a.rolling);
 //    } else {
-//      check_xy(x, y, a.rolling);  
+//      check_xy(x, y, a.rolling);
 //    }
 
     byte windowSize = rollingWindow.rolling;
@@ -254,8 +254,9 @@ public class CorrelationReport {
         avg_old_x = avg_x;
         avg_x = avg_old_x + (xi - xi_old) / windowSize;
         var_x += (xi - xi_old) * (xi - avg_x + xi_old - avg_old_x) / pop_n;
-        if (rollingWindow.ctype == CalcType.CORR)
+        if (rollingWindow.ctype == CalcType.CORR) {
           sd_x = Math.sqrt(var_x);
+        }
       }
 
       // std dev of y
@@ -264,8 +265,9 @@ public class CorrelationReport {
         avg_old_y = avg_y;
         avg_y = avg_old_y + (yi - yi_old) / windowSize;
         var_y += (yi - yi_old) * (yi - avg_y + yi_old - avg_old_y) / pop_n;
-        if (rollingWindow.ctype == CalcType.CORR)
+        if (rollingWindow.ctype == CalcType.CORR) {
           sd_y = Math.sqrt(var_y);
+        }
       }
 
       // cov of x,y
@@ -306,7 +308,7 @@ public class CorrelationReport {
     boolean expanding = false;
     boolean pop = false;
     CalcType ctype = CalcType.CORR;
-  };
+  }
 
   enum CalcType {
     BETA, CORR, COV

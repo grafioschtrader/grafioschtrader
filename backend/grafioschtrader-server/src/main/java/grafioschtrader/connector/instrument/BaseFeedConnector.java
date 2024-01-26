@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
+import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
@@ -181,6 +182,11 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       }
     }
     return false;
+  }
+
+  @Override
+  public EnumSet<DownloadLink> isDownloadLinkCreatedLazy() {
+    return EnumSet.noneOf(DownloadLink.class);
   }
 
   @Override
@@ -355,6 +361,16 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       log.error("URL: {}", url);
     }
   }
+  
+  public String getContentOfPageRequest(String httpPageUrl) {
+    String contentPage = null;
+    try {
+      contentPage = ConnectorHelper.getContentOfHttpRequestAsString(httpPageUrl, true);
+    } catch (Exception e) {
+      contentPage = "Failure!";
+    }
+    return contentPage;
+  }
 
   protected String hideApiKeyForError(String url) {
     return url;
@@ -364,7 +380,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
    * During a URL check, HTTP status 200 may be returned even though the
    * corresponding instrument was not found. Therefore, the body of the response
    * should also be evaluated according to the data provider.
-   * 
+   *
    * @param huc
    * @return
    */
@@ -382,6 +398,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     return sb.toString();
   }
 
+  @Override
   public Integer getNextAttemptInDaysForSplitHistorical(Date splitDate) {
     Integer addDaysForNextAttempt = null;
     long diffNowSplitDate = DateHelper.getDateDiff(splitDate, new Date(), TimeUnit.DAYS);

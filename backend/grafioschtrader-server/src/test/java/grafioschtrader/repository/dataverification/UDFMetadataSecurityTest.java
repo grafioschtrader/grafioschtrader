@@ -17,12 +17,12 @@ public class UDFMetadataSecurityTest {
 
   @Autowired
   private UDFMetadataSecurityJpaRepository uDFMetadataSecurityJpaRepository;
-  
+
   @Test
   @Rollback(false)
   void saveTest() {
     uDFMetadataSecurityJpaRepository.deleteAll();
-    
+
     UDFMetadataSecurity udf =  new UDFMetadataSecurity();
     udf.setCategoryType(AssetclassType.CONVERTIBLE_BOND);
     udf.setSpecialInvestmentInstrument(SpecialInvestmentInstruments.DIRECT_INVESTMENT);
@@ -32,7 +32,7 @@ public class UDFMetadataSecurityTest {
     udf.setFieldSize("12");
     udf.setUiOrder((byte) 10);
     uDFMetadataSecurityJpaRepository.save(udf);
-    
+
     UDFMetadataSecurity udf1 =  new UDFMetadataSecurity();
     udf1.setCategoryType(AssetclassType.CONVERTIBLE_BOND);
     udf1.setSpecialInvestmentInstrument(SpecialInvestmentInstruments.DIRECT_INVESTMENT);
@@ -43,7 +43,7 @@ public class UDFMetadataSecurityTest {
     udf1.setFieldSize("100");
     udf1.setUiOrder((byte) 20);
     uDFMetadataSecurityJpaRepository.save(udf1);
-    
+
     UDFMetadataSecurity udf2 =  new UDFMetadataSecurity();
     udf2.setCategoryType(AssetclassType.EQUITIES);
     udf2.setSpecialInvestmentInstrument(SpecialInvestmentInstruments.DIRECT_INVESTMENT);

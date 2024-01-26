@@ -12,7 +12,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.types.TaskType;
 
 /**
- * 
+ *
  * This Java update was not a good idea. With version 0.29.1 the Stockexchange
  * symbol was removed. Therefore, this update can no longer work. The user has
  * to do the assignment of an index for the trading calendar himself in the user
@@ -22,13 +22,13 @@ import grafioschtrader.types.TaskType;
 @Component
 public class Upd_V_0_11_0 implements ITask {
 
- 
+
 
   @Autowired
   private AssetclassJpaRepository assetclassJpaRepository;
 
- 
- 
+
+
   @Override
   public TaskType getTaskType() {
     return TaskType.UPD_V_0_11_0;
@@ -65,7 +65,7 @@ public class Upd_V_0_11_0 implements ITask {
    * security.setUrlIntraExtend("^GSPTSE"); securityJpaRepository.save(security);
    * } catch (Exception e) { log.error("Failed to create stock index for ISIN {}",
    * isin); } } } }
-   * 
+   *
    * private void connectIndexToStockexchange() { String[][] cv = { { "SIX",
    * "CH0009980894", "SMI", "CHF" }, { "NYSE", "US78378X1072", "SPX", "USD" }, {
    * "FSX", "DE0008469008", "DAX", "EUR" }, { "PAR", "FR0003500008", "C40", "EUR"
@@ -78,7 +78,7 @@ public class Upd_V_0_11_0 implements ITask {
    * "TDXP", "EUR" }, { "XAMS", "NL0000000107", "AEX", "EUR" }, { "BMFBOVES",
    * "BRIBOVINDM18", "BVSP", "BRL" }, { "TSX", "XC0009693034", "OSPTX", "CAD" }, {
    * "NZE", null, "NZ50", "NZD" }, { "ASX", "XC0009693018", "XAO", "AUD" } };
-   * 
+   *
    * for (String[] element : cv) { Optional<Stockexchange> stockexchangeOpt =
    * stockexchangeJpaRepository.findBySymbol(element[0]); if
    * (stockexchangeOpt.isPresent() &&
@@ -93,7 +93,7 @@ public class Upd_V_0_11_0 implements ITask {
    * stockexchangeOpt.get();
    * stockexchange.setIdIndexUpdCalendar(security.getIdSecuritycurrency());
    * stockexchangeJpaRepository.save(stockexchange); }
-   * 
+   *
    * } } }
    */
 }

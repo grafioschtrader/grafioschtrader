@@ -36,7 +36,7 @@ import grafioschtrader.types.TransactionType;
 
 public abstract class DataHelper {
 
-  
+
   public static double roundStandard(double valueToRound) {
     return round(valueToRound, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
@@ -91,8 +91,8 @@ public abstract class DataHelper {
       }
     }
   }
-  
-  
+
+
   public static String generateGUID() {
     return UUID.randomUUID().toString().replace("-", "");
   }

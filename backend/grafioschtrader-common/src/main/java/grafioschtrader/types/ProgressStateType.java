@@ -19,9 +19,9 @@ public enum ProgressStateType {
   PROG_TIMEOUT((byte) 6),
   // Task has a timeout but could not be stopped
   PROG_ZOMBIE((byte) 7),
-  // At startup changed the state of Zombie to a cleaned state 
+  // At startup changed the state of Zombie to a cleaned state
   PROG_ZOMBIE_CLEANED((byte) 8);
-  
+
 
   private final Byte value;
 

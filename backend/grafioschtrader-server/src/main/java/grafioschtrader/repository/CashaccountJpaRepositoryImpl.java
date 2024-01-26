@@ -50,5 +50,5 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
   public int delEntityWithTenant(Integer id, Integer idTenant) {
     return cashaccountJpaRepository.deleteCashaccount(id, idTenant);
   }
-  
+
 }

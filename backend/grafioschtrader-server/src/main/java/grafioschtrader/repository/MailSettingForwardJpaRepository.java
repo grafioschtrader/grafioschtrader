@@ -13,7 +13,7 @@ public interface MailSettingForwardJpaRepository extends JpaRepository<MailSetti
     MailSettingForwardJpaRepositoryCustom, UpdateCreateJpaRepository<MailSettingForward> {
 
   List<MailSettingForward> findByIdUser(Integer idUser);
-  
+
   Optional<MailSettingForward> findByIdUserAndMessageComType(Integer idUser, byte messageComType);
 
   @Transactional

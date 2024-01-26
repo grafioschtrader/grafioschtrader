@@ -122,8 +122,9 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   @Query(value="SELECT IF(EXISTS(SELECT * FROM transaction t WHERE t.id_securitycurrency=?1) = 1, 'true', 'false' ); ", nativeQuery = true)
   boolean hasSecurityTransaction(Integer idSecuritycurency);
-  
+
   // Catch history quotes as well for this Security
+  @Override
   @EntityGraph(value = "graph.security.historyquote", type = EntityGraphType.FETCH)
   Security findByIdSecuritycurrency(Integer idSecuritycurrency);
 

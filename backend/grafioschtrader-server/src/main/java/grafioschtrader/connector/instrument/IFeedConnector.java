@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -52,10 +53,31 @@ public interface IFeedConnector {
     // Supports split only with using extended url
     SPLIT_URL
   }
-  
+
   public enum UrlCheck {
-    INTRADAY,
-    HISTORY
+    INTRADAY, HISTORY
+  }
+
+  /**
+   * The user can view the content that is downloaded via the data source.
+   * Normally a URL is returned, which is opened in the browser. However, the
+   * creation of this URL can take a long time, so lazy creation should be
+   * possible. On the other hand, the return of a URL may not be sufficient
+   * because it has to be expanded dynamically.
+   */
+  public enum DownloadLink {
+    // The download link for historical price data must be requested in an
+    // additional request.
+    DL_LAZY_HISTORY,
+    // The download link for intraday price data must be requested in an additional
+    // request.
+    DL_LAZY_INTRA,
+    // As with data sources with API keys, the content of a data source for intraday
+    // price data must be created in the backend.
+    DL_HISTORY_FORCE_BACKEND,
+    // As with data sources with API keys, the content of a data source for
+    // historical price data must be created in the backend.
+    DL_INTRA_FORCE_BACKEND
   }
 
   @Schema(description = "Id of the connector as it is used in the database")
@@ -110,7 +132,7 @@ public interface IFeedConnector {
    * corresponding data. The content of the return body must also be evaluated for
    * this. This must be specially implemented for each supplier. An unsuccessful
    * check must throw an error, which appears on the user interface.
-   * 
+   *
    * @param <S>
    * @param securitycurrency
    * @param feedSupport
@@ -156,11 +178,11 @@ public interface IFeedConnector {
   /**
    * Certain connectors only provide end-of-day prices for certain securities if
    * trading has also taken place on that day.
-   * 
+   *
    * @param security
    * @return
    */
-  public boolean needHistoricalGapFiller(final Security security);
+  boolean needHistoricalGapFiller(final Security security);
 
   /**
    * Return the security quotes for a specified period
@@ -212,7 +234,7 @@ public interface IFeedConnector {
 
   /**
    * Returns true if dividends are split adjusted
-   * 
+   *
    * @return
    */
   @JsonIgnore
@@ -248,11 +270,15 @@ public interface IFeedConnector {
    * price data. This gives you the number of days to wait before the next attempt
    * to check the historical quotes should be made. If the split is too far in the
    * past, no check should take place.
-   * 
+   *
    * @param splitDate
    * @return
    */
-  public Integer getNextAttemptInDaysForSplitHistorical(Date splitDate);
+  Integer getNextAttemptInDaysForSplitHistorical(Date splitDate);
+
+  EnumSet<DownloadLink> isDownloadLinkCreatedLazy();
+
+  String getContentOfPageRequest(String httpPageUrl);
 
   /**
    * Get split data for a security from a specified day until now.

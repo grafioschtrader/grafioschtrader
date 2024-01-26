@@ -8,5 +8,5 @@ public interface IMinMaxDateHistoryquote {
   LocalDate getMinDate();
 
   LocalDate getMaxDate();
- 
+
 }

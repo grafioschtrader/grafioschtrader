@@ -6,6 +6,6 @@ import grafioschtrader.entities.MailSettingForward;
 
 
 public interface MailSettingForwardJpaRepositoryCustom extends BaseRepositoryCustom<MailSettingForward> {
-  
+
   MailSendForwardDefault getMailSendForwardDefault();
 }

@@ -19,7 +19,7 @@ public interface ITask {
   default List<String> getAllowedEntities() {
     return null;
   }
-  
+
   default boolean canBeInterrupted() {
     return false;
   }
@@ -27,5 +27,5 @@ public interface ITask {
   default long getTimeoutInSeconds() {
     return 0L;
   }
-  
+
 }

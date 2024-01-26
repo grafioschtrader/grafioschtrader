@@ -11,23 +11,23 @@ import jakarta.persistence.Table;
 @Table(name = StockexchangeMic.TABNAME)
 public class StockexchangeMic {
   public static final String TABNAME = "stockexchange_mic";
-  
+
   @Id
   @Column(name = "mic")
   private String mic;
-  
+
   @Column(name = "name")
   private String name;
-  
+
   @Column(name = "country_code")
   private String countryCode;
-  
+
   @Column(name = "city")
   private String city;
-  
+
   @Column(name = "website")
   private String website;
-  
+
   @Column(name = "time_zone")
   private String timeZone;
 
@@ -78,7 +78,7 @@ public class StockexchangeMic {
   public void setTimeZone(String timeZone) {
     this.timeZone = timeZone;
   }
-  
-  
-  
+
+
+
 }

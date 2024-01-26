@@ -7,6 +7,6 @@ import grafioschtrader.entities.Assetclass;
 
 public interface AssetclassJpaRepositoryCustom extends BaseRepositoryCustom<Assetclass> {
   List<ValueKeyHtmlSelectOptions> getSubcategoryForLanguage();
-  
+
   List<Assetclass> getPossibleAssetclassForExistingSecurityOrAll(Integer idSecuritycurrency);
 }

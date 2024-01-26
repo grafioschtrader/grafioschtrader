@@ -116,6 +116,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
     return columnPropertyMapping.size() == columnHeaderNamePropertyMap.size();
   }
 
+  @Override
   protected void validateTemplate(final DataViolationException dataViolationException) {
     if (delimiterField == null) {
       dataViolationException.addDataViolation(CONF_DELIMITER_FIELD, "gt.imptemplate.missing.delimiter", null, false);

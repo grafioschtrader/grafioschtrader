@@ -63,14 +63,14 @@ public class BoursoramaFeedConnectorTest extends BaseFeedConnectorCheck {
     }
     return hisoricalDate;
   }
-  
+
   @Override
   protected IFeedConnector getIFeedConnector() {
     return boursoramaFeedConnector;
   }
 
   // Currency pair price tests
-  //=======================================  
+  //=======================================
   @Test
   void getEodCurrencyHistoryTest() {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
@@ -124,6 +124,6 @@ public class BoursoramaFeedConnectorTest extends BaseFeedConnectorCheck {
     });
 
   }
-  
+
 
 }

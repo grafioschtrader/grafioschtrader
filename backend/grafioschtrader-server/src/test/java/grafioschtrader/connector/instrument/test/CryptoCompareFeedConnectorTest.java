@@ -20,15 +20,15 @@ import grafioschtrader.test.start.GTforTest;
 
 @SpringBootTest(classes = GTforTest.class)
 class CryptoCompareFeedConnectorTest {
-  
+
   @Autowired
   private CryptoCompareFeedConnector cryptoCompareFeedConnector;
-  
+
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, GlobalConstants.CC_BTC));
-    
+
     currencies.parallelStream().forEach(currencyPair -> {
       try {
         cryptoCompareFeedConnector.updateCurrencyPairLastPrice(currencyPair);
@@ -38,22 +38,22 @@ class CryptoCompareFeedConnectorTest {
       System.out.println(currencyPair);
       assertThat(currencyPair.getSLast()).isNotNull().isPositive();
     });
-    
+
   }
-  
-  
+
+
   @Test
   void getEodCurrencyHistoryTest() {
     final LocalDate from = LocalDate.parse("2001-01-01");
     final LocalDate to = LocalDate.parse("2021-02-10");
     final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    
-    
+
+
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, GlobalConstants.CC_BTC));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_CHF));
-    
+
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {

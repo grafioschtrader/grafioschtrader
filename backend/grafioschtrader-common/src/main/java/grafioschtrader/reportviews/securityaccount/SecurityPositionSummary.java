@@ -159,7 +159,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public void roundUnits() {
     units = DataHelper.round(units);
   }
-  
+
   public double getUnits() {
     return DataHelper.round(units);
   }
@@ -207,7 +207,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public double getValueSecurityMC() {
     return DataHelper.round(valueSecurityMC, precisionMC);
   }
-    
+
 
   public double getSecurityRiskMC() {
     return DataHelper.round(securityRiskMC, precisionMC);

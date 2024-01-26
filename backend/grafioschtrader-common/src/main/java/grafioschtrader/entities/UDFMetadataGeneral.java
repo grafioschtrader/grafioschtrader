@@ -19,7 +19,7 @@ public class UDFMetadataGeneral extends UDFMetadata {
 
   public UDFMetadataGeneral() {
   }
-  
+
   public String getEntity() {
     return entity;
   }
@@ -27,6 +27,6 @@ public class UDFMetadataGeneral extends UDFMetadata {
   public void setEntity(String entity) {
     this.entity = entity;
   }
-  
-  
+
+
 }

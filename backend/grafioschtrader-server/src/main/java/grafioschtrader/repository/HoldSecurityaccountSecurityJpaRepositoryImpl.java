@@ -166,8 +166,8 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
           security.getIdSecuritycurrency(), hstbs.getTsDate(), hstbs.getFactorUnits(), hstbs.getIdTransactionMargin(),
           hstbs.getIdPortfolio() == null ? null : security.getCurrency());
 
-      
-      
+
+
       boolean isNextMarginSameDate = security.isMarginInstrument() && (i + 1) < hstbsList.size()
           ? isNextMarginSameDate(hstbs, hstbsList.get(i + 1), marginTransactionMap)
           : false;
@@ -277,7 +277,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       }
       Transaction marginTransaction = tss.getIdTransactionMargin() == null ? null
           : marginTransactionMap.get(tss.getIdTransactionMargin());
-      
+
       boolean isNextMarginSameDate = marginTransaction != null
           ? isNextMarginAndSameDate(marginTransaction, tss, transactionSecuritySplitList, i, marginTransactionMap)
           : false;

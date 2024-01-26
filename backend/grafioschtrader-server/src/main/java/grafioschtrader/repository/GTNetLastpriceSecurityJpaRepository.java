@@ -11,7 +11,7 @@ public interface GTNetLastpriceSecurityJpaRepository
     extends JpaRepository<GTNetLastpriceSecurity, Integer>, GTNetLastpriceSecurityJpaRepositoryCustom {
 
   @Query(value = """
-      SELECT s.*, p.* FROM gt_net_lastprice_security s JOIN gt_net_lastprice p ON p.id_gt_net_lastprice = s.id_gt_net_lastprice 
+      SELECT s.*, p.* FROM gt_net_lastprice_security s JOIN gt_net_lastprice p ON p.id_gt_net_lastprice = s.id_gt_net_lastprice
       WHERE (s.isin, s.currency) IN ((?1, ?2))""",  nativeQuery = true)
   List <GTNetLastpriceSecurity> getLastpricesByListByIsinsAndCurrencies(List<String> isins, List<String> currencies);
 }

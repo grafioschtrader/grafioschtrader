@@ -518,12 +518,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
         cashaccountTransactionPositions[i] = new CashaccountTransactionPosition(transactions.get(i),
             (i == cashaccountTransactionPositions.length - 1) ? transactions.get(i).getCashaccountAmount()
                 :  cashaccountTransactionPositions[i + 1].balance + transactions.get(i).getCashaccountAmount());
-        
+
       }
-      for (int i = 0 ; i < cashaccountTransactionPositions.length; i++) {
-        cashaccountTransactionPositions[i].roundBalance(precision);
+      for (CashaccountTransactionPosition cashaccountTransactionPosition : cashaccountTransactionPositions) {
+        cashaccountTransactionPosition.roundBalance(precision);
       }
-        
+
     }
     return cashaccountTransactionPositions;
   }

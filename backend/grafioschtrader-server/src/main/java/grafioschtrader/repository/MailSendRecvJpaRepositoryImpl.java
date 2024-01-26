@@ -35,7 +35,6 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
             .collect(Collectors.toMap(CountRoleSend::getIdReplyToLocal, CountRoleSend::getNumberOfAnswer)));
     return mws;
   }
-  
 
   @Override
   public MailSendRecv markForRead(Integer idMailSendRecv) {
@@ -90,15 +89,15 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     return sendMailInternalExternalService.sendFromRESTApiMultiOrSingle(mailSendRecv);
   }
-  
- 
+
+
   @Override
   public Set<Class<? extends Annotation>> getUpdatePropertyLevels(MailSendRecv existingEntity) {
     return null;
   }
 
- 
 
- 
+
+
 
 }

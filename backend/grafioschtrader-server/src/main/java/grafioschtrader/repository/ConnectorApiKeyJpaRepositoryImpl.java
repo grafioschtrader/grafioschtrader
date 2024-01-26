@@ -72,7 +72,7 @@ public class ConnectorApiKeyJpaRepositoryImpl implements ConnectorApiKeyJpaRepos
   public void deleteConnectorApiKeyByIdProvider(String idProvider) {
     connectorApiKeyJpaRepository.deleteById(idProvider);
     this.resetConnectorApiKey(idProvider);
-    
+
   }
 
 }

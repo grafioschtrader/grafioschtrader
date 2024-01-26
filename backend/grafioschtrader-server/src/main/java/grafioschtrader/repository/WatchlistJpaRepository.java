@@ -46,10 +46,10 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
 
   @Query(nativeQuery = true)
   void addInstrumentsWithIntradayPriceDataTrouble(Integer idWatchlist, Integer daysSinceLastWork, Short retryIntraCounter);
-  
+
   @Query(nativeQuery = true)
   void addInstrumentsWithHistoricalPriceDataTrouble(Integer idWatchlist, Integer daysSinceLastWork, Short retryHistoricalCounter);
-  
+
   /**
    * Returns the Security ids from used Securities. They can be referenced by a
    * watchlist or a transaction. The watchlist in of the parameter is excluded. It

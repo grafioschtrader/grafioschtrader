@@ -269,6 +269,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     }
   }
 
+  @Override
   public void addPossibleExchangeRateForDividend(ImportTransactionHead importTransactionHead,
       ImportTransactionPos itp) {
     if (itp.isReadyForTransaction() && itp.getTransactionType() == TransactionType.DIVIDEND
@@ -376,7 +377,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * If a security with the same ISIN exists with more than one currency, the
    * correct security is determined according to the ISIN/currency combination
    * based on the position held.
-   * 
+   *
    */
   private void correctSecurityCurrencyMissmatch(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
     if (itp.getKnownOtherFlags().contains(ImportKnownOtherFlags.SECURITY_CURRENCY_MISMATCH)) {

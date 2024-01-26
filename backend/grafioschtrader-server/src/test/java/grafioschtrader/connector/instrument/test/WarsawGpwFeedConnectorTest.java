@@ -24,7 +24,8 @@ public class WarsawGpwFeedConnectorTest extends BaseFeedConnectorCheck {
   void getEodSecurityHistoryTest() {
     getEodSecurityHistory(false);
   }
-  
+
+  @Override
   protected List<SecurityHisoricalDate> getHistoricalSecurities() {
     List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
     try {

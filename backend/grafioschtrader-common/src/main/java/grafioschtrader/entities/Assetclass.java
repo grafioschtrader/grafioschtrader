@@ -94,15 +94,15 @@ public class Assetclass extends Auditable implements Serializable {
             SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
     possibleInstrumentsMap.put(AssetclassType.CURRENCY_PAIR, new SpecialInvestmentInstruments[] {
-        SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.FOREX, 
+        SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.FOREX,
         SpecialInvestmentInstruments.ETF });
-    
+
     possibleInstrumentsMap.put(AssetclassType.ALL,
-        new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ALL, 
+        new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ALL,
             SpecialInvestmentInstruments.DIRECT_INVESTMENT,
             SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
             SpecialInvestmentInstruments.PENSION_FUNDS, SpecialInvestmentInstruments.CFD,
-            SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, 
+            SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
             SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
   }

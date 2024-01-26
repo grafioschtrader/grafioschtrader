@@ -141,7 +141,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   public abstract String getName();
   @JsonIgnore
   public abstract boolean exspectVolume();
-  
+
 
   public Securitycurrency() {
   }
@@ -335,6 +335,6 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
     return true;
   }
 
-  
-  
+
+
 }

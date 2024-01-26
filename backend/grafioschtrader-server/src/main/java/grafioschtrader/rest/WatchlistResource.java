@@ -116,7 +116,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
     return new ResponseEntity<>(watchlistJpaRepository.getSecuritiesCurrenciesWachlistLimits(idWatchlist),
         HttpStatus.OK);
   }
-  
+
   /////////////////////////////////////////////////////////////
   // Modify content of Watchlist - Report
   /////////////////////////////////////////////////////////////
@@ -142,8 +142,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
     return ResponseEntity.ok()
         .body(watchlistJpaRepository.removeSecurityFromWatchlistAndDelete(idWatchlist, idSecuritycurrency));
   }
-  
-  @Operation(summary = "Adding active instruments with price data problems. Both intraday and historical price data.", 
+
+  @Operation(summary = "Adding active instruments with price data problems. Both intraday and historical price data.",
       description = "The watchlist must not yet contain any instruments.", tags = { Watchlist.TABNAME })
   @PatchMapping(value = "{idWatchlist}/pricedataproblems", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Watchlist> addInstrumentsWithPriceDataProblems(@PathVariable final Integer idWatchlist,
@@ -224,6 +224,31 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   public ResponseEntity<SecuritycurrencyGroup> getWatchlistForSplitAndDividend(@PathVariable final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
     return new ResponseEntity<>(watchlistReport.getWatchlistForSplitAndDividend(idWatchlist), HttpStatus.OK);
+  }
+
+  @Operation(summary = """
+      The data sources with API keys are only delivered to the frontend for administrators.
+      All other users must use the following functionality.
+      The content of the data source is generated in the backend and returned to the frontend.""", tags = {
+      Watchlist.TABNAME })
+  @GetMapping(value = RequestMappings.SECURITY_DATAPROVIDER_RESPONSE + "{idSecuritycurrency}")
+  public String getDataProviderResponseForUser(@PathVariable final Integer idSecuritycurrency,
+      @Parameter(description = "True when for intraday otherwise false", required = true) @RequestParam() final boolean isIntraday,
+      @Parameter(description = "True when whenn security, false for currency", required = true) @RequestParam() final boolean isSecurity) {
+    return watchlistJpaRepository.getDataProviderResponseForUser(idSecuritycurrency, isIntraday, isSecurity);
+  }
+
+  @Operation(summary = """
+     The creation of a download link for historical or intraday data can take a long time, 
+     as the data source is contacted during the creation process. 
+     In this case, the download link is only created if the user requests it in the frontend.""", tags = {
+      Watchlist.TABNAME })
+  @GetMapping(value = "/dataproviderlink/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<String> getDataProviderLinkForUser(@PathVariable final Integer idSecuritycurrency,
+      @Parameter(description = "True when for intraday otherwise false", required = true) @RequestParam() final boolean isIntraday,
+      @Parameter(description = "True when whenn security, false for currency", required = true) @RequestParam() final boolean isSecurity) {
+    return new ResponseEntity<>(watchlistJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday, isSecurity),
+        HttpStatus.OK);
   }
 
 }

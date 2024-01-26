@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
 import org.apache.http.HttpEntity;
@@ -62,7 +63,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /*-
  * Stock, Bond, ETF:
- * There is a regex pattern check for the URL. The URL check with connection establishment cannot 
+ * There is a regex pattern check for the URL. The URL check with connection establishment cannot
  * be used as the download links are not used for downloading the data.
  *
  * Dividend:
@@ -94,7 +95,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
-    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_INTRA,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
     supportedFeed.put(FeedSupport.FS_SPLIT, new FeedIdentifier[] { FeedIdentifier.SPLIT_URL });
     supportedFeed.put(FeedSupport.FS_DIVIDEND, new FeedIdentifier[] { FeedIdentifier.DIVIDEND_URL });
   }
@@ -126,7 +128,25 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
     return USE_V10_LASTPRICE ? DOMAIN_NAME_WITH_10_VERSION + getCurrencyPairSymbol(currencypair) + "?modules=price"
         : DOMAIN_NAME_WITH_7_VERSION_Q2 + "quote?symbols=" + getCurrencyPairSymbol(currencypair);
+  }
 
+  @Override
+  public String getContentOfPageRequest(String httpPageUrl) {
+    String contentPage = null;
+    InputStream is = null;
+    try {
+      is = loadContentWithCrump(httpPageUrl);
+      contentPage = IOUtils.toString(is, StandardCharsets.UTF_8);
+    } catch (Exception e) {
+      contentPage = "Failure!";
+    } finally {
+      try {
+        is.close();
+      } catch (IOException e) {
+        contentPage = "Failure!";
+      }
+    }
+    return contentPage;
   }
 
   @Override
@@ -164,28 +184,37 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     boolean success = false;
     for (int i = 0; i <= 2 && !success; i++) {
       i++;
-      HttpClient client = HttpClientBuilder.create()
-          .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
-      HttpClientContext context = HttpClientContext.create();
-      String cookie = CrumbManager.getCookie();
-      HttpGet request = new HttpGet(urlStr + "&crumb=" + CrumbManager.getCrumb());
-      request.addHeader("Cookie", cookie);
-      request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
-
-      HttpResponse response = client.execute(request, context);
-      HttpEntity entity = response.getEntity();
+      InputStream is = loadContentWithCrump(urlStr);
 
       if (urlStr.startsWith(DOMAIN_NAME_WITH_10_VERSION)) {
-        success = processV10LastPrice(entity.getContent(), securitycurrency);
+        success = processV10LastPrice(is, securitycurrency);
       } else {
-        ;
-        success = processV7LastPrice(entity.getContent(), securitycurrency);
+        success = processV7LastPrice(is, securitycurrency);
       }
 
       if (!success) {
         CrumbManager.resetCookieCrumb();
       }
     }
+  }
+
+  private InputStream loadContentWithCrump(String urlStr) throws ClientProtocolException, IOException {
+    HttpClient client = HttpClientBuilder.create()
+        .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
+    HttpClientContext context = HttpClientContext.create();
+    String cookie = CrumbManager.getCookie();
+    HttpGet request = new HttpGet(urlStr + "&crumb=" + CrumbManager.getCrumb());
+    request.addHeader("Cookie", cookie);
+    request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
+
+    HttpResponse response = client.execute(request, context);
+    HttpEntity entity = response.getEntity();
+    return entity.getContent();
+  }
+
+  @Override
+  public EnumSet<DownloadLink> isDownloadLinkCreatedLazy() {
+    return EnumSet.of(DownloadLink.DL_INTRA_FORCE_BACKEND, DownloadLink.DL_LAZY_INTRA);
   }
 
   private <T extends Securitycurrency<T>> boolean processV7LastPrice(InputStream is, final T securitycurrency)
@@ -458,8 +487,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
    * @return
    */
   private boolean isDifferentDay(final List<Historyquote> historyquotes, final Historyquote historyquote) {
-    return historyquotes.size() < 1 || historyquotes.size() > 0
-        && !historyquote.getDate().equals(historyquotes.getLast().getDate());
+    return historyquotes.size() < 1
+        || historyquotes.size() > 0 && !historyquote.getDate().equals(historyquotes.getLast().getDate());
   }
 
   private Historyquote parseResponseLine(final String inputLine, final SimpleDateFormat dateFormatSecurity,

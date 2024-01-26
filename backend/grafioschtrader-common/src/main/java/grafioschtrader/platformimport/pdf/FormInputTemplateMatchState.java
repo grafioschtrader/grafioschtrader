@@ -45,12 +45,13 @@ public class FormInputTemplateMatchState {
   }
 
   public void matchTemplatesProperties(String[] formInputLines, int row) throws Exception {
-    if (row >= maxRow)
+    if (row >= maxRow) {
       if (actProperty.isFirstColumnTable()) {
         maxRow = matchTableRow(formInputLines, row);
       } else {
         maxRow = matchSingleRequiredProperty(formInputLines, row);
       }
+    }
   }
 
   public void scanForOptionalProperties(String[] formInputLines) throws Exception {

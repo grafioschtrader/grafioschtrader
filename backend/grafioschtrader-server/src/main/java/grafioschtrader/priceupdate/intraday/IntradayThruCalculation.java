@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ezylang.evalex.Expression;
 
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks.VarNameLastPrice;
 import grafioschtrader.entities.Security;
@@ -22,8 +23,6 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * Prices depend on other prices of securities or currency pairs, those are not
  * updated with this class. Because of that this calculation of prices should be
  * called after intraday update of securities and currencies.
- *
- * @author Hugo Graf
  *
  * @param <S>
  */
@@ -80,6 +79,11 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
 
   @Override
   public String getSecuritycurrencyIntraDownloadLinkAsUrlStr(Security securitycurrency) {
+    return null;
+  }
+
+  @Override
+  public String createDownloadLink(Security securitycurrency, IFeedConnector feedConnector) {
     return null;
   }
 

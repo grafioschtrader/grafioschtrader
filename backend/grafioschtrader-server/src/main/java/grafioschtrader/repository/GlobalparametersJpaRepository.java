@@ -7,8 +7,8 @@ import grafioschtrader.entities.Globalparameters;
 public interface GlobalparametersJpaRepository
     extends JpaRepository<Globalparameters, String>, GlobalparametersJpaRepositoryCustom {
 
-  
-  
+
+
   /*
    * @Override
    *

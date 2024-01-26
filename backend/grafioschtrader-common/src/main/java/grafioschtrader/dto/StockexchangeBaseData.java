@@ -10,7 +10,7 @@ public class StockexchangeBaseData {
   public List<StockexchangeHasSecurity> hasSecurity;
   public List<StockexchangeMic> stockexchangeMics;
   public List<ValueKeyHtmlSelectOptions> countries;
-  
+
   public StockexchangeBaseData(List<Stockexchange> stockexchanges, List<StockexchangeHasSecurity> hasSecurity,
       List<StockexchangeMic> stockexchangeMics, List<ValueKeyHtmlSelectOptions> countries) {
     super();
@@ -19,5 +19,5 @@ public class StockexchangeBaseData {
     this.stockexchangeMics = stockexchangeMics;
     this.countries = countries;
   }
-  
+
 }

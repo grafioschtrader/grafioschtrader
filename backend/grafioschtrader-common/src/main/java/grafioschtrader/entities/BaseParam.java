@@ -17,7 +17,7 @@ public abstract class BaseParam {
     this.paramValue = paramValue;
   }
 
-  
+
   @Column(name = "param_value")
   protected String paramValue;
 

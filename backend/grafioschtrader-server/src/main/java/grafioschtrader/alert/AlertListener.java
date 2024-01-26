@@ -24,7 +24,7 @@ import jakarta.mail.MessagingException;
 public class AlertListener implements ApplicationListener<AlertEvent>  {
 
   private static final Logger log = LoggerFactory.getLogger(CashAccountTransfer.class);
- 
+
   private final UserJpaRepository userJpaRepository;
 
   private final GlobalparametersJpaRepository globalparametersJpaRepository;
@@ -36,7 +36,7 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
 
   @Autowired
   private MailExternalService mailExternalService;
-  
+
   public AlertListener(@Lazy UserJpaRepository userJpaRepository, @Lazy GlobalparametersJpaRepository globalparametersJpaRepository,
       MessageSource messages) {
     super();
@@ -50,8 +50,8 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
   public void onApplicationEvent(AlertEvent event) {
     sendMail(event.getAlertType(), new Object[] {event.getMsgParam()});
   }
-  
-  
+
+
   public void sendMail(AlertType alertType, Object[] msgParams) {
     Optional<User> userOpt = userJpaRepository.findByEmail(mainUserAdminMail);
     if (userOpt.isPresent()
@@ -68,7 +68,7 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
   }
 
 
- 
+
 
 }
 

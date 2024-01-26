@@ -29,9 +29,9 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
   List<IFeedConnector> getFeedConnectors(boolean isCurrency);
 
   List<ValueKeyHtmlSelectOptions> getAllFeedConnectorsAsKeyValue(FeedSupport feedSupport);
-  
+
   SecurityCurrencypairJpaRepository<S> getJpaRepository();
 
   List<Historyquote> fillGap(S securitycurrency);
-  
+
 }

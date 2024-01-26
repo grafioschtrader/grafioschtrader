@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.context.MessageSource;
 
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
@@ -76,6 +77,8 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    * @return
    */
   String getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(S securitycurrency);
+
+  String createDownloadLink(S securitycurrency, IFeedConnector feedConnector);
 
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy,
       SecurityJpaRepository securityJpaRepository, MessageSource messages);

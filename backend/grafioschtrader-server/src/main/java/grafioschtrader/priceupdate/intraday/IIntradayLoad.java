@@ -2,6 +2,7 @@ package grafioschtrader.priceupdate.intraday;
 
 import java.util.List;
 
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Securitycurrency;
 
 public interface IIntradayLoad<S extends Securitycurrency<S>> {
@@ -37,5 +38,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
       final int scIntradayUpdateTimeout);
 
   String getSecuritycurrencyIntraDownloadLinkAsUrlStr(S securitycurrency);
+
+  String createDownloadLink(S securitycurrency, IFeedConnector feedConnector);
 
 }

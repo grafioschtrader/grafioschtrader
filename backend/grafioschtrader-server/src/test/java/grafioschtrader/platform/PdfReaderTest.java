@@ -30,7 +30,7 @@ public abstract class PdfReaderTest {
   ImportTransactionTemplateJpaRepository importTransactionTemplateJpaRepository;
 
   abstract protected String getPlatformName();
-  
+
   @Test
   void checkFormAgainstTemplateTest() {
     try {

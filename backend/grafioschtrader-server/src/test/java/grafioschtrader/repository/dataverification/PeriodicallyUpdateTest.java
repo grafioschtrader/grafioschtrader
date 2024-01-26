@@ -16,10 +16,10 @@ import grafioschtrader.test.start.GTforTest;
 @SpringBootTest(classes = GTforTest.class)
 @Transactional
 public class PeriodicallyUpdateTest {
-  
+
   @Autowired
   private DividendJpaRepository dividendJpaRepository;
-  
+
   @Test
   @Rollback(false)
   void periodicallyUpdateTest() {

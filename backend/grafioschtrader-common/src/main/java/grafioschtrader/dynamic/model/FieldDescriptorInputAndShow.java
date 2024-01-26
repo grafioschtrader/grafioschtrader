@@ -32,7 +32,7 @@ public class FieldDescriptorInputAndShow implements Serializable {
 
   private void setDataType(Class<?> type) {
     switch (DataTypeJava.fromClass(type)) {
-    
+
     case Byte:
     case ByteC:
     case IntegerC:

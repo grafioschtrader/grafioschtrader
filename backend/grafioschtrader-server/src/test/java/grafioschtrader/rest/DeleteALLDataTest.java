@@ -56,8 +56,8 @@ class DeleteALLDataTest {
 
   @Autowired
   private UserEntityChangeLimitJpaRepository userEntityChangeLimitJpaRepository;
-  
-  
+
+
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
@@ -111,7 +111,7 @@ class DeleteALLDataTest {
       jpaRepository.deleteAll();
       long count = jpaRepository.count();
       assertThat(count).isEqualByComparingTo(0L);
-      
+
     }
 
   }

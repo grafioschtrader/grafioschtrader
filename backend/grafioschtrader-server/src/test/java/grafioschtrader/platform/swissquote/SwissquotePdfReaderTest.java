@@ -7,12 +7,12 @@ import grafioschtrader.test.start.GTforTest;
 
 @SpringBootTest(classes = GTforTest.class)
 public class SwissquotePdfReaderTest extends PdfReaderTest {
-  
+
   private final static String PLATFORM_NAME = "Swissquote";
-  
+
   @Override
   protected String getPlatformName() {
     return PLATFORM_NAME;
   }
-  
+
 }

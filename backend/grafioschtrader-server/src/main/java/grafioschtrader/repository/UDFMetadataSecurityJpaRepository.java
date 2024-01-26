@@ -12,11 +12,11 @@ public interface UDFMetadataSecurityJpaRepository extends JpaRepository<UDFMetad
     UDFMetadataSecurityJpaRepositoryCustom, UpdateCreateJpaRepository<UDFMetadataSecurity> {
 
   List<UDFMetadataSecurity> getAllByIdUser(Integer idUser);
-  
+
   @Query(nativeQuery = true)
   UiOrderDescriptionCount countUiOrderAndDescription(int uiOrder, String description);
-  
-  
+
+
   static interface UiOrderDescriptionCount {
     int getCountUiOrder();
     int getCountDescription();

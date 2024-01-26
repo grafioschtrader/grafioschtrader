@@ -52,7 +52,7 @@ public abstract class UpdateCreateDeleteAudit<T extends BaseID> extends UpdateCr
   protected boolean hasRightsForDeleteEntity(User user, T entity) {
     return UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, (Auditable) entity);
   }
-  
+
   protected void logAndAudit(Class<T> zclass, Integer id) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     log.debug("Delete {} by id : {}", zclass.getSimpleName(), id);

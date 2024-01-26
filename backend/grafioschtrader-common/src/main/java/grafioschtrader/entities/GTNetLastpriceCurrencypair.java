@@ -26,7 +26,7 @@ public class GTNetLastpriceCurrencypair extends GTNetLastprice {
   @ValidCurrencyCode
   @Column(name = "to_currency")
   private String toCurrency;
-  
+
   public GTNetLastpriceCurrencypair() {
     super();
   }

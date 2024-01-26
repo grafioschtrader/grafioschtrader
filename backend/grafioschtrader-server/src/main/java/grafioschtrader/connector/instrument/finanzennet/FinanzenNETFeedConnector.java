@@ -35,17 +35,17 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * However, access to these pages was better protected against non-browser
  * queries. At present, the source code does not yet fully reflect this
  * situation.
- * 
- * For some securities, there is a redirect to the corresponding country page. 
- * These securities can therefore not be queried. There is a finance.net, ch, and at. 
+ *
+ * For some securities, there is a redirect to the corresponding country page.
+ * These securities can therefore not be queried. There is a finance.net, ch, and at.
  * Therefore, Finanzen.net should not be used to query the prices of Austrian and Swiss securities.
- * 
+ *
  * Stocks, Bond, ETF:<br>
  * It difficult to check the url extension with a regex pattern
  *
  * Dividend: Value are summarized, can not be used in this application.
  * Splits: Not supported
- * 
+ *
  * A regex pattern check is not active. However, the accessibility of the instrument is checked.
  */
 @Component
@@ -121,7 +121,7 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
     case CFD:
     case DIRECT_INVESTMENT:
       if (assetClassType == AssetclassType.FIXED_INCOME) {
-        select = "table.table--headline-first-col.table--content-right:contains(Kurszeit) tr";        
+        select = "table.table--headline-first-col.table--content-right:contains(Kurszeit) tr";
       } else if (assetClassType == AssetclassType.EQUITIES) {
 
         select = "[data-sg-tab-region-content=0] table tr";

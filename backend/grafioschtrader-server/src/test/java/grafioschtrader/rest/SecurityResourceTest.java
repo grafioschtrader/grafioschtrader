@@ -56,7 +56,7 @@ class SecurityResourceTest {
   private static List<Assetclass> assetclasses;
   private static List<Stockexchange> stockexchanges;
   private static Comparator<Stockexchange> comparatorSE = (s1, s2) -> s1.getName().compareTo(s2.getName());
-  
+
   @Autowired
   TestRestTemplate restTemplate = new TestRestTemplate();
 
@@ -68,7 +68,7 @@ class SecurityResourceTest {
   private Assetclass assetclass;
   private Stockexchange stockexchange;
   private Security security;
-  
+
   @BeforeAll
   void setUpUserToken() {
     RestTestHelper.inizializeUserTokens(restTemplate, port, jwtTokenHandler);
@@ -162,14 +162,14 @@ class SecurityResourceTest {
   }
 
   static class SecurityAggregator implements ArgumentsAggregator {
-   
+
     final Stockexchange searchStockexchange = new Stockexchange();
 
     @Override
     public Security aggregateArguments(ArgumentsAccessor accessor, ParameterContext context)
         throws ArgumentsAggregationException {
       Security s = new Security();
-    
+
       s.setName(accessor.getString(0));
       s.setIsin(accessor.getString(1));
       s.setTickerSymbol(accessor.getString(2));

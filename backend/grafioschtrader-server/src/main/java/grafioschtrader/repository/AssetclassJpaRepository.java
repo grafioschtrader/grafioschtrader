@@ -41,7 +41,7 @@ public interface AssetclassJpaRepository
    * If a security has a transaction, the category and type of instrument can no
    * longer be changed. Return of all asset classes that are still possible, if
    * transaction exists.
-   * 
+   *
    * @param idSecuritycurrency
    * @return
    */

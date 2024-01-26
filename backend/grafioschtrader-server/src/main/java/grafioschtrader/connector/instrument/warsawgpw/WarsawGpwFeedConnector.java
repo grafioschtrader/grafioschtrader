@@ -89,7 +89,7 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
     final Element div = doc.select("div.PaL.header.text-right.text-left-xs").first();
     String[] maxMinValues = div.selectFirst(".max_min").text().split("max");
     security.setSLow(FeedConnectorHelper.parseDoubleGE(maxMinValues[0].replaceAll("[^\\d,]", "")));
-    ;
+
     security.setSHigh(FeedConnectorHelper.parseDoubleGE(maxMinValues[1].replaceAll("[^\\d,]", "")));
     security.setSLast(FeedConnectorHelper.parseDoubleGE(div.selectFirst(".summary").text().replaceAll("[^\\d,]", "")));
     Element changeElement = div.selectFirst(".profit") == null ? div.selectFirst(".loss") : div.selectFirst(".profit");

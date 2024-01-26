@@ -349,14 +349,16 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       menuItems.push(
         {
           label: '_INTRADAY_URL',
-          command: (e) => BusinessHelper.toExternalWebpage(securitycurrencyPosition.intradayUrl, 'intra'),
+          command: (e) => this.getDownloadLinkHistoricalIntra(securitycurrencyPosition.intradayUrl,
+            'intra', securitycurrencyPosition,true),
           disabled: !securitycurrencyPosition.intradayUrl
         }
       );
       menuItems.push(
         {
           label: '_HISTORICAL_URL',
-          command: (e) => BusinessHelper.toExternalWebpage(securitycurrencyPosition.historicalUrl, 'historical'),
+          command: (e) => this.getDownloadLinkHistoricalIntra(securitycurrencyPosition.historicalUrl,
+            'historical', securitycurrencyPosition, false),
           disabled: !securitycurrencyPosition.historicalUrl
         }
       );
@@ -368,6 +370,17 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
     translate && TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
+  }
+
+  private getDownloadLinkHistoricalIntra(url: string, targetPage: string, securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
+    isIntra: boolean): void {
+    if(url === 'lazy') {
+      this.watchlistService.getDataProviderLinkForUser(securitycurrencyPosition.securitycurrency.idSecuritycurrency, isIntra,
+        !(securitycurrencyPosition.securitycurrency instanceof Currencypair) ).subscribe(
+          urlWebpage => BusinessHelper.toExternalWebpage(urlWebpage, targetPage))
+    } else {
+      BusinessHelper.toExternalWebpage(url, targetPage);
+    }
   }
 
   protected getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {

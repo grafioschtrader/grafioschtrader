@@ -33,7 +33,7 @@ import grafioschtrader.entities.Security;
  * Splits: Not Supported
  * With Swiss Fund Data, the entire period is always downloaded as a CSV file.
  * This connector should therefore only be used to a limited extent.
- * 
+ *
  * A regex check for URL extension is performed. A check via the connector is
  * not possible as a CSV is downloaded.
  *

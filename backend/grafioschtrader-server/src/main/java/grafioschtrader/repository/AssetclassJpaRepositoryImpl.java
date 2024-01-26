@@ -25,6 +25,7 @@ public class AssetclassJpaRepositoryImpl extends BaseRepositoryImpl<Assetclass>
   @Autowired
   private AssetclassJpaRepository assetclassJpaRepository;
 
+  @Override
   public List<Assetclass> getPossibleAssetclassForExistingSecurityOrAll(Integer idSecuritycurrency) {
     List<Assetclass> assetklassList = Collections.emptyList();
     if (idSecuritycurrency != null) {

@@ -47,7 +47,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
-  
+
   private final TokenAuthenticationService tokenAuthenticationService;
   private final UserService userService;
   private final Map<String, HoldUserValues> emailToTimezoneOffsetMap = new ConcurrentHashMap<>();

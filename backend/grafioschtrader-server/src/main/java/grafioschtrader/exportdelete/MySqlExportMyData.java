@@ -46,8 +46,8 @@ public class MySqlExportMyData extends MyDataExportDeleteDefinition {
     final List<Map<String, Object>> rows = jdbcTemplate.queryForList(query, idArray);
     if (!rows.isEmpty()) {
       query = query + " LIMIT 1";
-      ResultSetMetaData metaData = ((List<ResultSetMetaData>) jdbcTemplate.query(query,
-          (resultSet, rowNum) -> resultSet.getMetaData(), idArray)).get(0);
+      ResultSetMetaData metaData = jdbcTemplate.query(query,
+          (resultSet, rowNum) -> resultSet.getMetaData(), idArray).get(0);
       if (log.isDebugEnabled()) {
         log.debug(exportDefinition.table);
         for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {

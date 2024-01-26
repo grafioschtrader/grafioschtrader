@@ -28,9 +28,7 @@ import org.springframework.util.ObjectUtils;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.CrossRateResponse.CurrenciesAndClosePrice;
@@ -52,7 +50,6 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 import jakarta.annotation.PostConstruct;
-
 
 public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Currencypair, CashaccountPositionSummary>
     implements IPositionCloseOnLatestPrice<Currencypair, CashaccountPositionSummary>, CurrencypairJpaRepositoryCustom {
@@ -181,15 +178,20 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     }
     return currencypair;
   }
-  
+
   @Override
   public String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday) {
-    Currencypair currencypair = currencypairJpaRepository.getReferenceById(idSecuritycurrency);
-    String idConnector = isIntraday ? currencypair.getIdConnectorIntra() : currencypair.getIdConnectorHistory();
-    IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, idConnector,
-        isIntraday ? FeedSupport.FS_INTRA : FeedSupport.FS_HISTORY);
-    return getContentOfPageRequest(isIntraday ? feedConnector.getCurrencypairIntradayDownloadLink(currencypair)
-          : feedConnector.getCurrencypairHistoricalDownloadLink(currencypair));
+    ConnectorData<Currencypair> ct = getConnectorData(idSecuritycurrency, isIntraday, currencypairJpaRepository);
+    return ct.feedConnector.getContentOfPageRequest(
+        isIntraday ? ct.feedConnector.getCurrencypairIntradayDownloadLink(ct.securitycurrency)
+            : ct.feedConnector.getCurrencypairHistoricalDownloadLink(ct.securitycurrency));
+  }
+
+  @Override
+  public String getDataProviderLinkForUser(final Integer idSecuritycurrency, final boolean isIntraday) {
+    ConnectorData<Currencypair> ct = getConnectorData(idSecuritycurrency, isIntraday, currencypairJpaRepository);
+    return isIntraday ? intradayThruConnector.createDownloadLink(ct.securitycurrency, ct.feedConnector)
+        : historyquoteThruConnector.createDownloadLink(ct.securitycurrency, ct.feedConnector);
   }
 
   @Override
@@ -303,12 +305,12 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
               LocalDateTime.now().plusMinutes(i), ids.get(i), Currencypair.class.getSimpleName()));
     }
   }
-/*
-  @Override
-  public void updateAllLastPrice() {
-    intradayThruConnector.updateLastPriceOfSecuritycurrency(currencypairJpaRepository.findAll());
-  }
-*/
+
+  /*
+   * @Override public void updateAllLastPrice() {
+   * intradayThruConnector.updateLastPriceOfSecuritycurrency(
+   * currencypairJpaRepository.findAll()); }
+   */
   @Override
   public void updateIntraSecurityCurrency(final Currencypair securitycurrency, final IFeedConnector feedConnector)
       throws Exception {
@@ -435,7 +437,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
   public List<Historyquote> fillGap(Currencypair securitycurrency) {
     return Collections.emptyList();
-    
+
   }
 
   @Override
@@ -443,5 +445,4 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     return historyquoteJpaRepository;
   }
 
-  
 }

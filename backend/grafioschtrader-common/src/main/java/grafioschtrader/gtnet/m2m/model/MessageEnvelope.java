@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "The model for the first contact with a remote server.")
 public class MessageEnvelope {
- 
+
   @Schema(description = "Source machine")
   public String sourceDomain;
   public Integer souceIdForReply;
@@ -20,7 +20,7 @@ public class MessageEnvelope {
   public Map<String, GTNetMessageParam> gtNetMessageParamMap;
   public String message;
   public JsonNode payload;
-  
+
   public MessageEnvelope() {
   }
 

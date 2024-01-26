@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.context.MessageSource;
 
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -76,6 +77,11 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
     return null;
   }
 
-  
+  @Override
+  public String createDownloadLink(Security securitycurrency, IFeedConnector feedConnector) {
+    return null;
+  }
+
+
 
 }

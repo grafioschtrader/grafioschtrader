@@ -16,9 +16,9 @@ public class CashaccountTransactionPosition {
     this.transaction = transaction;
     this.balance = balance;
   }
-  
+
   public void roundBalance(int precision) {
-    balance = DataHelper.round(balance, precision); 
+    balance = DataHelper.round(balance, precision);
   }
 
 }

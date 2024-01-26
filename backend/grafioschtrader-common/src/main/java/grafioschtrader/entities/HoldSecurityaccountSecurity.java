@@ -39,7 +39,7 @@ public class HoldSecurityaccountSecurity extends HoldBase {
   private Double marginRealHoldings;
 
   @Schema(description = """
-          If several margin positions are opened, the average price of the open positions must be calculated. 
+          If several margin positions are opened, the average price of the open positions must be calculated.
           This makes it possible to calculate the return.""")
   @Column(name = "margin_average_price")
   private Double marginAveragePrice;
