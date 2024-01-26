@@ -55,7 +55,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
 
     for (Security security : securities) {
       List<String> errorMessagesSecurity = loadAllDividendDataFromConnectorAndUpdate(security,
-          idSecurityDividendsMap.getOrDefault(security.getIdSecuritycurrency(), new ArrayList<Dividend>()),
+          idSecurityDividendsMap.getOrDefault(security.getIdSecuritycurrency(), new ArrayList<>()),
           idsSplitYoungerAsDividendList.contains(security.getIdSecuritycurrency()));
       if (!errorMessagesSecurity.isEmpty()) {
         errorMessages.add("Name: " + security.getName() + " ISIN:" + security.getIsin());
@@ -91,8 +91,8 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
       security.setDividendEarliestNextCheck(
           DateHelper.setTimeToZeroAndAddDay(new Date(), GlobalConstants.DIVIDEND_FROM_NOW_FOR_NEXT_CHECK_IN_DAYS));
       if (!replaceAlways && dividendsRead.size() == existingDividends.size() || dividendsRead.isEmpty()
-          || (!existingDividends.isEmpty() && dividendsRead.get(dividendsRead.size() - 1).getExDate()
-              .equals(existingDividends.get(existingDividends.size() - 1)))) {
+          || (!existingDividends.isEmpty()
+              && dividendsRead.getLast().getExDate().equals(existingDividends.getLast().getExDate()))) {
         securityJpaRepository.save(security);
         return errorMessages;
       }
@@ -119,15 +119,14 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
         this.dividendJpaRepository);
   }
 
-  private void splitAdjustDividends(Integer idSecurity, List<Dividend> dividendsRead,
-      boolean isSplitAdjusted) {
+  private void splitAdjustDividends(Integer idSecurity, List<Dividend> dividendsRead, boolean isSplitAdjusted) {
     List<Securitysplit> securitysplitList = securitysplitJpaRepository
         .findByIdSecuritycurrencyOrderBySplitDateAsc(idSecurity);
 
     for (Dividend dividend : dividendsRead) {
       double factor = Securitysplit.calcSplitFatorForFromDate(securitysplitList,
           DateHelper.getDateFromLocalDate(dividend.getExDate()));
-      if(isSplitAdjusted) {
+      if (isSplitAdjusted) {
         dividend.setAmount(dividend.getAmountAdjusted() * factor);
       } else {
         dividend.setAmountAdjusted(dividend.getAmount() / factor);

@@ -15,15 +15,15 @@ class ConnectorUrlExtenstionTest {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
-  
+
   @Test
   void urlExtendsionTest() {
-  
+
     List<Security> securities = securityJpaRepository.findAll();
     for (Security security : securities) {
       securityJpaRepository.checkAndClearSecuritycurrencyConnectors(security);
     }
   }
-  
-  
+
+
 }

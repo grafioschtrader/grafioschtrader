@@ -21,7 +21,7 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Base class for mailing system. Mail also supports M2M on GT. Attention the
- * ID's of the role must be the same on all GT instances. 
+ * ID's of the role must be the same on all GT instances.
  *
  */
 @Entity
@@ -30,7 +30,7 @@ public class MailSendRecv extends BaseID {
 
   public static final String TABNAME = "mail_send_recv";
   public static final int MAX_TEXT_LENGTH = 4096;
-  
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_mail_send_recv")
@@ -51,7 +51,7 @@ public class MailSendRecv extends BaseID {
   @Schema(description = "A message can also be addressed to a role")
   @Column(name = "id_role_to")
   private Integer idRoleTo;
- 
+
   @Schema(description = "Exchange of a message beyond this instance")
   @Column(name = "id_gt_net")
   private Integer idGtNet;
@@ -194,7 +194,7 @@ public class MailSendRecv extends BaseID {
   public void setSendRecvTime(LocalDateTime sendRecvTime) {
     this.sendRecvTime = sendRecvTime;
   }
-  
+
   public Integer getIdGtNet() {
     return idGtNet;
   }

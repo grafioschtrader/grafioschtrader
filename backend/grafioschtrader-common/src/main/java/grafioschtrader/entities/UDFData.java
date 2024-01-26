@@ -19,7 +19,7 @@ import jakarta.validation.constraints.NotNull;
 public class UDFData {
 
   public static final String TABNAME = "udf_data";
-  
+
   @EmbeddedId
   private UDFDataKey uDFDataKey;
 
@@ -28,10 +28,10 @@ public class UDFData {
   @Column(columnDefinition = "json_values")
   private Map<String, String> jsonValues;
 
-  
+
   public UDFData() {
   }
-  
+
   public UDFData(UDFDataKey uDFDataKey, Map<String, String> jsonValues) {
     super();
     this.uDFDataKey = uDFDataKey;
@@ -56,7 +56,7 @@ public class UDFData {
 
 
   public static class UDFDataKey {
-    
+
     @Schema(description = "Possibly this construct of the UDF is also used for system-wide input fields. In this case, the user with ID = 0 would be used.")
     @Column(name= "id_user")
     @NotNull
@@ -71,7 +71,7 @@ public class UDFData {
     @Column(name = "id_entity")
     @NotNull
     private Integer idEntity;
-   
+
 
     @Override
     public int hashCode() {
@@ -80,7 +80,7 @@ public class UDFData {
 
     public UDFDataKey() {
     }
-    
+
     public UDFDataKey(Integer idUser, String entity, Integer idEntity) {
       this.idUser = idUser;
       this.entity = entity;
@@ -92,18 +92,15 @@ public class UDFData {
       if (this == obj) {
         return true;
       }
-      if (obj == null) {
-        return false;
-      }
-      if (getClass() != obj.getClass()) {
+      if ((obj == null) || (getClass() != obj.getClass())) {
         return false;
       }
       UDFDataKey other = (UDFDataKey) obj;
       return Objects.equals(entity, other.entity) && Objects.equals(idEntity, other.idEntity)
           && Objects.equals(idUser, other.idUser);
     }
-    
-    
+
+
 
   }
 }

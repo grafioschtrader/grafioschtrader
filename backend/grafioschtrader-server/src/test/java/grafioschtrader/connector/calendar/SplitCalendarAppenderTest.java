@@ -11,10 +11,10 @@ public class SplitCalendarAppenderTest {
 
   @Autowired
   private SplitCalendarAppender splitCalendarAppender;
-  
+
   @Test
   void appendSecuritySplitsUntilTodayTest() {
     splitCalendarAppender.appendSecuritySplitsUntilToday();
   }
-  
+
 }

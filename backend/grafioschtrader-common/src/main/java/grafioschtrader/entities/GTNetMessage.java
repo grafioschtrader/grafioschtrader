@@ -31,8 +31,8 @@ import jakarta.persistence.TemporalType;
 @Schema(description = """
     This entity records the basic messages between the instances of the GT network.
     In addition, these messages are also used to communicate between the GT instances.
-    Mininmal there will always be a message on the sender and the receiver. 
-    However, a message can be sent to several recipients, so the number of records on the sender 
+    Mininmal there will always be a message on the sender and the receiver.
+    However, a message can be sent to several recipients, so the number of records on the sender
     depends on the number of recipients.""")
 public class GTNetMessage extends BaseID {
 
@@ -45,7 +45,7 @@ public class GTNetMessage extends BaseID {
   private Integer idGtNetMessage;
 
   @Schema(description = """
-     Connection to GTNet, for the sender it is the ID of the receiver 
+     Connection to GTNet, for the sender it is the ID of the receiver
      and for the receiver it is the ID of the sender.""")
   @Column(name = "id_gt_net")
   private Integer idGtNet;
@@ -54,16 +54,16 @@ public class GTNetMessage extends BaseID {
   @Column(name = "timestamp")
   @Temporal(TemporalType.TIMESTAMP)
   private Date timestamp;
-  
+
   @Schema(description = "Distinguish whether the message was sent or received")
   @Column(name = "send_recv")
   private byte sendRecv;
-  
+
   @Schema(description = "Source idGtNetMessage, is needed for the reply (replyTo) to it.")
   @PropertyOnlyCreation
   @Column(name = "id_source_gt_net_message")
   private Integer idSourceGtNetMessage;
-  
+
   @Schema(description = "Used if this message refers to a previous one")
   @PropertyOnlyCreation
   @Column(name = "reply_to")
@@ -73,12 +73,12 @@ public class GTNetMessage extends BaseID {
   @PropertySelectiveUpdatableOrWhenNull
   @Column(name = "message_code")
   private byte messageCode;
-  
+
   @Schema(description = "Contains optional a message. This message is mostly created by the user")
   @PropertyOnlyCreation
   @Column(name = "message")
   private String message;
-  
+
   @Schema(description = "The error message that has not yet been translated.")
   @Column(name = "error_msg_code")
   private String errorMsgCode;
@@ -87,13 +87,13 @@ public class GTNetMessage extends BaseID {
   @PropertyAlwaysUpdatable
   @Column(name = "has_been_read")
   private boolean hasBeenRead;
-  
-  
+
+
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")
   @CollectionTable(name = GT_NET_MESSAGE_PARAM, joinColumns = @JoinColumn(name = "id_gt_net_message"))
   private Map<String, GTNetMessageParam> gtNetMessageParamMap = new HashMap<>();
- 
+
   public GTNetMessage() {
   }
 
@@ -124,7 +124,7 @@ public class GTNetMessage extends BaseID {
   public void setIdGtNet(Integer idGtNet) {
     this.idGtNet = idGtNet;
   }
-  
+
 
   public Date getTimestamp() {
     return timestamp;
@@ -157,7 +157,7 @@ public class GTNetMessage extends BaseID {
   public void setMessageCode(GTNetMessageCodeType gtNetMessageCodeType) {
     this.messageCode = gtNetMessageCodeType.getValue();
   }
- 
+
   public String getMessage() {
     return message;
   }
@@ -165,7 +165,7 @@ public class GTNetMessage extends BaseID {
   public void setMessage(String message) {
     this.message = message;
   }
-  
+
 
   public String getErrorMsgCode() {
     return errorMsgCode;
@@ -182,8 +182,8 @@ public class GTNetMessage extends BaseID {
   public void setGtNetMessageParamMap(Map<String, GTNetMessageParam> gtNetMessageParamMap) {
     this.gtNetMessageParamMap = gtNetMessageParamMap;
   }
-  
-  
+
+
   public boolean isHasBeenRead() {
     return hasBeenRead;
   }
@@ -207,5 +207,5 @@ public class GTNetMessage extends BaseID {
       this.paramValue = paramValue;
     }
   }
-  
+
 }

@@ -8,7 +8,7 @@ import grafioschtrader.dto.MailSendForwardDefault;
  *
  */
 public enum MessageComType {
- 
+
   // General purpose user to user communication
   USER_GENERAL_PURPOSE_USER_TO_USER((byte) 0),
   // The user holds a position of a security although it is no longer active
@@ -28,8 +28,8 @@ public enum MessageComType {
   // change the corresponding settings of this user.
   MAIN_ADMIN_RELEASE_LOGOUT((byte) (MailSendForwardDefault.MAIN_ADMIN_BASE_VALUE + 1));
 
-  
- 
+
+
   private final Byte value;
 
   private MessageComType(final Byte value) {

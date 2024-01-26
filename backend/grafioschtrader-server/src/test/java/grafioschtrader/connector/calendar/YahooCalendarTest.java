@@ -23,5 +23,5 @@ class YahooCalendarTest {
     }
     assertThat(securitySplitMap).hasSize(25);
   }
-  
+
 }

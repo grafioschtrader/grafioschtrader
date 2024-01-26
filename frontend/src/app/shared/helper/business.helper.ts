@@ -173,7 +173,7 @@ export class BusinessHelper {
     }
   }
 
-  public static toExternalWebpage(url: string, target: string = 'blank'): void {
+  public static toExternalWebpage(url: string, targetPage: string = 'blank'): void {
     if(url.startsWith('--')) {
       url = location.host + url.substring(2);
     }
@@ -181,7 +181,7 @@ export class BusinessHelper {
     if (!url.match(/^https?:\/\//i)) {
       url = 'http://' + url;
     }
-    window.open(url, target);
+    window.open(url, targetPage);
   }
 
   public static getServerUrl(location: Location, port: number, addToDomain: string): string {

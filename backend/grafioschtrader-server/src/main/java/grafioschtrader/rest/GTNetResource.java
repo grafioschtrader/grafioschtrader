@@ -43,5 +43,5 @@ public class GTNetResource extends UpdateCreateDeleteAudit<GTNet> {
   protected UpdateCreateJpaRepository<GTNet> getUpdateCreateJpaRepository() {
     return gtNetJpaRepository;
   }
-  
+
 }

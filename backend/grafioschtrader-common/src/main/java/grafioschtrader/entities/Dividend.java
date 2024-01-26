@@ -46,7 +46,7 @@ public class Dividend extends DividendSplit implements Serializable {
   private Double amount;
 
   @Schema(description = """
-     Since GT always works with split-adjusted data, the dividends must also be split-adjusted, 
+     Since GT always works with split-adjusted data, the dividends must also be split-adjusted,
      otherwise an addition with price data would lead to incorrect results.
     """)
   @Column(name = "amount_adjusted")

@@ -6,7 +6,7 @@ import java.util.Map;
 import grafioschtrader.entities.TaskDataChange;
 
 public class TaskDataChangeSecurityInfo {
-  public List<TaskDataChange> taskDataChangeList; 
+  public List<TaskDataChange> taskDataChangeList;
   public Map<Integer, String> securityInfo;
 
   public TaskDataChangeSecurityInfo(List<TaskDataChange> taskDataChangeList, Map<Integer, String> securityInfo) {

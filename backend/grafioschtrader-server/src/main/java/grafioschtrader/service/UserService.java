@@ -29,7 +29,7 @@ public interface UserService extends UserDetailsService {
   SuccessfullyChanged changePassword(ChangePasswordDTO changePasswortDTO) throws Exception;
 
   boolean isPasswordAccepted(String password) throws Exception;
-  
+
   User incrementRightsLimitCount(Integer userId, UserRightLimitCounter userRightLimitCounter);
 
   UserDetails loadUserByUserIdAndCheckUsername(Integer idUser, String username);

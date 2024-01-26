@@ -90,14 +90,15 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
     }
   }
 
-  
+
+  @Override
   protected void setCashaccountAndCheckReadyState(List<Cashaccount> cashaccountList,
       ImportTransactionPos importTransactionPos, ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
     super.setCashaccountAndCheckReadyState(cashaccountList, importTransactionPos, importTransactionPosJpaRepository);
     importTransactionPosJpaRepository.addPossibleExchangeRateForDividend(importTransactionHead, importTransactionPos);
-    
+
   }
-  
+
   /**
    * Override this if the PDF as text needs some cleaning after reading as text
    * before it is processed

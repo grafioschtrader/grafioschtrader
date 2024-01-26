@@ -17,24 +17,24 @@ public class MailExternalService {
 
   @Value("${spring.mail.username}")
   private String springMailUsername;
-  
+
   @Autowired
   private JavaMailSender emailSender;
- 
+
   @Async
   public void sendSimpleMessageAsync(final String toEmail, final String subject, final String message)
       throws MessagingException {
     sendSimpleMessage(toEmail, subject, message);
   }
 
-  
+
   @Async
   public void sendSimpleMessageAsync(final String[] toEmails, final String subject, final String message)
       throws MessagingException {
     sendSimpleMessage(toEmails, subject, message);
   }
-  
-  
+
+
   public void sendSimpleMessage(final String toEmail, final String subject, final String message)
       throws MessagingException {
    sendSimpleMessage(new String[] {toEmail}, subject, message);
@@ -48,10 +48,10 @@ public class MailExternalService {
     mineMessage.setSender(new InternetAddress(springMailUsername));
     mineMessage.setFrom(new InternetAddress(springMailUsername));
     if(toEmails.length == 1) {
-      helper.setTo(toEmails);  
+      helper.setTo(toEmails);
     } else {
       helper.setTo(springMailUsername);
-      helper.setBcc(toEmails);  
+      helper.setBcc(toEmails);
     }
     helper.setSubject(subject);
     helper.setText(message);

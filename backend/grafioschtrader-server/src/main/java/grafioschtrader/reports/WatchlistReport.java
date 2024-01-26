@@ -90,8 +90,8 @@ public class WatchlistReport {
 
   @Autowired
   private GTNetLastpriceService gTNetLastpriceService;
-  
-  
+
+
   /**
    * Returns the watchlist with the youngest date of history quote. This should
    * help to detect non working historical data feeds.
@@ -247,7 +247,7 @@ public class WatchlistReport {
         watchlist.getIdWatchlist());
   }
 
-  
+
   private GTNetLastpriceService.SecurityCurrency updateLastPrice(Tenant tenant, Watchlist watchlist) {
     final List<Security> securities = watchlist.getSecuritycurrencyListByType(Security.class);
     final List<Currencypair> currencypairs = watchlist.getSecuritycurrencyListByType(Currencypair.class);
@@ -261,7 +261,7 @@ public class WatchlistReport {
       List<Currencypair> currenciesNotInList = updateDependingCurrencyWhenPerformanceWatchlist(tenant, watchlist, currencypairs);
       return gTNetLastpriceService.updateLastpriceIncludeSupplier(watchlist.getSecuritycurrencyListByType(Security.class),
           watchlist.getSecuritycurrencyListByType(Currencypair.class), currenciesNotInList);
-    
+
     } else {
       log.info("No intraday update for {} because last update was at {} and is not after {}", watchlist.getName(),
           watchlist.getLastTimestamp(), timeframe);

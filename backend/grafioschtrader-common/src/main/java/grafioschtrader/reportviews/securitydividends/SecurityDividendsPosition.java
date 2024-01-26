@@ -38,7 +38,7 @@ public class SecurityDividendsPosition {
   public Double exchangeRateEndOfYear;
   public int countPaidTransactions;
 
-  
+
   private int precisionMC;
   private Map<String, Integer> currencyPrecisionMap;
 

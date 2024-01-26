@@ -22,7 +22,7 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
 /**
- * 
+ *
  * For intraday quotes there is access via
  * "https://api.boerse-frankfurt.de/v1/data/quote_box/single?isin=DE0005785604&mic=XETR".
  * Unfortunately, the header requires the key "x-client-traceid", whose value is

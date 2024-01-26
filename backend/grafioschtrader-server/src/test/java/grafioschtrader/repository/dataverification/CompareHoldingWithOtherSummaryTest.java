@@ -45,7 +45,7 @@ class CompareHoldingWithOtherSummaryTest {
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
- 
+
   @Test
   @Disabled
   void tenantCompareSummaryTest() {

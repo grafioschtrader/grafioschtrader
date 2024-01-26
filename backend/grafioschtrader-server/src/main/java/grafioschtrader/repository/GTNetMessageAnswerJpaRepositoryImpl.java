@@ -22,10 +22,10 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
     Optional<GTNetMessageAnswer> messageAnswerOpt = gtNetMessageAnswerJpaRepository.findById(meRequest.messageCode);
     if(messageAnswerOpt.isEmpty()) {
       if(meRequest.messageCode == GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S.getValue()) {
-        
+
       }
     }
-    
+
     return gtNetMessageAnw;
   }
 }

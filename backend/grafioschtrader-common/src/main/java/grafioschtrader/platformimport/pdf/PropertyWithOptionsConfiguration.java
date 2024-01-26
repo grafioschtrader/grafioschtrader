@@ -36,7 +36,7 @@ public class PropertyWithOptionsConfiguration {
    * Contains the template first word of the same line.
    */
   public String startSL;
-  
+
   /**
    * Contains the template first word of the next line.
    */

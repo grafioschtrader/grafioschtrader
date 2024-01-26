@@ -23,6 +23,7 @@ public class PasswordRegexProperties implements IPropertiesSelfCheck {
     this.forceRegex = forceRegex;
   }
 
+  @Override
   public String checkForValid() {
     Set<String> gtLangSet = new HashSet<>(GlobalConstants.GT_LANGUAGE_CODES);
     if (this.regex == null || forceRegex == null || !languageErrorMsgMap.keySet().containsAll(gtLangSet)) {

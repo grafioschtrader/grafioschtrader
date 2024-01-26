@@ -32,27 +32,27 @@ public interface UserJpaRepository
 
   @Query(value = "SELECT u.id_user AS idUser, u.nickname FROM user u WHERE u.id_user <> ?1", nativeQuery = true)
   List<IdUserAndNickname> getIdUserAndNicknameExcludeUser(Integer idUser);
- 
-  
+
+
   @Query(value = "SELECT id_Tenant FROM user WHERE email REGEXP ?1", nativeQuery = true)
   Integer[] findIdTenantByMailPattern(String mailPattern);
 
   @Query(value = "CALL moveCreatedByUserToOtherUser(:fromIdUser, :toIdUser, :schemaName);", nativeQuery = true)
   Integer moveCreatedByUserToOtherUser(@Param("fromIdUser") Integer fromIdUser, @Param("toIdUser") Integer toIdUser,
       @Param("schemaName") String schemaName);
-  
+
   @Query(nativeQuery = true)
   List<IdUserAndNickname> getIdUserAndNicknameByRoleExcludeUser(String roleName, Integer exludeIdUser);
-  
+
   @Query(nativeQuery = true)
   List<EMailLocale> getEmailExcludeWhenMsgComTypeAndTargetTypeExists(Byte messageComType, Byte messageTargetType);
-   
-  
+
+
   public interface EMailLocale {
     String getEmail();
     String getLocale();
   }
-  
+
   public interface IdUserAndNickname {
     int getIdUser();
     String getNickname();

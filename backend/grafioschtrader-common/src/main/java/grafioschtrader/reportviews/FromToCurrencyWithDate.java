@@ -13,10 +13,12 @@ public class FromToCurrencyWithDate extends FromToCurrency {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
+    if (this == o) {
       return true;
-    if (o == null || getClass() != o.getClass() || !super.equals(o))
+    }
+    if (o == null || getClass() != o.getClass() || !super.equals(o)) {
       return false;
+    }
     FromToCurrencyWithDate that = (FromToCurrencyWithDate) o;
     return Objects.equals(date, that.date);
   }

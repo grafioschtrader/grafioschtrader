@@ -14,5 +14,5 @@ public class GTNetMessageAnswerResource {
 
   @Autowired
   private GTNetMessageAnswerJpaRepository gtNetMessageAnswerJpaRepository;
-  
+
 }

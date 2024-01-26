@@ -73,7 +73,9 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   void reloadAsyncFullHistoryquoteExternal(Integer idSecuritycurrency);
 
   String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
-  
+
+  String getDataProviderLinkForUser(final Integer idSecuritycurrency, final boolean isIntraday);
+
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy);
 
   boolean checkUserCanChangeDerivedFields(User user, Security security, Security existingSecurity);
@@ -107,7 +109,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
 
   /**
    * Tries to determine if the supplier's historical price data already reflects the split.
-   * 
+   *
    * @param security
    * @param securitysplits
    * @return
@@ -115,8 +117,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    */
   SplitAdjustedHistoryquotesResult isLatestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits) throws Exception;
-  
-  
+
+
   // TODO remove it
   void checkAndClearSecuritycurrencyConnectors(final Security security);
 

@@ -42,7 +42,7 @@ public abstract class SecurityPositionGroupSummary {
         * securityPositionSummary.securitycurrency.getLeverageFactor();
     securityPositionSummary.securityRiskMC = securityPositionSummary.valueSecurityMC
         * securityPositionSummary.securitycurrency.getLeverageFactor();
-    
+
     groupSecurityRiskMC += securityPositionSummary.securityRiskMC;
 
   }

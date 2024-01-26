@@ -361,7 +361,7 @@ public class MyDataExportDeleteDefinition {
     if(query.startsWith(UPDATE_STR + " ")) {
       return query;
     } else {
-      return ((exportOrDelete & EXPORT_USE) == EXPORT_USE ? SELECT_STR : DELETE_STR) + " " + query;  
+      return ((exportOrDelete & EXPORT_USE) == EXPORT_USE ? SELECT_STR : DELETE_STR) + " " + query;
     }
   }
 

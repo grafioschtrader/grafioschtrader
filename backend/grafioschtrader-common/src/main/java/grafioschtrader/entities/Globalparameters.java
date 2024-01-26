@@ -92,7 +92,7 @@ public class Globalparameters implements Serializable {
 
   // Set expiration time for the JWT token.
   public static final String GLOB_KEY_JWT_EXPIRATION_MINUTES = GT_PREFIX + "jwt.expiration.minutes";
-  
+
   // Alert bitmap for sending email
   public static final String GLOB_KEY_ALERT_MAIL = GT_PREFIX + "alert.mail.bitmap";
 
@@ -111,7 +111,7 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GT_PREFIX + MAX + "correlation.instruments";
 
   public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GT_PREFIX + "update.price.by.exchange";
-  
+
   // User day entity limits
   public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
 

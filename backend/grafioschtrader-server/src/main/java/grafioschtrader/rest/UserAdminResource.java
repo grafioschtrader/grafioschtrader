@@ -47,7 +47,7 @@ public class UserAdminResource extends UpdateCreateResource<User> {
 
   @Autowired
   private MailExternalService mailExternalService;
-  
+
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<User>> getAllUsers() {
     return new ResponseEntity<>(userJpaRepository.connectUserWithUserAndLimitProposals(), HttpStatus.OK);
@@ -73,13 +73,13 @@ public class UserAdminResource extends UpdateCreateResource<User> {
     return new ResponseEntity<>(userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser), HttpStatus.OK);
   }
 
-  
+
   @GetMapping(value = "/idnicknameexcludeme", produces = APPLICATION_JSON_VALUE)
   public List<ValueKeyHtmlSelectOptions> getIdUserAndNicknameExcludeMe() {
     return userJpaRepository.getIdUserAndNicknameExcludeMe();
   }
-  
-  
+
+
   @Override
   protected UpdateCreateJpaRepository<User> getUpdateCreateJpaRepository() {
     return userJpaRepository;

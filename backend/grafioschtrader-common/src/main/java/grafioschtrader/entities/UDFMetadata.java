@@ -27,13 +27,13 @@ public abstract class UDFMetadata extends UserBaseID {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_udf_metadata")
   private Integer idUDFMetadata;
-  
+
   @Schema(description = "Possibly this construct of the UDF is also used for system-wide input fields. In this case, the user with ID = 0 would be used.")
   @Column(name = "id_user")
   @NotNull
   private Integer idUser;
 
- 
+
   @Schema(description = "This is the property name used by the user interface.")
   @Column(name = "description")
   @NotNull
@@ -44,8 +44,8 @@ public abstract class UDFMetadata extends UserBaseID {
   @Column(name = "description_help")
   @PropertyAlwaysUpdatable
   private String descriptionHelp;
- 
-  
+
+
   @Schema(description = "For validation and other purposes the data type is required")
   @Column(name = "udf_data_type")
   @NotNull
@@ -57,7 +57,7 @@ public abstract class UDFMetadata extends UserBaseID {
   @NotNull
   @PropertyOnlyCreation
   private String fieldSize;
-  
+
   @Schema(description = "Controls the order of the fields during user input ")
   @Column(name = "ui_order")
   @NotNull
@@ -67,11 +67,13 @@ public abstract class UDFMetadata extends UserBaseID {
   public UDFMetadata() {
   }
 
+  @Override
   public Integer getIdUser() {
     return idUser;
   }
 
 
+  @Override
   public void setIdUser(Integer idUser) {
     this.idUser = idUser;
   }
@@ -96,7 +98,7 @@ public abstract class UDFMetadata extends UserBaseID {
     this.descriptionHelp = descriptionHelp;
   }
 
- 
+
   public UDFDataType getUdfDataType() {
     return UDFDataType.getUDFDataType(udfDataType);
   }
@@ -120,8 +122,8 @@ public abstract class UDFMetadata extends UserBaseID {
   public void setFieldSize(String fieldSize) {
     this.fieldSize = fieldSize;
   }
-  
-  
+
+
   public byte getUiOrder() {
     return uiOrder;
   }
@@ -134,5 +136,5 @@ public abstract class UDFMetadata extends UserBaseID {
   public Integer getId() {
    return idUDFMetadata;
   }
-  
+
 }

@@ -67,7 +67,7 @@ public class CopyTenantService {
       Integer idPortfolio = portfolio.getId();
       portfolio.setIdTenant(targetIdTenant);
       portfolio.setIdPortfolio(null);
-      portfolio.setSecuritycashaccountList(new ArrayList<Securitycashaccount>());
+      portfolio.setSecuritycashaccountList(new ArrayList<>());
       em.persist(portfolio);
       portfolioMap.put(idPortfolio, portfolio);
     }
@@ -135,7 +135,7 @@ public class CopyTenantService {
     return watchlistMap;
   }
 
-  
+
   private void copyCorrelationSet(Integer sourceIdTenant, Integer targetIdTenant) {
     TypedQuery<CorrelationSet> q = em.createQuery("SELECT c from CorrelationSet c where c.idTenant = ?1", CorrelationSet.class);
     List<CorrelationSet> correlationSetList = q.setParameter(1, sourceIdTenant).getResultList();
@@ -149,7 +149,7 @@ public class CopyTenantService {
     }
     em.flush();
   }
-  
+
   private void copyTransaction(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityaccountMap, Map<Integer, Cashaccount> cashaccoutMap) {
     Map<Integer, Transaction> transactionReMap = new HashMap<>();

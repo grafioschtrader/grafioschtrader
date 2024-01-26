@@ -39,10 +39,12 @@ public class TradingDaysPlus {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
+    if (this == o) {
       return true;
-    if (o == null || getClass() != o.getClass())
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
+    }
     TradingDaysPlus that = (TradingDaysPlus) o;
     return Objects.equals(tradingDate, that.tradingDate);
   }

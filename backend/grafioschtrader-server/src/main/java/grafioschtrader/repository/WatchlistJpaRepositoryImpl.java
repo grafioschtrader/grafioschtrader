@@ -256,7 +256,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     if(watchlist != null && watchlist.getSecuritycurrencyList().isEmpty() && UserAccessHelper.hasHigherPrivileges(user)) {
       if(ihwp.addHistorical) {
         watchlistJpaRepository.addInstrumentsWithHistoricalPriceDataTrouble(idWatchlist, ihwp.daysSinceLastWork,
-            globalparametersJpaRepository.getMaxHistoryRetry());  
+            globalparametersJpaRepository.getMaxHistoryRetry());
       }
       if(ihwp.addIntraday) {
         watchlistJpaRepository.addInstrumentsWithIntradayPriceDataTrouble(idWatchlist, ihwp.daysSinceLastWork,
@@ -266,6 +266,19 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
       throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
     return watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
+  }
+
+  @Override
+  public String getDataProviderResponseForUser(Integer idSecuritycurrency, boolean isIntraday, boolean isSecurity) {
+    return isSecurity ? securityJpaRepository.getDataProviderResponseForUser(idSecuritycurrency, isIntraday)
+        : currencypairJpaRepository.getDataProviderResponseForUser(idSecuritycurrency, isIntraday);
+  }
+
+
+  @Override
+  public String getDataProviderLinkForUser(Integer idSecuritycurrency, boolean isIntraday, boolean isSecurity) {
+     return isSecurity ? securityJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday)
+         : currencypairJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday);
   }
 
 }

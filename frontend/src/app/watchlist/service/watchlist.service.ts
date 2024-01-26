@@ -9,7 +9,7 @@ import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist'
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {Observable} from 'rxjs';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
@@ -103,6 +103,16 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
     return this.addSecuritycurrenciesToList(idWatchlist, securitycurrencyLists);
   }
 
+  getDataProviderLinkForUser(idSecuritycurrency: number, isIntraday: boolean, isSecurity: boolean): Observable<string> {
+    let httpParams = new HttpParams();
+    httpParams = httpParams.append('isIntraday', isIntraday.toString());
+    httpParams = httpParams.append('isSecurity', isSecurity.toString());
+    return <Observable<string>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
+      + `/dataproviderlink/${idSecuritycurrency}`, {headers: this.prepareHeaders(), params: httpParams,
+      responseType: 'text'}
+    ).pipe(catchError(this.handleError.bind(this)));
+  }
+
   addInstrumentsWithPriceDataProblems(idWatchlist: number, intraHistoricalWatchlistProblem: IntraHistoricalWatchlistProblem): Observable<Watchlist> {
     return <Observable<Watchlist>>this.httpClient.patch(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.WATCHLIST_KEY}/${idWatchlist}/pricedataproblems`, intraHistoricalWatchlistProblem,
@@ -121,7 +131,6 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   }
 
   moveSecuritycurrency(idWatchlistSource: number, idWatchlistTarget: number, idSecuritycurrency: number): Observable<boolean> {
-
     return this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlistSource}/moveto/`
       + `${idWatchlistTarget}/securitycurrency/${idSecuritycurrency}`, null,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));

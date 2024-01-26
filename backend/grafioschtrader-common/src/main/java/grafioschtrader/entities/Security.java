@@ -188,7 +188,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @Column(name = "retry_split_load")
   @PropertyAlwaysUpdatable
   private Short retrySplitLoad = 0;
-  
+
   @Column(name = "div_earliest_next_check")
   @Temporal(TemporalType.TIMESTAMP)
   private Date dividendEarliestNextCheck;
@@ -470,7 +470,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   public void setRetrySplitLoad(Short retrySplitLoad) {
     this.retrySplitLoad = retrySplitLoad;
   }
- 
+
 
   public Date getDividendEarliestNextCheck() {
     return dividendEarliestNextCheck;

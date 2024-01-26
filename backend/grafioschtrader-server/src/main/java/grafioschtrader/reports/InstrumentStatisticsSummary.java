@@ -187,9 +187,9 @@ public class InstrumentStatisticsSummary {
     double[][] percentageChange = ReportHelper.transformToPercentageChange(closePrices.dateCloseTree, columns);
     SummaryStatistics[] stats = Stream.iterate(0, x -> x + 1).limit(columns).map(i -> new SummaryStatistics())
         .toArray(SummaryStatistics[]::new);
-    for (int row = 0; row < percentageChange.length; row++) {
+    for (double[] element : percentageChange) {
       for (int col = 0; col < columns; col++) {
-        stats[col].addValue(percentageChange[row][col]);
+        stats[col].addValue(element[col]);
       }
     }
 

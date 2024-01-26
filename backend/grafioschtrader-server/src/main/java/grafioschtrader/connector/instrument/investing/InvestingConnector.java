@@ -43,7 +43,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * Historical data could also be downloaded from Investing.com. Since 2022-10-18
  * this no longer works, as access is secured via Cloudflare. However, the
  * methods for historical data are still available in the source code.
- * 
+ *
  * There is both a regex pattern check and a connector check for the URL
  * extension of the corresponding instrument.
  */

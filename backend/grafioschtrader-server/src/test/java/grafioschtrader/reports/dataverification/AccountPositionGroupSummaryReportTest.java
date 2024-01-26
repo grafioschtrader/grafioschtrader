@@ -52,7 +52,7 @@ class AccountPositionGroupSummaryReportTest {
     } while (startDate.before(finishDate));
   }
 
-  
+
   @Test
   @Disabled
   void getAccountGrandSummaryIdTenantTest() throws ParseException {

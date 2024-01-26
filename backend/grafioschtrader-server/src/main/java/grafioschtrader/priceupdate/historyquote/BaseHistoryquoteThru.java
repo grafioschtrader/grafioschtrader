@@ -16,6 +16,7 @@ import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.priceupdate.BaseQuoteThru;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.SecurityServiceAsyncExectuion;
@@ -26,7 +27,9 @@ import grafioschtrader.repository.SecuritycurrencyService;
  *
  * @param <S>
  */
-public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implements IHistoryquoteLoad<S> {
+public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extends BaseQuoteThru
+    implements IHistoryquoteLoad<S> {
+  protected final String LINK_DOWNLOAD_LAZY = "lazy";
 
   protected final GlobalparametersJpaRepository globalparametersJpaRepository;
   private final IHistoryqouteEntityBaseAccess<S> historyqouteEntityBaseAccess;
@@ -77,7 +80,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
 
   /**
    * For current Sunday or Monday only determine EOD until previous Friday.
-   * 
+   *
    * @param adjustForDayAfterUpd If the dates are determined according to the
    *                             closing times of the trading exchange, the
    *                             to-date is determined differently.
@@ -131,7 +134,6 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> implem
     }
   }
 
-  
   protected Date getCorrectedFromDate(final S securitycurrency, final Date fromDate) throws ParseException {
     if (fromDate == null) {
       return securitycurrency instanceof Security ? ((Security) securitycurrency).getActiveFromDate()

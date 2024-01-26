@@ -28,7 +28,7 @@ import jakarta.validation.constraints.NotNull;
 public class MailEntity extends BaseID {
 
   public static final String TABNAME = "mail_entity";
-  
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_mail_entity")
@@ -54,12 +54,12 @@ public class MailEntity extends BaseID {
       Avoid that the same message with the same entity is entered several times.""")
   @Column(name = "mark_date")
   private LocalDate markDate;
-  
-  
+
+
   @CreatedDate
   @Column(name = "creation_date")
   private LocalDate creationDate;
-  
+
   public MailEntity(MessageComType messageComType, Integer idEntity, LocalDate markDate) {
     super();
     this.messageComType = messageComType.getValue();
@@ -110,7 +110,7 @@ public class MailEntity extends BaseID {
   public void setMarkDate(LocalDate markDate) {
     this.markDate = markDate;
   }
-  
+
   public LocalDate getCreationDate() {
     return creationDate;
   }

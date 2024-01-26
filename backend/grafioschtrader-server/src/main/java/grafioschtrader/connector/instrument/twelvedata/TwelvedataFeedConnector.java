@@ -220,7 +220,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
    * datetime;open;high;low;close;volume
    * 2019-01-30;40.81250;41.53750;40.05750;41.31250;244439200
    * 2019-01-29;39.06250;39.53250;38.52750;38.67000;166348800
-   * 
+   *
    * @param inputLine
    * @param dateFormat
    * @return

@@ -27,7 +27,7 @@ public class GTNetLastpriceSecurity extends GTNetLastprice {
   @Column(name = "currency")
   @PropertySelectiveUpdatableOrWhenNull
   private String currency;
-  
+
   public GTNetLastpriceSecurity() {
     super();
   }

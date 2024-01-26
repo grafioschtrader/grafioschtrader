@@ -19,15 +19,15 @@ public class MailSendRecvReadDel {
   @Column(name = "mark_hide_del")
   private boolean markHideDel;
 
-  
+
   public MailSendRecvReadDel() {
   }
 
   public MailSendRecvReadDel(MailSendRecvReadDelKey mailSendRecvReadDelKey) {
-    this.msrrdk = mailSendRecvReadDelKey; 
+    this.msrrdk = mailSendRecvReadDelKey;
   }
 
-  
+
   public MailSendRecvReadDelKey getMsrrdk() {
     return msrrdk;
   }
@@ -71,10 +71,12 @@ public class MailSendRecvReadDel {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o)
+      if (this == o) {
         return true;
-      if (o == null || getClass() != o.getClass())
+      }
+      if (o == null || getClass() != o.getClass()) {
         return false;
+      }
       MailSendRecvReadDelKey that = (MailSendRecvReadDelKey) o;
       return Objects.equals(idMailSendRecv, that.idMailSendRecv) && Objects.equals(idUser, that.idUser);
     }

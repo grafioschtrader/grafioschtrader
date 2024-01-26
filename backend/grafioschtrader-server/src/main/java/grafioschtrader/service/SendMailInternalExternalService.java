@@ -175,7 +175,7 @@ public class SendMailInternalExternalService {
 
   /**
    * Sending an internal or external message to the main administrator.
-   * 
+   *
    * @param idUserFrom
    * @param subjectKey
    * @param message
@@ -195,7 +195,7 @@ public class SendMailInternalExternalService {
 
   /**
    * Sending an internal or external message to any user.
-   * 
+   *
    * @param idUserFrom
    * @param idUserTo
    * @param subject

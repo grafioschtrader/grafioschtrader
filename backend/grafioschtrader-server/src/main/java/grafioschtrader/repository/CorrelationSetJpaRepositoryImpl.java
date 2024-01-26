@@ -43,7 +43,7 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
-  
+
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 

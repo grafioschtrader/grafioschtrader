@@ -29,17 +29,17 @@ public enum SubscriptionType {
   TWELVEDATA_GROW_55((short) 72),
   TWELVEDATA_GROW_144((short) 73),
   TWELVEDATA_GROW_377((short) 74);
-  
+
   private final Short value;
-  
+
   private SubscriptionType(final short value)  {
     this.value = value;
   }
-  
+
   public Short getValue() {
     return this.value;
   }
-  
+
   public static SubscriptionType getTaskTypeByValue(short value) {
     return Arrays.stream(SubscriptionType.values()).filter(e -> e.getValue().equals(value)).findFirst().orElse(null);
   }

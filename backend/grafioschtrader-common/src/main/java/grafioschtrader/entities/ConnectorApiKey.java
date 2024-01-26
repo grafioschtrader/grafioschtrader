@@ -21,8 +21,8 @@ public class ConnectorApiKey {
 
   public static final String TABNAME = "connector_apikey";
   private static StringEncryptor stringEncryptor =  stringEncryptor();
-    
-  
+
+
   @Id
   @Basic(optional = false)
   @Column(name = "id_provider")
@@ -33,14 +33,14 @@ public class ConnectorApiKey {
   @Size(min = 10, max = 255)
   @Column(name = "api_key")
   private String apiKey;
-  
+
   @Basic(optional = false)
   @Column(name = "subscription_type")
   private Short subscriptionType;
- 
+
   @Transient
   private String apiKeyDecrypt;
-  
+
   public String getIdProvider() {
     return idProvider;
   }
@@ -79,29 +79,31 @@ public class ConnectorApiKey {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if ((obj == null) || (getClass() != obj.getClass())) {
       return false;
-    if (getClass() != obj.getClass())
-      return false;
+    }
     ConnectorApiKey other = (ConnectorApiKey) obj;
     if (idProvider == null) {
-      if (other.idProvider != null)
+      if (other.idProvider != null) {
         return false;
-    } else if (!idProvider.equals(other.idProvider))
+      }
+    } else if (!idProvider.equals(other.idProvider)) {
       return false;
+    }
     return true;
   }
-  
-  
+
+
   @Override
   public String toString() {
     return "ConnectorApiKey [idProvider=" + idProvider + ", apiKey=" + this.getApiKey() + ", subscriptionType=" + subscriptionType
         + "]";
   }
- 
-  
+
+
   public static  StringEncryptor stringEncryptor() {
     PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
     SimpleStringPBEConfig config = new SimpleStringPBEConfig();
@@ -116,6 +118,6 @@ public class ConnectorApiKey {
     encryptor.setConfig(config);
     return encryptor;
 }
-  
-  
+
+
 }

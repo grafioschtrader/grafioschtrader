@@ -140,7 +140,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       JOIN Fetch t.security s JOIN Fetch t.cashaccount WHERE p.idTenant = ?1 AND s.idSecuritycurrency = t.security.idSecuritycurrency
       AND t.transactionType >=4  AND t.transactionType <= ?2  ORDER BY t.transactionTime, s.idSecuritycurrency""")
   List<Transaction> getSecurityAccountTransactionsByTenant(Integer idTenant, Byte transactonMaxType);
-  
+
   @Query(value = """
       SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t JOIN Fetch t.cashaccount
       LEFT JOIN Fetch t.security WHERE p.idTenant=?1 AND t.idCurrencypair=?2 ORDER BY t.transactionTime""")

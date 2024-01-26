@@ -14,20 +14,20 @@ import reactor.netty.http.client.HttpClient;
 
 @Service
 public class BaseDataClient {
-  
+
   public ApplicationInfo getActuatorInfo(String domainName) {
     return getWebClientForDomain(domainName).get().uri(uriBuilder -> uriBuilder
     .path(RequestMappings.ACTUATOR_MAP + "/info").build())
     .retrieve().bodyToMono(ApplicationInfo.class).block();
   }
-  
+
   public MessageEnvelope sendToMsg(String tokenRemote, String targetDomain, MessageEnvelope messageEnvelope) {
     return getWebClientForDomain(targetDomain).post()
         .uri(uriBuilder -> uriBuilder.path(RequestMappings.GTNET_M2M_MAP).build())
         .header(GTNetM2MResource.AUTHORIZATION_HEADER, tokenRemote)
         .body(Mono.just(messageEnvelope), MessageEnvelope.class).retrieve().bodyToMono(MessageEnvelope.class).block();
   }
-  
+
   private WebClient getWebClientForDomain(String domainName) {
     HttpClient httpClient = HttpClient.create().resolver(spec -> {
       spec.resolvedAddressTypes(ResolvedAddressTypes.IPV6_PREFERRED);
@@ -39,5 +39,5 @@ public class BaseDataClient {
     .baseUrl(domainName)
     .build();
   }
-  
+
 }

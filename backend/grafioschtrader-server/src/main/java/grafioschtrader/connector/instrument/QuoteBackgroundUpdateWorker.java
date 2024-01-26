@@ -96,7 +96,7 @@ public class QuoteBackgroundUpdateWorker
 
   /**
    * Sleep during
-   * 
+   *
    * @return
    */
   private long getCalculatedSleepTimeInHours() {

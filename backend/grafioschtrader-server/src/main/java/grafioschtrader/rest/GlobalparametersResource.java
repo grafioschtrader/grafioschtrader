@@ -51,8 +51,8 @@ public class GlobalparametersResource {
   public ResponseEntity<PasswordRegexProperties> getPasswordRegexProperties() throws Exception {
     return new ResponseEntity<>(globalparametersJpaRepository.getPasswordRegexProperties(), HttpStatus.OK);
   }
- 
-  
+
+
   @Operation(summary = "Returns all global parameters", description = "", tags = { Globalparameters.TABNAME })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Globalparameters>> getAllAssetclass() {
@@ -63,7 +63,7 @@ public class GlobalparametersResource {
   public ResponseEntity<Integer> getIntraUpdateQuotesTimeoutSeconds() {
     return new ResponseEntity<>(globalparametersJpaRepository.getWatchlistIntradayUpdateTimeout(), HttpStatus.OK);
   }
-  
+
   @GetMapping(value = "/startfeeddate", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Date> getStartFeedDate() throws ParseException {
     return new ResponseEntity<>(globalparametersJpaRepository.getStartFeedDate(), HttpStatus.OK);
@@ -130,7 +130,7 @@ public class GlobalparametersResource {
       @Valid @RequestBody final Globalparameters globalparameters) throws Exception {
     return new ResponseEntity<>(globalparametersJpaRepository.saveOnlyAttributes(globalparameters), HttpStatus.OK);
   }
-    
+
   @Operation(summary = "Return of the possible combination of asset class to financial instrument.", description = "", tags = {
       Globalparameters.TABNAME })
   @GetMapping(value = "/possibleassetclassspezinstrument", produces = APPLICATION_JSON_VALUE)

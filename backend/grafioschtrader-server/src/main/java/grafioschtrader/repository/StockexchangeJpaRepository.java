@@ -22,7 +22,7 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
   List<Stockexchange> findAllByOrderByNameAsc();
 
   List<Stockexchange> findByNoMarketValueFalse();
-  
+
   Optional<Stockexchange> findByIdStockexchangeAndNoMarketValueFalse(int idStockexchange);
 
   Stockexchange findByName(String name);
@@ -41,11 +41,11 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
 
   @Query(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE no_market_value = 0", nativeQuery = true)
   void updateHistoricalUpdateWithNowForAll();
-  
-  
+
+
   @Query(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE id_stockexchange IN (?1)", nativeQuery = true)
   void updateHistoricalUpdateWithNowByIdsStockexchange(List<Integer> ids);
-  
+
   public interface IdStockexchangeIndexName {
     public Integer getIdStockexchange();
 

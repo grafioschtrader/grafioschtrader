@@ -29,7 +29,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * connector differs from the others in that the historical price data is read
  * directly from the repository. Cross rates are calculated, e.g. for the
  * USD/CHF currency pair, the EUR/USD and EUR/CHF currency rates are used.
- * 
+ *
  * The check for an existing currency pair can be checked via the repository.
  */
 @Component

@@ -24,8 +24,6 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
         updatePropertyLevelClasses);
   }
 
- 
-
   @Override
   public int delEntityWithTenant(Integer id, Integer idTenant) {
     return securityaccountJpaRepository.deleteSecurityaccount(id, idTenant);

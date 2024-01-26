@@ -29,7 +29,7 @@ public class MailSettingForwardResource extends UpdateCreateResource<MailSetting
 
   @Autowired
   private MailSettingForwardJpaRepository mailSettingForwardJpaRepository;
-  
+
   @Operation(summary = "Return all mail forward setting for a user", description = "", tags = {
       RequestMappings.MAIL_SETTING_FORWARD })
   @GetMapping(value = "/user", produces = APPLICATION_JSON_VALUE)
@@ -37,14 +37,14 @@ public class MailSettingForwardResource extends UpdateCreateResource<MailSetting
     var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(mailSettingForwardJpaRepository.findByIdUser(user.getIdUser()), HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Returns the default setting and the possible setting values.", description = "", tags = {
       RequestMappings.MAIL_SETTING_FORWARD })
   @GetMapping(value = "/defaultforward", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<MailSendForwardDefault> getSendForwardDefault() {
     return new ResponseEntity<>(mailSettingForwardJpaRepository.getMailSendForwardDefault(), HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Delete single forward setting", description = "", tags = { RequestMappings.MAIL_SETTING_FORWARD })
   @DeleteMapping(value = "/{idForwardSetting}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteHistoryquote(@PathVariable final Integer idForwardSetting) {
@@ -55,12 +55,12 @@ public class MailSettingForwardResource extends UpdateCreateResource<MailSetting
     }
     return ResponseEntity.ok().build();
   }
-  
+
   @Override
   protected UpdateCreateJpaRepository<MailSettingForward> getUpdateCreateJpaRepository() {
     return mailSettingForwardJpaRepository;
   }
-  
-  
+
+
 
 }

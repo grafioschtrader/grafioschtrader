@@ -46,7 +46,7 @@ public class YahooCalendar implements ICalendarFeedConnector {
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return parseSplitCalendar(Jsoup.parse(response.body()), forDate);
   }
-
+  
   @Override
   public int getPriority() {
     return 20;

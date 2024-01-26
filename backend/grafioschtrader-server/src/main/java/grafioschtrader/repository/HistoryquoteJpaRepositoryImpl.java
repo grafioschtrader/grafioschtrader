@@ -223,8 +223,8 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * Update linked history quotes in derived instrument.
    *
    * @param savedHistoryquote
-   * @throws com.ezylang.evalex.parser.ParseException 
-   * @throws EvaluationException 
+   * @throws com.ezylang.evalex.parser.ParseException
+   * @throws EvaluationException
    */
   private void updateCalculationByChangedHistoryquote(Historyquote savedHistoryquote) throws EvaluationException, com.ezylang.evalex.parser.ParseException {
     List<IFormulaSecurityLoad> dependingSecurities = securityJpaRepository

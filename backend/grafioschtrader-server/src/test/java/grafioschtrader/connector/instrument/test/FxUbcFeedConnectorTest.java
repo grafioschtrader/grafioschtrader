@@ -16,20 +16,20 @@ import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPai
 import grafioschtrader.entities.Historyquote;
 
 /**
- * This test can often fail, because the provider may be to busy. 
+ * This test can often fail, because the provider may be to busy.
  */
 class FxUbcFeedConnectorTest {
 
   private FxUbcFeedConnector fxUbcFeedConnector = new FxUbcFeedConnector();
-  
-  
-  
+
+
+
   @Test
   void getEodCurrencyHistoryTest() throws ParseException {
     String oldestDate= "2000-01-04";
     String youngFromDate = "2023-09-18";
     String toDate = "2023-09-29";
-    
+
     final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
     currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 10, youngFromDate,
         toDate));
@@ -43,7 +43,7 @@ class FxUbcFeedConnectorTest {
         "2023-09-29"));
     currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 5946, oldestDate,
         "2023-09-29"));
-   
+
     currencies.parallelStream().forEach(cphd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
@@ -58,6 +58,6 @@ class FxUbcFeedConnectorTest {
       ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
     });
   }
-  
+
 
 }

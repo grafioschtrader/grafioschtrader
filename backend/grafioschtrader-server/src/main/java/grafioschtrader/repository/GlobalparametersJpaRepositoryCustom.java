@@ -26,15 +26,15 @@ public interface GlobalparametersJpaRepositoryCustom {
   int getMaxValueByKey(String key);
 
   Integer getGTNetMyEntryID();
-  
+
   Globalparameters saveGTNetMyEntryID(Integer idGtNet);
-  
+
   EntityManager getEntityManager();
 
   List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys);
 
   PasswordRegexProperties getPasswordRegexProperties() throws Exception;
-  
+
   /**
    * Return the maximum attempts. This value is determined by the global
    * parameters.
@@ -56,17 +56,17 @@ public interface GlobalparametersJpaRepositoryCustom {
   short getMaxSplitRetry();
 
   int getMaxFillDaysCurrency();
-  
+
   int getJWTExpirationMinutes();
 
   Date getStartFeedDate() throws ParseException;
 
   List<ValueKeyHtmlSelectOptions> getCountriesForSelectBox();
-  
+
   String getLanguageProperties(final String language);
-  
+
   int getAlertBitmap();
-  
+
   int getMaxLimitExceededCount();
 
   int getMaxSecurityBreachCount();
@@ -78,9 +78,9 @@ public interface GlobalparametersJpaRepositoryCustom {
   Globalparameters saveOnlyAttributes(Globalparameters globalparameters) throws Exception;
 
   List<ValueKeyHtmlSelectOptions> getCurrencies();
-  
+
   int getUpdatePriceByStockexchange();
-  
- 
+
+
 
 }

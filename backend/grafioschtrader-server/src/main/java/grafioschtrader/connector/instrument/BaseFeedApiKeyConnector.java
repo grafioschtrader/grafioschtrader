@@ -48,8 +48,8 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
   protected String hideApiKeyForError(String url) {
     return url.replaceFirst("(^.*)(\\?.*$)", "$1");
   }
-  
-  
+
+
   @Override
   public boolean isActivated() {
     getConnectorApiKey();

@@ -207,14 +207,14 @@ public abstract class ReportHelper {
     }
   }
 
-  
+
   private static void createMissingCurrencypair(CurrencypairJpaRepository currencypairJpaRepository, CurrencyRequired cr) {
     for(CurrencyAvailableRequired car: cr.getMissingCurrencypair()) {
       Currencypair cp = currencypairJpaRepository.createNonExistingCurrencypair(car.formCurrency, car.toCurrency, false);
       car.adjust(cp.getIdSecuritycurrency(), cp.getFromCurrency(), cp.getToCurrency());
     }
   }
-  
+
   private static void addDateBoundry(LocalDate date, StringBuilder qWhere, String lessMore) {
     if (date != null) {
       qWhere.append(" AND h0.date " + lessMore + "= \"" + date + "\" ");
@@ -286,11 +286,11 @@ public abstract class ReportHelper {
     public boolean needCurrencyAdjustment() {
       return adjustCurrency != null;
     }
-    
+
     public List<CurrencyAvailableRequired> getMissingCurrencypair() {
       return carList.stream().filter(car -> car.idSecuritycurrency.equals(-1)).collect(Collectors.toList());
     }
-    
+
   }
 
   public static class ClosePricesCurrencyClose {

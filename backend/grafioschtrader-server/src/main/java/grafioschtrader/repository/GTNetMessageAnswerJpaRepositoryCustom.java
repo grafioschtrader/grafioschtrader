@@ -10,8 +10,8 @@ import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 
 public interface GTNetMessageAnswerJpaRepositoryCustom {
   GTNetMessage getMessageAnswerBy(GTNet myGTNet, GTNet remoteGTNet, MessageEnvelope meRequest);
-  
-  
+
+
   private long calculateTimeZoneDifferenceInMinutes(GTNet myGTNet, GTNet remoteGTNet) {
     ZonedDateTime now1 = ZonedDateTime.now(ZoneId.of(myGTNet.getTimeZone()));
     ZonedDateTime now2 = ZonedDateTime.now(ZoneId.of(remoteGTNet.getTimeZone()));

@@ -31,11 +31,14 @@ public interface WatchlistJpaRepositoryCustom extends BaseRepositoryCustom<Watch
   SecuritycurrencyLists searchByCriteria(Integer idWatchlist, SecuritycurrencySearch securitycurrencySearch);
 
   SecuritycurrencyLists tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(Integer idWatchlist);
-  
+
   Watchlist addInstrumentsWithPriceDataProblems(Integer idWatchlist, IntraHistoricalWatchlistProblem ihwp);
-  
+
   SecuritycurrencyLists tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(Integer idWatchlist);
 
   Boolean moveSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget, Integer idSecuritycurrency);
 
+  String getDataProviderResponseForUser(Integer idSecuritycurrency, boolean isIntraday, boolean isSecurity);
+
+  String getDataProviderLinkForUser(Integer idSecuritycurrency, boolean isIntraday, boolean isSecurity);
 }

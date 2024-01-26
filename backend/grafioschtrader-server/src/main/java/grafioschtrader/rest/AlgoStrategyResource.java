@@ -33,8 +33,8 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
   }
 
   @Operation(summary = """
-  Return the field properties so that they can be used as an input form. 
-  There is one definition each for the corresponding level like security, asset class etc.""", 
+  Return the field properties so that they can be used as an input form.
+  There is one definition each for the corresponding level like security, asset class etc.""",
   description = "", tags = { RequestMappings.ALGOSTRATEGY })
   @GetMapping(value = "/form/{algoStrategyImplementations}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<InputAndShowDefinitionStrategy> getFormDefinitionsByAlgoStrategy(

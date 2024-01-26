@@ -105,7 +105,7 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
       Portfolio.TABNAME })
   @GetMapping(value = "/dividends", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityDividendsGrandTotal> getDividenInterestByTenant(
-      @Parameter(description = "List of security accounts Ids", required = true) @RequestParam() final List<Integer> idsSecurityaccount, 
+      @Parameter(description = "List of security accounts Ids", required = true) @RequestParam() final List<Integer> idsSecurityaccount,
       @Parameter(description = "List of cash accounts Ids", required = true) @RequestParam() final List<Integer> idsCashaccount) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(securityDividendsReport.getSecurityDividendsGrandTotalByTenant(user.getIdTenant(),

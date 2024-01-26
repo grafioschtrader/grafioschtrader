@@ -118,10 +118,12 @@ public class HoldCashaccountDeposit extends HoldBase {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o)
+      if (this == o) {
         return true;
-      if (o == null || getClass() != o.getClass())
+      }
+      if (o == null || getClass() != o.getClass()) {
         return false;
+      }
       HoldCashaccountDepositKey that = (HoldCashaccountDepositKey) o;
       return Objects.equals(idSecuritycashAccount, that.idSecuritycashAccount)
           && Objects.equals(fromHoldDate, that.fromHoldDate);

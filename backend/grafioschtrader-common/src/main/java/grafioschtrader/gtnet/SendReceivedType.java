@@ -5,9 +5,9 @@ public enum SendReceivedType {
   SEND((byte) 0),
   // Message was received
   RECEIVED((byte) 1),
-  // Message is answered. This state is not persisted 
+  // Message is answered. This state is not persisted
   ANSWER((byte) 2);
-  
+
   private final Byte value;
 
   private SendReceivedType(final Byte value) {
@@ -26,5 +26,5 @@ public enum SendReceivedType {
     }
     return null;
   }
-  
+
 }

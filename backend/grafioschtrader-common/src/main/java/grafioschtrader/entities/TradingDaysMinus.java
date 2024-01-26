@@ -90,10 +90,12 @@ public class TradingDaysMinus {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o)
+      if (this == o) {
         return true;
-      if (o == null || getClass() != o.getClass())
+      }
+      if (o == null || getClass() != o.getClass()) {
         return false;
+      }
       TradingDaysMinusKey that = (TradingDaysMinusKey) o;
       return Objects.equals(idStockexchange, that.idStockexchange)
           && Objects.equals(tradingDateMinus, that.tradingDateMinus);

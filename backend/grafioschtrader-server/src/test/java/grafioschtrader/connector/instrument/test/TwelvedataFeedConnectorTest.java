@@ -29,15 +29,15 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 @SpringBootTest(classes = GTforTest.class)
 public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
 
-  
+
   private static TwelvedataFeedConnector twelvedataFeedConnector;
 
   @BeforeAll
   static void before(@Autowired TwelvedataFeedConnector tfc) {
     twelvedataFeedConnector = tfc;
   }
-  
-  
+
+
   final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
       .withLocale(Locale.GERMAN);
 
@@ -47,8 +47,8 @@ public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
   void updateSecurityLastPriceTest() {
     updateSecurityLastPrice();
   }
-  
-  
+
+
   @Test
   void getEodSecurityHistoryTest() {
      getEodSecurityHistory(true);
@@ -69,8 +69,8 @@ public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
     }
     return hisoricalDate;
   }
-  
-  
+
+
   @Override
   protected IFeedConnector getIFeedConnector() {
     return twelvedataFeedConnector;
@@ -94,7 +94,7 @@ public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
       assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
     });
   }
-  
+
   @Test
   void getEodCurrencyHistoryTest() throws ParseException {
     final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();

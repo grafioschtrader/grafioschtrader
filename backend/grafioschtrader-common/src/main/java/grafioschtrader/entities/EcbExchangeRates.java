@@ -25,7 +25,7 @@ public class EcbExchangeRates {
 
   public EcbExchangeRates() {
   }
-  
+
   public EcbExchangeRates(Date date, String currency, double rate) {
     this.dateCurrencyKey = new DateCurrencyKey(date, currency);
     this.rate = rate;
@@ -46,7 +46,7 @@ public class EcbExchangeRates {
 
     public DateCurrencyKey() {
     }
-    
+
     public DateCurrencyKey(Date date, String currency) {
       this.date = date;
       this.currency = currency;
@@ -62,16 +62,13 @@ public class EcbExchangeRates {
       if (this == obj) {
         return true;
       }
-      if (obj == null) {
-        return false;
-      }
-      if (getClass() != obj.getClass()) {
+      if ((obj == null) || (getClass() != obj.getClass())) {
         return false;
       }
       DateCurrencyKey other = (DateCurrencyKey) obj;
       return Objects.equals(currency, other.currency) && Objects.equals(date, other.date);
     }
-   
+
 
   }
 }

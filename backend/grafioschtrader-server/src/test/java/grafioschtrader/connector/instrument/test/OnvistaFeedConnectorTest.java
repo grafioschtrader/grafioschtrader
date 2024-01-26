@@ -25,27 +25,27 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 class OnvistaFeedConnectorTest extends BaseFeedConnectorCheck {
 
   private OnvistaFeedConnector onvistafeedConnector = new OnvistaFeedConnector();
-  
+
   @Test
   void getEodSecurityHistoryTest() {
     getEodSecurityHistory(false);
   }
-  
+
   @Override
   protected List<SecurityHisoricalDate> getHistoricalSecurities() {
     List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(new SecurityHisoricalDate("Siemens", SpecialInvestmentInstruments.DIRECT_INVESTMENT, 
+      hisoricalDate.add(new SecurityHisoricalDate("Siemens", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
           "STOCK/82902/eod_history?idNotation=1929749", 6084, "2000-01-03", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("iShares Core DAX", SpecialInvestmentInstruments.ETF, 
+      hisoricalDate.add(new SecurityHisoricalDate("iShares Core DAX", SpecialInvestmentInstruments.ETF,
           "FUND/3567527/eod_history?idNotation=28520648", 3734, "2009-04-06", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("BGF World Energy Fund I2 USD", SpecialInvestmentInstruments.MUTUAL_FUND, 
+      hisoricalDate.add(new SecurityHisoricalDate("BGF World Energy Fund I2 USD", SpecialInvestmentInstruments.MUTUAL_FUND,
           "FUND/20982583/eod_history?idNotation=26071169", 3394, "2008-11-18", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("Amazon", SpecialInvestmentInstruments.MUTUAL_FUND, 
+      hisoricalDate.add(new SecurityHisoricalDate("Amazon", SpecialInvestmentInstruments.MUTUAL_FUND,
           "STOCK/90929/eod_history?idNotation=9386187", 4889, "2004-03-17", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("Autoneum Holding AG SF-Anl. 2017(25)", SpecialInvestmentInstruments.DIRECT_INVESTMENT, 
+      hisoricalDate.add(new SecurityHisoricalDate("Autoneum Holding AG SF-Anl. 2017(25)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
           "BOND/130304815/eod_history?idNotation=202439144", 1265, "2017-12-06", "2023-12-08"));
-      
+
     } catch (ParseException pe) {
       pe.printStackTrace();
     }
@@ -61,7 +61,7 @@ class OnvistaFeedConnectorTest extends BaseFeedConnectorCheck {
   void getEodCurrencyHistoryTest() {
     final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         .withLocale(Locale.GERMAN);
-   
+
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair(GlobalConstants.MC_GBP, GlobalConstants.MC_USD, "CURRENCY/GBPUSD/eod_history?idNotation=1305587"));
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);

@@ -50,6 +50,6 @@ public class MailSettingForwardJpaRepositoryImpl extends BaseRepositoryImpl<Mail
     }
     return new MailSendForwardDefault(vkhsoList, isAdmin);
   }
-  
+
 
 }

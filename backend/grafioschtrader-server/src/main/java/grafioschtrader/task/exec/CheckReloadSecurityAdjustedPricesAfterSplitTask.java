@@ -34,7 +34,7 @@ public class CheckReloadSecurityAdjustedPricesAfterSplitTask implements ITask {
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
-  
+
   @Override
   public TaskType getTaskType() {
     return TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES;

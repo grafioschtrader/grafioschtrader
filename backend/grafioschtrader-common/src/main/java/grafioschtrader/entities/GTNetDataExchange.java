@@ -42,7 +42,7 @@ public class GTNetDataExchange extends BaseID {
   @Schema(description = "It will be 1 or greater, this value contains the number of indirections to a direct reference")
   @Column(name = "indirection_count")
   private short indirectionCount;
-  
+
   @Schema(description = "The id of last message code which was send")
   @Column(name = "send_msg_code")
   private Byte sendMsgCode;

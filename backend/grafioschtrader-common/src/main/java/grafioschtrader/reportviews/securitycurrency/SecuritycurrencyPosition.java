@@ -43,5 +43,5 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
 
   @Schema(description = "Youngest historical data")
   public Date youngestHistoryDate;
-  
+
 }

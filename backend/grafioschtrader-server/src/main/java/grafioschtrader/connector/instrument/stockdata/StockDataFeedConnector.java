@@ -34,7 +34,7 @@ import grafioschtrader.entities.Securitycurrency;
 /**
  * The historical price data should be subscribed to "Standard", as otherwise
  * the period of the price data offered is far too short.
- * 
+ *
  * Regex pattern recognition for checking the URL extension is not implemented.
  * In addition, the check of an incorrect URL extension by the connector does
  * not return a usable response.

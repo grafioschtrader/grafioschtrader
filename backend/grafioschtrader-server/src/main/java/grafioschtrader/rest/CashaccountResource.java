@@ -35,11 +35,11 @@ public class CashaccountResource extends UpdateCreateDeleteWithTenantResource<Ca
   @Autowired
   private AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
 
-  
+
   public CashaccountResource() {
     super(Cashaccount.class);
   }
-  
+
   @Operation(summary = "Returns the performance report over a portfolio with all its cash accounts, it includes securities as well", description = "", tags = {
       Cashaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliocashaccountsummary", produces = APPLICATION_JSON_VALUE)

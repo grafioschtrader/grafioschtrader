@@ -118,7 +118,7 @@ public abstract class UpdateCreate<T extends BaseID> {
     } else {
       if (entity instanceof UserBaseID) {
         checkAndSetEntityWithUser(entity, user);
-      }  
+      }
       checkDailyLimitOnCRUDOperations(entity, user);
     }
     final T result = getUpdateCreateJpaRepository().saveOnlyAttributes(entity, null,
@@ -364,7 +364,7 @@ public abstract class UpdateCreate<T extends BaseID> {
    * Certain entities have a relation with the user and not with the tenant.
    * Therefore, this must be checked to ensure that it is not misused. The user ID
    * in the security context must match the user ID of the entity.
-   * 
+   *
    * @param entity
    * @param user
    * @return

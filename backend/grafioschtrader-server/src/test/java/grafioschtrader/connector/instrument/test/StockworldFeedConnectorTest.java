@@ -14,12 +14,12 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 class StockworldFeedConnectorTest extends BaseFeedConnectorCheck {
 
   private StockworldFeedConnector stockworldFeedConnector = new StockworldFeedConnector();
-    
+
   @Test
   void getEodSecurityHistoryTest() {
     getEodSecurityHistory(true);
   }
-  
+
   @Override
   protected List<SecurityHisoricalDate> getHistoricalSecurities() {
     List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
@@ -42,5 +42,5 @@ class StockworldFeedConnectorTest extends BaseFeedConnectorCheck {
   protected IFeedConnector getIFeedConnector() {
     return stockworldFeedConnector;
   }
-  
+
  }

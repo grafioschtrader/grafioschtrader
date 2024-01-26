@@ -57,7 +57,7 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
 
   @Autowired
   private MailExternalService mailExternalService;
-  
+
   @Override
   public void createReleaseLougout(Integer idTargetUser, String field, String note) throws Exception {
     ProposeUserTask proposeUserTask = new ProposeUserTask();
@@ -115,7 +115,6 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
       valueFormatConverter.convertAndSetValue(bean, proposeChangeField.getField(),
           proposeChangeField.getValueDesarialized(), dataTypesMap.get(proposeChangeField.getField()));
     }
-
   }
 
   @Override

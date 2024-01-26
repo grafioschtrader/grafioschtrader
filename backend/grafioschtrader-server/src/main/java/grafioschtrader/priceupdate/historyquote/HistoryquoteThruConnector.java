@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.DownloadLink;
 import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Globalparameters;
@@ -25,7 +26,6 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.User;
-import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
@@ -115,7 +115,17 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   @Override
   public String getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = getConnectorHistoricalForSecuritycurrency(securitycurrency);
-    if (ConnectorHelper.canAccessConnectorApiKey(feedConnector)) {
+    if (feedConnector != null && feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_LAZY_HISTORY)) {
+      return LINK_DOWNLOAD_LAZY;
+    } else {
+      return createDownloadLink(securitycurrency, feedConnector);
+    }
+  }
+
+  @Override
+  public String createDownloadLink(S securitycurrency, IFeedConnector feedConnector) {
+    if (ConnectorHelper.canAccessConnectorApiKey(feedConnector) && (feedConnector != null
+        && !feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_HISTORY_FORCE_BACKEND))) {
       if (securitycurrency instanceof Security security) {
         return (feedConnector == null) ? null : feedConnector.getSecurityHistoricalDownloadLink(security);
       } else {
@@ -123,7 +133,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
             : feedConnector.getCurrencypairHistoricalDownloadLink((Currencypair) securitycurrency);
       }
     } else {
-      return ThruCalculationHelper.getDownlinkWithApiKey(securitycurrency, false);
+      return getDownlinkWithApiKey(securitycurrency, false);
     }
   }
 
@@ -151,7 +161,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
 
   private HistoryquoteDataChange createWithHistoryQuoteWithConnector(
       final ISecuritycurrencyService<S> securitycurrencyService, final S securitycurrency,
-      final IFeedConnector feedConnector, final Date fromDate, final Date toDate, boolean needGapFiller) throws Exception {
+      final IFeedConnector feedConnector, final Date fromDate, final Date toDate, boolean needGapFiller)
+      throws Exception {
 
     HistoryquoteDataChange hdc = new HistoryquoteDataChange(getCorrectedFromDate(securitycurrency, fromDate));
     hdc.toDateCalc = (toDate == null) ? new Date() : toDate;
@@ -187,7 +198,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    * For the area of the recent EOD gap previously felt by the system, there could
    * now be one or more real EODs. Therefore, the data back to the most recent
    * real EOD is requested again by the connector.
-   * 
+   *
    * @param security
    * @param needGapFiller
    * @param toDateCalc

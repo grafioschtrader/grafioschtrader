@@ -234,14 +234,14 @@ public class UserServiceImpl implements UserService {
         throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
     }
   }
-  
+
   @Override
   public boolean isPasswordAccepted(String password) throws Exception {
     PasswordRegexProperties prp = globalparametersJpaRepository.getPasswordRegexProperties();
     return !prp.forceRegex || password.matches(prp.regex);
   }
 
-  
+
 
   @Override
   public User incrementRightsLimitCount(Integer userId, UserRightLimitCounter userRightLimitCounter) {
@@ -257,5 +257,5 @@ public class UserServiceImpl implements UserService {
     return userJpaRepository.save(user);
   }
 
-  
+
 }

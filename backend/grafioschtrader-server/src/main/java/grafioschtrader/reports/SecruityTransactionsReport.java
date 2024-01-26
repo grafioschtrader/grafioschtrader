@@ -358,7 +358,7 @@ public class SecruityTransactionsReport {
       quotationSplitCorrection(security.getIdSecuritycurrency(), securityTransactionSummary, securitySplitMap);
       if(security.isMarginInstrument()) {
         Collections.sort(securityTransactionSummary.transactionPositionList, Comparator.comparing(tp -> tp.transaction.getTransactionTime()));
-        
+
       }
     }
 

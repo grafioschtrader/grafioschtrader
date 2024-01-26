@@ -21,7 +21,7 @@ public class TokensPurgeTask implements ITask {
 
   @Autowired
   private UserJpaRepository userJpaRepository;
-  
+
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 

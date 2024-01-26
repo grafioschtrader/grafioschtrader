@@ -40,8 +40,8 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
   void updateSecurityLastPriceTest() {
     updateSecurityLastPrice();
   }
-  
-  
+
+
   @Override
   protected List<SecurityHisoricalDate> getHistoricalSecurities() {
     List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
@@ -66,8 +66,8 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
     }
     return hisoricalDate;
   }
-  
-  
+
+
  // Currency pair price tests
  //=======================================
   @Test
@@ -117,7 +117,7 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
     });
   }
 
-  
+
   // Split and dividend tests
   //=======================================
   @Test

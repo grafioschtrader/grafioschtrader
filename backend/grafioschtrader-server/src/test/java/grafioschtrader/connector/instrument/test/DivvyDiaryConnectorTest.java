@@ -20,7 +20,7 @@ class DivvyDiaryConnectorTest {
     LocalDate fromDate = LocalDate.parse("2008-01-01");
     List<Security> securities = new ArrayList<>();
     securities.add(createSecurity("iShares SLI", "CH0031768937"));
-  
+
     securities.parallelStream().forEach(security -> {
       try {
         List<Dividend> dividends = divvyDiaryConnector.getDividendHistory(security, fromDate);

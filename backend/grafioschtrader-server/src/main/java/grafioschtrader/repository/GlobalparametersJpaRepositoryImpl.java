@@ -42,7 +42,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   static {
     propertiesClassMap.put(Globalparameters.GLOB_KEY_PASSWORT_REGEX, PasswordRegexProperties.class);
   }
-  
+
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -130,8 +130,8 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_MAX_LIMIT_EXCEEDED_COUNT)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_MAX_LIMIT_EXCEEDED_COUNT);
   }
-  
-  
+
+
   @Override
   public int getJWTExpirationMinutes() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_JWT_EXPIRATION_MINUTES)

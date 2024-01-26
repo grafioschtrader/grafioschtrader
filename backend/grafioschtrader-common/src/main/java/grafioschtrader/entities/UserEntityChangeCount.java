@@ -97,10 +97,12 @@ public class UserEntityChangeCount {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o)
+      if (this == o) {
         return true;
-      if (o == null || getClass() != o.getClass())
+      }
+      if (o == null || getClass() != o.getClass()) {
         return false;
+      }
       UserEntityChangeCountId that = (UserEntityChangeCountId) o;
       return Objects.equals(idUser, that.idUser) && Objects.equals(date, that.date)
           && Objects.equals(entityName, that.entityName);

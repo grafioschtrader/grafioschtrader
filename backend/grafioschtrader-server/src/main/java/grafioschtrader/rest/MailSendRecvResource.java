@@ -25,15 +25,15 @@ public class MailSendRecvResource extends UpdateCreateResource<MailSendRecv> {
 
   @Autowired
   private MailSendRecvJpaRepository mailSendRecvJpaRepository;
-  
-  
+
+
   @Operation(summary = "Returning the messages for the current user and his user role", description = "", tags = {
       RequestMappings.MAIL_SEMD_RECV })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<MailInboxWithSend> getMailsByUserOrRole() {
     return new ResponseEntity<>(mailSendRecvJpaRepository.getMailsByUserOrRole(), HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Received messages can be marked as read", description = "", tags = {
       RequestMappings.MAIL_SEMD_RECV })
   @PostMapping(value = "/{idMailSendRecv}/markforread", produces = APPLICATION_JSON_VALUE)
@@ -41,7 +41,7 @@ public class MailSendRecvResource extends UpdateCreateResource<MailSendRecv> {
     return new ResponseEntity<>(mailSendRecvJpaRepository.markForRead(idMailSendRecv), HttpStatus.OK);
   }
 
-  @Operation(summary = "Delete or mark as deleted a single message or a message topic.", 
+  @Operation(summary = "Delete or mark as deleted a single message or a message topic.",
       description = "The message topic or message will no longer appear to the user.", tags = {
       RequestMappings.MAIL_SEMD_RECV })
   @DeleteMapping(value = "/{idMailSendRecv}", produces = APPLICATION_JSON_VALUE)

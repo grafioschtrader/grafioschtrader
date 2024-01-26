@@ -29,7 +29,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   @Transactional
   int deleteByIdSecuritycurrencyAndDateGreaterThanEqual(Integer idSecuritycurrency, Date date);
-  
+
   Optional<Historyquote> findByIdSecuritycurrencyAndDate(Integer idSecuritycurrency, Date date);
 
   List<Historyquote> findByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
@@ -197,7 +197,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   /**
    * Return of all missing dates of the EOD for a security. The missing dates are
    * determined via the index referenced by the stock exchange.
-   * 
+   *
    * @param idSecuritycurrencyIndex
    * @param idSecuritycurrency
    * @return

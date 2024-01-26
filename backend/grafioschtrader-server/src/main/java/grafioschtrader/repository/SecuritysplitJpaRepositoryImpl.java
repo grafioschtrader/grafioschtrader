@@ -66,7 +66,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
-  
+
   @Override
   public Map<Integer, List<Securitysplit>> getSecuritysplitMapByIdTenant(final Integer idTenant) {
     return getMapForList(securitysplitJpaRepository.getByIdTenant(idTenant));
@@ -182,13 +182,13 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
     securityJpaRepository.save(security);
     return errorMessages;
   }
-  
+
   private LocalDate getSplitToDate() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
         .findById(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
-    
+
     return gpLastAppend.isPresent()? gpLastAppend.get().getPropertyDate(): LocalDate.now().minusDays(1);
-   
+
   }
 
   private void updateSplitData(Security security, List<Securitysplit> securitysplitsRead, Date requestedSplitdate)
@@ -220,6 +220,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
     }
   }
 
+  @Override
   public void historicalDataUpdateWhenAdjusted(Security security, List<Securitysplit> securitysplits,
       Optional<Date> youngestSplitDate, boolean requireHoldingBuild) throws Exception {
     SplitAdjustedHistoryquotesResult sahr = securityJpaRepository.isLatestSplitHistoryquotePossibleAdjusted(security,

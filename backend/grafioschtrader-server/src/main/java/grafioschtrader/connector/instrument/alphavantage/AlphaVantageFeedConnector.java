@@ -30,8 +30,8 @@ import grafioschtrader.entities.Security;
 /*-
  * Only 5 API request per minutes and 500 per day.
  *
- * Alphavantage does not provide intraday data for the current trading day. 
- * Neither with the function "GLOBAL_QUOTE" nor with "TIME_SERIES_INTRADAY". 
+ * Alphavantage does not provide intraday data for the current trading day.
+ * Neither with the function "GLOBAL_QUOTE" nor with "TIME_SERIES_INTRADAY".
  * Instead, the data from the previous trading day is delivered.
  *
  * Dividend: Not Supported
@@ -98,7 +98,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
    * An update of the last price is not carried out if the market is closed.
    * symbol,open,high,low,price,volume,latestDay,previousClose,change,changePercent
    * CAT,237.1000,239.4000,232.7450,234.5900,3371100,2022-11-15,236.5000,-1.9100,-0.8076%
-   * 
+   *
    */
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {

@@ -16,7 +16,7 @@ public class UDFMetadataGeneralTest {
 
   @Autowired
   private UDFMetadataGeneralJpaRepository uDFMetadataGeneralJpaRepository;
-  
+
   @Test
   @Rollback(false)
   void saveTest() {

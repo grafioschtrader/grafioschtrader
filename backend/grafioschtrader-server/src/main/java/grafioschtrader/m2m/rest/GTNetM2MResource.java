@@ -23,10 +23,10 @@ import jakarta.validation.Valid;
 public class GTNetM2MResource {
 
   public static String AUTHORIZATION_HEADER = "Authorization";
-  
+
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
-  
+
   @Operation(summary = "", description = "", tags = { RequestMappings.GTNET_M2M })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<MessageEnvelope> receiveMessage(@Valid @RequestBody MessageEnvelope messageEnvelope) throws Exception {

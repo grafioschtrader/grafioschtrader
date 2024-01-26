@@ -144,7 +144,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
           securitycurrencySearch.getActiveDate())));
     }
   }
-  
+
   private void addFromToActiveDate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {
     if(securitycurrencySearch.getMaxFromDate() != null && securitycurrencySearch.getMinToDate() != null) {
@@ -152,10 +152,10 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
           securitycurrencySearch.getMinToDate())));
       mainPredicates.add(builder.and(builder.greaterThanOrEqualTo(securityRoot.<Date>get(Security_.activeToDate),
           securitycurrencySearch.getMaxFromDate())));
-      
+
     }
   }
-  
+
 
   private void addAssetclassPredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {

@@ -9,10 +9,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.DownloadLink;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 
 /**
@@ -63,7 +63,17 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   public String getSecuritycurrencyIntraDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.FS_INTRA);
-    if (ConnectorHelper.canAccessConnectorApiKey(feedConnector)) {
+    if (feedConnector != null && feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_LAZY_INTRA)) {
+      return LINK_DOWNLOAD_LAZY;
+    } else {
+      return createDownloadLink(securitycurrency, feedConnector);
+    }
+  }
+
+  @Override
+  public String createDownloadLink(S securitycurrency, IFeedConnector feedConnector) {
+    if (ConnectorHelper.canAccessConnectorApiKey(feedConnector) && (feedConnector != null
+        && !feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_INTRA_FORCE_BACKEND))) {
       if (securitycurrency instanceof Security) {
         return (feedConnector == null) ? null
             : feedConnector.getSecurityIntradayDownloadLink((Security) securitycurrency);
@@ -72,7 +82,8 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
             : feedConnector.getCurrencypairIntradayDownloadLink((Currencypair) securitycurrency);
       }
     } else {
-      return ThruCalculationHelper.getDownlinkWithApiKey(securitycurrency, true);
+      // The content of the request is created by this backend.
+      return getDownlinkWithApiKey(securitycurrency, true);
     }
   }
 

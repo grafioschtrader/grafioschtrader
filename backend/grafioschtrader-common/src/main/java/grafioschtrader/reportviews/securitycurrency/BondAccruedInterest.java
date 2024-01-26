@@ -13,8 +13,8 @@ import grafioschtrader.types.InterestCalculationMethod;
 public class BondAccruedInterest {
 
   /**
-   * 
-   * @param faceValue The face value of the bond  
+   *
+   * @param faceValue The face value of the bond
    * @param interestRate The annual interest rate of the bond in percent
    * @param startDate The date of the last interest payment of the bond
    * @param endDate The date for which the accrued interest should be calculated
@@ -37,7 +37,7 @@ public class BondAccruedInterest {
       break;
     case ENGLISH_ACT_365:
       interestDays = (int) ChronoUnit.DAYS.between(startDate, endDate);
-      yearFraction = (double) interestDays / 365.0;
+      yearFraction = interestDays / 365.0;
       break;
     case ACT_ACT:
       interestDays = (int) ChronoUnit.DAYS.between(startDate, endDate);
@@ -47,7 +47,7 @@ public class BondAccruedInterest {
       interestDays = (12 * (endDate.getYear() - startDate.getYear())
           + (endDate.getMonthValue() - startDate.getMonthValue())) * 30
           + (endDate.getDayOfMonth() - startDate.getDayOfMonth());
-      yearFraction = (double) interestDays / 360.0;
+      yearFraction = interestDays / 360.0;
       break;
     case US:
       interestDays = (12 * (endDate.getYear() - startDate.getYear())
@@ -62,7 +62,7 @@ public class BondAccruedInterest {
       if (endDate.getMonth() == Month.FEBRUARY && endDate.getDayOfMonth() == endDate.lengthOfMonth()) {
         interestDays += 30 - endDate.getDayOfMonth();
       }
-      yearFraction = (double) interestDays / 360.0;
+      yearFraction = interestDays / 360.0;
       break;
     default:
       // An invalid interest calculation method was specified
@@ -107,7 +107,7 @@ public class BondAccruedInterest {
         + (endDateDay - Math.min(startDateDay, 30.0));
   }
 
-  
- 
-  
+
+
+
 }

@@ -38,6 +38,7 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   @Query(nativeQuery = true)
   Set<String> getSecurityTransactionCurrenciesForPortfolioExclude(Integer idPortfolio, String excludCurrency);
 
+  @Override
   @EntityGraph(value = "graph.currency.historyquote", type = EntityGraphType.FETCH)
   Currencypair findByIdSecuritycurrency(Integer idSecuritycurrency);
 
@@ -45,8 +46,8 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> getMaxHistoryquote(short maxHistoryRetry);
 
   @Query(value ="""
-                 SELECT c FROM Watchlist w JOIN w.securitycurrencyList c 
-                 WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryIntraLoad > 0 
+                 SELECT c FROM Watchlist w JOIN w.securitycurrencyList c
+                 WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryIntraLoad > 0
                  AND c.fromCurrency IS NOT NULL AND c.idConnectorIntra IS NOT NULL""")
   List<Currencypair> findByIdTenantAndIdWatchlistWhenRetryIntraThan0(Integer idTenant, Integer idWatchlist);
 
@@ -58,8 +59,8 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
    * @return
    */
   @Query(value = """
-      SELECT c as securityCurrency, MAX(h.date) AS date FROM Watchlist w JOIN w.securitycurrencyList c JOIN c.historyquoteList h 
-      WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryHistoryLoad > 0 AND c.fromCurrency IS NOT NULL 
+      SELECT c as securityCurrency, MAX(h.date) AS date FROM Watchlist w JOIN w.securitycurrencyList c JOIN c.historyquoteList h
+      WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryHistoryLoad > 0 AND c.fromCurrency IS NOT NULL
       AND c.idConnectorHistory IS NOT NULL GROUP BY c.idSecuritycurrency""")
   List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> findWithConnectorByIdTenantAndIdWatchlistWhenRetryHistoryGreaterThan0(
       Integer idTenant, Integer idWatchlist);

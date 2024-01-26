@@ -235,24 +235,24 @@ public class ConnectorTestHelper {
 
     public Security security;
 
-    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument, 
+    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend) throws ParseException  {
       this(name, null, specialInvestmentInstrument, urlExtend, null, 0, null, null);
     }
-    
-    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument, 
+
+    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend, int expectedRows,
         String fromStr, String toStr) throws ParseException  {
       this(name, null, specialInvestmentInstrument, urlExtend, null, expectedRows, fromStr, toStr);
     }
-    
-    
-    public SecurityHisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument, 
+
+
+    public SecurityHisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
         int expectedRows,
         String fromStr, String toStr) throws ParseException  {
       this(name, isin, specialInvestmentInstrument, null, null, expectedRows, fromStr, toStr);
     }
-    
+
     public SecurityHisoricalDate(final String name, String isin,
         SpecialInvestmentInstruments specialInvestmentInstrument, String urlExtend, String mic, int expectedRows,
         String fromStr, String toStr) throws ParseException {

@@ -38,15 +38,15 @@ public class ConnectorHelper {
     return null;
   }
 
-  
+
   public static boolean canAccessConnectorApiKey(final IFeedConnector feedConnector) {
     // it is not possible to get the security context in other thread!
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return UserAccessHelper.isAdmin(user) && feedConnector instanceof BaseFeedApiKeyConnector 
-        || !(feedConnector instanceof BaseFeedApiKeyConnector); 
-      
+    return UserAccessHelper.isAdmin(user) && feedConnector instanceof BaseFeedApiKeyConnector
+        || !(feedConnector instanceof BaseFeedApiKeyConnector);
+
   }
-  
+
   public static String getContentOfHttpRequestAsString(String urlString, boolean addHttpNewlines) throws Exception {
     URL url = new URI(urlString).toURL();
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -64,5 +64,5 @@ public class ConnectorHelper {
       return responseContent.toString();
     }
   }
-  
+
 }

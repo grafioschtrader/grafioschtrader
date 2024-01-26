@@ -30,7 +30,7 @@ public class FeedConnectorHelper {
     final String text = item.replace(".", "").replace(",", ".");
     return text.trim().length() > 0 ? Double.parseDouble(text) : null;
   }
-  
+
   public static boolean isCreatableGE(String item) {
     final String text = item.replace(".", "").replace(",", ".");
     return NumberUtils.isCreatable(text);
@@ -45,10 +45,10 @@ public class FeedConnectorHelper {
     final String text = item.replace(".", "");
     return text.trim().length() > 0 ? Long.parseLong(text) : null;
   }
-  
+
   public static HttpResponse<String> getByHttpClient(String urlStr) throws IOException, InterruptedException {
-     return getByHttpClient(urlStr, null); 
-  }  
+     return getByHttpClient(urlStr, null);
+  }
   public static HttpResponse<String> getByHttpClient(String urlStr, Integer seconds) throws IOException, InterruptedException {
     HttpClient client = (seconds != null)? HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(seconds))
@@ -90,7 +90,7 @@ public class FeedConnectorHelper {
     }
     return historyquotes;
   }
-  
+
   public static <T extends Securitycurrency<T>> double getGBXLondonDivider(T securitycurrency) {
     if (securitycurrency instanceof Security security) {
       return security.getAssetClass()

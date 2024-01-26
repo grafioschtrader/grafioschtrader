@@ -19,7 +19,8 @@ class ArivaFeedConnectorTest extends BaseFeedConnectorCheck  {
   void getEodSecurityHistoryTest() {
      getEodSecurityHistory(true);
   }
-  
+
+  @Override
   protected List<SecurityHisoricalDate> getHistoricalSecurities() {
     List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
     try {
@@ -40,8 +41,8 @@ class ArivaFeedConnectorTest extends BaseFeedConnectorCheck  {
     }
     return hisoricalDate;
   }
-  
-  
+
+
   @Override
   protected IFeedConnector getIFeedConnector() {
     return new ArivaFeedConnector();

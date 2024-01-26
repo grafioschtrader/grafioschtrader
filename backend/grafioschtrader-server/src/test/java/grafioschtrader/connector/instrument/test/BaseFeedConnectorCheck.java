@@ -12,12 +12,12 @@ import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHis
 import grafioschtrader.entities.Historyquote;
 
 public abstract class BaseFeedConnectorCheck {
-  
-  protected abstract IFeedConnector getIFeedConnector();  
-  
+
+  protected abstract IFeedConnector getIFeedConnector();
+
   protected abstract List<SecurityHisoricalDate> getHistoricalSecurities();
-  
-  
+
+
   void updateSecurityLastPrice() {
     final List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
     hisoricalDate.parallelStream().forEach(hd -> {
@@ -33,8 +33,8 @@ public abstract class BaseFeedConnectorCheck {
       assertThat(hd.security.getSLast()).isNotNull().isGreaterThan(0.0);
     });
   }
-  
-  
+
+
   void getEodSecurityHistory(boolean needSort) {
     final List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
     hisoricalDate.parallelStream().forEach(hd -> {

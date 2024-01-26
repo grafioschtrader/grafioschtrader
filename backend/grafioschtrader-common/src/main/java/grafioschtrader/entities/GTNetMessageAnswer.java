@@ -10,52 +10,52 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = GTNetMessageAnswer.TABNAME)
 @Schema(description = """
-Certain incoming messages require a response. This can be an affirmative, a negative or a manual response. 
-The automatic reply can be made according to specified conditions. The corresponding answer is determined by conditions, 
+Certain incoming messages require a response. This can be an affirmative, a negative or a manual response.
+The automatic reply can be made according to specified conditions. The corresponding answer is determined by conditions,
 using the EvalEx framework.""")
 
 public class GTNetMessageAnswer {
   public static final String TABNAME = "gt_net_message_answer";
-  
+
   @Id
   @Column(name = "request_msg_code")
   private byte requestMsgCode;
-  
+
   @Column(name = "response_msg_code1")
   private byte responseMsgCode1;
-  
+
   @Column(name = "response_msg_conditional1")
   private String responseMsgConditional1;
-  
+
   @Column(name = "response_msg_message1")
   private String responseMsgMessage1;
-  
+
   @Column(name = "response_msg_code2")
   private Byte responseMsgCode2;
-  
+
   @Schema(description = "2nd: This response is given if there is no condition or if this condition is met.")
   @Column(name = "response_msg_conditional2")
   private String responseMsgConditional2;
-  
+
   @Schema(description = "2nd: Contains optional a message. This message is created by the user")
   @Column(name = "response_msg_message2")
   private String responseMsgMessage2;
-  
+
   @Column(name = "response_msg_code3")
   private Byte responseMsgCode3;
-  
+
   @Schema(description = "3nd: This response is given if there is no condition or if this condition is met.")
   @Column(name = "response_msg_conditional3")
   private String responseMsgConditional3;
-  
+
   @Schema(description = "Thrid: Contains optional a message. This message is created by the user")
   @Column(name = "response_msg_message3")
   private String responseMsgMessage3;
- 
+
   @Schema(description = "If the answer was negative, it is necessary to wait minimally so many days for the next apply.")
   @Column(name = "wait_days_apply")
   private String waitDaysAplly;
-  
+
   public GTNetMessageCodeType getRequestMsgCode() {
     return GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(requestMsgCode);
   }
@@ -69,7 +69,7 @@ public class GTNetMessageAnswer {
   }
 
   public void setResponseMsgCode1(GTNetMessageCodeType responseMsgCode1) {
-    this.responseMsgCode1 = responseMsgCode1.getValue();;
+    this.responseMsgCode1 = responseMsgCode1.getValue();
   }
 
   public String getResponseMsgConditional1() {
@@ -93,7 +93,7 @@ public class GTNetMessageAnswer {
   }
 
   public void setResponseMsgCode2(GTNetMessageCodeType responseMsgCode2) {
-    this.responseMsgCode2 = responseMsgCode2.getValue();;
+    this.responseMsgCode2 = responseMsgCode2.getValue();
   }
 
   public String getResponseMsgConditional2() {
@@ -117,7 +117,7 @@ public class GTNetMessageAnswer {
   }
 
   public void setResponseMsgCode3(GTNetMessageCodeType responseMsgCode3) {
-    this.responseMsgCode3 = responseMsgCode3.getValue();;
+    this.responseMsgCode3 = responseMsgCode3.getValue();
   }
 
   public String getResponseMsgConditional3() {
@@ -143,7 +143,6 @@ public class GTNetMessageAnswer {
   public void setWaitDaysAplly(String waitDaysAplly) {
     this.waitDaysAplly = waitDaysAplly;
   }
-  
-  
-}  
-  
+
+
+}

@@ -105,8 +105,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
         DOMAIN_NAME_INTRA_DETAILED_QUOTE + getISINWithOperationMic(security) + "/full");
     Element table = doc.select("table").get(0);
     Elements rows = table.select("tr");
-    for (int i = 0; i < rows.size(); i++) {
-      Element row = rows.get(i);
+    for (Element row : rows) {
       Elements cols = row.select("td");
       switch (cols.get(0).text()) {
       case "Open":
@@ -125,6 +124,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     }
   }
 
+  @Override
   public int getIntradayDelayedSeconds() {
     return 60;
   }
@@ -164,6 +164,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     return clear;
   }
 
+  @Override
   public boolean needHistoricalGapFiller(final Security security) {
     return true;
   }
@@ -178,8 +179,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     String maxOr1M = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) > 30 ? PERIOD_MAX : PERIOD_1M;
     String url = getSecurityHistoricalDownloadLink(security, maxOr1M);
     final DailyClose[] dailyCloseArr = objectMapper.readValue(new URI(url).toURL(), DailyClose[].class);
-    for (int i = 0; i < dailyCloseArr.length; i++) {
-      DailyClose dailyClose = dailyCloseArr[i];
+    for (DailyClose dailyClose : dailyCloseArr) {
       Date date = DateHelper.setTimeToZeroAndAddDay(dailyClose.time, 0);
       if (!date.before(from) && !date.after(to)) {
         Historyquote historyquote = new Historyquote();

@@ -48,7 +48,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * access to more precise figures is available via the "Profi Chart". The
  * disadvantage there is that only figures for the trading days are delivered if
  * they were traded on this day.
- * 
+ *
  * The URL extension consists of a number and is therefore subjected to a regex
  * check. The check via the connector obviously always results in an HTTP OK.
  * However, the body of the return contains an error code, which is checked
@@ -110,6 +110,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     security.setSChangePercentage(null);
   }
 
+  @Override
   public int getIntradayDelayedSeconds() {
     return 60;
   }
@@ -145,6 +146,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
 
   }
 
+  @Override
   public boolean needHistoricalGapFiller(final Security security) {
     return useCSVEOD(security) ? false : true;
   }
@@ -186,6 +188,11 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
       }
     }
     return historyquotes;
+  }
+
+  @Override
+  public EnumSet<DownloadLink> isDownloadLinkCreatedLazy() {
+    return EnumSet.of(DownloadLink.DL_LAZY_HISTORY);
   }
 
   /**
@@ -257,8 +264,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     String url = getSecurityHistoricalDownloadLink(security, from, DateHelper.setTimeToZeroAndAddDay(to, 1));
     final FullChartData fcd = getChartResponse(url);
     final List<Historyquote> historyquotes = new ArrayList<>();
-    for (int i = 0; i < fcd.data.length; i++) {
-      Quote quote = fcd.data[i];
+    for (Quote quote : fcd.data) {
       // There is minimal data for two years, if the security can also be traded for
       // two years.
       Date date = DateHelper.setTimeToZeroAndAddDay(quote.DATETIME_LAST, 0);

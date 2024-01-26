@@ -206,7 +206,7 @@ public class RestErrorHandler {
   /**
    * Sometimes the argument should also be translated. This can be done by
    * defining it as ":{0}:T" instead of "{0}" in the message.
-   * 
+   *
    * @param messageKey
    * @param args
    * @param locale

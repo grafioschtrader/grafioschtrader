@@ -21,8 +21,8 @@ public class FinanzenHelper {
       // Zürcher Kantonalbank
       { GlobalConstants.STOCK_EX_MIC_ZKB, "ZKK" } };
 
-  private static final String[][] stockexchangeCertificateMapperArray = { 
-      // GlobalConstants 
+  private static final String[][] stockexchangeCertificateMapperArray = {
+      // GlobalConstants
       { GlobalConstants.STOCK_EX_MIC_SIX, "QMH" },
       // Stuttgart
       { GlobalConstants.STOCK_EX_MIC_STUTTGART, "EUWAX" },

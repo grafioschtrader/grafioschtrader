@@ -247,14 +247,17 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   public String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday) {
-    Security security = securityJpaRepository.getReferenceById(idSecuritycurrency);
-    String idConnector = isIntraday ? security.getIdConnectorIntra() : security.getIdConnectorHistory();
-    IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, idConnector,
-        isIntraday ? FeedSupport.FS_INTRA : FeedSupport.FS_HISTORY);
-    return getContentOfPageRequest(isIntraday ? feedConnector.getSecurityIntradayDownloadLink(security)
-          : feedConnector.getSecurityHistoricalDownloadLink(security));
+    ConnectorData<Security> ct = getConnectorData(idSecuritycurrency, isIntraday, securityJpaRepository);
+    return ct.feedConnector.getContentOfPageRequest(isIntraday ? ct.feedConnector.getSecurityIntradayDownloadLink(ct.securitycurrency)
+          : ct.feedConnector.getSecurityHistoricalDownloadLink(ct.securitycurrency));
   }
-  
+
+  @Override
+  public String getDataProviderLinkForUser(final Integer idSecuritycurrency, final boolean isIntraday) {
+    ConnectorData<Security> ct = getConnectorData(idSecuritycurrency, isIntraday, securityJpaRepository);
+    return isIntraday ? intradayThruConnector.createDownloadLink(ct.securitycurrency, ct.feedConnector)
+        : historyquoteThruConnector.createDownloadLink(ct.securitycurrency, ct.feedConnector);
+  }
 
   ////////////////////////////////////////////////////////////////
   // Intraday prices

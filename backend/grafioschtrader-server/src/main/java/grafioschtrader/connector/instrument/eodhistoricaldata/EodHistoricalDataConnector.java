@@ -43,7 +43,7 @@ import grafioschtrader.types.CreateType;
  * There is no regex pattern check for the URL. The URL check with connection
  * establishment can only be used for historical course data. For intraday,
  * response body is equal to an existing security with the value "NA".
- * 
+ *
  */
 @Component
 public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
@@ -167,7 +167,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
    * Date,Open,High,Low,Close,Adjusted_close,Volume
    * 2021-02-01,300.95,301.5,299,300.65,300.65,8813
    * 2021-02-02,302.15,306.55,302.15,305.85,305.85,4859
-   * 
+   *
    * @param inputLine
    * @param dateFormat
    * @return
@@ -228,9 +228,9 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
     DividendRead[] dividendRead = objectMapper
         .readValue(new URI(getDividendSplitHistoricalDownloadLink(security.getUrlDividendExtend(), fromDate,
             LocalDate.now(), DIVDEND_EVENT)).toURL(), DividendRead[].class);
-    for (int i = 0; i < dividendRead.length; i++) {
-      Dividend dividend = new Dividend(security.getIdSecuritycurrency(), dividendRead[i].date,
-          dividendRead[i].paymentDate, dividendRead[i].unadjustedValue, dividendRead[i].value, dividendRead[i].currency,
+    for (DividendRead element : dividendRead) {
+      Dividend dividend = new Dividend(security.getIdSecuritycurrency(), element.date,
+          element.paymentDate, element.unadjustedValue, element.value, element.currency,
           CreateType.CONNECTOR_CREATED);
       dividends.add(dividend);
     }
@@ -257,9 +257,9 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
             .toURL(),
         Split[].class);
     FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
-    for (int i = 0; i < splits.length; i++) {
-      Fraction fraction = fractionFormat.parse(splits[i].split);
-      Securitysplit securitysplit = new Securitysplit(security.getIdSecuritycurrency(), splits[i].date,
+    for (Split split : splits) {
+      Fraction fraction = fractionFormat.parse(split.split);
+      Securitysplit securitysplit = new Securitysplit(security.getIdSecuritycurrency(), split.date,
           fraction.getDenominator(), fraction.getNumerator(), CreateType.CONNECTOR_CREATED);
       securitySplits.add(securitysplit);
     }

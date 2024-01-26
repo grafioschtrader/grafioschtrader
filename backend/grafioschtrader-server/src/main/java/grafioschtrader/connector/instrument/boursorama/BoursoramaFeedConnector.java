@@ -251,6 +251,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     public double var;
     // public QtIntra[] qt;
 
+    @Override
     public void setValues(Securitycurrency<?> securitycurrency, double divider) {
       super.setValues(securitycurrency, divider);
       if (o > 0 && var != 0.0) {

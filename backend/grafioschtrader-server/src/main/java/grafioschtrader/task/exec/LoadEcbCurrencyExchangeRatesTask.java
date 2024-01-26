@@ -19,10 +19,10 @@ public class LoadEcbCurrencyExchangeRatesTask implements ITask {
 
   @Autowired
   private EcbExchangeRatesRepository ecbExchangeRatesRepository;
-  
+
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
-  
+
   @Override
   public TaskType getTaskType() {
     return TaskType.LOAD_ECB_CURRENCY_EXCHNAGE_RATES;
@@ -33,7 +33,7 @@ public class LoadEcbCurrencyExchangeRatesTask implements ITask {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_LOW);
     taskDataChangeRepository.save(taskDataChange);
   }
-  
+
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     EcbLoader el = new EcbLoader();

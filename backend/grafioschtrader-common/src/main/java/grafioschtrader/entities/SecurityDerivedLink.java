@@ -72,10 +72,12 @@ public class SecurityDerivedLink implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o)
+      if (this == o) {
         return true;
-      if (o == null || getClass() != o.getClass())
+      }
+      if (o == null || getClass() != o.getClass()) {
         return false;
+      }
       SecurityDerivedLinkKey that = (SecurityDerivedLinkKey) o;
       return Objects.equals(idSecuritycurrency, that.idSecuritycurrency) && Objects.equals(varName, that.varName);
     }
@@ -88,10 +90,12 @@ public class SecurityDerivedLink implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
+    if (this == o) {
       return true;
-    if (o == null || getClass() != o.getClass())
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
+    }
     SecurityDerivedLink that = (SecurityDerivedLink) o;
     return idEm.equals(that.idEm) && Objects.equals(idLinkSecuritycurrency, that.idLinkSecuritycurrency);
   }
