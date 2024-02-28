@@ -122,7 +122,7 @@ export class LoginService extends BaseAuthService<User> {
 
   getTokenVerified(token: string): Observable<string> {
     const options: any = this.getHeaders();
-    options.responseType = 'text';
+    options.np = 'text';
     return <Observable<string>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_KEY}/tokenverify/${token}`,
       options).pipe(catchError(this.handleError.bind(this)));
   }

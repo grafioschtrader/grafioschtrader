@@ -79,18 +79,19 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Column(name = "con_id_transaction")
   private Integer connectedIdTransaction;
 
+  @Schema(description = "Not all dividends are taxable. Therefore, the user must mark this interest or dividend transaction as such.")
   @Column(name = "taxable_interest", nullable = true, columnDefinition = "TINYINT", length = 1)
   private Boolean taxableInterest;
 
-  /**
-   * Taxes for a security or cash transaction (interest)
-   */
-
+  @Schema(description = "Taxes for a security or cash transaction (interest)")
   // @Max(value=?) @Min(value=?)//if you know range of your decimal fields
   // consider using these annotations to enforce field validation
   @Column(name = "tax_cost")
   private Double taxCost;
 
+  @Schema(description = """
+          Transaction costs may be incurred for certain types of transactions. 
+          This is the case when selling and buying instruments or when withdrawing money from an account.""")
   @Column(name = "transaction_cost")
   private Double transactionCost;
 
@@ -98,6 +99,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Size(max = GlobalConstants.FID_MAX_LETTERS)
   private String note;
 
+  @Schema(description = "The sum of these amounts is the balance of the corresponding account. This value can therefore be both positive and negative.")
   @Basic(optional = false)
   @Column(name = "cashaccount_amount")
   @NotNull
@@ -110,7 +112,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
   private Date transactionTime;
 
-  @Schema(description = "Transaction Date is set when an entity is saved")
+  @Schema(description = "Transaction Date is set when an entity is saved. It was introduced for SQL performance reasons.")
   @JsonIgnore
   @Column(name = "tt_date")
   private LocalDate transactionDate;
@@ -145,8 +147,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Column(name = "id_currency_pair")
   Integer idCurrencypair;
 
-  @Schema(description = "Every transaction relating to a security has security account."
-      + " A cash transaction may also have a security account in case of security account costs")
+  @Schema(description = """
+          Every transaction relating to a security has security account. 
+          A cash transaction may also have a security account in case of security account costs""")
   @Column(name = "id_security_account")
   @NotNull(groups = { SecurityTransaction.class })
   private Integer idSecurityaccount;
@@ -427,19 +430,21 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   }
 
   @JsonIgnore
-  public Double getInterestExRate(DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
+  public Double getInterestMC(DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
     double exchangeRateToMC = getExchangeRateOnCurrency(dateTransactionCurrencyMap.getMainCurrency(),
         dateTransactionCurrencyMap);
     return this.cashaccountAmount * exchangeRateToMC;
   }
 
   @JsonIgnore
-  public Double getFeeExRate(DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
+  public Double getFeeMC(DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
     double exchangeRateToMC = getExchangeRateOnCurrency(dateTransactionCurrencyMap.getMainCurrency(),
         dateTransactionCurrencyMap);
     return this.cashaccountAmount * exchangeRateToMC * -1.0;
   }
 
+ 
+  
   @JsonIgnore
   public Double getTaxCostExRate(String mainCurency, double exchangeRateToMC) {
     return calcMCValue(mainCurency, this.taxCost, exchangeRateToMC);
@@ -504,7 +509,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
         || transactionType == TransactionType.DEPOSIT.getValue());
   }
 
-  private double getExchangeRateOnCurrency(String mc, DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
+  public double getExchangeRateOnCurrency(String mc, DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
     double exchangeRateToMC = 1.0;
     if (!getCashaccount().getCurrency().equals(mc)
         && (getSecurity() == null || !getSecurity().getCurrency().equals(mc))) {

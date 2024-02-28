@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Currencypair;
@@ -136,8 +137,8 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
 
   private Connection getPreparedURL(final Currencypair currencyPair, final Calendar startDate, final Calendar toDate) {
 
-    final Connection csvTableURL = Jsoup.connect("http://fx.sauder.ubc.ca/cgi/fxdata").ignoreContentType(true)
-        .timeout(CONNECTION_TIMEOUT);
+    final Connection csvTableURL = Jsoup.connect("https://fx.sauder.ubc.ca/cgi/fxdata")
+        .userAgent(GlobalConstants.USER_AGENT).ignoreContentType(true).timeout(CONNECTION_TIMEOUT);
 
     csvTableURL.data("c", currencyPair.getFromCurrency());
     csvTableURL.data("b", currencyPair.getToCurrency());

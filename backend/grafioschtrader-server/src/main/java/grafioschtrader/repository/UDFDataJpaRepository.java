@@ -6,6 +6,4 @@ import grafioschtrader.entities.UDFData;
 import grafioschtrader.entities.UDFData.UDFDataKey;
 
 public interface UDFDataJpaRepository extends JpaRepository<UDFData, UDFDataKey>  {
-
-
 }

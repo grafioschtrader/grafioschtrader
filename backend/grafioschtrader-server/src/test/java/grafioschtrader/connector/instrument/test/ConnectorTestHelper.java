@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -171,12 +172,17 @@ public class ConnectorTestHelper {
     return security;
   }
 
-  public static void standardSplitTest(BaseFeedConnector baseFeedConnector) throws ParseException {
+  public static void standardSplitTest(BaseFeedConnector baseFeedConnector, Map<String, String> symbolMappingMap)
+      throws ParseException {
     List<SplitCount> splitCount = new ArrayList<>();
-    splitCount.add(new SplitCount("Apple Inc", "AAPL", 3, "2000-01-03", "2014-06-09"));
-    splitCount.add(new SplitCount("Apple Inc", "AAPL", 4, "2000-01-03", "2023-06-09"));
-    splitCount.add(new SplitCount("NIKE", "NKE", 3, "2007-04-03", "2023-06-09"));
-    splitCount.add(new SplitCount("NIKE", "NKE", 3, "2000-01-03", "2023-06-09"));
+    splitCount.add(
+        new SplitCount("Hub Group Inc", getSymbolMapping("HUBG", symbolMappingMap), 3, "2000-01-03", "2024-01-31"));
+    splitCount
+        .add(new SplitCount("Apple Inc", getSymbolMapping("AAPL", symbolMappingMap), 3, "2000-01-03", "2014-06-09"));
+    splitCount
+        .add(new SplitCount("Apple Inc", getSymbolMapping("AAPL", symbolMappingMap), 4, "2000-01-03", "2023-06-09"));
+    splitCount.add(new SplitCount("NIKE", getSymbolMapping("NKE", symbolMappingMap), 3, "2007-04-03", "2023-06-09"));
+    splitCount.add(new SplitCount("NIKE", getSymbolMapping("NKE", symbolMappingMap), 3, "2000-01-03", "2023-06-09"));
 
     splitCount.parallelStream().forEach(sc -> {
       List<Securitysplit> seucritysplitList = new ArrayList<>();
@@ -189,6 +195,11 @@ public class ConnectorTestHelper {
     });
   }
 
+  private static String getSymbolMapping(String symbol, Map<String, String> symbolMappingMap) {
+    return symbolMappingMap == null? symbol: symbolMappingMap.getOrDefault(symbol, symbol);
+
+  }
+
   private static enum ExtendKind {
     EOD, INTRA, DIVIDEND, SPLIT;
   }
@@ -199,7 +210,7 @@ public class ConnectorTestHelper {
     public Date to;
 
     public HisoricalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
-      if(fromStr != null) {
+      if (fromStr != null) {
         this.expectedRows = expectedRows;
         this.from = sdf.parse(fromStr);
         this.to = sdf.parse(toStr);
@@ -236,20 +247,18 @@ public class ConnectorTestHelper {
     public Security security;
 
     public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
-        String urlExtend) throws ParseException  {
+        String urlExtend) throws ParseException {
       this(name, null, specialInvestmentInstrument, urlExtend, null, 0, null, null);
     }
 
     public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
-        String urlExtend, int expectedRows,
-        String fromStr, String toStr) throws ParseException  {
+        String urlExtend, int expectedRows, String fromStr, String toStr) throws ParseException {
       this(name, null, specialInvestmentInstrument, urlExtend, null, expectedRows, fromStr, toStr);
     }
 
-
-    public SecurityHisoricalDate(final String name, String isin, SpecialInvestmentInstruments specialInvestmentInstrument,
-        int expectedRows,
-        String fromStr, String toStr) throws ParseException  {
+    public SecurityHisoricalDate(final String name, String isin,
+        SpecialInvestmentInstruments specialInvestmentInstrument, int expectedRows, String fromStr, String toStr)
+        throws ParseException {
       this(name, isin, specialInvestmentInstrument, null, null, expectedRows, fromStr, toStr);
     }
 

@@ -206,9 +206,9 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
       accountPositionSummary.cashBalance += transaction.getCashaccountAmount();
       if (transaction.getTransactionType() == TransactionType.FEE) {
-        accountPositionSummary.accountFeesMC += transaction.getFeeExRate(dateCurrencyMap);
+        accountPositionSummary.accountFeesMC += transaction.getFeeMC(dateCurrencyMap);
       } else if (transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT) {
-        accountPositionSummary.accountInterestMC += transaction.getInterestExRate(dateCurrencyMap);
+        accountPositionSummary.accountInterestMC += transaction.getInterestMC(dateCurrencyMap);
       } else if (mainCurrency.equals(transaction.getCashaccount().getCurrency())
           && (transaction.getTransactionType() == TransactionType.DEPOSIT
               || transaction.getTransactionType() == TransactionType.WITHDRAWAL)) {

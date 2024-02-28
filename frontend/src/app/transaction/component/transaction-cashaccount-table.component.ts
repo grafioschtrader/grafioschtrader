@@ -25,9 +25,10 @@ import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
+import {TransactionType} from '../../shared/types/transaction.type';
 
 /**
- * It shows the transactions for a cash account.
+ * It shows all or some transactions for a cash account.
  * The contextmenu has the table component as target.
  */
 @Component({
@@ -36,10 +37,9 @@ import {AppSettings} from '../../shared/app.settings';
 })
 export class TransactionCashaccountTableComponent extends TransactionContextMenu
   implements ChildPreservePage, OnInit, OnDestroy {
-
-
   @Input() idSecuritycashAccount: number;
   @Input() portfolio: Portfolio;
+  @Input() cashAccountTableInputFilter: CashAccountTableInputFilter;
 
   cashaccountTransactionPositions: CashaccountTransactionPosition[];
   cashaccountTransactionPositionSelected: CashaccountTransactionPosition;
@@ -130,12 +130,13 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
   }
 
   private loadData() {
-    const transactionsObserable: Observable<CashaccountTransactionPosition[]> =
-      this.transactionService.getTransactionsWithSaldoForCashaccount(this.idSecuritycashAccount);
+    const transactionsObservable: Observable<CashaccountTransactionPosition[]> =
+      this.transactionService.getTransactionsWithBalanceForCashaccount(this.idSecuritycashAccount,
+        this.cashAccountTableInputFilter ?? new CashAccountTableInputFilter());
     const currencypairObservable: Observable<Currencypair[]> = this.currencypairService
       .getCurrencypairByPortfolioId(this.portfolio.idPortfolio);
 
-    combineLatest([transactionsObserable, currencypairObservable]).subscribe(result => {
+    combineLatest([transactionsObservable, currencypairObservable]).subscribe(result => {
       this.cashaccountTransactionPositions = this.addCurrencypairToCashaccountTransactionPosition(result[0], result[1]);
       this.goToFirsRowPosition(this.idSecuritycashAccount);
     });
@@ -155,5 +156,10 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     }
     this.createTranslatedValueStoreAndFilterField(cashaccountTransactionPositions);
     return cashaccountTransactionPositions;
+  }
+}
+
+export class CashAccountTableInputFilter {
+  constructor(public transactionTypes: TransactionType[] = [], public year: number = 0) {
   }
 }

@@ -107,7 +107,7 @@ class FinnhubConnectorTest {
   @Test
   @Disabled
   void getSplitsTest() throws ParseException {
-    ConnectorTestHelper.standardSplitTest(finnhubConnector);
+    ConnectorTestHelper.standardSplitTest(finnhubConnector, null);
   }
 
 

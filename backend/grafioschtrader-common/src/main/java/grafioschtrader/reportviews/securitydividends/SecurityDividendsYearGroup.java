@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import grafioschtrader.common.DataHelper;
+import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
@@ -31,6 +32,8 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
   public int yearCountPaidTransactions;
   public double yearRealReceivedDivInterestMC;
   public SecurityCostGroup securityCostGroup;
+  
+  private Map<Integer, CashAccountPosition> cashaccountGroupMap = new HashMap<>();
 
   protected int precisionMC;
   private Map<String, Integer> currencyPrecisionMap;
@@ -49,16 +52,20 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
         valueAtEndOfYearMC += securityDividendsPosition.valueAtEndOfYearMC;
       }
     });
-
   }
 
   @Override
   protected SecurityDividendsPosition createInstance(Integer key) {
-    return new SecurityDividendsPosition(key, precisionMC, currencyPrecisionMap);
+    return new SecurityDividendsPosition(precisionMC, currencyPrecisionMap);
   }
 
   public List<SecurityDividendsPosition> getSecurityDividendsPositions() {
     return groupMap.values().stream().sorted((x, y) -> x.security.getName().compareTo(y.security.getName()))
+        .collect(Collectors.toList());
+  }
+  
+  public List<CashAccountPosition> getCashAccountPositions() {
+    return cashaccountGroupMap.values().stream().sorted((x, y) -> x.cashaccount.getName().compareTo(y.cashaccount.getName()))
         .collect(Collectors.toList());
   }
 
@@ -68,6 +75,12 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     return securityDividendsPosition;
   }
 
+  
+  public CashAccountPosition getOrCreateAccountDividendPosition(Cashaccount cashaccount) {
+    return cashaccountGroupMap.computeIfAbsent(cashaccount.getIdSecuritycashAccount(), 
+        k -> new CashAccountPosition(cashaccount, precisionMC, currencyPrecisionMap));
+  }
+  
   public void attachHistoryquoteAndCalcPositionTotal(Map<Integer, Map<Integer, Historyquote>> historyquoteYearIdMap,
       DateTransactionCurrencypairMap dateCurrencyMap) {
 
@@ -79,6 +92,12 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
       yearAutoPaidTaxMC += securityDividendsPosition.autoPaidTaxMC;
       yearTaxableAmountMC += securityDividendsPosition.taxableAmountMC;
     });
+    cashaccountGroupMap.values().forEach(cashAccountPosition -> {
+      cashAccountPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year),
+          dateCurrencyMap);
+      
+    });
+    
     securityCostGroup.calcAverages(yearCountPaidTransactions);
   }
 
@@ -105,12 +124,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
       yearInterestMC += interestMC;
     }
   }
-
-  public void addFee(Double feeMC) {
-    if (feeMC != null) {
-      yearFeeMC += feeMC;
-    }
-  }
+  
 
   public double getValueAtEndOfYearMC() {
     return DataHelper.round(valueAtEndOfYearMC, precisionMC);

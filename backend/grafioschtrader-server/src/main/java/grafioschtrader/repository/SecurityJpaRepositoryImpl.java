@@ -402,9 +402,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
               && youngestSplit.getFactor() >= 1 + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP) {
 
         Date fromDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
-            GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC * -1);
+            GlobalConstants.SPLIT_DAYS_LOCK_BACK_START_DATE * -1);
         Date toDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
-            GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC);
+            GlobalConstants.SPLIT_DAYS_LOCK_BACK_START_DATE);
 
         List<Historyquote> historyquotes = useConnector ? getDataByConnnector(security, fromDate, toDate)
             : historyquoteJpaRepository
@@ -444,9 +444,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       Securitysplit youngestSplit = maxSecuritysplitOpt.get();
 
       Date fromDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
-          GlobalConstants.SPLIT_DAYS_FOR_AVERAGE_CALC * -1);
+          GlobalConstants.SPLIT_DAYS_LOCK_BACK_START_DATE * -1);
       Date toDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
-          GlobalConstants.SPLIT_DAYS_LOOK_BACK * -1);
+          GlobalConstants.SPLIT_DAYS_LOOK_BACK_END_DATE_BEFORE_SPLIT * -1);
 
       List<Historyquote> hqConnectorList = getDataByConnnector(security, fromDate, toDate);
       List<Historyquote> hqPersistentList = historyquoteJpaRepository
@@ -456,17 +456,17 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
           .collect(Collectors.toMap(Historyquote::getDate, Function.identity()));
 
       int differentCloseCount = 0;
-      int theSameDateCount = 0;
+      int theSameCloseCount = 0;
       for (Historyquote hqConnector : hqConnectorList) {
         Historyquote hqPersistent = hqPersistentMap.get(hqConnector.getDate());
         if (hqPersistent != null) {
           if (hqPersistent.getClose() != hqConnector.getClose()) {
             differentCloseCount++;
           }
-          theSameDateCount++;
+          theSameCloseCount++;
         }
       }
-      sahr.sah = (differentCloseCount != theSameDateCount) ? SplitAdjustedHistoryquotes.NOT_DETCTABLE
+      sahr.sah = (differentCloseCount != theSameCloseCount) ? SplitAdjustedHistoryquotes.NOT_DETCTABLE
           : SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED;
       if (sahr.sah == SplitAdjustedHistoryquotes.NOT_DETCTABLE) {
         sahr.addDaysForNextAttempt = getNextAttemptInDaysForSplitHistorical(security, youngestSplit.getSplitDate());

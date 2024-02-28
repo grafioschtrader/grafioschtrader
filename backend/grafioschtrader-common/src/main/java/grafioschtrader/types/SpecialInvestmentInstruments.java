@@ -27,7 +27,7 @@ public enum SpecialInvestmentInstruments {
   ALL((byte) 99);
 
   private final Byte value;
-
+  
   private SpecialInvestmentInstruments(final Byte value) {
     this.value = value;
   }

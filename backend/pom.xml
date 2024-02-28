@@ -11,13 +11,13 @@
     <groupId>grafioschtrader</groupId>
     <artifactId>grafioschtrader</artifactId>
 	<packaging>pom</packaging>
-	<version>0.31.6</version>
+	<version>0.31.7</version>
 	
 	
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.2</version>
+		<version>3.2.3</version>
 		<relativePath/>
 	</parent>
 	

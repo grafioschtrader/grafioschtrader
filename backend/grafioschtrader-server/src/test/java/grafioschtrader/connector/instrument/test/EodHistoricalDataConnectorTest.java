@@ -9,6 +9,7 @@ import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,7 +134,11 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
   // =======================================
   @Test
   void getSplitsTest() throws ParseException {
-    ConnectorTestHelper.standardSplitTest(eodHistoricalDataConnector);
+    Map<String, String>  symbolMappingMap = Map.of(
+        "HUBG", "HUBG.US",
+        "AAPL", "AAPL.US",
+        "NKE", "NKE.US");
+    ConnectorTestHelper.standardSplitTest(eodHistoricalDataConnector, symbolMappingMap);
   }
 
   @Test

@@ -122,7 +122,7 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
   //=======================================
   @Test
   void getSplitsTest() throws ParseException {
-    ConnectorTestHelper.standardSplitTest(yahooFeedConnector);
+    ConnectorTestHelper.standardSplitTest(yahooFeedConnector, null);
   }
 
   @Test

@@ -1,6 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {SecurityDividendsPosition} from '../../entities/view/securitydividends/security.dividends.position';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
@@ -11,24 +10,28 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {TransactionSecurityOptionalParam} from '../../transaction/model/transaction.security.optional.param';
 import {FilterService} from 'primeng/api';
+import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
 
 /**
  * Shows the dividends and other information of securities for one year in a table. One row per security.
  */
 @Component({
-  selector: 'tenant-dividends-extended',
+  selector: 'tenant-dividends-security-extended',
   template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="securityDividendsPositions" selectionMode="single"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines" responsiveLayout="scroll"
-               dataKey="idSecuritycurrency" [responsive]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta">
+               dataKey="security.idSecuritycurrency" sortMode="multiple" [multiSortMeta]="multiSortMeta">
+        <ng-template pTemplate="caption">
+          <h5>{{ 'INSTRUMENT'|translate }}</h5>
+        </ng-template>
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th style="width:24px"></th>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                 [pTooltip]="field.headerTooltipTranslated">
-              {{field.headerTranslated}}
+              {{ field.headerTranslated }}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
           </tr>
@@ -44,25 +47,25 @@ import {FilterService} from 'primeng/api';
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                 [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-              <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{getValueByPath(el, field)}}</span>
+              <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
             </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="rowexpansion" let-sdp let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1">
-              <transaction-security-table *ngIf="sdp.security.stockexchange && !isMarginProduct(sdp.security)"
+              <transaction-security-table *ngIf="!!sdp.security.stockexchange && !isMarginProduct(sdp.security)"
                                           [idTenant]="idTenant"
-                                          [idSecuritycurrency]="sdp.idSecuritycurrency"
+                                          [idSecuritycurrency]="sdp.security.idSecuritycurrency"
                                           [idsSecurityaccount]="idsSecurityaccount"
                                           [transactionSecurityOptionalParam]="tsop"
                                           (dateChanged)="transactionDataChanged($event)">
               </transaction-security-table>
 
               <transaction-security-margin-treetable
-                *ngIf="sdp.security.stockexchange && isMarginProduct(sdp.security)"
+                *ngIf="!!sdp.security.stockexchange && isMarginProduct(sdp.security)"
                 [idTenant]="idTenant"
-                [idSecuritycurrency]="sdp.idSecuritycurrency"
+                [idSecuritycurrency]="sdp.security.idSecuritycurrency"
                 [idsSecurityaccount]="idsSecurityaccount"
                 [transactionSecurityOptionalParam]="tsop"
                 (dateChanged)="transactionDataChanged($event)">
@@ -74,7 +77,7 @@ import {FilterService} from 'primeng/api';
     </div>
   `
 })
-export class TenantDividendsExtendedComponent extends TableConfigBase implements OnInit {
+export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() idsSecurityaccount: number[];
   @Input() securityDividendsGrandTotal: SecurityDividendsGrandTotal;
   @Input() securityDividendsPositions: SecurityDividendsPosition[];
@@ -85,9 +88,9 @@ export class TenantDividendsExtendedComponent extends TableConfigBase implements
   @Output() dateChanged = new EventEmitter<ProcessedActionData>();
 
   constructor(filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(filterService, usersettingsService, translateService, gps);
     this.idTenant = this.gps.getIdTenant();
   }
@@ -100,15 +103,8 @@ export class TenantDividendsExtendedComponent extends TableConfigBase implements
     this.addColumnFeqH(DataType.Numeric, 'unitsAtEndOfYear', true, false);
     this.addColumn(DataType.Numeric, 'historyquote.close', 'QUOTATION_END_OF_YEAR', true, false);
     this.addColumnFeqH(DataType.Numeric, 'taxFreeIncome', true, false);
-    this.addColumn(DataType.Numeric, 'autoPaidTax', 'AUTO_PAID_TAX', true, false);
-    this.addColumn(DataType.Numeric, 'autoPaidTaxMC', 'AUTO_PAID_TAX', true, false,
-      {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
-    this.addColumnFeqH(DataType.Numeric, 'taxableAmount', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'taxableAmountMC', true, false,
-      {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
-    this.addColumnFeqH(DataType.Numeric, 'realReceivedDivInterestMC', true, false,
-      {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
-    this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false,
+    this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency);
+   this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false,
       {width: 70, headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
     this.multiSortMeta.push({field: 'security.name', order: 1});
     this.prepareTableAndTranslate();

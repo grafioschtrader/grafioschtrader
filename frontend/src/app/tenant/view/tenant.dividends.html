@@ -2,7 +2,7 @@
      class="data-container">
   <div class="datatable">
     <p-table [(selection)]="securityDividendsGrandTotalSelected" [columns]="fields" [multiSortMeta]="multiSortMeta"
-             [paginator]="true" [rows]="20" [value]="securityDividendsYearGroup"
+             [paginator]="true" [rows]="30" [value]="securityDividendsYearGroup"
              responsiveLayout="scroll"
              dataKey="year" selectionMode="single" sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
@@ -61,12 +61,22 @@
       <ng-template let-columns="fields" let-sDYG pTemplate="rowexpansion">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1">
-            <tenant-dividends-extended
+            <tenant-dividends-security-extended
               (dateChanged)="transactionDataChanged($event)"
               [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
               [securityDividendsGrandTotal]="securityDividendsGrandTotal"
               [securityDividendsPositions]="sDYG.securityDividendsPositions">
-            </tenant-dividends-extended>
+            </tenant-dividends-security-extended>
+          </td>
+        </tr>
+        <tr>
+          <td [attr.colspan]="numberOfVisibleColumns + 1">
+            <tenant-dividends-cashaccount-extended
+              (dateChanged)="transactionDataChanged($event)"
+              [securityDividendsGrandTotal]="securityDividendsGrandTotal"
+              [year]="sDYG.year"
+              [cashAccountPositions]="sDYG.cashAccountPositions">
+            </tenant-dividends-cashaccount-extended>
           </td>
         </tr>
       </ng-template>

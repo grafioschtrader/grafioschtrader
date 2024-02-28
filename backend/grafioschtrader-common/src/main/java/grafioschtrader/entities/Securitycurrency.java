@@ -60,15 +60,18 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @Column(name = "id_securitycurrency")
   protected Integer idSecuritycurrency;
 
+  @Schema(description = "This is the reference to the corresponding connector of the historical price data.")
   @Column(name = "id_connector_history")
   @PropertyAlwaysUpdatable
   protected String idConnectorHistory;
 
+  @Schema(description = "This is a comment on the instrument that any user can view.")
   @Column(name = "note")
   @Size(max = GlobalConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
   protected String note;
 
+  @Schema(description = "All historical price data was loaded for the last time on this date.")
   @Basic(optional = false)
   @Column(name = "full_load_timestamp")
   protected Date fullLoadTimestamp;
@@ -77,10 +80,12 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @PropertyAlwaysUpdatable
   protected String idConnectorIntra;
 
+  @Schema(description = "Retry counter of failed attempts to download historical price data from the data source.")
   @Column(name = "retry_history_load")
   @PropertyAlwaysUpdatable
   protected Short retryHistoryLoad = 0;
 
+  @Schema(description = "Repeat counter of failed attempts to download intraday price data from the data source.")
   @Column(name = "retry_intra_load")
   @PropertyAlwaysUpdatable
   protected Short retryIntraLoad = 0;
@@ -140,7 +145,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   public abstract String getName();
   @JsonIgnore
-  public abstract boolean exspectVolume();
+  public abstract boolean expectVolume();
 
 
   public Securitycurrency() {

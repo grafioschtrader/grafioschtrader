@@ -4,7 +4,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {Transaction} from '../../entities/transaction';
 import {CashaccountTransactionPosition} from '../../entities/view/cashaccount.transaction.position';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {catchError} from 'rxjs/operators';
@@ -12,6 +12,7 @@ import {Observable} from 'rxjs/internal/Observable';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {ProposedMarginFinanceCost} from '../model/proposed.margin.finance.cost';
 import {ClosedMarginPosition} from '../model/closed.margin.position';
+import {CashAccountTableInputFilter} from '../component/transaction-cashaccount-table.component';
 
 
 @Injectable()
@@ -43,10 +44,16 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getTransactionsWithSaldoForCashaccount(idCashaccount: number): Observable<CashaccountTransactionPosition[]> {
+  getTransactionsWithBalanceForCashaccount(idCashaccount: number, cashAccountTableInputFilter: CashAccountTableInputFilter): Observable<CashaccountTransactionPosition[]> {
     return <Observable<CashaccountTransactionPosition[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.TRANSACTION_KEY}/${idCashaccount}/${AppSettings.CASHACCOUNT_KEY}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+       this.getYearTransactionTypes(cashAccountTableInputFilter, this.prepareHeaders())).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  private getYearTransactionTypes(cashAccountTableInputFilter: CashAccountTableInputFilter, httpHeaders: HttpHeaders) {
+    let httpParams = new HttpParams({fromObject: { 'transactionTypes[]': cashAccountTableInputFilter.transactionTypes,
+      'year': cashAccountTableInputFilter.year }});
+    return {headers: httpHeaders, params: httpParams};
   }
 
   getEstimatedMarginFinanceCost(idTransaction: number): Observable<ProposedMarginFinanceCost> {

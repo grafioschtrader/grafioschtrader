@@ -2,6 +2,7 @@ package grafioschtrader.reports;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -23,6 +25,7 @@ import grafioschtrader.entities.Securitysplit.SplitFactorAfterBefore;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.reportviews.securitydividends.CashAccountPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsGrandTotal;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup;
@@ -36,9 +39,7 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Creates the objects for a "report" which is grouped by year. It includes all
- * transaction but withdrawal and deposit. The main purpose is the sum off
- * dividends and interest by year.
- *
+ * transaction. The main purpose is the sum off dividends and interest by year.
  *
  * Attention: This class should not have a member variable, because there exist
  * only one instance.
@@ -70,10 +71,12 @@ public class SecurityDividendsReport {
         globalparametersJpaRepository.getCurrencyPrecision());
 
     final DateTransactionCurrencypairMap dateCurrencyMap = getHistoryquoteAndCurrencypairs(tenant);
-    List<Transaction> transactions = getTransactions(tenant, idsSecurityaccount, idsCashaccount);
+    final Map<Integer, Cashaccount> cashAccountsMap = getCashAccountMap(tenant, idsCashaccount);
+    List<Transaction> transactions = getTransactions(cashAccountsMap.values(), idsSecurityaccount);
 
     final CompletableFuture<SecurityDividendsGrandTotal> cfSecurityDividendsGrandTotal = CompletableFuture
-        .supplyAsync(() -> collectDataForPosition(tenant, transactions, securityDividendsGrandTotal, dateCurrencyMap));
+        .supplyAsync(() -> collectDataForPosition(tenant, cashAccountsMap, transactions, securityDividendsGrandTotal,
+            dateCurrencyMap));
     final CompletableFuture<Map<Integer, Map<Integer, Historyquote>>> cfHistoryquotes = CompletableFuture
         .supplyAsync(() -> getSecuritycurrencyHistoryEndOfYearsByIdTenant(idTenant));
 
@@ -96,46 +99,47 @@ public class SecurityDividendsReport {
         currencypairsFuture.join(), true, false);
   }
 
-  private SecurityDividendsGrandTotal collectDataForPosition(final Tenant tenant, List<Transaction> transactions,
+  private SecurityDividendsGrandTotal collectDataForPosition(final Tenant tenant,
+      Map<Integer, Cashaccount> cashAccountsMap, List<Transaction> transactions,
       final SecurityDividendsGrandTotal securityDividendsGrandTotal,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
 
     final CompletableFuture<Map<Integer, List<Securitysplit>>> cfSecuritysplitMap = CompletableFuture
         .supplyAsync(() -> securitysplitJpaRepository.getSecuritysplitMapByIdTenant(tenant.getIdTenant()));
-    collectPositionByTransactions(dateCurrencyMap, cfSecuritysplitMap.join(), transactions,
+    collectPositionByTransactions(cashAccountsMap, dateCurrencyMap, cfSecuritysplitMap.join(), transactions,
         securityDividendsGrandTotal);
 
     return securityDividendsGrandTotal;
   }
 
-  private List<Transaction> getTransactions(Tenant tenant, final List<Integer> idsSecurityaccount,
-      final List<Integer> idsCashaccount) {
+  private Map<Integer, Cashaccount> getCashAccountMap(Tenant tenant, final List<Integer> idsCashaccount) {
+    boolean allCashaccounts = idsCashaccount.size() == 1 && idsCashaccount.get(0) == -1 ? true : false;
+    Map<Integer, Cashaccount> cashAccountMap = new HashMap<>();
+    tenant.getPortfolioList().forEach(portfolio -> portfolio.getCashaccountList().forEach(cashaccount -> {
+      if (allCashaccounts || idsCashaccount.contains(cashaccount.getIdSecuritycashAccount())) {
+        cashAccountMap.put(cashaccount.getIdSecuritycashAccount(), cashaccount);
+      }
+    }));
+    return cashAccountMap;
+  }
+
+  private List<Transaction> getTransactions(Collection<Cashaccount> cashAccounts,
+      final List<Integer> idsSecurityaccount) {
     List<Transaction> transactions = new ArrayList<>();
 
-    boolean allCashaccounts = idsCashaccount.size() == 1 && idsCashaccount.get(0) == -1 ? true : false;
-
-    tenant.getPortfolioList().forEach(portfolio -> portfolio.getCashaccountList().forEach(cashaccount -> {
+    cashAccounts.forEach(cashaccount -> {
       cashaccount.getTransactionList().stream()
           .filter(transaction -> transaction.getIdSecurityaccount() == null || idsSecurityaccount.size() == 0
               || idsSecurityaccount.contains(transaction.getIdSecurityaccount()))
-          .filter(transaction -> transaction.getTransactionType().getValue() >= TransactionType.INTEREST_CASHACCOUNT
-              .getValue() && transaction.getTransactionType().getValue() <= TransactionType.DIVIDEND.getValue())
-          .filter(transaction -> allCashaccounts
-              || (transaction.getTransactionType() != TransactionType.INTEREST_CASHACCOUNT
-                  || transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT
-                      && idsCashaccount.contains(transaction.getCashaccount().getIdSecuritycashAccount())))
-          .filter(transaction -> allCashaccounts || ((transaction.getTransactionType() != TransactionType.FEE
-              || transaction.getIdSecurityaccount() != null)
-              || (transaction.getTransactionType() == TransactionType.FEE
-                  && idsCashaccount.contains(transaction.getCashaccount().getIdSecuritycashAccount()))))
+          .filter(transaction -> transaction.getTransactionType().getValue() <= TransactionType.FINANCE_COST.getValue())
           .forEach(transactions::add);
-    }));
+    });
 
     Collections.sort(transactions);
     return transactions;
   }
 
-  private SecurityDividendsGrandTotal collectPositionByTransactions(
+  private SecurityDividendsGrandTotal collectPositionByTransactions(Map<Integer, Cashaccount> cashAccountsMap,
       final DateTransactionCurrencypairMap dateCurrencyMap, final Map<Integer, List<Securitysplit>> securitysplitMap,
       final List<Transaction> transactions, final SecurityDividendsGrandTotal securityDividendsGrandTotal) {
 
@@ -145,14 +149,18 @@ public class SecurityDividendsReport {
     int yearChangeWatcher = 0;
 
     final Map<Integer, UnitsCounter> unitsCounterBySecurityMap = new HashMap<>();
+    final Map<Integer, Double> cashAccountsAmountMap = new HashMap<>();
 
     final Calendar calendar = new GregorianCalendar();
 
+    SecurityDividendsYearGroup securityDividendsYearGroup = null;
     for (final Transaction transaction : transactions) {
 
       calendar.setTime(transaction.getTransactionTime());
       year = calendar.get(Calendar.YEAR);
       if (yearChangeWatcher != year) {
+        fillEmptyAccountYears(cashAccountsMap, securityDividendsGrandTotal, yearChangeWatcher, year,
+            cashAccountsAmountMap);
         // For some securities, there may have been no transactions in a given year.
         // Nevertheless, these open positions must be listed for that year.
         if (yearChangeWatcher != 0) {
@@ -160,25 +168,60 @@ public class SecurityDividendsReport {
             createFillYearWithOpenPositions(securityDividendsGrandTotal, yearChangeWatcher, unitsCounterBySecurityMap,
                 securitysplitMap);
           }
+          transferCashaccountAmountToNewYear(securityDividendsYearGroup, cashAccountsAmountMap, cashAccountsMap);
         }
+
         yearChangeWatcher = year;
+        securityDividendsYearGroup = securityDividendsGrandTotal.getOrCreateGroup(year);
       }
 
-      final SecurityDividendsYearGroup securityDividendsYearGroup = securityDividendsGrandTotal.getOrCreateGroup(year);
+      Double amount = cashAccountsAmountMap.computeIfAbsent(transaction.getCashaccount().getIdSecuritycashAccount(),
+          k -> Double.valueOf(0.0));
+      amount += transaction.getCashaccountAmount();
+      cashAccountsAmountMap.put(transaction.getCashaccount().getIdSecuritycashAccount(), amount);
 
       if (transaction.getSecurity() != null) {
         dateCurrencyMap.setUntilDate(new GregorianCalendar(year, 11, 31).getTime());
         calcSecurityTransaction(dateCurrencyMap, securityDividendsYearGroup, transaction, security, securitysplitMap,
             unitsCounterBySecurityMap);
       } else {
-        calcInterestOrFee(dateCurrencyMap, securityDividendsYearGroup, transaction);
+        calcAccountTransactions(dateCurrencyMap, securityDividendsYearGroup, transaction);
       }
     }
     if (year != 0) {
       createFillYearWithOpenPositions(securityDividendsGrandTotal, year, unitsCounterBySecurityMap, securitysplitMap);
+      transferCashaccountAmountToNewYear(securityDividendsYearGroup, cashAccountsAmountMap, cashAccountsMap);
     }
 
     return securityDividendsGrandTotal;
+  }
+
+  /**
+   * This is necessary if no transaction has been carried out in a year. The cash
+   * accounts must always appear annually.
+   */
+  private void fillEmptyAccountYears(Map<Integer, Cashaccount> cashAccountsMap,
+      final SecurityDividendsGrandTotal securityDividendsGrandTotal, int yearChangeWatcher, int year,
+      final Map<Integer, Double> cashAccountsAmountMap) {
+    if (yearChangeWatcher != 0 && year - yearChangeWatcher > 1) {
+      for (int i = yearChangeWatcher; i < year; i++) {
+        SecurityDividendsYearGroup securityDividendsYearGroup = securityDividendsGrandTotal.getOrCreateGroup(i);
+        transferCashaccountAmountToNewYear(securityDividendsYearGroup, cashAccountsAmountMap, cashAccountsMap);
+      }
+    }
+  }
+
+  private void transferCashaccountAmountToNewYear(SecurityDividendsYearGroup securityDividendsYearGroup,
+      final Map<Integer, Double> cashAccountsAmountMap, Map<Integer, Cashaccount> cashAccountsMap) {
+    for (var entry : cashAccountsAmountMap.entrySet()) {
+      Cashaccount cashaccount = cashAccountsMap.get(entry.getKey());
+      CashAccountPosition cashAccountPosition = securityDividendsYearGroup
+          .getOrCreateAccountDividendPosition(cashaccount);
+      cashAccountPosition.cashBalance = entry.getValue();
+      securityDividendsYearGroup.yearInterestMC += cashAccountPosition.getRealReceivedDivInterestMC();
+      securityDividendsYearGroup.yearFeeMC += cashAccountPosition.getFeeCashAccountMC()
+          + cashAccountPosition.getFeeSecurityAccountMC();
+    }
   }
 
   private void calcSecurityTransaction(DateTransactionCurrencypairMap dateCurrencyMap,
@@ -215,12 +258,14 @@ public class SecurityDividendsReport {
     }
   }
 
-  private void calcInterestOrFee(DateTransactionCurrencypairMap dateCurrencyMap,
+  private void calcAccountTransactions(DateTransactionCurrencypairMap dateCurrencyMap,
       SecurityDividendsYearGroup securityDividendsYearGroup, Transaction transaction) {
+    CashAccountPosition cashAccountPosition = securityDividendsYearGroup
+        .getOrCreateAccountDividendPosition(transaction.getCashaccount());
     if (transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT) {
-      securityDividendsYearGroup.addInterest(transaction.getInterestExRate(dateCurrencyMap));
+      cashAccountPosition.updateInterestPosition(transaction, securityDividendsYearGroup, dateCurrencyMap);
     } else if (transaction.getTransactionType() == TransactionType.FEE) {
-      securityDividendsYearGroup.addFee(transaction.getFeeExRate(dateCurrencyMap));
+      cashAccountPosition.updateFeePosition(transaction, securityDividendsYearGroup, dateCurrencyMap);
     }
   }
 
@@ -249,7 +294,8 @@ public class SecurityDividendsReport {
    * @param unitsCounterBySecurityMap
    */
   private void createFillYearWithOpenPositions(final SecurityDividendsGrandTotal securityDividendsGrandTotal,
-      final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap, final Map<Integer, List<Securitysplit>> securitysplitMap) {
+      final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
+      final Map<Integer, List<Securitysplit>> securitysplitMap) {
     final SecurityDividendsYearGroup securityDividendsYearGroupLast = securityDividendsGrandTotal
         .getOrCreateGroup(year);
     securityDividendsYearGroupLast.fillYearWithOpenPositions(unitsCounterBySecurityMap, securitysplitMap);
