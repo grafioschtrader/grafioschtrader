@@ -36,7 +36,6 @@ import jakarta.validation.constraints.Size;
  * Transactions from csv or pdf file are imported in this table. Normally a csv
  * will creates many and a pdf may create only one.
  *
- *
  */
 @Entity
 @Table(name = ImportTransactionPos.TABNAME)
@@ -377,10 +376,11 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     this.transactionCost = transactionCost;
   }
 
-  public void setTransactionCost(Double transactionCost1, Double transactionCost2, boolean add) {
+  public void setTransactionCost(Double transactionCost1, Double transactionCost2, Double reduceFromCost, boolean add) {
     double tc1 = transactionCost1 != null ? Math.abs(transactionCost1) : 0.0;
     double tc2 = transactionCost2 != null ? Math.abs(transactionCost2) : 0.0;
-    double transactionCostC = tc1 + tc2 + (add && transactionCost != null ? transactionCost : 0.0);
+    double reduce = reduceFromCost != null ? Math.abs(reduceFromCost) : 0.0;
+    double transactionCostC = tc1 + tc2 - reduce + (add && transactionCost != null ? transactionCost : 0.0);
     transactionCost = transactionCostC == 0.0 ? null : transactionCostC;
   }
 
@@ -610,7 +610,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
           if (ip.getTa() != null && importTransactionPos.getFileType().equals(CSV_FILE)) {
             importTransactionPos.setCashaccountAmount(importTransactionPos.getCashaccountAmount() + ip.getTa());
           }
-          importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), true);
+          importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), ip.getReduce(), true);
           importTransactionPos.setTaxCost(ip.getTt1(), ip.getTt2(), true);
           importTransactionPos.setAccruedInterest(ip.getAc(), true);
         }
@@ -637,7 +637,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     Double exchangeRate = ip.getCex() != null || ip.getCin() != null && !ip.getCac().equals(ip.getCin()) ? ip.getCex()
         : null;
     importTransactionPos.setCurrencyExRate(exchangeRate);
-    importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), false);
+    importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), ip.getReduce(), false);
     return importTransactionPos;
   }
 

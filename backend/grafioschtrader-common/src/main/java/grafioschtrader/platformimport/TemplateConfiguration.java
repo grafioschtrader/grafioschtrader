@@ -20,8 +20,6 @@ import grafioschtrader.types.TransactionType;
  *
  * Base configuration for parsing templates as pdf(txt) or csv(txt).
  *
- * @author Hugo Graf
- *
  */
 public abstract class TemplateConfiguration {
 
