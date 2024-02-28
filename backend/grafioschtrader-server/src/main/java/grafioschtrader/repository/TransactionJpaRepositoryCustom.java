@@ -12,7 +12,7 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
 
   List<Transaction> getSecurityAccountWithFeesAndIntrerestTransactionsByTenant(Integer idTenant);
 
-  CashaccountTransactionPosition[] getTransactionsWithSaldoForCashaccount(Integer idSecuritycashAccount);
+  CashaccountTransactionPosition[] getTransactionsWithBalanceForCashaccount(final Integer idSecuritycashAccount, int year, int[] transactionTypes);
 
   void deleteSingleDoubleTransaction(Integer idTransaction);
 

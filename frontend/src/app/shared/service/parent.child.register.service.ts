@@ -35,7 +35,7 @@ export class ParentChildRegisterService {
     this.pageServerMap.set(id, pageFirstRowSelectedRow);
   }
 
-  public getRowPostion(id: number): PageFirstRowSelectedRow {
+  public getRowPosition(id: number): PageFirstRowSelectedRow {
     const pageFirstRowSelectedRow = (id) ? this.pageServerMap.get(id) : null;
     return pageFirstRowSelectedRow ? pageFirstRowSelectedRow : new PageFirstRowSelectedRow(0, null);
   }

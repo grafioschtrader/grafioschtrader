@@ -95,7 +95,7 @@ public class Currencypair extends Securitycurrency<Currencypair> implements Seri
   }
 
   @Override
-  public boolean exspectVolume() {
+  public boolean expectVolume() {
     return GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(fromCurrency);
   }
 

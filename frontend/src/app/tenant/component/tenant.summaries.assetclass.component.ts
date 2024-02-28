@@ -18,7 +18,7 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {FilterService} from 'primeng/api';
 
 /**
- * It groups asset classes of securities and includes saldo of cash accounts as an asset class.
+ * It groups asset classes of securities and includes balance of cash accounts as an asset class.
  */
 @Component({
   templateUrl: '../../securityaccount/view/securityaccount.table.html'

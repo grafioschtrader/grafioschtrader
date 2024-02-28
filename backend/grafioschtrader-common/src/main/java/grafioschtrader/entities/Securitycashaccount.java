@@ -8,6 +8,7 @@ package grafioschtrader.entities;
 import static jakarta.persistence.InheritanceType.JOINED;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -66,6 +67,10 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   @Column(name = "id_tenant")
   private Integer idTenant;
 
+  // TODO integrate in UI and somewhere else
+  @Column(name = "active_to_date")
+  private LocalDate activeToDate;
+  
   public Securitycashaccount() {
   }
 
@@ -120,6 +125,14 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   @Override
   public void setIdTenant(Integer idTenant) {
     this.idTenant = idTenant;
+  }
+  
+  public LocalDate getActiveToDate() {
+    return activeToDate;
+  }
+
+  public void setActiveToDate(LocalDate activeToDate) {
+    this.activeToDate = activeToDate;
   }
 
   @Override

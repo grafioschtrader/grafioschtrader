@@ -26,7 +26,7 @@ import {AppSettings} from '../../shared/app.settings';
   selector: 'securityaccount-edit',
   template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '600px'}"
+              [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -64,7 +64,7 @@ export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securitya
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'SECURITYACCOUNT_NAME', 25, true),
-      DynamicFieldHelper.createFieldSelectString('tradingPlatformPlan', AppSettings.TRADING_PLATFORM_PLAN.toUpperCase(),
+      DynamicFieldHelper.createFieldSelectStringHeqF('tradingPlatformPlan',
         true, {dataproperty: 'tradingPlatformPlan.idTradingPlatformPlan'}),
       ...this.getUntilFieldDefinition(),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('lowestTransactionCost', true,

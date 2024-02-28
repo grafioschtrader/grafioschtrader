@@ -61,7 +61,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
-    this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(null);
+    this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPosition(null);
   }
 
   handleDeleteTransaction(transaction: Transaction): void {
@@ -183,7 +183,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
 
   protected goToFirsRowPosition(id: number): void {
     setTimeout(() => {
-      this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(id);
+      this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPosition(id);
       this.firstRowIndexOnPage = this.pageFirstRowSelectedRow.topPageRow;
     });
   }

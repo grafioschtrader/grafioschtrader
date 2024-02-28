@@ -81,24 +81,32 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @PropertyAlwaysUpdatable
   private String tickerSymbol;
 
+  @Schema(description = "The traded volume within one day. Adjusted accordingly throughout the day")
   @Column(name = "s_volume")
   private Long sVolume;
 
+  @Schema(description = "Name of the instrument, this is not unique")
   @Basic(optional = false)
   @NotNull
   @Size(min = 2, max = 80)
   @PropertyAlwaysUpdatable
   private String name;
 
+  @Schema(description = "Reference to the asset class")
   @JoinColumn(name = "id_asset_class", referencedColumnName = "id_asset_class")
   @ManyToOne(optional = false, fetch = FetchType.EAGER)
   @PropertyAlwaysUpdatable
   private Assetclass assetClass;
 
+  @Schema(description = """
+          For bonds it is the smallest tradable unit and for fixed-term deposits it is the price. 
+          Is currently not validated for purchases and sales. 
+          As an insolvent creditor may choose other denominations for partial or full repayment.""")
   @Column(name = "denomination")
   @PropertyAlwaysUpdatable
   private Integer denomination;
 
+  @Schema(description = "Reference to the stock exchange.")
   @JoinColumn(name = "id_stockexchange", referencedColumnName = "id_stockexchange")
   @ManyToOne(optional = false, fetch = FetchType.EAGER)
   @PropertyAlwaysUpdatable
@@ -111,6 +119,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @PropertyAlwaysUpdatable
   private String productLink;
 
+  @Schema(description = "A security has a life span. This is defined with two dates. This is the date for trading from.")
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   @Column(name = "active_from_date")
   @Temporal(TemporalType.DATE)
@@ -119,6 +128,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
   private Date activeFromDate;
 
+  @Schema(description = "A security has a life span. This is defined with two dates. This is the date for delisting, due date, etc.")
   @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
   @Column(name = "active_to_date")
   @Temporal(TemporalType.DATE)
@@ -127,14 +137,16 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
   private Date activeToDate;
 
-  @Schema(description = "Some security pays dividend or interest in a certain frequency. "
-      + "It is used for transaction import of bonds to check interest amount against coupon rate")
+  @Schema(description = """
+          Some security pays dividend or interest in a certain frequency. 
+          It is used for transaction import of bonds to check interest amount against coupon rate""")
   @Column(name = "dist_frequency")
   @PropertyAlwaysUpdatable
   private byte distributionFrequency;
 
-  @Schema(description = "Certain instruments are short and may still be leveraged, this is mapped with this."
-      + "Used, for example, to correctly calculate the equity ratio for the portfolio.")
+  @Schema(description = """
+          Certain instruments are short and may still be leveraged, this is mapped with this. 
+          Used, for example, to correctly calculate the equity ratio for the portfolio.""")
   @Column(name = "leverage_factor")
   @PropertyAlwaysUpdatable
   @DecimalMin("-9.99")
@@ -153,6 +165,9 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @PropertyAlwaysUpdatable
   private String formulaPrices;
 
+  @Schema(description = """
+          A derived instrument refers in minimum to another instrument. 
+          The ID of this instrument is held here.""")
   @Column(name = "id_link_securitycurrency")
   @PropertyAlwaysUpdatable
   private Integer idLinkSecuritycurrency;
@@ -172,6 +187,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @Column(name = "dividend_currency")
   private String dividendCurrency;
 
+  @Schema(description = "Repetition counter of failed attempts to download the dividends from the data source.")
   @Column(name = "retry_dividend_load")
   @PropertyAlwaysUpdatable
   private Short retryDividendLoad = 0;
@@ -185,6 +201,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @PropertyAlwaysUpdatable
   private String urlSplitExtend;
 
+  @Schema(description = "Retry counter of failed attempts to download splits from the data source.")
   @Column(name = "retry_split_load")
   @PropertyAlwaysUpdatable
   private Short retrySplitLoad = 0;
@@ -471,7 +488,6 @@ public class Security extends Securitycurrency<Security> implements Serializable
     this.retrySplitLoad = retrySplitLoad;
   }
 
-
   public Date getDividendEarliestNextCheck() {
     return dividendEarliestNextCheck;
   }
@@ -584,7 +600,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   }
 
   @Override
-  public boolean exspectVolume() {
+  public boolean expectVolume() {
     return !(isDerivedInstrument()
         || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES);
   }

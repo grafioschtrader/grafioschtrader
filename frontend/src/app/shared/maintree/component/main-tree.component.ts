@@ -195,11 +195,11 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
           data: new TypeNodeData(TreeNodeType.ImpTransTemplate, this.addMainRoute(AppSettings.IMP_TRANS_TEMPLATE_KEY),
             null, null, null)
         },
-        // {
-        //   label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
-        //   data: new TypeNodeData(TreeNodeType.UDFMetadataSecurity, this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),
-        //     null, null, null)
-        // }
+   /*     {
+          label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
+          data: new TypeNodeData(TreeNodeType.UDFMetadataSecurity, this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),
+            null, null, null)
+        }*/
       ];
     this.setLangTransNode(this.portfolioTrees[this.BASEDATA_INDEX]);
   }

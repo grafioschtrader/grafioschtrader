@@ -187,7 +187,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
         .findById(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
 
-    return gpLastAppend.isPresent()? gpLastAppend.get().getPropertyDate(): LocalDate.now().minusDays(1);
+    return gpLastAppend.isPresent() ? gpLastAppend.get().getPropertyDate() : LocalDate.now().minusDays(1);
 
   }
 
@@ -204,7 +204,6 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
     if (requestedSplitdate == null
         || !youngestSplitDate.isEmpty() && DateHelper.isSameDay(youngestSplitDate.get(), requestedSplitdate)) {
       historicalDataUpdateWhenAdjusted(security, securitysplitsRead, youngestSplitDate, !createdSplits.isEmpty());
-
     } else {
       // Expected Split could not be read
       if (DateHelper.getDateDiff(requestedSplitdate, new Date(),
@@ -216,7 +215,6 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
             new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).format(requestedSplitdate));
         taskDataChangeJpaRepository.save(taskDataChange);
       }
-
     }
   }
 
@@ -228,14 +226,15 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
     if (sahr.sah == SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED || (!youngestSplitDate.isEmpty()
         && security.getFullLoadTimestamp() != null && youngestSplitDate.get().after(security.getFullLoadTimestamp()))) {
+      // The historical price data must be reloaded if the most recent split date is
+      // more recent than the last complete load of this historical data.
       securityJpaRepository.reloadAsyncFullHistoryquote(security);
-
       if (requireHoldingBuild) {
         taskDataChangeJpaRepository
             .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
                 LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
       }
-    } else if(security.getFullLoadTimestamp() != null) {
+    } else if (security.getFullLoadTimestamp() != null && sahr.addDaysForNextAttempt != null) {
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
           TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(sahr.addDaysForNextAttempt),
           security.getIdSecuritycurrency(), Security.class.getSimpleName()));

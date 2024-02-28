@@ -193,7 +193,7 @@ public class InvestingConnector extends BaseFeedConnector {
   private <T extends Securitycurrency<T>> List<Historyquote> getEodHistory(final Securitycurrency<T> securitycurreny,
       final Date from, final Date to) throws Exception {
     String guid = DataHelper.generateGUID();
-    boolean expectVolume = securitycurreny.exspectVolume();
+    boolean expectVolume = securitycurreny.expectVolume();
     List<Historyquote> historyquotes = getEodHistoryLimitedRows(securitycurreny, from, to, guid, expectVolume);
 
     if (historyquotes.size() >= MAX_ROWS_DELIVERD - 1

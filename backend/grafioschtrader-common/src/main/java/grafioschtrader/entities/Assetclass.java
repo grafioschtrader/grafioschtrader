@@ -114,6 +114,7 @@ public class Assetclass extends Auditable implements Serializable {
   @Column(name = "id_asset_class")
   private Integer idAssetClass;
 
+  @Schema(description = "An instrument belongs to a group of asset classes, such as shares, bonds, etc.")
   @Basic(optional = false)
   @NotNull
   @Column(name = "category_type")
@@ -121,6 +122,7 @@ public class Assetclass extends Auditable implements Serializable {
   @Max(98)
   private byte categoryType;
 
+  @Schema(description = "An instrument belongs to a group of financial instruments, e.g. ETF, direct, etc.")
   @NotNull
   @Column(name = "spec_invest_instrument")
   @PropertySelectiveUpdatableOrWhenNull

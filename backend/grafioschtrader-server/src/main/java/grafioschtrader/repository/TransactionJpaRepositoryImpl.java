@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -330,7 +331,6 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     if (transaction.getTransactionType() == TransactionType.DIVIDEND && transaction.isTaxableInterest() == null) {
       transaction.setTaxableInterest(false);
     }
-
     Transaction transactioinNew = saveTransactionAndCorrectCashaccountBalance(transaction, existingEntity,
         adjustHoldings, false);
     if (adjustHoldings) {
@@ -503,12 +503,14 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   @Override
-  public CashaccountTransactionPosition[] getTransactionsWithSaldoForCashaccount(final Integer idSecuritycashAccount) {
+  public CashaccountTransactionPosition[] getTransactionsWithBalanceForCashaccount(final Integer idSecuritycashAccount,
+      int year, int[] transactionTypes) {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
-
-    final List<Transaction> transactions = transactionJpaRepository
-        .findByCashaccount_idSecuritycashAccountAndIdTenantOrderByTransactionTimeDesc(idSecuritycashAccount, idTenant);
-
+    final List<Transaction> transactions = year == 0
+        ? transactionJpaRepository.findByCashaccount_idSecuritycashAccountAndIdTenantOrderByTransactionTimeDesc(
+            idSecuritycashAccount, idTenant)
+        : transactionJpaRepository.findByTenantAndCashaccountAndYearAndTransactionType(idSecuritycashAccount, idTenant,
+            LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31), transactionTypes);
     final CashaccountTransactionPosition[] cashaccountTransactionPositions = new CashaccountTransactionPosition[transactions
         .size()];
     if (cashaccountTransactionPositions.length > 0) {
@@ -517,7 +519,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       for (int i = cashaccountTransactionPositions.length - 1; i >= 0; i--) {
         cashaccountTransactionPositions[i] = new CashaccountTransactionPosition(transactions.get(i),
             (i == cashaccountTransactionPositions.length - 1) ? transactions.get(i).getCashaccountAmount()
-                :  cashaccountTransactionPositions[i + 1].balance + transactions.get(i).getCashaccountAmount());
+                : cashaccountTransactionPositions[i + 1].balance + transactions.get(i).getCashaccountAmount());
 
       }
       for (CashaccountTransactionPosition cashaccountTransactionPosition : cashaccountTransactionPositions) {

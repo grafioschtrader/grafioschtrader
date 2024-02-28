@@ -30,8 +30,6 @@ import jakarta.persistence.TemporalType;
  * It contains the pdf or csv template as text, which will be used for import
  * transactions.
  *
- * @author Hugo Graf
- *
  */
 // @JsonFilter("NON_TEMPLATE")
 @Entity

@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.31.6</version>
+		<version>0.31.7</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.31.6</version>
+			<version>0.31.7</version>
 		</dependency>
 
 
@@ -163,13 +163,13 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20231013</version>
+			<version>20240205</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
-			<version>0.12.3</version>
+			<version>0.12.5</version>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.annotation</groupId>
@@ -194,13 +194,13 @@
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
-			<version>0.12.3</version>
+			<version>0.12.5</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
-			<version>0.12.3</version>
+			<version>0.12.5</version>
 			<scope>runtime</scope>
 		</dependency>
 
@@ -219,7 +219,7 @@
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.17.1</version>
+			<version>1.17.2</version>
 		</dependency>
 
 		<dependency>
@@ -249,7 +249,7 @@
 		<dependency>
      		 <groupId>com.ezylang</groupId>
      		 <artifactId>EvalEx</artifactId>
-     		 <version>3.1.0</version>
+     		 <version>3.1.1</version>
    		 </dependency>
 
 		<!-- Not really used -->

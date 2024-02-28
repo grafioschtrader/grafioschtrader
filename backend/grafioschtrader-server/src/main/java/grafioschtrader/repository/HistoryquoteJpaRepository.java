@@ -116,6 +116,14 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<ISecuritycurrencyIdDateClose> getIdDateCloseByIdsAndDate(@Param("ids") List<Integer> idSecuritycurrencies,
       @Param("date") Date date);
 
+  /**
+   * Determines all historical year-end exchange rates for the foreign currencies
+   * used by the customer. In addition, the historical year-end rates of the
+   * securities held are also determined.
+   * 
+   * @param idTenant
+   * @return
+   */
   @Query(nativeQuery = true)
   List<Historyquote> getSecuritycurrencyHistoryEndOfYearsByIdTenant(Integer idTenant);
 
@@ -147,9 +155,9 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<Object[]> getHistoryquoteCurrenciesForBuyAndSellByIdTenantAndMainCurrency(Integer idTenant, String mainCurrency);
 
   /**
-   * Return exchange rate for buy/sell/dividend transactions depending on tenant
-   * and main currency. This include all exchange rates from history quotes with
-   * transactions on foreign cash account.
+   * Returns the end-of-day exchange rate to the main currency for all
+   * transactions of a tenant in foreign currencies. This include all exchange
+   * rates from history quotes with transactions on foreign cash account.
    *
    * @param idTenant
    * @param mainCurrency

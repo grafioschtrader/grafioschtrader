@@ -98,7 +98,7 @@ import {HistoryquoteEditComponent} from './historyquote/component/historyquote-e
 import {TransactionCashaccountTableComponent} from './transaction/component/transaction-cashaccount-table.component';
 import {TransactionSecurityTableComponent} from './transaction/component/transaction-security-table.component';
 import {TenantEditDialogComponent} from './tenant/component/tenant-edit-dialog.component';
-import {TenantDividendsExtendedComponent} from './tenant/component/tenant-dividends-extended.component';
+import {TenantDividendsSecurityExtendedComponent} from './tenant/component/tenant-dividends-security-extended.component';
 import {SecuritycurrencyExtendedInfoComponent} from './watchlist/component/securitycurrency-extended-info.component';
 import {TenantTransactionCostExtendedComponent} from './tenant/component/tenant-transaction-cost-extended.component';
 import {SecuritysplitEditTableComponent} from './securitycurrency/component/securitysplit-edit-table.component';
@@ -324,6 +324,9 @@ import {NgxCurrencyDirective} from 'ngx-currency';
 import {UDFMetadataSecurityService} from './shared/udfmeta/service/udf.metadata.security.service';
 import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf.metadata.security.table.component';
 import {UDFMetadataSecurityEditComponent} from './shared/udfmeta/components/udf-metadata-security-edit.component';
+import {
+  TenantDividendsCashaccountExtendedComponent
+} from './tenant/component/tenant-dividends-cashaccount-extended.component';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -363,7 +366,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TenantPerformanceTabMenuComponent, PerformancePeriodComponent, TenantPerformanceEodMissingComponent,
     TemplateFormCheckDialogResultFailedComponent, TemplateFormCheckDialogResultSuccessComponent, TenantPerformanceFromToDiffComponent,
     TenantDividendAccountSelectionComponent, TenantDividendsComponent, TenantDividendSecurityAccountSelectionDialogComponent,
-    TenantDividendsExtendedComponent, TenantEditDialogComponent, TenantEditFullPageComponent, TenantSummariesAssetclassComponent,
+    TenantDividendsCashaccountExtendedComponent,
+    TenantDividendsSecurityExtendedComponent, TenantEditDialogComponent, TenantEditFullPageComponent, TenantSummariesAssetclassComponent,
     TenantPerformanceTreetableComponent, TradingCalendarOtherExchangeDynamicComponent, TenantPerformanceEodMissingTableComponent,
     TransactionSecurityMarginTreetableComponent, TaskDataChangeTableComponent, TaskDataChangeEditComponent,
     TenantSummariesCashaccountComponent, TenantSummariesSecurityaccountComponent, TenantTabMenuComponent,
