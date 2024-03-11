@@ -6,7 +6,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {AppSettings} from '../../shared/app.settings';
 import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
 import {HelpIds} from '../../shared/help/help.ids';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CalendarNavigation} from './calendar.navigation';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
 

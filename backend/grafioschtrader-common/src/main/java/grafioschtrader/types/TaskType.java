@@ -8,7 +8,7 @@ public enum TaskType {
   PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU((byte) 0),
   // Dividend connector has changed -> Read dividends
   SECURITY_DIVIDEND_UPDATE_FOR_SECURITY((byte) 1),
-  // Split connector has changed -> Read splits
+  // Data connector for splits has been changed or triggered by a split calendar event. -> Read splits
   SECURITY_SPLIT_UPDATE_FOR_SECURITY((byte) 2),
   // Creation of currencies and possible recreation of holing tables
   CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO((byte) 3),
@@ -44,6 +44,9 @@ public enum TaskType {
   // Loading historical exchange rates from the European Central Bank (ECB).
   // Should be done daily if possible but not necessarily on weekends.
   LOAD_ECB_CURRENCY_EXCHNAGE_RATES((byte) 16),
+  // Checks whether a connector for historical price data may no longer be working.
+  MONITOR_HISTORICAL_PRICE_DATA((byte) 17),
+  
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////
   // Moves shared entities from one user to another user by changing field

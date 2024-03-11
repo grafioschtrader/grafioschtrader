@@ -9,7 +9,7 @@ import {Helper} from '../../helper/helper';
 import {AppHelper, Comparison} from './app.helper';
 import {EnumI} from './enumI';
 import {SelectItem} from 'primeng/api';
-import * as moment from 'moment';
+import moment from 'moment';
 
 export class SelectOptionsHelper {
 

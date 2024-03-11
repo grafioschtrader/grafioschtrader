@@ -3,7 +3,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {Subscription} from 'rxjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CorrelationLimit, SamplingPeriodType} from '../../entities/correlation.set';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import Base = moment.unitOfTime.Base;

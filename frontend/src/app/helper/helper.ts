@@ -1,7 +1,7 @@
 import {DataType} from '../dynamic-form/models/data.type';
 import {InputType} from '../dynamic-form/models/input.type';
 import {FieldConfig} from '../dynamic-form/models/field.config';
-import * as moment from 'moment';
+import moment from 'moment';
 import {FormConfig} from '../dynamic-form/models/form.config';
 import {AppSettings} from '../shared/app.settings';
 

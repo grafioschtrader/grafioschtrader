@@ -21,7 +21,7 @@ import {
 } from './transaction.security.edit.reduce';
 import {SecurityaccountOpenPositionUnits} from '../../entities/view/securityaccount.open.position.units';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
-import * as moment from 'moment';
+import moment from 'moment';
 import {ActivatedRoute} from '@angular/router';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';

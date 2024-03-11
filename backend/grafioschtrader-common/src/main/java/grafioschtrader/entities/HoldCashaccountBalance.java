@@ -13,7 +13,9 @@ import jakarta.persistence.Table;
  * It categorizes every transaction on the cash accounts by its transaction
  * type. That means for every day with one or more transaction produces a new
  * period. The number of records in this is less than the number of records in
- * transaction because multiple transaction on one day produce a single record.
+ * transaction because multiple transaction on one day produce a single record.<br>
+ * 
+ * This table is not offered via a rest API.
  *
  */
 @Entity

@@ -82,6 +82,11 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS = GT_PREFIX + "w.intra.update.timeout.seconds";
   public static final String GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY = GT_PREFIX + "history.max.filldays.currency";
 
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK = "history.oberservation.days.back";
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS = "history.oberservation.retry.minus";
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE = "history.oberservation.falling.percentage";
+  
+  
   // History quote quality. Date which last time when a history quality update was
   // happened
   public static final String GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE = GT_PREFIX + "historyquote.quality.update.date";
@@ -186,6 +191,11 @@ public class Globalparameters implements Serializable {
   public static final int DEFAULT_MAX_SECURITY_BREACH_COUNT = 5;
   public static final Date DEFAULT_START_FEED_DATE = new GregorianCalendar(2000, Calendar.JANUARY, 1).getTime();
 
+  public static final int DEFAULT_HISTORY_OBSERVATION_DAYS_BACK = 60;
+  public static final int DEFAULT_HISTORY_OBSERVATION_RETRY_MINUS = 0;
+  public static final int DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE = 80;
+  
+  
   public static final int DEFAULT_ALERT_MAIL = Integer.MAX_VALUE;
 
   public static final int DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY = 5;

@@ -10,7 +10,12 @@ import {catchError, tap} from 'rxjs/operators';
 import {Auditable} from '../../entities/auditable';
 import {BaseAuthService} from '../login/service/base.auth.service';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
-import * as moment from 'moment';
+import moment from 'moment';
+import 'moment/locale/de-ch.js';
+import 'moment/locale/de.js';
+import 'moment/locale/en-gb.js';
+import 'moment/locale/en-au.js';
+import 'moment/locale/en-nz.js';
 import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 import {ServiceEntityUpdate} from '../edit/service.entity.update';
 import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
@@ -68,6 +73,12 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return sessionStorage.getItem(GlobalSessionNames.LANGUAGE) || 'en';
   }
 
+  private getTimeLocale(): string {
+    if(['de', 'en-gb', 'en-au', 'en-nz'].indexOf(this.getLocale().toLowerCase()) != -1) {
+      return this.getLocale().toLowerCase();
+    }
+    return this.getLocale().startsWith('de')? 'de': 'en';
+  }
 
   public getLocale(): string {
     return sessionStorage.getItem(GlobalSessionNames.LOCALE) || 'de-CH';
@@ -92,7 +103,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   public getTimeDateFormatForTable(): string {
     if (!this.timeDateFormat) {
-      moment.locale(this.getLocale());
+      moment.locale(this.getTimeLocale());
       const formatYear = moment.localeData().longDateFormat('L');
       const formatTime = moment.localeData().longDateFormat('LT');
       this.timeDateFormat = formatTime + ' ' + formatYear.replace(/YYYY/g, 'YY');
@@ -102,13 +113,14 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   public getTimeSecondDateFormatForTable(): string {
     if (!this.timeSecondDateFormat) {
-      moment.locale(this.getLocale());
+      moment.locale(this.getTimeLocale());
       const formatYear = moment.localeData().longDateFormat('L');
       const formatTime = moment.localeData().longDateFormat('LTS');
       this.timeSecondDateFormat = formatTime + ' ' + formatYear.replace(/YYYY/g, 'YY');
     }
     return this.timeSecondDateFormat;
   }
+
 
 
   public getNumberCurrencyMask(): NgxCurrencyConfig {
@@ -154,7 +166,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   public getCalendarTwoNumberDateFormat(): string {
     if (!this.dateFormatCalendarTowNumber) {
-      moment.locale(this.getLocale());
+      moment.locale(this.getTimeLocale());
       const formatYear = moment.localeData().longDateFormat('L');
       this.dateFormatCalendarTowNumber = formatYear.replace(/YYYY/g, 'Y');
     }
@@ -283,7 +295,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   }
 
   private getDateFormatYearCalendar(yearReplace: string): string {
-    moment.locale(this.getLocale());
+    moment.locale(this.getTimeLocale());
     const formatYear = moment.localeData().longDateFormat('L');
     return formatYear.replace(/YYYY/g, yearReplace);
   }

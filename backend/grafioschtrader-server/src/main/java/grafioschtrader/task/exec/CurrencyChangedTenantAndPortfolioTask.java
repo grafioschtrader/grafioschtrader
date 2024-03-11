@@ -19,10 +19,7 @@ import grafioschtrader.types.TaskType;
 
 /**
  * Changed currency of tenant and portfolio it needs a creation of currencies
- * and possible recreation of holing tables
- *
- * @author Hugo Graf
- *
+ * and possible recreation of holing tables.
  */
 
 @Component

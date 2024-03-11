@@ -28,7 +28,7 @@ import {Subscription} from 'rxjs';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {Router} from '@angular/router';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
-import * as moment from 'moment';
+import moment from 'moment';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {AppHelper} from '../../shared/helper/app.helper';
 

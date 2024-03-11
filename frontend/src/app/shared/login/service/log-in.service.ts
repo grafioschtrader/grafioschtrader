@@ -11,7 +11,7 @@ import {GlobalSessionNames} from '../../global.session.names';
 import {catchError} from 'rxjs/operators';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {BaseAuthService} from './base.auth.service';
-import * as moment from 'moment';
+import moment from 'moment';
 import {UserOwnProjection} from '../../../entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
 import {ConfigurationWithLogin} from '../component/login.component';

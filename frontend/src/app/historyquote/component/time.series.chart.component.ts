@@ -21,7 +21,7 @@ import {combineLatest, Observable, Subscription} from 'rxjs';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {AppHelper, Comparison} from '../../shared/helper/app.helper';
-import * as moment from 'moment';
+import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {MenuItem, SelectItem} from 'primeng/api';

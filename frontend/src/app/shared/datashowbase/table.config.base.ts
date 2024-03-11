@@ -6,7 +6,7 @@ import {Helper} from '../../helper/helper';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {ColumnConfig} from './column.config';
 import {Table} from 'primeng/table';
-import * as moment from 'moment';
+import moment from 'moment';
 import {FilterType} from './filter.type';
 import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
 import {DataType} from '../../dynamic-form/models/data.type';

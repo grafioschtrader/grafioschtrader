@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +23,10 @@ import grafioschtrader.repository.helper.HoldingsHelper;
 
 /**
  * It changes with every new or updated transaction.
- *
- *
  */
 public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountBalanceJpaRepositoryCustom {
 
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
-
+  
   @Autowired
   HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
@@ -53,9 +48,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
   @Transactional
   @Modifying
   public void createCashaccountBalanceEntireByTenant(Integer idTenant) {
-    long startTime = System.currentTimeMillis();
     createCashaccountBalanceEntireByTenant(tenantJpaRepository.getReferenceById(idTenant));
-    log.debug("End - HoldCashaccountSaldo: {}", System.currentTimeMillis() - startTime);
   }
 
   private void createCashaccountBalanceEntireByTenant(Tenant tenant) {

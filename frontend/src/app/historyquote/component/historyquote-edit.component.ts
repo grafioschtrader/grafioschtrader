@@ -14,7 +14,7 @@ import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propos
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
-import * as moment from 'moment';
+import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 
 /**
@@ -24,7 +24,7 @@ import {AppSettings} from '../../shared/app.settings';
   selector: 'historyquote-edit',
   template: `
     <p-dialog header="{{'HISTORY_QUOTE_FOR' | translate}} {{callParam.showName}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '400px'}"
+              [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

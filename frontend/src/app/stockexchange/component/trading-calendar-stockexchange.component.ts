@@ -20,7 +20,7 @@ import {MenuItem} from 'primeng/api';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {TradingCalendarOtherExchangeDynamicComponent} from './trading.calendar.other.exchange.dynamic.component';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import * as moment from 'moment';
+import moment from 'moment';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {Stockexchange} from '../../entities/stockexchange';
 import {AppSettings} from '../../shared/app.settings';
