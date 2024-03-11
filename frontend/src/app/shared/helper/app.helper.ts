@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import {combineLatest} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';

@@ -32,6 +32,12 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   @Query(value = "SELECT c.from_currency FROM currencypair c WHERE c.to_currency = ?1", nativeQuery = true)
   Set<String> getFromCurrencyByToCurrency(String toCurrency);
 
+  /**
+   * Determines all currencies used in the transactions of a portfolio excluding the specified currency
+   * @param idTenant ID of tenant
+   * @param excludeCurrency exclude this currency from the result set
+   * @return used currencies as set
+   */
   @Query(nativeQuery = true)
   Set<String> getSecurityTransactionCurrenciesForTenantExclude(Integer idTenant, String excludeCurrency);
 

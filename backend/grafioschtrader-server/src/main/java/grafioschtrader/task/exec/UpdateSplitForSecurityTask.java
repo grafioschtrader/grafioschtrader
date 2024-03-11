@@ -20,9 +20,10 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
 /**
- * Normally called when the split data connector is changed or thru split
- * calendar a possible update was detected. It reloads all splits for a
- * specified security.
+ * Is triggered if the data connector of the split has been changed or if a
+ * possible new split has been detected in the split calendar. It reloads all
+ * splits for a specific security. If the instrument's splits have been changed,
+ * the historical price data is also completely reloaded.
  */
 @Component
 public class UpdateSplitForSecurityTask implements ITask {

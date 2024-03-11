@@ -8,7 +8,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import * as moment from 'moment';
+import moment from 'moment';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';

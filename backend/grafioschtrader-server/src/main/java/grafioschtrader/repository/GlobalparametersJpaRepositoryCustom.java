@@ -54,7 +54,13 @@ public interface GlobalparametersJpaRepositoryCustom {
   short getMaxDividendRetry();
 
   short getMaxSplitRetry();
-
+  
+  int getHistoryObeservationDaysBack();
+  
+  int getHistoryObeservationRetryMinus();
+  
+  int getHistoryObeservationFallingPercentage();
+  
   int getMaxFillDaysCurrency();
 
   int getJWTExpirationMinutes();

@@ -58,7 +58,6 @@ public class CopyTenantToDemoAccountsTask implements ITask {
   public void doWork(TaskDataChange taskDataChange) {
     copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE, demoAccountPatternDE);
     copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN, demoAccountPatternEN);
-
   }
 
   private void copyTenant(String sourceTenant, String dap) {

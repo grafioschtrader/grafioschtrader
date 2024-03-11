@@ -22,7 +22,7 @@ import {combineLatest, Subscription} from 'rxjs';
 import {Observable} from 'rxjs/internal/Observable';
 import {Security} from '../../entities/security';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import * as moment from 'moment';
+import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {GroupItem} from '../../dynamic-form/models/value.key.html.select.options';
 import {StockexchangeMic} from '../model/stockexchange.base.data';

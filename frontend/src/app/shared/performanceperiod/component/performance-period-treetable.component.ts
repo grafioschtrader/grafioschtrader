@@ -14,7 +14,7 @@ import {DataType} from '../../../dynamic-form/models/data.type';
 import {ColumnConfig, ColumnGroupConfig} from '../../datashowbase/column.config';
 import {WeekYear} from '../service/holding.service';
 import {Helper} from '../../../helper/helper';
-import * as moment from 'moment';
+import moment from 'moment';
 import {AppHelper} from '../../helper/app.helper';
 import {AppSettings} from '../../app.settings';
 

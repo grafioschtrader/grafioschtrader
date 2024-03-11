@@ -19,10 +19,9 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
 /**
- * Creation of currencies and possible recreation of holing tables
- *
- * @author Hugo Graf
- *
+ * If the main currency of a tenant or one of their portfolios changes, any
+ * missing currency pairs must be created for this main currency. The position
+ * tables must also be reconstructed.
  */
 @Component
 public class CurrencyChangedTenantOrPortfolioTask implements ITask {
@@ -64,7 +63,6 @@ public class CurrencyChangedTenantOrPortfolioTask implements ITask {
     holdSecurityaccountSecurityRepository.createSecurityHoldingsEntireByTenant(idEntity);
     holdCashaccountDepositJpaRepository.createCashaccountDepositTimeFrameByTenant(idEntity);
     holdCashaccountBalanceJpaRepository.createCashaccountBalanceEntireByTenant(idEntity);
-
   }
 
 }

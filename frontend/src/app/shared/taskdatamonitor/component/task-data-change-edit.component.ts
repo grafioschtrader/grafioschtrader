@@ -14,7 +14,7 @@ import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {Subscription} from 'rxjs';
 import {FormHelper} from '../../../dynamic-form/components/FormHelper';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import * as moment from 'moment';
+import moment from 'moment';
 import {Validators} from '@angular/forms';
 
 @Component({

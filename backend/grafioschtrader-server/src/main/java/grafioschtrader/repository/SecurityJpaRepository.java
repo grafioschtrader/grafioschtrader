@@ -120,7 +120,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
       HAVING s.activeToDate >= MAX(h.date) ORDER BY s.idSecuritycurrency""")
   List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithCalculation(short maxHistoryRetry);
 
-  @Query(value="SELECT IF(EXISTS(SELECT * FROM transaction t WHERE t.id_securitycurrency=?1) = 1, 'true', 'false' ); ", nativeQuery = true)
+  @Query(value = "SELECT IF(EXISTS(SELECT * FROM transaction t WHERE t.id_securitycurrency=?1) = 1, 'true', 'false' ); ", nativeQuery = true)
   boolean hasSecurityTransaction(Integer idSecuritycurency);
 
   // Catch history quotes as well for this Security
@@ -146,6 +146,9 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   @Query(nativeQuery = true)
   List<SecurityYearClose> getSecurityYearDivSumCurrencyClose(Integer idSecurity, Integer idCurrencypair);
+
+  @Query(nativeQuery = true)
+  List<FailedHistoricalConnector> getFailedHistoryConnector(LocalDate dateBack, int retry, int percentageFailed);
 
   @Override
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
@@ -187,4 +190,14 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
     LocalDate getMarkDate();
   }
 
+  public static interface FailedHistoricalConnector {
+    String connector();
+
+    int working();
+
+    int failed();
+
+    int percentageFailed();
+
+  }
 }

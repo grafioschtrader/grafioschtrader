@@ -20,7 +20,7 @@ import {
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
 import {SecurityCurrencyService} from './security.currency.service';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Injectable()
 export class SecurityService extends SecurityCurrencyService<Security> {

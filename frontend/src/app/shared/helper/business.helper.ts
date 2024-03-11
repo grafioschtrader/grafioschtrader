@@ -3,7 +3,7 @@ import {TransactionType} from '../types/transaction.type';
 import {Currencypair} from '../../entities/currencypair';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {AbstractControl} from '@angular/forms';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CurrencypairWithHistoryquote} from '../../entities/view/currencypair.with.historyquote';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {Observable} from 'rxjs';

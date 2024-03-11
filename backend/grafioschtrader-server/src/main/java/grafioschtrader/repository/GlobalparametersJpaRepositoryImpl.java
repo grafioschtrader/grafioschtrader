@@ -175,6 +175,25 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   }
 
   @Override
+  public int getHistoryObeservationDaysBack() {
+    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK)
+        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_DAYS_BACK);
+  }
+  
+  @Override
+  public int getHistoryObeservationRetryMinus() {
+    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS)
+        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_RETRY_MINUS);
+  }
+  
+  @Override
+  public int getHistoryObeservationFallingPercentage() {
+    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE)
+        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE);
+  }
+    
+  
+  @Override
   public Date getStartFeedDate() throws ParseException {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_START_FEED_DATE)
         .map(g -> DateHelper.getDateFromLocalDate(g.getPropertyDate()))

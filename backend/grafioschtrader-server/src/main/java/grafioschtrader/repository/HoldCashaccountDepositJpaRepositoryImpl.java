@@ -60,19 +60,15 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
   @Modifying
   @Override
   public void createCashaccountDepositTimeFrameByTenant(Integer idTenant) {
-    long startTime = System.currentTimeMillis();
     createCashaccountDepositTimeFrameByTenant(tenantJpaRepository.getReferenceById(idTenant));
-    log.debug("End - HoldCashaccountDeposit: {}", System.currentTimeMillis() - startTime);
   }
 
   public void createCashaccountDepositTimeFrameByTenant(Tenant tenant) {
-    long startTime = System.currentTimeMillis();
     holdCashaccountDepositJpaRepository.removeByIdTenant(tenant.getIdTenant());
     HoldDepositForTenant holdDepositForTenant = new HoldDepositForTenant();
     holdDepositForTenant.setTenant(tenant);
     holdDepositForTenant.loadDataForTenant(holdCashaccountDepositJpaRepository, currencypairJpaRepository);
     createCashaccountDepositTimeFrameForPortfolios(holdDepositForTenant);
-    log.debug("End - HoldCashaccountDeposit: {}", System.currentTimeMillis() - startTime);
   }
 
   @Override
@@ -113,7 +109,7 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
               Collectors.toList()));
       for (Integer idCashaccount : transactionCaAcMap.keySet()) {
         List<Transaction> transactionCaAc = transactionCaAcMap.get(idCashaccount);
-        Portfolio portfolio = transactionCaAc.get(0).getCashaccount().getPortfolio();
+        Portfolio portfolio = transactionCaAc.getFirst().getCashaccount().getPortfolio();
         holdDepositForTenant.setAmounts(prevHoldingMap.get(idCashaccount));
         holdCashaccountList.addAll(calcDepositOnTransactionsOfCashaccount(transactionCaAc, portfolio.getIdPortfolio(),
             portfolio.getCurrency(), holdDepositForTenant, null));

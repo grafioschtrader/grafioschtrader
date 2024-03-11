@@ -3,7 +3,7 @@ import {Directive, EventEmitter, Input, Output} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import * as moment from 'moment';
+import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {MessageToastService} from '../../shared/message/message.toast.service';

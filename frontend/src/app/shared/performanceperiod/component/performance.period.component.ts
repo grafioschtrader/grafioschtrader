@@ -14,7 +14,7 @@ import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {MenuItem} from 'primeng/api';
 import {Subscription} from 'rxjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import {Weekday} from '../../helper/weekday';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';

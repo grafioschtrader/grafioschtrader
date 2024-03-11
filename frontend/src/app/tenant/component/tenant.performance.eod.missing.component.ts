@@ -11,7 +11,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {HoldingService} from '../../shared/performanceperiod/service/holding.service';
 import {MissingQuotesWithSecurities} from '../model/missing.quotes.with.securities';
 import {Security} from '../../entities/security';
-import * as moment from 'moment';
+import moment from 'moment';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {Subscription} from 'rxjs';
 import {Router} from '@angular/router';
