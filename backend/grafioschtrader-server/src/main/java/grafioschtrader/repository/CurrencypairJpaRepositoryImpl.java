@@ -327,7 +327,6 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     cashaccountPositionSummary.gainLossCurrencyMC = DataHelper
         .round(cashaccountPositionSummary.balanceCurrencyTransaction * price
             - cashaccountPositionSummary.balanceCurrencyTransactionMC, 2);
-
   }
 
   @Override

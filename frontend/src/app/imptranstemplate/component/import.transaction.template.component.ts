@@ -25,7 +25,7 @@ import {
   ImportTransactionTemplateService,
   SuccessFailedImportTransactionTemplate
 } from '../service/import.transaction.template.service';
-import * as filesaver from '../../shared/filesaver/filesaver';
+import filesaver from '../../shared/filesaver/filesaver';
 import {NgxFileDropEntry} from 'ngx-file-drop';
 import {AppHelper} from '../../shared/helper/app.helper';
 

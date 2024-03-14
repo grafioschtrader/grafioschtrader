@@ -37,7 +37,16 @@ public interface SecuritysplitJpaRepositoryCustom {
    */
   List<String> loadAllSplitDataFromConnectorForSecurity(Security security, Date requestedSplitdate);
 
-
-  public void historicalDataUpdateWhenAdjusted(Security security,  List<Securitysplit> securitysplits,
+  /**
+   * Loads the historical price data of a security if it reflects the split,
+   * otherwise another task is created for the future which repeats this process.
+   * 
+   * @param security
+   * @param securitysplits
+   * @param youngestSplitDate
+   * @param requireHoldingBuild
+   * @throws Exception
+   */
+  public void historicalDataUpdateWhenAdjusted(Security security, List<Securitysplit> securitysplits,
       Optional<Date> youngestSplitDate, boolean requireHoldingBuild) throws Exception;
 }

@@ -9,7 +9,7 @@ import {ViewSizeChangedService} from '../../layout/service/view.size.changed.ser
 import {HelpIds} from '../../help/help.ids';
 import {Location} from '@angular/common';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import * as filesaver from '../../../shared/filesaver/filesaver';
+import filesaver from '../../../shared/filesaver/filesaver';
 import {TenantService} from '../../../tenant/service/tenant.service';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';

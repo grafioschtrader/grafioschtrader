@@ -235,6 +235,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
                 LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
       }
     } else if (security.getFullLoadTimestamp() != null && sahr.addDaysForNextAttempt != null) {
+      //The historical price data does not yet reflect the split, so repeat the process in the future.
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
           TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(sahr.addDaysForNextAttempt),
           security.getIdSecuritycurrency(), Security.class.getSimpleName()));

@@ -20,8 +20,10 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
 /**
- * When a split is added it may take some days until the data provider reflect
- * that in adjusted historical prices
+ * If a split is added for a security, it may take a few days for the adjusted
+ * historical price data to be available from the data provider. This task is
+ * therefore repeated until the historical price data for the security has been
+ * successfully imported.
  */
 @Component
 public class CheckReloadSecurityAdjustedPricesAfterSplitTask implements ITask {
@@ -33,7 +35,6 @@ public class CheckReloadSecurityAdjustedPricesAfterSplitTask implements ITask {
 
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
-
 
   @Override
   public TaskType getTaskType() {

@@ -17,7 +17,7 @@ import {AuditHelper} from '../helper/audit.helper';
 import {TranslateHelper} from '../helper/translate.helper';
 import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
 import {DynamicDialogHelper} from '../dynamicdialog/component/dynamic.dialog.helper';
-import * as filesaver from '../../shared/filesaver/filesaver';
+import filesaver from '../../shared/filesaver/filesaver';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {AppSettings} from '../app.settings';
