@@ -44,7 +44,7 @@ public class CopyTenantToDemoAccountsTask implements ITask {
 
   @Override
   public TaskType getTaskType() {
-    return TaskType.COPY_DEMO_ACCOUNTS;
+    return TaskType.COPY_SOURCE_ACCOUNT_TO_DEMO_ACCOUNTS;
   }
 
   @Scheduled(cron = "${gt.demo.account.tenant.copy}", zone = GlobalConstants.TIME_ZONE)

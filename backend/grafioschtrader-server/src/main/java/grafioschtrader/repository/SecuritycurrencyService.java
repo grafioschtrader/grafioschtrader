@@ -165,6 +165,12 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   }
 
   @Override
+  public List<IFeedConnector> getFeedConnectors() {
+    return feedConnectorbeans;
+  }
+
+  
+  @Override
   public List<IFeedConnector> getFeedConnectors(final boolean isCurrency) {
     return feedConnectorbeans.stream()
         .filter(

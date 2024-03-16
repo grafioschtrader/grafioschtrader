@@ -14,6 +14,6 @@ public interface VerificationTokenJpaRepository
   VerificationToken findByToken(String token);
 
   @Modifying
-  @Query("delete from VerificationToken t where t.expiryDate <= ?1")
+  @Query("DELETE FROM VerificationToken t WHERE t.expiryDate <= ?1")
   void deleteAllExpiredSince(Date now);
 }

@@ -25,7 +25,7 @@ public class LoadEcbCurrencyExchangeRatesTask implements ITask {
 
   @Override
   public TaskType getTaskType() {
-    return TaskType.LOAD_ECB_CURRENCY_EXCHNAGE_RATES;
+    return TaskType.LOAD_ECB_CURRENCY_EXCHANGE_RATES;
   }
 
   @Scheduled(cron = "${gt.load.ecb.data}", zone = GlobalConstants.TIME_ZONE)

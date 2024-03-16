@@ -14,7 +14,9 @@ import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
- * Delete all non-user registrations. This will delete the already created user and its token.
+ * A verification token is created during user registration. In a further step,
+ * this must be confirmed by the future user by e-mail. If this verification is
+ * not successful, the user and the verification token will be deleted.
  */
 @Component
 public class TokensPurgeTask implements ITask {

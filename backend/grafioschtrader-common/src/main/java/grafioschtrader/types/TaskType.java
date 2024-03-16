@@ -32,7 +32,7 @@ public enum TaskType {
   // Load EOD data of an empty currency pair
   LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES((byte) 10),
   // Copy the source tenant to the demo accounts
-  COPY_DEMO_ACCOUNTS((byte) 11),
+  COPY_SOURCE_ACCOUNT_TO_DEMO_ACCOUNTS((byte) 11),
   // Creates the calendar for stock exchanged by a mayor index
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX((byte) 12),
   // Traces possible new dividends of the instruments through the connectors
@@ -43,7 +43,7 @@ public enum TaskType {
   TOKEN_USER_REGISTRATION_PURGE((byte) 15),
   // Loading historical exchange rates from the European Central Bank (ECB).
   // Should be done daily if possible but not necessarily on weekends.
-  LOAD_ECB_CURRENCY_EXCHNAGE_RATES((byte) 16),
+  LOAD_ECB_CURRENCY_EXCHANGE_RATES((byte) 16),
   // Checks whether a connector for historical price data may no longer be working.
   MONITOR_HISTORICAL_PRICE_DATA((byte) 17),
   

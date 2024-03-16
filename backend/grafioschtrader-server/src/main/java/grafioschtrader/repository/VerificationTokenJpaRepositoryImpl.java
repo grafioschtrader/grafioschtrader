@@ -5,11 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.VerificationToken;
 
-public class VerificationTokenJpaRepositoryImpl {
+public class VerificationTokenJpaRepositoryImpl implements VerificationTokenJpaRepositoryCustom {
 
   @Autowired
-  VerificationTokenJpaRepository verificationTokenJpaRepository;
+  private VerificationTokenJpaRepository verificationTokenJpaRepository;
 
+  @Override
   public void createVerificationTokenForUser(final User user, final String token) {
     final VerificationToken myToken = new VerificationToken(token, user);
     verificationTokenJpaRepository.save(myToken);

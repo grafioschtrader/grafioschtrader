@@ -20,6 +20,17 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
   @Query(nativeQuery = true)
   List<DivdendForHoldings> getDivdendForSecurityHoldingByIdTenant(Integer idTenant);
 
+  /**
+   * Possible missing dividend income in the entity Dividend for securities. This
+   * is based on the date of the last dividend payment and the periodicity of the
+   * expected payments. In addition, the dividend payments of the transactions are
+   * also taken into account if the dividend payment is more recent than the date
+   * in the dividend entity.
+   * 
+   * @param daysAdded
+   * @param maxRetryDividend
+   * @return
+   */
   @Query(nativeQuery = true)
   List<Integer> getIdSecurityForPeriodicallyUpdate(Integer daysAdded, Short maxRetryDividend);
 

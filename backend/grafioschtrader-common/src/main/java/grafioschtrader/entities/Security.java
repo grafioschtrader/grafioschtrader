@@ -206,6 +206,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @PropertyAlwaysUpdatable
   private Short retrySplitLoad = 0;
 
+  @Schema(description = "")
   @Column(name = "div_earliest_next_check")
   @Temporal(TemporalType.TIMESTAMP)
   private Date dividendEarliestNextCheck;

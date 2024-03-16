@@ -73,7 +73,7 @@ public class SendMailInternalExternalService {
           : null;
       if (mct != null) {
         sendMailInternAndOrExternal(mailSendRecv.getIdUserFrom(), mailSendRecv.getIdUserTo(), mailSendRecv.getSubject(),
-            false, mailSendRecv.getMessage(), mct, false);
+            null, false, mailSendRecv.getMessage(), mct, false);
       }
       return sendFromRESTApi(mailSendRecv);
     }
@@ -183,12 +183,12 @@ public class SendMailInternalExternalService {
    * @return
    * @throws MessagingException
    */
-  public Integer sendMailToMainAdminInternalOrExternal(Integer idUserFrom, String subjectKey, String message,
-      MessageComType messageComType) throws MessagingException {
+  public Integer sendMailToMainAdminInternalOrExternal(Integer idUserFrom, String subjectKey, Object[] subjectValues,
+      String message, MessageComType messageComType) throws MessagingException {
     Optional<User> userOpt = userJpaRepository.findByEmail(mainUserAdminMail);
     if (userOpt.isPresent()) {
-      return sendMailInternAndOrExternal(idUserFrom, userOpt.get().getIdUser(), subjectKey, true, message,
-          messageComType, true);
+      return sendMailInternAndOrExternal(idUserFrom, userOpt.get().getIdUser(), subjectKey, subjectValues, true,
+          message, messageComType, true);
     }
     return null;
   }
@@ -206,7 +206,7 @@ public class SendMailInternalExternalService {
    */
   public Integer sendMailInternAndOrExternal(Integer idUserFrom, Integer idUserTo, String subject, String message,
       MessageComType messageComType) throws MessagingException {
-    return sendMailInternAndOrExternal(idUserFrom, idUserTo, subject, false, message, messageComType, true);
+    return sendMailInternAndOrExternal(idUserFrom, idUserTo, subject, null, false, message, messageComType, true);
   }
 
   public Integer sendInternalMail(Integer idUserFrom, Integer idUserTo, String subject, String message) {
@@ -242,8 +242,8 @@ public class SendMailInternalExternalService {
   }
 
   private Integer sendMailInternAndOrExternal(Integer idUserFrom, Integer idUserTo, String subjectOrSubjectKey,
-      boolean isSubjectKey, String message, MessageComType messageComType, boolean includeInternalMail)
-      throws MessagingException {
+      Object subjectValues[], boolean isSubjectKey, String message, MessageComType messageComType,
+      boolean includeInternalMail) throws MessagingException {
     Optional<MailSettingForward> msfOpt = mailSettingForwardJpaRepository.findByIdUserAndMessageComType(idUserTo,
         messageComType.getValue());
     Integer idMailSendRecv = null;
@@ -254,7 +254,7 @@ public class SendMailInternalExternalService {
       idUserTo = msfOpt.isPresent() && msfOpt.get().getIdUserRedirect() != null ? msfOpt.get().getIdUserRedirect()
           : idUserTo;
       User userTo = userJpaRepository.findById(idUserTo).get();
-      String subject = getSubject(userTo, subjectOrSubjectKey, isSubjectKey);
+      String subject = getSubject(userTo, subjectOrSubjectKey, subjectValues, isSubjectKey);
 
       if (includeInternalMail && (msgTargetType == MessageTargetType.INTERNAL_MAIL
           || msgTargetType == MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL)) {
@@ -273,13 +273,14 @@ public class SendMailInternalExternalService {
       String msgAddition = messagesSource.getMessage("gt.external.message.addition", new Object[] { idUserFrom },
           Locale.forLanguageTag(localeStr));
       mailExternalService.sendSimpleMessageAsync(usersTo, "GT: " + subject,
-          msgAddition + GlobalConstants.NEW_LINE_AND_RETURN + message);
+          msgAddition + GlobalConstants.RETURN_AND_NEW_LINE + message);
     }
   }
 
-  private String getSubject(User userTo, String subjectOrSubjectKey, boolean isSubjectKey) {
+  private String getSubject(User userTo, String subjectOrSubjectKey, Object[] subjectValues, boolean isSubjectKey) {
     if (isSubjectKey) {
-      return messagesSource.getMessage(subjectOrSubjectKey, null, Locale.forLanguageTag(userTo.getLocaleStr()));
+      return messagesSource.getMessage(subjectOrSubjectKey, subjectValues,
+          Locale.forLanguageTag(userTo.getLocaleStr()));
     } else {
       return subjectOrSubjectKey;
     }

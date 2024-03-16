@@ -82,9 +82,9 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS = GT_PREFIX + "w.intra.update.timeout.seconds";
   public static final String GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY = GT_PREFIX + "history.max.filldays.currency";
 
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK = "history.oberservation.days.back";
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS = "history.oberservation.retry.minus";
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE = "history.oberservation.falling.percentage";
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK = GT_PREFIX + "history.oberservation.days.back";
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS = GT_PREFIX + "history.oberservation.retry.minus";
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE = GT_PREFIX + "history.oberservation.falling.percentage";
   
   
   // History quote quality. Date which last time when a history quality update was

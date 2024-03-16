@@ -1,5 +1,7 @@
 package grafioschtrader.alert;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -45,23 +47,22 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
     this.messages = messages;
   }
 
-
   @Override
   public void onApplicationEvent(AlertEvent event) {
     sendMail(event.getAlertType(), new Object[] {event.getMsgParam()});
   }
-
 
   public void sendMail(AlertType alertType, Object[] msgParams) {
     Optional<User> userOpt = userJpaRepository.findByEmail(mainUserAdminMail);
     if (userOpt.isPresent()
         && (globalparametersJpaRepository.getAlertBitmap() & alertType.getValue()) == alertType.getValue()) {
       Locale userLang = userOpt.get().createAndGetJavaLocale();
-      String subject = messages.getMessage("alert.mail.subject", null, userLang);
+      String subject = messages.getMessage("alert.mail.subject", new Object[]{"this"}, userLang);
       try {
+        subject = messages.getMessage("alert.mail.subject", new Object[]{InetAddress.getLocalHost().getHostAddress()}, userLang);
         mailExternalService.sendSimpleMessageAsync(mainUserAdminMail, subject,
             messages.getMessage(alertType.name(), msgParams, userLang));
-      } catch (NoSuchMessageException | MessagingException e) {
+      } catch (NoSuchMessageException | MessagingException | UnknownHostException e) {
         log.error("Failed to send an email to {} from {} to {}", mainUserAdminMail, subject);
       }
     }

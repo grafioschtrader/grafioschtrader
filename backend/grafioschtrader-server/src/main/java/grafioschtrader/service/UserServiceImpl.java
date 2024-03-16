@@ -160,7 +160,7 @@ public class UserServiceImpl implements UserService {
     final String confirmationUrl = hostNameAndBaseNam + "/tokenverify?token=" + token;
     final String message = messages.getMessage("registraion.success.text", null, user.createAndGetJavaLocale());
     mailExternalService.sendSimpleMessage(user.getUsername(), subject,
-        message + GlobalConstants.NEW_LINE_AND_RETURN + confirmationUrl);
+        message + GlobalConstants.RETURN_AND_NEW_LINE + confirmationUrl);
   }
 
   private void checkApplExeedsUserLimit(String localeStr) {

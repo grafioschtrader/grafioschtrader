@@ -3,7 +3,8 @@ package grafioschtrader.alert;
 import org.springframework.context.ApplicationEvent;
 
 public class AlertEvent extends ApplicationEvent {
-
+  
+  private static final long serialVersionUID = 1L;
   private final AlertType alertType;
   private final Object msgParam;
 
@@ -14,11 +15,9 @@ public class AlertEvent extends ApplicationEvent {
     this.msgParam = msgParam;
   }
 
-
   public AlertType getAlertType() {
     return alertType;
   }
-
 
   public Object getMsgParam() {
     return msgParam;
