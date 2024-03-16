@@ -1,6 +1,8 @@
 package grafioschtrader.alert;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Locale;
 import java.util.Optional;
@@ -23,7 +25,7 @@ import grafioschtrader.service.MailExternalService;
 import jakarta.mail.MessagingException;
 
 @Component
-public class AlertListener implements ApplicationListener<AlertEvent>  {
+public class AlertListener implements ApplicationListener<AlertEvent> {
 
   private static final Logger log = LoggerFactory.getLogger(CashAccountTransfer.class);
 
@@ -39,8 +41,8 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
   @Autowired
   private MailExternalService mailExternalService;
 
-  public AlertListener(@Lazy UserJpaRepository userJpaRepository, @Lazy GlobalparametersJpaRepository globalparametersJpaRepository,
-      MessageSource messages) {
+  public AlertListener(@Lazy UserJpaRepository userJpaRepository,
+      @Lazy GlobalparametersJpaRepository globalparametersJpaRepository, MessageSource messages) {
     super();
     this.userJpaRepository = userJpaRepository;
     this.globalparametersJpaRepository = globalparametersJpaRepository;
@@ -49,7 +51,7 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
 
   @Override
   public void onApplicationEvent(AlertEvent event) {
-    sendMail(event.getAlertType(), new Object[] {event.getMsgParam()});
+    sendMail(event.getAlertType(), new Object[] { event.getMsgParam() });
   }
 
   public void sendMail(AlertType alertType, Object[] msgParams) {
@@ -57,19 +59,28 @@ public class AlertListener implements ApplicationListener<AlertEvent>  {
     if (userOpt.isPresent()
         && (globalparametersJpaRepository.getAlertBitmap() & alertType.getValue()) == alertType.getValue()) {
       Locale userLang = userOpt.get().createAndGetJavaLocale();
-      String subject = messages.getMessage("alert.mail.subject", new Object[]{"this"}, userLang);
+      String subject = messages.getMessage("alert.mail.subject", new Object[] { "this" }, userLang);
       try {
-        subject = messages.getMessage("alert.mail.subject", new Object[]{InetAddress.getLocalHost().getHostAddress()}, userLang);
+        subject = messages.getMessage("alert.mail.subject", new Object[] { getIpAddressToOutside() }, userLang);
         mailExternalService.sendSimpleMessageAsync(mainUserAdminMail, subject,
             messages.getMessage(alertType.name(), msgParams, userLang));
-      } catch (NoSuchMessageException | MessagingException | UnknownHostException e) {
+      } catch (NoSuchMessageException | MessagingException e ) {
         log.error("Failed to send an email to {} from {} to {}", mainUserAdminMail, subject);
       }
     }
   }
 
-
-
+  private String getIpAddressToOutside() {
+    try (Socket socket = new Socket()) {
+      socket.connect(new InetSocketAddress("google.com", 80));
+      return socket.getLocalAddress().getHostAddress();
+    } catch (Exception e) {
+      try {
+        return InetAddress.getLocalHost().getHostAddress();
+      } catch (UnknownHostException e1) {
+        return "Could not determine IP address";
+      }
+    }
+  }
 
 }
-
