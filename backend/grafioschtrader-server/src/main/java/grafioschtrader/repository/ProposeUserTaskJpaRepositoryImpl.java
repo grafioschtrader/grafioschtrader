@@ -70,8 +70,8 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
     proposeUserTask.setProposeChangeFieldList(List.of(proposeChangeField));
     save(proposeUserTask, null, null);
     try {
-      sendMailInternalExternalService.sendMailToMainAdminInternalOrExternal(idTargetUser, "reset.user.misused", note,
-          MessageComType.MAIN_ADMIN_RELEASE_LOGOUT);
+      sendMailInternalExternalService.sendMailToMainAdminInternalOrExternal(idTargetUser, "reset.user.misused", null,
+          note, MessageComType.MAIN_ADMIN_RELEASE_LOGOUT);
     } catch (MessagingException me) {
       log.warn("Could not send email to admin");
     }

@@ -15,6 +15,12 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
+/**
+ * An index can be used to track the free trading days on a trading venue. This
+ * eliminates the need to update the trading days manually. If possible, this
+ * task should be carried out on a Sunday to avoid temporary incorrect entries
+ * of public holidays.
+ */
 @Component
 public class CreateStockexchangeTradingDaysMinusByIndexTask implements ITask {
 

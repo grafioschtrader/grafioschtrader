@@ -147,6 +147,23 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Query(nativeQuery = true)
   List<SecurityYearClose> getSecurityYearDivSumCurrencyClose(Integer idSecurity, Integer idCurrencypair);
 
+  /**
+   * Counts all functioning and non-functioning historical price data connectors,
+   * grouped by connector. Security and currency pair connectors are taken into
+   * account. Only securities from a certain date are taken into account when
+   * counting non-functioning ones. 
+   * 
+   * @param dateBack         Securities are taken into account for the count of
+   *                         non-functioning ones if their most recent historical
+   *                         price data is younger than this date.
+   * @param retry            Instruments are included in the count of
+   *                         non-functioning instruments if the repetition counter
+   *                         is equal to or greater than this value.
+   * @param percentageFailed The result set contains the connector if this
+   *                         percentage value of non-functioning connectors
+   *                         exceeds this value.
+   * @return
+   */
   @Query(nativeQuery = true)
   List<FailedHistoricalConnector> getFailedHistoryConnector(LocalDate dateBack, int retry, int percentageFailed);
 
@@ -191,13 +208,13 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   }
 
   public static interface FailedHistoricalConnector {
-    String connector();
+    String getConnector();
 
-    int working();
+    int getTotal();
 
-    int failed();
+    int getFailed();
 
-    int percentageFailed();
+    int getPercentageFailed();
 
   }
 }

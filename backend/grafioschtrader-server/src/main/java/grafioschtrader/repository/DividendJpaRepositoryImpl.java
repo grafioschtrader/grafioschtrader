@@ -119,6 +119,14 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
         this.dividendJpaRepository);
   }
 
+  /**
+   * Securities can have a split. This must be reflected accordingly in the
+   * dividends. Otherwise the dividend yield per share would no longer be correct.
+   * 
+   * @param idSecurity
+   * @param dividendsRead
+   * @param isSplitAdjusted
+   */
   private void splitAdjustDividends(Integer idSecurity, List<Dividend> dividendsRead, boolean isSplitAdjusted) {
     List<Securitysplit> securitysplitList = securitysplitJpaRepository
         .findByIdSecuritycurrencyOrderBySplitDateAsc(idSecurity);

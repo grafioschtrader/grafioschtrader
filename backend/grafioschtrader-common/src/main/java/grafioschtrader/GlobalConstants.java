@@ -111,7 +111,7 @@ public class GlobalConstants {
   public static final int WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES = 180;
 
   public static final String NEW_LINE = "\n";
-  public static final String NEW_LINE_AND_RETURN = "\r\n";
+  public static final String RETURN_AND_NEW_LINE = "\r\n";
 
   /**
    * Time that had to elapse before the next obtainment of historical prices from

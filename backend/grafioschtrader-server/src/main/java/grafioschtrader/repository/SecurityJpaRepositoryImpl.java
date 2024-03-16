@@ -487,6 +487,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     return getHistoryQuote(security, fromDate, toDate, feedConnector);
   }
 
+  
   @Override
   protected Security beforeSave(Security security, Security existingSecurity, User user) throws Exception {
     Security cloneSecurity = null;
