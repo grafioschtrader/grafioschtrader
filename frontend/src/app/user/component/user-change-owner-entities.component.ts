@@ -23,7 +23,7 @@ import {ProcessedAction} from '../../shared/types/processed.action';
   selector: 'user-change-owner-entities',
   template: `
     <p-dialog header="{{'USER_CHANGE_OWNER_ENTITIES' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
+              [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
