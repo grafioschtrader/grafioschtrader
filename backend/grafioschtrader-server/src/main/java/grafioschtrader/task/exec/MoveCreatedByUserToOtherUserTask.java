@@ -11,6 +11,10 @@ import grafioschtrader.repository.UserJpaRepository;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
+/**
+ * Moves shared data from one user to another. It is assumed that shared data
+ * has a field 'created_by', whereby tables beginning with "user" are excluded.
+ */
 @Component
 public class MoveCreatedByUserToOtherUserTask implements ITask {
 
