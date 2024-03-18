@@ -11,7 +11,7 @@
     <groupId>grafioschtrader</groupId>
     <artifactId>grafioschtrader</artifactId>
 	<packaging>pom</packaging>
-	<version>0.31.8</version>
+	<version>0.31.9</version>
 	
 	
 	<parent>

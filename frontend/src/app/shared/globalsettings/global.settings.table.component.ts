@@ -60,7 +60,7 @@ import {TranslateHelper} from '../helper/translate.helper';
                                              aria-hidden="true"></i></span>
                                 </ng-container>
                                 <ng-container *ngSwitchDefault>
-                                    {{getValueByPath(el, field)}}
+                                  <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
                                 </ng-container>
                             </ng-container>
                         </td>
