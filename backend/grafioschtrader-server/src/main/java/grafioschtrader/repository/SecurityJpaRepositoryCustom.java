@@ -72,6 +72,16 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
 
   void reloadAsyncFullHistoryquoteExternal(Integer idSecuritycurrency);
 
+  /**
+   * The user interface receives a link to check the price data provider of a
+   * security. If an API key is required, only the backend can evaluate this link
+   * and return the corresponding content. The content of the provider may also be
+   * determined in the backend for other reasons.
+   * 
+   * @param idSecuritycurrency
+   * @param isIntraday
+   * @return
+   */
   String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
 
   String getDataProviderLinkForUser(final Integer idSecuritycurrency, final boolean isIntraday);
@@ -82,8 +92,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
 
   void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
 
-  InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom, LocalDate dateTo)
-      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException;
+  InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom,
+      LocalDate dateTo) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException;
 
   /**
    * Some cases the historical prices must be reloaded completely. For example
@@ -108,7 +118,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
       List<Securitysplit> securitysplits, boolean useConnector) throws Exception;
 
   /**
-   * Tries to determine if the supplier's historical price data already reflects the split.
+   * Tries to determine if the supplier's historical price data already reflects
+   * the split.
    *
    * @param security
    * @param securitysplits
@@ -118,9 +129,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   SplitAdjustedHistoryquotesResult isLatestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits) throws Exception;
 
-
   // TODO remove it
   void checkAndClearSecuritycurrencyConnectors(final Security security);
 
 }
-

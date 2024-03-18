@@ -92,8 +92,9 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   private void scanLastPriceAndChange(Security security) throws IOException {
-    Document doc = getIntraDoc(security, getSecurityIntradayDownloadLink(security));
+    Document doc = getIntraDoc(getSecurityIntradayDownloadLink(security));
     final Element price = doc.select("#header-instrument-price").first();
+    security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
     security.setSLast(FeedConnectorHelper.parseDoubleUS(price.text()));
     Elements spans = doc.select("div:containsOwn(Since Previous Close)").first().parent().select("span");
     security.setSChangePercentage(
@@ -101,8 +102,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   private void scanDetailFull(Security security) throws IOException {
-    Document doc = getIntraDoc(security,
-        DOMAIN_NAME_INTRA_DETAILED_QUOTE + getISINWithOperationMic(security) + "/full");
+    Document doc = getIntraDoc(DOMAIN_NAME_INTRA_DETAILED_QUOTE + getISINWithOperationMic(security) + "/full");
     Element table = doc.select("table").get(0);
     Elements rows = table.select("tr");
     for (Element row : rows) {
@@ -125,11 +125,28 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   @Override
+  public EnumSet<DownloadLink> isDownloadLinkCreatedLazy() {
+    return EnumSet.of(DownloadLink.DL_INTRA_FORCE_BACKEND, DownloadLink.DL_LAZY_INTRA);
+  }
+  
+  @Override
+  public String getContentOfPageRequest(String httpPageUrl) {
+    String contentPage = null;
+    try {
+      return getIntraDoc(httpPageUrl).html();
+    } catch (IOException e) {
+      contentPage = "Failure!";
+    }
+    return contentPage;
+  }
+  
+  
+  @Override
   public int getIntradayDelayedSeconds() {
     return 60;
   }
 
-  private Document getIntraDoc(Security security, String url) throws IOException {
+  private Document getIntraDoc(String url) throws IOException {
     return Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT).header("Accept-Language", "en")
         .header("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
         .requestBody("theme_name=euronext_live").post();

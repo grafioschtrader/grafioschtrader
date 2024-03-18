@@ -276,8 +276,26 @@ public interface IFeedConnector {
    */
   Integer getNextAttemptInDaysForSplitHistorical(Date splitDate);
 
+  /**
+   * Returns which data provider the content of the links for the frontend must be
+   * created in the backend. Normally, the frontend receives a URL that can be
+   * opened directly in the browser. This is not possible for data providers with
+   * API keys, so the data content is prepared in the backend. There are other
+   * cases where the data content must be created in the backend.
+   * 
+   * @return
+   */
   EnumSet<DownloadLink> isDownloadLinkCreatedLazy();
 
+  /**
+   * The user interface receives a link to check the price data provider of a
+   * security. If an API key is required, only the backend can evaluate this link
+   * and return the corresponding content. The content of the provider may also be
+   * determined in the backend for other reasons.
+   * 
+   * @param httpPageUrl
+   * @return
+   */
   String getContentOfPageRequest(String httpPageUrl);
 
   /**
