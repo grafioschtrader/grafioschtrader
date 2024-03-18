@@ -31,13 +31,13 @@ abstract class MonitorPriceData {
   protected ApplicationEventPublisher applicationEventPublisher;
 
   protected void generateMessageAndPublishAlert(AlertType alertType,
-      List<MonitorFailedConnector> monitorFaliedConnectors) {
+      List<MonitorFailedConnector> monitorFaliedConnectors, FeedSupport feedSupport) {
     String messageArg = String.format(
         GlobalConstants.RETURN_AND_NEW_LINE + "%-30s %6s %6s %3s" + GlobalConstants.RETURN_AND_NEW_LINE, "Connector",
         "Total", "Error", "%");
     for (MonitorFailedConnector mfc : monitorFaliedConnectors) {
       IFeedConnector ifeedConnector = ConnectorHelper.getConnectorByConnectorId(
-          securityJpaRepository.getFeedConnectors(), mfc.getConnector(), FeedSupport.FS_HISTORY);
+          securityJpaRepository.getFeedConnectors(), mfc.getConnector(), feedSupport);
       messageArg += String.format("%-30s %6d %6d %3d" + GlobalConstants.RETURN_AND_NEW_LINE,
           ifeedConnector.getReadableName(), mfc.getTotal(), mfc.getFailed(), mfc.getPercentageFailed());
     }

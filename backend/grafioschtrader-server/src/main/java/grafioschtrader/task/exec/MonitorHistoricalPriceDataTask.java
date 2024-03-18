@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.alert.AlertType;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.SecurityJpaRepository.MonitorFailedConnector;
@@ -43,9 +44,9 @@ public class MonitorHistoricalPriceDataTask extends MonitorPriceData implements 
             - globalparametersJpaRepository.getHistoryObservationRetryMinus(),
         globalparametersJpaRepository.getHistoryObservationFallingPercentage());
     if (!monitorFaliedConnectors.isEmpty()) {
-      generateMessageAndPublishAlert(AlertType.ALERT_CONNECTOR_EOD_MAY_NOT_WORK_ANYMORE, monitorFaliedConnectors);
+      generateMessageAndPublishAlert(AlertType.ALERT_CONNECTOR_EOD_MAY_NOT_WORK_ANYMORE, monitorFaliedConnectors,
+          FeedSupport.FS_HISTORY);
     }
   }
- 
 
 }
