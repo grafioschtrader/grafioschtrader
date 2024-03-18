@@ -55,12 +55,41 @@ public interface GlobalparametersJpaRepositoryCustom {
 
   short getMaxSplitRetry();
   
-  int getHistoryObeservationDaysBack();
+  int getIntradayObservationOrDaysBack();
+
+  int getIntradayObservationRetryMinus();
   
-  int getHistoryObeservationRetryMinus();
+  int getIntradayObservationFallingPercentage();
   
-  int getHistoryObeservationFallingPercentage();
-  
+  /**
+   * Monitoring of historical price data. The instrument is only taken into
+   * account if a successful transfer has taken place within the current date
+   * minus this number of days. In this way, any instruments that are no longer
+   * active but are listed as active do not distort the calculation.
+   * 
+   * @return Number of days
+   */
+  int getHistoryObservationDaysBack();
+
+  /**
+   * Monitoring of historical price data. Transmission error with maximum
+   * repetition "gt.history.retry" minus this number. If "gt.history.retry"
+   * contains the value 4, this value should be 0 or 1. Thus, an instrument with 4
+   * or 3 retries would be considered non-functioning.
+   * 
+   * @return  Value that is subtracted from the "gt.history.retry" value.
+   */
+  int getHistoryObservationRetryMinus();
+
+  /**
+   * Monitoring of historical price data. Message when at least this percentage of
+   * a connector has failed. At 100%, the connector probably no longer works at
+   * all.
+   * 
+   * @return Percentage threshold
+   */
+  int getHistoryObservationFallingPercentage();
+
   int getMaxFillDaysCurrency();
 
   int getJWTExpirationMinutes();
@@ -86,7 +115,5 @@ public interface GlobalparametersJpaRepositoryCustom {
   List<ValueKeyHtmlSelectOptions> getCurrencies();
 
   int getUpdatePriceByStockexchange();
-
-
 
 }

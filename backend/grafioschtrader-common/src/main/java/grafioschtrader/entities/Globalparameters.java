@@ -82,9 +82,14 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS = GT_PREFIX + "w.intra.update.timeout.seconds";
   public static final String GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY = GT_PREFIX + "history.max.filldays.currency";
 
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK = GT_PREFIX + "history.oberservation.days.back";
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS = GT_PREFIX + "history.oberservation.retry.minus";
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE = GT_PREFIX + "history.oberservation.falling.percentage";
+  public static final String GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK = GT_PREFIX + "intraday.observation.or.days.back";
+  public static final String GLOB_KEY_INTRADAY_OBSERVATION_RETRY_MINUS = GT_PREFIX + "intraday.observation.retry.minus";
+  public static final String GLOB_KEY_INTRADAY_OBSERVATION_FALLING_PERCENTAGE = GT_PREFIX + "intraday.observation.falling.percentage";
+    
+  
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK = GT_PREFIX + "history.observation.days.back";
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS = GT_PREFIX + "history.observation.retry.minus";
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE = GT_PREFIX + "history.observation.falling.percentage";
   
   
   // History quote quality. Date which last time when a history quality update was
@@ -191,6 +196,11 @@ public class Globalparameters implements Serializable {
   public static final int DEFAULT_MAX_SECURITY_BREACH_COUNT = 5;
   public static final Date DEFAULT_START_FEED_DATE = new GregorianCalendar(2000, Calendar.JANUARY, 1).getTime();
 
+  public static final int DEFAULT_INTRADAY_OBSERVATION_OR_DAYS_BACK = 60;
+  public static final int DEFAULT_INTRADAY_OBSERVATION_RETRY_MINUS = 0;
+  public static final int DEFAULT_INTRADAY_OBSERVATION_FALLING_PERCENTAGE = 80;
+  
+  
   public static final int DEFAULT_HISTORY_OBSERVATION_DAYS_BACK = 60;
   public static final int DEFAULT_HISTORY_OBSERVATION_RETRY_MINUS = 0;
   public static final int DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE = 80;
