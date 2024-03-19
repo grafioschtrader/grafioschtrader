@@ -148,10 +148,10 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<SecurityYearClose> getSecurityYearDivSumCurrencyClose(Integer idSecurity, Integer idCurrencypair);
 
   /**
-   * Counts all and non-functioning historical price data connectors,
+   * Counts all working and non-functioning historical price data connectors,
    * grouped by connector. Security and currency pair connectors are taken into
    * account. Only securities after a certain date are taken into account when
-   * counting non-functioning ones. 
+   * counting non-functioning ones.
    * 
    * @param dateBackAfter    Securities are taken into account for the count of
    *                         non-functioning ones if their most recent historical
@@ -167,10 +167,26 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Query(nativeQuery = true)
   List<MonitorFailedConnector> getFailedHistoryConnector(LocalDate dateBackAfter, int retry, int percentageFailed);
 
+  /**
+   * Counts all working and non-functioning intraday connectors. Both securities
+   * and currency pairs are taken into account.
+   * 
+   * @param dateBackOrRetry  In addition to checking the repeat counter overrun,
+   *                         the date of the most recent update can also be
+   *                         checked. The date given here must be older than that
+   *                         of the instrument, otherwise it will be evaluated as
+   *                         non-functioning.
+   * @param retry            Instruments are included in the count of
+   *                         non-functioning instruments if the repetition counter
+   *                         is equal to or greater than this value.
+   * @param percentageFailed The result set contains the connector if this
+   *                         percentage value of non-functioning connectors
+   *                         exceeds this value.
+   * @return
+   */
   @Query(nativeQuery = true)
   List<MonitorFailedConnector> getFailedIntradayConnector(LocalDate dateBackOrRetry, int retry, int percentageFailed);
 
-  
   @Override
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
       Date untilDate);
