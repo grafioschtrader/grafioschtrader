@@ -21,6 +21,24 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
+/**
+ * Copies the data of one client to other clients. This function can be used for
+ * demo user accounts. As visitors can change the data of these user accounts,
+ * they should be recopied daily. The source accounts are copied to the target
+ * accounts according to the specifications in application.properties and the
+ * global settings. Two different source accounts are provided so that, for
+ * example, German and English demo user accounts can be served.
+ * <ul>
+ * <li>gt.demo.account.pattern.de and gt.demo.account.pattern.en in
+ * application.properties: This pattern is used to express the target accounts.
+ * This pattern is used to search for the target accounts. If no demo user
+ * account is desired, only this search pattern in the user's e-mail may not
+ * result in a hit.</li>
+ * <li>gt.source.demo.idtenant.de and gt.source.demo.idtenant.de in global
+ * settings: These are the IDs of the source accounts. If the corresponding
+ * source account is not found, no copying takes place</li>.
+ * </ul>
+ */
 @Component
 public class CopyTenantToDemoAccountsTask implements ITask {
 
