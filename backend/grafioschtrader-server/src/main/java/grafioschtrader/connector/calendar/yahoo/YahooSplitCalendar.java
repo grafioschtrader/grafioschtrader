@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
-import grafioschtrader.connector.calendar.ICalendarFeedConnector;
+import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 
@@ -29,10 +29,10 @@ import grafioschtrader.types.CreateType;
  * Table: stock suffix https://help.yahoo.com/kb/SLN2310.html
  */
 @Component
-public class YahooCalendar implements ICalendarFeedConnector {
+public class YahooSplitCalendar implements ISplitCalendarFeedConnector {
 
   @Override
-  public Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countyCodes)
+  public Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countryCodes)
       throws Exception {
     LocalDate fromDate = forDate.minusDays(1);
 

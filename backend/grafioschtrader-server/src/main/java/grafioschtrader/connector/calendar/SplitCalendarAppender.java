@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.connector.calendar.ICalendarFeedConnector.TickerSecuritysplit;
+import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector.TickerSecuritysplit;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
@@ -68,7 +68,7 @@ public class SplitCalendarAppender {
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired(required = false)
-  private List<ICalendarFeedConnector> calendarFeedConnectors = new ArrayList<>();
+  private List<ISplitCalendarFeedConnector> splitCalendarFeedConnectors = new ArrayList<>();
 
   private static String removeFromNameRegex = " (corp|corp\\.|corporation|inc\\.|inc|llc)$";
 
@@ -85,10 +85,27 @@ public class SplitCalendarAppender {
         .findByTradingDateBetweenOrderByTradingDate(fromDate, now);
     String[] countryCodes = stockexchangeJpaRepository.findDistinctCountryCodes();
     SimilarityScore<Double> similarityAlgo = new JaroWinklerSimilarity();
-    calendarFeedConnectors.sort(Comparator.comparingInt(ICalendarFeedConnector::getPriority));
+    splitCalendarFeedConnectors.sort(Comparator.comparingInt(ISplitCalendarFeedConnector::getPriority));
+    stepThruEveryCalendarDay(tradingDaysPlusList, countryCodes, similarityAlgo);
+    Globalparameters globalparameters = new Globalparameters(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE, now,
+        true);
+    globalparametersJpaRepository.save(globalparameters);
+  }
 
+  /**
+   * The individual days are processed according to the trading calendar. The
+   * connectors for split calendars are contacted for each day.
+   * 
+   * @param tradingDaysPlusList
+   * @param countryCodes
+   * @param similarityAlgo      As the company name in the split calendar can be
+   *                            different from the name entered here, an algorithm
+   *                            is used which allows certain deviations.
+   */
+  private void stepThruEveryCalendarDay(List<TradingDaysPlus> tradingDaysPlusList, String[] countryCodes,
+      SimilarityScore<Double> similarityAlgo) {
     for (TradingDaysPlus tradingDaysPlus : tradingDaysPlusList) {
-      for (ICalendarFeedConnector calendarFeedConnector : calendarFeedConnectors) {
+      for (ISplitCalendarFeedConnector calendarFeedConnector : splitCalendarFeedConnectors) {
         try {
           Map<String, TickerSecuritysplit> splitTickerMap = calendarFeedConnector
               .getCalendarSplitForSingleDay(tradingDaysPlus.getTradingDate(), countryCodes);
@@ -101,9 +118,6 @@ public class SplitCalendarAppender {
         }
       }
     }
-    Globalparameters globalparameters = new Globalparameters(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE, now,
-        true);
-    globalparametersJpaRepository.save(globalparameters);
   }
 
   private void matchSecurityNameWithSplitNameOthweiseRemoveIt(Map<String, TickerSecuritysplit> splitTickerMap,

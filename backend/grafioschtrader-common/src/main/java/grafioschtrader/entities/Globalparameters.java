@@ -96,6 +96,7 @@ public class Globalparameters implements Serializable {
   // happened
   public static final String GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE = GT_PREFIX + "historyquote.quality.update.date";
   public static final String GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE = GT_PREFIX + "securitysplit.append.date";
+  public static final String GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE = GT_PREFIX + "gt.securitydividend.append.date";
 
   // The idGTNet for this Server in GTNet
   public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GT_PREFIX + "gtnet.my.entry.id";

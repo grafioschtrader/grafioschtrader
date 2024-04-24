@@ -21,8 +21,6 @@ import grafioschtrader.types.TaskType;
  * the day before or there is no existing
  * {@link grafioschtrader.entities.TaskDataChange}.
  *
- * @author Hugo Graf
- *
  */
 @Component
 public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyEvent> {

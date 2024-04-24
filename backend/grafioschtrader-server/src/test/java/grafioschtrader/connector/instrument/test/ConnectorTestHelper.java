@@ -14,9 +14,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
@@ -25,6 +27,11 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public class ConnectorTestHelper {
+
+  final static String ISIN_Nestle = "CH0038863350";
+  final static String ISIN_Apple = "US0378331005";
+  final static String ISIN_TLT = "IE00BSKRJZ44";
+  final static String ISIN_Walmart = "US9311421039";
 
   final static SimpleDateFormat sdf = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
 
@@ -79,11 +86,14 @@ public class ConnectorTestHelper {
     final Stockexchange stockexchange = new Stockexchange();
     stockexchange.setMic(mic);
     Assetclass assetclass = new Assetclass();
-    assetclass.setSpecialInvestmentInstrument(specialInvestmentInstrument);
+    if (specialInvestmentInstrument != null) {
+      assetclass.setSpecialInvestmentInstrument(specialInvestmentInstrument);
+    }
     if (assetclassType != null) {
       assetclass.setCategoryType(assetclassType);
     }
     security.setAssetClass(assetclass);
+
     security.setStockexchange(stockexchange);
     return security;
   }
@@ -187,7 +197,8 @@ public class ConnectorTestHelper {
     splitCount.parallelStream().forEach(sc -> {
       List<Securitysplit> seucritysplitList = new ArrayList<>();
       try {
-        seucritysplitList = baseFeedConnector.getSplitHistory(sc.security, sc.from, sc.to);
+        seucritysplitList = baseFeedConnector.getSplitHistory(sc.security, DateHelper.getLocalDate(sc.from),
+            DateHelper.getLocalDate(sc.to));
       } catch (final Exception e) {
         e.printStackTrace();
       }
@@ -195,8 +206,44 @@ public class ConnectorTestHelper {
     });
   }
 
+  public static void standardDividendTest(BaseFeedConnector baseFeedConnector, Map<String, String> symbolMappingMap,
+      Map<String, Integer> overrideExpectedRowsMap) throws ParseException {
+    List<DividendCount> dividendCount = new ArrayList<>();
+    dividendCount.add(new DividendCount("Nestlé S.A", ISIN_Nestle, getSymbolMapping("NESN.SW", symbolMappingMap),
+        getExpectedRowsMapping(ISIN_Nestle, 22, overrideExpectedRowsMap), "2000-01-03", "2024-03-31",
+        GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    dividendCount.add(new DividendCount("Apple Inc", ISIN_Apple, getSymbolMapping("AAPL", symbolMappingMap),
+        getExpectedRowsMapping(ISIN_Apple, 47, overrideExpectedRowsMap), "2000-01-03", "2024-03-31", "America/New_York",
+        GlobalConstants.MC_USD, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    dividendCount.add(new DividendCount("iShares 20+ Year Treasury Bond ETF", ISIN_TLT,
+        getSymbolMapping("TLT", symbolMappingMap), getExpectedRowsMapping(ISIN_TLT, 258, overrideExpectedRowsMap),
+        "2000-01-03", "2024-03-31", "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.ETF));
+    dividendCount.add(new DividendCount("Walmart Inc", ISIN_Walmart,
+        getSymbolMapping("WMT", symbolMappingMap), getExpectedRowsMapping(ISIN_Walmart, 97, overrideExpectedRowsMap),
+        "2000-01-03", "2024-03-31", "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+
+    dividendCount.parallelStream().forEach(dc -> {
+      List<Dividend> dividends = new ArrayList<>();
+      try {
+        dividends = baseFeedConnector.getDividendHistory(dc.security, DateHelper.getLocalDate(dc.from)).stream()
+            .filter(d -> !d.getEventDate().after(dc.to)).collect(Collectors.toList());
+
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+
+      assertThat(dividends.size()).isEqualTo(dc.expectedRows);
+    });
+  }
+
   private static String getSymbolMapping(String symbol, Map<String, String> symbolMappingMap) {
-    return symbolMappingMap == null? symbol: symbolMappingMap.getOrDefault(symbol, symbol);
+    return symbolMappingMap == null ? symbol : symbolMappingMap.getOrDefault(symbol, symbol);
+
+  }
+
+  private static Integer getExpectedRowsMapping(String isin, Integer expectedRows,
+      Map<String, Integer> overrideExpectedRowsMap) {
+    return overrideExpectedRowsMap == null ? expectedRows : overrideExpectedRowsMap.getOrDefault(isin, expectedRows);
 
   }
 
@@ -204,12 +251,12 @@ public class ConnectorTestHelper {
     EOD, INTRA, DIVIDEND, SPLIT;
   }
 
-  public static class HisoricalDate {
+  public static class HistoricalDate {
     public int expectedRows;
     public Date from;
     public Date to;
 
-    public HisoricalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
+    public HistoricalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
       if (fromStr != null) {
         this.expectedRows = expectedRows;
         this.from = sdf.parse(fromStr);
@@ -219,12 +266,12 @@ public class ConnectorTestHelper {
 
   }
 
-  public static class HisoricalDateLocalDate {
+  public static class HistoricalDateLocalDate {
     public int expectedRows;
     public LocalDate from;
     public LocalDate to;
 
-    public HisoricalDateLocalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
+    public HistoricalDateLocalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
       this.expectedRows = expectedRows;
       this.from = LocalDate.parse(fromStr);
       this.to = LocalDate.parse(toStr);
@@ -232,49 +279,54 @@ public class ConnectorTestHelper {
 
   }
 
-  public static class CurrencyPairHisoricalDate extends HisoricalDate {
+  public static class CurrencyPairHistoricalDate extends HistoricalDate {
     public Currencypair currencypair;
 
-    public CurrencyPairHisoricalDate(final String fromCurrency, final String toCurrency, int expectedRows,
+    public CurrencyPairHistoricalDate(final String fromCurrency, final String toCurrency, int expectedRows,
         String fromStr, String toStr) throws ParseException {
       super(expectedRows, fromStr, toStr);
       this.currencypair = createCurrencyPair(fromCurrency, toCurrency);
     }
   }
 
-  public static class SecurityHisoricalDate extends HisoricalDate {
+  public static class SecurityHistoricalDate extends HistoricalDate {
 
     public Security security;
 
-    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
+    public SecurityHistoricalDate(final String name, int expectedRows, String fromStr, String toStr)
+        throws ParseException {
+      this(name, "", null, expectedRows, fromStr, toStr);
+    }
+
+    public SecurityHistoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend) throws ParseException {
       this(name, null, specialInvestmentInstrument, urlExtend, null, 0, null, null);
     }
 
-    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
+    public SecurityHistoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend, int expectedRows, String fromStr, String toStr) throws ParseException {
       this(name, null, specialInvestmentInstrument, urlExtend, null, expectedRows, fromStr, toStr);
     }
 
-    public SecurityHisoricalDate(final String name, String isin,
+    public SecurityHistoricalDate(final String name, String isin,
         SpecialInvestmentInstruments specialInvestmentInstrument, int expectedRows, String fromStr, String toStr)
         throws ParseException {
       this(name, isin, specialInvestmentInstrument, null, null, expectedRows, fromStr, toStr);
     }
 
-    public SecurityHisoricalDate(final String name, String isin,
+    public SecurityHistoricalDate(final String name, String isin,
         SpecialInvestmentInstruments specialInvestmentInstrument, String urlExtend, String mic, int expectedRows,
         String fromStr, String toStr) throws ParseException {
       this(name, isin, specialInvestmentInstrument, null, urlExtend, mic, null, expectedRows, fromStr, toStr);
     }
 
-    public SecurityHisoricalDate(final String name, String isin,
+    public SecurityHistoricalDate(final String name, String isin,
         SpecialInvestmentInstruments specialInvestmentInstrument, AssetclassType assetclassType, String urlExtend,
         String mic, int expectedRows, String fromStr, String toStr) throws ParseException {
       this(name, isin, specialInvestmentInstrument, assetclassType, urlExtend, mic, null, expectedRows, fromStr, toStr);
     }
 
-    public SecurityHisoricalDate(final String name, String isin,
+    public SecurityHistoricalDate(final String name, String isin,
         SpecialInvestmentInstruments specialInvestmentInstrument, AssetclassType assetclassType, String urlExtend,
         String mic, String currency, int expectedRows, String fromStr, String toStr) throws ParseException {
       super(expectedRows, fromStr, toStr);
@@ -287,7 +339,7 @@ public class ConnectorTestHelper {
       setAssetclassAndStockexchange(security, specialInvestmentInstrument, assetclassType, mic);
     }
 
-    public SecurityHisoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
+    public SecurityHistoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
         String urlExtend, String mic, String currency, int expectedRows, String fromStr, String toStr)
         throws ParseException {
       super(expectedRows, fromStr, toStr);
@@ -310,21 +362,24 @@ public class ConnectorTestHelper {
   }
 
   public static class DividendCount extends DividendSplitCount {
-
-    public DividendCount(String name, String urlDividendExtend, int expectedRows, String fromStr, String toStr)
+    public DividendCount(String name, String isin, String urlDividendExtend, int expectedRows, String fromStr,
+        String toStr, String mic, String currency, SpecialInvestmentInstruments specialInvestmentInstrument)
         throws ParseException {
-      super(name, expectedRows, fromStr, toStr);
+      super(name, isin, expectedRows, fromStr, toStr, mic, currency, specialInvestmentInstrument);
       security.setUrlDividendExtend(urlDividendExtend);
     }
 
   }
 
-  public static abstract class DividendSplitCount extends HisoricalDateLocalDate {
-    public Security security = new Security();
+  public static abstract class DividendSplitCount extends SecurityHistoricalDate {
 
     public DividendSplitCount(String name, int expectedRows, String fromStr, String toStr) throws ParseException {
-      super(expectedRows, fromStr, toStr);
-      security.setName(name);
+      super(name, expectedRows, fromStr, toStr);
+    }
+
+    public DividendSplitCount(String name, String isin, int expectedRows, String fromStr, String toStr, String mic,
+        String currency, SpecialInvestmentInstruments specialInvestmentInstrument) throws ParseException {
+      super(name, isin, specialInvestmentInstrument, null, mic, currency, expectedRows, fromStr, toStr);
     }
 
   }

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.six.SixFeedConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class SixFeedConnectorTest extends BaseFeedConnectorCheck {
@@ -26,17 +26,17 @@ class SixFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
-    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
+  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+    List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
       hisoricalDate
-          .add(new SecurityHisoricalDate("SMI PR", "CH0009980894", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+          .add(new SecurityHistoricalDate("SMI PR", "CH0009980894", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
               "CH0009980894CHF9", null, 6041, "2000-01-04", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("1 HOLCIM 15-25", "CH0306179125",
+      hisoricalDate.add(new SecurityHistoricalDate("1 HOLCIM 15-25", "CH0306179125",
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0306179125CHF4", null, 2017, "2015-12-07", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("ABB Ltd", "CH0012221716",
+      hisoricalDate.add(new SecurityHistoricalDate("ABB Ltd", "CH0012221716",
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0012221716CHF4", null, 6022, "2000-01-04", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("ZKB Silver ETF - A (CHF)", "CH0183135976",
+      hisoricalDate.add(new SecurityHistoricalDate("ZKB Silver ETF - A (CHF)", "CH0183135976",
           SpecialInvestmentInstruments.ETF, "CH0183135976CHF4", null, 4172, "2007-05-10", "2023-12-08"));
     } catch (ParseException pe) {
       pe.printStackTrace();

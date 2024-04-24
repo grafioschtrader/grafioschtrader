@@ -3,7 +3,6 @@ package grafioschtrader.connector.instrument.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.ParseException;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
@@ -18,12 +17,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.eodhistoricaldata.EodHistoricalDataConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
-import grafioschtrader.entities.Security;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
@@ -49,26 +46,26 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
-    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
+  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+    List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
 
-      hisoricalDate.add(new SecurityHisoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "AF.PA",
+      hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "AF.PA",
           GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 6056, "2000-01-03", "2023-08-31"));
-      hisoricalDate.add(new SecurityHisoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
+      hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5926, "2000-01-03", "2023-07-24"));
 
-      hisoricalDate.add(new SecurityHisoricalDate("Express Inc", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+      hisoricalDate.add(new SecurityHistoricalDate("Express Inc", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
           "EXPR.US", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 3349, "2010-05-13", "2023-08-31"));
 
-      hisoricalDate.add(new SecurityHisoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "CAC.PA",
+      hisoricalDate.add(new SecurityHistoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "CAC.PA",
           GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4011, "2008-01-02", "2023-08-31"));
 
-      hisoricalDate.add(new SecurityHisoricalDate("iShares SMIM ETF (CH)", SpecialInvestmentInstruments.ETF,
+      hisoricalDate.add(new SecurityHistoricalDate("iShares SMIM ETF (CH)", SpecialInvestmentInstruments.ETF,
           "CSSMIM.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4708, "2004-12-09", "2023-08-31"));
-      hisoricalDate.add(new SecurityHisoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "ZGLD.SW",
+      hisoricalDate.add(new SecurityHistoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "ZGLD.SW",
           GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4206, "2006-03-15", "2023-08-31"));
-      hisoricalDate.add(new SecurityHisoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+      hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
           "NDX.INDX", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5954, "2000-01-03", "2023-08-31"));
 
     } catch (ParseException pe) {
@@ -89,13 +86,13 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
   void getEodCurrencyHistoryTest() throws ParseException {
     String oldestDate = "2000-01-03";
 
-    final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
-    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 6716, oldestDate, "2023-09-29"));
+    final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
+    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 6716, oldestDate, "2023-09-29"));
     currencies.add(
-        new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 7007, oldestDate, "2023-09-29"));
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 7007, oldestDate, "2023-09-29"));
     currencies.add(
-        new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 7028, oldestDate, "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3300, "2014-09-17",
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 7028, oldestDate, "2023-09-29"));
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3300, "2014-09-17",
         "2023-09-29"));
 
     currencies.parallelStream().forEach(cphd -> {
@@ -134,33 +131,17 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
   // =======================================
   @Test
   void getSplitsTest() throws ParseException {
-    Map<String, String>  symbolMappingMap = Map.of(
-        "HUBG", "HUBG.US",
-        "AAPL", "AAPL.US",
-        "NKE", "NKE.US");
-    ConnectorTestHelper.standardSplitTest(eodHistoricalDataConnector, symbolMappingMap);
+    ConnectorTestHelper.standardSplitTest(eodHistoricalDataConnector, getSymbolMapping());
   }
 
   @Test
-  void getDividendHistoryTest() {
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
-    final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
+  void getDividendHistoryTest() throws ParseException {
+    ConnectorTestHelper.standardDividendTest(eodHistoricalDataConnector, getSymbolMapping(),
+        Map.of(ConnectorTestHelper.ISIN_TLT, 259));
+  }
 
-    final List<Security> securities = new ArrayList<>();
-    securities.add(ConnectorTestHelper.createDividendSecurity("Nestlé", "NESN.SW"));
-    securities.add(ConnectorTestHelper.createDividendSecurity("Apple", "AAPL"));
-    securities.add(ConnectorTestHelper.createDividendSecurity("iShares 20+ Year Treasury Bond", "TLT"));
-
-    securities.parallelStream().forEach(security -> {
-      List<Dividend> dividens = new ArrayList<>();
-      try {
-        dividens = eodHistoricalDataConnector.getDividendHistory(security, from);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      assertThat(dividens.size()).isGreaterThanOrEqualTo(1);
-    });
+  private Map<String, String> getSymbolMapping() {
+    return Map.of("HUBG", "HUBG.US", "AAPL", "AAPL.US", "NKE", "NKE.US", "TLT", "TLT.US", "WMT", "WMT.US");
   }
 
 }

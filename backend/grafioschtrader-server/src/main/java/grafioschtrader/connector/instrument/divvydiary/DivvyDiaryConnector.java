@@ -25,8 +25,6 @@ import grafioschtrader.types.CreateType;
  * Only for dividends.
  *
  * Share splits have no effect on the dividend payment.
- *
- *
  */
 @Component
 public class DivvyDiaryConnector extends BaseFeedConnector {
@@ -40,7 +38,7 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
     supportedFeed.put(FeedSupport.FS_DIVIDEND, new FeedIdentifier[] { FeedIdentifier.DIVIDEND });
   }
 
-  private static final String DOMAIN_NAME_WITH_VERSION = "https://api.divvydiary.com/";
+  private static final String DOMAIN_NAME = "https://api.divvydiary.com/";
 
   public DivvyDiaryConnector() {
     super(supportedFeed, "divvydiary", "DivvyDiary", null, EnumSet.noneOf(UrlCheck.class));
@@ -48,7 +46,7 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
 
   @Override
   public String getDividendHistoricalDownloadLink(Security security) {
-    return DOMAIN_NAME_WITH_VERSION + "symbols/" + security.getIsin();
+    return DOMAIN_NAME + "symbols/" + security.getIsin();
   }
 
   @Override

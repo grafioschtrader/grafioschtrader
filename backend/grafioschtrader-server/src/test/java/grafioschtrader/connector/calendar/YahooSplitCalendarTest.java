@@ -7,14 +7,14 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import grafioschtrader.connector.calendar.ICalendarFeedConnector.TickerSecuritysplit;
-import grafioschtrader.connector.calendar.yahoo.YahooCalendar;
+import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector.TickerSecuritysplit;
+import grafioschtrader.connector.calendar.yahoo.YahooSplitCalendar;
 
-class YahooCalendarTest {
+class YahooSplitCalendarTest {
 
   @Test
   void calendarSplitTest() {
-    YahooCalendar yahooCalendar = new YahooCalendar();
+    YahooSplitCalendar yahooCalendar = new YahooSplitCalendar();
     Map<String, TickerSecuritysplit> securitySplitMap = null;
     try {
       securitySplitMap = yahooCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2023-05-11"), new String[] {});

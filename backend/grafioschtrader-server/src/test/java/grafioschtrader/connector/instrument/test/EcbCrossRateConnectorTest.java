@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.ecb.EcbCrossRateConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.test.start.GTforTest;
 
@@ -30,20 +30,20 @@ public class EcbCrossRateConnectorTest {
     String youngFromDate = "2023-09-18";
     String toDate = "2023-09-29";
 
-    final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
+    final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
 
-    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 10, youngFromDate, toDate));
+    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 10, youngFromDate, toDate));
     currencies
-        .add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 10, youngFromDate, toDate));
-    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 6079, oldestDate, "2023-09-29"));
+        .add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 10, youngFromDate, toDate));
+    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 6079, oldestDate, "2023-09-29"));
     currencies.add(
-        new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6079, oldestDate, "2023-09-29"));
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6079, oldestDate, "2023-09-29"));
     currencies.add(
-        new CurrencyPairHisoricalDate(GlobalConstants.MC_CHF, GlobalConstants.MC_USD, 6079, oldestDate, "2023-09-29"));
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_CHF, GlobalConstants.MC_USD, 6079, oldestDate, "2023-09-29"));
     currencies.add(
-        new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6079, oldestDate, "2023-09-29"));
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6079, oldestDate, "2023-09-29"));
     currencies.add(
-        new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 6079, oldestDate, "2023-09-29"));
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 6079, oldestDate, "2023-09-29"));
 
     currencies.parallelStream().forEach(cphd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
