@@ -17,8 +17,7 @@ import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
 /**
- * This means that dividend income is added to the dividend entity. The
- * following algorithm is used to determine possible missing dividend income in
+ * The following algorithm is used to determine possible missing dividend income in
  * the dividend entity for securities. This is based on the date of the last
  * dividend payment and the periodicity of the expected payments. In addition,
  * the dividend payments of the transactions are also taken into account if the
@@ -48,6 +47,7 @@ public class PeriodicallyDividendUpdCheckTask implements ITask {
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
+    dividendJpaRepository.appendThruDividendCalendar();
     List<String> errorMessages = dividendJpaRepository.periodicallyUpdate();
     if (!errorMessages.isEmpty()) {
       throw new TaskBackgroundException("gt.dividend.connector.failure", errorMessages, false);

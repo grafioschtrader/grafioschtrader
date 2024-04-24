@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.investing.InvestingConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
@@ -25,22 +25,22 @@ class InvestingConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
-    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
+  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+    List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(new SecurityHisoricalDate("CAC 40", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+      hisoricalDate.add(new SecurityHistoricalDate("CAC 40", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
           "indices/france-40"));
       hisoricalDate
-          .add(new SecurityHisoricalDate("db x-trackers Emerging MARKETS LIQUID EUROBOND INDEX ETF (EUR)22.10.2010",
+          .add(new SecurityHistoricalDate("db x-trackers Emerging MARKETS LIQUID EUROBOND INDEX ETF (EUR)22.10.2010",
               SpecialInvestmentInstruments.ETF, "etfs/db-em-liquid-eurobond---eur"));
-      hisoricalDate.add(new SecurityHisoricalDate("Apple Inc (AAPL)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+      hisoricalDate.add(new SecurityHistoricalDate("Apple Inc (AAPL)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
           "equities/apple-computer-inc"));
-      hisoricalDate.add(new SecurityHisoricalDate("MOEX Russia (IMOEX)", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+      hisoricalDate.add(new SecurityHistoricalDate("MOEX Russia (IMOEX)", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
           "indices/mcx"));
-      hisoricalDate.add(new SecurityHisoricalDate("Bitcoin Tracker EUR XBT Provider (SE0007525332)", SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
+      hisoricalDate.add(new SecurityHistoricalDate("Bitcoin Tracker EUR XBT Provider (SE0007525332)", SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
           "etfs/bitcoin-tracker-eur-xbt-provider"));
       hisoricalDate
-      .add(new SecurityHisoricalDate("iShares MSCI Emerging Markets ETF (EEM)",
+      .add(new SecurityHistoricalDate("iShares MSCI Emerging Markets ETF (EEM)",
           SpecialInvestmentInstruments.ETF, "etfs/ishares-msci-emg-markets"));
     } catch (ParseException pe) {
       pe.printStackTrace();

@@ -18,8 +18,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.connector.instrument.twelvedata.TwelvedataFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -55,14 +55,14 @@ public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
-    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
+  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+    List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(new SecurityHisoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
+      hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 6024, "2000-01-03", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("SPDR S&P 500 ETF Trust", SpecialInvestmentInstruments.ETF,
+      hisoricalDate.add(new SecurityHistoricalDate("SPDR S&P 500 ETF Trust", SpecialInvestmentInstruments.ETF,
           "SPY", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 6023, "2000-01-03", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("Tesla", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "TSLA",
+      hisoricalDate.add(new SecurityHistoricalDate("Tesla", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "TSLA",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 3386, "2010-06-29", "2023-12-08"));
   } catch (ParseException pe) {
       pe.printStackTrace();
@@ -97,14 +97,14 @@ public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
 
   @Test
   void getEodCurrencyHistoryTest() throws ParseException {
-    final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
+    final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
 
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6192, "2000-01-03",
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6192, "2000-01-03",
         "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6193, "2000-01-03",
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6193, "2000-01-03",
         "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_JPY, "SEK", 6426, "2000-01-03", "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3118, "2014-09-17",
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_JPY, "SEK", 6426, "2000-01-03", "2023-09-29"));
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3118, "2014-09-17",
         "2023-09-29"));
     currencies.parallelStream().forEach(cphd -> {
       List<Historyquote> historyquotes = new ArrayList<>();

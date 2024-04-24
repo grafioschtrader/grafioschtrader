@@ -34,13 +34,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.IConnectorNames;
-import grafioschtrader.connector.calendar.ICalendarFeedConnector;
+import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 
 @Component
-public class InvestingCalendar implements ICalendarFeedConnector {
+public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
 
   @Override
   public Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countryCodes)

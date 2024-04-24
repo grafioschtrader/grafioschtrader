@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.onvista.OnvistaFeedConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -32,18 +32,18 @@ class OnvistaFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHisoricalDate> getHistoricalSecurities() {
-    List<SecurityHisoricalDate> hisoricalDate = new ArrayList<>();
+  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+    List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(new SecurityHisoricalDate("Siemens", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+      hisoricalDate.add(new SecurityHistoricalDate("Siemens", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
           "STOCK/82902/eod_history?idNotation=1929749", 6084, "2000-01-03", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("iShares Core DAX", SpecialInvestmentInstruments.ETF,
+      hisoricalDate.add(new SecurityHistoricalDate("iShares Core DAX", SpecialInvestmentInstruments.ETF,
           "FUND/3567527/eod_history?idNotation=28520648", 3734, "2009-04-06", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("BGF World Energy Fund I2 USD", SpecialInvestmentInstruments.MUTUAL_FUND,
+      hisoricalDate.add(new SecurityHistoricalDate("BGF World Energy Fund I2 USD", SpecialInvestmentInstruments.MUTUAL_FUND,
           "FUND/20982583/eod_history?idNotation=26071169", 3394, "2008-11-18", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("Amazon", SpecialInvestmentInstruments.MUTUAL_FUND,
+      hisoricalDate.add(new SecurityHistoricalDate("Amazon", SpecialInvestmentInstruments.MUTUAL_FUND,
           "STOCK/90929/eod_history?idNotation=9386187", 4889, "2004-03-17", "2023-12-08"));
-      hisoricalDate.add(new SecurityHisoricalDate("Autoneum Holding AG SF-Anl. 2017(25)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+      hisoricalDate.add(new SecurityHistoricalDate("Autoneum Holding AG SF-Anl. 2017(25)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
           "BOND/130304815/eod_history?idNotation=202439144", 1265, "2017-12-06", "2023-12-08"));
 
     } catch (ParseException pe) {

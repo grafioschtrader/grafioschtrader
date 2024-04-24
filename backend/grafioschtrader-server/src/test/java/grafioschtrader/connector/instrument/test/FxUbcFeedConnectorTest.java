@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.fxubc.FxUbcFeedConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
 import grafioschtrader.entities.Historyquote;
 
 /**
@@ -30,18 +30,18 @@ class FxUbcFeedConnectorTest {
     String youngFromDate = "2023-09-18";
     String toDate = "2023-09-29";
 
-    final List<CurrencyPairHisoricalDate> currencies = new ArrayList<>();
-    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 10, youngFromDate,
+    final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
+    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 10, youngFromDate,
         toDate));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 10, youngFromDate,
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 10, youngFromDate,
         toDate));
-    currencies.add(new CurrencyPairHisoricalDate("ZAR", "NOK", 5945, oldestDate,
+    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 5945, oldestDate,
         "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 5946, oldestDate,
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 5946, oldestDate,
         "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 5946, oldestDate,
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 5946, oldestDate,
         "2023-09-29"));
-    currencies.add(new CurrencyPairHisoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 5946, oldestDate,
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 5946, oldestDate,
         "2023-09-29"));
 
     currencies.parallelStream().forEach(cphd -> {

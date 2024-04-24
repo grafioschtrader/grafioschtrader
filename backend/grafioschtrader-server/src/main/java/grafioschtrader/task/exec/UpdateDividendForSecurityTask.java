@@ -16,9 +16,7 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskType;
 
 /**
- * Normally called when the dividend data connector is changed or thru dividend
- * calendar calendar a possible update was detected.
- *
+ * Normally called when the dividend data connector is changed.
  */
 @Component
 public class UpdateDividendForSecurityTask implements ITask {

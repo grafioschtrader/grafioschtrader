@@ -11,7 +11,8 @@ import grafioschtrader.entities.Dividend;
 public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>, DividendJpaRepositoryCustom {
   Long deleteByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
 
-  List<Dividend> findByIdSecuritycurrencyInOrderByIdSecuritycurrencyAscExDateAsc(List<Integer> securityIds);
+  List<Dividend> findByIdSecuritycurrencyInAndCreateTypeOrderByIdSecuritycurrencyAscExDateAsc(List<Integer> securityIds,
+      byte createType);
 
   List<Dividend> findByIdSecuritycurrencyOrderByExDateAsc(Integer idSecuritycurrency);
 
@@ -34,6 +35,15 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
   @Query(nativeQuery = true)
   List<Integer> getIdSecurityForPeriodicallyUpdate(Integer daysAdded, Short maxRetryDividend);
 
+  /**
+   * In GT, dividends should also be adjusted for splits like the price data. The
+   * last split may be more recent than the most recent dividend. This query
+   * provides the IDs of the securities for which this is the case.
+   * 
+   * @param idsConnectorDividend
+   * @param idsSecurity
+   * @return
+   */
   @Query(nativeQuery = true)
   List<Integer> getIdSecuritySplitAfterDividendWhenAdjusted(List<String> idsConnectorDividend,
       List<Integer> idsSecurity);

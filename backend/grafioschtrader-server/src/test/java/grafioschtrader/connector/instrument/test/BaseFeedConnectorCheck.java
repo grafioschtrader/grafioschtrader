@@ -8,18 +8,18 @@ import java.util.Comparator;
 import java.util.List;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHisoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.entities.Historyquote;
 
 public abstract class BaseFeedConnectorCheck {
 
   protected abstract IFeedConnector getIFeedConnector();
 
-  protected abstract List<SecurityHisoricalDate> getHistoricalSecurities();
+  protected abstract List<SecurityHistoricalDate> getHistoricalSecurities();
 
 
   void updateSecurityLastPrice() {
-    final List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
+    final List<SecurityHistoricalDate> hisoricalDate = getHistoricalSecurities();
     hisoricalDate.parallelStream().forEach(hd -> {
       hd.security.setUrlIntraExtend(hd.security.getUrlHistoryExtend());
       hd.security.setUrlHistoryExtend(null);
@@ -36,7 +36,7 @@ public abstract class BaseFeedConnectorCheck {
 
 
   void getEodSecurityHistory(boolean needSort) {
-    final List<SecurityHisoricalDate> hisoricalDate = getHistoricalSecurities();
+    final List<SecurityHistoricalDate> hisoricalDate = getHistoricalSecurities();
     hisoricalDate.parallelStream().forEach(hd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {

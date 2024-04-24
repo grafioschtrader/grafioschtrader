@@ -5,7 +5,7 @@ import java.util.Map;
 
 import grafioschtrader.entities.Securitysplit;
 
-public interface ICalendarFeedConnector {
+public interface ISplitCalendarFeedConnector {
 
   /**
    * Get split data for a certain day with all securities
@@ -32,12 +32,12 @@ public interface ICalendarFeedConnector {
     }
 
     public String companyName;
-    public String countyCode;
+    public String countryCode;
     public Securitysplit securitysplit;
 
     @Override
     public String toString() {
-      return "TickerSecuritysplit [companyName=" + companyName + ", countyCode=" + countyCode + ", securitysplit="
+      return "TickerSecuritysplit [companyName=" + companyName + ", countryCode=" + countryCode + ", securitysplit="
           + securitysplit + "]";
     }
 

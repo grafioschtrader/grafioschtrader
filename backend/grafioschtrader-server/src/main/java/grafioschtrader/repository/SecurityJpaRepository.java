@@ -34,6 +34,8 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   Security findByIsinAndCurrency(String isin, String currencySecurity);
 
   List<Security> findByIsin(String isin);
+  
+  List<Security> findAllByIsinIn(Set<String> isinSet);
 
   Security findByTickerSymbolAndCurrency(String tickerSymbol, String currencySecurity);
 
