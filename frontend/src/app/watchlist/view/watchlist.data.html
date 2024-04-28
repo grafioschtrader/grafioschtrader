@@ -63,6 +63,7 @@
               <ng-container *ngSwitchCase="'icon'">
                 <svg-icon (dragend)="dragEnd($event, spl)" (dragstart)="dragStart($event, spl)"
                           [name]="getValueByPath(spl, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"
+                          [pTooltip]="spl.securitycurrency.idSecuritycurrency"
                           class="cell-move" draggable="true"></svg-icon>
               </ng-container>
               <ng-container *ngSwitchDefault>
