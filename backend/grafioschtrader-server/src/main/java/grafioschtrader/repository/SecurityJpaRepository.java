@@ -34,7 +34,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   Security findByIsinAndCurrency(String isin, String currencySecurity);
 
   List<Security> findByIsin(String isin);
-  
+
   List<Security> findAllByIsinIn(Set<String> isinSet);
 
   Security findByTickerSymbolAndCurrency(String tickerSymbol, String currencySecurity);
@@ -54,13 +54,31 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   /**
    * A new payment of interest or dividend is expected: - Last payment with this
    * client plus the addition of days determined based on the frequency of
-   * payments.</br>
+   * payments. Instruments with entries in the Dividend entity that have a payment
+   * date are ignored.</br>
    * TODO First interest of a bond determined on the basis of the trading date
    * plus addition of the frequency.</br>
-   * TODO Use of the dividend table with its optional "Pay day".</br>
    */
   @Query(nativeQuery = true)
-  List<CheckSecurityTransIntegrity> getPossibleMissingDivInterest();
+  List<CheckSecurityTransIntegrity> getPossibleMissingDivInterestByFrequency();
+
+  /**
+   * If an instrument was held during the period of a dividend payment, the
+   * dividend entity is used to determine whether there is a corresponding
+   * dividend transaction. The payment date of the dividend is used.
+   * 
+   * 
+   * @param daysLookBack            Number of days in the past that are checked
+   *                                from the current date.
+   * @param acceptDaysAroundPayDate There may be certain differences between the
+   *                                transaction date and the official dividend
+   *                                payment date. This indicates the number of
+   *                                days for this tolerance.
+   * @return
+   */
+  @Query(nativeQuery = true)
+  List<CheckSecurityTransIntegrity> getPossibleMissingDividentsByDividendTable(int daysLookBack,
+      int acceptDaysAroundPayDate);
 
   @Query(nativeQuery = true)
   List<Security> getUnusedSecurityForAlgo(Integer idTenantPrivate, Integer idAlgoAssetclassSecurity);

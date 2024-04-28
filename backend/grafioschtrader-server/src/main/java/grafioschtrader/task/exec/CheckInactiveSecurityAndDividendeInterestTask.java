@@ -60,12 +60,17 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     processCheckSecurityTransIntegrityList(securityJpaRepository.getHoldingsOfInactiveSecurties(),
         MessageComType.USER_SECURITY_HELD_INACTIVE, "gt.holding.inactive.security");
-    processCheckSecurityTransIntegrityList(securityJpaRepository.getPossibleMissingDivInterest(),
-        MessageComType.USER_SECURITY_MISSING_DIV_INTEREST, "gt.possible.missing.div.interest");
+    processCheckSecurityTransIntegrityList(securityJpaRepository.getPossibleMissingDivInterestByFrequency(),
+        MessageComType.USER_SECURITY_MISSING_DIV_INTEREST, "gt.possible.missing.div.frequency.interest");
+    processCheckSecurityTransIntegrityList(
+        securityJpaRepository.getPossibleMissingDividentsByDividendTable(GlobalConstants.DIVIDEND_CHECK_DAYS_LOOK_BACK,
+            GlobalConstants.DIVIDEND_CHECK_PAY_DATE_TOLERANCE_IN_DAYS),
+        MessageComType.USER_SECURITY_MISSING_DIV_INTEREST, "gt.possible.missing.div.divtable.interest");
+
   }
 
   private void processCheckSecurityTransIntegrityList(List<CheckSecurityTransIntegrity> cstiList,
-      MessageComType messageComType, String msg) throws TaskBackgroundException {
+      MessageComType messageComType, String msgKey) throws TaskBackgroundException {
     CheckSecurityTransIntegrity lastCsti = null;
     StringBuilder compoundMsg = new StringBuilder();
     Locale locale = null;
@@ -74,7 +79,7 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
     for (CheckSecurityTransIntegrity csti : cstiList) {
       if (lastCsti == null || csti.getIdUser() != lastCsti.getIdUser()) {
         if (lastCsti != null) {
-          this.sendMail(msg, compoundMsg, mailEntityList, locale, msgException, lastCsti.getIdUser());
+          this.sendMail(msgKey, compoundMsg, mailEntityList, locale, msgException, lastCsti.getIdUser(), messageComType);
         }
         locale = Locale.forLanguageTag(csti.getLocaleStr());
         compoundMsg.setLength(0);
@@ -84,7 +89,7 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
           compoundMsg.append(GlobalConstants.NEW_LINE);
         }
       }
-      String msgTransformed = messageSource.getMessage(msg,
+      String msgTransformed = messageSource.getMessage(msgKey,
           new Object[] { csti.getName(), csti.getCurrency(),
               csti.getMarkDate().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale)) },
           locale);
@@ -95,7 +100,7 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
       lastCsti = csti;
     }
     if (compoundMsg.length() > 0) {
-      this.sendMail(msg, compoundMsg, mailEntityList, locale, msgException, lastCsti.getIdUser());
+      this.sendMail(msgKey, compoundMsg, mailEntityList, locale, msgException, lastCsti.getIdUser(), messageComType);
     }
     if (!msgException.isEmpty()) {
       throw new TaskBackgroundException("gt.external.mail.failure", msgException, false);
@@ -103,12 +108,12 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
 
   }
 
-  private void sendMail(String msg, StringBuilder compoundMsg, List<MailEntity> mailEntityList, Locale locale,
-      List<String> msgException, Integer idUser) {
+  private void sendMail(String msgKey, StringBuilder compoundMsg, List<MailEntity> mailEntityList, Locale locale,
+      List<String> msgException, Integer idUser, MessageComType messageComType) {
     try {
-      String subject = messageSource.getMessage(msg + ".subject", null, locale);
+      String subject = messageSource.getMessage(msgKey + ".subject", null, locale);
       Integer idMailSendRecv = sendMailInternalExternalService.sendMailInternAndOrExternal(0, idUser, subject,
-          compoundMsg.toString(), MessageComType.USER_SECURITY_MISSING_DIV_INTEREST);
+          compoundMsg.toString(), messageComType);
       if (idMailSendRecv != null) {
         mailEntityList.forEach(me -> me.setIdMailSendRecv(idMailSendRecv));
       }
