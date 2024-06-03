@@ -29,7 +29,7 @@ public class DivvyDiaryDividendCalendar implements IDividendCalendarFeedConnecto
     for(DivvyDiaryDividends ddDividend: ddDividends.dividends) {
      var cd = new CalendarDividends(ddDividend.name, ddDividend.exDate, ddDividend.payDate, ddDividend.amount);
      cd.isin = ddDividend.isin;
-     cd.currency = ddDividend.currency; 
+     cd.currency = ddDividend.currency;
      calDividends.add(cd);
     }
     return calDividends;
@@ -39,17 +39,17 @@ public class DivvyDiaryDividendCalendar implements IDividendCalendarFeedConnecto
   public int getPriority() {
     return 10;
   }
-  
+
   @Override
   public boolean supportISIN() {
     return true;
   }
 
-  
+
   private static class DivvyDiaryDividendsHeader {
     public DivvyDiaryDividends[] dividends;
   }
-  
+
   private static class DivvyDiaryDividends {
     public String name;
     public LocalDate exDate;

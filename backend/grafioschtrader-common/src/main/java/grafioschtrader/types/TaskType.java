@@ -48,7 +48,7 @@ public enum TaskType {
   MONITOR_HISTORICAL_PRICE_DATA((byte) 17),
   // Checks whether a connector for intraday price data may no longer be working.
   MONITOR_INTRADAY_PRICE_DATA((byte) 18),
-  
+
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////
   // Moves shared entities from one user to another user by changing field

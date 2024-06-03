@@ -39,11 +39,11 @@ public interface UserJpaRepository
   /**
    * Moves shared data from one user to another. It is assumed that shared data
    * has a field 'created_by', whereby tables beginning with "user" are excluded.
-   * 
+   *
    * @param fromIdUser ID from user
    * @param toIdUser ID to user
    * @param schemaName database name
-   * @return 
+   * @return
    */
   @Query(value = "CALL moveCreatedByUserToOtherUser(:fromIdUser, :toIdUser, :schemaName);", nativeQuery = true)
   Integer moveCreatedByUserToOtherUser(@Param("fromIdUser") Integer fromIdUser, @Param("toIdUser") Integer toIdUser,

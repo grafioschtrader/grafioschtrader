@@ -31,7 +31,7 @@ class StockworldFeedConnectorTest extends BaseFeedConnectorCheck {
       hisoricalDate.add(new SecurityHistoricalDate("ZKB Silver ETF - A (CHF)", "CH0183135976",
           SpecialInvestmentInstruments.ETF, "102758344", null, 1597, "2017-05-11", "2023-12-08"));
       hisoricalDate.add(new SecurityHistoricalDate("Bayerische Landesbank 2,5% 17/27", "DE000BLB4UP9",
-          SpecialInvestmentInstruments.ETF, "128405128", null, 1652, "2017-01-26", "2023-12-08"));
+          SpecialInvestmentInstruments.ETF, "128405128", null, 1613, "2017-01-26", "2024-05-30"));
     } catch (ParseException pe) {
       pe.printStackTrace();
     }

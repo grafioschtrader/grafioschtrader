@@ -3,20 +3,15 @@ package grafioschtrader.connector.instrument.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.boursorama.BoursoramaFeedConnector;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -72,34 +67,28 @@ public class BoursoramaFeedConnectorTest extends BaseFeedConnectorCheck {
   // Currency pair price tests
   //=======================================
   @Test
-  void getEodCurrencyHistoryTest() {
-    final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .withLocale(Locale.GERMAN);
+  void getEodCurrencyHistoryTest() throws ParseException {
+    final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_CHF, "COP", 3280, "2011-08-04",
+        "2024-05-30", "3fCHF_COP"));
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_JPY, GlobalConstants.MC_USD, 3280, "2011-08-04",
+        "2024-05-30", "3fJPY_USD"));
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 558, "2022-10-02",
+        "2024-05-30", "9xBTCUSD"));
 
-    final LocalDate from = LocalDate.parse("03.01.2003", germanFormatter);
-    final LocalDate to = LocalDate.parse("26.01.2022", germanFormatter);
-
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-    final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-    final List<Currencypair> currencies = new ArrayList<>();
-
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, "COP", "3fCHF_COP"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_JPY, GlobalConstants.MC_USD, "3fJPY_USD"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair("CAD", GlobalConstants.MC_EUR, "3fCAD_EUR"));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, GlobalConstants.MC_GBP, "3fCHF_GBP"));
-    currencies
-        .add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, "9xXBTUSDSPOT"));
-
-    currencies.parallelStream().forEach(currencyPair -> {
-      List<Historyquote> historyquote = new ArrayList<>();
+    currencies.parallelStream().forEach(cphd -> {
+      List<Historyquote> historyquotes = new ArrayList<>();
       try {
-        historyquote = boursoramaFeedConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
+        historyquotes = boursoramaFeedConnector.getEodCurrencyHistory(cphd.currencypair, cphd.from, cphd.to);
       } catch (Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquote.size()).isGreaterThan(2680);
+      assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
+      assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
+      assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
+      ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
     });
+
   }
 
 

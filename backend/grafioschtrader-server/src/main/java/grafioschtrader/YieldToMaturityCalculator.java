@@ -59,16 +59,16 @@ public class YieldToMaturityCalculator {
         // Return the annualized YTM
         return ytm * frequency;
     }
-    
-   
-    
+
+
+
 
     // Main method for testing
     public static void main(String[] args) {
         // Create a bond object with sample data
 //      YieldToMaturityCalculator bond = new YieldToMaturityCalculator(92.5, 100, 0.0166 / 100, LocalDate.of(2024, 1, 29),
 //          LocalDate.of(2029, 12, 21), 1, 360);
-      
+
       YieldToMaturityCalculator bond = new YieldToMaturityCalculator(96.2, 100, 0.0732 / 100, LocalDate.of(2024, 1, 29),
           LocalDate.of(2025, 1, 30), 1, 360);
 

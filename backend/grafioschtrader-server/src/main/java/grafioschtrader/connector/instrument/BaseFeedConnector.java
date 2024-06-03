@@ -361,7 +361,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       log.error("URL: {}", url);
     }
   }
-  
+
+  @Override
   public String getContentOfPageRequest(String httpPageUrl) {
     String contentPage = null;
     try {

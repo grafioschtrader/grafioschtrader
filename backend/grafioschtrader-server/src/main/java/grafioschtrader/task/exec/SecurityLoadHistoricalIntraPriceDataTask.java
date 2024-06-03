@@ -18,7 +18,7 @@ import grafioschtrader.types.TaskType;
  * When a security is created, the intraday and historical price data is read.
  * If the connector for the historical price data is changed, the prices must
  * also be read in again. When the security is created, this can be done
- * synchronously or asynchronously with this task. 
+ * synchronously or asynchronously with this task.
  */
 @Component
 public class SecurityLoadHistoricalIntraPriceDataTask implements ITask {

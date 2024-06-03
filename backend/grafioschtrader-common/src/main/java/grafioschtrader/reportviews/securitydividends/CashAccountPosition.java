@@ -22,7 +22,7 @@ public class CashAccountPosition extends AccountDividendPosition {
 
   public double feeCashAccount = 0.0;
   public double feeCashAccountMC = 0.0;
-  
+
   public double feeSecurityAccount = 0.0;
   public double feeSecurityAccountMC = 0.0;
 
@@ -47,16 +47,16 @@ public class CashAccountPosition extends AccountDividendPosition {
   public double getFeeCashAccountMC() {
     return DataHelper.round(feeCashAccountMC, precisionMC);
   }
-  
+
   public double getFeeSecurityAccountMC() {
     return DataHelper.round(feeSecurityAccountMC, precisionMC);
   }
-  
+
   public void updateInterestPosition(Transaction transaction, SecurityDividendsYearGroup securityDividendsYearGroup,
       DateTransactionCurrencypairMap dateCurrencyMap) {
     double exchangeRate = transaction.getExchangeRateOnCurrency(dateCurrencyMap.getMainCurrency(), dateCurrencyMap);
     updatedTaxes(transaction, exchangeRate);
-    
+
   }
 
   public void updateFeePosition(Transaction transaction, SecurityDividendsYearGroup securityDividendsYearGroup,
@@ -70,14 +70,14 @@ public class CashAccountPosition extends AccountDividendPosition {
       feeSecurityAccountMC += transaction.getCashaccountAmount() * exchangeRate * -1;
     }
   }
-  
-  
+
+
   public void attachHistoryquoteAndCalcPositionTotal(Map<Integer, Historyquote> historyquoteIdMap,
       DateTransactionCurrencypairMap dateCurrencyMap) {
     if (cashBalance != 0.0) {
       getAndSetExchangeRateEndOfYear(historyquoteIdMap, dateCurrencyMap, cashaccount.getCurrency());
       cashBalanceMC = exchangeRateEndOfYear == null ? cashBalance : cashBalance * exchangeRateEndOfYear;
     }
-    
+
   }
 }

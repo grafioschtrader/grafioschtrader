@@ -99,8 +99,8 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private Assetclass assetClass;
 
   @Schema(description = """
-          For bonds it is the smallest tradable unit and for fixed-term deposits it is the price. 
-          Is currently not validated for purchases and sales. 
+          For bonds it is the smallest tradable unit and for fixed-term deposits it is the price.
+          Is currently not validated for purchases and sales.
           As an insolvent creditor may choose other denominations for partial or full repayment.""")
   @Column(name = "denomination")
   @PropertyAlwaysUpdatable
@@ -138,14 +138,14 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private Date activeToDate;
 
   @Schema(description = """
-          Some security pays dividend or interest in a certain frequency. 
+          Some security pays dividend or interest in a certain frequency.
           It is used for transaction import of bonds to check interest amount against coupon rate""")
   @Column(name = "dist_frequency")
   @PropertyAlwaysUpdatable
   private byte distributionFrequency;
 
   @Schema(description = """
-          Certain instruments are short and may still be leveraged, this is mapped with this. 
+          Certain instruments are short and may still be leveraged, this is mapped with this.
           Used, for example, to correctly calculate the equity ratio for the portfolio.""")
   @Column(name = "leverage_factor")
   @PropertyAlwaysUpdatable
@@ -166,7 +166,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private String formulaPrices;
 
   @Schema(description = """
-          A derived instrument refers in minimum to another instrument. 
+          A derived instrument refers in minimum to another instrument.
           The ID of this instrument is held here.""")
   @Column(name = "id_link_securitycurrency")
   @PropertyAlwaysUpdatable

@@ -22,6 +22,6 @@ public class DivvyDiaryDividendCalendarTest {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    
+
   }
 }

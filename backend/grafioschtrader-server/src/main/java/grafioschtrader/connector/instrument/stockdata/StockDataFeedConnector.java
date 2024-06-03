@@ -17,7 +17,6 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -159,12 +158,6 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
     }
   }
 
-  @JsonIgnore
-  public StockexchangeAllStockdata getAllStockexchanges() throws Exception {
-    return objectMapper.readValue(
-        new URI(DOMAIN_NAME_WITH_VERSION + "entity/exchange/list?" + getApiKeyString(true)).toURL(),
-        StockexchangeAllStockdata.class);
-  }
 
   private String getCurrencyPairSymbol(final Currencypair currencypair) {
     return currencypair.getFromCurrency() + currencypair.getToCurrency();

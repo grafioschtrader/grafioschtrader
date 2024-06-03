@@ -29,7 +29,7 @@ public abstract class UDFMetadata extends UserBaseID {
   private Integer idUDFMetadata;
 
   @Schema(description = """
-          Possibly this construct of the UDF is also used for system-wide input fields. 
+          Possibly this construct of the UDF is also used for system-wide input fields.
           In this case, the user with ID = 0 would be used.""")
   @Column(name = "id_user")
   @NotNull

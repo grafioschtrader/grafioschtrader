@@ -66,8 +66,8 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    * If an instrument was held during the period of a dividend payment, the
    * dividend entity is used to determine whether there is a corresponding
    * dividend transaction. The payment date of the dividend is used.
-   * 
-   * 
+   *
+   *
    * @param daysLookBack            Number of days in the past that are checked
    *                                from the current date.
    * @param acceptDaysAroundPayDate There may be certain differences between the
@@ -172,7 +172,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    * grouped by connector. Security and currency pair connectors are taken into
    * account. Only securities after a certain date are taken into account when
    * counting non-functioning ones.
-   * 
+   *
    * @param dateBackAfter    Securities are taken into account for the count of
    *                         non-functioning ones if their most recent historical
    *                         price data is younger than this date.
@@ -190,7 +190,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   /**
    * Counts all working and non-functioning intraday connectors. Both securities
    * and currency pairs are taken into account.
-   * 
+   *
    * @param dateBackOrRetry  In addition to checking the repeat counter overrun,
    *                         the date of the most recent update can also be
    *                         checked. The date given here must be older than that

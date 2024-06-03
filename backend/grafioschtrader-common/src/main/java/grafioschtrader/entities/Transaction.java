@@ -90,7 +90,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   private Double taxCost;
 
   @Schema(description = """
-          Transaction costs may be incurred for certain types of transactions. 
+          Transaction costs may be incurred for certain types of transactions.
           This is the case when selling and buying instruments or when withdrawing money from an account.""")
   @Column(name = "transaction_cost")
   private Double transactionCost;
@@ -148,7 +148,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   Integer idCurrencypair;
 
   @Schema(description = """
-          Every transaction relating to a security has security account. 
+          Every transaction relating to a security has security account.
           A cash transaction may also have a security account in case of security account costs""")
   @Column(name = "id_security_account")
   @NotNull(groups = { SecurityTransaction.class })
@@ -443,8 +443,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return this.cashaccountAmount * exchangeRateToMC * -1.0;
   }
 
- 
-  
+
+
   @JsonIgnore
   public Double getTaxCostExRate(String mainCurency, double exchangeRateToMC) {
     return calcMCValue(mainCurency, this.taxCost, exchangeRateToMC);

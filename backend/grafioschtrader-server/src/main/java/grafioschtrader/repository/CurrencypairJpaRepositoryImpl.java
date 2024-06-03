@@ -182,8 +182,8 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
   public String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday) {
     ConnectorData<Currencypair> ct = getConnectorData(idSecuritycurrency, isIntraday, currencypairJpaRepository);
-    return ct.feedConnector.getContentOfPageRequest(
-        isIntraday ? ct.feedConnector.getCurrencypairIntradayDownloadLink(ct.securitycurrency)
+    return ct.feedConnector
+        .getContentOfPageRequest(isIntraday ? ct.feedConnector.getCurrencypairIntradayDownloadLink(ct.securitycurrency)
             : ct.feedConnector.getCurrencypairHistoricalDownloadLink(ct.securitycurrency));
   }
 
@@ -306,11 +306,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     }
   }
 
-  /*
-   * @Override public void updateAllLastPrice() {
-   * intradayThruConnector.updateLastPriceOfSecuritycurrency(
-   * currencypairJpaRepository.findAll()); }
-   */
+
   @Override
   public void updateIntraSecurityCurrency(final Currencypair securitycurrency, final IFeedConnector feedConnector)
       throws Exception {
@@ -330,17 +326,29 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
+   public void updateAllLastPrices() {
+    updateLastPriceByList(currencypairJpaRepository
+        .findByRetryIntraLoadLessThan(globalparametersJpaRepository.getMaxIntraRetry()), true);
+
+  }
+
+  @Override
   public Currencypair updateLastPrice(final Currencypair currencypair) {
     final List<Currencypair> currencypairs = Arrays.asList(currencypair);
-    intradayThruConnector.updateLastPriceOfSecuritycurrency(currencypairs);
-    return currencypairs.get(0);
+    intradayThruConnector.updateLastPriceOfSecuritycurrency(currencypairs, false);
+    return currencypairs.getFirst();
   }
 
   @Override
   public List<Currencypair> updateLastPriceByList(final List<Currencypair> currencypairs) {
-    intradayThruConnector.updateLastPriceOfSecuritycurrency(currencypairs);
-    return currencypairs;
+    return updateLastPriceByList(currencypairs, false);
   }
+
+
+  private List<Currencypair> updateLastPriceByList(final List<Currencypair> currencypairs, boolean singleThread) {
+    return intradayThruConnector.updateLastPriceOfSecuritycurrency(currencypairs, singleThread);
+  }
+
 
   @Override
   public void calcGainLossBasedOnDateOrNewestPrice(
@@ -352,7 +360,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
   public List<Currencypair> tryUpToDateIntraDataWhenRetryIntraLoadGreaterThan0(Integer idTenant, Integer idWatchlist) {
     return intradayThruConnector.updateLastPriceOfSecuritycurrency(
-        currencypairJpaRepository.findByIdTenantAndIdWatchlistWhenRetryIntraThan0(idTenant, idWatchlist), (short) -1);
+        currencypairJpaRepository.findByIdTenantAndIdWatchlistWhenRetryIntraThan0(idTenant, idWatchlist), (short) -1, false);
   }
 
   @Override

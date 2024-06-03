@@ -29,6 +29,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    */
   List<Security> catchAllUpSecurityHistoryquote(List<Integer> idsStockexchange);
 
+  void updateAllLastPrices();
+
   List<Security> updateLastPriceByList(List<Security> securyties);
 
   List<Security> findByActiveToDateGreaterThanEqualOrderByName(String dateString) throws ParseException;
@@ -77,7 +79,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * security. If an API key is required, only the backend can evaluate this link
    * and return the corresponding content. The content of the provider may also be
    * determined in the backend for other reasons.
-   * 
+   *
    * @param idSecuritycurrency
    * @param isIntraday
    * @return

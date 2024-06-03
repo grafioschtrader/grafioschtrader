@@ -95,7 +95,7 @@ public class SplitCalendarAppender {
   /**
    * The individual days are processed according to the trading calendar. The
    * connectors for split calendars are contacted for each day.
-   * 
+   *
    * @param tradingDaysPlusList
    * @param countryCodes
    * @param similarityAlgo      As the company name in the split calendar can be

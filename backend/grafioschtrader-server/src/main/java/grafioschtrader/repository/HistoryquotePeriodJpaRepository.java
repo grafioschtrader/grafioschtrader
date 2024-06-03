@@ -27,5 +27,5 @@ public interface HistoryquotePeriodJpaRepository
    * change.
    */
   @Query(nativeQuery = true)
-  void updatLastPrice();
+  void updatLastPriceFromHistoricalPeriod();
 }

@@ -65,7 +65,7 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
     return connectorApiKey == null ? null : connectorApiKey.getApiKey();
   }
 
-  protected SubscriptionType getSubscriptionType() {
+  public SubscriptionType getSubscriptionType() {
     getConnectorApiKey();
     return connectorApiKey.getSubscriptionType();
   }

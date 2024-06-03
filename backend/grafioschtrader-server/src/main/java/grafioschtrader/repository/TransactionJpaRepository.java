@@ -127,10 +127,10 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * Returns the transactions of a specific cash account over a definable period of time according to specified transaction types.
    */
   @Query(value="""
-      SELECT t FROM Transaction t JOIN t.cashaccount c 
+      SELECT t FROM Transaction t JOIN t.cashaccount c
       WHERE c.idSecuritycashAccount= ?1 AND t.idTenant=?2 AND t.transactionDate>=?3 AND t.transactionDate<=?4 AND t.transactionType IN ?5""")
-  List <Transaction> findByTenantAndCashaccountAndYearAndTransactionType(Integer idSecuritycashAccount, Integer idTenant, LocalDate transactionDateFrom, LocalDate transactionDateTo, int[] transactionTypes);   
-  
+  List <Transaction> findByTenantAndCashaccountAndYearAndTransactionType(Integer idSecuritycashAccount, Integer idTenant, LocalDate transactionDateFrom, LocalDate transactionDateTo, int[] transactionTypes);
+
   @Query
   List<Transaction> findByIdWatchlist(Integer idWatchlist);
 

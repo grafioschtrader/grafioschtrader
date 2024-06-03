@@ -66,7 +66,7 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
     if (globalparametersJpaRepository.getUpdatePriceByStockexchange() == 0) {
       securityJpaRepository.catchAllUpSecurityHistoryquote(null);
     }
-    historyquotePeriodJpaRepository.updatLastPrice();
+    historyquotePeriodJpaRepository.updatLastPriceFromHistoricalPeriod();
     securityJpaRepository.deleteUpdateHistoryQuality();
     splitCalendarAppender.appendSecuritySplitsUntilToday();
     holdCashaccountDepositJpaRepository.adjustBecauseOfHistoryquotePriceChanges();

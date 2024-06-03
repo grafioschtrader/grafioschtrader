@@ -3,13 +3,10 @@ package grafioschtrader.connector.instrument.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.ParseException;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -37,9 +34,6 @@ public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
     twelvedataFeedConnector = tfc;
   }
 
-
-  final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-      .withLocale(Locale.GERMAN);
 
   //Security price tests
   // =======================================
@@ -104,7 +98,7 @@ public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
     currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6193, "2000-01-03",
         "2023-09-29"));
     currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_JPY, "SEK", 6426, "2000-01-03", "2023-09-29"));
-    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3118, "2014-09-17",
+    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3300, "2014-09-17",
         "2023-09-29"));
     currencies.parallelStream().forEach(cphd -> {
       List<Historyquote> historyquotes = new ArrayList<>();

@@ -282,7 +282,7 @@ public interface IFeedConnector {
    * opened directly in the browser. This is not possible for data providers with
    * API keys, so the data content is prepared in the backend. There are other
    * cases where the data content must be created in the backend.
-   * 
+   *
    * @return
    */
   EnumSet<DownloadLink> isDownloadLinkCreatedLazy();
@@ -292,7 +292,7 @@ public interface IFeedConnector {
    * security. If an API key is required, only the backend can evaluate this link
    * and return the corresponding content. The content of the provider may also be
    * determined in the backend for other reasons.
-   * 
+   *
    * @param httpPageUrl
    * @return
    */

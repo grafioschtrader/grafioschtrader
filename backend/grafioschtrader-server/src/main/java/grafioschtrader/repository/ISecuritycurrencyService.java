@@ -21,7 +21,7 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
 //  void updateAllLastPrice();
 
   List<IFeedConnector> getFeedConnectors();
-  
+
   /**
    * Returns a list of IFeedConnector which supports currency or security
    *

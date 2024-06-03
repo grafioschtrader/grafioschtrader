@@ -284,9 +284,16 @@ public class ConnectorTestHelper {
 
     public CurrencyPairHistoricalDate(final String fromCurrency, final String toCurrency, int expectedRows,
         String fromStr, String toStr) throws ParseException {
+      this(fromCurrency, toCurrency, expectedRows, fromStr, toStr, null);
+    }
+
+    public CurrencyPairHistoricalDate(final String fromCurrency, final String toCurrency, int expectedRows,
+        String fromStr, String toStr, String urlHistoryExtend) throws ParseException {
       super(expectedRows, fromStr, toStr);
       this.currencypair = createCurrencyPair(fromCurrency, toCurrency);
+      this.currencypair.setUrlHistoryExtend(urlHistoryExtend);
     }
+
   }
 
   public static class SecurityHistoricalDate extends HistoricalDate {

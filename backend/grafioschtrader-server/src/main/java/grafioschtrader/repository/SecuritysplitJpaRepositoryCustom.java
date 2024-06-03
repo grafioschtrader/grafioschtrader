@@ -40,7 +40,7 @@ public interface SecuritysplitJpaRepositoryCustom {
   /**
    * Loads the historical price data of a security if it reflects the split,
    * otherwise another task is created for the future which repeats this process.
-   * 
+   *
    * @param security
    * @param securitysplits
    * @param youngestSplitDate
