@@ -98,13 +98,13 @@ public class ImportProperties {
    */
   private Double tc2;
 
-  
+
   /**
    * This amount is deducted from the transaction costs
    */
   private Double reduce;
 
-  
+
   /**
    * Transaction Tax 1
    */
@@ -176,7 +176,7 @@ public class ImportProperties {
   public void setDate(LocalDate date) {
     this.date = date;
   }
-    
+
   public Double getReduce() {
     return reduce;
   }

@@ -32,7 +32,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
   public int yearCountPaidTransactions;
   public double yearRealReceivedDivInterestMC;
   public SecurityCostGroup securityCostGroup;
-  
+
   private Map<Integer, CashAccountPosition> cashaccountGroupMap = new HashMap<>();
 
   protected int precisionMC;
@@ -63,7 +63,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     return groupMap.values().stream().sorted((x, y) -> x.security.getName().compareTo(y.security.getName()))
         .collect(Collectors.toList());
   }
-  
+
   public List<CashAccountPosition> getCashAccountPositions() {
     return cashaccountGroupMap.values().stream().sorted((x, y) -> x.cashaccount.getName().compareTo(y.cashaccount.getName()))
         .collect(Collectors.toList());
@@ -75,12 +75,12 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     return securityDividendsPosition;
   }
 
-  
+
   public CashAccountPosition getOrCreateAccountDividendPosition(Cashaccount cashaccount) {
-    return cashaccountGroupMap.computeIfAbsent(cashaccount.getIdSecuritycashAccount(), 
+    return cashaccountGroupMap.computeIfAbsent(cashaccount.getIdSecuritycashAccount(),
         k -> new CashAccountPosition(cashaccount, precisionMC, currencyPrecisionMap));
   }
-  
+
   public void attachHistoryquoteAndCalcPositionTotal(Map<Integer, Map<Integer, Historyquote>> historyquoteYearIdMap,
       DateTransactionCurrencypairMap dateCurrencyMap) {
 
@@ -95,9 +95,9 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     cashaccountGroupMap.values().forEach(cashAccountPosition -> {
       cashAccountPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year),
           dateCurrencyMap);
-      
+
     });
-    
+
     securityCostGroup.calcAverages(yearCountPaidTransactions);
   }
 
@@ -124,7 +124,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
       yearInterestMC += interestMC;
     }
   }
-  
+
 
   public double getValueAtEndOfYearMC() {
     return DataHelper.round(valueAtEndOfYearMC, precisionMC);

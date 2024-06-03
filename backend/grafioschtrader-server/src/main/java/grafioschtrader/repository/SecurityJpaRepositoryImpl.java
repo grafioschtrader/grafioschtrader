@@ -248,8 +248,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday) {
     ConnectorData<Security> ct = getConnectorData(idSecuritycurrency, isIntraday, securityJpaRepository);
-    return ct.feedConnector.getContentOfPageRequest(isIntraday ? ct.feedConnector.getSecurityIntradayDownloadLink(ct.securitycurrency)
-          : ct.feedConnector.getSecurityHistoricalDownloadLink(ct.securitycurrency));
+    return ct.feedConnector
+        .getContentOfPageRequest(isIntraday ? ct.feedConnector.getSecurityIntradayDownloadLink(ct.securitycurrency)
+            : ct.feedConnector.getSecurityHistoricalDownloadLink(ct.securitycurrency));
   }
 
   @Override
@@ -264,23 +265,33 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   ////////////////////////////////////////////////////////////////
 
   @Override
+  public void updateAllLastPrices() {
+    List<Security> securities = securityJpaRepository.findAll();
+    Date now = new Date();
+    intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
+        .filter(s -> !s.isDerivedInstrument() && !now.after(s.getActiveToDate()) && !now
+            .before(s.getActiveFromDate()) && s.getRetryIntraLoad() < globalparametersJpaRepository.getMaxIntraRetry()
+            && s.getIdConnectorIntra() != null)
+        .collect(Collectors.toList()), true);
+    intradayThruCalculation.updateLastPriceOfSecuritycurrency(
+        securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()), true);
+  }
+
+
+  @Override
   public List<Security> updateLastPriceByList(List<Security> securities) {
+    return updateLastPriceByList(securities, false);
+  }
+
+
+  private List<Security> updateLastPriceByList(List<Security> securities, boolean singleThread) {
     List<Security> securitiesRc = intradayThruConnector.updateLastPriceOfSecuritycurrency(
-        securities.stream().filter(s -> !s.isDerivedInstrument()).collect(Collectors.toList()));
+        securities.stream().filter(s -> !s.isDerivedInstrument()).collect(Collectors.toList()), singleThread);
     securitiesRc.addAll(intradayThruCalculation.updateLastPriceOfSecuritycurrency(
-        securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList())));
+        securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()), singleThread));
     return securitiesRc;
   }
-  /*
-   * @Override public void updateAllLastPrice() { List<Security> securities =
-   * securityJpaRepository.findAll();
-   * intradayThruConnector.updateLastPriceOfSecuritycurrency(
-   * securities.stream().filter(s ->
-   * !s.isDerivedInstrument()).collect(Collectors.toList()));
-   * intradayThruCalculation.updateLastPriceOfSecuritycurrency(
-   * securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.
-   * toList())); }
-   */
+
 
   @Override
   protected Security updateLastPriceSecurityCurrency(final Security security, final short maxIntraRetry,
@@ -368,7 +379,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public List<Security> tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(Integer idTenant, Integer idWatchlist) {
     return intradayThruConnector.updateLastPriceOfSecuritycurrency(securityJpaRepository
-        .findWithConnectorByIdTenantAndIdWatchlistWhenRetryIntraGreaterThan0(idTenant, idWatchlist), (short) -1);
+        .findWithConnectorByIdTenantAndIdWatchlistWhenRetryIntraGreaterThan0(idTenant, idWatchlist), (short) -1, false);
   }
 
   @Override
@@ -487,7 +498,6 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     return getHistoryQuote(security, fromDate, toDate, feedConnector);
   }
 
-  
   @Override
   protected Security beforeSave(Security security, Security existingSecurity, User user) throws Exception {
     Security cloneSecurity = null;

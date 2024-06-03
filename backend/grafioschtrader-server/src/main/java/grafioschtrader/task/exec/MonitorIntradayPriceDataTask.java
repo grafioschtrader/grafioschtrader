@@ -1,8 +1,10 @@
 package grafioschtrader.task.exec;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,8 @@ import grafioschtrader.alert.AlertType;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.exceptions.TaskBackgroundException;
+import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository.MonitorFailedConnector;
 import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskDataExecPriority;
@@ -25,6 +29,12 @@ import grafioschtrader.types.TaskType;
 @Component
 public class MonitorIntradayPriceDataTask extends MonitorPriceData implements ITask {
 
+  @Autowired
+  private CurrencypairJpaRepository currencypairJpaRepository;
+
+  @Autowired
+  private SecurityJpaRepository securityJpaRepository;
+
   @Scheduled(cron = "${gt.intraday.cron.monitor.quotation}", zone = GlobalConstants.TIME_ZONE)
   public void monitorIntradayPriceDataConnectors() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_NORMAL);
@@ -38,14 +48,28 @@ public class MonitorIntradayPriceDataTask extends MonitorPriceData implements IT
 
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    List<MonitorFailedConnector> monitorFailedConnectors = securityJpaRepository.getFailedIntradayConnector(
-        LocalDate.now().minusDays(globalparametersJpaRepository.getIntradayObservationOrDaysBack()),
-        globalparametersJpaRepository.getMaxIntraRetry()
-            - globalparametersJpaRepository.getIntradayObservationRetryMinus(),
-        globalparametersJpaRepository.getIntradayObservationFallingPercentage());
-    if (!monitorFailedConnectors.isEmpty()) {
-      generateMessageAndPublishAlert(AlertType.ALERT_CONNECTOR_INTRADAY_MAY_NOT_WORK_ANYMORE, monitorFailedConnectors,
-          FeedSupport.FS_INTRA);
-    }
+    int leave = 0;
+    List<MonitorFailedConnector> monitorFailedConnectors = Collections.emptyList();
+    do {
+      monitorFailedConnectors = securityJpaRepository.getFailedIntradayConnector(
+          LocalDate.now().minusDays(globalparametersJpaRepository.getIntradayObservationOrDaysBack()),
+          globalparametersJpaRepository.getMaxIntraRetry()
+              - globalparametersJpaRepository.getIntradayObservationRetryMinus(),
+          globalparametersJpaRepository.getIntradayObservationFallingPercentage());
+      if (!monitorFailedConnectors.isEmpty()) {
+        if (leave != 0) {
+          generateMessageAndPublishAlert(AlertType.ALERT_CONNECTOR_INTRADAY_MAY_NOT_WORK_ANYMORE,
+              monitorFailedConnectors, FeedSupport.FS_INTRA);
+        } else {
+          updateIntraday();
+        }
+      }
+      leave++;
+    } while (!monitorFailedConnectors.isEmpty() && leave == 1);
+  }
+
+  private void updateIntraday() {
+    currencypairJpaRepository.updateAllLastPrices();
+    securityJpaRepository.updateAllLastPrices();
   }
 }

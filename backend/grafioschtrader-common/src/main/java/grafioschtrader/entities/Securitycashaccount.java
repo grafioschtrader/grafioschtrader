@@ -70,7 +70,7 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   // TODO integrate in UI and somewhere else
   @Column(name = "active_to_date")
   private LocalDate activeToDate;
-  
+
   public Securitycashaccount() {
   }
 
@@ -126,7 +126,7 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   public void setIdTenant(Integer idTenant) {
     this.idTenant = idTenant;
   }
-  
+
   public LocalDate getActiveToDate() {
     return activeToDate;
   }

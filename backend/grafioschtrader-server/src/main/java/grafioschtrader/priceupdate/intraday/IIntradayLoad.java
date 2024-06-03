@@ -14,7 +14,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
    * @param securtycurrencies List of securities or currency pairs.
    * @return
    */
-  List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies);
+  List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, boolean singleThread);
 
   /**
    * Update intraday prices of securities or currency pairs. This is done
@@ -24,7 +24,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
    * @param maxIntraRetry     With minus value there is no retry check.
    * @return
    */
-  List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry);
+  List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry, boolean singleThread);
 
   /**
    * Update intraday prices of a single security or currency pair.

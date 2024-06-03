@@ -57,6 +57,9 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
                  AND c.fromCurrency IS NOT NULL AND c.idConnectorIntra IS NOT NULL""")
   List<Currencypair> findByIdTenantAndIdWatchlistWhenRetryIntraThan0(Integer idTenant, Integer idWatchlist);
 
+
+  List<Currencypair> findByRetryIntraLoadLessThan(short retryLoad);
+
   /**
    * Only currencies without a single history quote are ignored by this query.
    *

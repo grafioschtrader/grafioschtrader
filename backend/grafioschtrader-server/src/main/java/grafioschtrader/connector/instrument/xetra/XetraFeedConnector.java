@@ -2,6 +2,7 @@ package grafioschtrader.connector.instrument.xetra;
 
 import java.net.URI;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,11 +24,6 @@ import grafioschtrader.entities.Security;
 
 /**
  *
- * For intraday quotes there is access via
- * "https://api.boerse-frankfurt.de/v1/data/quote_box/single?isin=DE0005785604&mic=XETR".
- * Unfortunately, the header requires the key "x-client-traceid", whose value is
- * calculated in the user interface. GT will not implement this calculation and
- * therefore this access via this API call is not possible.
  *
  * No regex check of the URL extension is performed. This is usually the ISIN,
  * but a URL such as "ARIVA:US631101102" is also possible. The connector has not
@@ -40,8 +36,9 @@ public class XetraFeedConnector extends BaseFeedConnector {
   public static final String STOCK_EX_MIC_XETRA = "XETR";
   public static final String STOCK_EX_MIC_FRANKFURT = "XFRA";
 
+  private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssXXX";
+  private static final String DOMAIN_VERSION = "https://api.boerse-frankfurt.de/v1/";
   private static final String DAY_RESOLUTION = "1D";
-  private static final String M10 = "10";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -63,21 +60,28 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(1);
-    return getSecurityDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
-        security.getUrlIntraExtend(), M10);
+    String single = DOMAIN_VERSION + "data/price_information/single?isin=";
+    if(security.getUrlIntraExtend().contains(":")) {
+      String[] micISIN = security.getUrlIntraExtend().split(":");
+      return single + micISIN[1] + "&mic=" + micISIN[0];
+    } else {
+      return single + security.getUrlIntraExtend();
+    }
   }
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final Quotes quotes = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(),
-        Quotes.class);
-    if (quotes.s.equals("ok")) {
-      int last = quotes.t.length - 1;
-      security.setSLast(quotes.c[last]);
-      security.setSTimestamp(new Date(quotes.t[last].getTime() * 1000));
-    }
+    SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
+
+    final SinglePreis sp = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(),
+        SinglePreis.class);
+    security.setSLast(sp.lastPrice);
+    security.setSChangePercentage(sp.changeToPrevDayInPercent);
+    security.setSPrevClose(sp.closingPricePrevTradingDay);
+    security.setSLow(sp.dayLow);
+    security.setSHigh(sp.dayHigh);
+    security.setSVolume((long) sp.turnoverInPieces);
+    security.setSTimestamp(sdf.parse(sp.timestampLastPrice));
   }
 
   @Override
@@ -90,10 +94,11 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   private String getSecurityDownloadLink(final Security security, Date from, Date to, String urlExtend,
       String resolution) {
-    String prefix = "https://api.boerse-frankfurt.de/v1/tradingview/history?symbol="
-        + (urlExtend.contains(":") ? urlExtend : security.getStockexchange().getMic() + ":" + urlExtend);
+    String prefix = DOMAIN_VERSION + "tradingview/history?symbol="
+      + (urlExtend.contains(":") ? urlExtend : security.getStockexchange().getMic() + ":" + urlExtend);
     return prefix + "&resolution=" + resolution + "&from=" + (from.getTime() / 1000) + "&to=" + (to.getTime() / 1000);
   }
+
 
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
@@ -128,4 +133,14 @@ public class XetraFeedConnector extends BaseFeedConnector {
     public long[] v;
   }
 
+  private static class SinglePreis {
+    public double lastPrice;
+    public double dayHigh;
+    public double dayLow;
+    public String timestampLastPrice;
+    public double changeToPrevDayInPercent;
+    public double closingPricePrevTradingDay;
+    public double turnoverInPieces;
+
+  }
 }

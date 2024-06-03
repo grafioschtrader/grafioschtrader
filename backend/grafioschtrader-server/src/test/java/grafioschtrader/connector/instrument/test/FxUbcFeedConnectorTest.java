@@ -22,8 +22,6 @@ class FxUbcFeedConnectorTest {
 
   private FxUbcFeedConnector fxUbcFeedConnector = new FxUbcFeedConnector();
 
-
-
   @Test
   void getEodCurrencyHistoryTest() throws ParseException {
     String oldestDate= "2000-01-04";

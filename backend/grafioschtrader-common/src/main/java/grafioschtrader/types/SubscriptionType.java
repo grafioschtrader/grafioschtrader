@@ -8,6 +8,7 @@ public enum SubscriptionType {
   EOD_HISTORICAL_DATA_ALL_WORLD((short) 12),
   EOD_HISTORICAL_DATA_CALENDAR_DATA_FEED((short) 13),
   // stockdata
+  STOCK_DATA_ORG_FREE((short) 20),
   STOCK_DATA_ORG_BASIC((short) 21),
   STOCK_DATA_ORG_STANDARD_OR_PRO((short) 22),
   // finnhub

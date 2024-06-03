@@ -26,7 +26,7 @@ public class YTMCalculator {
 
   /**
    * Returns the yield on a security that pays periodic interest. Use YIELD to calculate bond yield.
-   * 
+   *
    * @param settlementDate
    * @param maturityDate
    * @param annualCouponRate
@@ -35,12 +35,12 @@ public class YTMCalculator {
    * @param frequency
    * @param basis
    * @return
-   * 
+   *
    *  @see https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1085
    */
   public static double yield(LocalDate settlementDate, LocalDate maturityDate, double annualCouponRate, double price,
       double redemption, int frequency, int basis) {
-    
+
     double fRate = annualCouponRate;
     double fPriceN = 0.0;
     double fYield1 = 0.0;
@@ -79,7 +79,7 @@ public class YTMCalculator {
   }
 
   /**
-   * 
+   *
    * @param settlementDate
    * @param maturityDate
    * @param annualCouponRate

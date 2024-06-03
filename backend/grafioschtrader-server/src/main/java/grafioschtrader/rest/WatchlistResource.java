@@ -239,8 +239,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   }
 
   @Operation(summary = """
-     The creation of a download link for historical or intraday data can take a long time, 
-     as the data source is contacted during the creation process. 
+     The creation of a download link for historical or intraday data can take a long time,
+     as the data source is contacted during the creation process.
      In this case, the download link is only created if the user requests it in the frontend.""", tags = {
       Watchlist.TABNAME })
   @GetMapping(value = "/dataproviderlink/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)

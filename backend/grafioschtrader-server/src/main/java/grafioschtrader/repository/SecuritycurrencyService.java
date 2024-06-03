@@ -169,7 +169,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     return feedConnectorbeans;
   }
 
-  
+
   @Override
   public List<IFeedConnector> getFeedConnectors(final boolean isCurrency) {
     return feedConnectorbeans.stream()
@@ -229,7 +229,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     }
   }
 
- 
+
 
   protected S beforeSave(S securitycurrency, S existingEntity, User user) throws Exception {
     return null;

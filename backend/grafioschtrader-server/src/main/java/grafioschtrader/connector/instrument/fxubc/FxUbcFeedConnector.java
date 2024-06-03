@@ -90,7 +90,6 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
       }
 
       startDate.add(Calendar.YEAR, -4);
-
       if (startDate.before(fromDate)) {
         startDate = fromDate;
       } else {
@@ -103,7 +102,6 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
       }
 
       List<Historyquote> h = getQuotes(currencyPair, dateFormat, startDate, toDate);
-
       long days = DateHelper.getDateDiff(startDate.getTime(), toDate.getTime(), TimeUnit.DAYS);
       log.info("Currencyparir {}/{} Start date: {} End Date: {} Got Days: {} Days diff: {}",
           currencyPair.getFromCurrency(), currencyPair.getToCurrency(), startDate.getTime(), toDate.getTime(), h.size(),

@@ -27,6 +27,8 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   Double getClosePriceForDate(Currencypair currencypair, Date closeDate);
 
+  void updateAllLastPrices();
+
   /**
    * Update last price of a certain currency pair
    *

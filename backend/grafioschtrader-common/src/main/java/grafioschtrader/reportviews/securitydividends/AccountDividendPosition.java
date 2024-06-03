@@ -15,22 +15,22 @@ public abstract class AccountDividendPosition {
 
   @Schema(description = "Interest or dividend received in the main currency, i.e. the tax is deducted.")
   public double realReceivedDivInterestMC = 0.0;
- 
+
   @Schema(description = "Amount of tax that is automatically withheld on interest or dividends for certain transactions.")
   public double autoPaidTax = 0.0;
-  
+
   @Schema(description = "Amount of tax in the main currency that is automatically withheld on interest or dividends for certain transactions.")
   public double autoPaidTaxMC = 0.0;
-  
+
   @Schema(description = "Interest or dividend including the possible tax amount.")
   public double taxableAmount = 0.0;
-  
+
   @Schema(description = "Interest or dividend including the possible tax amount in the main currency.")
   public double taxableAmountMC = 0.0;
-  
+
   @Schema(description = "Tax-free income in the main currency.")
   public double taxFreeIncome = 0.0;
-  
+
   @Schema(description = "Value of the position held in the main currency at the end of the year.")
   public Double valueAtEndOfYearMC;
 

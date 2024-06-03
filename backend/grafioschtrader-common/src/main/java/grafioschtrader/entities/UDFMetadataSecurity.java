@@ -9,7 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Schema(description = """
-        For securities, different fields can be defined for different instruments and asset classes. 
+        For securities, different fields can be defined for different instruments and asset classes.
         For example, different information may be relevant to the user for a bond or stock.""")
 @Entity
 @Table(name = UDFMetadataSecurity.TABNAME)

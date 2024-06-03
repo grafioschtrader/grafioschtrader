@@ -56,6 +56,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+  @Override
   public void appendThruDividendCalendar() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
         .findById(Globalparameters.GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE);
@@ -138,8 +139,8 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   public List<String> loadAllDividendDataFromConnector(Security security) {
     return loadAllDividendDataFromConnector(security, Collections.emptyList());
   }
-  
-  
+
+
   private List<String> loadAllDividendDataFromConnector(Security security, List<Dividend> youngestDividends) {
     List<Dividend> userCreatedDividends = dividendJpaRepository.findByIdSecuritycurrencyAndCreateTypeOrderByExDateAsc(
         security.getIdSecuritycurrency(), CreateType.ADD_MODIFIED_USER.getValue());
@@ -151,7 +152,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   /**
    * Dividends are only ever added using this method. Existing dividends in the
    * persistence are deleted and then newly created.
-   * 
+   *
    * @param security                  The security concerned
    * @param userCreatedDividends      Dividends created by the user
    * @param replaceAlways
@@ -219,7 +220,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   /**
    * Securities can have a split. This must be reflected accordingly in the
    * dividends. Otherwise the dividend yield per share would no longer be correct.
-   * 
+   *
    * @param idSecurity
    * @param dividendsRead
    * @param isSplitAdjusted

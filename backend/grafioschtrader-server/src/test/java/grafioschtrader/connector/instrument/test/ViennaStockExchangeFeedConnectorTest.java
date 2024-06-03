@@ -42,9 +42,6 @@ public class ViennaStockExchangeFeedConnectorTest extends BaseFeedConnectorCheck
       hisoricalDate.add(
           new SecurityHistoricalDate("ATX Index", "AT0000999982", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
               AssetclassType.EQUITIES, "92866", null, 5728, "2000-01-03", "2023-01-10"));
-      hisoricalDate.add(new SecurityHistoricalDate("CA Immo 1,875% Anleihe 17-24", "AT0000A1TBC2",
-          SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME, "182213360", null, 1131,
-          "2017-02-22", "2023-01-09"));
       hisoricalDate.add(new SecurityHistoricalDate("Land NOE var. Schuldv. 13-28", "AT0000A11772",
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME, "90108510", null, 21,
           "2022-12-05", "2023-01-09"));

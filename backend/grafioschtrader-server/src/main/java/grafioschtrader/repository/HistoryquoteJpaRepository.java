@@ -120,7 +120,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Determines all historical year-end exchange rates for the foreign currencies
    * used by the customer. In addition, the historical year-end rates of the
    * securities held are also determined.
-   * 
+   *
    * @param idTenant
    * @return
    */

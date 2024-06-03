@@ -38,7 +38,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   }
 
   @Override
-  public S updateLastPriceSecurityCurrency(final S securitycurrency, final short maxIntraRetry,
+  public S updateLastPriceSecurityCurrency(S securitycurrency, final short maxIntraRetry,
       final int scIntradayUpdateTimeout) {
     final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.FS_INTRA);
@@ -54,7 +54,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
         log.error("Last price update failed securitycurrency={}", securitycurrency.toString(), e);
         securitycurrency.setRetryIntraLoad((short) (securitycurrency.getRetryIntraLoad() + 1));
       }
-      return jpaRepository.save(securitycurrency);
+      securitycurrency = jpaRepository.save(securitycurrency);
     }
     return securitycurrency;
   }

@@ -1,5 +1,6 @@
 package grafioschtrader.priceupdate.intraday;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Modifying;
@@ -23,23 +24,31 @@ public abstract class BaseIntradayThru<S extends Securitycurrency<S>> extends Ba
   @Override
   @Transactional
   @Modifying
-  public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies) {
+  public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, boolean singleThread) {
     final short maxIntraRetry = globalparametersJpaRepository.getMaxIntraRetry();
-    return this.updateLastPriceOfSecuritycurrency(securtycurrencies, maxIntraRetry);
+    return updateLastPriceOfSecuritycurrency(securtycurrencies, maxIntraRetry, singleThread);
   }
 
   @Override
-  public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry) {
+  public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry, boolean singleThread) {
     final int scIntradayUpdateTimeout = globalparametersJpaRepository.getSecurityCurrencyIntradayUpdateTimeout();
+    final List<S> securtycurrenciesUpd = new ArrayList<>();
     if (securtycurrencies.size() > 1) {
-      ThreadHelper.executeForkJoinPool(() -> securtycurrencies.parallelStream()
-          .forEach(securitycurrency -> updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry,
-              scIntradayUpdateTimeout)),
-          GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
+      if(singleThread) {
+        securtycurrencies.forEach(securitycurrency -> {
+          securtycurrenciesUpd
+              .add(updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout));
+        });
+      } else {
+        ThreadHelper.executeForkJoinPool(() -> securtycurrencies.parallelStream().forEach(securitycurrency -> {
+          securtycurrenciesUpd
+              .add(updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout));
+        }), GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
+      }
     } else if (securtycurrencies.size() == 1) {
-      securtycurrencies.set(0,
-          updateLastPriceSecurityCurrency(securtycurrencies.get(0), maxIntraRetry, scIntradayUpdateTimeout));
+      securtycurrenciesUpd
+          .add(updateLastPriceSecurityCurrency(securtycurrencies.getFirst(), maxIntraRetry, scIntradayUpdateTimeout));
     }
-    return securtycurrencies;
+    return securtycurrenciesUpd;
   }
 }

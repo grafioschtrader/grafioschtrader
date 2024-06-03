@@ -26,7 +26,7 @@ import grafioschtrader.repository.helper.HoldingsHelper;
  */
 public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountBalanceJpaRepositoryCustom {
 
-  
+
   @Autowired
   HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 

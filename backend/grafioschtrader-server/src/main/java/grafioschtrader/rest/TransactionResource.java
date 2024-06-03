@@ -96,7 +96,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
       Transaction.TABNAME })
   @GetMapping(value = "/{idSecuritycashAccount}/cashaccount", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CashaccountTransactionPosition[]> getTransactionsWithBalanceForCashaccount(
-      @Parameter(description = "Id of cash account", required = true) @PathVariable final Integer idSecuritycashAccount, 
+      @Parameter(description = "Id of cash account", required = true) @PathVariable final Integer idSecuritycashAccount,
       @RequestParam(value="transactionTypes[]", required = false) final int[] transactionTypesNum,
       @RequestParam(required = true) final int year) {
     return new ResponseEntity<>(transactionJpaRepository.getTransactionsWithBalanceForCashaccount(idSecuritycashAccount, year, transactionTypesNum),

@@ -179,38 +179,38 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_INTRADAY_OBSERVATION_OR_DAYS_BACK);
   }
-  
+
   @Override
   public int getIntradayObservationRetryMinus() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_INTRADAY_OBSERVATION_RETRY_MINUS)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_INTRADAY_OBSERVATION_RETRY_MINUS);
   }
-  
+
   @Override
   public int getIntradayObservationFallingPercentage() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_INTRADAY_OBSERVATION_FALLING_PERCENTAGE)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_INTRADAY_OBSERVATION_FALLING_PERCENTAGE);
   }
-  
+
   @Override
   public int getHistoryObservationDaysBack() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_DAYS_BACK);
   }
-  
+
   @Override
   public int getHistoryObservationRetryMinus() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_RETRY_MINUS);
   }
-  
+
   @Override
   public int getHistoryObservationFallingPercentage() {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE)
         .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE);
   }
-    
-  
+
+
   @Override
   public Date getStartFeedDate() throws ParseException {
     return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_START_FEED_DATE)
