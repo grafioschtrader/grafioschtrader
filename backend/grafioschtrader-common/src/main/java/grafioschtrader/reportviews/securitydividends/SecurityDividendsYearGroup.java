@@ -69,9 +69,13 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
         .collect(Collectors.toList());
   }
 
-  public SecurityDividendsPosition getOrCreateSecurityDividendsPosition(Security security) {
+  public SecurityDividendsPosition getOrCreateSecurityDividendsPosition(Security security, List<Securitysplit> securitysplitList) {
     SecurityDividendsPosition securityDividendsPosition = this.getOrCreateGroup(security.getIdSecuritycurrency());
     securityDividendsPosition.security = security;
+    if(securitysplitList != null && securityDividendsPosition.splitFactorAfter == null) {
+      securityDividendsPosition.splitFactorAfter =
+      Securitysplit.calcSplitFatorForFromDate(securitysplitList, new GregorianCalendar(year, 11, 31).getTime());
+    }
     return securityDividendsPosition;
   }
 
@@ -111,7 +115,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
         SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(entry.getKey(),
             fromDate, untilDate, securitysplitMap);
         entry.getValue().units = entry.getValue().units * splitFactorAfterBefore.fromToDateFactor;
-        securityDividendsPosition = this.getOrCreateSecurityDividendsPosition(entry.getValue().security);
+        securityDividendsPosition = this.getOrCreateSecurityDividendsPosition(entry.getValue().security, securitysplitMap.get(entry.getValue().security) );
       }
       if (securityDividendsPosition != null) {
         securityDividendsPosition.unitsAtEndOfYear = entry.getValue().units;

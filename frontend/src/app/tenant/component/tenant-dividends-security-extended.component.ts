@@ -101,7 +101,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     this.addColumn(DataType.String, 'security.currency', 'CURRENCY', true, false);
     this.addColumnFeqH(DataType.String, 'exchangeRateEndOfYear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'unitsAtEndOfYear', true, false);
-    this.addColumn(DataType.Numeric, 'historyquote.close', 'QUOTATION_END_OF_YEAR', true, false);
+    this.addColumnFeqH(DataType.Numeric, 'closeEndOfYear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'taxFreeIncome', true, false);
     this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency);
    this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false,

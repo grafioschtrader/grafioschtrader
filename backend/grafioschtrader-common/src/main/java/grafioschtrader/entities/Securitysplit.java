@@ -30,9 +30,6 @@ import jakarta.validation.constraints.NotNull;
 /**
  * A security split hat not been mapped to security because of performance
  * reason.
- *
- * @author Hugo Graf
- *
  */
 @Entity
 @Table(name = Securitysplit.TABNAME)

@@ -231,7 +231,7 @@ public class SecurityDividendsReport {
       security = transaction.getSecurity();
     }
     final SecurityDividendsPosition securityDividendsPosition = securityDividendsYearGroup
-        .getOrCreateSecurityDividendsPosition(transaction.getSecurity());
+        .getOrCreateSecurityDividendsPosition(transaction.getSecurity(), securitysplitMap.get(security.getIdSecuritycurrency()));
 
     final SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
         security.getIdSecuritycurrency(), transaction.getTransactionTime(), dateCurrencyMap.getUntilDate(),

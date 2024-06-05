@@ -88,7 +88,7 @@ export class TenantDividendsCashaccountExtendedComponent extends TenantDividends
       [TransactionType.FEE, TransactionType.INTEREST_CASHACCOUNT], this.year);
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false, {width: 200});
     this.addColumnFeqH(DataType.String, 'cashaccount.currency', true, false);
-    this.addColumn(DataType.Numeric, 'historyquote.close', 'QUOTATION_END_OF_YEAR', true, false);
+    this.addColumnFeqH(DataType.Numeric, 'closeEndOfYear',  true, false);
     this.addColumnFeqH(DataType.Numeric, 'feeCashAccount', true, false);
     this.addColumnFeqH(DataType.Numeric, 'feeCashAccountMC', true, false,
       {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});

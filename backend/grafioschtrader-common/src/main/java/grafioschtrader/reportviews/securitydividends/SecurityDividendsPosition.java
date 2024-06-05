@@ -2,6 +2,8 @@ package grafioschtrader.reportviews.securitydividends;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -20,6 +22,9 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
   public int countPaidTransactions;
   @Schema(description = "Number of units held at the end of the year.")
   public double unitsAtEndOfYear = 0.0;
+  
+  @JsonIgnore
+  public Double splitFactorAfter;
 
   public SecurityDividendsPosition(int precisionMC, Map<String, Integer> currencyPrecisionMap) {
     super(precisionMC, currencyPrecisionMap);
@@ -57,9 +62,10 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
       DateTransactionCurrencypairMap dateCurrencyMap) {
     if (unitsAtEndOfYear > 0) {
       getAndSetExchangeRateEndOfYear(historyquoteIdMap, dateCurrencyMap, security.getCurrency());
-      historyquote = historyquoteIdMap.get(security.getIdSecuritycurrency());
+      var historyquote = historyquoteIdMap.get(security.getIdSecuritycurrency());
       if (historyquote != null) {
-        valueAtEndOfYearMC = historyquote.getClose() * unitsAtEndOfYear;
+        closeEndOfYear = historyquote.getClose() * (splitFactorAfter == null? 1.0: splitFactorAfter); 
+        valueAtEndOfYearMC = closeEndOfYear * unitsAtEndOfYear;
         if (exchangeRateEndOfYear != null) {
           valueAtEndOfYearMC = valueAtEndOfYearMC * exchangeRateEndOfYear;
         }

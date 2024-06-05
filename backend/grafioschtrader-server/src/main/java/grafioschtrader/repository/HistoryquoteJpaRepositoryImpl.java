@@ -135,7 +135,6 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
     }
     return new UserAuditable(autitable, user);
-
   }
 
   @Override
@@ -267,7 +266,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       if (historyquote.getCreateType() != HistoryquoteCreateType.FILLED_NON_TRADE_DAY) {
         break;
       }
-      if (DateHelper.getDateDiff(historyquoteBefore.getDate(), historyquote.getDate(), TimeUnit.DAYS) == i) {
+      if (DateHelper.getDateDiff(historyquoteBefore.getDate(), historyquote.getDate(), TimeUnit.DAYS) == i+1) {
         historyquote.updateThis(historyquoteBefore);
         toSaveHistoryquotes.add(historyquote);
       }
