@@ -34,7 +34,7 @@ public abstract class AccountDividendPosition {
   @Schema(description = "Value of the position held in the main currency at the end of the year.")
   public Double valueAtEndOfYearMC;
 
-  public Historyquote historyquote;
+  public double closeEndOfYear;
   public Double exchangeRateEndOfYear;
 
   protected int precisionMC;
@@ -90,9 +90,10 @@ public abstract class AccountDividendPosition {
     if (!dateCurrencyMap.getMainCurrency().equals(currencySearched)) {
       Currencypair currencypair = dateCurrencyMap.getCurrencypairByFromCurrency(currencySearched);
       if (currencypair != null) {
-        historyquote = historyquoteIdMap.get(currencypair.getIdSecuritycurrency());
+        var historyquote = historyquoteIdMap.get(currencypair.getIdSecuritycurrency());
         if (historyquote != null) {
-          exchangeRateEndOfYear = historyquote.getClose();
+          closeEndOfYear = historyquote.getClose();
+          exchangeRateEndOfYear = closeEndOfYear;
         }
       }
     }

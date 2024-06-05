@@ -22,7 +22,6 @@ export class TenantDividendsExtendedBase extends TableConfigBase {
       {headerSuffix: currency});
     this.addColumnFeqH(DataType.Numeric, 'realReceivedDivInterestMC', true, false,
       {headerSuffix: currency});
-
   }
 
 }
