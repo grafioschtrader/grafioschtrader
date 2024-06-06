@@ -180,7 +180,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       if (securityOpt.isEmpty()) {
         taskDataChangeJpaRepository
             .save(new TaskDataChange(TaskType.REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE,
-                TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), historyquote.getIdSecuritycurrency(), null));
+                TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), null, null));
       }
     }
     return historyquoteSaved;
