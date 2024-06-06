@@ -24,7 +24,7 @@ public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChang
   @Transactional
   long removeByIdTaskDataChangeAndProgressStateTypeNot(Integer idTaskDataChange, byte progressStateType);
 
-  long removeByIdTask(byte idTask);
+  long removeByIdTaskAndProgressStateType(byte idTask, byte progressStateType);
 
   long removeByExecEndTimeBefore(LocalDateTime dateTime);
 

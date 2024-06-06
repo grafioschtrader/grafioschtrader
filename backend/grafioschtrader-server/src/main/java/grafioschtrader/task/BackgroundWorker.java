@@ -124,7 +124,8 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
       task.doWork(cloneTaskDataChange(taskDataChange));
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_PROCESSED);
       if (task.removeAllOtherJobsOfSameTask()) {
-        taskDataChangeRepository.removeByIdTask(task.getTaskType().getValue());
+        taskDataChangeRepository.removeByIdTaskAndProgressStateType(task.getTaskType().getValue(),
+            ProgressStateType.PROG_WAITING.getValue());
       }
     } catch (TaskInterruptException tie) {
       finishedJob(taskDataChange, startTime,

@@ -82,6 +82,7 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
     }
   }
 
+  
   @Override
   public void adjustBecauseOfHistoryquotePriceChanges() {
     List<Transaction> transactions = transactionJpaRepository.getTransactionWhyHistoryquoteYounger();

@@ -124,7 +124,6 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
   private List<Historyquote> getQuotes(final Currencypair currencyPair, SimpleDateFormat dateFormat, Calendar startDate,
       Calendar toDate) throws IOException, ParseException {
     final Document doc = getPreparedURL(currencyPair, startDate, toDate).get();
-
     doc.outputSettings().prettyPrint(false);
     final InputStream inputStream = new ByteArrayInputStream(doc.body().html().getBytes(StandardCharsets.UTF_8));
     final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
@@ -160,10 +159,15 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
       throws IOException, ParseException {
 
     final List<Historyquote> historyquotes = new ArrayList<>();
-
+    int i = 0;
     String inputLine = in.readLine();
 
     while ((inputLine = in.readLine()) != null) {
+      i++;
+      if(i == 4 && inputLine.contains("Server is too busy.")) {
+        throw new IOException("Server is too busy");
+      }
+      
       if (inputLine.startsWith("&quot;")) {
         continue;
       }
