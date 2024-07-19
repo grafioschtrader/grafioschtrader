@@ -4,6 +4,9 @@ import {SecurityService} from './security.service';
 import {CurrencypairService} from './currencypair.service';
 
 export class SecurityCurrencyHelper {
+  /**
+   * Load all connectors and then execute the transferred function, for example to load additional data.
+   */
   public static loadAllConnectors(securityService: SecurityService, currencypairService: CurrencypairService,
                                   feedConnectorsKV: { [id: string]: string }, afterLoadCallback?: () => void): void {
     const feedConSecurityObs = securityService.getFeedConnectors();

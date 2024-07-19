@@ -1,5 +1,5 @@
 /**
- * This types are used for the html table as well for the form input.
+ * These types are used for the html table as well for the form input.
  *
  */
 export enum DataType {
@@ -91,5 +91,10 @@ export enum DataType {
   /**
    * Date and time including seconds without conversion from a number.
    */
-  DateTimeSecondString = 17
+  DateTimeSecondString = 17,
+
+  /**
+   * It is similar to a string but with a validation on a web url.
+   */
+  URLString = 20
 }

@@ -48,6 +48,10 @@ import grafioschtrader.entities.TradingDaysMinus;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.entities.UDFData;
+import grafioschtrader.entities.UDFMetadata;
+import grafioschtrader.entities.UDFMetadataGeneral;
+import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserEntityChangeCount;
 import grafioschtrader.entities.UserEntityChangeLimit;
@@ -108,8 +112,7 @@ public class MyDataExportDeleteDefinition {
   private static String CORRELATION_INSTRUMENT_SELDEL = String.format(
       "ci.* FROM %s cs, %s ci WHERE cs.id_tenant = ? AND cs.id_correlation_set = ci.id_correlation_set",
       CorrelationSet.TABNAME, CorrelationSet.TABNAME_CORRELATION_INSTRUMENT);
-  private static String DIVIDEND_SELECT = String.format(
-      """
+  private static String DIVIDEND_SELECT = String.format("""
           DISTINCT d.* FROM %s d JOIN %s ws ON ws.id_securitycurrency = d.id_securitycurrency JOIN watchlist w ON w.id_watchlist = ws.id_watchlist WHERE w.id_tenant = ?
           UNION SELECT d.* FROM dividend d JOIN security s ON d.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
           UNION SELECT DISTINCT d.* FROM transaction t JOIN dividend d ON t.id_securitycurrency = d.id_securitycurrency WHERE t.id_tenant = ?""",
@@ -133,15 +136,13 @@ public class MyDataExportDeleteDefinition {
       JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'S' UNION SELECT s.* FROM correlation_set cs
       JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN security s ON ci.id_securitycurrency = s.id_securitycurrency WHERE cs.id_tenant = ?""";
   private static String SECURITY_DELETE = String.format("FROM %s WHERE id_tenant_private = ?", Security.TABNAME);
-  private static String SECURITY_DERIVED_LINK = String.format(
-      """
+  private static String SECURITY_DERIVED_LINK = String.format("""
           sdl.* FROM %s w JOIN %s wsc ON w.id_watchlist = wsc.id_watchlist JOIN %s s ON wsc.id_securitycurrency = s.id_securitycurrency
           JOIN security_derived_link sdl ON sdl.id_securitycurrency = s.id_securitycurrency WHERE w.id_tenant = ?
           UNION SELECT sdl.* FROM security s JOIN securitycurrency sc ON s.id_securitycurrency = sc.id_securitycurrency
           JOIN security_derived_link sdl ON sdl.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?""",
       Watchlist.TABNAME, Watchlist.TABNAME_SEC_CUR, Security.TABNAME);
-  private static String SECURITYSPLIT_SELECT = String.format(
-      """
+  private static String SECURITYSPLIT_SELECT = String.format("""
           DISTINCT ss.* FROM %s ss JOIN watchlist_sec_cur ws ON ws.id_securitycurrency = ss.id_securitycurrency JOIN %s w ON w.id_watchlist = ws.id_watchlist
           WHERE w.id_tenant = ? UNION SELECT ss.* FROM %s ss JOIN security s ON ss.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
           UNION SELECT DISTINCT ss.* FROM %s t JOIN %s ss ON t.id_securitycurrency = ss.id_securitycurrency WHERE t.id_tenant = ?""",
@@ -237,7 +238,14 @@ public class MyDataExportDeleteDefinition {
       ProposeChangeField.TABNAME, ProposeRequest.TABNAME);
   private static String MAIL_SETTING_FORWARD_REDIRECT_USER_DEL = UPDATE_STR + String
       .format(" %s SET id_user_redirect = null WHERE id_user_redirect = ?", MailSettingForward.TABNAME);
-
+  private static String UDF_METADATA_SECUIRTY_SELDEL = String
+      .format(" ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?", 
+          UDFMetadataSecurity.TABNAME, UDFMetadata.TABNAME);
+  private static String UDF_METADATA_GENERAL_SELDEL = String
+      .format(" umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?", 
+          UDFMetadataGeneral.TABNAME, UDFMetadata.TABNAME);
+  
+  
   protected JdbcTemplate jdbcTemplate;
   private int exportOrDelete;
   protected User user;
@@ -308,6 +316,12 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(UserEntityChangeCount.TABNAME, TENANT_USER.ID_USER, null, DELETE_USE),
       new ExportDefinition(TradingDaysPlus.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
       new ExportDefinition(TradingDaysMinus.TABNAME, TENANT_USER.NONE, null, EXPORT_USE),
+      // User defined fields
+      new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, null, EXPORT_USE | DELETE_USE),
+      new ExportDefinition(UDFMetadataSecurity.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_SECUIRTY_SELDEL, EXPORT_USE | DELETE_USE),
+      new ExportDefinition(UDFMetadataGeneral.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_GENERAL_SELDEL, EXPORT_USE | DELETE_USE),
+      new ExportDefinition(UDFData.TABNAME, TENANT_USER.ID_USER, null, EXPORT_USE | DELETE_USE),
+      
       // TODO Delete all Mails of the user, nothing is exported
       // ...
       new ExportDefinition(MailSettingForward.TABNAME, TENANT_USER.ID_USER, MAIL_SETTING_FORWARD_REDIRECT_USER_DEL,
@@ -342,10 +356,10 @@ public class MyDataExportDeleteDefinition {
     } else if (query == null) {
       switch (exportDefinition.tenantUser) {
       case ID_TENANT:
-        query = String.format("FROM %s WHERE id_Tenant = %d", exportDefinition.table, user.getIdTenant());
+        query = String.format("FROM %s WHERE id_tenant = %d", exportDefinition.table, user.getIdTenant());
         break;
       case ID_USER:
-        query = String.format("FROM %s WHERE id_USER = %d", exportDefinition.table, user.getIdUser());
+        query = String.format("FROM %s WHERE id_user = %d", exportDefinition.table, user.getIdUser());
         break;
       case CREATED_BY:
         query = String.format("FROM %s WHERE created_by = %d", exportDefinition.table, user.getIdUser());

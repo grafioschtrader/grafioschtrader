@@ -6,19 +6,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import grafioschtrader.entities.UDFMetadataSecurity;
-import grafioschtrader.rest.UpdateCreateJpaRepository;
+import grafioschtrader.repository.UDFMetadataBase.UiOrderDescriptionCount;
+import grafioschtrader.rest.UpdateCreateDeleteWithUserIdJpaRepository;
 
-public interface UDFMetadataSecurityJpaRepository extends JpaRepository<UDFMetadataSecurity, Integer>,
-    UDFMetadataSecurityJpaRepositoryCustom, UpdateCreateJpaRepository<UDFMetadataSecurity> {
+public interface UDFMetadataSecurityJpaRepository
+    extends JpaRepository<UDFMetadataSecurity, Integer>, UDFMetadataSecurityJpaRepositoryCustom,
+    UpdateCreateDeleteWithUserIdJpaRepository<UDFMetadataSecurity> {
 
-  List<UDFMetadataSecurity> getAllByIdUser(Integer idUser);
+  UDFMetadataSecurity getByUdfSpecialTypeAndIdUser(byte udfSpecialType, int idUser);
+
+  List<UDFMetadataSecurity> getAllByIdUserInOrderByUiOrder(int[] idUser);
+
+  int deleteByIdUDFMetadataAndIdUser(int idUDFMetadata, int idUser);
 
   @Query(nativeQuery = true)
-  UiOrderDescriptionCount countUiOrderAndDescription(int uiOrder, String description);
+  UiOrderDescriptionCount countUiOrderAndDescription(int[] users, int uiOrder, String description);
 
-
-  static interface UiOrderDescriptionCount {
-    int getCountUiOrder();
-    int getCountDescription();
-  }
+  
 }

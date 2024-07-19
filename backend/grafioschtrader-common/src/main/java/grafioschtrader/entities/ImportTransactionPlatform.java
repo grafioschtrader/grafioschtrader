@@ -20,8 +20,6 @@ import jakarta.validation.constraints.Size;
 /**
  * It contains the header information of the transaction import templates.
  *
- * @author Hugo Graf
- *
  */
 @Entity
 @Table(name = ImportTransactionPlatform.TABNAME)

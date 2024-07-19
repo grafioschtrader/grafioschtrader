@@ -3,7 +3,6 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -24,7 +23,6 @@ import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.entities.Auditable;
 import grafioschtrader.entities.BaseID;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.ProposeChangeEntity;
 import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.entities.ProposeRequest;
@@ -33,34 +31,22 @@ import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TenantBaseID;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserBaseID;
-import grafioschtrader.entities.UserEntityChangeCount;
-import grafioschtrader.entities.UserEntityChangeCount.UserEntityChangeCountId;
 import grafioschtrader.entities.UserEntityChangeLimit;
-import grafioschtrader.entities.projection.UserCountLimit;
-import grafioschtrader.error.LimitEntityTransactionError;
-import grafioschtrader.exceptions.LimitEntityTransactionException;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.ProposeChangeEntityJpaRepository;
 import grafioschtrader.repository.ProposeChangeFieldJpaRepository;
 import grafioschtrader.repository.TenantLimitsHelper;
-import grafioschtrader.repository.UserEntityChangeCountJpaRepository;
 import grafioschtrader.types.OperationType;
 import grafioschtrader.types.ProposeDataChangeState;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.validation.Valid;
 
-public abstract class UpdateCreate<T extends BaseID> {
+public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreateLogger<T> {
 
   @PersistenceContext
   private EntityManager entityManager;
 
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
-
-  @Autowired
-  private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
-
+ 
   @Autowired
   private ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
 
@@ -134,30 +120,7 @@ public abstract class UpdateCreate<T extends BaseID> {
     return ResponseEntity.ok().body(result);
   }
 
-  /**
-   * There is a limit of changes for a user on own public data. This limit is
-   * checked here. Only limit user is checked against limit violations.
-   *
-   * @param entity
-   * @param user
-   */
-  private void checkDailyLimitOnCRUDOperations(T entity, User user) {
-    if (UserAccessHelper.isLimitedEditingUser(user)) {
-      String entityName = entity.getClass().getSimpleName();
-      Optional<UserCountLimit> userCountLimitOpt = userEntityChangeCountJpaRepository
-          .getCudTransactionAndUserLimit(user.getIdUser(), entityName);
-      if (userCountLimitOpt.isPresent()) {
-        String key = Globalparameters.GT_LIMIT_DAY + entityName;
-        Integer limit = userCountLimitOpt.get().getDayLimit() != null ? userCountLimitOpt.get().getDayLimit()
-            : globalparametersJpaRepository.getMaxValueByKey(key);
-        int cudTransaction = userCountLimitOpt.get().getCudTrans();
-        if (cudTransaction >= limit) {
-          throw new LimitEntityTransactionException(new LimitEntityTransactionError(entityName, limit, cudTransaction));
-        }
-      }
-    }
-  }
-
+  
   /**
    * Update entity
    *
@@ -206,21 +169,8 @@ public abstract class UpdateCreate<T extends BaseID> {
     return resultEntity;
   }
 
-  protected void logAddUpdDel(Integer idUser, Class<T> zclass, OperationType operationType) {
-    logAddUpdDel(idUser, zclass.getSimpleName(), operationType);
-  }
-
-  protected void logAddUpdDel(Integer idUser, T entity, OperationType operationType) {
-    logAddUpdDel(idUser, entity.getClass().getSimpleName(), operationType);
-  }
-
-  protected void logAddUpdDel(Integer idUser, String entityName, OperationType operationType) {
-    UserEntityChangeCount userEntityChangeCount = userEntityChangeCountJpaRepository
-        .findById(new UserEntityChangeCountId(idUser, new Date(), entityName))
-        .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, new Date(), entityName)));
-    userEntityChangeCount.incrementCounter(operationType);
-    userEntityChangeCountJpaRepository.save(userEntityChangeCount);
-  }
+  
+  
 
   protected ResponseEntity<T> updateSpecialEntity(User user, T entity) throws Exception {
     throw new UnsupportedOperationException("Not supported yet.");
@@ -372,14 +322,7 @@ public abstract class UpdateCreate<T extends BaseID> {
   protected T checkAndSetEntityWithUser(T entity, final User user) {
     T existingEntity = null;
 
-    if (((UserBaseID) entity).getIdUser() != null) {
-      if (!user.getIdUser().equals(((UserBaseID) entity).getIdUser())) {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
-      }
-    }
-
-    // Maybe the user is not set by the client, we set it always
-    ((UserBaseID) entity).setIdUser(user.getIdUser());
+    checkAndSetUserBaseIDWithUser((UserBaseID) entity, user);
 
     if (entity.getId() != null) {
       existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
@@ -395,6 +338,18 @@ public abstract class UpdateCreate<T extends BaseID> {
       return entity;
     }
     return existingEntity;
+  }
+
+  public static void checkAndSetUserBaseIDWithUser(UserBaseID entity, final User user) {
+    if (entity.getIdUser() != null) {
+      if (!user.getIdUser().equals(entity.getIdUser())) {
+        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      }
+    }
+
+    // Maybe the user is not set by the client, we set it always
+    entity.setIdUser(user.getIdUser());
+
   }
 
 }

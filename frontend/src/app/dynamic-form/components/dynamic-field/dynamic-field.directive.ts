@@ -21,6 +21,7 @@ import {FormInputButtonComponent} from '../form-input/form-input-button.componen
 import {FormInputNumberComponent} from '../form-input/form-input-number.component';
 import {FormInputCurrencyNumberComponent} from '../form-input/form-input-currency-number.component';
 import {FormInputDropdownComponent} from '../form-input/form-input-dropdown.component';
+import {FormInputMultiSelectComponent} from '../form-input/form-input-multi-select.component';
 
 
 const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
@@ -35,6 +36,7 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
   [InputType.InputSuggestion]: FormInputSuggestionComponent,
   [InputType.InputDropdown]: FormInputDropdownComponent,
   [InputType.Select]: FormInputSelectComponent,
+  [InputType.MultiSelect]: FormInputMultiSelectComponent,
   [InputType.Pcalendar]: FormPCalendarComponent,
   [InputType.Pinputtextarea]: FormPInputTextareaComponent,
   [InputType.FileUpload]: FormFileUploadComponent

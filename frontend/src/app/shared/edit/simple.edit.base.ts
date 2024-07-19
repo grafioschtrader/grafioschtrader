@@ -19,7 +19,6 @@ export abstract class SimpleEditBase extends FormBase {
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
-
   // Access child components
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 

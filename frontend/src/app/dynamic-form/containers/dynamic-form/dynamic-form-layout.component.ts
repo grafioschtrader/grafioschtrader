@@ -25,8 +25,9 @@ import {FormConfig} from '../../models/form.config';
                      [for]="config.field"
                      [ngClass]="'small-padding control-label col-md-' + (12 /
         (config.usedLayoutColumns? config.usedLayoutColumns: 12) * formConfig.labelColumns)">
-                  {{config.labelKey | translate }} {{config.labelSuffix}}
-                  <i *ngIf="config.labelHelpText" class="fa fa-question-circle-o" (click)="onHelpClick($event)"></i>
+                  {{config.labelKey.startsWith('*')? config.labelKey.slice(1) :config.labelKey | translate }} {{config.labelSuffix}}
+                  <i *ngIf="config.labelHelpText && !config.labelHelpText.startsWith('*')"
+                     class="fa fa-question-circle-o" (click)="onHelpClick($event)"></i>
               </label>
 
               <div [ngClass]="'small-padding col-md-' + (config.labelKey? (12 - 12 /

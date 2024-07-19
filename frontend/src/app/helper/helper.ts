@@ -78,7 +78,7 @@ export abstract class Helper {
   }
 
   public static copyFormSingleFormConfigToBusinessObject(formConfig: FormConfig, config: FieldConfig, targetObject: any,
-                                                         createProperty = false): void {
+    createProperty = false): void {
     if (createProperty || config.field in targetObject) {
       if (config.referencedDataObject) {
         targetObject[config.field] = this.getReferencedDataObject(config, config.field);
@@ -114,15 +114,18 @@ export abstract class Helper {
   }
 
   public static formatDateString(fieldConfig: FieldConfig, targetObject: any, dateFormat: string): void {
-    if (fieldConfig.formControl.value && fieldConfig.formControl.value.toString().trim().length > 0) {
-      targetObject[fieldConfig.field] = moment(fieldConfig.formControl.value).format(dateFormat);
-    }
+    targetObject[fieldConfig.field] = Helper.formatDateStringAsString(fieldConfig, dateFormat);
+  }
+
+  public static formatDateStringAsString(fieldConfig: FieldConfig, dateFormat: string): string {
+    return (fieldConfig.formControl.value && fieldConfig.formControl.value.toString().trim().length > 0)
+      ? moment(fieldConfig.formControl.value).format(dateFormat) : null;
   }
 
 
   public static flattenObject(obj: { [name: string]: any }, res = {}): { [name: string]: any } {
     Object.keys(obj).forEach(key => {
-      res[key]=obj[key];
+      res[key] = obj[key];
       if (typeof obj[key] === 'object' && obj[key] !== null) {
         this.flattenObject(obj[key], res);
       }
@@ -130,11 +133,11 @@ export abstract class Helper {
     return res;
   }
 
-  public static findPropertyNamesInObjectTree(obj: object, propertyName: string, path: string =''):  string[] {
+  public static findPropertyNamesInObjectTree(obj: object, propertyName: string, path: string = ''): string[] {
     let result: string[] = [];
     for (const key in obj) {
-      const currentPath = path.length === 0? path.concat(key): path.concat('.' + key) ;
-      if (typeof obj[key] === "object") {
+      const currentPath = path.length === 0 ? path.concat(key) : path.concat('.' + key);
+      if (typeof obj[key] === 'object') {
         if (key === propertyName) {
           result.push(currentPath);
         }

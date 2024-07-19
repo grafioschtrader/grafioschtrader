@@ -61,15 +61,15 @@ public abstract class DynamicModelHelper {
                 fieldDescriptorInputAndShow.dynamicFormPropertyHelps = new DynamicFormPropertyHelps[] {
                     DynamicFormPropertyHelps.DATE_FUTURE };
               } else if (annotation instanceof Min) {
-                fieldDescriptorInputAndShow.min = ((Min) annotation).value();
+                fieldDescriptorInputAndShow.min =  (double) ((Min) annotation).value();
               } else if (annotation instanceof Max) {
-                fieldDescriptorInputAndShow.max = ((Max) annotation).value();
+                fieldDescriptorInputAndShow.max = (double) ((Max) annotation).value();
               } else if (annotation instanceof DynamicFormPropertySupport) {
                 fieldDescriptorInputAndShow.dynamicFormPropertyHelps = ((DynamicFormPropertySupport) annotation)
                     .value();
               } else if (annotation instanceof Size) {
-                fieldDescriptorInputAndShow.min = (long) ((Size) annotation).min();
-                fieldDescriptorInputAndShow.max = (long) ((Size) annotation).max();
+                fieldDescriptorInputAndShow.min = (double) ((Size) annotation).min();
+                fieldDescriptorInputAndShow.max = (double) ((Size) annotation).max();
               }
             }
             fieldDescriptorInputAndShowList.add(fieldDescriptorInputAndShow);

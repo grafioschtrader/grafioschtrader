@@ -41,7 +41,7 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     assetclassService: AssetclassService) {
-    super(false, HelpIds.HELP_BASEDATA_ASSETCLASS, AppSettings.ASSETCLASS.toUpperCase(), translateService, gps,
+    super(AppSettings.CATEGORY_TYPE, 'specialInvestmentInstrument', HelpIds.HELP_BASEDATA_ASSETCLASS, AppSettings.ASSETCLASS.toUpperCase(), translateService, gps,
       messageToastService, assetclassService);
   }
 

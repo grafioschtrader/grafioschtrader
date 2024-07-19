@@ -40,6 +40,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   private dateFormatCalendarTowNumber: string;
   private entityKeyMapping: { [entityName: string]: string };
   private currencyPrecisionMap: { [currency: string]: number };
+  private fieldSizeMap: {[fieldNameOrKey: string]: number};
   private dateFormatWithoutYear: string;
   private _useWebsocket: boolean = null;
 
@@ -174,7 +175,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   }
 
   /**
-   * Gets the key property name by the entity name from session storge
+   * Gets the key property name by the entity name from session storage
    *
    * @param entityName Name of entity
    */
@@ -190,6 +191,13 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       this.currencyPrecisionMap = JSON.parse(sessionStorage.getItem(GlobalSessionNames.CURRENCY_PRECISION));
     }
     return this.currencyPrecisionMap[currency] ? this.currencyPrecisionMap[currency] : AppSettings.FID_STANDARD_FRACTION_DIGITS;
+  }
+
+  public getFieldSize(fieldNameOrKey: string): number {
+    if (!this.fieldSizeMap) {
+      this.fieldSizeMap = JSON.parse(sessionStorage.getItem(GlobalSessionNames.FIELD_SIZE));
+    }
+    return this.fieldSizeMap[fieldNameOrKey];
   }
 
   public getThousandsSeparatorSymbol(): string {

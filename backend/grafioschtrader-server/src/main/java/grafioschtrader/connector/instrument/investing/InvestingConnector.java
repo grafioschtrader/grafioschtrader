@@ -20,6 +20,8 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -57,7 +59,8 @@ public class InvestingConnector extends BaseFeedConnector {
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private static final String URL_HISTORICAL_REGEX = "^\\d+$";
-  private static final String URL_INTRA_REGEX = "^[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
+  private static final String URL_INTRA_REGEX = "^(?!equities)[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   Map<String, String> cryptoCurrencyMap = Map.of(GlobalConstants.CC_BTC, "bitcoin", "BNB", "binance-coin", "ETH",
       "ethereum", "ETC", "ethereum-classic", "LTC", "litecoin", "XPR", "xrp");
@@ -166,6 +169,9 @@ public class InvestingConnector extends BaseFeedConnector {
         + (new Timestamp(to.getTime()).getTime() / 1000);
   }
 
+ 
+
+  
   @Override
   public String getCurrencypairHistoricalDownloadLink(Currencypair currencypair) {
     return getSecurityCurrencyHistoricalDownloadLink(currencypair);

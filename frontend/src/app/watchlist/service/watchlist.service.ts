@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Watchlist} from '../../entities/watchlist';
 import {AppSettings} from '../../shared/app.settings';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
+import {SecuritycurrencyGroup, SecuritycurrencyUDFGroup} from '../../entities/view/securitycurrency.group';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencyLists} from '../../entities/view/securitycurrency.lists';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
@@ -53,6 +53,11 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   getWatchlistWithoutUpdate(idWatchlist: number): Observable<SecuritycurrencyGroup> {
     return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getWatchlistWithUDFData(idWatchlist: number): Observable<SecuritycurrencyUDFGroup> {
+    return <Observable<SecuritycurrencyUDFGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
+      + `${idWatchlist}/udf`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistWithoutUpdateAndMaxHistoryquote(idWatchlist: number): Observable<SecuritycurrencyGroup> {

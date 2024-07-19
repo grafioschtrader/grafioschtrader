@@ -165,7 +165,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   private Integer connectedIdTransactionPos;
 
   @Column(name = "known_other_flags")
-  private Integer knownOtherFlags;
+  private Long knownOtherFlags;
 
   @Column(name = "transaction_error")
   private String transactionError;

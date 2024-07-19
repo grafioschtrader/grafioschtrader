@@ -54,15 +54,29 @@ export class TranslateHelper {
   }
 
 
+  /**
+   * This can be used to translate the menu entries. If the label begins with a "_", a tooltip is also expected.
+   * The key for the tooltip corresponds to the label key plus the sufix "_TOOLTIP".
+   * Sometimes the label to be translated consists of two keys. These are separated by a "|".
+   * For example, "CREATE|USER" where the translation contains "Create {{i18nRecord}}".
+   * USER should also be translated here; this is achieved with the "translateParam" parameter.
+   *
+   * Translated with DeepL.com (free version)
+   * @param menuItems Menus to be translated. These are processed recursively.
+   * @param translateService The service that carries out the translation.
+   * @param translateParam If true, the label key after "|" is also translated.
+   */
   public static translateMenuItems(menuItems: MenuItem[], translateService: TranslateService, translateParam = true) {
-    menuItems.forEach(menuItem => {
+    menuItems.forEach((menuItem: MenuItem) => {
       if (menuItem.label) {
         if (menuItem.label.startsWith('_')) {
           menuItem.label = menuItem.label.slice(1);
-          menuItem.title = TranslateHelper.cutOffDialogDots(menuItem.label) + '_TITLE';
+          menuItem.tooltipOptions = {tooltipLabel: TranslateHelper.cutOffDialogDots(menuItem.label) + '_TITLE'};
         }
         TranslateHelper.translateMenuItem(menuItem, 'label', translateService, translateParam);
-        TranslateHelper.translateMenuItem(menuItem, 'title', translateService, translateParam);
+        if(menuItem.tooltipOptions) {
+          TranslateHelper.translateMenuItem(menuItem.tooltipOptions, 'tooltipLabel', translateService, translateParam);
+        }
         if (menuItem.items) {
           // For child menu
           this.translateMenuItems(<MenuItem[]>menuItem.items, translateService, translateParam);
@@ -87,30 +101,58 @@ export class TranslateHelper {
   }
 
   public static createTranslatedValueStoreForTranslation(translateService: TranslateService,
-                                                         fields: ColumnConfig[], datavalue: any): void {
+                                                         fields: ColumnConfig[], dataObject: any): void {
     fields.forEach(columnConfig => {
-      let value = Helper.getValueByPath(datavalue, columnConfig.field);
       if (!columnConfig.translatedValueMap) {
         columnConfig.translatedValueMap = {};
       }
-      if (!columnConfig.translatedValueMap.hasOwnProperty(value)) {
-        if (value) {
-          // Add value and translation
-          value = columnConfig.translateValues === TranslateValue.UPPER_CASE ? value.toUpperCase() : value;
-          translateService.get(value).subscribe(translated => {
-            columnConfig.translatedValueMap[value] = translated;
-            // Expand data with a field that contains the value
-            Helper.setValueByPath(datavalue, columnConfig.field + AppSettings.FIELD_SUFFIX, translated);
-          });
-        }
+      let value = Helper.getValueByPath(dataObject, columnConfig.field);
+      if(columnConfig.translateValues === TranslateValue.UPPER_CASE_ARRAY_TO_COMMA_SEPERATED) {
+        this.translateArrayIntoCommaSeparatorString(translateService, columnConfig, value, dataObject);
       } else {
-        // Expand data with a field and existing translation
-        Helper.setValueByPath(datavalue, columnConfig.field + AppSettings.FIELD_SUFFIX, columnConfig.translatedValueMap[value]);
+        this.translateSingleValue(translateService, columnConfig, value, dataObject);
       }
     });
   }
 
-  private static translateMenuItem(menuItem: MenuItem, targetProperty: string, translateService: TranslateService, translateParam): void {
+  private static translateSingleValue(translateService: TranslateService,
+    columnConfig: ColumnConfig, value: any, dataObject: any): void {
+    if (columnConfig.translatedValueMap.hasOwnProperty(value)) {
+      // Expand data with a field and existing translation
+      Helper.setValueByPath(dataObject, columnConfig.field + AppSettings.FIELD_SUFFIX, columnConfig.translatedValueMap[value]);
+    } else {
+      if (value) {
+        // Add value and translation
+        value = columnConfig.translateValues === TranslateValue.UPPER_CASE ? value.toUpperCase() : value;
+        translateService.get(value).subscribe(translated => {
+          columnConfig.translatedValueMap[value] = translated;
+          // Expand data with a field that contains the value
+          Helper.setValueByPath(dataObject, columnConfig.field + AppSettings.FIELD_SUFFIX, translated);
+        });
+      }
+    }
+  }
+
+  private static translateArrayIntoCommaSeparatorString(translateService: TranslateService,
+    columnConfig: ColumnConfig, values: Array<any>, dataObject: any): void {
+    const commaSpace = ', ';
+    let commaSeparatorValue = '';
+
+    values.forEach(value => {
+      if (columnConfig.translatedValueMap.hasOwnProperty(value)) {
+        commaSeparatorValue = commaSeparatorValue + (commaSeparatorValue.length === 0? '': commaSpace) + columnConfig.translatedValueMap[value];
+      } else {
+        value = columnConfig.translateValues === TranslateValue.UPPER_CASE ? value.toUpperCase() : value;
+        translateService.get(value).subscribe(translated => {
+          columnConfig.translatedValueMap[value] = translated;
+          commaSeparatorValue = commaSeparatorValue + (commaSeparatorValue.length === 0? '': commaSpace) + translated;
+        });
+      }
+    });
+    Helper.setValueByPath(dataObject, columnConfig.field + AppSettings.FIELD_SUFFIX, commaSeparatorValue);
+  }
+
+  private static translateMenuItem(menuItem: MenuItem, targetProperty: string, translateService: TranslateService, translateParam: boolean): void {
     if (menuItem[targetProperty] && menuItem[targetProperty].toUpperCase() === menuItem[targetProperty]) {
       // Translate only once
       const dialogMenuItem = menuItem[targetProperty].endsWith(AppSettings.DIALOG_MENU_SUFFIX);

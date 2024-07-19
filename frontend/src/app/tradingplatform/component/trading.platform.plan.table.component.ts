@@ -83,7 +83,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
       {headerSuffix: 'DE'});
     this.addColumnFeqH(DataType.String, 'transactionFeePlan', true, false,
       {translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.String, 'importTransactionPlatform.name', 'IMPORTTRANSACTIONGROUP', true, false);
+    this.addColumn(DataType.String, 'importTransactionPlatform.name', 'IMPORT_TRANSACTION_PLATFORM', true, false);
 
     this.prepareTableAndTranslate();
   }

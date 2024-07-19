@@ -22,6 +22,7 @@ import {ValidatorFn} from '@angular/forms';
 import {ErrorMessageRules} from '../../dynamic-form/error/error.message.rules';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../shared/helper/app.helper';
+import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
 
 /**
  * Some definition of fields are shared between the different edit components of instruments. Those aee
@@ -54,7 +55,7 @@ export class SecurityEditSupport {
   }
 
 
-  static getSecurityBaseFieldDefinition(securityDerived: SecurityDerived): FieldConfig[] {
+  static getSecurityBaseFieldDefinition(securityDerived: SecurityDerived, gps: GlobalparameterService): FieldConfig[] {
     const fc: FieldConfig[] = [];
 
     fc.push(DynamicFieldHelper.createFieldInputString('name', 'NAME_SECURITY', 80, true,
@@ -99,11 +100,10 @@ export class SecurityEditSupport {
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
         {fieldsetName: 'BASE_DATA'}));
     if (securityDerived === SecurityDerived.Security) {
-      fc.push(DynamicFieldHelper.createFieldInputStringVSHeqF('stockexchangeLink', 254, false,
-        [VALIDATION_SPECIAL.WEB_URL], {fieldsetName: 'BASE_DATA'}));
-
-      fc.push(DynamicFieldHelper.createFieldInputStringVSHeqF('productLink', 254, false,
-        [VALIDATION_SPECIAL.WEB_URL], {fieldsetName: 'BASE_DATA'}));
+      fc.push(DynamicFieldHelper.createFieldInputWebUrlHeqF('stockexchangeLink',
+        gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL), false,{fieldsetName: 'BASE_DATA'}));
+      fc.push(DynamicFieldHelper.createFieldInputWebUrlHeqF('productLink',
+        gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL), false,  {fieldsetName: 'BASE_DATA'}));
     }
     return fc;
   }
@@ -243,7 +243,7 @@ export class SecurityEditSupport {
     if (existingSecurity) {
       Object.assign(security, existingSecurity);
     }
-
+    UDFMetadataHelper.removeUDFPropertiesFromObject(security);
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(formBase, security, proposeChangeEntityWithEntity);
     dynamicForm.cleanMaskAndTransferValuesToBusinessObject(security);
 

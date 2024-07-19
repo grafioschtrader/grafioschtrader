@@ -34,9 +34,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   private visibleRestore: boolean[] = [];
 
   protected constructor(protected filterService: FilterService,
-                        protected usersettingsService: UserSettingsService,
-                        translateService: TranslateService,
-                        gps: GlobalparameterService) {
+    protected usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(translateService, gps);
     this.formLocale = gps.getLocale();
   }
@@ -85,13 +85,43 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   readTableDefinition(key: string): void {
-    const readedFields: any[] = this.usersettingsService.readArray(key);
-    if (readedFields != null && readedFields.length > 0) {
-      const fieldObject: any = Object.assign({}, ...readedFields);
-      this.fields.forEach(field => {
-        field.visible = fieldObject[field.headerKey];
-      });
+    if(this.hasSameChecksum(key)) {
+      const readedFields: any[] = this.usersettingsService.readArray(key);
+      if (readedFields != null && readedFields.length > 0) {
+        const fieldObject: any = Object.assign({}, ...readedFields);
+        this.fields.forEach(field => {
+          field.visible = fieldObject[field.headerKey];
+        });
+      }
     }
+  }
+
+  private hasSameChecksum(key: string): boolean {
+    const keyChecksum = key + '.checksum';
+    const existingChecksum: string = localStorage.getItem(keyChecksum);
+    const newChecksum: string = this.calculateHashOverFieldNames();
+    localStorage.setItem(keyChecksum, newChecksum);
+    return existingChecksum === newChecksum;
+  }
+
+  private calculateHashOverFieldNames(): string {
+    let i: number;
+    let sum: number = 0;
+    this.fields.forEach(field => {
+        let cs = this.charsum(field.field);
+        sum = sum + (65027 / cs);
+      }
+    );
+    return ('' + sum).slice(0, 16)
+  }
+
+  private charsum(s: string): number {
+    let i: number;
+    let sum = 0;
+    for (i = 0; i < s.length; i++) {
+      sum += (s.charCodeAt(i) * (i + 1));
+    }
+    return sum;
   }
 
   public prepareFilter(data: any[]) {

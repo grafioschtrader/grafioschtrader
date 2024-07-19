@@ -78,10 +78,10 @@ export class SelectOptionsHelper {
     return valueKeyHtmlSelectOption;
   }
 
-  public static createHtmlOptionsFromStringArray(keysAndValues: string[], uppecaseValue = false): ValueKeyHtmlSelectOptions[] {
+  public static createHtmlOptionsFromStringArray(keysAndValues: string[], uppercaseValue = false): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     keysAndValues.forEach(keyAndValue => valueKeyHtmlSelectOptions.push(
-      new ValueKeyHtmlSelectOptions(keyAndValue, uppecaseValue ? keyAndValue.toUpperCase() : keyAndValue)));
+      new ValueKeyHtmlSelectOptions(keyAndValue, uppercaseValue ? keyAndValue.toUpperCase() : keyAndValue)));
     return valueKeyHtmlSelectOptions;
   }
 
@@ -91,14 +91,11 @@ export class SelectOptionsHelper {
     return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, allowedEnums, deny);
   }
 
-
-
   public static createHtmlOptionsFromEnum(translateService: TranslateService, e: EnumI, allowedEnums?: any[],
     deny?: boolean): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
     return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, allowedEnums, deny);
   }
-
 
   public static createHtmlOptionsFromEnumDisabled(translateService: TranslateService, e: EnumI,
                                                   disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
@@ -129,7 +126,7 @@ export class SelectOptionsHelper {
   }
 
   /**
-   * Translate a existing vaule of ValueKeyHtmlSelectOptions.
+   * Translate an existing value of ValueKeyHtmlSelectOptions.
    */
   public static translateExistingValueKeyHtmlSelectOptions(translateService: TranslateService,
                                                            hSelOpt: ValueKeyHtmlSelectOptions[],
@@ -142,7 +139,6 @@ export class SelectOptionsHelper {
     return newValueKeyHtmlSelectOptions.sort((a, b) => a.value.toLowerCase() < b.value.toLowerCase() ? -1 :
       a.value.toLowerCase() > b.value.toLowerCase() ? 1 : 0);
   }
-
 
   public static translateArrayKeyEqualValue<T extends number | string>(translateService: TranslateService,
                                                                        arr: T[]): ValueKeyHtmlSelectOptions[] {

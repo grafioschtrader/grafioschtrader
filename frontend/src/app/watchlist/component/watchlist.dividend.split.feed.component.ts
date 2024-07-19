@@ -60,7 +60,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(WatchListType.DIVIDEND_SPLIT_FEDED, AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
+    super(WatchListType.DIVIDEND_SPLIT_FEED, AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
       dialogService, timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router,
       activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
       filterService, translateService, gps, usersettingsService, WatchlistTable.MULTIPLE);
@@ -93,7 +93,6 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     const watchListObservable: Observable<SecuritycurrencyGroup> =
       this.watchlistService.getWatchlistForSplitAndDividend(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-
     combineLatest([watchListObservable, tenantLimitObservable]).subscribe(result => {
       this.createSecurityPositionList(result[0]);
       this.tenantLimits = result[1];
@@ -115,4 +114,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
       this.getWatchlistWithoutUpdate.bind(this));
   }
 
+  protected readonly parseInt = parseInt;
+  protected readonly Number = Number;
+  protected readonly RegExp = RegExp;
 }

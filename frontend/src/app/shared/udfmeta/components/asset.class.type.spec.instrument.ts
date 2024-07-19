@@ -9,6 +9,7 @@ import {SpecialInvestmentInstruments} from '../../types/special.investment.instr
 import {Subscription} from 'rxjs';
 import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {InputType} from '../../../dynamic-form/models/input.type';
 
 export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBase<T> {
 
@@ -18,8 +19,8 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
 
   protected abstract initializeOthers(): void;
 
-
-  constructor(private includeEnumAll: boolean,
+  constructor(private fieldCategoryType: string,
+    private fieldSpecialInvestmentInstrument: string,
     helpId: HelpIds,
     i18nRecord: string,
     translateService: TranslateService,
@@ -30,15 +31,28 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
       messageToastService, serviceEntityUpdate);
   }
 
-
   valueChangedOnCategoryType(): void {
-    this.categoryTypeSubscribe = this.configObject.categoryType
+    this.categoryTypeSubscribe = this.configObject[this.fieldCategoryType]
       .formControl.valueChanges.subscribe(categoryType => {
-        if (this.canChangeValues() && categoryType && categoryType.length > 0) {
-          this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest.filter(
-            v => this.assetclassSpezInstMap[categoryType].includes(v.key));
-          this.configObject.specialInvestmentInstrument.formControl.setValue(
-            this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions[0].key);
+        if(this.configObject[this.fieldCategoryType].inputType === InputType.MultiSelect) {
+          const vkh: ValueKeyHtmlSelectOptions[] = [];
+          if(categoryType && categoryType.length > 0) {
+            categoryType.forEach( ct => {
+              vkh.push(...this.valueKeyHtmlOptionsSpecInvest.filter(
+                v => this.assetclassSpezInstMap[ct].includes(v.key))
+                .filter(va => vkh.indexOf(va) < 0));
+
+            });
+          }
+          this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = vkh;
+          vkh.length === 0 && this.configObject[this.fieldSpecialInvestmentInstrument].formControl.setValue('');
+        } else {
+          if (this.canChangeValues() && categoryType && categoryType.length > 0) {
+            this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest.filter(
+              v => this.assetclassSpezInstMap[categoryType].includes(v.key));
+            this.configObject[this.fieldSpecialInvestmentInstrument].formControl.setValue(
+              this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions[0].key);
+          }
         }
       });
   }
@@ -51,21 +65,19 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
     this.gps.getPossibleAssetclassInstrumentMap().subscribe(assetclassSpezInstMap => {
       this.assetclassSpezInstMap = assetclassSpezInstMap;
       this.form.setDefaultValuesAndEnableSubmit();
-      this.configObject.categoryType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        AssetclassType, [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN].concat(this.includeEnumAll ? [] : [AssetclassType.ALL]), true);
+      this.configObject[this.fieldCategoryType].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
+        AssetclassType, [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN], true);
       this.valueKeyHtmlOptionsSpecInvest = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService, SpecialInvestmentInstruments, this.includeEnumAll ? [] : [SpecialInvestmentInstruments.ALL], true);
-      this.configObject.specialInvestmentInstrument.valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest;
+        this.translateService, SpecialInvestmentInstruments,  [], true);
+      this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest;
       this.valueChangedOnCategoryType();
       this.initializeOthers();
     });
   }
 
-
   override onHide(event): void {
     this.categoryTypeSubscribe && this.categoryTypeSubscribe.unsubscribe();
     super.onHide(event);
   }
-
 
 }

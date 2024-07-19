@@ -11,7 +11,7 @@ public class AlgoAssetclassJpaRepositoryImpl extends BaseRepositoryImpl<AlgoAsse
     implements AlgoAssetclassJpaRepositoryCustom {
 
   @Autowired
-  AlgoAssetclassJpaRepository algoAssetclassJpaRepository;
+  private AlgoAssetclassJpaRepository algoAssetclassJpaRepository;
 
   @Override
   public AlgoAssetclass saveOnlyAttributes(AlgoAssetclass algoAssetclass, AlgoAssetclass existingEntity,

@@ -7,9 +7,7 @@ export class DividendSplitSvgCreator {
     [CreateType.CONNECTOR_CREATED]: 'connector',
     [CreateType.ADD_MODIFIED_USER]: 'edit'
   };
-
   private static iconLoadDone = false;
-
 
   public static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!DividendSplitSvgCreator.iconLoadDone) {

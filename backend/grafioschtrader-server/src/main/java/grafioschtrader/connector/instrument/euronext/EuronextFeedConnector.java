@@ -229,9 +229,9 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     String maxOr1M = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) > 30 ? PERIOD_MAX : PERIOD_1M;
     String url = getSecurityHistoricalDownloadLink(security, maxOr1M);
     String content = FeedConnectorHelper.getByHttpClient(url).body();
-    String json = decrypt(content);
+    content = decrypt(content);
 
-    final DailyClose[] dailyCloseArr = objectMapper.readValue(json, DailyClose[].class);
+    final DailyClose[] dailyCloseArr = objectMapper.readValue(content, DailyClose[].class);
     for (DailyClose dailyClose : dailyCloseArr) {
       Date date = DateHelper.setTimeToZeroAndAddDay(dailyClose.time, 0);
       if (!date.before(from) && !date.after(to)) {

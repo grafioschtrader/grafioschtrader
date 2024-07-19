@@ -19,9 +19,11 @@ import {BaseInputComponent} from '../base.input.component';
           [type]="(config.dataType === DataType.TimeString)? 'time':
             (config.dataType === DataType.Numeric  || config.dataType === DataType.NumericInteger)?
             'number': (config.dataType === DataType.Password)? 'password': (config.dataType === DataType.Email)? 'email' : 'text'"
+          [pKeyFilter]="config.dataType === DataType.NumericInteger? 'int': config.dataType === DataType.Numeric? 'num': null"
           [attr.placeholder]="config.placeholder"
           [formControlName]="config.field"
-          pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
+          pTooltip="{{config.labelHelpText?.startsWith('*')? config.labelHelpText.slice(1):
+              config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
           [maxlength]="config.maxLength"
           [size]="config.inputWidth || config.maxLength"
           [readonly]="config.readonly"
@@ -40,6 +42,7 @@ import {BaseInputComponent} from '../base.input.component';
           [type]="(config.dataType === DataType.TimeString)? 'time':
             (config.dataType === DataType.Numeric  || config.dataType === DataType.NumericInteger)?
             'number': (config.dataType === DataType.Password)? 'password': (config.dataType === DataType.Email)? 'email' : 'text'"
+          [pKeyFilter]="config.dataType === DataType.NumericInteger? 'int': config.dataType === DataType.Numeric? 'num': null"
           [attr.placeholder]="config.placeholder"
           [formControlName]="config.field"
           pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"

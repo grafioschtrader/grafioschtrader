@@ -12,7 +12,7 @@ export class ReplacePipe implements PipeTransform {
     if (item == null) {
       return '';
     }
-    item = item.replace(replace, replacement);
+    item = item.replaceAll(replace, replacement);
     return item;
   }
 }

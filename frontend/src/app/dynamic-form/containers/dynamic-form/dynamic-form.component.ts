@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
-import {AbstractControl, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
+import {AbstractControl, FormBuilder, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
 
 
 import {FieldConfig} from '../../models/field.config';
@@ -98,7 +98,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   fieldsetConfigs: FieldsetConfig[];
   showWithFieldset: boolean;
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private _formBuilder: UntypedFormBuilder) {
   }
 
   get formGroups(): FormGroupDefinition[] {
@@ -164,7 +164,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
     const childGroups = {};
 
     this.formGroups.forEach(formGroupDefinition => {
-      formGroupDefinition.formControl = this.fb.group({});
+      formGroupDefinition.formControl = this._formBuilder.group({});
 
       childGroups[formGroupDefinition.formGroupName] = formGroupDefinition.formControl;
       formGroupDefinition.fieldConfig.forEach(control =>
@@ -172,7 +172,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       formGroupDefinition.formControl.setValidators(formGroupDefinition.validation);
     });
 
-    const group = this.fb.group(childGroups);
+    const group = this._formBuilder.group(childGroups);
     this.controls.forEach(control => group.addControl(control.field, this.createControl(control)));
     return group;
   }
@@ -180,7 +180,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   createControl(config: FieldConfig): AbstractControl {
     if (!config.formControl) {
       const {disabled, validation, defaultValue: value} = config;
-      config.formControl = this.fb.control({disabled, value}, validation);
+      config.formControl = this._formBuilder.control({disabled, value}, validation);
     }
     return config.formControl;
   }

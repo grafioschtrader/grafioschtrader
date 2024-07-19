@@ -71,6 +71,7 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
 
     sessionStorage.setItem(GlobalSessionNames.STANDARD_PRECISION, JSON.stringify(configurationWithLogin.standardPrecision));
+    sessionStorage.setItem(GlobalSessionNames.FIELD_SIZE, JSON.stringify(configurationWithLogin.fieldSize));
     AppSettings.resetInterFractionLimit();
 
     sessionStorage.setItem(GlobalSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
@@ -78,6 +79,7 @@ export class LoginService extends BaseAuthService<User> {
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));
     sessionStorage.setItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE, configurationWithLogin.mostPrivilegedRole);
+    sessionStorage.setItem(GlobalSessionNames.UDF_CONFIG, JSON.stringify(configurationWithLogin.udfConfig));
     return configurationWithLogin.passwordRegexOk;
   }
 

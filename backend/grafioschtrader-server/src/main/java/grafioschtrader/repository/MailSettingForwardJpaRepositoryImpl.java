@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.MailSendForwardDefault;
@@ -51,5 +52,9 @@ public class MailSettingForwardJpaRepositoryImpl extends BaseRepositoryImpl<Mail
     return new MailSendForwardDefault(vkhsoList, isAdmin);
   }
 
+  @Transactional
+  public int delEntityWithUserId(Integer id, Integer idUser) {
+    return mailSettingForwardJpaRepository.deleteByIdUserAndIdMailSettingForward(idUser, id);
+  }
 
 }

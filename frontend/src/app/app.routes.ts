@@ -60,6 +60,9 @@ import {adminGuard, authGuard} from './shared/service/guards.definition';
 import {SendRecvForwardTabMenuComponent} from './mail/component/send.recv.forward.tab.menu.component';
 import {MailForwardSettingTableComponent} from './mail/component/mail.forward.setting.table.component';
 import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf.metadata.security.table.component';
+import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
+import {UDFMetadataGeneral} from './shared/udfmeta/model/udf.metadata';
+import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.metadata.general.table.component';
 
 
 const APP_ROUTES: Routes = [
@@ -196,9 +199,13 @@ const APP_ROUTES: Routes = [
             canActivate: [authGuard]
           },
           {
+            path: AppSettings.WATCHLIST_UDF_KEY + '/:id',
+            component: WatchlistUdfComponent, canActivate: [authGuard]
+          },
+          {
             path: AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY + '/:id',
             component: WatchlistDividendSplitFeedComponent, canActivate: [authGuard]
-          },
+          }
         ]
       },
       // Base data
@@ -212,6 +219,11 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.IMP_TRANS_TEMPLATE_KEY,
         component: ImportTransactionTemplateComponent,
+        canActivate: [authGuard]
+      },
+      {
+        path:  AppSettings.UDF_METADATA_GENERAL_KEY,
+        component: UDFMetadataGeneralTableComponent,
         canActivate: [authGuard]
       },
       {

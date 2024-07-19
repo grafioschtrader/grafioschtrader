@@ -130,7 +130,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.getWatchlistWithoutUpdate();
   }
 
-
   public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST_PERFORMANCE;
   }
@@ -139,7 +138,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.topicSubscription && this.topicSubscription.unsubscribe();
     super.ngOnDestroy();
   }
-
 
   protected override getWatchlistWithoutUpdate(): void {
     const watchListObservable: Observable<SecuritycurrencyGroup> = this.watchlistService.getWatchlistWithoutUpdate(this.idWatchlist);
@@ -163,7 +161,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     return menuItems;
   }
 
-
   private updateAllPriceThruRest(): void {
     this.watchlistService.getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days)
       .subscribe((data: SecuritycurrencyGroup) => {
@@ -184,7 +181,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
         command: (event) => this.handleTimeFrame(event, timeFrame, childMenuItems)
       });
     });
-
     return {label: 'TIME_FRAME', items: childMenuItems};
   }
 

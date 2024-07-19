@@ -4,6 +4,7 @@ import {BaseInputComponent} from '../components/base.input.component';
 import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';
 import {NgxCurrencyConfig} from 'ngx-currency';
 import {BaseFieldDefinition, PropertyEditShare} from './base.field.definition';
+import {MenuItem} from 'primeng/api';
 
 /**
  * Definition of input elements and buttons.
@@ -33,6 +34,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
 
   /**
    * Contains the key for the i18n Translation
+   * No translation and output if the string begins with a "_".
    */
   labelKey?: string;
 
@@ -84,7 +86,6 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
    */
   inputType: InputType;
 
-
   /**
    * Property name of the business object, it is used to transform from existing Object to the view. It is used for referenced
    * objects.
@@ -135,7 +136,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   calendarConfig?: CalendarConfig;
 
   /**
-   * Can only used for input InputType.Input
+   * Can only be used for input InputType.Input
    */
   min?: number;
   max?: number;
@@ -181,6 +182,10 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
    * See https://github.com/nbfontana/ngx-currency/blob/master/src/currency-mask.config.ts
    */
   currencyMaskConfig?: NgxCurrencyConfig;
+  /**
+   * TODO: May be used for entering functions and variables as MenuItem in the Texterea.
+   */
+  contextMenuItems?: MenuItem[];
 }
 
 export interface InputNumberSetting {

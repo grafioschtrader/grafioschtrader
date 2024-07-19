@@ -43,11 +43,10 @@ import {ProcessedActionData} from '../../shared/types/processed.action.data';
 })
 export class WatchlistPriceFeedComponent extends WatchlistTable implements OnInit, OnDestroy {
 
+  feedConnectorsKV: { [id: string]: string } = {};
   public visibleAddPriceProblemDialog = false;
   private readonly f_retryHistoryLoad = 'retryHistoryLoad';
   private readonly f_retryIntraLoad = 'retryIntraLoad';
-  private feedConnectorsKV: { [id: string]: string } = {};
-
 
   constructor(private securityService: SecurityService,
               private currencypairService: CurrencypairService,
@@ -100,7 +99,6 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     const watchListObservable: Observable<SecuritycurrencyGroup> =
       this.watchlistService.getWatchlistWithoutUpdateAndMaxHistoryquote(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-
     combineLatest([watchListObservable, tenantLimitObservable]).subscribe(result => {
       this.createSecurityPositionList(result[0]);
       this.tenantLimits = result[1];

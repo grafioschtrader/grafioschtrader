@@ -5,7 +5,7 @@ package grafioschtrader.types;
  * invested in directly or through an ETF or fund, etc. GT must be able to
  * distinguish whether, for example, a share is traded directly or CFT.
  */
-public enum SpecialInvestmentInstruments {
+public enum SpecialInvestmentInstruments implements StableEnum {
 
   // Can have dividends
   DIRECT_INVESTMENT((byte) 0),
@@ -22,9 +22,8 @@ public enum SpecialInvestmentInstruments {
   // A product with issuer risk like certificate, ETC, ETN
   ISSUER_RISK_PRODUCT((byte) 6),
   // Can never have dividends
-  NON_INVESTABLE_INDICES((byte) 10),
-  // Only used for UDF. Is also persisted
-  ALL((byte) 99);
+  NON_INVESTABLE_INDICES((byte) 10);
+  
 
   private final Byte value;
 

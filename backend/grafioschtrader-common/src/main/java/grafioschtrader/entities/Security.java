@@ -18,6 +18,7 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
+import grafioschtrader.entities.projection.IUDFSupport;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -55,7 +56,7 @@ import jakarta.validation.constraints.Size;
 @NamedEntityGraph(name = "graph.security.historyquote", attributeNodes = { @NamedAttributeNode("historyquoteList"),
     @NamedAttributeNode("assetClass"), @NamedAttributeNode("stockexchange") })
 @Schema(description = "Contains the characteristics of a security that may be traded")
-public class Security extends Securitycurrency<Security> implements Serializable, IFormulaInSecurity {
+public class Security extends Securitycurrency<Security> implements Serializable, IFormulaInSecurity, IUDFSupport {
 
   public static final String TABNAME = "security";
 
@@ -116,6 +117,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @Schema(description = "HTML link to the product description")
   @Column(name = "product_link")
   @WebUrl
+  @Size(max = GlobalConstants.FIELD_SIZE_MAX_G_WEB_URL)
   @PropertyAlwaysUpdatable
   private String productLink;
 
@@ -604,6 +606,11 @@ public class Security extends Securitycurrency<Security> implements Serializable
   public boolean expectVolume() {
     return !(isDerivedInstrument()
         || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES);
+  }
+
+  @Override
+  public boolean tenantHasAccess(Integer idTenant) {
+    return this.idTenantPrivate == null || idTenant == this.idTenantPrivate;
   }
 
 }

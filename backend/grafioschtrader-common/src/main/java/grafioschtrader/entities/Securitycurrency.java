@@ -102,6 +102,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @Column(name = "stockexchange_link")
   @PropertyAlwaysUpdatable
+  @Size(max = GlobalConstants.FIELD_SIZE_MAX_G_WEB_URL)
   @WebUrl
   protected String stockexchangeLink;
 

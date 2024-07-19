@@ -19,7 +19,7 @@ export class ClassDescriptorInputAndShow {
   constraintValidatorMap: { [key: string]: any} | Map<ConstraintValidatorType, any>;
 }
 
-export class FieldDescriptorInputAndShow {
+export interface FieldDescriptorInputAndShow {
   fieldName: string;
   dynamicFormPropertyHelps: string[] | DynamicFormPropertyHelps[];
   dataType: string | DataType;
@@ -27,6 +27,14 @@ export class FieldDescriptorInputAndShow {
   required: boolean;
   min: number;
   max: number;
+}
+
+export interface FieldDescriptorInputAndShowExtended extends FieldDescriptorInputAndShow {
+  description: string;
+  descriptionHelp: string;
+  uiOrder: number;
+  udfSpecialType: number;
+  idUser: number;
 }
 
 export class ReplaceFieldWithGroup {

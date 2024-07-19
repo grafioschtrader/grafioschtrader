@@ -1,5 +1,5 @@
 import {Security} from '../../entities/security';
-import {ChangeDetectorRef, Directive, HostListener, OnDestroy, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Directive, OnDestroy, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {WatchlistService} from '../service/watchlist.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
@@ -39,11 +39,15 @@ import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamic.
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
+import {UDFGeneralCallParam} from '../../shared/udfmeta/model/udf.metadata';
+import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.helper';
+import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
   public static readonly SINGLE = 'single';
   public static readonly MULTIPLE = 'multiple';
+  public static readonly SECURITYCURRENCY = 'securitycurrency'
   WatchListType: typeof WatchListType = WatchListType;
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
   securitycurrencyGroup: SecuritycurrencyGroup;
@@ -56,6 +60,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   visibleEditSecurityDialog: boolean;
   visibleEditCurrencypairDialog: boolean;
   visibleEditSecurityDerivedDialog: boolean;
+  visibleUDFSecurityDialog: boolean;
+  visibleUDFGeneralDialog: boolean;
   securityCallParam: Security;
   securityCurrencypairCallParam: Security | Securitycurrency;
   idTenant: number;
@@ -64,7 +70,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   paginator = false;
   intraUpdateTimoutSeconds: number;
   watchlist: Watchlist;
-  readonly SECURITYCURRENCY_NAME = 'securitycurrency.name';
+  readonly SECURITYCURRENCY_NAME = WatchlistTable.SECURITYCURRENCY + '.name';
   contextMenuItems: MenuItem[] = [];
   timeFrames: TimeFrame[] = [];
   choosenTimeFrame: TimeFrame;
@@ -72,8 +78,11 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[];
   selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>;
   @ViewChild('contextMenu') protected contextMenu: any;
+  uDFGeneralCallParam: UDFGeneralCallParam;
+  protected udfValuesMap = new Map<number, any>;
   private routeSubscribe: Subscription;
   private subscriptionWatchlistAdded: Subscription;
+  private lazyMapHasUDF: { [idSecuritycurrency: number]: boolean } = {};
 
   protected constructor(public watchlistType: WatchListType,
     protected storeKey: string,
@@ -119,6 +128,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   getInstrumentIcon(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig,
     valueField: any): string {
+
+
     const currencypair: Currencypair = securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ?
       securitycurrencyPosition.securitycurrency : null;
     return this.productIconService.getIconForInstrument(currencypair ? null : <Security>securitycurrencyPosition.securitycurrency,
@@ -187,6 +198,17 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.visibleEditSecurityDerivedDialog = true;
   }
 
+  modifyOrCreateUDFData(securityCurrency: Securitycurrency): void {
+    const udfValues = this.udfValuesMap.get(securityCurrency.idSecuritycurrency);
+    if (securityCurrency instanceof CurrencypairWatchlist) {
+      this.uDFGeneralCallParam = new UDFGeneralCallParam(AppSettings.CURRENCYPAIR, securityCurrency, udfValues, 'UDF_CURRENCYPAIR');
+      this.visibleUDFGeneralDialog = true;
+    } else {
+      this.uDFGeneralCallParam = new UDFGeneralCallParam(AppSettings.SECURITY, securityCurrency, udfValues, 'UDF_SECURITY');
+      this.visibleUDFSecurityDialog = true;
+    }
+  }
+
   modifyOrCreateAndAddCurrencypair(securityCurrency: Securitycurrency): void {
     this.securityCurrencypairCallParam = securityCurrency;
     this.visibleEditCurrencypairDialog = true;
@@ -223,6 +245,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.visibleEditSecurityDialog = false;
     this.visibleEditCurrencypairDialog = false;
     this.visibleEditSecurityDerivedDialog = false;
+    this.visibleUDFSecurityDialog = false;
+    this.visibleUDFGeneralDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.CREATED) {
         this.watchlistService.addSecurityToWatchlist(this.idWatchlist, processedActionData.data).subscribe(watchlist => {
@@ -250,7 +274,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   onRightClick(event): void {
-  //  this.isActivated() ? this.contextMenu.show() : this.hideContextMenu();
+    //  this.isActivated() ? this.contextMenu.show() : this.hideContextMenu();
   }
 
   onComponentClick(event): void {
@@ -279,13 +303,20 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       {width: 200, frozenColumn: true, templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.isin', true, true, {width: 90});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.tickerSymbol', true, true);
-    this.addColumnFeqH(DataType.String, 'securitycurrency.currency', true, true);
+    this.addColumnFeqH(DataType.String, WatchlistTable.SECURITYCURRENCY + '.isin', true, true, {width: 90});
+    this.addColumnFeqH(DataType.String, WatchlistTable.SECURITYCURRENCY + '.tickerSymbol', true, true);
+    this.addColumnFeqH(DataType.String, WatchlistTable.SECURITYCURRENCY + '.currency', true, true);
   }
 
+  /**
+   * Loading the specific basic data of the watchlist; price data, for example, does not have to be loaded.
+   */
   protected abstract getWatchlistWithoutUpdate(): void;
 
+  /**
+   * This method is used if the data needs to be reloaded. For example, if the watchlist has been changed by the user
+   * or if additional price data is loaded.
+   */
   protected abstract updateAllPrice(): void;
 
   protected watchlistHasModifiedFromOutside(): void {
@@ -311,7 +342,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         //  first time
         this.gps.getIntraUpdateTimeout()
           .subscribe((updateTimeout: number) => this.intraUpdateTimoutSeconds = updateTimeout);
-
         this.readTableDefinition(this.storeKey);
       }
 
@@ -336,7 +366,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     let menuItems: MenuItem[] = [];
 
     if (securitycurrencyPosition) {
-      const isCurrencypair = this.selectedSecuritycurrencyPosition.securitycurrency instanceof Currencypair;
+      const isCurrencypair = this.selectedSecuritycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist;
       const optionalParameters = {
         noMarketValue: !isCurrencypair
           && (<Security>this.selectedSecuritycurrencyPosition.securitycurrency).stockexchange.noMarketValue
@@ -350,7 +380,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         {
           label: '_INTRADAY_URL',
           command: (e) => this.getDownloadLinkHistoricalIntra(securitycurrencyPosition.intradayUrl,
-            'intra', securitycurrencyPosition,true),
+            'intra', securitycurrencyPosition, true),
           disabled: !securitycurrencyPosition.intradayUrl
         }
       );
@@ -374,10 +404,10 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   private getDownloadLinkHistoricalIntra(url: string, targetPage: string, securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
     isIntra: boolean): void {
-    if(url === 'lazy') {
+    if (url === 'lazy') {
       this.watchlistService.getDataProviderLinkForUser(securitycurrencyPosition.securitycurrency.idSecuritycurrency, isIntra,
-        !(securitycurrencyPosition.securitycurrency instanceof Currencypair) ).subscribe(
-          urlWebpage => BusinessHelper.toExternalWebpage(urlWebpage, targetPage))
+        !(securitycurrencyPosition.securitycurrency instanceof Currencypair)).subscribe(
+        urlWebpage => BusinessHelper.toExternalWebpage(urlWebpage, targetPage))
     } else {
       BusinessHelper.toExternalWebpage(url, targetPage);
     }
@@ -433,9 +463,14 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         disabled: this.reachedWatchlistLimits()
       }
     );
-
+    menuItems.push(
+      {
+        label: 'EDIT_SECURITY_UDF' + AppSettings.DIALOG_MENU_SUFFIX,
+        command: (e) => this.modifyOrCreateUDFData(securitycurrencyPosition.securitycurrency),
+        disabled: !securitycurrencyPosition || !this.enableMenuItemUDF(securitycurrencyPosition.securitycurrency)
+      }
+    );
     if (securitycurrencyPosition && !(securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist)) {
-
       menuItems.push(
         {
           label: 'REMOVE_DELETE_INSTRUMENT',
@@ -507,6 +542,18 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       }
     }
     return menuItems;
+  }
+
+  private enableMenuItemUDF(securitycurreny: Securitycurrency): boolean {
+    const key = securitycurreny instanceof CurrencypairWatchlist? -1: securitycurreny.idSecuritycurrency;
+    let hasUDF = this.lazyMapHasUDF[key];
+    if (this.lazyMapHasUDF[key] === undefined) {
+      const fd = securitycurreny instanceof CurrencypairWatchlist
+        ? UDFMetadataHelper.getFieldDescriptorByEntity(AppSettings.CURRENCYPAIR)
+        : SecurityUDFHelper.getFieldDescriptorInputAndShowExtendedSecurity((<Security>securitycurreny).assetClass, true);
+      hasUDF = this.lazyMapHasUDF[key] = fd.length > 0;
+    }
+    return hasUDF;
   }
 
   private translateFormulaToUserLanguage(): void {
@@ -586,5 +633,6 @@ export class TimeFrame {
 export enum WatchListType {
   PERFORMANCE,
   PRICE_FEED,
-  DIVIDEND_SPLIT_FEDED
+  UDF,
+  DIVIDEND_SPLIT_FEED
 }

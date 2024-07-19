@@ -38,12 +38,12 @@ import {AppHelper} from '../../helper/app.helper';
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.32.0</h4>
+          {{'V_0_32_0' | translate}}
           <h4>0.31.0</h4>
           {{'V_0_31_0' | translate}}
           <h4>0.30.0</h4>
           {{'V_0_30_0' | translate}}
-          <h4>0.29.0</h4>
-          {{'V_0_29_0' | translate}}
         </p-card>
       </div>
     </div>
@@ -149,13 +149,26 @@ export interface ConfigurationWithLogin {
   entityNameWithKeyNameList: EntityNameWithKeyName[];
   cryptocurrencies: string[];
   standardPrecision: { [typename: string]: number };
-  currencyPrecision: { [curreny: string]: number };
+  currencyPrecision: { [currency: string]: number };
+  fieldSize:  { [fieldSize: string]: number };
   uiShowMyProperty: boolean;
   mostPrivilegedRole: string;
   passwordRegexOk: boolean;
+  udfConfig: UDFConfig
 }
 
 export interface EntityNameWithKeyName {
   entityName: string;
   keyName: string;
+}
+
+export interface UDFConfig {
+  udfGeneralSupportedEntities: string[];
+  uDFPrefixSuffixMap: {[udfDatatype: string]: UDFPrefixSuffix};
+}
+
+export interface UDFPrefixSuffix {
+  prefix: number;
+  suffix: number;
+  together: number;
 }

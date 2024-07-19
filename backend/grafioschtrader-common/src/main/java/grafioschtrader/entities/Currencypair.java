@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
+import grafioschtrader.entities.projection.IUDFSupport;
 import grafioschtrader.validation.ValidCurrencyCode;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -27,7 +28,7 @@ import jakarta.validation.constraints.NotNull;
 @Table(name = Currencypair.TABNAME)
 @DiscriminatorValue("C")
 @NamedEntityGraph(name = "graph.currency.historyquote", attributeNodes = @NamedAttributeNode("historyquoteList"))
-public class Currencypair extends Securitycurrency<Currencypair> implements Serializable {
+public class Currencypair extends Securitycurrency<Currencypair> implements Serializable, IUDFSupport {
 
   public static final String TABNAME = "currencypair";
 
@@ -97,6 +98,11 @@ public class Currencypair extends Securitycurrency<Currencypair> implements Seri
   @Override
   public boolean expectVolume() {
     return GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(fromCurrency);
+  }
+  
+  @Override
+  public boolean tenantHasAccess(Integer idTenant) {
+    return true;
   }
 
 }

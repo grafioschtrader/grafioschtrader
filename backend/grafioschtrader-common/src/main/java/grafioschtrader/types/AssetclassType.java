@@ -9,7 +9,7 @@ package grafioschtrader.types;
  * GT distinguishes between different asset classes of instruments. This may
  * result in different functionality per asset class.
  */
-public enum AssetclassType {
+public enum AssetclassType implements StableEnum {
 
   // Equities, can have dividends
   EQUITIES((byte) 0),
@@ -43,11 +43,9 @@ public enum AssetclassType {
   CURRENCY_CASH((byte) 11),
   // Exist only for Client and is not saved to repository. It may be used for
   // grouping
-  CURRENCY_FOREIGN((byte) 12),
+  CURRENCY_FOREIGN((byte) 12);
 
-  //Only used for UDF. Is also persisted
-  ALL((byte) 99);
-
+ 
   private final Byte value;
 
   private AssetclassType(final Byte value) {

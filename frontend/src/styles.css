@@ -468,7 +468,7 @@ table th .p-inputtext {
 
 .fcontainer .fbox {
   min-width: 400px;
-  max-width: 100%;
+  max-width: 600px;
   flex-basis: 350px;
   flex-grow: 1;
 }
@@ -551,7 +551,6 @@ Classes that Bootstrap 4 hat but Hootstrap 3
 .float-right {
   float: right;
 }
-
 
 .text-right {
   text-align: right !important;

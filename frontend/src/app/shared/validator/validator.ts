@@ -1,4 +1,7 @@
 import {AbstractControl, FormGroup, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {UDFDataType} from '../udfmeta/model/udf.metadata';
+import {GlobalSessionNames} from '../global.session.names';
+import {UDFConfig, UDFPrefixSuffix} from '../login/component/login.component';
 
 const isPresent = (obj: any): boolean => obj !== undefined && obj !== null;
 
@@ -49,6 +52,42 @@ export const dateRange = (dateField1: string, dateField2: string, validatorField
     return (date1 !== null && date2 !== null) && date1 > date2 ?
         {dateRange: {requiredGt: dateRange, actualValue: group.get(validatorField).value}} : null;
 };
+
+export const dataTypeFieldSizeGroup = (dataField1: string, dataField2: string, validatorField: string):
+  ValidatorFn => (group: FormGroup): ValidationErrors | null => {
+  const dataType: string = group.get(dataField1).value;
+  const fieldSize: string = group.get(dataField2).value;
+  let hasError = false;
+  if(dataType && fieldSize) {
+    const udfType = UDFDataType[dataType];
+    if (udfType == UDFDataType.UDF_Numeric || udfType == UDFDataType.UDF_NumericInteger
+      || udfType == UDFDataType.UDF_String) {
+      const prefixSuffixStr: string[] = fieldSize.replaceAll(' ', '').split(',');
+      if(prefixSuffixStr.length == 2) {
+        const prefixSuffix: number[] = prefixSuffixStr.map(Number).filter(Number);
+        if(prefixSuffix.length == 2) {
+          const udfConfig: UDFConfig = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_CONFIG));
+          const ups = udfConfig.uDFPrefixSuffixMap[dataType];
+          switch(udfType) {
+            case UDFDataType.UDF_Numeric:
+              hasError = prefixSuffix[0] > ups.prefix || prefixSuffix[1] > ups.suffix || prefixSuffix[0] <= prefixSuffix[1]
+                || prefixSuffix[1] < ups.together;
+              break;
+            default:
+              hasError = prefixSuffix[0] < ups.prefix || prefixSuffix[1] > ups.suffix || prefixSuffix[0] > prefixSuffix[1] ;
+              break;
+          }
+        } else {
+          hasError = true;
+        }
+      } else {
+        hasError = true;
+      }
+    }
+  }
+
+  return hasError ? {dataTypeFieldSizeGroup: true} : null;
+}
 
 export const gteWithMaskIncludeNegative = (gte: number): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
     if (!isPresent(gte) || isPresent(Validators.required(control))) {

@@ -1,6 +1,7 @@
 import {FieldConfig} from '../models/field.config';
 import {FieldFormGroup, FormGroupDefinition} from '../models/form.group.definition';
 import {InputType} from '../models/input.type';
+import {FormGroup} from '@angular/forms';
 
 export abstract class FormHelper {
 

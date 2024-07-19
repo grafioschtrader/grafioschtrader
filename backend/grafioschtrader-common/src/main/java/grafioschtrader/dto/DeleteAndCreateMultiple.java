@@ -1,13 +1,15 @@
 package grafioschtrader.dto;
 
 import grafioschtrader.GlobalConstants;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 
 public abstract class DeleteAndCreateMultiple {
   public Integer idSecuritycurrency;
 
+  @Schema(description = "An unauthorized user cannot make changes to this data directly. He leaves a message to the user with sufficient rights for this change.")
   @Size(max = GlobalConstants.FID_MAX_LETTERS)
-  public String noteRequest;
+  private String noteRequest;
 
   public String getNoteRequest() {
     return noteRequest;

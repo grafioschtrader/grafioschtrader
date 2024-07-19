@@ -32,7 +32,7 @@ public abstract class UpdateCreateDeleteWithTenantResource<T extends TenantBaseI
     this.type = type;
   }
 
-  @Operation(summary = "Delete a record of an enity by its Id, it is for entities of tenant", description = "User / tenant is checked before deletion")
+  @Operation(summary = "Delete a record of an entity by its ID and the ID of tenant", description = "User / tenant is checked before deletion")
   @DeleteMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteResource(@PathVariable final Integer id) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

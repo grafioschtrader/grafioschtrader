@@ -1,0 +1,38 @@
+<div class="fcontainer">
+  <fieldset *ngFor="let fieldSetName of Object.keys(fieldSetGroups)" class="out-border fbox">
+    <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
+    <div *ngFor="let field of fieldSetGroups[fieldSetName]" class="row">
+      <div [ngClass]="field.templateName !== 'long' ? 'fieldcol-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel text-right'
+          : 'fieldcol-lg-12 col-md-12 col-sm-12 col-xs-12 showlabel'"  [pTooltip]="field.headerTooltipTranslated">
+        {{field.headerTranslated}}:
+      </div>
+      <div [ngClass]="field.templateName !== 'long' ? 'col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap'
+          : 'col-lg-12 col-md-12 col-sm-12 col-xs-12 nopadding wrap'">
+        <ng-container [ngSwitch]="field.templateName">
+          <ng-container *ngSwitchCase="'greenRed'">
+                              <span [style.color]='isValueByPathMinus(content, field)? "red": "green"'>
+                                  {{getValueByPath(content, field)}}
+                              </span>
+          </ng-container>
+          <ng-container *ngSwitchCase="'long'">
+            <span *ngIf="!!(field.dataType === DataType.String)" [innerHtml]="getValueByPath(content, field)   | replace:'\n':' 	&lt;br/&gt;'"></span>
+            <span *ngIf="!(field.dataType === DataType.String)">{{getValueByPath(content, field)}}</span>
+          </ng-container>
+          <ng-container *ngSwitchCase="'check'">
+            <span><i [ngClass]="{'fa fa-check': getValueByPath(content, field)}" aria-hidden="true"></i></span>
+          </ng-container>
+          <ng-container *ngSwitchDefault>
+            {{getValueByPath(content, field)}}
+          </ng-container>
+          <ng-container *ngIf="field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('http')">
+            <a [href]="getValueByPath(content, field)" target="_blank"><i class="pi pi-link"></i></a>
+          </ng-container>
+          <ng-container *ngIf="field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('--')">
+            <a role="button" (click)="BusinessHelper.toExternalWebpage(getValueByPath(content, field))">
+              <i class="pi pi-external-link"></i></a>
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </fieldset>
+</div>

@@ -1,7 +1,6 @@
 export enum GlobalSessionNames {
   UPDATE_TIME = 'updateTimeout',
   START_FEED_DATE = 'startFeedDate',
-  MAX_WATCHLIST_LENGTH = 'maxWatchlistLength',
   ID_TENANT = 'idTenant',
   ID_USER = 'idUser',
   LOCALE = 'locale',
@@ -19,9 +18,12 @@ export enum GlobalSessionNames {
   TAB_MENU_PORTFOLIO = 'tabMenuPortfolio',
   PERFORMANCE_DATE_FROM = 'performanceDateFrom',
   STANDARD_PRECISION = 'standardPrecision',
+  FIELD_SIZE = 'fieldSize',
   CURRENCY_PRECISION = 'currencyPrecision',
   UI_SHOW_MY_PROPERTY = 'uiShowMyProperty',
   USER_FORM_DEFINITION = 'userFormDefinition',
   MOST_PRIVILEGED_ROLE = 'mostPrivilegedRole',
-  UDF_METADATA_SECURITY = 'udfMetadataSecurity'
+  UDF_FORM_DESCRIPTOR_SECURITY = 'udfFormDescriptorSecurity',
+  UDF_FORM_DESCRIPTOR_GENERAL = 'udfFormDescriptorGeneral',
+  UDF_CONFIG = 'udfConfig'
 }

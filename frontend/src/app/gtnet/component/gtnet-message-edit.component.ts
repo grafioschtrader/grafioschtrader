@@ -93,7 +93,6 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     this.createDynamicInputFields();
   }
 
-
   private createDynamicInputFields(): void {
     const fieldConfig: FieldConfig[] = <FieldConfig[]> DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
       this.classDescriptorInputAndShows,
@@ -107,7 +106,6 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     }
   }
 
-
   private setExistingModel(): void {
     const dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
       this.msgCallParam.formDefinitions,
@@ -116,7 +114,6 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.classDescriptorInputAndShows.fieldDescriptorInputAndShows, true);
     this.form.transferBusinessObjectToForm(dynamicModel);
   }
-
 
   submit(value: { [name: string]: any }): void {
     const msgRequest = new MsgRequest(this.msgCallParam.idGTNet, this.msgCallParam.replyTo,
@@ -135,8 +132,6 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(valuesFlatten[fDIAS.fieldName]));
     return gtNetMessageParamMap;
   }
-
-
 
   override onHide(event): void {
     this.messageCodeSubscription && this.messageCodeSubscription.unsubscribe();

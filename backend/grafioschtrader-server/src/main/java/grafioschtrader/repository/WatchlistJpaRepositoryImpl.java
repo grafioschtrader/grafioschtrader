@@ -281,4 +281,9 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
          : currencypairJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday);
   }
 
+  @Override
+  public String getDataProviderDivSplitResponseForUser(Integer idSecuritycurrency, boolean isDiv) {
+    return securityJpaRepository.getDivSplitProviderResponseForUser(idSecuritycurrency, isDiv);
+  }
+
 }

@@ -37,6 +37,8 @@ export class AppSettings {
     public static readonly TRADING_DAYS_MINUS = 'TradingDaysMinus';
     public static readonly TRADING_DAYS_PLUS = 'TradingDaysPlus';
     public static readonly TRADING_PLATFORM_PLAN = 'TradingPlatformPlan';
+    public static readonly UDF_DATA = 'UDFData';
+    public static readonly UDF_METADATA_GENERAL = 'UDFMetadataGeneral';
     public static readonly UDF_METADATA_SECURITY = 'UDFMetadataSecurity';
     public static readonly USER = 'User';
     public static readonly USER_ENTITY_LIMIT = 'UserEntityChangeLimit';
@@ -66,6 +68,7 @@ export class AppSettings {
     public static readonly WATCHLIST_PERFORMANCE_KEY = 'watchlistperformance';
     public static readonly WATCHLIST_PRICE_FEED_KEY = 'watchlistpricefeed';
     public static readonly WATCHLIST_DIVIDEND_SPLIT_FEED_KEY = 'watchlistdividendsplitfeed';
+    public static readonly WATCHLIST_UDF_KEY = 'watchlistudf';
     public static readonly TRANSACTION_KEY = AppSettings.TRANSACTION.toLowerCase();
     public static readonly TENANT_KEY = AppSettings.TENANT.toLowerCase();
     public static readonly HOLDING_KEY = 'holding';
@@ -110,6 +113,8 @@ export class AppSettings {
     public static readonly CURRENCIES_P_KEY = 'currencies';
     public static readonly TIMESZONES_P_KEY = 'timezones';
     public static readonly LOCALES_P_KEY = 'locales';
+    public static readonly UDF_DATA_KEY = AppSettings.UDF_DATA.toLowerCase();
+    public static readonly UDF_METADATA_GENERAL_KEY = AppSettings.UDF_METADATA_GENERAL.toLowerCase()
     public static readonly UDF_METADATA_SECURITY_KEY = AppSettings.UDF_METADATA_SECURITY.toLowerCase()
     public static readonly USER_KEY = AppSettings.USER.toLowerCase();
     public static readonly USER_ADMIN_KEY = 'useradmin';
@@ -170,6 +175,7 @@ export class AppSettings {
     // Save table configuration in local storage
     public static readonly WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE = 'u_watchlist_performance_3';
     public static readonly WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE = 'u_watchlist_price_feed_3';
+    public static readonly WATCHLIST_UDF_TABLE_SETTINGS_STORE = 'u_watchlist_udf_1';
     public static readonly WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE = 'u_watchlist_dividend_split_feed_4';
     public static readonly IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE = 'u_importtransactionpos_2';
     public static readonly HISTORYQUOTE_TABLE_SETTINGS_STORE = 'u_historyquote_01';
@@ -219,8 +225,11 @@ export class AppSettings {
 
     public static FID_MAX_INTEGER_DIGITS = 11;
 
-
     public static FID_MAX_LETTERS = 1000;
+
+    public static readonly FIELD_SIZE_MAX_G_WEB_URL = 'FIELD_SIZE_MAX_G_WEB_URL';
+    public static readonly FIELD_SIZE_MAX_Stockexchange_Website = 'FIELD_SIZE_MAX_Stockexchange_Website';
+
 
     public static resetInterFractionLimit(): void {
         const standardPrecisionMap: { [typename: string]: number } =

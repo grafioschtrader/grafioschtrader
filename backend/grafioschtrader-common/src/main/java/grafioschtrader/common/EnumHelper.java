@@ -4,27 +4,46 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
+import grafioschtrader.types.StableEnum;
+
 public abstract class EnumHelper {
 
-  public static <E extends Enum<E>> int encode(EnumSet<E> set) {
-    int ret = 0;
+  public static <E extends Enum<E> & StableEnum> long encodeEnumSet(EnumSet<E> set) {
+    long ret = 0;
     for (E val : set) {
-      // Bitwise-OR each ordinal value together to encode as single int.
-      ret |= (1 << val.ordinal());
+      ret |= (1 << val.getValue());
     }
     return ret;
   }
 
-  public static <E extends Enum<E>> EnumSet<E> decode(int encoded, Class<E> enumKlazz) {
+  
+  public static <E extends Enum<E> & StableEnum> EnumSet<E> decodeEnumSet(Class<E> enumClass, long bitVector) {
+    EnumSet<E> set = EnumSet.noneOf(enumClass);
+    for (E element : enumClass.getEnumConstants()) {
+      long value = element.getValue();
+      if ((bitVector & (1L << value)) != 0) {
+        set.add(element);
+      }
+    }
+    return set;
+  }
+  
+  public static <E extends Enum<E> & StableEnum> boolean contains(E targetEnum, long bitVector) {
+    long value = targetEnum.getValue();
+    return (bitVector & (1L << value)) != 0;
+  }
+  
+  
+  public static <E extends Enum<E> & StableEnum> EnumSet<E> decode(int encoded, Class<E> enumKlazz) {
     // First populate a look-up map of ordinal to Enum value.
     // This is fairly disgusting: Anyone know of a better approach?
-    Map<Integer, E> ordinalMap = new HashMap<>();
+    Map<Byte, E> ordinalMap = new HashMap<>();
     for (E val : EnumSet.allOf(enumKlazz)) {
-      ordinalMap.put(val.ordinal(), val);
+      ordinalMap.put(val.getValue(), val);
     }
 
     EnumSet<E> ret = EnumSet.noneOf(enumKlazz);
-    int ordinal = 0;
+    byte ordinal = 0;
 
     // Now loop over encoded value by analysing each bit independently.
     // If the bit is set, determine which ordinal that corresponds to

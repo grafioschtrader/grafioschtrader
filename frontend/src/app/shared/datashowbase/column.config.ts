@@ -120,6 +120,9 @@ export enum TranslateValue {
   // No other action than translation
   NORMAL = 1,
   // To uppercase before translation into store
-  UPPER_CASE = 2
+  UPPER_CASE = 2,
+
+  UPPER_CASE_ARRAY_TO_COMMA_SEPERATED = 3
+
 }
 

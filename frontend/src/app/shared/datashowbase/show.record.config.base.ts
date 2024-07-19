@@ -49,7 +49,7 @@ export abstract class ShowRecordConfigBase {
    * @param field Name of the property, the value is accessed by this name.
    * @param visible Is this column initial visible.
    * @param changeVisibility Can the visibility of the column be changed.
-   * @param optionalParams Addional parameters.
+   * @param optionalParams Additional parameters.
    */
   addColumnFeqH(dataType: DataType, field: string, visible: boolean = true, changeVisibility: boolean = true,
                 optionalParams?: OptionalParams): ColumnConfig {
@@ -145,7 +145,7 @@ export abstract class ShowRecordConfigBase {
 
   /**
    * PrimeNg sorts the content a field by its value in the array. To get the right sort order an extra
-   * field is added to structure to achieving that. It is the original name with a appended '$'.
+   * field is added to structure to achieving that. It is the original name with an appended '$'.
    */
   createTranslatedValueStore(data: any[]): void {
     TranslateHelper.createTranslatedValueStore(this.translateService, this.fields, data);
@@ -180,7 +180,7 @@ export abstract class ShowRecordConfigBase {
     this.translateService.get(translateHeaderKeys.map(thtk => thtk + tSuffix)).subscribe((allTranslatedTexts: any) =>
       columConfig.map(field => {
         const key = field.headerKey + tSuffix;
-        field.headerTooltipTranslated = (allTranslatedTexts[key] !== key) ? allTranslatedTexts[key] : null;
+        field.headerTooltipTranslated = (allTranslatedTexts[key] !== key) ? allTranslatedTexts[key] : field.headerTooltipTranslated;
       }));
   }
 

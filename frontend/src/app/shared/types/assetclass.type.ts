@@ -11,7 +11,5 @@ export enum AssetclassType {
 
   // Exist only for Client and is not saved to repository
   CURRENCY_CASH = 11,
-  CURRENCY_FOREIGN = 12,
-  ALL= 99
-
+  CURRENCY_FOREIGN = 12
 }

@@ -87,12 +87,16 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
 
   String getDataProviderLinkForUser(final Integer idSecuritycurrency, final boolean isIntraday);
+  
+  String getDivSplitProviderResponseForUser(final Integer idSecuritycurrency, final boolean isDiv);
 
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy);
 
   boolean checkUserCanChangeDerivedFields(User user, Security security, Security existingSecurity);
 
   void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
+  
+  void setSplitDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
 
   InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom,
       LocalDate dateTo) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException;

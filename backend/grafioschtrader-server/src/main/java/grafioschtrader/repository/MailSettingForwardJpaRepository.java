@@ -6,11 +6,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafioschtrader.entities.MailSettingForward;
-import grafioschtrader.rest.UpdateCreateJpaRepository;
+import grafioschtrader.rest.UpdateCreateDeleteWithUserIdJpaRepository;
 import jakarta.transaction.Transactional;
 
 public interface MailSettingForwardJpaRepository extends JpaRepository<MailSettingForward, Integer>,
-    MailSettingForwardJpaRepositoryCustom, UpdateCreateJpaRepository<MailSettingForward> {
+    MailSettingForwardJpaRepositoryCustom, UpdateCreateDeleteWithUserIdJpaRepository<MailSettingForward> {
 
   List<MailSettingForward> findByIdUser(Integer idUser);
 

@@ -94,7 +94,6 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
-
     return this.getHistoricalData(security.getUrlHistoryExtend(), from, to);
   }
 

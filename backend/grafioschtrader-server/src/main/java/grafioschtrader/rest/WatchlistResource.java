@@ -27,6 +27,7 @@ import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reports.WatchlistReport;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
 import io.swagger.v3.oas.annotations.Operation;
@@ -218,6 +219,14 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Return of a watchlist with the user-defined data.", tags = { Watchlist.TABNAME })
+  @GetMapping(value = "/{idWatchlist}/udf", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SecuritycurrencyUDFGroup> getWatchlistWithUDFData(
+      @PathVariable final Integer idWatchlist) throws InterruptedException, ExecutionException {
+    return new ResponseEntity<>(watchlistReport.getWatchlistWithUDFData(idWatchlist),
+        HttpStatus.OK);
+  }
+  
   @Operation(summary = "Returns the content of a watchlist which includes if the security has ever have splits or dividends", description = "", tags = {
       Watchlist.TABNAME })
   @GetMapping(value = "/{idWatchlist}/dividendsplit", produces = APPLICATION_JSON_VALUE)
@@ -228,16 +237,16 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
 
   @Operation(summary = """
       The data sources with API keys are only delivered to the frontend for administrators.
-      All other users must use the following functionality.
-      The content of the data source is generated in the backend and returned to the frontend.""", tags = {
+      All other users must use the following functionality. The content is created in the backend and returned to the user in the frontend. 
+      In this case, either historical or intraday price data.""", tags = {
       Watchlist.TABNAME })
-  @GetMapping(value = RequestMappings.SECURITY_DATAPROVIDER_RESPONSE + "{idSecuritycurrency}")
-  public String getDataProviderResponseForUser(@PathVariable final Integer idSecuritycurrency,
+  @GetMapping(value = RequestMappings.SECURITY_DATAPROVIDER_INTRA_HISTORICAL_RESPONSE + "{idSecuritycurrency}")
+  public String getDataProviderIntraHistoricalResponseForUser(@PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "True when for intraday otherwise false", required = true) @RequestParam() final boolean isIntraday,
       @Parameter(description = "True when whenn security, false for currency", required = true) @RequestParam() final boolean isSecurity) {
     return watchlistJpaRepository.getDataProviderResponseForUser(idSecuritycurrency, isIntraday, isSecurity);
   }
-
+  
   @Operation(summary = """
      The creation of a download link for historical or intraday data can take a long time,
      as the data source is contacted during the creation process.
@@ -249,6 +258,17 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
       @Parameter(description = "True when whenn security, false for currency", required = true) @RequestParam() final boolean isSecurity) {
     return new ResponseEntity<>(watchlistJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday, isSecurity),
         HttpStatus.OK);
+  }
+  
+  @Operation(summary = """
+      The data sources with API keys are only delivered to the frontend for administrators.
+      All other users must use the following functionality. The content is created in the backend and returned to the user in the frontend. 
+      In this case, either splits or dividends.""", tags = {
+      Watchlist.TABNAME })
+  @GetMapping(value = RequestMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE + "{idSecuritycurrency}")
+  public String getDataProviderDivSplitResponseForUser(@PathVariable final Integer idSecuritycurrency,
+      @Parameter(description = "True when for dividen otherwise false", required = true) @RequestParam() final boolean isDiv) {
+    return watchlistJpaRepository.getDataProviderDivSplitResponseForUser(idSecuritycurrency, isDiv);
   }
 
 }

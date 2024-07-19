@@ -14,7 +14,7 @@ public class ImportTransactionPlatformJpaRepositoryImpl extends BaseRepositoryIm
     implements ImportTransactionPlatformJpaRepositoryCustom {
 
   @Autowired
-  ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
+  private ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
 
   @Autowired(required = false)
   public List<IPlatformTransactionImport> platformTransactionImportList = new ArrayList<>();
