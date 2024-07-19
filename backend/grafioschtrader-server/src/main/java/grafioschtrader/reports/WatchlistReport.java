@@ -38,10 +38,13 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.instrument.SecurityCalcService;
+import grafioschtrader.reports.udfalluserfields.IUDFForEveryUser;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup.IUDFEntityValues;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
@@ -50,6 +53,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
+import grafioschtrader.repository.UDFDataJpaRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.service.GTNetLastpriceService;
 
@@ -91,6 +95,11 @@ public class WatchlistReport {
   @Autowired
   private GTNetLastpriceService gTNetLastpriceService;
 
+  @Autowired
+  private UDFDataJpaRepository uDFDataJpaRepository;
+
+  @Autowired(required = false)
+  private List<IUDFForEveryUser> uDFForEveryUser;
 
   /**
    * Returns the watchlist with the youngest date of history quote. This should
@@ -145,6 +154,16 @@ public class WatchlistReport {
     }
   }
 
+  /**
+   * Return of the split and dividend watchlist, whereby the splits and dividends
+   * are not included in the return. The return only includes whether splits or
+   * dividends exist.
+   * 
+   * @param idWatchlist
+   * @return
+   * @throws InterruptedException
+   * @throws ExecutionException
+   */
   public SecuritycurrencyGroup getWatchlistForSplitAndDividend(final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
 
@@ -166,6 +185,25 @@ public class WatchlistReport {
     securitycurrencyGroup.securityPositionList.forEach(
         spl -> spl.watchlistSecurityHasEver = securitiesIds.contains(spl.securitycurrency.getIdSecuritycurrency()));
     return securitycurrencyGroup;
+  }
+
+  public SecuritycurrencyUDFGroup getWatchlistWithUDFData(final Integer idWatchlist)
+      throws InterruptedException, ExecutionException {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final CompletableFuture<List<IUDFEntityValues>> entityValuesCF = CompletableFuture
+        .supplyAsync(() -> uDFDataJpaRepository.getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(),
+            new String[] { Currencypair.class.getSimpleName(), Security.class.getSimpleName() }));
+    return combineWatchlistWithUDF(getWatchlistWithoutUpdate(idWatchlist), entityValuesCF.get());
+  }
+
+  private SecuritycurrencyUDFGroup combineWatchlistWithUDF(SecuritycurrencyGroup sg,
+      List<IUDFEntityValues> uDFEntityValues) {
+    Map<Integer, String> udfEntityValuesMap = uDFEntityValues.stream()
+        .collect(Collectors.toMap(ud -> ud.getIdSecuritycurrency(), ud -> ud.getJsonValues()));
+    SecuritycurrencyUDFGroup sUDFGroup = new SecuritycurrencyUDFGroup(sg.securityPositionList,
+        sg.currencypairPositionList, sg.lastTimestamp, sg.idWatchlist, udfEntityValuesMap);
+    uDFForEveryUser.stream().forEach(u -> u.addUDFForEveryUser(sUDFGroup));
+    return sUDFGroup;
   }
 
   /////////////////////////////////////////////////////////////
@@ -247,7 +285,6 @@ public class WatchlistReport {
         watchlist.getIdWatchlist());
   }
 
-
   private GTNetLastpriceService.SecurityCurrency updateLastPrice(Tenant tenant, Watchlist watchlist) {
     final List<Security> securities = watchlist.getSecuritycurrencyListByType(Security.class);
     final List<Currencypair> currencypairs = watchlist.getSecuritycurrencyListByType(Currencypair.class);
@@ -258,8 +295,10 @@ public class WatchlistReport {
       watchlist.setLastTimestamp(new Date(System.currentTimeMillis()));
       watchlist = watchlistJpaRepository.save(watchlist);
       log.info("Intraday update for {}", watchlist.getName());
-      List<Currencypair> currenciesNotInList = updateDependingCurrencyWhenPerformanceWatchlist(tenant, watchlist, currencypairs);
-      return gTNetLastpriceService.updateLastpriceIncludeSupplier(watchlist.getSecuritycurrencyListByType(Security.class),
+      List<Currencypair> currenciesNotInList = updateDependingCurrencyWhenPerformanceWatchlist(tenant, watchlist,
+          currencypairs);
+      return gTNetLastpriceService.updateLastpriceIncludeSupplier(
+          watchlist.getSecuritycurrencyListByType(Security.class),
           watchlist.getSecuritycurrencyListByType(Currencypair.class), currenciesNotInList);
 
     } else {
@@ -303,7 +342,8 @@ public class WatchlistReport {
   }
 
   private <S extends Securitycurrency<?>> SecuritycurrencyGroup combineLastPriceHistoryquote(final Tenant tenant,
-      final GTNetLastpriceService.SecurityCurrency securityCurrency, final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDateMap,
+      final GTNetLastpriceService.SecurityCurrency securityCurrency,
+      final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDateMap,
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayPrevYear,
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame, final int[] securitiesIsUsedElsewhereIds,
       final int[] currencypairIsUsedElsewhereIds, final int[] watchlistSecuritesHasTransactionIds,
@@ -432,6 +472,7 @@ public class WatchlistReport {
             .setSecuritycurrencyIntradayDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
         this.securityJpaRepository
             .setDividendDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
+        this.securityJpaRepository.setSplitDownloadLink((SecuritycurrencyPosition<Security>) securitycurrencyPosition);
       } else {
         this.currencypairJpaRepository.setSecuritycurrencyHistoricalDownloadLink(
             (SecuritycurrencyPosition<Currencypair>) securitycurrencyPosition);

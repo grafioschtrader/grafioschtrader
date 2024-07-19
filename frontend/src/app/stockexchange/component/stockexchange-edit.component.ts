@@ -79,8 +79,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeClose', 8, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', false),
-      DynamicFieldHelper.createFieldInputStringVSHeqF('website', 128, false,
-        [VALIDATION_SPECIAL.WEB_URL],),
+      DynamicFieldHelper.createFieldInputWebUrlHeqF('website',
+        this.gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Stockexchange_Website), false),
       ...
         AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];

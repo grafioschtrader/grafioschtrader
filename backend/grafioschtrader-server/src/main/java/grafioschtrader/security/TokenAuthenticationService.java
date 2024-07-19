@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,8 +21,10 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.GlobalConstants.UDFPrefixSuffix;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
+import grafioschtrader.types.UDFDataType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.metamodel.EntityType;
@@ -108,52 +111,74 @@ public class TokenAuthenticationService {
   @Transactional
   public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole,
       boolean passwordRegexOk) {
-    Map<String, Integer> standardPrecision = new HashMap<>();
-    ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(useWebsockt, useAlgo,
-        globalparametersJpaRepository.getCurrencyPrecision(), standardPrecision, uiShowMyProperty, mostPrivilegedRole,
-        passwordRegexOk);
+    ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(getAllEntitiyNamesWithTheirKeys(),
+        useWebsockt, useAlgo, globalparametersJpaRepository.getCurrencyPrecision(),
+        getGlobalConstantsFieldsByFieldPrefix("FID"), getGlobalConstantsFieldsByFieldPrefix("FIELD_SIZE"),
+        uiShowMyProperty, mostPrivilegedRole, passwordRegexOk);
+    return configurationWithLogin;
+  }
 
+  /**
+   * The frontend must know certain values for input fields.
+   * 
+   * @return
+   */
+  private Map<String, Integer> getGlobalConstantsFieldsByFieldPrefix(String fieldPrefix) {
+    final Map<String, Integer> globalConstantsMap = new HashMap<>();
     Field[] fields = GlobalConstants.class.getDeclaredFields();
     for (Field f : fields) {
-      if (Modifier.isStatic(f.getModifiers()) && f.getName().startsWith("FID")) {
+      if (Modifier.isStatic(f.getModifiers()) && f.getName().startsWith(fieldPrefix)) {
         try {
-          standardPrecision.put(f.getName(), f.getInt(null));
+          globalConstantsMap.put(f.getName(), f.getInt(null));
         } catch (IllegalArgumentException | IllegalAccessException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }
     }
+    return globalConstantsMap;
+  }
 
+  /**
+   * The frontend may need the field name of the key field of an entity.
+   * 
+   * @return
+   */
+  private List<EntityNameWithKeyName> getAllEntitiyNamesWithTheirKeys() {
+    List<EntityNameWithKeyName> entityNameWithKeyNameList = new ArrayList<>();
     final Set<EntityType<?>> entityTypeList = entityManager.getMetamodel().getEntities();
     for (EntityType<?> entity : entityTypeList) {
       Class<?> clazz = entity.getBindableJavaType();
       if (!Modifier.isAbstract(clazz.getModifiers())) {
         SingularAttribute<?, ?> id = entity.getId(entity.getIdType().getJavaType());
-        configurationWithLogin.entityNameWithKeyNameList.add(new EntityNameWithKeyName(entity.getName(), id.getName()));
+        entityNameWithKeyNameList.add(new EntityNameWithKeyName(entity.getName(), id.getName()));
       }
     }
-    return configurationWithLogin;
+    return entityNameWithKeyNameList;
   }
 
   static class ConfigurationWithLogin {
-    public final List<EntityNameWithKeyName> entityNameWithKeyNameList = new ArrayList<>();
+    public final List<EntityNameWithKeyName> entityNameWithKeyNameList;
     public final boolean useWebsocket;
     public final boolean useAlgo;
     public static final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
     public final Map<String, Integer> currencyPrecision;
     public final Map<String, Integer> standardPrecision;
+    public final Map<String, Integer> fieldSize;
     public final boolean uiShowMyProperty;
     public final String mostPrivilegedRole;
     public final boolean passwordRegexOk;
+    public final UDFConfig udfConfig = new UDFConfig();
 
-    public ConfigurationWithLogin(boolean useWebsocket, boolean useAlgo, Map<String, Integer> currencyPrecision,
-        Map<String, Integer> standardPrecision, boolean uiShowMyProperty, String mostPrivilegedRole,
-        boolean passwordRegexOk) {
+    public ConfigurationWithLogin(List<EntityNameWithKeyName> entityNameWithKeyNameList, boolean useWebsocket,
+        boolean useAlgo, Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision,
+        Map<String, Integer> fieldSize, boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk) {
+      this.entityNameWithKeyNameList = entityNameWithKeyNameList;
       this.useWebsocket = useWebsocket;
       this.useAlgo = useAlgo;
       this.currencyPrecision = currencyPrecision;
       this.standardPrecision = standardPrecision;
+      this.fieldSize = fieldSize;
       this.uiShowMyProperty = uiShowMyProperty;
       this.mostPrivilegedRole = mostPrivilegedRole;
       this.passwordRegexOk = passwordRegexOk;
@@ -168,6 +193,12 @@ public class TokenAuthenticationService {
       this.entityName = entityName;
       this.keyName = keyName;
     }
+  }
+  
+  static class UDFConfig {
+    public Set<String> udfGeneralSupportedEntities = GlobalConstants.UDF_GENERAL_ENTITIES.stream()
+        .map(c -> c.getSimpleName()).collect(Collectors.toSet());
+    public Map<UDFDataType, UDFPrefixSuffix> uDFPrefixSuffixMap = GlobalConstants.uDFPrefixSuffixMap;;
   }
 
 }

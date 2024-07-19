@@ -69,12 +69,7 @@ public class GlobalparametersResource {
     return new ResponseEntity<>(globalparametersJpaRepository.getStartFeedDate(), HttpStatus.OK);
   }
 
-  @GetMapping(value = "/watchlistlength", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Integer> getMaxWatchlistLength() {
-    return new ResponseEntity<>(
-        globalparametersJpaRepository.getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_WATCHLIST_LENGTH), HttpStatus.OK);
-  }
-
+  
   @GetMapping(value = "/tenantlimits", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TenantLimit>> getMaxTenantLimitsByMsgKey(@RequestParam() final List<String> msgKeys) {
     return new ResponseEntity<>(globalparametersJpaRepository.getMaxTenantLimitsByMsgKeys(msgKeys), HttpStatus.OK);

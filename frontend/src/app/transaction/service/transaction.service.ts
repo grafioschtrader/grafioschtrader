@@ -27,7 +27,6 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
       + `connectedmargin/${idTransaction}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
   getTransactionByTenant(): Observable<Transaction[]> {
     return <Observable<Transaction[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));

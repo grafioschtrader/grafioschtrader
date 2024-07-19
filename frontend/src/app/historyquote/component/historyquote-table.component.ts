@@ -192,7 +192,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   private historyquoteSpecMenuItems: MenuItem[];
 
   constructor(private iconReg: SvgIconRegistryService,
-              private securitService: SecurityService,
+              private securityService: SecurityService,
               private currencypairService: CurrencypairService,
               private activatedRoute: ActivatedRoute,
               private historyquoteService: HistoryquoteService,
@@ -363,7 +363,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
 
   private readAndShowData(timeSeriesParam: TimeSeriesParam): void {
     const stsObservable = timeSeriesParam.currencySecurity
-      ? BusinessHelper.setSecurityTransactionSummary(this.securitService,
+      ? BusinessHelper.setSecurityTransactionSummary(this.securityService,
         timeSeriesParam.idSecuritycurrency, null, null, false)
       : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency, false);
     const historyquoteObservable = this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(

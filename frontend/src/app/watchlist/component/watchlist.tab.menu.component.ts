@@ -2,20 +2,22 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
-import {Subscription} from 'rxjs';
+import {combineLatest, Observable, Subscription} from 'rxjs';
 import {Watchlist} from '../../entities/watchlist';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {MenuItem} from 'primeng/api';
 import {UDFMetadataSecurityService} from '../../shared/udfmeta/service/udf.metadata.security.service';
-import {plainToInstance} from 'class-transformer';
-import {UDFMetadataSecurity} from '../../shared/udfmeta/model/udf.metadata';
 import {GlobalSessionNames} from '../../shared/global.session.names';
+import {UDFMetadataGeneralService} from '../../shared/udfmeta/service/udf.metadata.general.service';
+import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
+import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
+import {Security} from '../../entities/security';
 
 @Component({
   template: `
     <p-tabMenu [model]="items" [activeItem]="activeTab"></p-tabMenu>
-     <router-outlet></router-outlet>
-   `
+    <router-outlet></router-outlet>
+  `
 })
 export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
   items: MenuItem[];
@@ -27,7 +29,9 @@ export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
   private lastRouteKey = AppSettings.WATCHLIST_PERFORMANCE_KEY;
   private lastItemIndex = 0;
 
-  constructor(private uDFMetadataSecurityService: UDFMetadataSecurityService, private router: Router,
+  constructor(private uDFMetadataSecurityService: UDFMetadataSecurityService,
+    private uDFMetadataGeneralService: UDFMetadataGeneralService,
+    private router: Router,
     private activatedRoute: ActivatedRoute,
     public translateService: TranslateService) {
     this.items = [
@@ -36,11 +40,15 @@ export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
         command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_PERFORMANCE_KEY, 0)
       },
       {
-        label: 'WACHTLIST_PRICE_FEED',
+        label: 'WATCHLIST_PRICE_FEED',
         command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_PRICE_FEED_KEY, 1)
       },
       {
-        label: 'WACHTLIST_DIVIDEND_SPLIT_FEED',
+        label: 'UDF',
+        command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_UDF_KEY, 2)
+      },
+      {
+        label: 'WATCHLIST_DIVIDEND_SPLIT_FEED',
         command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY, 2)
       }
     ];
@@ -48,11 +56,22 @@ export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-   this.uDFMetadataSecurityService.getAllByIdUser().subscribe(umss => {
-     sessionStorage.setItem(GlobalSessionNames.UDF_METADATA_SECURITY, JSON.stringify(umss));
+    const observables: Observable<any>[] = [];
+    !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY) && observables.push(this.uDFMetadataSecurityService.getFieldDescriptorByIdUser());
+    !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL) && observables.push(this.uDFMetadataGeneralService.getFieldDescriptorByIdUserAndEveryUserForEntity(AppSettings.CURRENCYPAIR));
+    if (observables.length > 0) {
+      combineLatest(observables).subscribe((data: any[]) => {
+        !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)
+        && sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY, JSON.stringify(data[0]));
+        !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)
+        && sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL, JSON.stringify(data[data.length - 1]));
+        this.subscribeWatchlistChange();
+      });
+    } else {
       this.subscribeWatchlistChange();
-    })
+    }
   }
+
 
   private subscribeWatchlistChange(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {

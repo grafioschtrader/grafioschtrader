@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 
 /**
- * An html select component
+ * A html select component
  */
 @Component({
   selector: 'form-input-select',

@@ -8,6 +8,7 @@ export enum InputType {
   InputSuggestion,
   InputDropdown,
   Select,
+  MultiSelect,
   Pcalendar,
   Pinputtextarea,
   FileUpload,

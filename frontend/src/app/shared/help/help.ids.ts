@@ -25,15 +25,16 @@ export enum HelpIds {
   // Algo trading
   HELP_ALGO = 'algo',
   HELP_ALGO_RULE = 'algo/rule',
-  HELP_ALOG_STRATEGY = 'algo/strategy',
+  HELP_ALGO_STRATEGY = 'algo/strategy',
 
   // Watchlist
   HELP_WATCHLIST = 'watchlistinstrument',
-  HELP_WATCHLIST_CORRELATION = 'watchlistinstrument/correlation',
-  HELP_WATCHLIST_WATCHLIST = 'watchlistinstrument/watchlist',
-  HELP_WATCHLIST_PERFORMANCE = 'watchlistinstrument/watchlist/performance',
-  HELP_WATCHLIST_PRICE_FEED = 'watchlistinstrument/watchlist/pricefeed',
-  HELP_WATCHLIST_DIVIDEND_SPLIT_FEED = 'watchlistinstrument/watchlist/dividendsplit',
+  HELP_WATCHLIST_CORRELATION = HELP_WATCHLIST + '/correlation',
+  HELP_WATCHLIST_WATCHLIST = HELP_WATCHLIST + '/watchlist',
+  HELP_WATCHLIST_PERFORMANCE = HELP_WATCHLIST_WATCHLIST + '/performance',
+  HELP_WATCHLIST_UDF = HELP_WATCHLIST_WATCHLIST + '/udf',
+  HELP_WATCHLIST_PRICE_FEED = HELP_WATCHLIST_WATCHLIST + '/pricefeed',
+  HELP_WATCHLIST_DIVIDEND_SPLIT_FEED = HELP_WATCHLIST_WATCHLIST + '/dividendsplit',
   HELP_WATCHLIST_CURRENCYPAIR = 'watchlistinstrument/instrument/currencypair',
   HELP_WATCHLIST_SECURITY = 'watchlistinstrument/instrument/securityderived',
   HELP_WATCHLIST_SEARCHDIALOG = 'watchlistinstrument/instrument/searchdialog',
@@ -53,8 +54,8 @@ export enum HelpIds {
   HELP_BASEDATA_TRADING_PLATFORM_PLAN = 'basedata/tradingplatformplan',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP = 'basedata/imptranstemplate',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE = 'basedata/imptranstemplate/createimptranstemplate',
-  HELP_BASEDATA_UDF_METADATA_SECURITY = 'basedata/imptranstemplate/udfmetadata',
-
+  HELP_BASEDATA_UDF_METADATA_GENERAL = 'basedata/udfmetadata',
+  HELP_BASEDATA_UDF_METADATA_SECURITY = 'basedata/udfmetadata/instruments',
 
   // Admin data
   HELP_MESSAGE_SYSTEM = 'admindata',

@@ -82,7 +82,6 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       this.configObject.entityServerState.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         GTNetServerStateTypes);
       this.configObject.lastpriceServerState.valueKeyHtmlOptions = this.configObject.entityServerState.valueKeyHtmlOptions;
-
     });
   }
 

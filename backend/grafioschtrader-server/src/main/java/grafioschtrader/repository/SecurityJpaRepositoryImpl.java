@@ -62,6 +62,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
+import grafioschtrader.rest.RequestMappings;
 import grafioschtrader.search.SecuritySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
@@ -233,11 +234,36 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition) {
     if (securitycurrencyPosition.securitycurrency.getIdConnectorDividend() != null) {
-      IFeedConnector iFeedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
+      IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
           securitycurrencyPosition.securitycurrency.getIdConnectorDividend(), IFeedConnector.FeedSupport.FS_DIVIDEND);
-      securitycurrencyPosition.dividendUrl = iFeedConnector
-          .getDividendHistoricalDownloadLink(securitycurrencyPosition.securitycurrency);
+      securitycurrencyPosition.dividendUrl = ConnectorHelper.canAccessConnectorApiKey(feedConnector)
+          ? feedConnector.getDividendHistoricalDownloadLink(securitycurrencyPosition.securitycurrency)
+          : getDownlinkDivSplitWithApiKey(securitycurrencyPosition.securitycurrency, true);
     }
+  }
+
+  @Override
+  public void setSplitDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition) {
+    if (securitycurrencyPosition.securitycurrency.getIdConnectorSplit() != null) {
+      IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
+          securitycurrencyPosition.securitycurrency.getIdConnectorSplit(), IFeedConnector.FeedSupport.FS_SPLIT);
+      securitycurrencyPosition.splitUrl = ConnectorHelper.canAccessConnectorApiKey(feedConnector)
+          ? feedConnector.getSplitHistoricalDownloadLink(securitycurrencyPosition.securitycurrency)
+          : getDownlinkDivSplitWithApiKey(securitycurrencyPosition.securitycurrency, false);
+    }
+  }
+
+  /**
+   * The URL for accessing data providers with an API key cannot be returned to
+   * unauthorized users. Therefore, this method returns a link to this backend.
+   * The backend can then use this link to execute the request with the provider
+   * itself and return the result to the frontend. This is used to handle links
+   * for dividend and split data.
+   */
+  public String getDownlinkDivSplitWithApiKey(Security security, boolean isDiv) {
+    return GlobalConstants.PREFIX_FOR_DOWNLOAD_REDIRECT_TO_BACKEND + RequestMappings.WATCHLIST_MAP
+        + RequestMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE + security.getIdSecuritycurrency()
+        + "?isDiv=" + isDiv;
   }
 
   @Override
@@ -260,6 +286,16 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         : historyquoteThruConnector.createDownloadLink(ct.securitycurrency, ct.feedConnector);
   }
 
+  @Override
+  public String getDivSplitProviderResponseForUser(final Integer idSecuritycurrency, final boolean isDiv) {
+    Security security = securityJpaRepository.getReferenceById(idSecuritycurrency);
+    IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
+        security.getIdConnectorDividend(),
+        isDiv ? IFeedConnector.FeedSupport.FS_DIVIDEND : IFeedConnector.FeedSupport.FS_SPLIT);
+    return feedConnector.getContentOfPageRequest(isDiv ? feedConnector.getDividendHistoricalDownloadLink(security)
+        : feedConnector.getSplitHistoricalDownloadLink(security));
+  }
+
   ////////////////////////////////////////////////////////////////
   // Intraday prices
   ////////////////////////////////////////////////////////////////
@@ -269,20 +305,18 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     List<Security> securities = securityJpaRepository.findAll();
     Date now = new Date();
     intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
-        .filter(s -> !s.isDerivedInstrument() && !now.after(s.getActiveToDate()) && !now
-            .before(s.getActiveFromDate()) && s.getRetryIntraLoad() < globalparametersJpaRepository.getMaxIntraRetry()
+        .filter(s -> !s.isDerivedInstrument() && !now.after(s.getActiveToDate()) && !now.before(s.getActiveFromDate())
+            && s.getRetryIntraLoad() < globalparametersJpaRepository.getMaxIntraRetry()
             && s.getIdConnectorIntra() != null)
         .collect(Collectors.toList()), true);
     intradayThruCalculation.updateLastPriceOfSecuritycurrency(
         securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()), true);
   }
 
-
   @Override
   public List<Security> updateLastPriceByList(List<Security> securities) {
     return updateLastPriceByList(securities, false);
   }
-
 
   private List<Security> updateLastPriceByList(List<Security> securities, boolean singleThread) {
     List<Security> securitiesRc = intradayThruConnector.updateLastPriceOfSecuritycurrency(
@@ -291,7 +325,6 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()), singleThread));
     return securitiesRc;
   }
-
 
   @Override
   protected Security updateLastPriceSecurityCurrency(final Security security, final short maxIntraRetry,
@@ -615,7 +648,6 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     } else if (security.getStockexchange().isNoMarketValue()) {
       historyquotePeriodJpaRepository.adjustHistoryquotePeriod(security);
     }
-
     return security;
   }
 

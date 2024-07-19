@@ -43,6 +43,10 @@ import {FormInputDropdownComponent} from './components/form-input/form-input-dro
 import {DropdownModule} from 'primeng/dropdown';
 import {InputNumberModule} from 'primeng/inputnumber';
 import {NgxCurrencyDirective} from 'ngx-currency';
+import {FormInputMultiSelectComponent} from './components/form-input/form-input-multi-select.component';
+import {MultiSelect, MultiSelectModule} from 'primeng/multiselect';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {KeyFilterModule} from 'primeng/keyfilter';
 
 
 @NgModule({
@@ -50,18 +54,20 @@ import {NgxCurrencyDirective} from 'ngx-currency';
     AutoCompleteModule,
     CalendarModule,
     InputNumberModule,
+    KeyFilterModule,
     CommonModule,
     DropdownModule,
     ReactiveFormsModule,
     TriStateCheckboxModule,
     ButtonModule,
+    MultiSelectModule,
     DialogModule,
     FieldsetModule,
     FormsModule,
     OverlayPanelModule,
     TooltipModule,
     TranslateModule,
-    HttpClientModule, AngularSvgIconModule.forRoot(), NgxCurrencyDirective
+    HttpClientModule, AngularSvgIconModule.forRoot(), NgxCurrencyDirective, ContextMenuModule
   ],
   declarations: [
     ErrorMessageComponent,
@@ -83,6 +89,7 @@ import {NgxCurrencyDirective} from 'ngx-currency';
     FormInputDropdownComponent,
     FormInputSuggestionComponent,
     FormInputSelectComponent,
+    FormInputMultiSelectComponent,
     FormPCalendarComponent,
     FormPInputTextareaComponent,
     DisableControlDirective,

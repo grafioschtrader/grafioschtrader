@@ -1,7 +1,12 @@
 package grafioschtrader;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import grafioschtrader.entities.Currencypair;
+import grafioschtrader.types.UDFDataType;
 
 public class GlobalConstants {
 
@@ -62,6 +67,12 @@ public class GlobalConstants {
   // public static final int FID_MAX_INTEGER_DIGITS = 11;
   // public static final int FID_MAX_DIGITS = 16;
 
+  /**
+   * The maximum length of a web URL in characters.
+   */
+  public static final int FIELD_SIZE_MAX_G_WEB_URL = 254;
+  public static final int FIELD_SIZE_MAX_Stockexchange_Website = 128;
+
   /** Step, min value and max value **/
   public static final String CORR_DAILY = "10,20,120";
   public static final String CORR_MONTHLY = "12,12,60";
@@ -78,7 +89,7 @@ public class GlobalConstants {
    */
   public static boolean AUTO_CORRECT_TO_AMOUNT = true;
 
-  public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42";
+  public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
   public static final int DIVIDEND_CHECK_DAYS_LOOK_BACK = 360;
 
@@ -165,8 +176,31 @@ public class GlobalConstants {
    * Contains the supported crypto currencies. When a new is added, check
    * references. Maybe a connector must be extended to this new cryptocurrency.
    */
-
   public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of(CC_BTC, "BNB", "ETH", "ETC", "LTC", "XRP");
+
+  /**
+   * Which entities can be extended with user-defined fields? Security has a
+   * specific implementation and is not listed here.
+   */
+  public static final List<Class<?>> UDF_GENERAL_ENTITIES = List.of(Currencypair.class);
+
+  /**
+   * Defines the maximum values for user-defined input fields. The validation of
+   * these values should also be carried out in the frontend.
+   */
+  public static final Map<UDFDataType, UDFPrefixSuffix> uDFPrefixSuffixMap = new HashMap<>();
+  static {
+    uDFPrefixSuffixMap.put(UDFDataType.UDF_NumericInteger,
+        new UDFPrefixSuffix(Integer.MIN_VALUE, Integer.MAX_VALUE, null));
+    uDFPrefixSuffixMap.put(UDFDataType.UDF_String, new UDFPrefixSuffix(0, 2048, null));
+    uDFPrefixSuffixMap.put(UDFDataType.UDF_Numeric, new UDFPrefixSuffix(22, 8, 1));
+  }
+
+  /**
+   * Property names of user-defined properties are indicated by this prefix. This
+   * is then extended with the ID of the metadata for this property.
+   */
+  public static final String UDF_FIELD_PREFIX = "f";
 
   /**
    * The Email verification expiration time in minutes
@@ -213,5 +247,24 @@ public class GlobalConstants {
    * User tries to update a field which can only updated when it is created
    */
   public static final String FILED_EDIT_SECURITY_BREACH = "field.edit.security.breach";
+
+  /**
+   * Defines the maximum values for user-defined input fields. The validation of
+   * these values should also be carried out in the frontend.
+   */
+  public static final String PREFIX_FOR_DOWNLOAD_REDIRECT_TO_BACKEND = "--";
+
+  public static class UDFPrefixSuffix {
+    public final int prefix;
+    public final int suffix;
+    public final Integer together;
+
+    public UDFPrefixSuffix(int prefix, int suffix, Integer together) {
+      this.prefix = prefix;
+      this.suffix = suffix;
+      this.together = together;
+    }
+
+  }
 
 }

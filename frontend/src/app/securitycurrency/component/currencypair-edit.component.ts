@@ -22,6 +22,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SecurityDerived, SecurityEditSupport} from './security.edit.support';
 import {AppSettings} from '../../shared/app.settings';
+import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
 
 
 /**
@@ -93,6 +94,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     if (this.securityCurrencypairCallParam) {
       Object.assign(currencypair, this.securityCurrencypairCallParam);
     }
+    UDFMetadataHelper.removeUDFPropertiesFromObject(currencypair);
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity);
     this.dynamicForm.cleanMaskAndTransferValuesToBusinessObject(currencypair);
 

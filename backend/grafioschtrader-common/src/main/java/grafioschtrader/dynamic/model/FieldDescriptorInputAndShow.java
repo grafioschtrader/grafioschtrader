@@ -3,6 +3,12 @@ package grafioschtrader.dynamic.model;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = """
+This metadata is intended for a generative input form. 
+An instance corresponds to an input element. An instance may be created from the analysis of a class or via persisted metadata.
+""")
 public class FieldDescriptorInputAndShow implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -10,12 +16,20 @@ public class FieldDescriptorInputAndShow implements Serializable {
   public String fieldName;
 
   public DataType dataType;
-  public Long min;
-  public Long max;
+  public Double min;
+  public Double max;
   public String enumType;
   public boolean required;
   public DynamicFormPropertyHelps[] dynamicFormPropertyHelps;
 
+  public FieldDescriptorInputAndShow(String fieldName, DataType dataType, Double min, Double max) {
+    super();
+    this.fieldName = fieldName;
+    this.dataType = dataType;
+    this.min = min;
+    this.max = max;
+  }
+  
   public FieldDescriptorInputAndShow(String fieldName, Class<?> type) {
     super();
     this.fieldName = fieldName;

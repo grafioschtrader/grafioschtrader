@@ -127,6 +127,13 @@ public interface RequestMappings {
 
   public static final String WATCHLIST_MAP = API + Watchlist.TABNAME;
 
+  public static final String UDFDATA = "udfdata";
+  public static final String UDF_DATA_MAP = API + UDFDATA;
+
+  public static final String UDFMETADATAGENERAL = "udfmetadatageneral";
+  public static final String UDF_METADATA_GENERAL_MAP = API + UDFMETADATAGENERAL;
+
+  
   public static final String UDFMETADATASECURITY = "udfmetadatasecurity";
   public static final String UDF_METADATA_SECURITY_MAP = API + UDFMETADATASECURITY;
 
@@ -142,6 +149,9 @@ public interface RequestMappings {
   public static final String USER_ENTITY_CHANGE_LIMIT_MAP = API + USER_ENTITY_CHANGE_LIMIT;
 
   // Used for path part
-  public static final String SECURITY_DATAPROVIDER_RESPONSE = "/dataproviderresponse/";
+  public static final String SECURITY_DATAPROVIDER_INTRA_HISTORICAL_RESPONSE = "/dataproviderresponse/";
+  
+//Used for path part
+ public static final String SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE = "/dataproviderdivsplitresponse/";
 
 }

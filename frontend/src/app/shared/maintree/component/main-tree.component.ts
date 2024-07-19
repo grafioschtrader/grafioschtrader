@@ -191,17 +191,27 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
             null, null, null)
         },
         {
-          label: 'IMPORTTRANSACTIONGROUP',
+          label: 'IMPORT_TRANSACTION_PLATFORM',
           data: new TypeNodeData(TreeNodeType.ImpTransTemplate, this.addMainRoute(AppSettings.IMP_TRANS_TEMPLATE_KEY),
             null, null, null)
         },
-   /*     {
-          label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
-          data: new TypeNodeData(TreeNodeType.UDFMetadataSecurity, this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),
+        {
+          label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_GENERAL),
+          children: [this.getUDFChildren()],
+          data: new TypeNodeData(TreeNodeType.UDFMetadataSecurity, this.addMainRoute(AppSettings.UDF_METADATA_GENERAL_KEY),
             null, null, null)
-        }*/
+        },
+
       ];
     this.setLangTransNode(this.portfolioTrees[this.BASEDATA_INDEX]);
+  }
+
+  private getUDFChildren(): MenuItem {
+    return {
+      label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
+        data: new TypeNodeData(TreeNodeType.UDFMetadataSecurity, this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),
+      null, null, null)
+    }
   }
 
   addAdminData(): void {
@@ -586,11 +596,11 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   private addAndRefreshPortfolioToTree() {
 
     const portfolioObservable = this.portfolioService.getPortfoliosForTenantOrderByName();
-    const teantLimitsObservalte =
+    const tenantLimitsObservable =
       this.globalParamService.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_SECURITY_ACCOUNT,
         TenantLimitTypes.MAX_PORTFOLIO, TenantLimitTypes.MAX_WATCHLIST]);
 
-    combineLatest([portfolioObservable, teantLimitsObservalte]).subscribe(results => {
+    combineLatest([portfolioObservable, tenantLimitsObservable]).subscribe(results => {
 
       const tenantStringify = JSON.stringify(this.tenant);
 
@@ -682,8 +692,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.translateService.get(key).subscribe(translated => target.label = translated + sufix);
   }
 
-  private addMainRoute(sufix: string): string {
-    return AppSettings.MAINVIEW_KEY + '/' + sufix;
+  private addMainRoute(suffix: string): string {
+    return AppSettings.MAINVIEW_KEY + '/' + suffix;
   }
 
   private getPreviousNode(treeNode: TreeNode): TreeNode {

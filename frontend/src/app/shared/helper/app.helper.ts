@@ -175,7 +175,7 @@ export class AppHelper {
   }
 
   /**
-   * When return value is minus -> it is the index of the next value which is greater than serch value.
+   * When return value is minus -> it is the index of the next value which is greater than search value.
    */
   public static binarySearch<T, S>(array: T[], item: S, compare: CompareFunc<T, S>): number {
     let [left, right] = [0, array.length - 1];

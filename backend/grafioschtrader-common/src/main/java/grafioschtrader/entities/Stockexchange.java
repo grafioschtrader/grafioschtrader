@@ -132,6 +132,7 @@ public class Stockexchange extends Auditable implements Serializable {
   private LocalDateTime lastDirectPriceUpdate;
 
   @Schema(description = "HTML link to the website of the exchange")
+  @Size(max = GlobalConstants.FIELD_SIZE_MAX_Stockexchange_Website)
   @Column(name = "website")
   @WebUrl
   @PropertyAlwaysUpdatable

@@ -24,6 +24,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -54,6 +55,7 @@ public class Watchlist extends TenantBaseID implements Serializable {
   @JoinTable(name = TABNAME_SEC_CUR, joinColumns = {
       @JoinColumn(name = "id_watchlist", referencedColumnName = "id_watchlist") }, inverseJoinColumns = {
           @JoinColumn(name = "id_securitycurrency", referencedColumnName = "id_securitycurrency") })
+  @OrderBy(value="id_securitycurrency")
   @ManyToMany(fetch = FetchType.LAZY)
   private List<Securitycurrency<?>> securitycurrencyList;
 

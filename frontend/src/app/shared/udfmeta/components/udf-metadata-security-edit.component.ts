@@ -7,11 +7,13 @@ import {MessageToastService} from '../../message/message.toast.service';
 import {UDFMetadataSecurityService} from '../service/udf.metadata.security.service';
 import {Component, Input, OnInit} from '@angular/core';
 import {AppHelper} from '../../helper/app.helper';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {AssetClassTypeSpecInstrument} from './asset.class.type.spec.instrument';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {FormHelper} from '../../../dynamic-form/components/FormHelper';
+import {FieldConfig} from '../../../dynamic-form/models/field.config';
+import {Subscription} from 'rxjs';
+import {UDFMetadataHelper} from './udf.metadata.helper';
 
 /**
  * Edit user defined fields metadata of security in a dialog
@@ -19,56 +21,49 @@ import {FormHelper} from '../../../dynamic-form/components/FormHelper';
 @Component({
   selector: 'udf-metadata-security-edit',
   template: `
-      <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
-                [style]="{width: '500px'}" (onShow)="onShow($event)" (onHide)="onHide($event)"
-                [modal]="true">
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                        #form="dynamicForm"
-                        (submitBt)="submit($event)">
-          </dynamic-form>
-      </p-dialog>
+    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
+              [style]="{width: '500px'}" (onShow)="onShow($event)" (onHide)="onHide($event)"
+              [modal]="true">
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
+                    (submitBt)="submit($event)">
+      </dynamic-form>
+    </p-dialog>
   `
 })
 export class UDFMetadataSecurityEditComponent extends AssetClassTypeSpecInstrument<UDFMetadataSecurity> implements OnInit {
   @Input() callParam: UDFMetadataSecurityParam;
-  private readonly DESCRIPTION = 'description';
-  private readonly UDF_DATA_TYPE = 'udfDataType';
-  private readonly FIELD_SIZE = 'fieldSize';
+
+  private configDataTypeFields: FieldConfig[];
+  private dataTypeSubscribe: Subscription;
 
   constructor(translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     uDFMetadataSecurityService: UDFMetadataSecurityService) {
-    super(true, HelpIds.HELP_BASEDATA_UDF_METADATA_SECURITY, AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY), translateService, gps,
-      messageToastService, uDFMetadataSecurityService);
+    super('categoryTypeEnums', 'specialInvestmentInstrumentEnums',
+      HelpIds.HELP_BASEDATA_UDF_METADATA_SECURITY, AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
+      translateService, gps, messageToastService, uDFMetadataSecurityService);
   }
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
-    this.config = [
-      DynamicFieldHelper.createFieldSelectNumberHeqF('uiOrder', true),
-      DynamicFieldHelper.createFieldInputStringVSParam(this.DESCRIPTION, 'FIELD_DESCRIPTION', 24, true,
-        VALIDATION_SPECIAL.NOT_CONTAIN_STRING_IN_LIST, this.callParam.excludeFieldNames),
-      DynamicFieldHelper.createFieldTextareaInputString('descriptionHelp', 'FIELD_DESCRIPTION_HELP', 80, false),
-      DynamicFieldHelper.createFieldSelectStringHeqF(this.UDF_DATA_TYPE, true),
-      DynamicFieldHelper.createFieldInputStringHeqF(this.FIELD_SIZE, 5, true),
-      DynamicFieldHelper.createFieldSelectString(AppSettings.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true),
-      DynamicFieldHelper.createFieldSelectString('specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true),
+    this.configDataTypeFields = UDFMetadataHelper.createDataTypeFields();
+    this.config = [...UDFMetadataHelper.createMetadataBaseFields(this.configDataTypeFields, this.callParam.excludeFieldNames),
+      DynamicFieldHelper.createFieldMultiSelectString('categoryTypeEnums', AppSettings.ASSETCLASS.toUpperCase(), true),
+      DynamicFieldHelper.createFieldMultiSelectString('specialInvestmentInstrumentEnums', 'FINANCIAL_INSTRUMENT', true),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   protected override initializeOthers(): void {
-    this.configObject.uiOrder.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsForNumberRange(1, 99, this.callParam.excludeUiOrders)
-    this.callParam.uDFMetadataSecurity && this.form.transferBusinessObjectToForm(this.callParam.uDFMetadataSecurity);
+    this.dataTypeSubscribe = UDFMetadataHelper.prepareDataTypeFields(this.translateService, this.form, this.configObject,
+      this.callParam.excludeUiOrders, this.callParam.uDFMetadataSecurity, this.configDataTypeFields);
     this.configObject.udfDataType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
       UDFDataType);
-    FormHelper.disableEnableFieldConfigs(!!this.callParam.uDFMetadataSecurity, [this.configObject[this.DESCRIPTION],
-      this.configObject[this.UDF_DATA_TYPE], this.configObject[this.FIELD_SIZE]]);
   }
-
 
   protected override getNewOrExistingInstanceBeforeSave(value: {
     [name: string]: any
@@ -79,4 +74,8 @@ export class UDFMetadataSecurityEditComponent extends AssetClassTypeSpecInstrume
     return uDFMetadataSecurity;
   }
 
+  override onHide(event): void {
+    this.dataTypeSubscribe && this.dataTypeSubscribe.unsubscribe();
+    super.onHide(event);
+  }
 }

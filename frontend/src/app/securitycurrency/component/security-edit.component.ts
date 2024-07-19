@@ -123,7 +123,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.formConfigPeriod = AppHelper.getDefaultFormConfig(this.gps,
       2, this.helpLinkPeriod.bind(this));
 
-    this.config = SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Security);
+    this.config = SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Security, this.gps);
     this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Security);
     this.securityEditSupport.connectorDividendConfig = this.securityEditSupport.getDividendFieldDefinition();
     this.securityEditSupport.connectorSplitConfig = this.securityEditSupport.getSplitDefinition();

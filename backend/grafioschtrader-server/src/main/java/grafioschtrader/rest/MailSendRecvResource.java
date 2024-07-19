@@ -26,7 +26,6 @@ public class MailSendRecvResource extends UpdateCreateResource<MailSendRecv> {
   @Autowired
   private MailSendRecvJpaRepository mailSendRecvJpaRepository;
 
-
   @Operation(summary = "Returning the messages for the current user and his user role", description = "", tags = {
       RequestMappings.MAIL_SEMD_RECV })
   @GetMapping(produces = APPLICATION_JSON_VALUE)

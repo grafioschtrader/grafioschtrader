@@ -52,7 +52,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   entityNameUpper: string;
   entityKeyName: string;
 
-  constructor(protected entityName: string,
+  protected constructor(protected entityName: string,
     protected deleteService: DeleteService,
     protected confirmationService: ConfirmationService,
     protected messageToastService: MessageToastService,
@@ -123,7 +123,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   }
 
   hideContextMenu(): void {
-
   }
 
   public getHelpContextId(): HelpIds {
@@ -212,7 +211,6 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   protected hasRightsForUpdateEntity(entity: T): boolean {
     return true;
   }
-
 
   protected hasRightsForDeleteEntity(entity: T): boolean {
     return AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, entity);

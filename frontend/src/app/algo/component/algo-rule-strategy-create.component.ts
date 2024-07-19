@@ -31,7 +31,7 @@ import {AppSettings} from '../../shared/app.settings';
   selector: 'algo-rule-strategy-create',
   template: `
     <p-dialog header="{{algoTitleKey | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '700px'}"
+              [style]="{width: '700px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
@@ -94,7 +94,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
       this.helpId = HelpIds.HELP_ALGO_RULE;
     } else {
       this.algoTitleKey = 'ALGO_PORTFOLIO_STRATEGY';
-      this.helpId = HelpIds.HELP_ALOG_STRATEGY;
+      this.helpId = HelpIds.HELP_ALGO_STRATEGY;
     }
 
     this.assetsclasses = [];

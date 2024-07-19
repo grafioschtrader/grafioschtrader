@@ -111,7 +111,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
       DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.FORMULA_PRICES, 255, false, {fieldsetName: this.derivedData})
     ];
 
-    this.config.push(...SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Derived));
+    this.config.push(...SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Derived, this.gps));
     this.config.push(...SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Derived));
     this.config.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this));
 

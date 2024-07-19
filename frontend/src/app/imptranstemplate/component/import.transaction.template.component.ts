@@ -38,7 +38,7 @@ import {AppHelper} from '../../shared/helper/app.helper';
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
       <div class="flex-two-columns">
-        <h4 class="ui-widget-header singleRowTableHeader">{{'IMPORTTRANSACTIONGROUP' | translate}}</h4>
+        <h4 class="ui-widget-header singleRowTableHeader">{{'IMPORT_TRANSACTION_PLATFORM' | translate}}</h4>
         <div class="right-half" *ngIf="selectedEntity">
           <ngx-file-drop dropZoneLabel="{{'DROP_TEMPLATE_HERE' | translate}}" (onFileDrop)="dropped($event)"
                          dropZoneClassName="drop-zone-trans-long"
@@ -91,7 +91,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
               activePanelService: ActivePanelService,
               translateService: TranslateService) {
     super(gps, HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, ImportTransactionTemplateComponent.MAIN_FIELD,
-      'IMPORTTRANSACTIONGROUP', importTransactionPlatformService,
+      'IMPORT_TRANSACTION_PLATFORM', importTransactionPlatformService,
       confirmationService, messageToastService, activePanelService, translateService);
 
     this.formConfig = {labelColumns: 2, nonModal: true};
@@ -142,7 +142,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
       command: () => this.transformPDFToTxtDialog()
     });
     menuItems.push({separator: true});
-    menuItems = menuItems.concat(this.getBaseEditMenu('IMPORTTRANSACTIONGROUP'));
+    menuItems = menuItems.concat(this.getBaseEditMenu('IMPORT_TRANSACTION_PLATFORM'));
     menuItems.push({
       label: 'EXPORT_ALL_IMPORTTEMPLATES',
       command: () => this.exportAllTemplates(this.selectedEntity),

@@ -14,7 +14,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
   template: `
     <p-dialog header="{{'DEFINITION' | translate}}: {{taEditParam.taIndicators | translate}}"
               [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '400px'}"
+              [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

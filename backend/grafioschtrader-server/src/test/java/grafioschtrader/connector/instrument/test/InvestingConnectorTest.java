@@ -28,14 +28,21 @@ class InvestingConnectorTest extends BaseFeedConnectorCheck {
   protected List<SecurityHistoricalDate> getHistoricalSecurities() {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
+    
+//      hisoricalDate.add(new SecurityHistoricalDate("Adidas AG", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+//          "equities/adidas-salomon"));
+//      hisoricalDate.add(new SecurityHistoricalDate("Apple Inc (AAPL)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+//          "equities/apple-computer-inc"));
+   
+      hisoricalDate.add(new SecurityHistoricalDate("iShares Russell 2000 ETF", SpecialInvestmentInstruments.ETF,
+          "etfs/ishares-russell-2000-index-etf"));
+      
       hisoricalDate.add(new SecurityHistoricalDate("CAC 40", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
           "indices/france-40"));
       hisoricalDate
           .add(new SecurityHistoricalDate("db x-trackers Emerging MARKETS LIQUID EUROBOND INDEX ETF (EUR)22.10.2010",
               SpecialInvestmentInstruments.ETF, "etfs/db-em-liquid-eurobond---eur"));
-      hisoricalDate.add(new SecurityHistoricalDate("Apple Inc (AAPL)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-          "equities/apple-computer-inc"));
-      hisoricalDate.add(new SecurityHistoricalDate("MOEX Russia (IMOEX)", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+       hisoricalDate.add(new SecurityHistoricalDate("MOEX Russia (IMOEX)", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
           "indices/mcx"));
       hisoricalDate.add(new SecurityHistoricalDate("Bitcoin Tracker EUR XBT Provider (SE0007525332)", SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
           "etfs/bitcoin-tracker-eur-xbt-provider"));
@@ -50,7 +57,6 @@ class InvestingConnectorTest extends BaseFeedConnectorCheck {
 
   @Test
   void updateCurrencyPairLastPriceTest() {
-
     final List<Currencypair> currencies = new ArrayList<>();
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));

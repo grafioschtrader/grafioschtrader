@@ -6,9 +6,22 @@ package grafioschtrader.dynamic.model;
  */
 public enum DataType {
 
-  None((byte) 0), Numeric((byte) 1), NumericInteger((byte) 4), String((byte) 7),
-  DateTimeNumeric((byte) 8), DateString((byte) 10),
-  Boolean((byte) 13);
+  None((byte) 0), 
+  //Decimal numbers
+  Numeric((byte) 1), 
+  //Only Integer
+  NumericInteger((byte) 4), 
+  // Only String
+  String((byte) 7),
+  // Date with time
+  DateTimeNumeric((byte) 8), 
+  // Only Date
+  DateString((byte) 10),
+  // True or false
+  Boolean((byte) 13),
+  // For a web link. Normally this is a string with validation for validity as a
+  // URL.
+  URLString((byte) 20);
 
   private final Byte value;
 

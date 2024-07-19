@@ -327,6 +327,14 @@ import {UDFMetadataSecurityEditComponent} from './shared/udfmeta/components/udf-
 import {
   TenantDividendsCashaccountExtendedComponent
 } from './tenant/component/tenant-dividends-cashaccount-extended.component';
+import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
+import {SecurityUDFEditComponent} from './securitycurrency/component/security-udf-edit.component';
+import {UDFDataService} from './shared/udfmeta/service/udf.data.service';
+import {SecuritycurrencyUdfComponent} from './watchlist/component/securitycurrency-udf.component';
+import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.metadata.general.table.component';
+import {UDFMetadataGeneralService} from './shared/udfmeta/service/udf.metadata.general.service';
+import {UDFMetadataGeneralEditComponent} from './shared/udfmeta/components/udf-metadata-general-edit.component';
+import {UDFGeneralEditComponent} from './shared/udfmeta/components/udf-general-edit.component';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -342,7 +350,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     ConnectorApiKeyTableComponent, ConnectorApiKeyEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, CurrencypairEditComponent,
     HistoryquoteQualityFillGapsComponent, HistoryquoteDeleteDialogComponent, GlobalSettingsTableComponent,
-    GTNetEditComponent, GTNetMessageEditComponent, GTNetMessageAutoAnswerComponent,
+    GTNetEditComponent, GTNetMessageEditComponent, GTNetMessageAutoAnswerComponent, UDFGeneralEditComponent,
     GTNetConsumerMonitorComponent, GTNetSetupTableComponent, GTNetProviderMonitorComponent, GTNetMessageTreeTableComponent,
     HistoryquoteEditComponent, HistoryquoteTableComponent, ImportTransactionEditPlatformComponent, HistoryquoteQualityComponent,
     SecurityHistoryquoteQualityTreetableComponent, SecurityHistoryquoteQualityTableComponent, InstrumentStatisticsSummaryComponent,
@@ -360,6 +368,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     SecurityaccountImportSetCashaccountComponent, SecuritycurrencySearchAndSetComponent, CorrelationSetAddInstrumentTableComponent,
     SecuritycurrencySearchAndSetTableComponent, SecurityaccountImportTransactionComponent, CorrelationAddInstrumentComponent,
     SecurityaccountImportTransactionEditHeadComponent, SecurityaccountImportTransactionTableComponent, SendRecvForwardTabMenuComponent,
+    SecurityUDFEditComponent, SecuritycurrencyUdfComponent,
     SecurityaccountSummariesComponent, SecurityaccountSummaryComponent, SecurityaccountTabMenuComponent, SecurityEditComponent,
     SecuritysplitEditTableComponent, SplitLayoutComponent, StepComponent, StepsComponent, StockexchangeEditComponent,
     StockexchangeTableComponent, StrategyDetailComponent, StrategyOverviewComponent, TemplateFormCheckDialogComponent,
@@ -376,12 +385,13 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TradingPlatformPlanTableComponent, TradingPlatformPlanEditComponent, TransactionCashaccountConnectDebitCreditComponent,
     TransactionCashaccountEditDoubleComponent, TransactionCashaccountEditSingleComponent, TransactionCashaccountTableComponent,
     TransactionSecurityEditComponent, TransactionSecurityTableComponent, TransformPdfToTxtDialogComponent, UDFMetadataSecurityTableComponent,
+    UDFMetadataGeneralTableComponent, UDFMetadataGeneralEditComponent,
     UDFMetadataSecurityEditComponent, UploadFileDialogComponent, UserEditComponent, UserEntityChangeLimitEditComponent,
     UserEntityChangeLimitTableComponent, UserTableComponent, WatchlistAddInstrumentComponent,
     WatchlistAddInstrumentTableComponent, CorrelationComponent, WatchlistPriceFeedComponent, WatchlistEditComponent,
     SecuritycurrencyExtendedInfoComponent, UserChangeOwnerEntitiesComponent, WatchlistAddEditPriceProblemInstrumentComponent,
     WatchlistPerformanceComponent, WatchlistTabMenuComponent, WatchlistDividendSplitFeedComponent,
-    WatchlistSecuritysplitTableComponent, WatchlistDividendTableComponent, YourProposalTableComponent
+    WatchlistSecuritysplitTableComponent, WatchlistDividendTableComponent, WatchlistUdfComponent, YourProposalTableComponent
   ],
   imports: [
     AngularSvgIconModule.forRoot(),
@@ -461,9 +471,9 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     MailSettingForwardService,
     MultipleRequestToOneService, TaskDataChangeService, CorrelationSetService, ConnectorApiKeyService,
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
-    SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService,
+    SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService, UDFMetadataGeneralService,
     TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UDFMetadataSecurityService,
-    UserAdminService, UserEntityChangeLimitService, UserSettingsService, ViewSizeChangedService,
+    UDFDataService, UserAdminService, UserEntityChangeLimitService, UserSettingsService, ViewSizeChangedService,
     WatchlistService],
   bootstrap: [AppComponent]
 })
