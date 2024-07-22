@@ -50,8 +50,8 @@ class CompareHoldingWithOtherSummaryTest {
   @Disabled
   void tenantCompareSummaryTest() {
     DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDate fromDate = LocalDate.parse("2022-12-30", format);
-    LocalDate toDate = LocalDate.parse("2023-12-29", format);
+    LocalDate fromDate = LocalDate.parse("2023-11-27", format);
+    LocalDate toDate = LocalDate.parse("2024-07-18", format);
     Integer idTenant = 7;
 
     List<IPeriodHolding> totalsOverPeriodList = holdSecurityaccountSecurityRepository
@@ -71,7 +71,6 @@ class CompareHoldingWithOtherSummaryTest {
     List<IPeriodHolding> totalsOverPeriodList = holdSecurityaccountSecurityRepository
         .getPeriodHoldingsByPortfolio(idPortfolio, fromDate, toDate);
     compareSummary(fromDate, totalsOverPeriodList, idTenant, idPortfolio);
-
   }
 
   private void compareSummary(LocalDate fromDate, List<IPeriodHolding> totalsOverPeriodList, Integer idTenant,
@@ -105,6 +104,13 @@ class CompareHoldingWithOtherSummaryTest {
           + (accountPositionGrandSummary.grandValueSecuritiesMC - holdingSecurityMC));
       error++;
     }
+    if (Math.abs(accountPositionGrandSummary.grandCashBalanceMC - top.getCashBalanceMC()) > 0.04) {
+      System.err.println("Date: " + date + " Value of Cash balance A:"
+          + accountPositionGrandSummary.grandCashBalanceMC + " H:" + top.getCashBalanceMC() + " Differenz:"
+          + (accountPositionGrandSummary.grandCashBalanceMC - top.getCashBalanceMC()));
+      error++;
+    }
+    
     if (error == 0) {
       System.out.println("Date: " + date);
     }

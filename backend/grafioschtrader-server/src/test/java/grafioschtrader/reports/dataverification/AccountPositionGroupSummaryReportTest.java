@@ -57,8 +57,8 @@ class AccountPositionGroupSummaryReportTest {
   @Disabled
   void getAccountGrandSummaryIdTenantTest() throws ParseException {
     final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-    Date startDate = dateFormat.parse("28.12.2020");
-    final Date finishDate = dateFormat.parse("19.02.2021");
+    Date startDate = dateFormat.parse("01.08.2023");
+    final Date finishDate = dateFormat.parse("18.07.2024");
     do {
       startDate = DateHelper.setTimeToZeroAndAddDay(startDate, 1);
       final AccountPositionGrandSummary apgs = accountPositionGroupSummaryReport.getAccountGrandSummaryIdTenant(7,
