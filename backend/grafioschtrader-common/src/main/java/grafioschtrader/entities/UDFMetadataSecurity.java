@@ -8,6 +8,8 @@ import grafioschtrader.common.EnumHelper;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
+import grafioschtrader.types.UDFDataType;
+import grafioschtrader.types.UDFSpecialType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,6 +37,13 @@ public class UDFMetadataSecurity extends UDFMetadata {
   private long specialInvestmentInstruments;
 
   public UDFMetadataSecurity() {
+  }
+  
+  public UDFMetadataSecurity(long categoryTypes, long specialInvestmentInstruments, Integer idUser, Byte udfSpecialType, String description,
+      String descriptionHelp, UDFDataType udfDataType, String fieldSize, byte uiOrder) {
+    super(idUser, udfSpecialType, description, descriptionHelp, udfDataType.getValue(), fieldSize, uiOrder);
+    this.categoryTypes = categoryTypes;
+    this.specialInvestmentInstruments = specialInvestmentInstruments;
   }
 
   public long getCategoryTypes() {

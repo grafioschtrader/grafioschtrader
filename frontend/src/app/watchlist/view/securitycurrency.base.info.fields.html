@@ -25,7 +25,7 @@
             {{getValueByPath(content, field)}}
           </ng-container>
           <ng-container *ngIf="field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('http')">
-            <a [href]="getValueByPath(content, field)" target="_blank"><i class="pi pi-link"></i></a>
+            <a [href]="getValueByPath(content, field)" target=_blank><i class="pi pi-link"></i></a>
           </ng-container>
           <ng-container *ngIf="field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('--')">
             <a role="button" (click)="BusinessHelper.toExternalWebpage(getValueByPath(content, field))">

@@ -120,7 +120,7 @@ public class Globalparameters implements Serializable {
   public static final String GLOB_KEY_MAX_WATCHLIST_LENGTH = GT_PREFIX + MAX + "watchlist.length";
   public static final String GLOB_KEY_MAX_CORRELATION_SET = GT_PREFIX + MAX + "correlation.set";
   public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GT_PREFIX + MAX + "correlation.instruments";
-
+  
   public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GT_PREFIX + "update.price.by.exchange";
 
   // User day entity limits
@@ -140,6 +140,12 @@ public class Globalparameters implements Serializable {
       + TradingPlatformPlan.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD = GT_LIMIT_DAY
       + MailSettingForward.class.getSimpleName();
+  public static final String GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY = GT_LIMIT_DAY
+      + UDFMetadataSecurity.class.getSimpleName();
+  public static final String GLOB_KEY_LIMIT_DAY_UDFMETADATAGENERAL = GT_LIMIT_DAY
+      + UDFMetadataGeneral.class.getSimpleName();
+  
+  
 
   // The limits for the tenants rule violations
   public static final String GLOB_KEY_MAX_LIMIT_EXCEEDED_COUNT = GT_PREFIX + "max.limit.request.exceeded.count";
@@ -160,6 +166,7 @@ public class Globalparameters implements Serializable {
     defaultLimitMap.put(GLOB_KEY_MAX_WATCHLIST_LENGTH, new MaxDefaultDBValue(200));
     defaultLimitMap.put(GLOB_KEY_MAX_CORRELATION_SET, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GLOB_KEY_MAX_CORRELATION_INSTRUMENTS, new MaxDefaultDBValue(20));
+  
 
     // Set tenant regulations violations, with daily CUD limits on shared entries
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_ASSETCLASS, new MaxDefaultDBValue(10));
@@ -177,6 +184,10 @@ public class Globalparameters implements Serializable {
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAIL_SEND, new MaxDefaultDBValue(200));
     defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD, new MaxDefaultDBValue(12));
 
+    defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY, new MaxDefaultDBValue(20));
+    defaultLimitMap.put(GLOB_KEY_LIMIT_DAY_UDFMETADATAGENERAL, new MaxDefaultDBValue(20));
+    
+    
     // TODO Other entities -> otherwise null pointer exception
 
   }
