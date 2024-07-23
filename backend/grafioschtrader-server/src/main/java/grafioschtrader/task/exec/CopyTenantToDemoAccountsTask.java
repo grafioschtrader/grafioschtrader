@@ -1,6 +1,7 @@
 package grafioschtrader.task.exec;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
+import grafioschtrader.entities.User;
 import grafioschtrader.repository.CopyTenantService;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
@@ -78,17 +80,19 @@ public class CopyTenantToDemoAccountsTask implements ITask {
     copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN, demoAccountPatternEN);
   }
 
-  private void copyTenant(String sourceTenant, String dap) {
-    Integer[] demoIdTenants = userJpaRepository.findIdTenantByMailPattern(dap);
+  private void copyTenant(String sourceTenantKey, String dap) {
+    List<User> targetUsers = userJpaRepository.getUsersByMailPattern(dap);
 
-    Optional<Globalparameters> sourceIdTenantOpt = globalparametersJpaRepository.findById(sourceTenant);
+    
+    Optional<User> sourceUserOpt =  globalparametersJpaRepository.findById(sourceTenantKey).map( g ->  
+    userJpaRepository.findByIdTenant(g.getPropertyInt())).get();
 
-    if (sourceIdTenantOpt.isPresent()) {
-      for (Integer targetIdTenant : demoIdTenants) {
-        copyTenantService.copyTenant(sourceIdTenantOpt.get().getPropertyInt(), targetIdTenant);
+    if (sourceUserOpt.isPresent()) {
+      for (User targetUser : targetUsers) {
+        copyTenantService.copyTenant(sourceUserOpt.get(), targetUser);
         taskDataChangeRepository
             .save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT, TaskDataExecPriority.PRIO_NORMAL,
-                LocalDateTime.now().plusMinutes(1), targetIdTenant, Tenant.class.getSimpleName()));
+                LocalDateTime.now().plusMinutes(1), targetUser.getIdTenant(), Tenant.class.getSimpleName()));
       }
     }
   }

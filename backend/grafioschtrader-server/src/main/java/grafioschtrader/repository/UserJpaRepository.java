@@ -17,6 +17,8 @@ public interface UserJpaRepository
 
   Optional<User> findByNickname(String nickname);
 
+  Optional<User> findByIdTenant(Integer idTenant);
+  
   User findByIdTenantAndIdUser(Integer idTenant, Integer idUser);
 
   UserOwnProjection findByIdUserAndIdTenant(Integer idUser, Integer idTenant);
@@ -33,8 +35,8 @@ public interface UserJpaRepository
   @Query(value = "SELECT u.id_user AS idUser, u.nickname FROM user u WHERE u.id_user <> ?1", nativeQuery = true)
   List<IdUserAndNickname> getIdUserAndNicknameExcludeUser(Integer idUser);
 
-  @Query(value = "SELECT id_Tenant FROM user WHERE email REGEXP ?1", nativeQuery = true)
-  Integer[] findIdTenantByMailPattern(String mailPattern);
+  @Query(value = "SELECT u.* FROM user u WHERE u.email REGEXP ?1", nativeQuery = true)
+  List<User> getUsersByMailPattern(String mailPattern);
 
   /**
    * Moves shared data from one user to another. It is assumed that shared data

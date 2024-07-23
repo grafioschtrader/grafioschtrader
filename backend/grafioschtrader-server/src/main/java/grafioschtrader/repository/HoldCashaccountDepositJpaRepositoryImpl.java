@@ -34,19 +34,17 @@ import grafioschtrader.types.TransactionType;
  */
 public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountDepositJpaRepositoryCustom {
 
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
+  @Autowired
+  private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
   @Autowired
-  HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
-
-  @Autowired
-  TransactionJpaRepository transactionJpaRepository;
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Override
   @Transactional

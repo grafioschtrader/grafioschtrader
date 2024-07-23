@@ -20,6 +20,12 @@ import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.entities.UDFData;
+import grafioschtrader.entities.UDFData.UDFDataKey;
+import grafioschtrader.entities.UDFMetadata;
+import grafioschtrader.entities.UDFMetadataGeneral;
+import grafioschtrader.entities.UDFMetadataSecurity;
+import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -38,31 +44,38 @@ public class CopyTenantService {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  public void copyTenant(Integer sourceIdTenant, Integer targetIdTenant) {
-    deleteData(targetIdTenant);
-    Map<Integer, Portfolio> portfolioMap = copyPortfolio(sourceIdTenant, targetIdTenant);
-    Map<Integer, Securityaccount> securityaccountMap = copySecurityAccount(sourceIdTenant, targetIdTenant,
-        portfolioMap);
-    Map<Integer, Cashaccount> cashaccoutMap = copyCashaccount(sourceIdTenant, targetIdTenant, portfolioMap,
-        securityaccountMap);
-    Map<Integer, Watchlist> watchlistMap = copyWatchlist(sourceIdTenant, targetIdTenant);
-    copyTransaction(sourceIdTenant, targetIdTenant, securityaccountMap, cashaccoutMap);
-    copyCorrelationSet(sourceIdTenant, targetIdTenant);
-    updateTenantReference(sourceIdTenant, targetIdTenant, watchlistMap);
+  public void copyTenant(User sourceUser, User targetUser) {
+    deleteData(targetUser.getIdTenant(), targetUser.getIdUser());
+    Map<Integer, Portfolio> portfolioMap = copyPortfolio(sourceUser.getIdTenant(), targetUser.getIdTenant());
+    Map<Integer, Securityaccount> securityaccountMap = copySecurityAccount(sourceUser.getIdTenant(),
+        targetUser.getIdTenant(), portfolioMap);
+    Map<Integer, Cashaccount> cashaccoutMap = copyCashaccount(sourceUser.getIdTenant(), targetUser.getIdTenant(),
+        portfolioMap, securityaccountMap);
+    Map<Integer, Watchlist> watchlistMap = copyWatchlist(sourceUser.getIdTenant(), targetUser.getIdTenant());
+    copyTransaction(sourceUser.getIdTenant(), targetUser.getIdTenant(), securityaccountMap, cashaccoutMap);
+    copyCorrelationSet(sourceUser.getIdTenant(), targetUser.getIdTenant());
+//    copyUDFMetadataGeneral(sourceUser.getIdUser(), targetUser.getIdUser());
+//    copyUDFMetadataSecurity(sourceUser.getIdUser(), targetUser.getIdUser());
+//    copyUDFData(sourceUser.getIdUser(), targetUser.getIdUser());
+    updateTenantReference(sourceUser.getIdTenant(), targetUser.getIdTenant(), watchlistMap);
   }
 
-  private void deleteData(Integer targetIdTenant) {
-    String[] tables = new String[] { ImportTransactionPos.TABNAME, ImportTransactionHead.TABNAME, Transaction.TABNAME,
-        Watchlist.TABNAME, Securitycashaccount.TABNAME, Portfolio.TABNAME, CorrelationSet.TABNAME };
-    for (String table : tables) {
-      String deleteSQL = "DELETE FROM " + table + " WHERE id_tenant=?";
-      jdbcTemplate.update(deleteSQL, targetIdTenant);
+  private void deleteData(Integer targetIdTenant, Integer targetIdUser) {
+    DelTab[] tables = new DelTab[] { new DelTab(ImportTransactionPos.TABNAME, true),
+        new DelTab(ImportTransactionHead.TABNAME, true), new DelTab(Transaction.TABNAME, true),
+        new DelTab(Watchlist.TABNAME, true), new DelTab(Securitycashaccount.TABNAME, true),
+        new DelTab(Portfolio.TABNAME, true), new DelTab(CorrelationSet.TABNAME, true),
+        new DelTab(UDFData.TABNAME, false), new DelTab(UDFMetadata.TABNAME, false) };
+    for (DelTab delTab : tables) {
+      String deleteSQL = "DELETE FROM " + delTab.tabName + " WHERE " + (delTab.useIdTenant ? "id_tenant" : "id_user")
+          + "=?";
+      jdbcTemplate.update(deleteSQL, delTab.useIdTenant ?  targetIdTenant: targetIdUser);
     }
   }
 
   private Map<Integer, Portfolio> copyPortfolio(Integer sourceIdTenant, Integer targetIdTenant) {
     Map<Integer, Portfolio> portfolioMap = new HashMap<>();
-    TypedQuery<Portfolio> q = em.createQuery("SELECT p from Portfolio p where p.idTenant = ?1", Portfolio.class);
+    TypedQuery<Portfolio> q = em.createQuery("SELECT p FROM Portfolio p WHERE p.idTenant = ?1", Portfolio.class);
     List<Portfolio> portfolios = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Portfolio portfolio : portfolios) {
@@ -80,7 +93,7 @@ public class CopyTenantService {
   private Map<Integer, Securityaccount> copySecurityAccount(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Portfolio> portfolioMap) {
     Map<Integer, Securityaccount> securityAccountMap = new HashMap<>();
-    TypedQuery<Securityaccount> q = em.createQuery("SELECT c from Securityaccount c where c.idTenant = ?1",
+    TypedQuery<Securityaccount> q = em.createQuery("SELECT c FROM Securityaccount c WHERE c.idTenant = ?1",
         Securityaccount.class);
     List<Securityaccount> securityaccounts = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
@@ -100,7 +113,7 @@ public class CopyTenantService {
   private Map<Integer, Cashaccount> copyCashaccount(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Portfolio> portfolioMap, Map<Integer, Securityaccount> securityaccountMap) {
     Map<Integer, Cashaccount> cashaccountMap = new HashMap<>();
-    TypedQuery<Cashaccount> q = em.createQuery("SELECT c from Cashaccount c where c.idTenant = ?1", Cashaccount.class);
+    TypedQuery<Cashaccount> q = em.createQuery("SELECT c FROM Cashaccount c WHERE c.idTenant = ?1", Cashaccount.class);
     List<Cashaccount> cashaccounts = q.setParameter(1, sourceIdTenant).getResultList();
     em.clear();
     for (Cashaccount cashaccount : cashaccounts) {
@@ -122,7 +135,7 @@ public class CopyTenantService {
 
   private Map<Integer, Watchlist> copyWatchlist(Integer sourceIdTenant, Integer targetIdTenant) {
     Map<Integer, Watchlist> watchlistMap = new HashMap<>();
-    TypedQuery<Watchlist> q = em.createQuery("SELECT c from Watchlist c where c.idTenant = ?1", Watchlist.class);
+    TypedQuery<Watchlist> q = em.createQuery("SELECT c FROM Watchlist c WHERE c.idTenant = ?1", Watchlist.class);
     List<Watchlist> watchlists = q.setParameter(1, sourceIdTenant).getResultList();
     for (Watchlist watchlist : watchlists) {
       Integer id = watchlist.getId();
@@ -138,7 +151,7 @@ public class CopyTenantService {
   }
 
   private void copyCorrelationSet(Integer sourceIdTenant, Integer targetIdTenant) {
-    TypedQuery<CorrelationSet> q = em.createQuery("SELECT c from CorrelationSet c where c.idTenant = ?1",
+    TypedQuery<CorrelationSet> q = em.createQuery("SELECT c FROM CorrelationSet c WHERE c.idTenant = ?1",
         CorrelationSet.class);
     List<CorrelationSet> correlationSetList = q.setParameter(1, sourceIdTenant).getResultList();
     for (CorrelationSet cs : correlationSetList) {
@@ -148,6 +161,43 @@ public class CopyTenantService {
       securities.addAll(cs.getSecuritycurrencyList());
       correlationSetNew.setSecuritycurrencyList(securities);
       em.persist(correlationSetNew);
+    }
+    em.flush();
+  }
+
+  private void copyUDFMetadataGeneral(Integer sourceIdUser, Integer targetIdUser) {
+    TypedQuery<UDFMetadataGeneral> q = em.createQuery("SELECT u FROM UDFMetadataGeneral u WHERE u.idUser = ?1",
+        UDFMetadataGeneral.class);
+    List<UDFMetadataGeneral> udfMgList = q.setParameter(1, sourceIdUser).getResultList();
+    for (UDFMetadataGeneral u : udfMgList) {
+      UDFMetadataGeneral uDFMetadataGeneral = new UDFMetadataGeneral(u.getEntity(), targetIdUser, u.getUdfSpecialTypeAsByte(),
+          u.getDescription(), u.getDescriptionHelp(), u.getUdfDataType(), u.getFieldSize(), u.getUiOrder());
+      em.persist(uDFMetadataGeneral);
+    }
+    em.flush();
+  }
+
+  private void copyUDFMetadataSecurity(Integer sourceIdUser, Integer targetIdUser) {
+    TypedQuery<UDFMetadataSecurity> q = em.createQuery("SELECT u FROM UDFMetadataSecurity u WHERE idUser = ?1",
+        UDFMetadataSecurity.class);
+    List<UDFMetadataSecurity> udfMgList = q.setParameter(1, sourceIdUser).getResultList();
+    for (UDFMetadataSecurity u : udfMgList) {
+      UDFMetadataSecurity uDFMetadataSecurity = new UDFMetadataSecurity(u.getCategoryTypes(),
+          u.getSpecialInvestmentInstruments(), targetIdUser, u.getUdfSpecialTypeAsByte(), u.getDescription(),
+          u.getDescriptionHelp(), u.getUdfDataType(), u.getFieldSize(), u.getUiOrder());
+      em.persist(uDFMetadataSecurity);
+    }
+    em.flush();
+  }
+
+  private void copyUDFData(Integer sourceIdUser, Integer targetIdUser) {
+    TypedQuery<UDFData> q = em.createQuery("SELECT u FROM UDFData u WHERE u.uDFDataKey.idUser = ?1", UDFData.class);
+    List<UDFData> udfDataList = q.setParameter(1, sourceIdUser).getResultList();
+    for (UDFData u : udfDataList) {
+      UDFData uDFData = new UDFData(
+          new UDFDataKey(targetIdUser, u.getuDFDataKey().getEntity(), u.getuDFDataKey().getIdEntity()),
+          u.getJsonValues());
+      em.persist(uDFData);
     }
     em.flush();
   }
@@ -204,6 +254,17 @@ public class CopyTenantService {
       em.persist(targetTenant);
       em.flush();
     }
+  }
+
+  private static class DelTab {
+    public String tabName;
+    public boolean useIdTenant;
+
+    public DelTab(String tabName, boolean useIdTenant) {
+      this.tabName = tabName;
+      this.useIdTenant = useIdTenant;
+    }
+
   }
 
 }

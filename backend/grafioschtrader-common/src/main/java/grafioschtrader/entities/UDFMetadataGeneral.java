@@ -2,6 +2,8 @@ package grafioschtrader.entities;
 
 import java.util.Arrays;
 
+import grafioschtrader.types.UDFDataType;
+import grafioschtrader.types.UDFSpecialType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,6 +22,12 @@ public class UDFMetadataGeneral extends UDFMetadata {
   private String entity;
 
   public UDFMetadataGeneral() {
+  }
+
+  public UDFMetadataGeneral(String entity, Integer idUser, Byte udfSpecialType, String description,
+      String descriptionHelp, UDFDataType udfDataType, String fieldSize, byte uiOrder) {
+    super(idUser, udfSpecialType, description, descriptionHelp, udfDataType.getValue(), fieldSize, uiOrder);
+    this.entity = entity;
   }
 
   public String getEntity() {
@@ -41,6 +49,5 @@ public class UDFMetadataGeneral extends UDFMetadata {
         + getFieldSizeSuffix() + ", getUiOrder()=" + getUiOrder() + ", getId()=" + getId() + ", getFieldLength()="
         + Arrays.toString(getFieldLength()) + "]";
   }
-
 
 }

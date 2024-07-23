@@ -69,7 +69,7 @@
                           class="cell-move" draggable="true"></svg-icon>
               </ng-container>
               <ng-container *ngSwitchCase="'linkIcon'">
-                <a *ngIf="getValueByPath(spl, field)" [href]="getValueByPath(spl, field)" target=”_blank”>
+                <a *ngIf="getValueByPath(spl, field)" [href]="getValueByPath(spl, field)" target=_blank>
                   <svg-icon [name]="'link' + (field.field.match(fieldNumberRegex) % 4)"
                             [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
                 </a>

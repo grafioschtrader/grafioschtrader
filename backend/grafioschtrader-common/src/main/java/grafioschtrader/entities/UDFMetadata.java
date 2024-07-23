@@ -89,6 +89,22 @@ public abstract class UDFMetadata extends UserBaseID {
   public UDFMetadata() {
   }
 
+    
+  public UDFMetadata(@NotNull Integer idUser, Byte udfSpecialType, @NotNull String description, String descriptionHelp,
+      @NotNull byte udfDataType, @Pattern(regexp = "-?[0-9]+,-?[0-9]+") @Size(min = 3, max = 20) String fieldSize,
+      @NotNull byte uiOrder) {
+    super();
+    this.idUser = idUser;
+    this.udfSpecialType = udfSpecialType;
+    this.description = description;
+    this.descriptionHelp = descriptionHelp;
+    this.udfDataType = udfDataType;
+    this.fieldSize = fieldSize;
+    this.uiOrder = uiOrder;
+  }
+
+
+
   @Override
   public Integer getIdUser() {
     return idUser;
@@ -99,6 +115,11 @@ public abstract class UDFMetadata extends UserBaseID {
     this.idUser = idUser;
   }
 
+  @JsonIgnore
+  public Byte getUdfSpecialTypeAsByte() {
+    return udfSpecialType;
+  }
+  
   public UDFSpecialType getUdfSpecialType() {
     return udfSpecialType == null ? null : UDFSpecialType.getUDFSpecialTypeByValue(udfSpecialType);
   }

@@ -28,13 +28,16 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
 
   @Autowired
-  HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
+  private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
   @Autowired
-  CurrencypairJpaRepository currencypairJpaRepository;
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  TenantJpaRepository tenantJpaRepository;
+  private TenantJpaRepository tenantJpaRepository;
+  
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Override
   @Transactional
@@ -132,10 +135,12 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     cashaccountSum.withdrawlDeposit += csct.getWithdrawlDeposit();
     cashaccountSum.interestCashaccount += csct.getInterestCashaccount();
     cashaccountSum.fee += csct.getFee();
+    
+    int precision = globalparametersJpaRepository.getPrecisionForCurrency(csct.getAccountCurrency());
     return new HoldCashaccountBalance(tenant.getIdTenant(), csct.getIdPortfolio(), csct.getIdCashaccount(),
         csct.getFromDate(), cashaccountSum.withdrawlDeposit, cashaccountSum.interestCashaccount, cashaccountSum.fee,
         cashaccountSum.accumulateReduce, cashaccountSum.dividend,
-        DataHelper.round(cashaccountSum.cashBalance, GlobalConstants.FID_STANDARD_FRACTION_DIGITS), idCurrencyTenant,
+        DataHelper.round(cashaccountSum.cashBalance, precision), idCurrencyTenant,
         idCurrencyPortfolio);
   }
 

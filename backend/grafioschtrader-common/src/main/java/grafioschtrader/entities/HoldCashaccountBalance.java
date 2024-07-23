@@ -95,7 +95,7 @@ public class HoldCashaccountBalance extends HoldBase {
     return dividend;
   }
 
-  public void setBalance(double balance) {
+ public void setBalance(double balance) {
     this.balance = balance;
   }
 
