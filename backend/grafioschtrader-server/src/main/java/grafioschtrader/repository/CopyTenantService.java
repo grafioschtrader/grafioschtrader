@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.ImportTransactionHead;
@@ -54,9 +56,9 @@ public class CopyTenantService {
     Map<Integer, Watchlist> watchlistMap = copyWatchlist(sourceUser.getIdTenant(), targetUser.getIdTenant());
     copyTransaction(sourceUser.getIdTenant(), targetUser.getIdTenant(), securityaccountMap, cashaccoutMap);
     copyCorrelationSet(sourceUser.getIdTenant(), targetUser.getIdTenant());
-//    copyUDFMetadataGeneral(sourceUser.getIdUser(), targetUser.getIdUser());
-//    copyUDFMetadataSecurity(sourceUser.getIdUser(), targetUser.getIdUser());
-//    copyUDFData(sourceUser.getIdUser(), targetUser.getIdUser());
+    Map<Integer, Integer> fieldMap = copyUDFMetadataGeneral(sourceUser.getIdUser(), targetUser.getIdUser());
+    copyUDFMetadataSecurity(fieldMap, sourceUser.getIdUser(), targetUser.getIdUser());
+    copyUDFData(fieldMap, sourceUser.getIdUser(), targetUser.getIdUser());
     updateTenantReference(sourceUser.getIdTenant(), targetUser.getIdTenant(), watchlistMap);
   }
 
@@ -165,19 +167,23 @@ public class CopyTenantService {
     em.flush();
   }
 
-  private void copyUDFMetadataGeneral(Integer sourceIdUser, Integer targetIdUser) {
+  private Map<Integer, Integer> copyUDFMetadataGeneral(Integer sourceIdUser, Integer targetIdUser) {
+    Map<Integer, Integer> fieldMap = new HashMap<>();
     TypedQuery<UDFMetadataGeneral> q = em.createQuery("SELECT u FROM UDFMetadataGeneral u WHERE u.idUser = ?1",
         UDFMetadataGeneral.class);
+    
     List<UDFMetadataGeneral> udfMgList = q.setParameter(1, sourceIdUser).getResultList();
     for (UDFMetadataGeneral u : udfMgList) {
       UDFMetadataGeneral uDFMetadataGeneral = new UDFMetadataGeneral(u.getEntity(), targetIdUser, u.getUdfSpecialTypeAsByte(),
           u.getDescription(), u.getDescriptionHelp(), u.getUdfDataType(), u.getFieldSize(), u.getUiOrder());
       em.persist(uDFMetadataGeneral);
+      fieldMap.put(u.getIdUDFMetadata(), uDFMetadataGeneral.getIdUDFMetadata());
     }
     em.flush();
+    return fieldMap;
   }
 
-  private void copyUDFMetadataSecurity(Integer sourceIdUser, Integer targetIdUser) {
+  private void copyUDFMetadataSecurity(Map<Integer, Integer> fieldMap, Integer sourceIdUser, Integer targetIdUser) {
     TypedQuery<UDFMetadataSecurity> q = em.createQuery("SELECT u FROM UDFMetadataSecurity u WHERE idUser = ?1",
         UDFMetadataSecurity.class);
     List<UDFMetadataSecurity> udfMgList = q.setParameter(1, sourceIdUser).getResultList();
@@ -186,21 +192,26 @@ public class CopyTenantService {
           u.getSpecialInvestmentInstruments(), targetIdUser, u.getUdfSpecialTypeAsByte(), u.getDescription(),
           u.getDescriptionHelp(), u.getUdfDataType(), u.getFieldSize(), u.getUiOrder());
       em.persist(uDFMetadataSecurity);
+      fieldMap.put(u.getIdUDFMetadata(), uDFMetadataSecurity.getIdUDFMetadata());
     }
     em.flush();
   }
 
-  private void copyUDFData(Integer sourceIdUser, Integer targetIdUser) {
+  private void copyUDFData(Map<Integer, Integer> fieldMap, Integer sourceIdUser, Integer targetIdUser) {
     TypedQuery<UDFData> q = em.createQuery("SELECT u FROM UDFData u WHERE u.uDFDataKey.idUser = ?1", UDFData.class);
     List<UDFData> udfDataList = q.setParameter(1, sourceIdUser).getResultList();
     for (UDFData u : udfDataList) {
+      Map<String, Object> jvNew = u.getJsonValues().entrySet().stream().collect(Collectors.toMap(e -> 
+      GlobalConstants.UDF_FIELD_PREFIX + fieldMap.get(Integer.parseInt(e.getKey().substring(1))), e-> e.getValue()));
       UDFData uDFData = new UDFData(
           new UDFDataKey(targetIdUser, u.getuDFDataKey().getEntity(), u.getuDFDataKey().getIdEntity()),
-          u.getJsonValues());
+          jvNew);
       em.persist(uDFData);
     }
     em.flush();
   }
+  
+
 
   private void copyTransaction(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityaccountMap, Map<Integer, Cashaccount> cashaccoutMap) {
