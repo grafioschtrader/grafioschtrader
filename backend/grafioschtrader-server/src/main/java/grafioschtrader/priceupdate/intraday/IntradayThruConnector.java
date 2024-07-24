@@ -63,11 +63,11 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   public String getSecuritycurrencyIntraDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.FS_INTRA);
-    if (feedConnector != null && feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_LAZY_INTRA)) {
-      return LINK_DOWNLOAD_LAZY;
-    } else {
-      return createDownloadLink(securitycurrency, feedConnector);
+    if (feedConnector != null) {
+      return feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_LAZY_INTRA) ? LINK_DOWNLOAD_LAZY
+          : createDownloadLink(securitycurrency, feedConnector);
     }
+    return null;
   }
 
   @Override

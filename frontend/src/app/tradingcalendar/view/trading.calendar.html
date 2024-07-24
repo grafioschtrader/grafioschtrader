@@ -6,8 +6,7 @@
     </p-header>
     <label class="small-padding control-label" for="idYearSelect">{{'YEAR' | translate}}</label>
     <p-dropdown (onChange)="yearChanged($event)" [(ngModel)]="selectedYear" [disabled]="addRemoveDaysMap.size > 0"
-                [options]="possibleYears"
-                id="idYearSelect">
+                [options]="possibleYears" id="idYearSelect">
     </p-dropdown>
     <ng-fullyearcalendar-lib (daySelect)="onDaySelect($event)" [locale]="locale" [underline]="underline"
                              [yearCalendarData]="yearCalendarData"></ng-fullyearcalendar-lib>

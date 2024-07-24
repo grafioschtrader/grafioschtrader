@@ -23,11 +23,11 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   addRemoveDaysMap: Map<number, boolean> = new Map();
   originalDaysMark: Set<number> = new Set();
 
-  // Used when an component click event is consumed by the child and the parent should ignored it.
+  // Used when a component click event is consumed by the child and the parent should ignore it.
   readonly consumedGT = 'consumedGT';
   contextMenuItems: MenuItem[];
 
-  constructor(public translateService: TranslateService,
+  protected constructor(public translateService: TranslateService,
               protected gps: GlobalparameterService,
               protected activePanelService: ActivePanelService,
               protected markExistingColors: string[]) {
@@ -48,11 +48,9 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   abstract onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void;
 
   setYearsBoundaries(fromYear: number, toYear: number) {
-    for (let i = fromYear; i <= toYear; i++) {
-      this.possibleYears.push({label: i.toString(), value: i});
-    }
+    this.possibleYears = Array.from({ length: toYear - fromYear + 1 },
+      (_, index) => ({ value: fromYear + index, label: (fromYear + index).toString() }));
     this.selectedYear = this.yearCalendarData.year;
-
   }
 
   containsYear(year: number): boolean {
@@ -61,6 +59,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
 
   yearChanged(event): void {
     this.yearCalendarData.year = event.value;
+    this.selectedYear = event.value;
     this.readData(true);
   }
 
