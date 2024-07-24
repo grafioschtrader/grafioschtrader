@@ -115,11 +115,11 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   @Override
   public String getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = getConnectorHistoricalForSecuritycurrency(securitycurrency);
-    if (feedConnector != null && feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_LAZY_HISTORY)) {
-      return LINK_DOWNLOAD_LAZY;
-    } else {
-      return createDownloadLink(securitycurrency, feedConnector);
+    if (feedConnector != null) {
+      return feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_LAZY_HISTORY)?
+        LINK_DOWNLOAD_LAZY: createDownloadLink(securitycurrency, feedConnector);
     }
+    return null;
   }
 
   @Override

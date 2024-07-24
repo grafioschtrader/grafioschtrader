@@ -87,10 +87,10 @@ export class SecurityEditSupport {
     }
 
     fc.push(DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeFromDate',
-      true, {fieldsetName: 'BASE_DATA', defaultValue: new Date(2000, 1, 3)}));
+      true, {fieldsetName: 'BASE_DATA', defaultValue: new Date(2000, 0, 3)}));
 
     fc.push(DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeToDate',
-      true, {fieldsetName: 'BASE_DATA', defaultValue: new Date(2025, 1, 1)}));
+      true, {fieldsetName: 'BASE_DATA', defaultValue: new Date(2099, 11, 31)}));
 
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('distributionFrequency', true,
       {fieldsetName: 'BASE_DATA'}));

@@ -15,7 +15,7 @@ import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.bou
  */
 export abstract class TradingCalendarBase extends CalendarNavigation {
 
-  constructor(translateService: TranslateService,
+  protected constructor(translateService: TranslateService,
               gps: GlobalparameterService,
               markExistingColor: string[],
               activePanelService: ActivePanelService,
