@@ -34,10 +34,10 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
   valueChangedOnCategoryType(): void {
     this.categoryTypeSubscribe = this.configObject[this.fieldCategoryType]
       .formControl.valueChanges.subscribe(categoryType => {
-        if(this.configObject[this.fieldCategoryType].inputType === InputType.MultiSelect) {
+        if (this.configObject[this.fieldCategoryType].inputType === InputType.MultiSelect) {
           const vkh: ValueKeyHtmlSelectOptions[] = [];
-          if(categoryType && categoryType.length > 0) {
-            categoryType.forEach( ct => {
+          if (categoryType && categoryType.length > 0) {
+            categoryType.forEach(ct => {
               vkh.push(...this.valueKeyHtmlOptionsSpecInvest.filter(
                 v => this.assetclassSpezInstMap[ct].includes(v.key))
                 .filter(va => vkh.indexOf(va) < 0));
@@ -68,7 +68,7 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
       this.configObject[this.fieldCategoryType].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         AssetclassType, [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN], true);
       this.valueKeyHtmlOptionsSpecInvest = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService, SpecialInvestmentInstruments,  [], true);
+        this.translateService, SpecialInvestmentInstruments, [], true);
       this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest;
       this.valueChangedOnCategoryType();
       this.initializeOthers();

@@ -44,7 +44,6 @@ public class ConnectorHelper {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return UserAccessHelper.isAdmin(user) && feedConnector instanceof BaseFeedApiKeyConnector
         || !(feedConnector instanceof BaseFeedApiKeyConnector);
-
   }
 
   public static String getContentOfHttpRequestAsString(String urlString, boolean addHttpNewlines) throws Exception {

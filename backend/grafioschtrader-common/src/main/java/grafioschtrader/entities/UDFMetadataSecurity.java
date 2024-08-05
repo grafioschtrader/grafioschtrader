@@ -9,7 +9,6 @@ import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.types.UDFDataType;
-import grafioschtrader.types.UDFSpecialType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

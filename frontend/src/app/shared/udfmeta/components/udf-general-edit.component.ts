@@ -6,8 +6,6 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {HelpIds} from '../../help/help.ids';
 import {AppHelper} from '../../helper/app.helper';
-import {SecurityUDFHelper} from '../../../securitycurrency/component/security.udf.helper';
-import {GlobalSessionNames} from '../../global.session.names';
 import {UDFMetadataHelper} from './udf.metadata.helper';
 
 /**

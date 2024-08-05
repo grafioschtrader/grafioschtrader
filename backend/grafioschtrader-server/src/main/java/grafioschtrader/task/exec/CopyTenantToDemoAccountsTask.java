@@ -68,7 +68,7 @@ public class CopyTenantToDemoAccountsTask implements ITask {
   }
 
   @Scheduled(cron = "${gt.demo.account.tenant.copy}", zone = GlobalConstants.TIME_ZONE)
-  public void catchAllUpSecuritycurrencyHistoryquote() {
+  public void createCopyTenantToDemoAccountsTask() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_LOW);
     taskDataChangeRepository.save(taskDataChange);
   }

@@ -71,7 +71,7 @@
               <ng-container *ngSwitchCase="'linkIcon'">
                 <a *ngIf="getValueByPath(spl, field)" [href]="getValueByPath(spl, field)" target=_blank>
                   <svg-icon [name]="'link' + (field.field.match(fieldNumberRegex) % 4)"
-                            [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                            [svgStyle]="{ 'width.px':24, 'height.px':14 }"></svg-icon>
                 </a>
               </ng-container>
               <ng-container *ngSwitchDefault>

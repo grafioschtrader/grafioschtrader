@@ -14,7 +14,12 @@ import {TranslateValue} from '../../datashowbase/column.config';
 import {HelpIds} from '../../help/help.ids';
 import {UDFMetaTable} from './udf.metadata.table';
 import {GlobalSessionNames} from '../../global.session.names';
+import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';
 
+/**
+ * Custom fields of security is a special implementation, as these are defined according to the asset class.
+ * Therefore, there is also a customized table for the tabular display.
+ */
 @Component({
   templateUrl: '../view/udf.metadata.table.html',
   providers: [DialogService]
@@ -24,7 +29,8 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
   callParam: UDFMetadataSecurityParam = new UDFMetadataSecurityParam();
   isSecurityEdit = true;
 
-  constructor(uDFMetadataSecurityService: UDFMetadataSecurityService,
+  constructor(udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService,
+    uDFMetadataSecurityService: UDFMetadataSecurityService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -33,7 +39,7 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService) {
-    super(UDFMetadataSecurity, AppSettings.UDF_METADATA_SECURITY, uDFMetadataSecurityService, confirmationService, messageToastService,
+    super(UDFMetadataSecurity, udfSpecialTypeDisableUserService, uDFMetadataSecurityService, AppSettings.UDF_METADATA_SECURITY, confirmationService, messageToastService,
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
     this.addMetadataBaseFields([{field: 'uiOrder', order: 1}]);
   }

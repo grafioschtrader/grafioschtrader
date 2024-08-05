@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,13 +15,23 @@ public interface UDFMetadataSecurityJpaRepository
     UpdateCreateDeleteWithUserIdJpaRepository<UDFMetadataSecurity> {
 
   UDFMetadataSecurity getByUdfSpecialTypeAndIdUser(byte udfSpecialType, int idUser);
-
-  List<UDFMetadataSecurity> getAllByIdUserInOrderByUiOrder(int[] idUser);
-
+  Set<UDFMetadataSecurity> getByUdfSpecialTypeInAndIdUser(Set<Byte> udfSpecialTypes, int idUser);
+  
+  List<UDFMetadataSecurity> getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(int[] idUser, byte lessThanUiOrderNum);
+  
   int deleteByIdUDFMetadataAndIdUser(int idUDFMetadata, int idUser);
 
+  /**
+   * Checks if uiOrder and description are unique. Otherwise, the entry must not be written.
+   * 
+   * @param users
+   * @param uiOrder
+   * @param description
+   * @return
+   */
   @Query(nativeQuery = true)
   UiOrderDescriptionCount countUiOrderAndDescription(int[] users, int uiOrder, String description);
 
-  
+  @Query(nativeQuery = true)
+  List<UDFMetadataSecurity> getAllByIdUserInOrderByUiOrderExcludeDisabled(int idUser);
 }

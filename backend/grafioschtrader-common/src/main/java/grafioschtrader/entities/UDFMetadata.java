@@ -88,7 +88,6 @@ public abstract class UDFMetadata extends UserBaseID {
 
   public UDFMetadata() {
   }
-
     
   public UDFMetadata(@NotNull Integer idUser, Byte udfSpecialType, @NotNull String description, String descriptionHelp,
       @NotNull byte udfDataType, @Pattern(regexp = "-?[0-9]+,-?[0-9]+") @Size(min = 3, max = 20) String fieldSize,
@@ -102,7 +101,6 @@ public abstract class UDFMetadata extends UserBaseID {
     this.fieldSize = fieldSize;
     this.uiOrder = uiOrder;
   }
-
 
 
   @Override
@@ -212,7 +210,6 @@ public abstract class UDFMetadata extends UserBaseID {
     return minMaxValue;
   }
  
-
   public void checkFieldSize() {
     if (UDFDataHelper.isFieldSizeForDataType(getUdfDataType())) {
       int[] prefixSuffix = getPrefixAndSuffix(getFieldSize());
@@ -246,8 +243,6 @@ public abstract class UDFMetadata extends UserBaseID {
       throw new IllegalArgumentException("The format is outside its limits.");
     }
   }
-
- 
 
   private int[] getPrefixAndSuffix(String fieldSize) {
     int[] prefixSuffix = new int[2];

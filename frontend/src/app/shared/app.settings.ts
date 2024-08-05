@@ -40,6 +40,7 @@ export class AppSettings {
     public static readonly UDF_DATA = 'UDFData';
     public static readonly UDF_METADATA_GENERAL = 'UDFMetadataGeneral';
     public static readonly UDF_METADATA_SECURITY = 'UDFMetadataSecurity';
+
     public static readonly USER = 'User';
     public static readonly USER_ENTITY_LIMIT = 'UserEntityChangeLimit';
     public static readonly WATCHLIST = 'Watchlist';
@@ -116,6 +117,7 @@ export class AppSettings {
     public static readonly UDF_DATA_KEY = AppSettings.UDF_DATA.toLowerCase();
     public static readonly UDF_METADATA_GENERAL_KEY = AppSettings.UDF_METADATA_GENERAL.toLowerCase()
     public static readonly UDF_METADATA_SECURITY_KEY = AppSettings.UDF_METADATA_SECURITY.toLowerCase()
+    public static readonly UDF_SPECIAL_TYPE_DISABLE_USER = 'udfspecialtypedisableuser';
     public static readonly USER_KEY = AppSettings.USER.toLowerCase();
     public static readonly USER_ADMIN_KEY = 'useradmin';
     public static readonly USER_ENTITY_LIMIT_KEY = AppSettings.USER_ENTITY_LIMIT.toLowerCase();

@@ -169,9 +169,6 @@ public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreate
     return resultEntity;
   }
 
-  
-  
-
   protected ResponseEntity<T> updateSpecialEntity(User user, T entity) throws Exception {
     throw new UnsupportedOperationException("Not supported yet.");
   }
@@ -346,10 +343,8 @@ public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreate
         throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
       }
     }
-
     // Maybe the user is not set by the client, we set it always
     entity.setIdUser(user.getIdUser());
-
   }
 
 }

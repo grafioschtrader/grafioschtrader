@@ -41,8 +41,7 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
   public UDFData createUpdate(UDFData udfData) throws Exception {
     final User user = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails());
     UpdateCreate.checkAndSetUserBaseIDWithUser(udfData.getuDFDataKey(), user);
-
-    
+  
     @SuppressWarnings("unchecked")
     IUDFRepository<UDFMetadata> udfRepository = (IUDFRepository<UDFMetadata>) udfRepositories.stream()
         .filter(c -> c.getSupportedEntities().contains(udfData.getuDFDataKey().getEntity())).findFirst().get();
@@ -52,11 +51,8 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
 
     checkEntityAndObject(udfData, user);
     udfData.checkDataAgainstMetadata(udfMetadata);
-    
-    
     return uDFDataJpaRepository.save(udfData);
   }
-  
 
   /**
    * Checks whether this information class supports user-defined fields. It also

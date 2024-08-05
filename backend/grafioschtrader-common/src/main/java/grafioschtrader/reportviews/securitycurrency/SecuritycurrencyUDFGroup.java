@@ -9,8 +9,15 @@ import grafioschtrader.entities.Security;
 
 public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
 
+  /**
+   * Map idSecurity and JSON values as String
+   */
   private Map<Integer, String> udfEntityValues;
 
+  public SecuritycurrencyUDFGroup(List<SecuritycurrencyPosition<Security>> securityPositionList) {
+    this(securityPositionList, null, null, null, null); 
+  }
+  
   public SecuritycurrencyUDFGroup(List<SecuritycurrencyPosition<Security>> securityPositionList,
       List<SecuritycurrencyPosition<Currencypair>> currencypairPositionList, Date lastTimestamp, Integer idWatchlist,
       Map<Integer, String> udfEntityValues) {
@@ -22,7 +29,6 @@ public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
     return udfEntityValues;
   }
 
-  
   public static interface IUDFEntityValues {
     Integer getIdSecuritycurrency();
     String getJsonValues();

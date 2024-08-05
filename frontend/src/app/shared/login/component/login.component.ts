@@ -38,12 +38,12 @@ import {AppHelper} from '../../helper/app.helper';
           </dynamic-form>
         </ng-container>
         <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <h4>0.33.0</h4>
+          {{'V_0_33_0' | translate}}
           <h4>0.32.0</h4>
           {{'V_0_32_0' | translate}}
           <h4>0.31.0</h4>
           {{'V_0_31_0' | translate}}
-          <h4>0.30.0</h4>
-          {{'V_0_30_0' | translate}}
         </p-card>
       </div>
     </div>

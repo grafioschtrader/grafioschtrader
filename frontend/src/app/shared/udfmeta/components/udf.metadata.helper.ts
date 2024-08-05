@@ -6,7 +6,6 @@ import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {FormHelper} from '../../../dynamic-form/components/FormHelper';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {dataTypeFieldSizeGroup} from '../../validator/validator';
-import {TranslateHelper} from '../../helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {FieldFormGroup} from '../../../dynamic-form/models/form.group.definition';
 import {GlobalSessionNames} from '../../global.session.names';
@@ -23,7 +22,10 @@ export class UDFMetadataHelper {
   public static readonly UDF_FIELD_PREFIX = 'f';
 
   public static createMetadataBaseFields(configDataTypeFields: FieldConfig[], excludeFileNames: string[]): FieldConfig[] {
-    const fdTypeSizeGroup: FieldFormGroup = {formGroupName: UDFMetadataHelper.DATA_TYPE_FIELD_GROUP, fieldConfig: configDataTypeFields};
+    const fdTypeSizeGroup: FieldFormGroup = {
+      formGroupName: UDFMetadataHelper.DATA_TYPE_FIELD_GROUP,
+      fieldConfig: configDataTypeFields
+    };
     fdTypeSizeGroup.validation = [dataTypeFieldSizeGroup(configDataTypeFields[0].field, configDataTypeFields[1].field, configDataTypeFields[1].field)];
     fdTypeSizeGroup.errors = [{name: 'dataTypeFieldSizeGroup', keyi18n: 'dataTypeFieldSizeGroup', rules: ['dirty']}];
     return <FieldConfig[]>[DynamicFieldHelper.createFieldSelectNumberHeqF('uiOrder', true),
@@ -46,7 +48,9 @@ export class UDFMetadataHelper {
       fd.entity === entityName)
   }
 
-  public static prepareDataTypeFields(translateService: TranslateService, form: DynamicFormComponent, configObject: { [name: string]: FieldConfig },
+  public static prepareDataTypeFields(translateService: TranslateService, form: DynamicFormComponent, configObject: {
+      [name: string]: FieldConfig
+    },
     excludeUiOrders: number[], businessObject: UDFMetadata, configDataTypeFields: FieldConfig[]): Subscription {
     configObject.uiOrder.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsForNumberRange(1, 99, excludeUiOrders)
     const fieldGroupSub: Subscription = configObject[UDFMetadataHelper.DATA_TYPE_FIELD_GROUP].formControl

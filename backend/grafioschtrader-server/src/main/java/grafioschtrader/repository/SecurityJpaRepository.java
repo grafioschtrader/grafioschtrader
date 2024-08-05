@@ -44,6 +44,9 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   List<Security> findByTickerSymbolInOrderByIdSecuritycurrency(Set<String> tickers);
 
+  List<Security> findByAssetClass_CategoryTypeInAndAssetClass_SpecialInvestmentInstrumentInAndActiveToDateAfterAndIdTenantPrivateIsNull(
+     Set<Byte> categoryTypes, Set<Byte> specialInvestmentInstruments, Date date);
+  
   /**
    * Determination of the positions held by instruments that are no longer traded,
    * using the "active until" property.

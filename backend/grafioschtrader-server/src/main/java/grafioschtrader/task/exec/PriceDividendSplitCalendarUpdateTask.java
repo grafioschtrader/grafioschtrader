@@ -53,7 +53,7 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Scheduled(cron = "${gt.eod.cron.quotation}", zone = GlobalConstants.TIME_ZONE)
-  public void catchAllUpSecuritycurrencyHistoryquote() {
+  public void createPriceDividendSplitCalendarUpdateTask() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_HIGH);
     taskDataChangeRepository.save(taskDataChange);
   }

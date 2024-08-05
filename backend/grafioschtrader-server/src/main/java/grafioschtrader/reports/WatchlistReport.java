@@ -54,6 +54,7 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.repository.UDFDataJpaRepository;
+import grafioschtrader.repository.UDFSpecialTypeDisableUserRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.service.GTNetLastpriceService;
 
@@ -100,6 +101,9 @@ public class WatchlistReport {
 
   @Autowired(required = false)
   private List<IUDFForEveryUser> uDFForEveryUser;
+
+  @Autowired
+  private UDFSpecialTypeDisableUserRepository uDFSpecialTypeDisUserRep;
 
   /**
    * Returns the watchlist with the youngest date of history quote. This should
@@ -193,16 +197,19 @@ public class WatchlistReport {
     final CompletableFuture<List<IUDFEntityValues>> entityValuesCF = CompletableFuture
         .supplyAsync(() -> uDFDataJpaRepository.getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(),
             new String[] { Currencypair.class.getSimpleName(), Security.class.getSimpleName() }));
-    return combineWatchlistWithUDF(getWatchlistWithoutUpdate(idWatchlist), entityValuesCF.get());
+    return combineWatchlistWithUDF(getWatchlistWithoutUpdate(idWatchlist), entityValuesCF.get(), user);
   }
 
   private SecuritycurrencyUDFGroup combineWatchlistWithUDF(SecuritycurrencyGroup sg,
-      List<IUDFEntityValues> uDFEntityValues) {
+      List<IUDFEntityValues> uDFEntityValues, User user) {
     Map<Integer, String> udfEntityValuesMap = uDFEntityValues.stream()
         .collect(Collectors.toMap(ud -> ud.getIdSecuritycurrency(), ud -> ud.getJsonValues()));
+
+    Set<Byte> udfDisabledList = uDFSpecialTypeDisUserRep.findByIdIdUser(user.getIdUser());
     SecuritycurrencyUDFGroup sUDFGroup = new SecuritycurrencyUDFGroup(sg.securityPositionList,
         sg.currencypairPositionList, sg.lastTimestamp, sg.idWatchlist, udfEntityValuesMap);
-    uDFForEveryUser.stream().forEach(u -> u.addUDFForEveryUser(sUDFGroup));
+    uDFForEveryUser.stream().filter(u -> !udfDisabledList.contains(u.getUDFSpecialType().getValue()))
+        .forEach(u -> u.addUDFForEveryUser(sUDFGroup));
     return sUDFGroup;
   }
 

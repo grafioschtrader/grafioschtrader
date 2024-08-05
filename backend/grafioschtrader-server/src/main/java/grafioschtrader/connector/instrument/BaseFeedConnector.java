@@ -44,7 +44,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public abstract class BaseFeedConnector implements IFeedConnector {
 
-  private static final String ID_PREFIX = "gt.datafeed.";
+  public static final String ID_PREFIX = "gt.datafeed.";
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 

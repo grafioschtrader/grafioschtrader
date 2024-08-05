@@ -57,7 +57,7 @@ export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const observables: Observable<any>[] = [];
-    !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY) && observables.push(this.uDFMetadataSecurityService.getFieldDescriptorByIdUser());
+    !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY) && observables.push(this.uDFMetadataSecurityService.getAllByIdUserInOrderByUiOrderExcludeDisabled());
     !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL) && observables.push(this.uDFMetadataGeneralService.getFieldDescriptorByIdUserAndEveryUserForEntity(AppSettings.CURRENCYPAIR));
     if (observables.length > 0) {
       combineLatest(observables).subscribe((data: any[]) => {

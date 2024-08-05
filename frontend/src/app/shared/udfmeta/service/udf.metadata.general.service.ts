@@ -1,11 +1,6 @@
 import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
-import {
-  FieldDescriptorInputAndShowExtendedSecurity,
-  UDFMetadataGeneral,
-  UDFMetadataSecurity
-} from '../model/udf.metadata';
-import {DeleteService} from '../../datashowbase/delete.service';
+import {UDFMetadataGeneral} from '../model/udf.metadata';
 import {ServiceEntityUpdate} from '../../edit/service.entity.update';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../app.settings';
@@ -17,8 +12,7 @@ import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.desc
 import {DeleteReadAllService} from '../components/udf.metadata.table';
 
 @Injectable()
-export class UDFMetadataGeneralService extends AuthServiceWithLogout<UDFMetadataGeneral> implements
-  DeleteReadAllService<UDFMetadataGeneral>, ServiceEntityUpdate<UDFMetadataGeneral> {
+export class UDFMetadataGeneralService extends AuthServiceWithLogout<UDFMetadataGeneral> implements DeleteReadAllService<UDFMetadataGeneral>, ServiceEntityUpdate<UDFMetadataGeneral> {
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
