@@ -26,14 +26,15 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
-  
+
   @Override
   public UDFMetadataSecurity saveOnlyAttributes(final UDFMetadataSecurity uDFMetadataSecurity,
       final UDFMetadataSecurity existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    UiOrderDescriptionCount uodc = uMetaRepository.countUiOrderAndDescription(new int[] { 0, user.getIdUser() },
-        uDFMetadataSecurity.getUiOrder(), uDFMetadataSecurity.getDescription());
+    UiOrderDescriptionCount uodc = uMetaRepository.countUiOrderAndDescription(
+        new int[] { GlobalConstants.UDF_ID_USER, user.getIdUser() }, uDFMetadataSecurity.getUiOrder(),
+        uDFMetadataSecurity.getDescription());
     uniqueDescUiOrderCheck(uodc, uDFMetadataSecurity, existingEntity);
     uDFMetadataSecurity.checkFieldSize();
 
@@ -42,9 +43,10 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
   }
 
   @Override
-  public List<FieldDescriptorInputAndShowExtendedSecurity> getFieldDescriptorByIdUserAndEveryUser(Integer idUser) {
+  public List<FieldDescriptorInputAndShowExtendedSecurity> getFieldDescriptorByIdUserAndEveryUserExcludeDisabled(
+      Integer idUser) {
     List<FieldDescriptorInputAndShowExtendedSecurity> fDiscriptor = new ArrayList<>();
-    List<UDFMetadataSecurity> udfMetaDataList = uMetaRepository.getAllByIdUserInOrderByUiOrder(new int[] { idUser, 0 });
+    List<UDFMetadataSecurity> udfMetaDataList = uMetaRepository.getAllByIdUserInOrderByUiOrderExcludeDisabled(idUser);
     udfMetaDataList.forEach(um -> {
       Double[] minMaxValue = um.getFieldLength();
       fDiscriptor.add(new FieldDescriptorInputAndShowExtendedSecurity(um.getCategoryTypeEnums(),
@@ -62,13 +64,16 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
   }
 
   @Override
-  public List<UDFMetadataSecurity> getMetadataByUserAndEntityAndIdEntity(Integer idUser, String entity, Integer idEntity) {
+  public List<UDFMetadataSecurity> getMetadataByUserAndEntityAndIdEntity(Integer idUser, String entity,
+      Integer idEntity) {
     Security security = securityJpaRepository.getReferenceById(idEntity);
     Assetclass assetclass = security.getAssetClass();
-    List<UDFMetadataSecurity> udfMetadata = uMetaRepository.getAllByIdUserInOrderByUiOrder(new int[] {idUser});
-    
-    return udfMetadata.stream().filter( u -> u.getSpecialInvestmentInstrumentEnums().contains(assetclass.getSpecialInvestmentInstrument()) 
-        && u.getCategoryTypeEnums().contains(assetclass.getCategoryType())).collect(Collectors.toList());
+    List<UDFMetadataSecurity> udfMetadata = uMetaRepository.getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(
+        new int[] { idUser }, GlobalConstants.MAX_USER_UI_ORDER_VALUE);
+    return udfMetadata.stream()
+        .filter(u -> u.getSpecialInvestmentInstrumentEnums().contains(assetclass.getSpecialInvestmentInstrument())
+            && u.getCategoryTypeEnums().contains(assetclass.getCategoryType()))
+        .collect(Collectors.toList());
   }
 
   @Override

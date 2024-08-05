@@ -33,7 +33,7 @@ public class CreateStockexchangeTradingDaysMinusByIndexTask implements ITask {
   private TradingDaysMinusJpaRepository tradingDaysMinusJpaRepository;
 
   @Scheduled(cron = "${gt.calendar.update.index}", zone = GlobalConstants.TIME_ZONE)
-  public void catchAllUpSecuritycurrencyHistoryquote() {
+  public void createCreateStockexchangeTradingDaysMinusByIndexTask() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_NORMAL);
     taskDataChangeRepository.save(taskDataChange);
   }

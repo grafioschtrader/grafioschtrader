@@ -27,8 +27,9 @@ public class UDFMetadataGeneralJpaRepositoryImpl extends UDFMetadataBase<UDFMeta
       final UDFMetadataGeneral existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    UiOrderDescriptionCount uodc = uMetaRepository.countUiOrderAndDescription(new int[] { 0, user.getIdUser() },
-        uDFMetadataGeneral.getEntity(), uDFMetadataGeneral.getUiOrder(), uDFMetadataGeneral.getDescription());
+    UiOrderDescriptionCount uodc = uMetaRepository.countUiOrderAndDescription(
+        new int[] { GlobalConstants.UDF_ID_USER, user.getIdUser() }, uDFMetadataGeneral.getEntity(),
+        uDFMetadataGeneral.getUiOrder(), uDFMetadataGeneral.getDescription());
     uniqueDescUiOrderCheck(uodc, uDFMetadataGeneral, existingEntity);
     uDFMetadataGeneral.checkFieldSize();
 
@@ -41,7 +42,7 @@ public class UDFMetadataGeneralJpaRepositoryImpl extends UDFMetadataBase<UDFMeta
       Integer idUser, String entity) {
     List<FieldDescriptorInputAndShowExtendedGeneral> fDiscriptor = new ArrayList<>();
     List<UDFMetadataGeneral> udfMetaDataList = uMetaRepository
-        .getAllByIdUserInAndEntityOrderByUiOrder(new int[] { idUser, 0 }, entity);
+        .getAllByIdUserInAndEntityOrderByUiOrder(new int[] { idUser, GlobalConstants.UDF_ID_USER }, entity);
     udfMetaDataList.forEach(um -> {
       Double[] minMaxValue = um.getFieldLength();
       fDiscriptor.add(new FieldDescriptorInputAndShowExtendedGeneral(
@@ -57,15 +58,15 @@ public class UDFMetadataGeneralJpaRepositoryImpl extends UDFMetadataBase<UDFMeta
     return uMetaRepository.deleteByIdUDFMetadataAndIdUser(id, idUser);
   }
 
-
   @Override
   public List<String> getSupportedEntities() {
     return GlobalConstants.UDF_GENERAL_ENTITIES.stream().map(c -> c.getSimpleName()).collect(Collectors.toList());
   }
 
   @Override
-  public List<UDFMetadataGeneral> getMetadataByUserAndEntityAndIdEntity(Integer idUser, String entity, Integer idEntity) {
-    return uMetaRepository.getAllByIdUserInAndEntityOrderByUiOrder(new int[] { idUser},  entity);
+  public List<UDFMetadataGeneral> getMetadataByUserAndEntityAndIdEntity(Integer idUser, String entity,
+      Integer idEntity) {
+    return uMetaRepository.getAllByIdUserInAndEntityOrderByUiOrder(new int[] { idUser }, entity);
   }
 
 }

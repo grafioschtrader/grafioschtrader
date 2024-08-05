@@ -23,7 +23,7 @@ export class UDFMetadataSecurityService extends AuthServiceWithLogout<UDFMetadat
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  public getFieldDescriptorByIdUser(): Observable<FieldDescriptorInputAndShowExtendedSecurity[]> {
+  public getAllByIdUserInOrderByUiOrderExcludeDisabled(): Observable<FieldDescriptorInputAndShowExtendedSecurity[]> {
     return <Observable<FieldDescriptorInputAndShowExtendedSecurity[]>>this.httpClient.get(
       `${AppSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/fielddescriptor`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));

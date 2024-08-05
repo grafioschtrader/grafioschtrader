@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Currencypair;

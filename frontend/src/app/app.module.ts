@@ -335,6 +335,7 @@ import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.
 import {UDFMetadataGeneralService} from './shared/udfmeta/service/udf.metadata.general.service';
 import {UDFMetadataGeneralEditComponent} from './shared/udfmeta/components/udf-metadata-general-edit.component';
 import {UDFGeneralEditComponent} from './shared/udfmeta/components/udf-general-edit.component';
+import {UDFSpecialTypeDisableUserService} from './shared/udfmeta/service/udf.special.type.disable.user.service';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -473,8 +474,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     ProposeChangeEntityService, ProposeUserTaskService, ProductIconService, PortfolioService, SecurityaccountService,
     SecurityService, SecuritysplitService, StockexchangeService, TenantService, TimeSeriesQuotesService, UDFMetadataGeneralService,
     TradingDaysMinusService, TradingDaysPlusService, TradingPlatformPlanService, TransactionService, UDFMetadataSecurityService,
-    UDFDataService, UserAdminService, UserEntityChangeLimitService, UserSettingsService, ViewSizeChangedService,
-    WatchlistService],
+    UDFSpecialTypeDisableUserService, UDFDataService, UserAdminService, UserEntityChangeLimitService, UserSettingsService,
+    ViewSizeChangedService, WatchlistService],
   bootstrap: [AppComponent]
 })
 export class AppModule {

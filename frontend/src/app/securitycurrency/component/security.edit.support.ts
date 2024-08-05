@@ -101,9 +101,9 @@ export class SecurityEditSupport {
         {fieldsetName: 'BASE_DATA'}));
     if (securityDerived === SecurityDerived.Security) {
       fc.push(DynamicFieldHelper.createFieldInputWebUrlHeqF('stockexchangeLink',
-        gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL), false,{fieldsetName: 'BASE_DATA'}));
+        gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL), false, {fieldsetName: 'BASE_DATA'}));
       fc.push(DynamicFieldHelper.createFieldInputWebUrlHeqF('productLink',
-        gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL), false,  {fieldsetName: 'BASE_DATA'}));
+        gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL), false, {fieldsetName: 'BASE_DATA'}));
     }
     return fc;
   }
@@ -230,7 +230,9 @@ export class SecurityEditSupport {
       .setPrivatePaper(securityDerived, isPrivate, configObject));
   }
 
-  setPrivatePaper(securityDerived: SecurityDerived, isPrivate: boolean, configObject: { [name: string]: FieldConfig }): void {
+  setPrivatePaper(securityDerived: SecurityDerived, isPrivate: boolean, configObject: {
+    [name: string]: FieldConfig
+  }): void {
     if (isPrivate != null) {
       FormHelper.hideVisibleFieldConfigs(this.isHideIsinAndTicker(configObject),
         this.getIsinTickerLeverageFields(securityDerived, configObject));
@@ -261,7 +263,7 @@ export class SecurityEditSupport {
     configObject: { [name: string]: FieldConfig }): FieldConfig[] {
     const fieldConfigs: FieldConfig[] = [];
     if (securityDerived === SecurityDerived.Security) {
-      fieldConfigs.push(configObject.tickerSymbol);
+      !this.getIsCFDByConfigObject(configObject) && fieldConfigs.push(configObject.tickerSymbol);
       fieldConfigs.push(configObject.isin);
     }
     return fieldConfigs;
@@ -290,9 +292,12 @@ export class SecurityEditSupport {
   }
 
   private isHideIsinAndTicker(configObject: { [name: string]: FieldConfig }): boolean {
+    return this.getIsCFDByConfigObject(configObject) || configObject.isTenantPrivate.formControl.value;
+  }
+
+  private getIsCFDByConfigObject(configObject: { [name: string]: FieldConfig }): boolean {
     const assetClass: Assetclass = Helper.getReferencedDataObject(configObject.assetClass, null);
-    return assetClass && assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD]
-      || configObject.isTenantPrivate.formControl.value;
+    return assetClass && assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD];
   }
 }
 

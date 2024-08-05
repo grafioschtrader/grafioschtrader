@@ -14,7 +14,6 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
 import {Directive, Input} from '@angular/core';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {config} from 'rxjs';
 import {Helper} from '../../../helper/helper';
 import {AppSettings} from '../../app.settings';
 
@@ -71,7 +70,7 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
   }
 
   private formatDate(value: { [name: string]: any }): void {
-    this.config.filter( c => c.dataType === DataType.DateString).forEach( c => value[c.field] =
-    Helper.formatDateStringAsString(c, AppSettings.FORMAT_DATE_SHORT_NATIVE));
+    this.config.filter(c => c.dataType === DataType.DateString).forEach(c => value[c.field] =
+      Helper.formatDateStringAsString(c, AppSettings.FORMAT_DATE_SHORT_NATIVE));
   }
 }

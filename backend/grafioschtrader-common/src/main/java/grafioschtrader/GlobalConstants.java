@@ -185,6 +185,16 @@ public class GlobalConstants {
   public static final List<Class<?>> UDF_GENERAL_ENTITIES = List.of(Currencypair.class);
 
   /**
+   * Global user-defined fields belong to user 0.
+   */
+  public static final int UDF_ID_USER = 0;
+  
+  /**
+   * For user-defined fields, the sorting number must be less than 100.
+   */
+  public static final byte MAX_USER_UI_ORDER_VALUE = 100;
+  
+  /**
    * Defines the maximum values for user-defined input fields. The validation of
    * these values should also be carried out in the frontend.
    */

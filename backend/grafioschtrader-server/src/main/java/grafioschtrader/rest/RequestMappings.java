@@ -137,6 +137,9 @@ public interface RequestMappings {
   public static final String UDFMETADATASECURITY = "udfmetadatasecurity";
   public static final String UDF_METADATA_SECURITY_MAP = API + UDFMETADATASECURITY;
 
+  public static final String UDFSPECIALTYPEDISABLEUSER = "udfspecialtypedisableuser";
+  public static final String UDF_SEPCIAL_TYPE_DISABLE_USER_MAP = API + UDFSPECIALTYPEDISABLEUSER;
+  
   public static final String USER_MAP = API + User.TABNAME;
 
   // The is no table for useradmin

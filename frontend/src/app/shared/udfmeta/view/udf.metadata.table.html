@@ -30,6 +30,9 @@
               <svg-icon [name]="getValueByPath(el, field)"
                         [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
             </ng-container>
+            <ng-container *ngSwitchCase="'check'">
+              <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
+            </ng-container>
             <ng-container *ngSwitchDefault>
               <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">
                 {{ getValueByPath(el, field) }}

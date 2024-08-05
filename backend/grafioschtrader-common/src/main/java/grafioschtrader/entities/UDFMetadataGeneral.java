@@ -3,7 +3,6 @@ package grafioschtrader.entities;
 import java.util.Arrays;
 
 import grafioschtrader.types.UDFDataType;
-import grafioschtrader.types.UDFSpecialType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

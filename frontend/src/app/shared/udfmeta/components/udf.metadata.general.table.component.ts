@@ -1,6 +1,6 @@
 import {Component, OnDestroy} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
-import {UDFMetadataGeneral, UDFMetadataGeneralParam, UDFMetadataSecurityParam} from '../model/udf.metadata';
+import {UDFMetadataGeneral, UDFMetadataGeneralParam} from '../model/udf.metadata';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
@@ -14,6 +14,7 @@ import {UDFMetaTable} from './udf.metadata.table';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {TranslateValue} from '../../datashowbase/column.config';
 import {GlobalSessionNames} from '../../global.session.names';
+import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';
 
 /**
  * This table display is intended for the metadata of different information classes.
@@ -27,7 +28,9 @@ import {GlobalSessionNames} from '../../global.session.names';
 export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGeneral> implements OnDestroy {
   callParam: UDFMetadataGeneralParam = new UDFMetadataGeneralParam();
   isSecurityEdit = false;
-  constructor(uDFMetadataGeneralService: UDFMetadataGeneralService,
+
+  constructor(udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService,
+    uDFMetadataGeneralService: UDFMetadataGeneralService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -36,8 +39,8 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService) {
-    super(UDFMetadataGeneral, AppSettings.UDF_METADATA_GENERAL, uDFMetadataGeneralService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
+    super(UDFMetadataGeneral, udfSpecialTypeDisableUserService, uDFMetadataGeneralService, AppSettings.UDF_METADATA_GENERAL,
+      confirmationService, messageToastService, activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
     this.addMetadataBaseFields([{field: 'entity', order: 1}, {field: 'uiOrder', order: 1}]);
   }
 

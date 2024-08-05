@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector;
+import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 
@@ -39,7 +40,7 @@ public class YahooSplitCalendar implements ISplitCalendarFeedConnector {
     HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(
-            "https://finance.yahoo.com/calendar/splits?from=" + fromDate + "&to=" + forDate + "&day=" + forDate))
+            YahooHelper.YAHOO_CALENDAR + "splits?from=" + fromDate + "&to=" + forDate + "&day=" + forDate))
         .headers("Content-Type", "application/x-www-form-urlencoded", "X-Requested-With", "XMLHttpRequest",
             "User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
         .GET().build();

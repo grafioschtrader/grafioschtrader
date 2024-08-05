@@ -51,6 +51,7 @@ import grafioschtrader.common.DataHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
@@ -74,7 +75,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  */
 @Component
 public class YahooFeedConnectorCOM extends BaseFeedConnector {
-
+  
   private final Logger log = LoggerFactory.getLogger(this.getClass());
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -102,7 +103,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   public YahooFeedConnectorCOM() {
-    super(supportedFeed, "yahoo", "Yahoo USA Finance", null, EnumSet.noneOf(UrlCheck.class));
+    super(supportedFeed, YahooHelper.YAHOO, "Yahoo USA Finance", null, EnumSet.noneOf(UrlCheck.class));
 
   }
 
@@ -175,7 +176,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private String getHistoricalDownloadLink(final String symbol) {
-    return "https://finance.yahoo.com/quote/" + symbol + "/history?p=" + symbol;
+    return YahooHelper.YAHOO_FINANCE_QUOTE + symbol + "/history?p=" + symbol;
   }
 
   private <T extends Securitycurrency<T>> void readLastPriceWithCrumb(String urlStr, final T securitycurrency)

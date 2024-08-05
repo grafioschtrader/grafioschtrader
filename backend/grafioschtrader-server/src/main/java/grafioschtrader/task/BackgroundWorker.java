@@ -123,10 +123,7 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
       taskDataChange = startJob(taskDataChange, startTime);
       task.doWork(cloneTaskDataChange(taskDataChange));
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_PROCESSED);
-      if (task.removeAllOtherJobsOfSameTask()) {
-        taskDataChangeRepository.removeByIdTaskAndProgressStateType(task.getTaskType().getValue(),
-            ProgressStateType.PROG_WAITING.getValue());
-      }
+      removeOtherSameJobs(task);
     } catch (TaskInterruptException tie) {
       finishedJob(taskDataChange, startTime,
           timeout ? ProgressStateType.PROG_TIMEOUT : ProgressStateType.PROG_INTERRUPTED);
@@ -172,6 +169,15 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     taskDataChangeRepository.save(taskDataChange);
   }
 
+  
+  public void removeOtherSameJobs(final ITask task) {
+    if (task.removeAllOtherJobsOfSameTask()) {
+      taskDataChangeRepository.removeByIdTaskAndProgressStateType(task.getTaskType().getValue(),
+          ProgressStateType.PROG_WAITING.getValue());
+    }
+  }
+  
+  
   @Override
   public void destroy() {
     runningLoop = false;

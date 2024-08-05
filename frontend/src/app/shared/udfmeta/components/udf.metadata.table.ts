@@ -1,6 +1,5 @@
-import {TableCrudSupportMenuSecurity} from '../../datashowbase/table.crud.support.menu.security';
-import {UDFMetadata, UDFMetadataParam, UDFMetadataSecurity} from '../model/udf.metadata';
-import {ConfirmationService, FilterService, SortMeta} from 'primeng/api';
+import {UDFMetadata, UDFMetadataParam, UDFSpecialType} from '../model/udf.metadata';
+import {ConfirmationService, FilterService, MenuItem, SortMeta} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {DialogService} from 'primeng/dynamicdialog';
@@ -9,21 +8,26 @@ import {GlobalparameterService} from '../../service/globalparameter.service';
 import {UserSettingsService} from '../../service/user.settings.service';
 import {DeleteService} from '../../datashowbase/delete.service';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {TranslateValue} from '../../datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
 import {Observable} from 'rxjs';
 import {plainToInstance} from 'class-transformer';
 import {ClassConstructor} from 'class-transformer/types/interfaces';
-import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
 import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
+import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';
+import {combineLatest} from 'rxjs';
+import {TaskDataChange} from '../../../entities/task.data.change';
+
 
 /**
  * Base class for displaying metadata in a table. The user's own entities can be edited via a further dialog.
  */
 export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSupportMenu<T> {
+  specialTypeDisabledArr: UDFSpecialType[] | number[] = [];
 
   protected constructor(private classz: ClassConstructor<T>,
-    entityName: string,
+    private udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService,
     private deleteReadAllService: DeleteReadAllService<UDFMetadata>,
+    entityName: string,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -44,6 +48,8 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
     this.addColumnFeqH(DataType.String, 'uiOrder', true, false);
     this.addColumnFeqH(DataType.String, 'udfSpecialType', true, false,
       {translateValues: TranslateValue.NORMAL, width: 80});
+    this.addColumnFeqH(DataType.Boolean, 'udfDisabledUser', true, false,
+      {templateName: 'check', width: 60, fieldValueFN: this.udfDisabled.bind(this)});
     this.addColumn(DataType.String, 'description', 'FIELD_DESCRIPTION', true, false);
     this.addColumn(DataType.String, 'descriptionHelp', 'FIELD_DESCRIPTION_HELP', true, false,
       {width: 150});
@@ -55,7 +61,7 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
     this.prepareTableAndTranslate();
   }
 
-  protected beforeEdit(entity: UDFMetadata, uDFMetadataParam :UDFMetadataParam): void {
+  protected beforeEdit(entity: UDFMetadata, uDFMetadataParam: UDFMetadataParam): void {
     uDFMetadataParam.excludeUiOrders = this.entityList.filter(m => entity == null
       || entity.uiOrder !== m.uiOrder).map(m => m.uiOrder);
     uDFMetadataParam.excludeFieldNames = this.entityList.filter(m => entity == null
@@ -63,10 +69,34 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
   }
 
   override readData(): void {
-    this.deleteReadAllService.getAllByIdUser().subscribe((umsList: T[]) => {
-      this.entityList = plainToInstance(this.classz, umsList);
+    combineLatest([this.deleteReadAllService.getAllByIdUser(),
+      this.udfSpecialTypeDisableUserService.getDisabledSpecialTypes()]).subscribe(data => {
+      this.entityList = plainToInstance(this.classz, data[0]);
+      this.specialTypeDisabledArr = data[1];
+      console.log(this.specialTypeDisabledArr);
       this.createTranslatedValueStoreAndFilterField(this.entityList);
     })
+  }
+
+  protected override addCustomMenusToSelectedEntity(udfMetaData: T, menuItems: MenuItem[]): void {
+       menuItems.push({
+         label: 'UDF_TURN_ON_OFF_FIELD_USER0',
+         command: (event) => this.turnOnOffFieldUser0(udfMetaData),
+         disabled: !udfMetaData.udfSpecialType
+       });
+  }
+
+  turnOnOffFieldUser0(udfMetaData: T): void {
+    if(this.specialTypeDisabledArr.indexOf(udfMetaData.udfSpecialType) >= 0) {
+      this.udfSpecialTypeDisableUserService.delete(UDFSpecialType[udfMetaData.udfSpecialType]).subscribe( () =>  this.readData());
+    } else {
+      this.udfSpecialTypeDisableUserService.create(UDFSpecialType[udfMetaData.udfSpecialType]).subscribe(() => this.readData());
+    }
+  }
+
+  udfDisabled(entity: T, field: ColumnConfig, valueField: any): boolean {
+    console.log('value:',entity.udfSpecialType)
+    return this.specialTypeDisabledArr.indexOf(entity.udfSpecialType) >= 0;
   }
 
   protected override hasRightsForUpdateEntity(entity: T): boolean {

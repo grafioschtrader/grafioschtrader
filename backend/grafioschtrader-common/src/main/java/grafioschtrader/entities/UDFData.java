@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.hibernate.annotations.Type;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.GlobalConstants;
@@ -60,7 +61,7 @@ public class UDFData {
 
   @Schema(description = "Storage of a map in JSON. This gives us great flexibility. The idUDFMetadata with the prefix 'F' is used as the key.")
   @Type(JsonType.class)
-  @Column(columnDefinition = "json_values")
+  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
   private Map<String, Object> jsonValues;
 
   public UDFData() {

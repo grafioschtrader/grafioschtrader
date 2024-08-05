@@ -43,14 +43,21 @@ export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields
         fd.entity === AppSettings.CURRENCYPAIR) :
       SecurityUDFHelper.getFieldDescriptorInputAndShowExtendedSecurity((<Security>this.securitycurrency).assetClass, true);
     fdSecurityList.forEach(fds => {
+      let dataType = DataType[fds.dataType];
       const optionalParams: OptionalParams = {fieldsetName: 'UDF'}
       switch (DataType[fds.dataType]) {
+        case DataType.Boolean:
+          optionalParams.templateName = 'check';
+          break;
         case DataType.URLString:
         case DataType.String:
           optionalParams.templateName = 'long';
           break;
+        case DataType.DateTimeNumeric:
+          dataType = DataType.DateTimeString;
+          break;
       }
-      let cc = this.addFieldProperty(DataType[fds.dataType], this.SECURITYCURRENCY + fds.fieldName, fds.description,
+      let cc = this.addFieldProperty(dataType, this.SECURITYCURRENCY + fds.fieldName, fds.description,
         optionalParams);
       cc.headerTooltipTranslated = fds.descriptionHelp;
     });

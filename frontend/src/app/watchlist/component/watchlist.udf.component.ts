@@ -128,11 +128,11 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
       switch (DataType[fd.dataType]) {
         case DataType.Boolean:
           optionalParam.templateName = 'check';
-          optionalParam.width = 24;
+          optionalParam.width = 54;
           break;
         case DataType.URLString:
           optionalParam.templateName = 'linkIcon';
-          optionalParam.width = 24;
+          optionalParam.width = 54;
           break;
         case DataType.String:
           if (fd.max > 25) {

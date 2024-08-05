@@ -2,60 +2,45 @@ package grafioschtrader.reports.udfalluserfields;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.solvers.BrentSolver;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataHelper;
-import grafioschtrader.common.EnumHelper;
-import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
-import grafioschtrader.repository.UDFMetadataSecurityJpaRepository;
 import grafioschtrader.types.UDFSpecialType;
 
 @Service
-public class YieldToMaturityCalculator implements IUDFForEveryUser {
-
-  @Autowired
-  private UDFMetadataSecurityJpaRepository uDFMetadataSecurityJpaRepository;
-
-  private ObjectMapper objectMapper = new ObjectMapper();
-
-  public static double calculateYTM(LocalDate settlementDate, LocalDate maturityDate, double annualCouponRate,
-      double price, double redemption, int frequency, int basis) {
-    UnivariateFunction ytmFunction = new UnivariateFunction() {
-      @Override
-      public double value(double ytm) {
-        double presentValue = 0.0;
-        double annualCoupon = annualCouponRate / 100.0 * redemption;
-        int n = (int) (frequency * ChronoUnit.YEARS.between(settlementDate, maturityDate));
-        double couponInterval = 1.0 / frequency;
-
-        for (int t = 1; t <= n; t++) {
-          double paymentTime = t * couponInterval;
-          presentValue += annualCoupon / frequency / Math.pow(1 + ytm / frequency, paymentTime * frequency);
-        }
-        presentValue += redemption / Math.pow(1 + ytm / frequency, n / frequency);
-        return presentValue - (price / 100.0) * redemption;
-      }
-    };
-
-    BrentSolver solver = new BrentSolver(1e-10, 1e-14);
-    return solver.solve(1000, ytmFunction, 0.0, 1.0);
+public class YieldToMaturityCalculator extends AllUserFieldsBase implements IUDFForEveryUser {
+  
+  @Override
+  public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup) {
+    UDFMetadataSecurity udfYTM = getMetadataSecurity(getUDFSpecialType());
+    Pattern numberStartTextRegex = Pattern.compile("^[0-9]{0,8}([,|.][0-9]{0,4})?");
+    LocalDate now = LocalDate.now();
+    securitycurrencyUDFGroup.securityPositionList.stream()
+        .filter(s -> matchAssetclassAndSpecialInvestmentInstruments(udfYTM, s.securitycurrency.getAssetClass())
+            && ((java.sql.Date) s.securitycurrency.getActiveToDate()).toLocalDate().isAfter(now)
+            && s.securitycurrency.getDistributionFrequency().getValue() > 0
+            && s.securitycurrency.getDistributionFrequency().getValue() <= 12)
+        .forEach(s -> {
+          calcAndSetYTM(securitycurrencyUDFGroup, udfYTM, s.securitycurrency, numberStartTextRegex, now);
+        });
+  }
+  
+  @Override
+  public UDFSpecialType getUDFSpecialType() {
+    return UDFSpecialType.UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY;
   }
 
+  @Override
+  public boolean mayRunInBackground() {
+    return false;
+  }
+  
   /**
    * Returns the yield on a security that pays periodic interest. Use YIELD to
    * calculate bond yield.
@@ -120,7 +105,6 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
         fYieldN = fYield2 - (fYield2 - fYield1) * ((price - fPrice2) / (fPrice1 - fPrice2));
       }
     }
-
     return fYieldN;
   }
 
@@ -150,7 +134,6 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
     for (int fK = 0; fK < fN; fK++) {
       fRet += fT1 / Math.pow(fT2, fK + fDSC_E);
     }
-
     return fRet;
   }
 
@@ -167,7 +150,7 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
    */
   private double getCoupnum(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {
     LocalDate aMat = LocalDate.from(maturityDate);
-    LocalDate aDate = lcl_GetCouppcd(settlementDate, aMat, frequency);
+    LocalDate aDate = getPreviousCouponDate(settlementDate, aMat, frequency);
     int nMonths = (aMat.getYear() - aDate.getYear()) * 12 + aMat.getMonthValue() - aDate.getMonthValue();
     return nMonths * frequency / 12.0;
   }
@@ -177,7 +160,7 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
    */
   private double getCoupdays(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {
     if (basis == 1) {
-      LocalDate aDate = lcl_GetCouppcd(settlementDate, maturityDate, frequency);
+      LocalDate aDate = getPreviousCouponDate(settlementDate, maturityDate, frequency);
       LocalDate aNextDate = aDate.plusMonths(12 / frequency);
       return ChronoUnit.DAYS.between(aDate, aNextDate);
     }
@@ -185,6 +168,12 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
     return getDaysInYear(basis) / frequency;
   }
 
+  /**
+   * Gets the number of days in a year based on the basis.
+   *
+   * @param nMode The day count basis.
+   * @return The number of days in a year.
+   */
   private int getDaysInYear(int nMode) {
     switch (nMode) {
     case 0: // 0=USA (NASD) 30/360
@@ -206,10 +195,9 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
    *
    */
   private double getCoupdaysnc(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {
-
     if (basis != 0 && basis != 4) {
       LocalDate aSettle = LocalDate.from(settlementDate);
-      LocalDate aDate = lcl_GetCoupncd(aSettle, maturityDate, frequency);
+      LocalDate aDate = getNextCouponDate(aSettle, maturityDate, frequency);
       return ChronoUnit.DAYS.between(settlementDate, aDate) + 1;
     }
     return getCoupdays(settlementDate, maturityDate, frequency, basis)
@@ -221,20 +209,19 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
    * settlement date.
    */
   private long getCoupdaybs(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {
-    LocalDate aDate = lcl_GetCouppcd(settlementDate, maturityDate, frequency);
+    LocalDate aDate = getPreviousCouponDate(settlementDate, maturityDate, frequency);
     return ChronoUnit.DAYS.between(aDate, settlementDate);
   }
 
   /**
    * Find last coupon date before settlement (can be equal to settlement)
    */
-  private LocalDate lcl_GetCouppcd(LocalDate rSettle, LocalDate rMat, int nFreq) {
+  private LocalDate getPreviousCouponDate(LocalDate rSettle, LocalDate rMat, int nFreq) {
     LocalDate rDate = LocalDate.from(rMat);
     rDate.withYear(rSettle.getYear());
     if (rDate.compareTo(rSettle) < 0) {
       rDate = rDate.plusYears(1);
     }
-
     while (rDate.compareTo(rSettle) > 0) {
       rDate = rDate.minusMonths(12 / nFreq);
     }
@@ -244,7 +231,7 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
   /**
    * Find first coupon date after settlement (is never equal to settlement)
    */
-  private LocalDate lcl_GetCoupncd(LocalDate rSettle, LocalDate rMat, int nFreq) {
+  private LocalDate getNextCouponDate(LocalDate rSettle, LocalDate rMat, int nFreq) {
     LocalDate rDate = rMat;
     rDate.withYear(rSettle.getYear());
     if (rDate.compareTo(rSettle) > 0) {
@@ -256,70 +243,17 @@ public class YieldToMaturityCalculator implements IUDFForEveryUser {
     return rDate;
   }
 
-  // Main method for testing
-  public static void main(String[] args) {
-
-//    YTMCalculator ymtc = new YTMCalculator();
-//    System.out.println("0.10 FLUGH 20-27, CH0570576568:"
-//        + ymtc.yield(LocalDate.now(), LocalDate.of(2027, 12, 30), 0.001, 96.35, 100, 1, 4) * 100);
-//
-//    System.out.println(ymtc.yield(LocalDate.of(2024, 1, 29), LocalDate.of(2029, 12, 21), 0.0, 92.5, 100, 1, 4) * 100);
-
-  }
-
-  @Override
-  public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup) {
-    UDFMetadataSecurity udfYTM = uDFMetadataSecurityJpaRepository
-        .getByUdfSpecialTypeAndIdUser(UDFSpecialType.UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY.getValue(), 0);
-    Pattern numberStartTextRegex = Pattern.compile("^[0-9]{0,8}([,|.][0-9]{0,4})?");
-    LocalDate now = LocalDate.now();
-    securitycurrencyUDFGroup.securityPositionList.stream()
-        .filter(s -> matchAssetclassAndSpecialInvestmentInstruments(udfYTM, s.securitycurrency.getAssetClass())
-            && ((java.sql.Date) s.securitycurrency.getActiveToDate()).toLocalDate().isAfter(now)
-            && s.securitycurrency.getDistributionFrequency().getValue() > 0
-            && s.securitycurrency.getDistributionFrequency().getValue() <= 12)
-        .forEach(s -> {
-          calcAndSetYTM(securitycurrencyUDFGroup, udfYTM, s.securitycurrency, numberStartTextRegex, now);
-        });
-  }
-
   private void calcAndSetYTM(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, UDFMetadataSecurity udfYTM,
       Security security, Pattern numberStartTextRegex, LocalDate now) {
     Matcher matcher = numberStartTextRegex.matcher(security.getName());
     if (matcher.find()) {
       Double annualCouponRate = Double.parseDouble(matcher.group(0).replace(",", ".")) / 100;
-
       double ytm = DataHelper.round(
           yieldToMaturity(now, ((java.sql.Date) security.getActiveToDate()).toLocalDate(), annualCouponRate,
               security.getSLast(), 100, security.getDistributionFrequency().getValue(), 4) * 100,
           udfYTM.getFieldSizeSuffix());
-      try {
-        putValue(securitycurrencyUDFGroup, udfYTM, security.getIdSecuritycurrency(), ytm);
-      } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+      putValueToJsonValue(securitycurrencyUDFGroup, udfYTM, security.getIdSecuritycurrency(), ytm, false);
     }
   }
-
-  private boolean matchAssetclassAndSpecialInvestmentInstruments(UDFMetadataSecurity udfYTM, Assetclass assetclass) {
-    return (udfYTM.getCategoryTypes() == 0
-        || EnumHelper.contains(assetclass.getCategoryType(), udfYTM.getCategoryTypes()))
-        && (udfYTM.getSpecialInvestmentInstruments() == 0 || EnumHelper
-            .contains(assetclass.getSpecialInvestmentInstrument(), udfYTM.getSpecialInvestmentInstruments()));
-  }
-
-  private void putValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, UDFMetadataSecurity udfYTM, int idSecurity,
-      Object value) throws Exception {
-    String jsonValuesAsString = securitycurrencyUDFGroup.getUdfEntityValues().get(idSecurity);
-    Map<String, Object> jsonValuesMap;
-    if (jsonValuesAsString != null) {
-      ObjectReader reader = objectMapper.readerFor(Map.class);
-      jsonValuesMap = reader.readValue(jsonValuesAsString);
-    } else {
-      jsonValuesMap = new HashMap<>();
-    }
-    jsonValuesMap.put(GlobalConstants.UDF_FIELD_PREFIX + udfYTM.getIdUDFMetadata(), value);
-    securitycurrencyUDFGroup.getUdfEntityValues().put(idSecurity, objectMapper.writeValueAsString(jsonValuesMap));
-  }
+ 
 }
