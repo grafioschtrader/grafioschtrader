@@ -17,7 +17,7 @@ With GT version 0.31.6 we have switched to **Java 21** from **Java 17**. Please 
 + **Correlation matrices**: Support for rolling correlations with different time windows.
 
 ## Test Drive GT
-* Check the user [manual](//grafioschtrader.github.io/gt-user-manual/de/intro/) and a [YouTube channel](//www.youtube.com/channel/UCpogJM4KxrZGOyPoQx1xVKQ) in German language which are in progress.
+* Check the user manual in [english](//grafioschtrader.github.io/gt-user-manual/en/intro/) or [german](//grafioschtrader.github.io/gt-user-manual/de/intro/) and a [YouTube channel](//www.youtube.com/channel/UCpogJM4KxrZGOyPoQx1xVKQ) in German language which are in progress.
 * [GT in action](//www.grafioschtrader.info/grafioschtrader) with a following demo accounts or create your own account.
 
 | E-Mail  | Password | Language |
