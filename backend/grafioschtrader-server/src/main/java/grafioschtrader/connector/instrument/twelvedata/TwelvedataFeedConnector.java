@@ -114,8 +114,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   @Override
-  protected String hideApiKeyForError(String url) {
-    return url.replaceFirst("(.*" + TOKEN_PARAM_NAME + "=)([^&]*)(.*)", "$1" + ERROR_API_KEY_REPLACEMENT + "$3");
+  public String hideApiKeyForError(String url) {
+    return standardApiKeyReplacementForErrors(url, TOKEN_PARAM_NAME);
   }
 
   @Override

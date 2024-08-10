@@ -23,6 +23,7 @@ import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.calendar.IDividendCalendarFeedConnector;
 import grafioschtrader.connector.calendar.IDividendCalendarFeedConnector.CalendarDividends;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Globalparameters;
@@ -163,9 +164,9 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
       boolean replaceAlways, List<Dividend> youngestCalendarDividends) {
     List<String> errorMessages = new ArrayList<>();
     short retryDividendLoad = security.getRetryDividendLoad();
+    IFeedConnector connector = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
+        security.getIdConnectorDividend(), IFeedConnector.FeedSupport.FS_DIVIDEND);
     try {
-      IFeedConnector connector = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
-          security.getIdConnectorDividend(), IFeedConnector.FeedSupport.FS_DIVIDEND);
       List<Dividend> dividendsConnectorRead = connector.getDividendHistory(security,
           LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY));
       retryDividendLoad = 0;
@@ -191,6 +192,15 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
     }
     security.setRetryDividendLoad(retryDividendLoad);
     securityJpaRepository.save(security);
+    return replaceApiKey(connector, errorMessages);
+  }
+  
+  private  List<String> replaceApiKey(IFeedConnector connector,  List<String> errorMessages) {
+    if(connector instanceof BaseFeedApiKeyConnector keyConnector) {
+      for(int i = 0; i < errorMessages.size(); i++) {
+        errorMessages.set(i, keyConnector.hideApiKeyForError(errorMessages.get(i)));
+      }
+    }
     return errorMessages;
   }
 

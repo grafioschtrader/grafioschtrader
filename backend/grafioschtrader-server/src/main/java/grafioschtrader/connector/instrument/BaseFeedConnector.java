@@ -373,7 +373,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     return contentPage;
   }
 
-  protected String hideApiKeyForError(String url) {
+  public String hideApiKeyForError(String url) {
     return url;
   }
 

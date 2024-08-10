@@ -26,8 +26,6 @@ import jakarta.persistence.Table;
  * Entity which is the base class for all levels assignment (tenant portfolio,
  * asset class, security)
  *
- * @author Hugo Graf
- *
  */
 @Entity
 @Table(name = AlgoTopAssetSecurity.TABNAME)

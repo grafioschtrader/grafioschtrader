@@ -9,8 +9,6 @@ import jakarta.validation.constraints.Min;
  * Only securities of users watch list on top and asset class level are
  * supervised.</br>
  *
- * @author Hugo Graf
- *
  */
 public class PeriodPriceGainLosePercentAlert {
 

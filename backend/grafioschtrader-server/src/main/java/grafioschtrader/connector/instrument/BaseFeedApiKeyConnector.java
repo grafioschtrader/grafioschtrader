@@ -44,8 +44,13 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
       FeedSupport feedSupport) {
   }
 
+  
+  protected String standardApiKeyReplacementForErrors(String url, String tokenParamName) {
+    return url.replaceFirst("(.*" + tokenParamName + "=)([^&\\n]*)(\\n|\\t|.*)*", "$1" + ERROR_API_KEY_REPLACEMENT + "$3");
+  }
+  
   @Override
-  protected String hideApiKeyForError(String url) {
+  public String hideApiKeyForError(String url) {
     return url.replaceFirst("(^.*)(\\?.*$)", "$1");
   }
 

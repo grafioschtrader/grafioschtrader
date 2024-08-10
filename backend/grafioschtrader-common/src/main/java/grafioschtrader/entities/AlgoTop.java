@@ -12,10 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * Algorithmic tranding top level. It does not include the depending children.
- *
- *
- * @author Hugo Graf
+ * Algorithmic trading top level. It does not include the depending children.
  *
  */
 @Entity

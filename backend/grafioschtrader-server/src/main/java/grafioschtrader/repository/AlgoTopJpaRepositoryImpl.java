@@ -23,17 +23,17 @@ import grafioschtrader.entities.User;
 public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implements AlgoTopJpaRepositoryCustom {
 
   @Autowired
-  AlgoTopJpaRepository algoTopJpaRepository;
+  private AlgoTopJpaRepository algoTopJpaRepository;
   @Autowired
-  AlgoAssetclassJpaRepository algoAssetclassJpaRepository;
+  private AlgoAssetclassJpaRepository algoAssetclassJpaRepository;
   @Autowired
-  WatchlistJpaRepository watchlistJpaRepository;
+  private WatchlistJpaRepository watchlistJpaRepository;
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
   @Autowired
-  TransactionJpaRepository transactionJpaRepository;
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Autowired
   AssetclassJpaRepository assetclassJpaRepository;
