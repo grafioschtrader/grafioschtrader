@@ -6,9 +6,6 @@ import jakarta.validation.constraints.Min;
 /**
  * Alert when a certain position in a portfolio gain or lose a certain
  * percentage.
- *
- * @author Hugo Graf
- *
  */
 public class HoldingGainLosePercentAlert {
   @Min(value = 1)

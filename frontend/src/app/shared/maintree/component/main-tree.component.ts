@@ -66,12 +66,12 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   DialogVisible: typeof DialogVisible = DialogVisible;
   tenantLimits: { [key: string]: TenantLimit };
   tenant: Tenant;
-  private PORTFOLIO_INDEX: number;
-  private ALGO_INDEX: number;
-  private WATCHLIST_INDEX: number;
-  private BASEDATA_INDEX: number;
+  private readonly PORTFOLIO_INDEX: number;
+  private readonly ALGO_INDEX: number;
+  private readonly WATCHLIST_INDEX: number;
+  private readonly BASEDATA_INDEX: number;
   // Admin node must be the last index
-  private ADMINDATA_INDEX: number;
+  private readonly ADMINDATA_INDEX: number;
   private readonly UPDATE_TREE_PARTS = 2;
   private subscription: Subscription;
 

@@ -23,9 +23,11 @@ import grafioschtrader.entities.User;
 import grafioschtrader.repository.UDFSpecialTypeDisableUserRepository;
 import grafioschtrader.types.UDFSpecialType;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(RequestMappings.UDF_SEPCIAL_TYPE_DISABLE_USER_MAP)
+@Tag(name = RequestMappings.UDFSPECIALTYPEDISABLEUSER, description = "Controller for activating and deactivating general user-defined fields.")
 public class UDFSpecialTypeDisableUserResource {
 
   @Autowired
@@ -40,7 +42,7 @@ public class UDFSpecialTypeDisableUserResource {
         .map(s -> UDFSpecialType.getUDFSpecialTypeByValue(s)).collect(Collectors.toSet()), HttpStatus.OK);
   }
 
-  @Operation(summary = "With this entity we have a composite key, so there is a special implementation for creating it.", description = "", tags = {
+  @Operation(summary = "", description = "With this entity we have a composite key, so there is a special implementation for creating it.", tags = {
       RequestMappings.UDFSPECIALTYPEDISABLEUSER })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<UDFSpecialTypeDisableUser> create(@RequestBody Byte udfSpecialTypeValue) throws Exception {

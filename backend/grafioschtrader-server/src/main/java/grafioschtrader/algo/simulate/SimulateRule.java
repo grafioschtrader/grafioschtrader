@@ -13,9 +13,6 @@ import grafioschtrader.repository.WatchlistJpaRepository;
  * Simulate a rule strategy with existing accounts over a certain period. All
  * existing transactions are not taken into account.
  *
- *
- * @author Hugo Graf
- *
  */
 public class SimulateRule {
   private LocalDate startDate;

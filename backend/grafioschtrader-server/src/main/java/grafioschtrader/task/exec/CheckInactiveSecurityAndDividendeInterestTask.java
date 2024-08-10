@@ -27,6 +27,13 @@ import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 import jakarta.mail.MessagingException;
 
+/**
+ * This involves checking whether dividends or interest for positions held are
+ * recorded in the transactions. This background job should be carried out
+ * daily. It also checks whether there are open positions for an instrument that
+ * is no longer traded. There are two different procedures for determining any
+ * missing dividend or interest payments.
+ */
 @Component
 public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
 
@@ -79,7 +86,8 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
     for (CheckSecurityTransIntegrity csti : cstiList) {
       if (lastCsti == null || csti.getIdUser() != lastCsti.getIdUser()) {
         if (lastCsti != null) {
-          this.sendMail(msgKey, compoundMsg, mailEntityList, locale, msgException, lastCsti.getIdUser(), messageComType);
+          this.sendMail(msgKey, compoundMsg, mailEntityList, locale, msgException, lastCsti.getIdUser(),
+              messageComType);
         }
         locale = Locale.forLanguageTag(csti.getLocaleStr());
         compoundMsg.setLength(0);

@@ -41,7 +41,7 @@ public class UDFMetadataGeneralResource extends UpdateCreateDeleteWithUserIdReso
         uDFMetadataGeneralJpaRepository.getAllByIdUserInOrderByUiOrder(new int[] { user.getIdUser() }), HttpStatus.OK);
   }
 
-  @Operation(summary = "Return of the input or output field descriptions for the securities.", description = "", tags = {
+  @Operation(summary = "Return of the input or output field descriptions for the generall user defined fields.", description = "", tags = {
       RequestMappings.UDFMETADATAGENERAL })
   @GetMapping(value = "/fielddescriptor/{entity}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<FieldDescriptorInputAndShowExtendedGeneral>> getFieldDescriptorByIdUserForEntity(

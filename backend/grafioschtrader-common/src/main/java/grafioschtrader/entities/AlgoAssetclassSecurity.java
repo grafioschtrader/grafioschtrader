@@ -9,9 +9,6 @@ import jakarta.persistence.Table;
 
 /**
  * Base class for a strategy on asset class or security.
- *
- * @author Hugo Graf
- *
  */
 @Entity
 @Table(name = AlgoAssetclassSecurity.TABNAME)
