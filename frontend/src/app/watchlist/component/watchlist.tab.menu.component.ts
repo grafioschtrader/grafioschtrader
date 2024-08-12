@@ -9,9 +9,6 @@ import {MenuItem} from 'primeng/api';
 import {UDFMetadataSecurityService} from '../../shared/udfmeta/service/udf.metadata.security.service';
 import {GlobalSessionNames} from '../../shared/global.session.names';
 import {UDFMetadataGeneralService} from '../../shared/udfmeta/service/udf.metadata.general.service';
-import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
-import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
-import {Security} from '../../entities/security';
 
 @Component({
   template: `

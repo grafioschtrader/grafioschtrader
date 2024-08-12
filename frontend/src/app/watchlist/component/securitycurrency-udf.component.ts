@@ -12,6 +12,7 @@ import {GlobalSessionNames} from '../../shared/global.session.names';
 import {AppSettings} from '../../shared/app.settings';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {OptionalParams} from '../../shared/datashowbase/column.config';
+import {WatchlistService} from '../service/watchlist.service';
 
 
 /**
@@ -23,10 +24,11 @@ import {OptionalParams} from '../../shared/datashowbase/column.config';
 })
 export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields implements OnInit {
 
-  constructor(securityService: SecurityService,
+  constructor(watchlistService: WatchlistService,
+    securityService: SecurityService,
     translateService: TranslateService,
     gps: GlobalparameterService) {
-    super(securityService, translateService, gps);
+    super(watchlistService, securityService, translateService, gps);
   }
 
   ngOnInit(): void {

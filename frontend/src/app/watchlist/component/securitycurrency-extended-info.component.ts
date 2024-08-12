@@ -11,6 +11,9 @@ import {DistributionFrequency} from '../../shared/types/distribution.frequency';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {BusinessHelper} from '../../shared/helper/business.helper';
+import {WatchlistTable} from './watchlist.table';
+import {WatchlistService} from '../service/watchlist.service';
+import {WatchlistHelper} from './watchlist.helper';
 
 /**
  * Shows detailed information of a currency or instrument
@@ -28,10 +31,11 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
 
   readonly QUOTATION_DATA = 'QUOTATION_DATA';
 
-  constructor(securityService: SecurityService,
+  constructor(watchlistService: WatchlistService,
+    securityService: SecurityService,
     translateService: TranslateService,
     gps: GlobalparameterService) {
-    super(securityService, translateService, gps);
+    super(watchlistService, securityService, translateService, gps);
   }
 
   ngOnInit(): void {
@@ -86,7 +90,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
       fieldsetName: 'INTRA_SETTINGS'
     });
     this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlIntraExtend', {fieldsetName: 'INTRA_SETTINGS'});
-    this.addFieldPropertyFeqH(DataType.URLString, 'intradayUrl', {fieldsetName: 'INTRA_SETTINGS', templateName: 'long'});
+    this.addFieldPropertyFeqH(DataType.URLString, WatchlistHelper.INTRADAY_URL, {fieldsetName: 'INTRA_SETTINGS', templateName: 'long'});
     this.addDividendGroup();
     this.addSplitGroup();
   }

@@ -116,7 +116,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private subscriptionRequestFromChart: Subscription;
   private traceShow: { [name: string]: any } = {};
 
-
   constructor(private router: Router,
     private correlationSetService: CorrelationSetService,
     private messageToastService: MessageToastService,

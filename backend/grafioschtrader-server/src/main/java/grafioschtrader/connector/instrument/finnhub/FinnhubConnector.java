@@ -41,6 +41,8 @@ import grafioschtrader.types.SubscriptionType;
 public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
+  private final static String TOKEN_PARAM_NAME = "token";
+  
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -68,15 +70,18 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   private String getSecurityHistoricalDownloadLink(final Security security, Date from, Date to) {
     return DOMAIN_NAME_WITH_VERSION + "stock/candle?symbol=" + security.getUrlHistoryExtend().toUpperCase() + "&from="
-        + (from.getTime() / 1000) + "&to=" + (to.getTime() / 1000) + "&resolution=D&token=" + getApiKey();
+        + (from.getTime() / 1000) + "&to=" + (to.getTime() / 1000) + "&resolution=D" + getTokenParam();
   }
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    return DOMAIN_NAME_WITH_VERSION + "quote?symbol=" + security.getUrlIntraExtend().toUpperCase() + "&token="
-        + getApiKey();
+    return DOMAIN_NAME_WITH_VERSION + "quote?symbol=" + security.getUrlIntraExtend().toUpperCase() + getTokenParam();
   }
 
+  private String getTokenParam() {
+    return "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
+  }
+  
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
@@ -123,6 +128,12 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   }
 
   @Override
+  public String hideApiKeyForError(String url) {
+    return standardApiKeyReplacementForErrors(url, TOKEN_PARAM_NAME);
+  }
+  
+  
+  @Override
   public <S extends Securitycurrency<S>> void hasAPISubscriptionSupport(Securitycurrency<S> securitycurrency,
       FeedSupport feedSupport) {
     if (getSubscriptionType() == SubscriptionType.FINNHUB_FREE && securitycurrency instanceof Security security) {
@@ -141,7 +152,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   private String getSplitHistoricalDownloadLink(Security security, LocalDate from, LocalDate to) {
     return DOMAIN_NAME_WITH_VERSION + "stock/split?symbol=" + security.getUrlSplitExtend().toUpperCase() + "&from="
-        + from + "&to=" + to + "&token=" + this.getApiKey();
+        + from + "&to=" + to + getTokenParam();
   }
 
   @Override

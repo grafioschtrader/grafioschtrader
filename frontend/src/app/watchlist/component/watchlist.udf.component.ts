@@ -25,6 +25,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {ColumnConfig, OptionalParams} from '../../shared/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
+import {WatchlistHelper} from './watchlist.helper';
 
 /**
  * Display of the watchlist with the user-defined additional fields.
@@ -140,7 +141,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
           }
       }
       const cc: ColumnConfig = this.addColumn(DataType[fd.dataType] === DataType.DateTimeNumeric ? DataType.DateTimeString
-          : DataType[fd.dataType], WatchlistTable.SECURITYCURRENCY + '.' + fd.fieldName, fd.description, true,
+          : DataType[fd.dataType], WatchlistHelper.SECURITYCURRENCY + '.' + fd.fieldName, fd.description, true,
         true, optionalParam);
       cc.headerTooltipTranslated = fd.descriptionHelp;
     }

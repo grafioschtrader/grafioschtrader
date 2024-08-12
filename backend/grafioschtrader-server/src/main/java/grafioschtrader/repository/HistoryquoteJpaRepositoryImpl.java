@@ -144,13 +144,9 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   @Override
   public Auditable getParentSecurityCurrency(final User user, Integer idSecuritycurrency) {
-    Optional<Security> securityOpt = securityJpaRepository.findById(idSecuritycurrency);
-    if (securityOpt.isPresent()) {
-      // Parent is a security
-      return securityOpt.get();
-    } else {
-      return currencypairJpaRepository.getReferenceById(idSecuritycurrency);
-    }
+    return securityJpaRepository.findById(idSecuritycurrency)
+        .map(security -> (Auditable) security)
+        .orElseGet(() -> currencypairJpaRepository.getReferenceById(idSecuritycurrency));
   }
 
   @Override

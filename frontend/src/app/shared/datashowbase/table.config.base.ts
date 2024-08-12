@@ -86,9 +86,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
 
   readTableDefinition(key: string): void {
     if(this.hasSameChecksum(key)) {
-      const readedFields: any[] = this.usersettingsService.readArray(key);
-      if (readedFields != null && readedFields.length > 0) {
-        const fieldObject: any = Object.assign({}, ...readedFields);
+      const readFields: any[] = this.usersettingsService.readArray(key);
+      if (readFields != null && readFields.length > 0) {
+        const fieldObject: any = Object.assign({}, ...readFields);
         this.fields.forEach(field => {
           field.visible = fieldObject[field.headerKey];
         });
@@ -96,26 +96,30 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     }
   }
 
+  /**
+   * Check whether a field has been added by the backend, if so, the definition of the displayed columns must be recreated by the user.
+   */
   private hasSameChecksum(key: string): boolean {
     const keyChecksum = key + '.checksum';
     const existingChecksum: string = localStorage.getItem(keyChecksum);
-    const newChecksum: string = this.calculateHashOverFieldNames();
+    const newChecksum: string = this.calculateHashAllOverFieldNames();
     localStorage.setItem(keyChecksum, newChecksum);
     return existingChecksum === newChecksum;
   }
 
-  private calculateHashOverFieldNames(): string {
+  private calculateHashAllOverFieldNames(): string {
     let i: number;
     let sum: number = 0;
     this.fields.forEach(field => {
-        let cs = this.charsum(field.field);
+      let fieldName =  field.field.replace(/(\.de|\.en)$/, '');
+      let cs = this.charSum(fieldName);
         sum = sum + (65027 / cs);
       }
     );
     return ('' + sum).slice(0, 16)
   }
 
-  private charsum(s: string): number {
+  private charSum(s: string): number {
     let i: number;
     let sum = 0;
     for (i = 0; i < s.length; i++) {

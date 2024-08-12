@@ -21,7 +21,6 @@ export class CorrelationEditingSupport {
   private requiredMinPeriods = 3;
   private actualSamplingPeriod: SamplingPeriodType;
 
-
   getCorrelationFieldDefinition(mainField: string, usedLayoutColumns: number, submitTextKey: string = null): FieldConfig[] {
     const fieldConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldInputString('name', 'CORRELATION_SET_NAME', 25, true),
@@ -42,7 +41,6 @@ export class CorrelationEditingSupport {
     if (usedLayoutColumns < 12) {
       fieldConfig.forEach(fc => fc.usedLayoutColumns = usedLayoutColumns);
     }
-
     return fieldConfig;
   }
 
@@ -107,7 +105,7 @@ export class CorrelationEditingSupport {
   }
 
   destroy(): void {
-    this.changeOnSamplingPeriodSub && this.changeOnSamplingPeriodSub.unsubscribe;
+    this.changeOnSamplingPeriodSub && this.changeOnSamplingPeriodSub.unsubscribe();
     this.changeOnDateFromSub && this.changeOnDateFromSub.unsubscribe();
   }
 }

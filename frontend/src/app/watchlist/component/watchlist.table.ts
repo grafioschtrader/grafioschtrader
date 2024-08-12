@@ -42,12 +42,13 @@ import {AppSettings} from '../../shared/app.settings';
 import {UDFGeneralCallParam} from '../../shared/udfmeta/model/udf.metadata';
 import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.helper';
 import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
+import {WatchlistHelper} from './watchlist.helper';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
   public static readonly SINGLE = 'single';
   public static readonly MULTIPLE = 'multiple';
-  public static readonly SECURITYCURRENCY = 'securitycurrency'
+
   WatchListType: typeof WatchListType = WatchListType;
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
   securitycurrencyGroup: SecuritycurrencyGroup;
@@ -70,7 +71,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   paginator = false;
   intraUpdateTimoutSeconds: number;
   watchlist: Watchlist;
-  readonly SECURITYCURRENCY_NAME = WatchlistTable.SECURITYCURRENCY + '.name';
+  readonly SECURITYCURRENCY_NAME = WatchlistHelper.SECURITYCURRENCY + '.name';
   contextMenuItems: MenuItem[] = [];
   timeFrames: TimeFrame[] = [];
   choosenTimeFrame: TimeFrame;
@@ -303,9 +304,9 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       {width: 200, frozenColumn: true, templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.String, WatchlistTable.SECURITYCURRENCY + '.isin', true, true, {width: 90});
-    this.addColumnFeqH(DataType.String, WatchlistTable.SECURITYCURRENCY + '.tickerSymbol', true, true);
-    this.addColumnFeqH(DataType.String, WatchlistTable.SECURITYCURRENCY + '.currency', true, true);
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.isin', true, true, {width: 90});
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.tickerSymbol', true, true);
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.currency', true, true);
   }
 
   /**
@@ -404,13 +405,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   private getDownloadLinkHistoricalIntra(url: string, targetPage: string, securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
     isIntra: boolean): void {
-    if (url === 'lazy') {
-      this.watchlistService.getDataProviderLinkForUser(securitycurrencyPosition.securitycurrency.idSecuritycurrency, isIntra,
-        !(securitycurrencyPosition.securitycurrency instanceof Currencypair)).subscribe(
-        urlWebpage => BusinessHelper.toExternalWebpage(urlWebpage, targetPage))
-    } else {
-      BusinessHelper.toExternalWebpage(url, targetPage);
-    }
+    WatchlistHelper.getDownloadLinkHistoricalIntra(url, targetPage, securitycurrencyPosition.securitycurrency, isIntra, this.watchlistService);
   }
 
   protected getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
