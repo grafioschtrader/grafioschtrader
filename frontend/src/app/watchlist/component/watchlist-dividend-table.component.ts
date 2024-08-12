@@ -10,7 +10,9 @@ import {Dividend} from '../../entities/dividend.split';
 import {FilterService} from 'primeng/api';
 import {AppSettings} from '../../shared/app.settings';
 
-
+/**
+ * Time the imported dividends as a table for a security.
+ */
 @Component({
   selector: 'watchlist-dividend-table',
   templateUrl: '../view/dividend.split.table.html'
@@ -18,7 +20,6 @@ import {AppSettings} from '../../shared/app.settings';
 export class WatchlistDividendTableComponent extends DividendSplitTableBase<Dividend> implements OnInit {
   private static EX_DATE = 'exDate';
   @Input() idSecuritycurrency: number;
-
 
   constructor(private dividendService: DividendService,
               filterService: FilterService,

@@ -24,6 +24,12 @@
           <ng-container *ngSwitchDefault>
             {{getValueByPath(content, field)}}
           </ng-container>
+          <ng-container *ngIf="field.dataType === DataType.URLString && getValueByPath(content, field) === 'lazy'">
+            <a href="#" (click)="handleLazyClick($event, '_blank', content, field)">
+              <i class="pi pi-link"></i>
+            </a>
+          </ng-container>
+
           <ng-container *ngIf="field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('http')">
             <a [href]="getValueByPath(content, field)" target=_blank><i class="pi pi-link"></i></a>
           </ng-container>

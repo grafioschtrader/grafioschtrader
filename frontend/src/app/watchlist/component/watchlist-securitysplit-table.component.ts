@@ -10,7 +10,9 @@ import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Securitysplit} from '../../entities/dividend.split';
 import {FilterService} from 'primeng/api';
 
-
+/**
+ * Time the splits created or imported as a table for a security.
+ */
 @Component({
   selector: 'watchlist-securitysplit-table',
   templateUrl: '../view/dividend.split.table.html'

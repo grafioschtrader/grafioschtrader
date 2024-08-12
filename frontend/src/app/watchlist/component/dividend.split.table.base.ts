@@ -10,10 +10,9 @@ import {FilterService} from 'primeng/api';
 
 
 export abstract class DividendSplitTableBase<S extends DividendSplit> extends TableConfigBase {
-
   data: S[];
 
-  constructor(filterService: FilterService,
+  protected constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService,

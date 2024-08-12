@@ -24,7 +24,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   id: number;
   securitycurrencySearch: SecuritycurrencySearch;
 
-  constructor(private instance: T,
+  protected constructor(private instance: T,
               private dataChangedService: DataChangedService,
               private addSearchToListService: AddSearchToListService<T>,
               filterService: FilterService,

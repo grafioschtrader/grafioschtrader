@@ -12,6 +12,9 @@ import {SecurityService} from '../../securitycurrency/service/security.service';
 import {Currencypair} from '../../entities/currencypair';
 import {Directive, Input} from '@angular/core';
 import {Securitycurrency} from '../../entities/securitycurrency';
+import {WatchlistHelper} from './watchlist.helper';
+import {WatchlistService} from '../service/watchlist.service';
+import {WatchlistTable} from './watchlist.table';
 
 /**
  * Contains the definition of the basic fields as a group of an instrument.
@@ -28,10 +31,17 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
   protected additionalInstruments: { [fieldName: string]: Security | CurrencypairWatchlist } = {};
   content: ContentBase;
 
-  protected constructor(private securityService: SecurityService,
+  protected constructor(private watchlistService: WatchlistService,
+    private securityService: SecurityService,
     translateService: TranslateService,
     gps: GlobalparameterService) {
     super(translateService, gps);
+  }
+
+  public handleLazyClick(event: Event, targetPage: string, content: ContentBase, field: ColumnConfig): void {
+    event.preventDefault();
+    const url = this.getValueByPath(content, field)
+    WatchlistHelper.getDownloadLinkHistoricalIntra(url, targetPage, content.securitycurrency, field.field.endsWith(WatchlistHelper.INTRADAY_URL), this.watchlistService);
   }
 
   protected initializeFields(): void {
@@ -140,6 +150,6 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
 }
 
 export abstract class ContentBase {
-  constructor(public securitycurrency: Securitycurrency) {
+  protected constructor(public securitycurrency: Securitycurrency) {
   }
 }
