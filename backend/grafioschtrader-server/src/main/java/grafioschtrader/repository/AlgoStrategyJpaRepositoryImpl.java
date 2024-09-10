@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -8,7 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.algo.strategy.model.AlgoStrategyImplementations;
+import grafioschtrader.algo.strategy.model.AlgoLevelType;
+import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.entities.AlgoStrategy;
 import grafioschtrader.entities.User;
@@ -17,7 +19,7 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
     implements AlgoStrategyJpaRepositoryCustom {
 
   @Autowired
-  AlgoStrategyJpaRepository algoStrategyJpaRepository;
+  private AlgoStrategyJpaRepository algoStrategyJpaRepository;
 
   @Override
   public AlgoStrategy saveOnlyAttributes(AlgoStrategy algoStrategy, AlgoStrategy existingEntity,
@@ -30,15 +32,21 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
   }
 
   @Override
-  public Set<AlgoStrategyImplementations> getUnusedStrategiesForManualAdding(Integer idAlgoAssetclassSecurity) {
+  public Set<AlgoStrategyImplementationType> getStrategiesForLevel(AlgoLevelType algoLevelType) {
+    return StrategyHelper.getUnusedStrategiesForManualAdding(Collections.<AlgoStrategyImplementationType>emptySet(),
+        algoLevelType);
+  }
+
+  @Override
+  public Set<AlgoStrategyImplementationType> getUnusedStrategiesForManualAdding(Integer idAlgoAssetclassSecurity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    String algoLevelType = algoStrategyJpaRepository.getAlgoLevelType(idAlgoAssetclassSecurity, user.getIdTenant());
-    if (algoLevelType != null) {
+    String algoLevel = algoStrategyJpaRepository.getAlgoLevelType(idAlgoAssetclassSecurity, user.getIdTenant());
+    if (algoLevel != null) {
       List<AlgoStrategy> existingAlgoStrategies = algoStrategyJpaRepository
           .findByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity, user.getIdTenant());
-      Set<AlgoStrategyImplementations> existingSet = existingAlgoStrategies.stream()
+      Set<AlgoStrategyImplementationType> existingSet = existingAlgoStrategies.stream()
           .map(strategy -> strategy.getAlgoStrategyImplementations()).collect(Collectors.toSet());
-      return StrategyHelper.getUnusedStrategiesForManualAdding(existingSet, algoLevelType);
+      return StrategyHelper.getUnusedStrategiesForManualAdding(existingSet, AlgoLevelType.getAlgoLeveType(algoLevel));
     }
     return null;
   }

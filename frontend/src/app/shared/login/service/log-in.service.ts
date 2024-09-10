@@ -66,8 +66,7 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.JWT, token);
     sessionStorage.setItem(GlobalSessionNames.REPORT_UNTIL_DATE, moment().format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
 
-    sessionStorage.setItem(GlobalSessionNames.USE_WEBSOCKET, JSON.stringify(configurationWithLogin.useWebsocket));
-    sessionStorage.setItem(GlobalSessionNames.USE_ALGO, JSON.stringify(configurationWithLogin.useAlgo));
+    sessionStorage.setItem(GlobalSessionNames.USE_FEATURES, JSON.stringify(configurationWithLogin.useFeatures));
     sessionStorage.setItem(GlobalSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
 
     sessionStorage.setItem(GlobalSessionNames.STANDARD_PRECISION, JSON.stringify(configurationWithLogin.standardPrecision));

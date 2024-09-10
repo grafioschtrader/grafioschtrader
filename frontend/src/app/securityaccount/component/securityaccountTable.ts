@@ -23,6 +23,7 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService, SelectItem} from 'primeng/api';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 
 /**
@@ -50,6 +51,7 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
   protected securityAccount: Securityaccount;
 
   protected constructor(timeSeriesQuotesService: TimeSeriesQuotesService,
+                        alarmSetupService: AlarmSetupService,
                         activePanelService: ActivePanelService,
                         messageToastService: MessageToastService,
                         securityaccountService: SecurityaccountService,
@@ -62,9 +64,8 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
                         gps: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
 
-    super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
-
+    super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY],
       new SecurityaccountCurrencyGroup(this.translateService, this));
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_ASSETCLASS],

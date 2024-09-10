@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class AlgoTopResource extends UpdateCreateDeleteWithTenantResource<AlgoTop> {
 
   @Autowired
-  AlgoTopJpaRepository algoTopJpaRepository;
+  private AlgoTopJpaRepository algoTopJpaRepository;
 
   public AlgoTopResource() {
     super(AlgoTop.class);

@@ -19,6 +19,7 @@ gt:
   use:
     websocket: false
     algo: false
+    alert: false
   limit:
     # Limit Data
     #-------------------------------------

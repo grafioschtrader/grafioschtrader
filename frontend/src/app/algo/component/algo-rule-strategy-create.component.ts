@@ -12,7 +12,7 @@ import {Subscription} from 'rxjs';
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {Assetclass} from '../../entities/assetclass';
 import {AlgoTopCreate, AssetclassPercentage} from '../../entities/backend/algo.top.create';
-import {RuleStrategy} from '../../shared/types/rule.strategy';
+import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AlgoTopService} from '../service/algo.top.service';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
@@ -89,7 +89,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
 
   protected override initialize() {
     this.algoTopCreate = <AlgoTopCreate>this.callParam.thisObject;
-    if (this.algoTopCreate.ruleStrategy === RuleStrategy[RuleStrategy.RS_RULE]) {
+    if (this.algoTopCreate.ruleStrategy === RuleStrategyType[RuleStrategyType.RS_RULE]) {
       this.algoTitleKey = 'ALGO_RULE_BASED';
       this.helpId = HelpIds.HELP_ALGO_RULE;
     } else {

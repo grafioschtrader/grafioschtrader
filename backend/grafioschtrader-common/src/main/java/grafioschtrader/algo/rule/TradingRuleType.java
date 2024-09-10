@@ -1,6 +1,6 @@
 package grafioschtrader.algo.rule;
 
-public enum TradingRules {
+public enum TradingRuleType {
   // Buy, Sell -> Param1: Price/SMA/EMA, Param2: ABSOLUTE VALUE/SMA/EMA
   RULE_CROSSED_DOWN((byte) 1),
 
@@ -18,7 +18,7 @@ public enum TradingRules {
 
   private final Byte value;
 
-  private TradingRules(final Byte value) {
+  private TradingRuleType(final Byte value) {
     this.value = value;
   }
 
@@ -26,8 +26,8 @@ public enum TradingRules {
     return this.value;
   }
 
-  public static TradingRules getTradingRules(byte value) {
-    for (TradingRules tradingRules : TradingRules.values()) {
+  public static TradingRuleType getTradingRuleType(byte value) {
+    for (TradingRuleType tradingRules : TradingRuleType.values()) {
       if (tradingRules.getValue() == value) {
         return tradingRules;
       }

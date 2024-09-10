@@ -15,7 +15,9 @@ import {BaseInputComponent} from '../base.input.component';
           #input
           [ngStyle]="{'width': config.inputWidth+'em'}"
           [class.required-input]="isRequired && !config.readonly"
-          [ngClass]="config.fieldSuffix ? 'form-control-fluid input-sm' : 'form-control input-sm'"
+          [ngClass]="{'form-control-fluid input-sm': config.fieldSuffix,
+                    'form-control input-sm': !config.fieldSuffix,
+                     'text-right': config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger }"
           [type]="(config.dataType === DataType.TimeString)? 'time':
             (config.dataType === DataType.Numeric  || config.dataType === DataType.NumericInteger)?
             'number': (config.dataType === DataType.Password)? 'password': (config.dataType === DataType.Email)? 'email' : 'text'"
@@ -38,7 +40,9 @@ import {BaseInputComponent} from '../base.input.component';
           #input
           [ngStyle]="{'width': config.inputWidth+'em'}"
           [class.required-input]="isRequired && !config.readonly"
-          [ngClass]="config.fieldSuffix ? 'form-control-fluid input-sm' : 'form-control input-sm'"
+          [ngClass]="{'form-control-fluid input-sm': config.fieldSuffix,
+                    'form-control input-sm': !config.fieldSuffix,
+                     'text-right': config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger }"
           [type]="(config.dataType === DataType.TimeString)? 'time':
             (config.dataType === DataType.Numeric  || config.dataType === DataType.NumericInteger)?
             'number': (config.dataType === DataType.Password)? 'password': (config.dataType === DataType.Email)? 'email' : 'text'"

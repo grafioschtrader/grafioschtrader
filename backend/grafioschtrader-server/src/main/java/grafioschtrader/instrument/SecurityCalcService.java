@@ -108,7 +108,6 @@ public class SecurityCalcService {
 
   private SecurityBaseCalc getSecurityCalc(Security security) {
     return security.isMarginInstrument() ? securityMarginCalc : securityGeneralCalc;
-
   }
 
 }

@@ -12,9 +12,9 @@ export class AlgoStrategyHelper {
   public static getFieldDescriptorInputAndShowByLevel<T extends AlgoTopAssetSecurity>(algoTopAssetSecurity: T,
                                                                                       inputAndShowDefinition: InputAndShowDefinitionStrategy): FieldDescriptorInputAndShow[] {
     if (algoTopAssetSecurity instanceof AlgoTop) {
-      return inputAndShowDefinition.topFormDefintionList;
+      return inputAndShowDefinition.topFormDefinitionList;
     } else if (algoTopAssetSecurity instanceof AlgoAssetclass) {
-      return inputAndShowDefinition.assetclassFormDefintionList;
+      return inputAndShowDefinition.assetclassFormDefinitionList;
     } else {
       return inputAndShowDefinition.securityFormDefinitionList;
     }

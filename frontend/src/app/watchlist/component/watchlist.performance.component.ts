@@ -26,6 +26,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {BusinessHelper} from '../../shared/helper/business.helper';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 /**
  * Shows the performance watchlist. It has no special function implemented.
@@ -48,6 +49,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
 
   constructor(private viewSizeChangedService: ViewSizeChangedService,
               dialogService: DialogService,
+              alarmSetupService: AlarmSetupService,
               timeSeriesQuotesService: TimeSeriesQuotesService,
               dataChangedService: DataChangedService,
               activePanelService: ActivePanelService,
@@ -62,8 +64,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
-      dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
+    super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
+      timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, gps,
       usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();

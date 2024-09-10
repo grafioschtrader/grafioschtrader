@@ -1,13 +1,13 @@
 package grafioschtrader.algo;
 
-public enum RuleStrategy {
+public enum RuleStrategyType {
   RS_RULE((byte) 1), 
   
   RS_STRATEGY((byte) 2);
 
   private final Byte value;
 
-  private RuleStrategy(final Byte value) {
+  private RuleStrategyType(final Byte value) {
     this.value = value;
   }
 
@@ -15,8 +15,8 @@ public enum RuleStrategy {
     return this.value;
   }
 
-  public static RuleStrategy getRuleStrategy(byte value) {
-    for (RuleStrategy ruleStrategy : RuleStrategy.values()) {
+  public static RuleStrategyType getRuleStrategyType(byte value) {
+    for (RuleStrategyType ruleStrategy : RuleStrategyType.values()) {
       if (ruleStrategy.getValue() == value) {
         return ruleStrategy;
       }

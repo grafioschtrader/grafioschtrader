@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -79,12 +81,21 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
 
     final Element div = doc.select("#keyelement_kurs_update").first();
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "")).split(" ");
-    securitycurrency.setSLast(FeedConnectorHelper.parseDoubleGE(numbers[0].replaceAll("[A-Z]*$", "")));
+    securitycurrency.setSLast(endsWithDotNumbersButNoComma(numbers[0])
+        ? Double.parseDouble(numbers[0].replaceAll("[A-Z]*$", ""))
+        : FeedConnectorHelper.parseDoubleGE(numbers[0].replaceAll("[A-Z]*$", "")));
     var offset = FeedConnectorHelper.isCreatableGE(numbers[1]) ? 0 : 1;
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleGE(numbers[1 + offset]));
     securitycurrency.setSOpen(
         DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleGE(numbers[2 + offset])));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+  }
+
+  private boolean endsWithDotNumbersButNoComma(String input) {
+    String regex = "\\.\\d+$";
+    Pattern pattern = Pattern.compile(regex);
+    Matcher matcher = pattern.matcher(input);
+    return matcher.find();
   }
 
   private String getResponseByHttpClient(String url) throws IOException, InterruptedException {

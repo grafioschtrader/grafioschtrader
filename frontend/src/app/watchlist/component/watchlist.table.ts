@@ -43,6 +43,7 @@ import {UDFGeneralCallParam} from '../../shared/udfmeta/model/udf.metadata';
 import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.helper';
 import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
 import {WatchlistHelper} from './watchlist.helper';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
@@ -88,6 +89,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   protected constructor(public watchlistType: WatchListType,
     protected storeKey: string,
     protected dialogService: DialogService,
+    protected alarmSetupService: AlarmSetupService,
     protected timeSeriesQuotesService: TimeSeriesQuotesService,
     protected dataChangedService: DataChangedService,
     protected activePanelService: ActivePanelService,
@@ -393,6 +395,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
           disabled: !securitycurrencyPosition.historicalUrl
         }
       );
+      menuItems.push(...this.alarmSetupService.getMenuItem(securitycurrencyPosition.securitycurrency));
       menuItems.push({separator: true});
       menuItems.push({
         label: '_MAIL_TO_CREATOR' + AppSettings.DIALOG_MENU_SUFFIX,

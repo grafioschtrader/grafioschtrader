@@ -26,6 +26,7 @@ import {SvgIconRegistryService} from 'angular-svg-icon';
 import {ColumnConfig, OptionalParams} from '../../shared/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 import {WatchlistHelper} from './watchlist.helper';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 /**
  * Display of the watchlist with the user-defined additional fields.
@@ -51,6 +52,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     private currencypairService: CurrencypairService,
     private uDFMetadataSecurityService: UDFMetadataSecurityService,
     dialogService: DialogService,
+    alarmSetupService: AlarmSetupService,
     timeSeriesQuotesService: TimeSeriesQuotesService,
     dataChangedService: DataChangedService,
     activePanelService: ActivePanelService,
@@ -65,8 +67,8 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService) {
-    super(WatchListType.UDF, AppSettings.WATCHLIST_UDF_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
-      dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
+    super(WatchListType.UDF, AppSettings.WATCHLIST_UDF_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
+      timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
       gps, usersettingsService, WatchlistTable.SINGLE);
     WatchlistUdfComponent.registerIcons(iconReg);

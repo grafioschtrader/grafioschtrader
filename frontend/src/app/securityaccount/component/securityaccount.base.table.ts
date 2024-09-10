@@ -34,6 +34,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 
 @Directive()
@@ -66,6 +67,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   private subscriptionRequestFromChart: Subscription;
 
   protected constructor(protected timeSeriesQuotesService: TimeSeriesQuotesService,
+                        protected alarmSetupService: AlarmSetupService,
                         protected activePanelService: ActivePanelService,
                         protected messageToastService: MessageToastService,
                         protected securityaccountService: SecurityaccountService,
@@ -315,6 +317,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     if (security) {
       menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(security.idSecuritycurrency, security.currency,
         true, this.addNoMarketValueOpt(security)));
+      menuItems.push(...this.alarmSetupService.getMenuItem(security));
       translate && TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }
     return menuItems;

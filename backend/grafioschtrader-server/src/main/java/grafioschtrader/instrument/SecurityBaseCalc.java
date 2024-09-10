@@ -64,7 +64,14 @@ public abstract class SecurityBaseCalc {
     } else {
       securityPositionSummary.splitFactorFromBaseTransaction = splitFactorAfterBefore.fromToDateFactor;
     }
+    return createCalcTransactionPos(transaction, securityPositionSummary, dateCurrencyMap, openMarginTransaction,
+        splitFactorAfterBefore, splitToOpenTransaction);
+  }
 
+  private CalcTransactionPos createCalcTransactionPos(final Transaction transaction,
+      final SecurityPositionSummary securityPositionSummary, final DateTransactionCurrencypairMap dateCurrencyMap,
+      Transaction openMarginTransaction, SplitFactorAfterBefore splitFactorAfterBefore,
+      final SplitFactorAfterBefore splitToOpenTransaction) {
     final CalcTransactionPos ctp = new CalcTransactionPos(
         DataHelper.getCurrencyExchangeRateToMainCurreny(transaction, dateCurrencyMap),
         splitToOpenTransaction == null ? splitFactorAfterBefore.fromToDateFactor
@@ -113,9 +120,6 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Contain the calculation for a single transaction
-   *
-   * @author Hugo Graf
-   *
    */
   protected static class CalcTransactionPos {
     public final Double exchangeRate;

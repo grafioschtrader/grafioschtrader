@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.AlgoTopCreate;
 import grafioschtrader.algo.AlgoTopCreate.AssetclassPercentage;
-import grafioschtrader.algo.RuleStrategy;
+import grafioschtrader.algo.RuleStrategyType;
 import grafioschtrader.algo.simulate.SimulateRule;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoTop;
@@ -39,11 +39,10 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
   AssetclassJpaRepository assetclassJpaRepository;
 
   void simulateRuleOrStrategy(Integer idAlgoAssetclassSecurity, LocalDate startDate, LocalDate endDate) {
-
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     AlgoTop algoTop = algoTopJpaRepository.getReferenceById(idAlgoAssetclassSecurity);
     if (user.getIdTenant().equals(algoTop.getIdTenant())) {
-      if (algoTop.getRuleStrategy() == RuleStrategy.RS_RULE) {
+      if (algoTop.getRuleStrategy() == RuleStrategyType.RS_RULE) {
         SimulateRule simulateRule = new SimulateRule(algoAssetclassJpaRepository, watchlistJpaRepository,
             historyquoteJpaRepository, securityJpaRepository, transactionJpaRepository);
         simulateRule.simulate(startDate, endDate, algoTop);

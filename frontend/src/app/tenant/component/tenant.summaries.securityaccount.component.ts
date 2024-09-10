@@ -15,6 +15,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 /**
  * It is the summary for all security accounts with its securities of a for a certain tenant.
@@ -26,6 +27,7 @@ import {FilterService} from 'primeng/api';
 export class TenantSummariesSecurityaccountComponent extends SecurityaccountTable implements OnInit, OnDestroy {
 
   constructor(timeSeriesQuotesService: TimeSeriesQuotesService,
+              alarmSetupService: AlarmSetupService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService,
               securityaccountService: SecurityaccountService,
@@ -37,8 +39,8 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
+    super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
   }
 
   ngOnInit() {

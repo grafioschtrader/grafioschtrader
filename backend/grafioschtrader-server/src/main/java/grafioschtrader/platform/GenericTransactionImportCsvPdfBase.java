@@ -44,7 +44,7 @@ public abstract class GenericTransactionImportCsvPdfBase {
       ImportTransactionPosJpaRepository importTransactionPosJpaRepository,
       SecurityJpaRepository securityJpaRepository) {
     List<ImportTransactionPos> importTransactionPosList = new ArrayList<>();
-    switch (importPropertiesList.get(0).getTransactionType()) {
+    switch (importPropertiesList.getFirst().getTransactionType()) {
     case ACCUMULATE:
     case DIVIDEND:
     case REDUCE:
@@ -61,7 +61,7 @@ public abstract class GenericTransactionImportCsvPdfBase {
         // Transaction without security
         importTransactionPosList.add(ImportTransactionPos.createFromImportPropertiesSuccess(
             importTransactionHead.getIdTenant(), fileNameOriginal, importTransactionHead.getIdTransactionHead(),
-            importTransactionTemplate.getIdTransactionImportTemplate(), importPropertiesList.get(0)));
+            importTransactionTemplate.getIdTransactionImportTemplate(), importPropertiesList.getFirst()));
       }
     }
     importTransactionPosList.forEach(importTransactionPos -> {

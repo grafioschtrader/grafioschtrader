@@ -1,10 +1,12 @@
 import {AlgoTop} from './algo.top';
 import {AlgoAssetclass} from './algo.assetclass';
 import {AlgoSecurity} from './algo.security';
-import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.implementations';
+import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
 import {InputAndShowDefinitionStrategy} from './input.and.show.definition.strategy';
 import {AlgoStrategy} from './algo.strategy';
 import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {Securitycurrency} from '../../entities/securitycurrency';
+import {Observable} from 'rxjs';
 
 export enum AlgoDialogVisible {
   ALGO_ASSETCLASS = 1,
@@ -13,8 +15,9 @@ export enum AlgoDialogVisible {
 }
 
 export class AlgoStrategyDefinitionForm {
-  unusedAlgoStrategyMap: Map<number, AlgoStrategyImplementations[]> = new Map();
-  inputAndShowDefinitionMap: Map<AlgoStrategyImplementations, InputAndShowDefinitionStrategy> = new Map();
+  // Contains the ID of the corresponding level and the strategies still available.
+  unusedAlgoStrategyMap: Map<number, AlgoStrategyImplementationType[]> = new Map();
+  inputAndShowDefinitionMap: Map<AlgoStrategyImplementationType, InputAndShowDefinitionStrategy> = new Map();
 }
 
 export class AlgoCallParam {

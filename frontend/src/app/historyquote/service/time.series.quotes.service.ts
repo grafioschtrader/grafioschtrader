@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
 import {MenuItem} from 'primeng/api';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {Router} from '@angular/router';
 import {TimeSeriesParam} from '../component/time.series.chart.component';
 
@@ -11,17 +10,16 @@ import {TimeSeriesParam} from '../component/time.series.chart.component';
 @Injectable()
 export class TimeSeriesQuotesService {
 
-  private idSecuritycurrency;
+  private idSecuritycurrency: number;
   private currencySecurity: string;
   private optionalParameters: OptionalParameters = {idPortfolio: null, idSecurityaccount: null, noMarketValue: false};
   private timeSeriesParams: TimeSeriesParam[] = [];
 
-  constructor(private activePanelService: ActivePanelService,
-              private router: Router) {
+  constructor(private router: Router) {
   }
 
   getMenuItems(idSecuritycurrency: number, currencySecurity: string, addTopSeparator: boolean,
-               optionalParameters?: OptionalParameters): MenuItem[] {
+    optionalParameters?: OptionalParameters): MenuItem[] {
     this.idSecuritycurrency = idSecuritycurrency;
     this.currencySecurity = currencySecurity;
     if (optionalParameters) {

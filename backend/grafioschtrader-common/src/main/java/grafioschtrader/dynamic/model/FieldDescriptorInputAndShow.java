@@ -49,6 +49,7 @@ public class FieldDescriptorInputAndShow implements Serializable {
 
     case Byte:
     case ByteC:
+    case Integer:
     case IntegerC:
       dataType = DataType.NumericInteger;
       break;
@@ -58,6 +59,11 @@ public class FieldDescriptorInputAndShow implements Serializable {
       dataType = DataType.Boolean;
       break;
 
+    case Double:
+    case DoubleC:
+      dataType = DataType.Numeric;
+      break;  
+      
     case LocalDate:
       dataType = DataType.DateString;
       break;

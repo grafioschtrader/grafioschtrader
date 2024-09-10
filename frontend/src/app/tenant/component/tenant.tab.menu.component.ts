@@ -5,6 +5,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {GlobalSessionNames} from '../../shared/global.session.names';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 
 
 @Component({
@@ -24,10 +25,14 @@ export class TenantTabMenuComponent implements OnInit {
     ['SECURITY_ASSETCLASS_WITH_CASH', AppSettings.DEPOT_CASH_KEY],
     ['PORTFOLIO_DIVIDENDS', AppSettings.DIVIDENDS_ROUTER_KEY],
     ['TRANSACTION_COST', AppSettings.TRANSACTION_COST_KEY],
-    ['TRANSACTIONS', AppSettings.TENANT_TRANSACTION]
+    ['TRANSACTIONS', AppSettings.TENANT_TRANSACTION],
   ];
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
+  constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService,
+    private gps: GlobalparameterService) {
+    if(this.gps.useAlert()) {
+      this.nameRouteMapping.push(['ALERT', AppSettings.TENANT_ALERT]);
+    }
     for (let i = 0; i < this.nameRouteMapping.length; i++) {
       this.items.push({
         label: this.nameRouteMapping[i][0],
@@ -38,6 +43,7 @@ export class TenantTabMenuComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
     const activeItem = sessionStorage.getItem(GlobalSessionNames.TAB_MENU_TENANT);
     this.idActiveItem = activeItem ? +activeItem : 0;
     this.navigateTo(this.idActiveItem);

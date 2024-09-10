@@ -8,7 +8,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {AlgoStrategyService} from '../service/algo.strategy.service';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {AlgoCallParam} from '../model/algo.dialog.visible';
-import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.implementations';
+import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
 import {Subscription} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
@@ -19,6 +19,8 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
+import {AlgoSecurity} from '../model/algo.security';
+import {AlgoLevelType} from '../model/algo.top';
 
 /**
  * Allows editing a new or existing strategy. The input fields will be different according to the selected strategy.
@@ -73,33 +75,36 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     if (this.algoCallParam.thisObject) {
       // Existing strategy can not be changed
       this.ignoreValueChanged = false;
-
-      this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
-        SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AlgoStrategyImplementations,
-          [AlgoStrategyImplementations[(<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations]], false);
-      this.createViewFromSelectedEnum((<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
-      this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.setValue(
-        (<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
+      this.preparePossibleStrategies();
     } else {
-      const possibleValues: AlgoStrategyImplementations[] =
-        this.algoCallParam.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(this.algoCallParam.parentObject.idAlgoAssetclassSecurity);
-      this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
-        SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AlgoStrategyImplementations,
-          possibleValues.map(algoStrategyImplementations => AlgoStrategyImplementations[algoStrategyImplementations]), false);
+        const possibleValues: AlgoStrategyImplementationType[] =
+          this.algoCallParam.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(this.algoCallParam.parentObject.idAlgoAssetclassSecurity);
+        this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
+          SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AlgoStrategyImplementationType,
+            possibleValues.map(algoStrategyImplementations => AlgoStrategyImplementationType[algoStrategyImplementations]), false);
     }
+  }
+
+  private preparePossibleStrategies(): void {
+    this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
+      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AlgoStrategyImplementationType,
+        [AlgoStrategyImplementationType[(<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations]], false);
+    this.createViewFromSelectedEnum((<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
+    this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.setValue(
+      (<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
   }
 
   private valueChangedOnAlgoStrategyImplementation(): void {
     this.algoStrategyImplementationsChangedSub = this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.valueChanges
-      .subscribe((asi: AlgoStrategyImplementations) => {
+      .subscribe((asi: AlgoStrategyImplementationType) => {
         if (!this.ignoreValueChanged) {
           this.createViewFromSelectedEnum(asi);
         }
       });
   }
 
-  private createViewFromSelectedEnum(asi: string | AlgoStrategyImplementations): void {
-    const asiNo: number = AlgoStrategyImplementations[asi];
+  private createViewFromSelectedEnum(asi: string | AlgoStrategyImplementationType): void {
+    const asiNo: number = AlgoStrategyImplementationType[asi];
     const inputAndShowDefinition = this.algoCallParam.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
     if (!inputAndShowDefinition) {
       this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe(iasd => {
@@ -150,9 +155,10 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.fieldDescriptorInputAndShows.forEach(fDIAS =>
       algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new BaseParam(value[fDIAS.fieldName])
     );
+   algoStrategy.idAlgoAssetclassSecurity = this.algoCallParam.parentObject.idAlgoAssetclassSecurity;
+   return algoStrategy;
+}
 
-    return algoStrategy;
-  }
 
   override onHide(event): void {
     this.algoStrategyImplementationsChangedSub && this.algoStrategyImplementationsChangedSub.unsubscribe();

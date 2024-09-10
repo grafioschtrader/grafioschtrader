@@ -16,6 +16,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 /**
  * It groups asset classes of securities and includes balance of cash accounts as an asset class.
@@ -27,6 +28,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
 
   constructor(private parentChildRegisterService: ParentChildRegisterService,
               timeSeriesQuotesService: TimeSeriesQuotesService,
+              alarmSetupService: AlarmSetupService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService,
               securityaccountService: SecurityaccountService,
@@ -38,8 +40,8 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
+    super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
     this.securityaccountGroupBase = new SecurityaccountAssetclassCategortypeGroup(translateService, this);
     this.createColumns();
   }

@@ -10,6 +10,8 @@ import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 public interface AlgoSecurityJpaRepository extends JpaRepository<AlgoSecurity, Integer>,
     AlgoSecurityJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<AlgoSecurity> {
 
+  AlgoSecurity findBySecurity_idSecuritycurrencyAndIdTenant(Integer idSecuritycurrency, Integer idTenant);
+  
   @Transactional
   @Modifying
   int deleteByIdAlgoAssetclassSecurityAndIdTenant(Integer idAlgoAssetclassSecurity, Integer idTenant);

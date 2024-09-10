@@ -1,7 +1,9 @@
 package grafioschtrader.entities;
 
-import grafioschtrader.algo.RuleStrategy;
+import grafioschtrader.algo.RuleStrategyType;
+import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -11,13 +13,10 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- * Algorithmic trading top level. It does not include the depending children.
- *
- */
+@Schema(description = "Algorithmic trading top level. It does not include the depending children.")
 @Entity
 @Table(name = AlgoTop.TABNAME)
-@DiscriminatorValue("T")
+@DiscriminatorValue(StrategyHelper.TOP_LEVEL_LETTER)
 public class AlgoTop extends AlgoTopAssetSecurity {
 
   public static final String TABNAME = "algo_top";
@@ -30,7 +29,7 @@ public class AlgoTop extends AlgoTopAssetSecurity {
   @PropertyAlwaysUpdatable
   private String name;
 
-//	@JoinColumn(name = "id_algo_assetclass_security_p")
+//	@JoinColumn(name = "id_algo_assetclass_parent")
 //	@OneToMany(fetch = FetchType.LAZY)
 //	private List<AlgoAssetclass> algoAssetclassList;
 
@@ -38,10 +37,15 @@ public class AlgoTop extends AlgoTopAssetSecurity {
   @Column(name = "rule_or_strategy")
   private Byte ruleStrategy;
 
+  @Schema(description = """
+          For the simulation, a watchlist must be linked to the top level. 
+          The corresponding securities can then be selected from this list.""")
   @Basic(optional = false)
   @Column(name = "id_watchlist")
   private Integer idWatchlist;
 
+  @Schema(description = """
+      A strategy or simulation must be checked for completeness before it is used.""")
   @Column(name = "activatable")
   private boolean activatable;
 
@@ -56,11 +60,11 @@ public class AlgoTop extends AlgoTopAssetSecurity {
     this.name = name;
   }
 
-  public RuleStrategy getRuleStrategy() {
-    return RuleStrategy.getRuleStrategy(ruleStrategy);
+  public RuleStrategyType getRuleStrategy() {
+    return RuleStrategyType.getRuleStrategyType(ruleStrategy);
   }
 
-  public void setRuleStrategy(RuleStrategy ruleStrategy) {
+  public void setRuleStrategy(RuleStrategyType ruleStrategy) {
     this.ruleStrategy = ruleStrategy.getValue();
   }
 

@@ -10,12 +10,12 @@ public abstract class UDFDataHelper {
    * returned with the parameters for 2 digits before and 4 digits after the
    * decimal point.
    * 
-   * @param prefix
+   * @param toalLength
    * @param suffix
    * @return
    */
-  public static double getMaxDecimalValue(int prefix, int suffix) {
-    int integerPartLength = prefix - suffix;
+  public static double getMaxDecimalValue(int toalLength, int suffix) {
+    int integerPartLength = toalLength - suffix;
     double maxIntegerPart = Math.pow(10, integerPartLength) - 1;
     double maxFractionalPart = (Math.pow(10, suffix) - 1) / Math.pow(10, suffix);
     return maxIntegerPart + maxFractionalPart;

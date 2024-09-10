@@ -14,6 +14,7 @@ import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 
 /**
@@ -28,6 +29,7 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
   private routeSubscribe: Subscription;
 
   constructor(timeSeriesQuotesService: TimeSeriesQuotesService,
+              alarmSetupService: AlarmSetupService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService,
               securityaccountService: SecurityaccountService,
@@ -39,8 +41,8 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
+    super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
     this.createColumns();
   }
 
