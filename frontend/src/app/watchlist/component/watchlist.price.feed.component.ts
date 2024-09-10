@@ -28,6 +28,7 @@ import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 /**
  * View to check the reliability of the price data feeds. It has some special function implemented to update price data.
@@ -51,6 +52,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
   constructor(private securityService: SecurityService,
               private currencypairService: CurrencypairService,
               dialogService: DialogService,
+              alarmSetupService: AlarmSetupService,
               timeSeriesQuotesService: TimeSeriesQuotesService,
               dataChangedService: DataChangedService,
               activePanelService: ActivePanelService,
@@ -65,8 +67,8 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(WatchListType.PRICE_FEED, AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE, dialogService, timeSeriesQuotesService,
-      dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
+    super(WatchListType.PRICE_FEED, AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
+      timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
       gps, usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();

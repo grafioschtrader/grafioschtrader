@@ -65,7 +65,7 @@ public class GlobalConstants {
   public static final int FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;
 
   // public static final int FID_MAX_INTEGER_DIGITS = 11;
-  // public static final int FID_MAX_DIGITS = 16;
+  public static final int FID_MAX_DIGITS = 16;
 
   /**
    * The maximum length of a web URL in characters.

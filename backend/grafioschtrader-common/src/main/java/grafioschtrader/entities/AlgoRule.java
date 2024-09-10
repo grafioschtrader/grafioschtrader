@@ -3,7 +3,7 @@ package grafioschtrader.entities;
 import java.util.HashMap;
 import java.util.Map;
 
-import grafioschtrader.algo.rule.BuySell;
+import grafioschtrader.algo.rule.BuySellType;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -50,11 +50,11 @@ public class AlgoRule extends AlgoRuleStrategy {
   @CollectionTable(name = ALGO_RULE_PARAM2, joinColumns = @JoinColumn(name = "id_algo_rule_strategy"))
   private Map<String, AlgoRuleParam2> AlgoRuleParam2Map = new HashMap<>();
 
-  public BuySell getBuySell() {
-    return BuySell.getBuySell(buySell);
+  public BuySellType getBuySell() {
+    return BuySellType.getBuySellType(buySell);
   }
 
-  public void setBuySell(BuySell buySell) {
+  public void setBuySell(BuySellType buySell) {
     this.buySell = buySell.getValue();
   }
 

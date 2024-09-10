@@ -27,7 +27,7 @@ import {DataChangedService} from '../service/data.changed.service';
 import {HelpIds} from '../../help/help.ids';
 import {AlgoTopService} from '../../../algo/service/algo.top.service';
 import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
-import {RuleStrategy} from '../../types/rule.strategy';
+import {RuleStrategyType} from '../../types/rule.strategy.type';
 import {TenantLimit, TenantLimitTypes} from '../../../entities/backend/tenant.limit';
 import {AuditHelper} from '../../helper/audit.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
@@ -36,6 +36,7 @@ import {WatchlistSecurityExists} from '../../../entities/dnd/watchlist.security.
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {AlgoTop} from '../../../algo/model/algo.top';
 import {GlobalSessionNames} from '../../global.session.names';
+import {FeatureType} from '../../login/component/login.component';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
@@ -460,11 +461,11 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       case TreeNodeType.AlgoRoot:
         menuItems.push({
           label: 'CREATE|ALGO_PORTFOLIO_STRATEGY' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleNew(DialogVisible.DvAlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategy.RS_STRATEGY), null)
+            this.handleNew(DialogVisible.DvAlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategyType.RS_STRATEGY), null)
         });
         menuItems.push({
           label: 'CREATE|ALGO_RULE_BASED' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleNew(DialogVisible.DvAlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategy.RS_RULE), null)
+            this.handleNew(DialogVisible.DvAlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategyType.RS_RULE), null)
         });
         break;
       case TreeNodeType.Strategy:
@@ -590,7 +591,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   private useAlgo(): boolean {
-    return sessionStorage.getItem(GlobalSessionNames.USE_ALGO) === 'true';
+    return JSON.parse(sessionStorage.getItem(GlobalSessionNames.USE_FEATURES)).indexOf(FeatureType[FeatureType.ALGO]) >= 0;
   }
 
   private addAndRefreshPortfolioToTree() {

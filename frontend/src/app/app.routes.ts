@@ -63,6 +63,7 @@ import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
 import {UDFMetadataGeneral} from './shared/udfmeta/model/udf.metadata';
 import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.metadata.general.table.component';
+import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
 
 
 const APP_ROUTES: Routes = [
@@ -96,7 +97,8 @@ const APP_ROUTES: Routes = [
           {path: AppSettings.DEPOT_CASH_KEY, component: TenantSummariesAssetclassComponent, canActivate: [authGuard]},
           {path: AppSettings.DIVIDENDS_ROUTER_KEY, component: TenantDividendsComponent, canActivate: [authGuard]},
           {path: AppSettings.TENANT_TRANSACTION, component: TenantTransactionTableComponent, canActivate: [authGuard]},
-          {path: AppSettings.TRANSACTION_COST_KEY, component: TenantTransactionCostComponent, canActivate: [authGuard]}
+          {path: AppSettings.TRANSACTION_COST_KEY, component: TenantTransactionCostComponent, canActivate: [authGuard]},
+          {path: AppSettings.TENANT_ALERT, component: TenantAlertComponent, canActivate: [authGuard]}
         ]
       },
       {

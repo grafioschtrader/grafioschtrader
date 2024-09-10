@@ -18,12 +18,9 @@ import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu
 import {HelpIds} from '../../shared/help/help.ids';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {TreeAlgoTop} from '../model/tree.algo.top';
 import {AlgoTreeName} from '../../entities/view/algo.tree.name';
-import {TreeAlgoAssetclass} from '../model/tree.algo.assetclass';
-import {TreeAlgoStrategy} from '../model/tree.algo.strategy';
 import {AlgoSecurity} from '../model/algo.security';
-import {TreeAlgoSecurity} from '../model/tree.algo.security';
+
 import {
   AlgoCallParam,
   AlgoDialogVisible,
@@ -37,12 +34,13 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {BaseID} from '../../entities/base.id';
 import {AlgoSecurityService} from '../service/algo.security.service';
 import {AlgoStrategyService} from '../service/algo.strategy.service';
-import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.implementations';
-import {RuleStrategy} from '../../shared/types/rule.strategy';
+import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
+import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {AlgoTopService} from '../service/algo.top.service';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
+import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} from '../model/tree.algo.base';
 
 /**
  * Shows algorithmic trading tree with its strategies.
@@ -55,15 +53,15 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
                    (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
                    [(contextMenuSelection)]="selectedNode" dataKey="idTree">
         <ng-template pTemplate="caption">
-          <h4>{{'ALGO_OVERVIEW' | translate}}
-            ({{(algoTop.ruleStrategy === RuleStrategy[RuleStrategy.RS_RULE] ? 'ALGO_PORTFOLIO_STRATEGY' : 'ALGO_RULE_BASED') | translate}}
+          <h4>{{ 'ALGO_OVERVIEW' | translate }}
+            ({{ (algoTop.ruleStrategy === RuleStrategy[RuleStrategy.RS_RULE] ? 'ALGO_PORTFOLIO_STRATEGY' : 'ALGO_RULE_BASED') | translate }}
             )</h4>
         </ng-template>
 
         <ng-template pTemplate="header" let-fields>
           <tr>
             <th *ngFor="let field of fields">
-              {{field.headerTranslated}}
+              {{ field.headerTranslated }}
             </th>
           </tr>
         </ng-template>
@@ -74,7 +72,7 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
                 [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
               || field.dataType===DataType.DateTimeNumeric) || field.dataType===DataType.NumericShowZero}">
               <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              {{getValueByPath(rowData, field)}}
+              {{ getValueByPath(rowData, field) }}
             </td>
           </tr>
         </ng-template>
@@ -109,14 +107,12 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
 export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   @ViewChild('contextMenu', {static: true}) contextMenu: any;
 
-
 // Otherwise enum DialogVisible can't be used in a html template
   AlgoDialogVisible: typeof AlgoDialogVisible = AlgoDialogVisible;
-  RuleStrategy: typeof RuleStrategy = RuleStrategy;
+  RuleStrategy: typeof RuleStrategyType = RuleStrategyType;
 
   // For modal dialogs
   visibleDialogs: boolean[] = [];
-
 
   algoTop: AlgoTop;
   treeNodes: TreeNode[];
@@ -132,16 +128,16 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   private routeSubscribe: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
-              private activePanelService: ActivePanelService,
-              private algoTopService: AlgoTopService,
-              private algoAssetclassService: AlgoAssetclassService,
-              private algoSecurityService: AlgoSecurityService,
-              private algoStrategyService: AlgoStrategyService,
-              private dataChangedService: DataChangedService,
-              protected messageToastService: MessageToastService,
-              private confirmationService: ConfirmationService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private activePanelService: ActivePanelService,
+    private algoTopService: AlgoTopService,
+    private algoAssetclassService: AlgoAssetclassService,
+    private algoSecurityService: AlgoSecurityService,
+    private algoStrategyService: AlgoStrategyService,
+    private dataChangedService: DataChangedService,
+    protected messageToastService: MessageToastService,
+    private confirmationService: ConfirmationService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(translateService, gps);
 
     this.addColumn(DataType.String, 'name', 'NAME', true, false,
@@ -195,30 +191,30 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     this.resetMenu();
   }
 
-  extendMenuWithAlgoStrategy(menuItems: MenuItem[], parent: AlgoTop | AlgoAssetclass | AlgoSecurity, algoStrategy: AlgoStrategy): void {
+  extendMenuWithAlgoStrategy(menuItems: MenuItem[], selectedNode: AlgoTop | AlgoAssetclass | AlgoSecurity, algoStrategy: AlgoStrategy): void {
     menuItems.push({separator: true});
     const algoStrategyMenuItem: MenuItem = {
-      label: 'CREATE|ALGO_STRATEGY', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_STRATEGY, parent, algoStrategy,
+      label: 'CREATE|ALGO_STRATEGY',
+      command: (e) => this.addEdit(AlgoDialogVisible.ALGO_STRATEGY, selectedNode, algoStrategy,
         this.algoStrategyDefinitionForm)
     };
     menuItems.push(algoStrategyMenuItem);
-    if (this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.has(parent.idAlgoAssetclassSecurity)) {
+    if (this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.has(selectedNode.idAlgoAssetclassSecurity)) {
       algoStrategyMenuItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
-        parent.idAlgoAssetclassSecurity).length === 0;
+        selectedNode.idAlgoAssetclassSecurity).length === 0;
     } else {
 
-      this.algoStrategyService.getUnusedStrategiesForManualAdding(parent.idAlgoAssetclassSecurity)
+      this.algoStrategyService.getUnusedStrategiesForManualAdding(selectedNode.idAlgoAssetclassSecurity)
         .subscribe(algoStrategyImplementations => {
-          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(parent.idAlgoAssetclassSecurity, algoStrategyImplementations);
+          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(selectedNode.idAlgoAssetclassSecurity, algoStrategyImplementations);
           algoStrategyMenuItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
-            parent.idAlgoAssetclassSecurity).length === 0;
+            selectedNode.idAlgoAssetclassSecurity).length === 0;
         });
     }
   }
 
   handleDeleteEntity<T extends BaseID>(entity: T, deleteService: DeleteService): void {
     const entityMsg = AppHelper.toUpperCaseWithUnderscore(entity.constructor.name);
-
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + entityMsg, () => {
         deleteService.deleteEntity(entity.getId()).subscribe(response => {
@@ -377,9 +373,9 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   }
 
   private addEdit(algoDialogVisible: AlgoDialogVisible, parent: AlgoTop | AlgoAssetclass | AlgoSecurity,
-                  thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
-                  algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm): void {
-    this.algoCallParam = new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm);
+    thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
+    algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm): void {
+    this.algoCallParam = new AlgoCallParam(parent, thisObject);
     this.visibleDialogs[algoDialogVisible] = true;
   }
 
@@ -391,10 +387,9 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   }
 
   private setFieldDescriptorInputAndShow<T extends AlgoTopAssetSecurity>(algoTopAssetSecurity: T,
-                                                                         algoStrategy: AlgoStrategy,
-                                                                         algoStrategyParamCall: AlgoStrategyParamCall): void {
-
-    const asiNo: number = AlgoStrategyImplementations[algoStrategy.algoStrategyImplementations];
+    algoStrategy: AlgoStrategy,
+    algoStrategyParamCall: AlgoStrategyParamCall): void {
+    const asiNo: number = AlgoStrategyImplementationType[algoStrategy.algoStrategyImplementations];
     const inputAndShowDefinition = this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
     if (!inputAndShowDefinition) {
       this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe(iasd => {

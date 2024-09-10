@@ -164,6 +164,12 @@
                    [visibleDialog]="visibleUDFSecurityDialog">
 </udf-security-edit>
 
+<algo-strategy-edit *ngIf="alarmSetupService.visibleDialog"
+                    [visibleDialog]="alarmSetupService.visibleDialog"
+                    [algoCallParam]="alarmSetupService.algoCallParam"
+                    (closeDialog)="alarmSetupService.handleCloseDialog($event)">
+</algo-strategy-edit>
+
 <udf-general-edit (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
                   *ngIf="visibleUDFGeneralDialog"
                   [uDFGeneralCallParam]="uDFGeneralCallParam"

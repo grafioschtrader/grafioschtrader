@@ -9,16 +9,16 @@ public class InputAndShowDefinitionStrategy implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public List<FieldDescriptorInputAndShow> topFormDefintionList;
-  public List<FieldDescriptorInputAndShow> assetclassFormDefintionList;
+  public List<FieldDescriptorInputAndShow> topFormDefinitionList;
+  public List<FieldDescriptorInputAndShow> assetclassFormDefinitionList;
   public List<FieldDescriptorInputAndShow> securityFormDefinitionList;
 
-  public InputAndShowDefinitionStrategy(List<FieldDescriptorInputAndShow> topFormDefintionList,
-      List<FieldDescriptorInputAndShow> assetclassFormDefintionList,
+  public InputAndShowDefinitionStrategy(List<FieldDescriptorInputAndShow> topFormDefinitionList,
+      List<FieldDescriptorInputAndShow> assetclassFormDefinitionList,
       List<FieldDescriptorInputAndShow> securityFormDefinitionList) {
     super();
-    this.topFormDefintionList = topFormDefintionList;
-    this.assetclassFormDefintionList = assetclassFormDefintionList;
+    this.topFormDefinitionList = topFormDefinitionList;
+    this.assetclassFormDefinitionList = assetclassFormDefinitionList;
     this.securityFormDefinitionList = securityFormDefinitionList;
   }
 

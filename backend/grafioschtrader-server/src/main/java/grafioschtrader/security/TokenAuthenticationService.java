@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,8 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalConstants.UDFPrefixSuffix;
+import grafioschtrader.config.FeatureConfig;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
+import grafioschtrader.types.FeatureType;
 import grafioschtrader.types.UDFDataType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -36,11 +37,8 @@ import jakarta.transaction.Transactional;
 @Service
 public class TokenAuthenticationService {
 
-  @Value("${gt.use.websocket}")
-  private boolean useWebsockt;
-
-  @Value("${gt.use.algo}")
-  private boolean useAlgo;
+  @Autowired
+  private FeatureConfig featureConfig;
 
   private static final String AUTH_HEADER_NAME = "x-auth-token";
 
@@ -112,7 +110,7 @@ public class TokenAuthenticationService {
   public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole,
       boolean passwordRegexOk) {
     ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(getAllEntitiyNamesWithTheirKeys(),
-        useWebsockt, useAlgo, globalparametersJpaRepository.getCurrencyPrecision(),
+        featureConfig.getEnabledFeatures(), globalparametersJpaRepository.getCurrencyPrecision(),
         getGlobalConstantsFieldsByFieldPrefix("FID"), getGlobalConstantsFieldsByFieldPrefix("FIELD_SIZE"),
         uiShowMyProperty, mostPrivilegedRole, passwordRegexOk);
     return configurationWithLogin;
@@ -159,8 +157,7 @@ public class TokenAuthenticationService {
 
   static class ConfigurationWithLogin {
     public final List<EntityNameWithKeyName> entityNameWithKeyNameList;
-    public final boolean useWebsocket;
-    public final boolean useAlgo;
+    public Set<FeatureType> useFeatures;
     public static final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
     public final Map<String, Integer> currencyPrecision;
     public final Map<String, Integer> standardPrecision;
@@ -170,12 +167,11 @@ public class TokenAuthenticationService {
     public final boolean passwordRegexOk;
     public final UDFConfig udfConfig = new UDFConfig();
 
-    public ConfigurationWithLogin(List<EntityNameWithKeyName> entityNameWithKeyNameList, boolean useWebsocket,
-        boolean useAlgo, Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision,
-        Map<String, Integer> fieldSize, boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk) {
+    public ConfigurationWithLogin(List<EntityNameWithKeyName> entityNameWithKeyNameList, Set<FeatureType> useFeatures,
+        Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision, Map<String, Integer> fieldSize,
+        boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk) {
       this.entityNameWithKeyNameList = entityNameWithKeyNameList;
-      this.useWebsocket = useWebsocket;
-      this.useAlgo = useAlgo;
+      this.useFeatures = useFeatures;
       this.currencyPrecision = currencyPrecision;
       this.standardPrecision = standardPrecision;
       this.fieldSize = fieldSize;
@@ -194,7 +190,7 @@ public class TokenAuthenticationService {
       this.keyName = keyName;
     }
   }
-  
+
   static class UDFConfig {
     public Set<String> udfGeneralSupportedEntities = GlobalConstants.UDF_GENERAL_ENTITIES.stream()
         .map(c -> c.getSimpleName()).collect(Collectors.toSet());

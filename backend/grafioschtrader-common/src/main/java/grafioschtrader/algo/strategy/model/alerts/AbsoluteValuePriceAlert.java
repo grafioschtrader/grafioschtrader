@@ -1,5 +1,6 @@
 package grafioschtrader.algo.strategy.model.alerts;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 /**

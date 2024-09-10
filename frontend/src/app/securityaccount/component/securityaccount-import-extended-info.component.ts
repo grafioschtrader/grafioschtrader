@@ -8,6 +8,7 @@ import {ImportSettings} from './import.settings';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityaccountImportTransactionTableComponent} from './securityaccount-import-transaction-table.component';
+import {AppHelper} from '../../shared/helper/app.helper';
 
 /**
  * Shows the extended information to a single import import transaction record in case when a
@@ -68,13 +69,13 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
     this.addFieldProperty(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'calcCashaccountAmount', 'CALC_TOTAL_VALUE',
       {fieldsetName: this.IMPORT_ASSIGN});
     this.addFieldPropertyFeqH(DataType.NumericInteger, ImportSettings.IMPORT_TRANSACTION_POS + 'idFilePart',
-      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
+      {fieldsetName: AppHelper.toUpperCaseWithUnderscore(AppSettings.IMPORT_TRANSACTION_TEMPLATE)});
     this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'templatePurpose',
-      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
+      {fieldsetName: AppHelper.toUpperCaseWithUnderscore(AppSettings.IMPORT_TRANSACTION_TEMPLATE)});
     this.addFieldPropertyFeqH(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'validSince',
-      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
+      {fieldsetName: AppHelper.toUpperCaseWithUnderscore(AppSettings.IMPORT_TRANSACTION_TEMPLATE)});
     this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'fileNameOriginal',
-      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
+      {fieldsetName: AppHelper.toUpperCaseWithUnderscore(AppSettings.IMPORT_TRANSACTION_TEMPLATE)});
     this.addFieldPropertyFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'diffCashaccountAmount',
       {fieldsetName: this.IMPORT_STATE});
     this.addFieldProperty(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'readyForTransaction', 'IMPORT_TRANSACTIONAL', {

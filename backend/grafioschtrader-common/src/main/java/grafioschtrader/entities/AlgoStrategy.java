@@ -1,6 +1,6 @@
 package grafioschtrader.entities;
 
-import grafioschtrader.algo.strategy.model.AlgoStrategyImplementations;
+import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -25,11 +25,11 @@ public class AlgoStrategy extends AlgoRuleStrategy {
   @Column(name = "algo_strategy_impl")
   private byte algoStrategyImplementations;
 
-  public AlgoStrategyImplementations getAlgoStrategyImplementations() {
-    return AlgoStrategyImplementations.getAlgoStrategyImplentaions(this.algoStrategyImplementations);
+  public AlgoStrategyImplementationType getAlgoStrategyImplementations() {
+    return AlgoStrategyImplementationType.getAlgoStrategyImplentaionType(this.algoStrategyImplementations);
   }
 
-  public void setAlgoStrategyImplementations(AlgoStrategyImplementations algoStrategyImplementations) {
+  public void setAlgoStrategyImplementations(AlgoStrategyImplementationType algoStrategyImplementations) {
     this.algoStrategyImplementations = algoStrategyImplementations.getValue();
   }
 

@@ -7,10 +7,11 @@ import {Observable} from 'rxjs';
 import {InputAndShowDefinitionStrategy} from '../model/input.and.show.definition.strategy';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
-import {AlgoStrategyImplementations} from '../../shared/types/algo.strategy.implementations';
+import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
 import {AlgoStrategy} from '../model/algo.strategy';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {AlgoLevelType} from '../model/algo.top';
 
 @Injectable()
 export class AlgoStrategyService extends AuthServiceWithLogout<AlgoStrategy> implements DeleteService,
@@ -20,14 +21,20 @@ export class AlgoStrategyService extends AuthServiceWithLogout<AlgoStrategy> imp
     super(loginService, httpClient, messageToastService);
   }
 
-  getUnusedStrategiesForManualAdding(idAlgoAssetclassSecurity: number): Observable<AlgoStrategyImplementations[]> {
-    return <Observable<AlgoStrategyImplementations[]>>
+  getStrategiesForLevel(algoLevelType: AlgoLevelType): Observable<AlgoStrategyImplementationType[]> {
+    return <Observable<AlgoStrategyImplementationType[]>>
+      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/level/${algoLevelType}`,
+        this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getUnusedStrategiesForManualAdding(idAlgoAssetclassSecurity: number): Observable<AlgoStrategyImplementationType[]> {
+    return <Observable<AlgoStrategyImplementationType[]>>
       this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/unusedsrategies/${idAlgoAssetclassSecurity}`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
 
-  getFormDefinitionsByAlgoStrategy(algoStrategyImplementations: AlgoStrategyImplementations): Observable<InputAndShowDefinitionStrategy> {
+  getFormDefinitionsByAlgoStrategy(algoStrategyImplementations: AlgoStrategyImplementationType): Observable<InputAndShowDefinitionStrategy> {
     return <Observable<InputAndShowDefinitionStrategy>>
       this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/form/${algoStrategyImplementations}`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));

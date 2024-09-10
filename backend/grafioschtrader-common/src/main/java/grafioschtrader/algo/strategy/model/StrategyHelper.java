@@ -15,56 +15,60 @@ import grafioschtrader.dynamic.model.DynamicModelHelper;
 
 public abstract class StrategyHelper {
 
-  private static Map<AlgoStrategyImplementations, StrategyClassBindingDefinition> strategyBindingMap;
+  public static final String TOP_LEVEL_LETTER = "T";
+  public static final String ASSET_CLASS_LEVEL_LETTER = "A";
+  public static final String SECURITY_LEVEL_LETTER = "S";
+  
+  private static Map<AlgoStrategyImplementationType, StrategyClassBindingDefinition> strategyBindingMap;
 
   static {
     strategyBindingMap = new HashMap<>();
-    strategyBindingMap.put(AlgoStrategyImplementations.AS_REBALANCING,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementations.AS_REBALANCING, RebalancingTop.class,
-            RebalancingAssetclassSecurity.class, RebalancingAssetclassSecurity.class, null));
-    strategyBindingMap.put(AlgoStrategyImplementations.AS_ABSOLUTE_PRICE_ALERT, new StrategyClassBindingDefinition(
-        AlgoStrategyImplementations.AS_ABSOLUTE_PRICE_ALERT, null, null, AbsoluteValuePriceAlert.class, null));
-    strategyBindingMap.put(AlgoStrategyImplementations.AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementations.AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT,
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_REBALANCING,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_REBALANCING, RebalancingTop.class,
+            RebalancingAssetclassSecurity.class, RebalancingAssetclassSecurity.class, null, false));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_ABSOLUTE_PRICE_ALERT, new StrategyClassBindingDefinition(
+        AlgoStrategyImplementationType.AS_ABSOLUTE_PRICE_ALERT, null, null, AbsoluteValuePriceAlert.class, null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT,
             HoldingGainLosePercentAlert.class, HoldingGainLosePercentAlert.class, HoldingGainLosePercentAlert.class,
-            null));
-    strategyBindingMap.put(AlgoStrategyImplementations.AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementations.AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT,
+            null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT,
             PeriodPriceGainLosePercentAlert.class, PeriodPriceGainLosePercentAlert.class,
-            PeriodPriceGainLosePercentAlert.class, null));
+            PeriodPriceGainLosePercentAlert.class, null, true));
   }
 
-  public static Set<AlgoStrategyImplementations> getUnusedStrategiesForManualAdding(
-      Set<AlgoStrategyImplementations> existingSet, String algoLevelType) {
+  public static Set<AlgoStrategyImplementationType> getUnusedStrategiesForManualAdding(
+      Set<AlgoStrategyImplementationType> existingSet, AlgoLevelType algoLevelType) {
     Predicate<StrategyClassBindingDefinition> levelImplementaionPredicate = null;
-
     switch (algoLevelType) {
-    case "T":
+    case TOP_LEVEL:
       levelImplementaionPredicate = scbd -> scbd.algoTopModel != null;
       break;
-    case "A":
+    case ASSET_CLASS_LEVEL:
       levelImplementaionPredicate = scbd -> scbd.algoAssetclassModel != null;
       break;
-    case "S":
+    case SECURITY_LEVEL:
       levelImplementaionPredicate = scbd -> scbd.algoSecurityModel != null;
       break;
     }
-
-    Set<AlgoStrategyImplementations> allASI = strategyBindingMap.values().stream().filter(levelImplementaionPredicate)
-        .map(scbc -> scbc.algoStrategyImplementations).collect(Collectors.toSet());
-    allASI.removeAll(existingSet);
+    Set<AlgoStrategyImplementationType> allASI = strategyBindingMap.values().stream()
+        .filter(levelImplementaionPredicate).map(scbc -> scbc.algoStrategyImplementations).collect(Collectors.toSet());
+    allASI.removeAll(
+        existingSet.stream().filter(es -> !strategyBindingMap.get(es).canRepeatSameLevel).collect(Collectors.toSet()));
     return allASI;
   }
 
-  public static Map<AlgoStrategyImplementations, StrategyClassBindingDefinition> getStrategyBindingMap() {
+  public static Map<AlgoStrategyImplementationType, StrategyClassBindingDefinition> getStrategyBindingMap() {
     return strategyBindingMap;
   }
 
   public static InputAndShowDefinitionStrategy getFormDefinitionsByAlgoStrategyImpl(
-      AlgoStrategyImplementations algoStrategyImplementations) {
+      AlgoStrategyImplementationType algoStrategyImplementations) {
     StrategyClassBindingDefinition scbd = strategyBindingMap.get(algoStrategyImplementations);
 
-    return new InputAndShowDefinitionStrategy(DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoTopModel),
+    return new InputAndShowDefinitionStrategy(
+        DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoTopModel),
         DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoAssetclassModel),
         DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoSecurityModel));
   }

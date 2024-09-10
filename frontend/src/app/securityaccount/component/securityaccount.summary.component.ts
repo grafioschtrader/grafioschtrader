@@ -25,6 +25,7 @@ import {NgxFileDropEntry} from 'ngx-file-drop';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
 import {AppHelper} from '../../shared/helper/app.helper';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 /**
  * It is the summary for a single security account with its securities.
@@ -40,6 +41,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   constructor(private ngZone: NgZone,
               protected importTransactionHeadService: ImportTransactionHeadService,
               timeSeriesQuotesService: TimeSeriesQuotesService,
+              alarmSetupService: AlarmSetupService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService,
               securityaccountService: SecurityaccountService,
@@ -51,8 +53,8 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
-    super(timeSeriesQuotesService, activePanelService, messageToastService, securityaccountService, productIconService,
-      activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
+    super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
   }
 
   ngOnInit() {

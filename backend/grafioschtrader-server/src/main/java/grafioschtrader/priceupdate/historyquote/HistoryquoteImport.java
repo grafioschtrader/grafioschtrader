@@ -154,9 +154,7 @@ public class HistoryquoteImport {
       } else {
         fcmOpt.get().required = true;
       }
-
     }
-
     return fieldColumnMappings;
   }
 

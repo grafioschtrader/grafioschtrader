@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafioschtrader.algo.strategy.model.AlgoStrategyImplementations;
+import grafioschtrader.algo.strategy.model.AlgoLevelType;
+import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.InputAndShowDefinitionStrategy;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.entities.AlgoStrategy;
@@ -40,12 +41,24 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
   public ResponseEntity<InputAndShowDefinitionStrategy> getFormDefinitionsByAlgoStrategy(
       @PathVariable final byte algoStrategyImplementations) {
     return new ResponseEntity<>(StrategyHelper.getFormDefinitionsByAlgoStrategyImpl(
-        AlgoStrategyImplementations.getAlgoStrategyImplentaions(algoStrategyImplementations)), HttpStatus.OK);
+        AlgoStrategyImplementationType.getAlgoStrategyImplentaionType(algoStrategyImplementations)), HttpStatus.OK);
   }
 
-  @Operation(summary = "", description = "", tags = { RequestMappings.ALGOSTRATEGY })
+  // DOTO Maybe not used
+  @Operation(summary = "Return of the possible strategies that can be applied to a non-existent level of an investment hierarchy.", 
+      description = "", tags = { RequestMappings.ALGOSTRATEGY })
+  @GetMapping(value = "/level/{algoLevelType}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Set<AlgoStrategyImplementationType>> getStrategiesForLevel(
+      @PathVariable() final AlgoLevelType algoLevelType) {
+    return new ResponseEntity<>(algoStrategyJpaRepository.getStrategiesForLevel(algoLevelType),
+        HttpStatus.OK);
+  }
+  
+  
+  @Operation(summary = "Return of the possible strategies that can be applied to an existing level of this investment hierarchy.", 
+      description = "", tags = { RequestMappings.ALGOSTRATEGY })
   @GetMapping(value = "/unusedsrategies/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Set<AlgoStrategyImplementations>> getUnusedStrategiesForManualAdding(
+  public ResponseEntity<Set<AlgoStrategyImplementationType>> getUnusedStrategiesForManualAdding(
       @PathVariable() final Integer idAlgoAssetclassSecurity) {
     return new ResponseEntity<>(algoStrategyJpaRepository.getUnusedStrategiesForManualAdding(idAlgoAssetclassSecurity),
         HttpStatus.OK);

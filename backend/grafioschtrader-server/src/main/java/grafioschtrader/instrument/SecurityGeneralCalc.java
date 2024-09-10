@@ -17,9 +17,6 @@ import grafioschtrader.types.TransactionType;
 /**
  * Calculate a the security risk and gain/loss of standard investing products
  * like bond, stock, etc.
- *
- * @author Hugo Graf
- *
  */
 public class SecurityGeneralCalc extends SecurityBaseCalc {
 
@@ -66,6 +63,11 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     securityTransactionSummary.createAndAddPositionGainLoss(transaction);
   }
 
+  /**
+   * If a bond or convertible bond, the accrued interest can be recognized on the
+   * purchase or sale transaction. This method maps this amount to a separate
+   * transaction.
+   */
   void createAccruedInterestPostion(final Security security, final TransactionType requiredTransactionTypeTransaction,
       final Transaction transaction, final SecurityTransactionSummary securityTransactionSummary,
       final boolean excludeDivTaxcost, final Map<Integer, List<Securitysplit>> securitySplitMap,
@@ -155,7 +157,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
       securityPositionSummary.adjustedCostBaseMC += (ctp.securitiesNetPrice + ctp.transactionTaxCost)
           * ctp.exchangeRate;
     }
-
+    // xxxSilber(transaction, securityPositionSummary);
   }
 
   private void reduceOrHypotheticalSell(final Transaction transaction, final CalcTransactionPos ctp,
@@ -173,6 +175,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
         / (ctp.unitsSplited / securityPositionSummary.units * securityPositionSummary.adjustedCostBase) * 100.0;
 
     securityPositionSummary.adjustedCostBase -= acb;
+    
     securityPositionSummary.units -= ctp.unitsSplited;
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
 
@@ -187,8 +190,17 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
       securityPositionSummary.balanceSecurityCurrency -= securityPositionSummary.transactionGainLoss;
       securityPositionSummary.currencyGainLossMC += securityPositionSummary.transactionCurrencyGainLossMC;
     }
+    // xxxSilber(transaction, securityPositionSummary);
   }
 
+  private void xxxSilber(final Transaction transaction, final SecurityPositionSummary securityPositionSummary) {
+    if(transaction.getSecurity().getIdSecuritycurrency().equals(2003)) {
+      System.out.println(transaction);
+      System.out.println("Adjusted cost base:" + securityPositionSummary.adjustedCostBase);
+      System.out.println("----");
+    }
+  }
+  
   private void simulateAccruedInterest(final Transaction transaction,
       final SecurityPositionSummary securityPositionSummary, final boolean excludeDivTaxcost, final Double exchangeRate,
       NegativeIdNumberCreater negativeIdNumberCreater) {

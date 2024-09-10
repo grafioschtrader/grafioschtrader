@@ -23,7 +23,7 @@ public class WebSocketController {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
-  WatchlistReport watchlistReport;
+  private WatchlistReport watchlistReport;
 
   @Autowired
   private SimpMessageSendingOperations messagingTemplate;

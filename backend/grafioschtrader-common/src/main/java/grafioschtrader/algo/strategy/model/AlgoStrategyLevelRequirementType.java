@@ -1,5 +1,5 @@
 package grafioschtrader.algo.strategy.model;
 
-public enum AlgoStrategyLevelRequirements {
+public enum AlgoStrategyLevelRequirementType {
   NEED_ALL_LEVEL_DEFINITION
 }

@@ -1,12 +1,12 @@
 package grafioschtrader.algo.strategy.model;
 
-public enum TimePeriod {
+public enum AlgoTimePeriodType {
   TP_YEAR((byte) 1), TP_SEMI_ANNUAL((byte) 2), TP_QUARTER((byte) 4), TP_MONTH((byte) 12), TP_WEEK((byte) 52),
   TP_DAY((byte) 365);
 
   private final Byte value;
 
-  private TimePeriod(final Byte value) {
+  private AlgoTimePeriodType(final Byte value) {
     this.value = value;
   }
 
@@ -14,8 +14,8 @@ public enum TimePeriod {
     return this.value;
   }
 
-  public static TimePeriod getTimePeriod(byte value) {
-    for (TimePeriod timePeriod : TimePeriod.values()) {
+  public static AlgoTimePeriodType getAlgoTimePeriodType(byte value) {
+    for (AlgoTimePeriodType timePeriod : AlgoTimePeriodType.values()) {
       if (timePeriod.getValue() == value) {
         return timePeriod;
       }

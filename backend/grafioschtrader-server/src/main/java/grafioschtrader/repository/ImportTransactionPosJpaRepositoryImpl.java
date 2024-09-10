@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -250,8 +251,11 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     if (itp.getCashaccount() != null && itp.getTransactionTime() != null && itp.getTransactionType() != null
         && itp.getCashaccountAmount() != null) {
       switch (itp.getTransactionType()) {
-      case ACCUMULATE:
       case DIVIDEND:
+        // Obviously there are also dividends at the weekend. GT does not support this,
+        // so the payment day is postponed.
+        itp.setTransactionTime(adjustIfWeekend(itp.getTransactionTime()));
+      case ACCUMULATE:
       case REDUCE:
         if (itp.getSecurity() != null) {
           itp.calcDiffCashaccountAmountWhenPossible();
@@ -267,6 +271,24 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         break;
       }
     }
+  }
+
+  /**
+   * Method to adjust the date if it's a weekend (Saturday or Sunday)
+   * 
+   * @param date Date to be checked
+   * @return for Saturaday remove one day and for Sunday add one day
+   */
+  private Date adjustIfWeekend(Date date) {
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(date);
+    int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+    if (dayOfWeek == Calendar.SATURDAY) {
+      calendar.add(Calendar.DAY_OF_MONTH, -1);
+    } else if (dayOfWeek == Calendar.SUNDAY) {
+      calendar.add(Calendar.DAY_OF_MONTH, 1);
+    }
+    return calendar.getTime();
   }
 
   @Override
@@ -420,7 +442,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       ISecuritycurrencyIdDateClose idc = historyquoteJpaRepository
           .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime(), false);
       itp.setCurrencyExRate(idc.getClose());
-      if(itp.getTaxCost() != null) {
+      if (itp.getTaxCost() != null) {
         itp.setTaxCost(itp.getTaxCost() / idc.getClose(), 0.0, false);
       }
       itp.setQuotation(itp.getQuotation() / idc.getClose());

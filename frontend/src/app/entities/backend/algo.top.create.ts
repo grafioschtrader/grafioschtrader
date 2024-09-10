@@ -1,13 +1,13 @@
 import {AlgoTop} from '../../algo/model/algo.top';
-import {RuleStrategy} from '../../shared/types/rule.strategy';
+import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
 
 export class AlgoTopCreate extends AlgoTop {
 
   assetclassPercentageList: AssetclassPercentage[] = [];
 
-  constructor(ruleStrategy: RuleStrategy) {
+  constructor(ruleStrategy: RuleStrategyType) {
     super();
-    this.ruleStrategy = RuleStrategy[ruleStrategy];
+    this.ruleStrategy = RuleStrategyType[ruleStrategy];
   }
 }
 

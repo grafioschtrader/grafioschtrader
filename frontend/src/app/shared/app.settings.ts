@@ -139,6 +139,7 @@ export class AppSettings {
     public static readonly TRANSACTION_COST_KEY = 'portfoliotranscost';
     public static readonly STRATEGY_KEY = 'strategy';
     public static readonly STRATEGY_OVERVIEW_KEY = 'strategyoverview';
+    public static readonly TENANT_ALERT = 'tenantalert';
     public static readonly TENANT_TRANSACTION = 'tenanttransaction';
     public static readonly CASHACCOUNT_DETAIL_ROUTE_KEY = 'cashaccountDetail';
     public static readonly SECURITYACCOUNT_SUMMERY_ROUTE_KEY = 'securityaccountSummery';

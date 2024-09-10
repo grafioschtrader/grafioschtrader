@@ -19,9 +19,10 @@ import 'moment/locale/en-nz.js';
 import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 import {ServiceEntityUpdate} from '../edit/service.entity.update';
 import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
-import NumberFormat = Intl.NumberFormat;
 import {AssetclassType} from '../types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../types/special.investment.instruments';
+import {FeatureType} from '../login/component/login.component';
+import NumberFormat = Intl.NumberFormat;
 
 
 @Injectable()
@@ -42,7 +43,8 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   private currencyPrecisionMap: { [currency: string]: number };
   private fieldSizeMap: {[fieldNameOrKey: string]: number};
   private dateFormatWithoutYear: string;
-  private _useWebsocket: boolean = null;
+  private featureCache = new Map<FeatureType, boolean>();
+
 
   constructor(httpClient: HttpClient, messageToastService: MessageToastService) {
     super(httpClient, messageToastService);
@@ -222,10 +224,20 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   }
 
   public useWebsocket(): boolean {
-    if (this._useWebsocket === null) {
-      this._useWebsocket = sessionStorage.getItem(GlobalSessionNames.USE_WEBSOCKET) === 'true';
+    return this.prepareUseFeatures(FeatureType.WEBSOCKET);
+  }
+
+  public useAlert(): boolean {
+    return this.prepareUseFeatures(FeatureType.ALERT);
+  }
+
+  private prepareUseFeatures(featureType: FeatureType): boolean {
+    // Check if the feature state is already cached
+    if (!this.featureCache.has(featureType)) {
+      const features = JSON.parse(sessionStorage.getItem(GlobalSessionNames.USE_FEATURES));
+      this.featureCache.set(featureType, features.indexOf(FeatureType[featureType]) >= 0);
     }
-    return this._useWebsocket;
+    return this.featureCache.get(featureType);
   }
 
   public getNumberFormat(): NumberFormat {

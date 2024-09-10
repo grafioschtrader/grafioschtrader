@@ -20,7 +20,7 @@ import grafioschtrader.security.TokenAuthenticationService;
 public class AuthChannelInterceptorAdapter implements ChannelInterceptor {
 
   @Autowired
-  TokenAuthenticationService tokenAuthenticationService;
+  private TokenAuthenticationService tokenAuthenticationService;
 
   @Override
   public Message<?> preSend(final Message<?> message, final MessageChannel channel) {

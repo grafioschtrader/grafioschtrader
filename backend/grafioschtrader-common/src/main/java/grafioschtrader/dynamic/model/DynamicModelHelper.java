@@ -9,8 +9,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DynamicFormPropertySupport;
 import grafioschtrader.dynamic.model.ClassDescriptorInputAndShow.DateRangeClass;
+import grafioschtrader.dynamic.model.udf.UDFDataHelper;
 import grafioschtrader.validation.DateRange;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
@@ -37,7 +39,8 @@ public abstract class DynamicModelHelper {
   }
 
   /**
-   * Creates from a model class the corresponding input and display description. Certain annotations are also supported.
+   * Creates from a model class the corresponding input and display description.
+   * Certain annotations are also supported.
    *
    * @param modelClass
    * @param possibleAnnotationSet
@@ -61,7 +64,7 @@ public abstract class DynamicModelHelper {
                 fieldDescriptorInputAndShow.dynamicFormPropertyHelps = new DynamicFormPropertyHelps[] {
                     DynamicFormPropertyHelps.DATE_FUTURE };
               } else if (annotation instanceof Min) {
-                fieldDescriptorInputAndShow.min =  (double) ((Min) annotation).value();
+                fieldDescriptorInputAndShow.min = (double) ((Min) annotation).value();
               } else if (annotation instanceof Max) {
                 fieldDescriptorInputAndShow.max = (double) ((Max) annotation).value();
               } else if (annotation instanceof DynamicFormPropertySupport) {
@@ -72,6 +75,11 @@ public abstract class DynamicModelHelper {
                 fieldDescriptorInputAndShow.max = (double) ((Size) annotation).max();
               }
             }
+            if (fieldDescriptorInputAndShow.dataType == DataType.Numeric && fieldDescriptorInputAndShow.max == null) {
+              fieldDescriptorInputAndShow.max = UDFDataHelper.getMaxDecimalValue(GlobalConstants.FID_MAX_DIGITS,
+                  GlobalConstants.FID_MAX_FRACTION_DIGITS);
+            }
+
             fieldDescriptorInputAndShowList.add(fieldDescriptorInputAndShow);
           }
         }

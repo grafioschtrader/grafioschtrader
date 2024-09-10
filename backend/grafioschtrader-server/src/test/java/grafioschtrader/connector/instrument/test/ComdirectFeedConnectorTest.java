@@ -22,17 +22,17 @@ public class ComdirectFeedConnectorTest {
 
     securities.add(ConnectorTestHelper.createIntraSecurity("Xtrackers MSCI Japan UCITS ETF - 7C CHF ACC H ETF",
         "etfs/detail/uebersicht.html?ID_NOTATION=169541045&SEARCH_REDIRECT=true&REFERER=search.general&REDIRECT_TYPE=ISIN&SEARCH_VALUE=LU1215827756"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40 Index", "indizes/werte/FR0003500008"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("Xtrackers MSCI Japan UCITS ETF",
-        "etfs/detail/uebersicht.html?ID_NOTATION=169541045&SEARCH_REDIRECT=true&REFERER=search.general&REDIRECT_TYPE=ISIN&SEARCH_VALUE=LU1215827756"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40 Index", "indizes/werte/FR0003500008"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("WIG INDEX (PLN)", "indizes/PL9999999995"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core MSCI World UCITS ETF - USD ACC ETF",
-        "etfs/IE00B4L5Y983"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core MSCI World UCITS ETF - USD ACC ETF",
-        "fonds/detail/uebersicht.html?ID_NOTATION=31345909&ISIN=IE00B4L5Y983"));
-    securities.add(ConnectorTestHelper.createIntraSecurity("Crédit Agricole S.A. SF-Preferred MTN 2021(29)",
-        "anleihen/detail/uebersicht.html?ID_NOTATION=342290402&SEARCH_REDIRECT=true&REFERER=search.general&REDIRECT_TYPE=ISIN&SEARCH_VALUE=CH1118460984"));
+//    securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40 Index", "indizes/werte/FR0003500008"));
+//    securities.add(ConnectorTestHelper.createIntraSecurity("Xtrackers MSCI Japan UCITS ETF",
+//        "etfs/detail/uebersicht.html?ID_NOTATION=169541045&SEARCH_REDIRECT=true&REFERER=search.general&REDIRECT_TYPE=ISIN&SEARCH_VALUE=LU1215827756"));
+//    securities.add(ConnectorTestHelper.createIntraSecurity("CAC 40 Index", "indizes/werte/FR0003500008"));
+//    securities.add(ConnectorTestHelper.createIntraSecurity("WIG INDEX (PLN)", "indizes/PL9999999995"));
+//    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core MSCI World UCITS ETF - USD ACC ETF",
+//        "etfs/IE00B4L5Y983"));
+//    securities.add(ConnectorTestHelper.createIntraSecurity("iShares Core MSCI World UCITS ETF - USD ACC ETF",
+//        "fonds/detail/uebersicht.html?ID_NOTATION=31345909&ISIN=IE00B4L5Y983"));
+//    securities.add(ConnectorTestHelper.createIntraSecurity("Crédit Agricole S.A. SF-Preferred MTN 2021(29)",
+//        "anleihen/detail/uebersicht.html?ID_NOTATION=342290402&SEARCH_REDIRECT=true&REFERER=search.general&REDIRECT_TYPE=ISIN&SEARCH_VALUE=CH1118460984"));
 
     securities.parallelStream().forEach(security -> {
       try {

@@ -19,7 +19,6 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Calculate the security risk and gain/loss of margin product.
- *
  */
 public class SecurityMarginCalc extends SecurityBaseCalc {
 

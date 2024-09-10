@@ -1,5 +1,5 @@
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
-import {AlgoSecurity} from '../model/algo.security';
+import {AlgoSecurity, AlgoSecurityStrategyImplType} from '../model/algo.security';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {LoginService} from '../../shared/login/service/log-in.service';
@@ -9,6 +9,7 @@ import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {Injectable} from '@angular/core';
+import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
 
 
 @Injectable()
@@ -17,6 +18,12 @@ export class AlgoSecurityService extends AuthServiceWithLogout<AlgoSecurity> imp
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
+  }
+
+  getAlgoSecurityStrategyImplTypeByIdSecuritycurrency(idSecuritycurrency: number): Observable<AlgoSecurityStrategyImplType> {
+    return <Observable<AlgoSecurityStrategyImplType>>
+      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/security/${idSecuritycurrency}`,
+        this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(algoSecurity: AlgoSecurity): Observable<AlgoSecurity> {

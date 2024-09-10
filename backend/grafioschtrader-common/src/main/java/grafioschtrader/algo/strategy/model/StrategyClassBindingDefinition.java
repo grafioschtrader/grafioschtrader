@@ -4,26 +4,35 @@ import java.util.EnumSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+/**
+ * The class for a particular strategy can be different at different levels. The
+ * user will make his settings via these classes. It may also make sense to have
+ * a strategy only at the top level or, for example, on a security.
+ */
 public class StrategyClassBindingDefinition {
 
-  public final AlgoStrategyImplementations algoStrategyImplementations;
+  public final AlgoStrategyImplementationType algoStrategyImplementations;
   @JsonIgnore
   public final Class<?> algoTopModel;
   @JsonIgnore
   public final Class<?> algoAssetclassModel;
   @JsonIgnore
   public final Class<?> algoSecurityModel;
-  public final EnumSet<AlgoStrategyLevelRequirements> algoStrategyLevelRequirementsSet;
+  
+  public final EnumSet<AlgoStrategyLevelRequirementType> algoStrategyLevelRequirementsSet;
+  
+  public boolean canRepeatSameLevel;
 
-  public StrategyClassBindingDefinition(AlgoStrategyImplementations algoStrategyImplementations, Class<?> algoTopModel,
+  public StrategyClassBindingDefinition(AlgoStrategyImplementationType algoStrategyImplementations, Class<?> algoTopModel,
       Class<?> algoAssetclassModel, Class<?> algoSecurityModel,
-      EnumSet<AlgoStrategyLevelRequirements> algoStrategyLevelRequirementsSet) {
+      EnumSet<AlgoStrategyLevelRequirementType> algoStrategyLevelRequirementsSet, boolean canRepeatSameLevel) {
     super();
     this.algoStrategyImplementations = algoStrategyImplementations;
     this.algoTopModel = algoTopModel;
     this.algoAssetclassModel = algoAssetclassModel;
     this.algoSecurityModel = algoSecurityModel;
     this.algoStrategyLevelRequirementsSet = algoStrategyLevelRequirementsSet;
+    this.canRepeatSameLevel = canRepeatSameLevel;
   }
 
 }

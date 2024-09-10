@@ -22,6 +22,8 @@ import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
+import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
+import {AlgoDialogVisible} from '../../algo/model/algo.dialog.visible';
 
 /**
  * View to check the reliability of the dividend, split feed. It supports multi selection for removal.
@@ -46,6 +48,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
   constructor(private securityService: SecurityService,
               private currencypairService: CurrencypairService,
               dialogService: DialogService,
+              alarmSetupService: AlarmSetupService,
               timeSeriesQuotesService: TimeSeriesQuotesService,
               dataChangedService: DataChangedService,
               activePanelService: ActivePanelService,
@@ -61,7 +64,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.DIVIDEND_SPLIT_FEED, AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
-      dialogService, timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router,
+      dialogService, alarmSetupService, timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router,
       activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
       filterService, translateService, gps, usersettingsService, WatchlistTable.MULTIPLE);
     this.addBaseColumns();
@@ -117,4 +120,5 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
   protected readonly parseInt = parseInt;
   protected readonly Number = Number;
   protected readonly RegExp = RegExp;
+  protected readonly AlgoDialogVisible = AlgoDialogVisible;
 }

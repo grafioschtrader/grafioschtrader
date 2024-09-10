@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.0</version>
+		<version>0.33.1</version>
 	</parent>
 
 
@@ -103,7 +103,7 @@
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>3.0.2</version>
+			<version>3.0.3</version>
 		</dependency>
 		
 		<dependency>
