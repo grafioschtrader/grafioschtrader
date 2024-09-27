@@ -2,7 +2,6 @@ package grafioschtrader.entities;
 
 import java.util.List;
 
-import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
