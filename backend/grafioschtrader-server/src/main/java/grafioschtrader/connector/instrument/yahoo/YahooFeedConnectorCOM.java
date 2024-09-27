@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
@@ -41,9 +40,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
@@ -87,7 +88,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
-  private static final String DOMAIN_NAME_WITH_7_VERSION = "https://query1.finance.yahoo.com/v7/finance/";
+  private static final String DOMAIN_NAME_WITH_8_VERSION_Q2 = "https://query2.finance.yahoo.com/v8/finance/";
   private static final String DOMAIN_NAME_WITH_7_VERSION_Q2 = "https://query2.finance.yahoo.com/v7/finance/";
   private static final String DOMAIN_NAME_WITH_10_VERSION = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/";
   private static final boolean USE_V10_LASTPRICE = false;
@@ -181,18 +182,15 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> void readLastPriceWithCrumb(String urlStr, final T securitycurrency)
       throws ClientProtocolException, IOException {
-
     boolean success = false;
     for (int i = 0; i <= 2 && !success; i++) {
       i++;
       InputStream is = loadContentWithCrump(urlStr);
-
       if (urlStr.startsWith(DOMAIN_NAME_WITH_10_VERSION)) {
         success = processV10LastPrice(is, securitycurrency);
       } else {
         success = processV7LastPrice(is, securitycurrency);
       }
-
       if (!success) {
         CrumbManager.resetCookieCrumb();
       }
@@ -281,7 +279,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws IOException, ParseException, URISyntaxException {
+      throws Exception {
 
     return FeedConnectorHelper.checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(from, to,
         getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0), currencyPair.getName());
@@ -316,66 +314,35 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
-      final double divider) throws IOException, URISyntaxException {
-
-    List<Historyquote> historyquotes = null;
+      final double divider) throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
     symbol = URLEncoder.encode(symbol, StandardCharsets.UTF_8);
-    CookieStore cookieStore = new BasicCookieStore();
-    HttpClient client = HttpClientBuilder.create()
-        .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
-    HttpClientContext context = HttpClientContext.create();
-    context.setCookieStore(cookieStore);
-    historyquotes = getEodHistory(symbol, startDate, endDate, isCurrency, divider, client, context);
-
-    return historyquotes;
-  }
-
-  private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
-      final double divider, HttpClient client, HttpClientContext context) throws IOException, URISyntaxException {
-
-    List<Historyquote> historyquotes = null;
-    String url = String.format(
-        DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=history", symbol,
+    
+    List<Historyquote> historyquotes = new ArrayList<>();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    String urlStr = String.format(
+        DOMAIN_NAME_WITH_8_VERSION_Q2 + "chart/%s?period1=%s&period2=%s&interval=1d&events=history", symbol,
         startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60);
 
-    HttpGet request = new HttpGet(url);
-    request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
-    HttpResponse response = client.execute(request, context);
-    HttpEntity entity = response.getEntity();
-
-    if (entity != null) {
-      try (BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent()))) {
-        historyquotes = this.readBackfillStream(in, isCurrency, divider);
-      }
-    }
-    HttpClientUtils.closeQuietly(response);
-    return historyquotes;
-  }
-
-  private List<Historyquote> readBackfillStream(final BufferedReader in, final boolean isCurrency, final double divider)
-      throws IOException {
-    // first line is header
-    final List<Historyquote> historyquotes = new ArrayList<>();
-    final SimpleDateFormat dateFormatSecurity = new SimpleDateFormat(DATE_FORMAT_SECURITY);
-    final SimpleDateFormat dateFormatSecurityOld = new SimpleDateFormat(DATE_FORMAT_SECURITY_OLD, Locale.US);
-
-    String inputLine = in.readLine();
-    while ((inputLine = in.readLine()) != null) {
-      if (!Character.isDigit(inputLine.charAt(0))) {
-        continue;
-      }
-      try {
-        final Historyquote historyquote = parseResponseLine(inputLine, dateFormatSecurity, dateFormatSecurityOld,
-            isCurrency, divider);
-        if (historyquote != null && isDifferentDay(historyquotes, historyquote)) {
-          historyquotes.add(historyquote);
-        }
-      } catch (final ParseException e) {
-        log.error("Error parsing data: " + inputLine);
-      }
+    final TopLevelChart topLevelChart = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(),
+        TopLevelChart.class);
+    ResultData resultData = topLevelChart.chart.result.get(0);
+    List<Long> timestamps = resultData.timestamp;
+    Quotes quotes = resultData.indicators.quote.get(0);
+    for (int i = 0; i < timestamps.size(); i++) {
+      Historyquote historyquote = new Historyquote();
+      if(quotes.close.get(i) != null) {
+        historyquotes.add(historyquote);
+        historyquote.setClose(quotes.close.get(i) / divider);
+        historyquote.setHigh(quotes.high.get(i) / divider);
+        historyquote.setLow(quotes.low.get(i) / divider);
+        historyquote.setOpen(quotes.open.get(i) / divider);
+        historyquote.setVolume(quotes.volume.get(i));
+        historyquote.setDate(DateHelper.setTimeToZeroAndAddDay( new Date(timestamps.get(i) * 1000), 0));
+      } 
     }
     return historyquotes;
   }
+
 
   @Override
   public boolean isDividendSplitAdjusted() {
@@ -417,7 +384,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, LocalDate toDate, String event) {
     return String.format(
-        DOMAIN_NAME_WITH_7_VERSION + "download/%s?period1=%s&period2=%s&interval=1d&events=" + event
+        DOMAIN_NAME_WITH_8_VERSION_Q2 + "download/%s?period1=%s&period2=%s&interval=1d&events=" + event
             + "&includeAdjustedClose=true",
         symbol, DateHelper.LocalDateToEpocheSeconds(fromDate),
         DateHelper.LocalDateToEpocheSeconds(toDate) + (24 * 60 * 60) - 1);
@@ -603,4 +570,78 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     public Long raw;
   }
 
+  /// EOD Historical
+  ////////////////////////////////////
+  
+  static class TopLevelChart {
+    public ChartData chart;
+}
+  
+  static class ChartData {
+    public List<ResultData> result;
+    public String error;  
+  }
+  
+  static class ResultData {
+    public Meta meta;
+    public List<Long> timestamp;
+    public Indicators indicators;
+}
+  
+  static class Meta {
+    public String currency;
+    public String symbol;
+    public String exchangeName;
+    public String fullExchangeName;
+    public String instrumentType;
+    public long firstTradeDate;
+    public long regularMarketTime;
+    public boolean hasPrePostMarketData;
+    public int gmtoffset;
+    public String timezone;
+    public String exchangeTimezoneName;
+    public double regularMarketPrice;
+    public double fiftyTwoWeekHigh;
+    public double fiftyTwoWeekLow;
+    public double regularMarketDayHigh;
+    public double regularMarketDayLow;
+    public long regularMarketVolume;
+    public String longName;
+    public String shortName;
+    public double chartPreviousClose;
+    public int priceHint;
+    public CurrentTradingPeriod currentTradingPeriod;
+    public String dataGranularity;
+    public String range;
+    public List<String> validRanges;
+}
+   static  class CurrentTradingPeriod {
+    public TimePeriod pre;
+    public TimePeriod regular;
+    public TimePeriod post;
+}
+  
+   static class TimePeriod {
+     public String timezone;
+     public long start;
+     public long end;
+     public int gmtoffset;
+ }
+  
+   static class Indicators {
+     public List<Quotes> quote;
+     public List<AdjClose> adjclose;
+ }
+   
+   static class Quotes {
+     public List<Double> high;
+     public List<Long> volume;
+     public List<Double> low;
+     public List<Double> open;
+     public List<Double> close;
+ }
+   
+   static class AdjClose {
+     public List<Double> adjclose;
+ }
 }

@@ -48,6 +48,7 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
       hisoricalDate.add(new SecurityHistoricalDate("UBSFund Solutions - CMCI Oil SF ETF",
           SpecialInvestmentInstruments.ETF, "OILUSA.SW", GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_USD,
           3282, "2010-06-15", "2023-07-24"));
+  
     } catch (ParseException pe) {
       pe.printStackTrace();
     }

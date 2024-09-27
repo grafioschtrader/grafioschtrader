@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
@@ -58,11 +59,14 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule());
 
+  private final Semaphore semaphoreLastPrice = new Semaphore(5);
+
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
-    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_INTRA,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
     supportedFeed.put(FeedSupport.FS_SPLIT, new FeedIdentifier[] { FeedIdentifier.SPLIT_URL });
     supportedFeed.put(FeedSupport.FS_DIVIDEND, new FeedIdentifier[] { FeedIdentifier.DIVIDEND_URL });
   }
@@ -192,8 +196,8 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    var quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(), Quote.class);
-    quote.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security), getIntradayDelayedSeconds());
+    updateLastPrice(security, getSecurityIntradayDownloadLink(security),
+        FeedConnectorHelper.getGBXLondonDivider(security));
   }
 
   @Override
@@ -203,8 +207,22 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-    var quote = objectMapper.readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL(), Quote.class);
-    quote.setValues(currencypair, 1.0, getIntradayDelayedSeconds());
+    updateLastPrice(currencypair, getCurrencypairIntradayDownloadLink(currencypair), getIntradayDelayedSeconds());
+  }
+
+  /**
+   * There are many timeout exceptions, so this is an attempt to avoid this with a semaphore.
+   */
+  private <T extends Securitycurrency<T>> void updateLastPrice(T securitycurrency, String url, double divider)
+      throws Exception {
+    semaphoreLastPrice.acquire();
+    try {
+      var quote = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(url, 10).body(), Quote.class);
+      quote.setValues(securitycurrency, divider, getIntradayDelayedSeconds());
+    } finally {
+      // Release the permit after the work is done
+      semaphoreLastPrice.release();
+    }
   }
 
   @Override
@@ -229,9 +247,8 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
         .readValue(new URI(getDividendSplitHistoricalDownloadLink(security.getUrlDividendExtend(), fromDate,
             LocalDate.now(), DIVDEND_EVENT)).toURL(), DividendRead[].class);
     for (DividendRead element : dividendRead) {
-      Dividend dividend = new Dividend(security.getIdSecuritycurrency(), element.date,
-          element.paymentDate, element.unadjustedValue, element.value, element.currency,
-          CreateType.CONNECTOR_CREATED);
+      Dividend dividend = new Dividend(security.getIdSecuritycurrency(), element.date, element.paymentDate,
+          element.unadjustedValue, element.value, element.currency, CreateType.CONNECTOR_CREATED);
       dividends.add(dividend);
     }
     return dividends;
