@@ -1,45 +1,40 @@
 
 package grafioschtrader.connector.instrument.yahoo;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.math3.fraction.Fraction;
-import org.apache.commons.math3.fraction.FractionFormat;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
@@ -76,20 +71,18 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  */
 @Component
 public class YahooFeedConnectorCOM extends BaseFeedConnector {
-  
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final ObjectMapper objectMapper = new ObjectMapper();
-  private static final String DATE_FORMAT_SECURITY = "yy-MM-dd"; //$NON-NLS-1$
-  private static final String DATE_FORMAT_SECURITY_OLD = "dd-MMM-yy"; //$NON-NLS-1$
-  private static final String DATE_FORMAT_SPLIT = "yyyy-MM-dd";
-  private static final String DIVDEND_EVENT = "dividend";
-  private static final String SPLIT_EVENT = "split";
+  private static final String DIVDEND_EVENT = "div";
+  private static final String SPLIT_EVENT = "splits";
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
-  private static final String DOMAIN_NAME_WITH_8_VERSION_Q2 = "https://query2.finance.yahoo.com/v8/finance/";
+
   private static final String DOMAIN_NAME_WITH_7_VERSION_Q2 = "https://query2.finance.yahoo.com/v7/finance/";
+  private static final String DOMAIN_NAME_WITH_8_VERSION_Q2 = "https://query2.finance.yahoo.com/v8/finance/";
   private static final String DOMAIN_NAME_WITH_10_VERSION = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/";
   private static final boolean USE_V10_LASTPRICE = false;
 
@@ -316,33 +309,32 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
       final double divider) throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
     symbol = URLEncoder.encode(symbol, StandardCharsets.UTF_8);
-    
+
     List<Historyquote> historyquotes = new ArrayList<>();
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     String urlStr = String.format(
         DOMAIN_NAME_WITH_8_VERSION_Q2 + "chart/%s?period1=%s&period2=%s&interval=1d&events=history", symbol,
         startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60);
 
-    final TopLevelChart topLevelChart = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(),
-        TopLevelChart.class);
+    final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.TimestampIndicatorsView.class)
+        .forType(TopLevelChart.class).readValue(FeedConnectorHelper.getByHttpClient(urlStr).body());
     ResultData resultData = topLevelChart.chart.result.get(0);
     List<Long> timestamps = resultData.timestamp;
     Quotes quotes = resultData.indicators.quote.get(0);
     for (int i = 0; i < timestamps.size(); i++) {
       Historyquote historyquote = new Historyquote();
-      if(quotes.close.get(i) != null) {
+      if (quotes.close.get(i) != null) {
         historyquotes.add(historyquote);
         historyquote.setClose(quotes.close.get(i) / divider);
         historyquote.setHigh(quotes.high.get(i) / divider);
         historyquote.setLow(quotes.low.get(i) / divider);
         historyquote.setOpen(quotes.open.get(i) / divider);
         historyquote.setVolume(quotes.volume.get(i));
-        historyquote.setDate(DateHelper.setTimeToZeroAndAddDay( new Date(timestamps.get(i) * 1000), 0));
-      } 
+        historyquote.setDate(DateHelper.setTimeToZeroAndAddDay(new Date(timestamps.get(i) * 1000), 0));
+      }
     }
     return historyquotes;
   }
-
 
   @Override
   public boolean isDividendSplitAdjusted() {
@@ -357,23 +349,16 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
-    double divider = FeedConnectorHelper.getGBXLondonDivider(security);
-    return getDividendSplitHistory(security, fromDate, LocalDate.now(), DIVDEND_EVENT,
-        (in, idSecurity, dividends, currency) -> {
-          String inputLine = in.readLine();
-          while ((inputLine = in.readLine()) != null) {
-            if (!Character.isDigit(inputLine.charAt(0))) {
-              continue;
-            }
-            String[] values = inputLine.split(",");
-            LocalDate exdDate = LocalDate.parse(values[0]);
-            Double amountAdjusted = Double.parseDouble(values[1]);
-            if (amountAdjusted > 0.0) {
-              dividends.add(new Dividend(idSecurity, exdDate, null, null, amountAdjusted / divider, currency,
-                  CreateType.CONNECTOR_CREATED));
-            }
-          }
-        });
+    final double divider = FeedConnectorHelper.getGBXLondonDivider(security);
+
+    Events events = getSplitDividendEvent(security.getUrlDividendExtend(), fromDate, LocalDate.now(), DIVDEND_EVENT);
+    return events.dividends.entrySet().stream()
+        .map(entry -> new Dividend(security.getIdSecuritycurrency(),
+            Instant.ofEpochSecond(entry.getValue().date)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate(), null, null, entry.getValue().amount / divider,
+            security.getCurrency(), CreateType.CONNECTOR_CREATED))
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -384,7 +369,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, LocalDate toDate, String event) {
     return String.format(
-        DOMAIN_NAME_WITH_8_VERSION_Q2 + "download/%s?period1=%s&period2=%s&interval=1d&events=" + event
+        DOMAIN_NAME_WITH_8_VERSION_Q2 + "chart/%s?period1=%s&period2=%s&interval=1d&events=" + event
             + "&includeAdjustedClose=true",
         symbol, DateHelper.LocalDateToEpocheSeconds(fromDate),
         DateHelper.LocalDateToEpocheSeconds(toDate) + (24 * 60 * 60) - 1);
@@ -395,57 +380,30 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
 
   }
+  
+  private Events getSplitDividendEvent(String urlExtend, LocalDate fromDate, LocalDate toDate, String event) throws Exception {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    
+    System.out.println(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event));
+    final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.EventsView.class).forType(TopLevelChart.class)
+        .readValue(FeedConnectorHelper
+            .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event))
+            .body());
+    return topLevelChart.chart.result.get(0).events;
+  }
 
   @Override
   public List<Securitysplit> getSplitHistory(final Security security, LocalDate fromDate, LocalDate toDate)
       throws Exception {
-    return getDividendSplitHistory(security, fromDate, toDate, SPLIT_EVENT,
-        (in, idSecurity, securitysplits, currency) -> {
-          final SimpleDateFormat dateFormatSplit = new SimpleDateFormat(DATE_FORMAT_SPLIT, Locale.US);
-          FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
-          String inputLine = in.readLine();
-          while ((inputLine = in.readLine()) != null) {
-            if (!Character.isDigit(inputLine.charAt(0))) {
-              continue;
-            }
-            String[] values = inputLine.split(",");
-            Date splitDate = dateFormatSplit.parse(values[0]);
-            String fractionStr = values[1].replace(":", "/").replaceAll("\\s+", "");
-            Fraction fraction = fractionFormat.parse(fractionStr);
-            securitysplits.add(new Securitysplit(idSecurity, splitDate, fraction.getDenominator(),
-                fraction.getNumerator(), CreateType.CONNECTOR_CREATED));
-          }
-        });
+    Events events = getSplitDividendEvent(security.getUrlSplitExtend(), fromDate, toDate, SPLIT_EVENT);
+    return events.splits.entrySet().stream()
+        .map(entry -> new Securitysplit(security.getIdSecuritycurrency(),
+            DateHelper.setTimeToZeroAndAddDay(new Date(entry.getValue().date * 1000), 0), entry.getValue().denominator,
+            entry.getValue().numerator, CreateType.CONNECTOR_CREATED))
+        .collect(Collectors.toList());
   }
 
-  private <S> List<S> getDividendSplitHistory(Security security, LocalDate fromDate, LocalDate toDate, String event,
-      IReadData<S> reader) throws Exception {
-    List<S> records = new ArrayList<>();
-    CookieStore cookieStore = new BasicCookieStore();
-    HttpClient client = HttpClientBuilder.create()
-        .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
-    HttpClientContext context = HttpClientContext.create();
-    context.setCookieStore(cookieStore);
-    String symbol = URLEncoder.encode(
-        event.equals(SPLIT_EVENT) ? security.getUrlSplitExtend() : security.getUrlDividendExtend(),
-        StandardCharsets.UTF_8);
-
-    String url = this.getSplitHistoricalDownloadLink(symbol, fromDate, toDate, event);
-    HttpGet request = new HttpGet(url);
-    request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
-
-    HttpResponse response = client.execute(request, context);
-    HttpEntity entity = response.getEntity();
-
-    if (entity != null) {
-      try (BufferedReader in = new BufferedReader(new InputStreamReader(entity.getContent()))) {
-        reader.readData(in, security.getIdSecuritycurrency(), records, security.getCurrency());
-      }
-    }
-    HttpClientUtils.closeQuietly(response);
-
-    return records;
-  }
+  
 
   /**
    * Yahoo creates sometimes more than only one quote for the same day.
@@ -520,11 +478,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     public Long regularMarketVolume;
   }
 
-  private interface IReadData<S> {
-    void readData(final BufferedReader in, Integer idSecurity, List<S> securitysplits, String currency)
-        throws IOException, ParseException;
-  }
-
+  
   static class QuoteSummaryV10 {
     public QuoteSummary quoteSummary;
   }
@@ -572,22 +526,37 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   /// EOD Historical
   ////////////////////////////////////
-  
-  static class TopLevelChart {
-    public ChartData chart;
-}
-  
-  static class ChartData {
-    public List<ResultData> result;
-    public String error;  
+  static class Views {
+    static class EventsView {
+    }
+
+    static class TimestampIndicatorsView {
+    }
   }
-  
+
+  static class TopLevelChart {
+    @JsonView({ Views.EventsView.class, Views.TimestampIndicatorsView.class })
+    public ChartData chart;
+  }
+
+  static class ChartData {
+    @JsonView({ Views.EventsView.class, Views.TimestampIndicatorsView.class })
+    public List<ResultData> result;
+    @JsonView({ Views.EventsView.class, Views.TimestampIndicatorsView.class })
+    public String error;
+  }
+
   static class ResultData {
+    @JsonView({ Views.EventsView.class, Views.TimestampIndicatorsView.class })
     public Meta meta;
+    @JsonView(Views.TimestampIndicatorsView.class)
     public List<Long> timestamp;
+    @JsonView(Views.TimestampIndicatorsView.class)
     public Indicators indicators;
-}
-  
+    @JsonView(Views.EventsView.class)
+    public Events events;
+  }
+
   static class Meta {
     public String currency;
     public String symbol;
@@ -614,34 +583,56 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     public String dataGranularity;
     public String range;
     public List<String> validRanges;
-}
-   static  class CurrentTradingPeriod {
+  }
+
+  static class CurrentTradingPeriod {
     public TimePeriod pre;
     public TimePeriod regular;
     public TimePeriod post;
-}
-  
-   static class TimePeriod {
-     public String timezone;
-     public long start;
-     public long end;
-     public int gmtoffset;
- }
-  
-   static class Indicators {
-     public List<Quotes> quote;
-     public List<AdjClose> adjclose;
- }
-   
-   static class Quotes {
-     public List<Double> high;
-     public List<Long> volume;
-     public List<Double> low;
-     public List<Double> open;
-     public List<Double> close;
- }
-   
-   static class AdjClose {
-     public List<Double> adjclose;
- }
+  }
+
+  static class TimePeriod {
+    public String timezone;
+    public long start;
+    public long end;
+    public int gmtoffset;
+  }
+
+  static class Indicators {
+    public List<Quotes> quote;
+    public List<AdjClose> adjclose;
+  }
+
+  static class Quotes {
+    public List<Double> high;
+    public List<Long> volume;
+    public List<Double> low;
+    public List<Double> open;
+    public List<Double> close;
+  }
+
+  static class AdjClose {
+    public List<Double> adjclose;
+  }
+
+  static class Events {
+    @JsonView(Views.EventsView.class)
+    public Map<String, Split> splits;
+    @JsonView(Views.EventsView.class)
+    public Map<String, DividendJson> dividends;
+  }
+
+  static class Split {
+    public long date;
+    public int numerator;
+    public int denominator;
+    public String splitRatio;
+
+  }
+
+  static class DividendJson {
+    public long date;
+    public double amount;
+  }
+
 }
