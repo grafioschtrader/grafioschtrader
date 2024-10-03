@@ -30,7 +30,7 @@ public abstract class BaseFeedConnectorCheck {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      System.out.println(String.format("%s URL: %s last:%f change: %f high: %f low: %f timestamp: %tc", hd.security.getName(),
+      System.out.println(String.format("%s URL: %s last:%f change percentage: %f high: %f low: %f timestamp: %tc", hd.security.getName(),
           hd.security.getUrlIntraExtend(), hd.security.getSLast(), hd.security.getSChangePercentage(),
           hd.security.getSHigh(), hd.security.getSLow(), hd.security.getSTimestamp()));
       assertThat(hd.security.getSLast()).isNotNull().isGreaterThan(0.0);
