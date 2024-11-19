@@ -224,10 +224,13 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
     SplitAdjustedHistoryquotesResult sahr = securityJpaRepository.isLatestSplitHistoryquotePossibleAdjusted(security,
         securitysplits);
 
+    log.info("SplitAdjust: {}, Full load timestamp: {}, Next attempt: {}", sahr.sah, security.getFullLoadTimestamp(),
+        sahr.addDaysForNextAttempt);
     if (sahr.sah == SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED || (!youngestSplitDate.isEmpty()
         && security.getFullLoadTimestamp() != null && youngestSplitDate.get().after(security.getFullLoadTimestamp()))) {
       // The historical price data must be reloaded if the most recent split date is
       // more recent than the last complete load of this historical data.
+      log.info("Youngest Split-Date: {}, Full load timestamp: {}", youngestSplitDate.get(), security.getFullLoadTimestamp());
       securityJpaRepository.reloadAsyncFullHistoryquote(security);
       if (requireHoldingBuild) {
         taskDataChangeJpaRepository
@@ -235,7 +238,8 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
                 LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
       }
     } else if (security.getFullLoadTimestamp() != null && sahr.addDaysForNextAttempt != null) {
-      //The historical price data does not yet reflect the split, so repeat the process in the future.
+      // The historical price data does not yet reflect the split, so repeat the
+      // process in the future.
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
           TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(sahr.addDaysForNextAttempt),
           security.getIdSecuritycurrency(), Security.class.getSimpleName()));
