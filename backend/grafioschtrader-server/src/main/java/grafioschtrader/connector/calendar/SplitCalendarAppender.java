@@ -70,7 +70,7 @@ public class SplitCalendarAppender {
   @Autowired(required = false)
   private List<ISplitCalendarFeedConnector> splitCalendarFeedConnectors = new ArrayList<>();
 
-  private static String removeFromNameRegex = " (corp|corp\\.|corporation|inc\\.|inc|llc)$";
+  private static String removeFromNameRegex = " (corp|corp\\.|corporation|inc\\.|inc|llc|ltd adr)$";
 
   public void appendSecuritySplitsUntilToday() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository

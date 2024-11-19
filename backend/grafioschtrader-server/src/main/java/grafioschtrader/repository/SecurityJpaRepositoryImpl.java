@@ -506,12 +506,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         if (hqPersistent != null) {
           if (hqPersistent.getClose() != hqConnector.getClose()) {
             differentCloseCount++;
+          } else {
+            theSameCloseCount++;            
           }
-          theSameCloseCount++;
         }
       }
-      sahr.sah = (differentCloseCount != theSameCloseCount) ? SplitAdjustedHistoryquotes.NOT_DETCTABLE
-          : SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED;
+      sahr.sah = (differentCloseCount > 0 && theSameCloseCount == 0) ? SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED
+          : SplitAdjustedHistoryquotes.NOT_DETCTABLE;
       if (sahr.sah == SplitAdjustedHistoryquotes.NOT_DETCTABLE) {
         sahr.addDaysForNextAttempt = getNextAttemptInDaysForSplitHistorical(security, youngestSplit.getSplitDate());
       }

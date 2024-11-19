@@ -18,7 +18,7 @@ public class CrumbManager {
   public static String crumb = null;
   public static String cookie = null;
 
-  private static void setCookie() {
+  public static void setCookie() {
     try {
       URL url = new URI("https://fc.yahoo.com").toURL();
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();

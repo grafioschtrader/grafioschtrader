@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.yahoo.CrumbManager;
 import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.connector.yahoo.YahooSymbolSearch;
 import grafioschtrader.entities.Security;
@@ -68,6 +69,7 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
             s -> matchAssetclassAndSpecialInvestmentInstruments(udfMetaDataSecurity, s.securitycurrency.getAssetClass())
                 && ((java.sql.Date) s.securitycurrency.getActiveToDate()).toLocalDate().isAfter(now))
         .collect(Collectors.toList());
+    CrumbManager.setCookie();
     forkJoinPool.submit(() -> filteredList.parallelStream().forEach(s -> {
       createWhenNotExistsYahooFieldValue(securitycurrencyUDFGroup, udfMetaDataSecurity, s.securitycurrency,
           micProviderMapRepository);
@@ -114,7 +116,7 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
   
   private void createEaringsFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
       UDFMetadataSecurity udfMetaDataSecurity, Security security, String yahooSymbol) {
-    String url = YahooHelper.YAHOO_CALENDAR + "earnings/?symbol=" + yahooSymbol;
+    String url = YahooHelper.YAHOO_CALENDAR + "earnings?symbol=" + yahooSymbol;
     if (udfMetaDataSecurity.getUdfSpecialType() == UDFSpecialType.UDF_SPEC_INTERNAL_YAHOO_EARNING_LINK) {
       putValueToJsonValue(securitycurrencyUDFGroup, udfMetaDataSecurity, security.getIdSecuritycurrency(), url, true);
     } else {
@@ -200,7 +202,9 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
     waitForTokenOrGo();
     LocalDateTime now = LocalDateTime.now();
     LocalDateTime nextEarningDate = null;
-    final Connection conn = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT);
+    
+    final Connection conn = Jsoup.connect(url).header("Cookie", CrumbManager.getCookie()).userAgent(GlobalConstants.USER_AGENT);
+    
     final Document doc = conn.get();
     Elements tables = doc.select("table[class=W(100%)]");
     if (tables.size() > 0) {
