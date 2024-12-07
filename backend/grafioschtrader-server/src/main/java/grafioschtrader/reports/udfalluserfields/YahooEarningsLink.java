@@ -14,8 +14,8 @@ public class YahooEarningsLink extends YahooUDFFields implements IUDFForEveryUse
   private MicProviderMapRepository micProviderMapRepository;
 
   @Override
-  public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup) {
-    createYahooFieldValue(securitycurrencyUDFGroup, getUDFSpecialType(), micProviderMapRepository);
+  public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, boolean recreate) {
+    createYahooFieldValue(securitycurrencyUDFGroup, getUDFSpecialType(), micProviderMapRepository, recreate);
   }
 
   @Override

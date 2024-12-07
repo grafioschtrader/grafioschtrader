@@ -21,12 +21,30 @@ import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.MicProviderMap.IdProviderMic;
 import grafioschtrader.repository.MicProviderMapRepository;
 
+/**
+ * The Yahoo Finance symbol for a specific security may be required for certain
+ * functions. This can be determined with this class. This is done using the
+ * ISIN or the symbol of the security. At Yahoo, the official symbol for non-US
+ * shares is often extended with a suffix. For example, the Yahoo symbol NOVN.SW
+ * identifies the stock exchange Swiss Exchange for the share with the official
+ * symbol NOVN.
+ */
 public class YahooSymbolSearch {
 
   private static final String DOMAIN_NAME_WITH_SEARCH = "https://query1.finance.yahoo.com/v1/finance/search";
   private static final Logger log = LoggerFactory.getLogger(YahooSymbolSearch.class);
-  
-  
+
+  /**
+   * The first step is to search using the ISIN, which is unique. If this is not
+   * successful, the symbol is used.
+   * 
+   * @param micProviderMapRepository
+   * @param mic
+   * @param isin
+   * @param symbol
+   * @param name                     The name is not currently being searched for.
+   * @return
+   */
   public String getSymbolByISINOrSymbolOrName(MicProviderMapRepository micProviderMapRepository, String mic,
       String isin, String symbol, String name) {
     Optional<MicProviderMap> micProviderMapOpt = micProviderMapRepository
@@ -34,17 +52,35 @@ public class YahooSymbolSearch {
     String yahooSymbol = null;
     if (micProviderMapOpt.isPresent() || symbol != null) {
       if (isin != null) {
-        yahooSymbol = serachSymbol(isin, micProviderMapOpt.get().getCodeProvider(), symbol);
+        yahooSymbol = serachSymbol(isin, micProviderMapOpt.get().getCodeProvider(), symbol,
+            micProviderMapOpt.get().getSymbolSuffix());
       }
       if (yahooSymbol == null && symbol != null) {
-        yahooSymbol = serachSymbol(symbol, micProviderMapOpt.get().getCodeProvider(), symbol);
+        yahooSymbol = serachSymbol(symbol, micProviderMapOpt.get().getCodeProvider(), symbol,
+            micProviderMapOpt.get().getSymbolSuffix());
       }
 
     }
     return yahooSymbol;
   }
 
-  private String serachSymbol(String query, String yahooExchangeCode, String symbol) {
+  /**
+   * It is possible that the entries for the return do not match the exchange
+   * location transferred. Therefore, passing the check with the symbol and its
+   * suffix is also accepted. For example, the symbol NOVN returns “EBS” as the
+   * exchange, but “SWX” would be expected. However, we also accept the symbol
+   * NOVN.SW when selecting the correct entry.</br>
+   * https://de.hilfe.yahoo.com/kb/B%C3%B6rsen-und-Datenanbieter-auf-Yahoo-Finanzen-sln2310.html
+   * 
+   * @param query
+   * @param yahooExchangeCode Yahoo does not use the MIC for an exchange. It uses
+   *                          a different code. This code is used to determine the
+   *                          correct entry from the return of the request.
+   * @param symbol
+   * @param suffix
+   * @return
+   */
+  private String serachSymbol(String query, String yahooExchangeCode, String symbol, String suffix) {
     String completeUrl = DOMAIN_NAME_WITH_SEARCH + "?" + createParams(query);
     HttpClient client = HttpClient.newHttpClient();
     HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(completeUrl)).build();
@@ -58,18 +94,21 @@ public class YahooSymbolSearch {
           return qouteOpt.get().symbol;
         } else if (symbol != null) {
           qouteOpt = quotes.stream().filter(q -> symbol.equals(q.symbol)).findFirst();
+          if (qouteOpt.isPresent()) {
+            return qouteOpt.get().symbol;
+          } else {
+            String symbolSuffix = symbol + suffix;
+            qouteOpt = quotes.stream().filter(q -> symbolSuffix.equals(q.symbol)).findFirst();
+          }
           return qouteOpt.isPresent() ? qouteOpt.get().symbol : null;
         }
       } else {
         log.error("Get status code {} for query {} and symbol {}", response.statusCode(), query, symbol);
       }
     } catch (IOException | InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      log.error("Symbol search", e);
     }
-
     return null;
-
   }
 
   private String createParams(String query) {

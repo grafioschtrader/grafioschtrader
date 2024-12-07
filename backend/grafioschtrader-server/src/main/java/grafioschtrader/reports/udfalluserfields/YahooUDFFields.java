@@ -1,10 +1,12 @@
 package grafioschtrader.reports.udfalluserfields;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -47,21 +49,22 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
    */
   private static final ForkJoinPool forkJoinPool = new ForkJoinPool(6);
   private YahooSymbolSearch yahooSymbolSearch = new YahooSymbolSearch();
-  
+
   private Bucket bucket;
   /**
    * This is the date format that comes from Yahoo. The time may have to be
    * adapted to the local user.
    */
-  private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy, h a z", Locale.ENGLISH);
+  private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h a z", Locale.ENGLISH);
+  private final SimpleDateFormat dateFormatEarnings = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
   private UDFMetadataSecurity udfMDSYahooSymbol;
 
-  protected void createYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
-      UDFSpecialType uDFSpecialType, MicProviderMapRepository micProviderMapRepository) {
+  protected void createYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, UDFSpecialType uDFSpecialType,
+      MicProviderMapRepository micProviderMapRepository, boolean recreate) {
     udfMDSYahooSymbol = getMetadataSecurity(UDFSpecialType.UDF_SPEC_INTERNAL_YAHOO_SYMBOL_HIDE);
     UDFMetadataSecurity udfMetaDataSecurity = getMetadataSecurity(uDFSpecialType);
     LocalDate now = LocalDate.now();
-   
+
     Bandwidth limit = Bandwidth.classic(25, Refill.intervally(25, Duration.ofMinutes(1)));
     this.bucket = Bucket.builder().addLimit(limit).build();
     List<SecuritycurrencyPosition<Security>> filteredList = securitycurrencyUDFGroup.securityPositionList.stream()
@@ -72,7 +75,7 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
     CrumbManager.setCookie();
     forkJoinPool.submit(() -> filteredList.parallelStream().forEach(s -> {
       createWhenNotExistsYahooFieldValue(securitycurrencyUDFGroup, udfMetaDataSecurity, s.securitycurrency,
-          micProviderMapRepository);
+          micProviderMapRepository, recreate);
     })).join();
   }
 
@@ -83,13 +86,14 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
    * date.
    **/
   private void createWhenNotExistsYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
-      UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository) {
+      UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository,
+      boolean recreate) {
     Object value = readValueFromUser0(udfMetaDataSecurity, security.getIdSecuritycurrency());
-    if (value == null
+    if (value == null || recreate
         || (udfMetaDataSecurity.getUdfSpecialType() == UDFSpecialType.UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE
             && LocalDateTime.now().isAfter((LocalDateTime) value))) {
-      writeYahooFieldValues(securitycurrencyUDFGroup, udfMetaDataSecurity, security,
-          micProviderMapRepository);
+      writeYahooFieldValues(securitycurrencyUDFGroup, udfMetaDataSecurity, security, micProviderMapRepository,
+          recreate);
     } else {
       putValueToJsonValue(securitycurrencyUDFGroup, udfMetaDataSecurity, security.getIdSecuritycurrency(), value,
           false);
@@ -102,8 +106,9 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
    * the earning link or retrieves the next earning date from Yahoo Finance.
    */
   private void writeYahooFieldValues(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
-      UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository) {
-    String yahooSymbol = evaluateYahooSymbol(security, micProviderMapRepository);
+      UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository,
+      boolean recreate) {
+    String yahooSymbol = evaluateYahooSymbol(security, micProviderMapRepository, recreate);
     if (yahooSymbol != null) {
       if (udfMetaDataSecurity.getUdfSpecialType() == UDFSpecialType.UDF_SPEC_INTERNAL_YAHOO_STATISTICS_LINK) {
         String url = YahooHelper.YAHOO_FINANCE_QUOTE + yahooSymbol + "/key-statistics/";
@@ -113,16 +118,17 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
       }
     }
   }
-  
+
   private void createEaringsFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
       UDFMetadataSecurity udfMetaDataSecurity, Security security, String yahooSymbol) {
-    String url = YahooHelper.YAHOO_CALENDAR + "earnings?symbol=" + yahooSymbol;
+    String url = YahooHelper.YAHOO_CALENDAR + "earnings?day=" + dateFormatEarnings.format(new Date()) + "&symbol="
+        + yahooSymbol;
     if (udfMetaDataSecurity.getUdfSpecialType() == UDFSpecialType.UDF_SPEC_INTERNAL_YAHOO_EARNING_LINK) {
       putValueToJsonValue(securitycurrencyUDFGroup, udfMetaDataSecurity, security.getIdSecuritycurrency(), url, true);
     } else {
       try {
-        LocalDateTime nextEarningDate = extractNextEarningDate(securitycurrencyUDFGroup, udfMetaDataSecurity,
-            security, url);
+        LocalDateTime nextEarningDate = extractNextEarningDate(securitycurrencyUDFGroup, udfMetaDataSecurity, security,
+            url);
         putValueToJsonValue(securitycurrencyUDFGroup, udfMetaDataSecurity, security.getIdSecuritycurrency(),
             nextEarningDate, true);
       } catch (Exception e) {
@@ -130,7 +136,6 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
       }
     }
   }
-  
 
   /**
    * Evaluates the Yahoo symbol for the given security. It attempts to determine
@@ -138,7 +143,8 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
    * symbol is searched for in the JSON of user 0. If this fails, the
    * time-consuming Yahoo search is used.
    */
-  protected String evaluateYahooSymbol(Security security, MicProviderMapRepository micProviderMapRepository) {
+  protected String evaluateYahooSymbol(Security security, MicProviderMapRepository micProviderMapRepository,
+      boolean recreate) {
     String yahooCon = BaseFeedConnector.ID_PREFIX + YahooHelper.YAHOO;
     String yahooSymbol = yahooCon.equals(security.getIdConnectorIntra()) ? security.getUrlIntraExtend()
         : yahooCon.equals(security.getIdConnectorHistory()) ? security.getUrlHistoryExtend()
@@ -150,7 +156,7 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
       if (udfDataSymbolOpt.isPresent()) {
         yahooSymbol = (String) readValueFromUser0(udfMDSYahooSymbol, security.getIdSecuritycurrency());
       }
-      if (yahooSymbol == null) {
+      if (yahooSymbol == null || recreate) {
         waitForTokenOrGo();
         yahooSymbol = yahooSymbolSearch.getSymbolByISINOrSymbolOrName(micProviderMapRepository,
             security.getStockexchange().getMic(), security.getIsin(), security.getTickerSymbol(), security.getName());
@@ -176,7 +182,6 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
     } while (true);
   }
 
-  
   /**
    * Extracts the next earning date from the specified URL for a given security.
    *
@@ -202,18 +207,17 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
     waitForTokenOrGo();
     LocalDateTime now = LocalDateTime.now();
     LocalDateTime nextEarningDate = null;
-    
-    final Connection conn = Jsoup.connect(url).header("Cookie", CrumbManager.getCookie()).userAgent(GlobalConstants.USER_AGENT);
-    
+
+    final Connection conn = Jsoup.connect(url).header("Cookie", CrumbManager.getCookie())
+        .userAgent(GlobalConstants.USER_AGENT);
     final Document doc = conn.get();
-    Elements tables = doc.select("table[class=W(100%)]");
+    Elements tables = doc.select("table.bd");
     if (tables.size() > 0) {
       Elements rows = tables.get(0).select("tr");
       for (Element row : rows) {
         Elements cols = row.select("td");
         if (cols.size() >= 6) {
-          LocalDateTime localDateTime = LocalDateTime
-              .parse(cols.get(2).text().replace(" AM", " AM ").replace(" PM", " PM "), formatter);
+          LocalDateTime localDateTime = LocalDateTime.parse(cols.get(2).text(), formatter);
           if (now.isAfter(localDateTime)) {
             break;
           }

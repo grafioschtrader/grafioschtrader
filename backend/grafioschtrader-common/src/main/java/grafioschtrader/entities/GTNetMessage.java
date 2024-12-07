@@ -198,7 +198,7 @@ public class GTNetMessage extends BaseID {
   }
 
   @Embeddable
-  @MappedSuperclass
+ // @MappedSuperclass
   public static class GTNetMessageParam extends BaseParam {
     public GTNetMessageParam() {
     }

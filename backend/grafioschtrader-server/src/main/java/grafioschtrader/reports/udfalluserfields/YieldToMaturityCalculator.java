@@ -17,7 +17,7 @@ import grafioschtrader.types.UDFSpecialType;
 public class YieldToMaturityCalculator extends AllUserFieldsBase implements IUDFForEveryUser {
   
   @Override
-  public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup) {
+  public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, boolean recreate) {
     UDFMetadataSecurity udfYTM = getMetadataSecurity(getUDFSpecialType());
     Pattern numberStartTextRegex = Pattern.compile("^[0-9]{0,8}([,|.][0-9]{0,4})?");
     LocalDate now = LocalDate.now();
@@ -246,7 +246,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsBase implements IUDF
   private void calcAndSetYTM(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, UDFMetadataSecurity udfYTM,
       Security security, Pattern numberStartTextRegex, LocalDate now) {
     Matcher matcher = numberStartTextRegex.matcher(security.getName());
-    if (matcher.find()) {
+    if (matcher.find() && !matcher.group(0).isEmpty()) {
       Double annualCouponRate = Double.parseDouble(matcher.group(0).replace(",", ".")) / 100;
       double ytm = DataHelper.round(
           yieldToMaturity(now, ((java.sql.Date) security.getActiveToDate()).toLocalDate(), annualCouponRate,

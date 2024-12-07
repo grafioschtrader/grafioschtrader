@@ -60,7 +60,7 @@ public class CheckReloadSecurityAdjustedPricesAfterSplitTask implements ITask {
       List<Securitysplit> securitysplits = securitysplitJpaRepository
           .findByIdSecuritycurrencyOrderBySplitDateAsc(security.getIdSecuritycurrency());
       if (!securitysplits.isEmpty()) {
-        securitysplitJpaRepository.historicalDataUpdateWhenAdjusted(security, securitysplits, Optional.empty(), true);
+        securitysplitJpaRepository.historicalDataUpdateWhenAdjusted(security, securitysplits, Optional.empty(), true, true);
       }
     } catch (final Exception ex) {
       log.error(ex.getMessage() + " " + security, ex);

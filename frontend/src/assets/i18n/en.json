@@ -698,7 +698,7 @@
   "UDF_DATA_TYPE": "Data type",
   "EDIT_SECURITY_UDF": "Edit additional field",
   "UDF_CURRENCYPAIR": "Additional fields currency pair",
-  "UDF_DISABLE_USER": "Invisible",
+  "UDF_DISABLED_USER": "Invisible",
   "UDF_DISABLE_USER_TOOLTIP": "Does not appear in the contents",
   "UDF_METADATA_GENERAL": "General definition of additional field",
   "UDF_METADATA_SECURITY": "Custom field Instrument",
