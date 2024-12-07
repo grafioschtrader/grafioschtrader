@@ -209,7 +209,7 @@ public class WatchlistReport {
     SecuritycurrencyUDFGroup sUDFGroup = new SecuritycurrencyUDFGroup(sg.securityPositionList,
         sg.currencypairPositionList, sg.lastTimestamp, sg.idWatchlist, udfEntityValuesMap);
     uDFForEveryUser.stream().filter(u -> !udfDisabledList.contains(u.getUDFSpecialType().getValue()))
-        .forEach(u -> u.addUDFForEveryUser(sUDFGroup));
+        .forEach(u -> u.addUDFForEveryUser(sUDFGroup, false));
     return sUDFGroup;
   }
 

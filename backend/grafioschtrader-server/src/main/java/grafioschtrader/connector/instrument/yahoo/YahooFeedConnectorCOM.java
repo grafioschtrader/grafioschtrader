@@ -383,8 +383,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   
   private Events getSplitDividendEvent(String urlExtend, LocalDate fromDate, LocalDate toDate, String event) throws Exception {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    
-    System.out.println(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event));
     final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.EventsView.class).forType(TopLevelChart.class)
         .readValue(FeedConnectorHelper
             .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event))

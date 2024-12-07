@@ -5,7 +5,7 @@ import grafioschtrader.types.UDFSpecialType;
 
 public interface IUDFForEveryUser {
   
-   void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup);
+   void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, boolean recreate);
    UDFSpecialType getUDFSpecialType();
    
    boolean mayRunInBackground();

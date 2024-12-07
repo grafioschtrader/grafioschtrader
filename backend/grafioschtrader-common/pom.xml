@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.2</version>
+		<version>0.33.3</version>
 	</parent>
 
 
@@ -108,8 +108,8 @@
 		
 		<dependency>
     		<groupId>io.hypersistence</groupId>
-    		<artifactId>hypersistence-utils-hibernate-62</artifactId>
-    		<version>3.8.2</version>
+    		<artifactId>hypersistence-utils-hibernate-63</artifactId>
+    		<version>3.9.0</version>
 		</dependency>
 		
 		<dependency>

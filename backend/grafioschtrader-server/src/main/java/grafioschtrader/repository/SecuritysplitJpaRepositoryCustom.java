@@ -48,5 +48,5 @@ public interface SecuritysplitJpaRepositoryCustom {
    * @throws Exception
    */
   public void historicalDataUpdateWhenAdjusted(Security security, List<Securitysplit> securitysplits,
-      Optional<Date> youngestSplitDate, boolean requireHoldingBuild) throws Exception;
+      Optional<Date> youngestSplitDate, boolean requireHoldingBuild, boolean originSplitCalendar) throws Exception;
 }

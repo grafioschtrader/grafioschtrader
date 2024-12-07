@@ -18,14 +18,16 @@ public class MicProviderMap {
   @EmbeddedId
   private IdProviderMic idProviderMic;
 
-  
   @Column(name = "code_provider")
   @NotNull
   private String codeProvider;
- 
+
+  @Column(name = "symbol_suffix")
+  private String symbolSuffix;
+
   public MicProviderMap() {
   }
-  
+
   public IdProviderMic getIdProviderMic() {
     return idProviderMic;
   }
@@ -34,6 +36,9 @@ public class MicProviderMap {
     return codeProvider;
   }
 
+  public String getSymbolSuffix() {
+    return symbolSuffix;
+  }
 
   @Embeddable
   public static class IdProviderMic {

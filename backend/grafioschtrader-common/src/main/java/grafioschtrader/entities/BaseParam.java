@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.MappedSuperclass;
 
-@Embeddable
+// @Embeddable
 @MappedSuperclass
 public abstract class BaseParam {
   // no need of declaring key

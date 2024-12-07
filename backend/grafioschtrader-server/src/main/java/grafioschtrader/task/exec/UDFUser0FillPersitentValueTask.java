@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.UDFMetadataSecurity;
@@ -19,6 +21,7 @@ import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.reports.udfalluserfields.IUDFForEveryUser;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
+import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.repository.UDFMetadataSecurityJpaRepository;
@@ -44,6 +47,9 @@ public class UDFUser0FillPersitentValueTask implements ITask {
   @Autowired
   private UDFMetadataSecurityJpaRepository uMetaRepository;
 
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  
   @Autowired
   private List<IUDFForEveryUser> uDFForEveryUser;
 
@@ -73,6 +79,13 @@ public class UDFUser0FillPersitentValueTask implements ITask {
     // It is possible that two user-defined fields have the same selection criteria.  
     // This means that the second query can be avoided and processing can be carried out on the securities that have already been selected.
     Map<Integer, SecuritycurrencyUDFGroup> cacheSecurites = new HashMap<>();
+   
+    Optional<Globalparameters> globalparamUDFOpt = globalparametersJpaRepository
+        .findById(Globalparameters.GLOB_KEY_UDF_GENERAL_RECREATE);
+    Globalparameters globalparameter = globalparamUDFOpt
+        .orElseGet(() -> new Globalparameters(Globalparameters.GLOB_KEY_UDF_GENERAL_RECREATE));
+    boolean recreateUDF = globalparameter.getPropertyInt() != null && globalparameter.getPropertyInt() == 0;
+    
     for (IUDFForEveryUser udfEveryUser : udfForEveryUserSet) {
       UDFMetadataSecurity uDFMetadataSecurity = udfMSSet.stream()
           .filter(u -> u.getUdfSpecialType() == udfEveryUser.getUDFSpecialType()).findFirst().get();
@@ -92,8 +105,10 @@ public class UDFUser0FillPersitentValueTask implements ITask {
             calcHash(uDFMetadataSecurity.getCategoryTypes(), uDFMetadataSecurity.getSpecialInvestmentInstruments()),
             scUDFGroup);
       }
-      udfEveryUser.addUDFForEveryUser(scUDFGroup);
+      udfEveryUser.addUDFForEveryUser(scUDFGroup, recreateUDF);
     }
+    globalparameter.setPropertyInt(0);
+    globalparametersJpaRepository.save(globalparameter);    
   }
 
   private int calcHash(long value1, long value2) {
