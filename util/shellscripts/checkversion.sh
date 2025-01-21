@@ -48,7 +48,7 @@ if [ -z "$NODEVERSION" ]; then
 fi
 
 # Check Node.js version with semver
-if npx semver "$NODEVERSION" -r "$node_required" >/dev/null 2>&1; then
+if npx --yes semver "$NODEVERSION" -r "$node_required" >/dev/null 2>&1; then
     echo "Node.js version ($NODEVERSION) meets the required version: $node_required"
 else
     tput setaf 1
