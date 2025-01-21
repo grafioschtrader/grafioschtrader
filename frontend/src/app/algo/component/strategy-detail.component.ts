@@ -20,8 +20,8 @@ import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.h
  * A strategy can consist of different parameters, therefore the output is created dynamically from a map.
  */
 @Component({
-  selector: 'strategy-detail',
-  template: `
+    selector: 'strategy-detail',
+    template: `
     <div *ngFor="let field of fields" class="row">
       <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel" align="right">
         {{field.headerTranslated}}:
@@ -30,7 +30,8 @@ import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.h
         {{getValueByPath(dynamicModel, field)}}{{field.headerSuffix}}
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class StrategyDetailComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() algoStrategyParamCall: AlgoStrategyParamCall;

@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -229,14 +229,14 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     String maxOr1M = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) > 30 ? PERIOD_MAX : PERIOD_1M;
     String url = getSecurityHistoricalDownloadLink(security, maxOr1M);
     String content = FeedConnectorHelper.getByHttpClient(url).body();
-    content = decrypt(content);
+   // content = decrypt(content);
 
     final DailyClose[] dailyCloseArr = objectMapper.readValue(content, DailyClose[].class);
     for (DailyClose dailyClose : dailyCloseArr) {
       Date date = DateHelper.setTimeToZeroAndAddDay(dailyClose.time, 0);
       if (!date.before(from) && !date.after(to)) {
         Historyquote historyquote = new Historyquote();
-        historyquote.setClose(DataHelper.round(dailyClose.price));
+        historyquote.setClose(DataBusinessHelper.round(dailyClose.price));
         historyquote.setVolume(dailyClose.volume);
         historyquote.setDate(date);
         historyquotes.add(historyquote);

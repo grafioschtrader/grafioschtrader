@@ -3,8 +3,8 @@ import {Month} from '../model/month';
 import {Day} from '../model/day';
 
 @Component({
-  selector: 'month-calendar',
-  template: `
+    selector: 'month-calendar',
+    template: `
     <div *ngIf="month" class="calcontainer">
       <div style="text-align: center;">
         <b>{{locale['monthNames'][month.index]}}</b>
@@ -48,7 +48,8 @@ import {Day} from '../model/day';
       </table>
     </div>
   `,
-  styleUrls: ['./monthly-calendar.scss'],
+    styleUrls: ['./monthly-calendar.scss'],
+    standalone: false
 })
 export class MonthlyCalendarComponent implements OnDestroy {
 

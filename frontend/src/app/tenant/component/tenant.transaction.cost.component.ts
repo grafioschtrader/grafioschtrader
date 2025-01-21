@@ -27,7 +27,7 @@ import {FilterService, MenuItem} from 'primeng/api';
  * Report of transaction cost and transaction tax.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable">
@@ -37,7 +37,7 @@ import {FilterService, MenuItem} from 'primeng/api';
                  [expandedRowKeys]="expandedTCGSid" sortMode="multiple" [multiSortMeta]="multiSortMeta"
                  responsiveLayout="scroll"
                  styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-          <ng-template pTemplate="header" let-fields>
+          <ng-template #header let-fields>
             <tr>
               <th style="width:24px"></th>
               <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
@@ -48,7 +48,7 @@ import {FilterService, MenuItem} from 'primeng/api';
             </tr>
           </ng-template>
 
-          <ng-template pTemplate="body" let-el let-expanded="expanded" let-columns="fields">
+          <ng-template #body let-el let-expanded="expanded" let-columns="fields">
             <tr [pSelectableRow]="el">
               <td style="width:24px">
                 <a href="#" [pRowToggler]="el">
@@ -79,7 +79,7 @@ import {FilterService, MenuItem} from 'primeng/api';
             </tr>
           </ng-template>
 
-          <ng-template pTemplate="rowexpansion" let-tcgs let-columns="fields">
+          <ng-template #expandedrow let-tcgs let-columns="fields">
             <tr>
               <td [attr.colspan]="numberOfVisibleColumns + 1">
                 <tenant-transaction-cost-extended
@@ -95,7 +95,8 @@ import {FilterService, MenuItem} from 'primeng/api';
         </p-table>
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TenantTransactionCostComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   @ViewChild('dataTable') datatable: ElementRef;

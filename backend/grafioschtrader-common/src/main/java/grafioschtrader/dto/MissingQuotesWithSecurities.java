@@ -8,13 +8,13 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.entities.Security;
 
 public class MissingQuotesWithSecurities {
 
   public final Integer year;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate firstEverTradingDay;
   public final Map<LocalDate, List<Integer>> dateSecurityMissingMap = new HashMap<>();
   public final Map<Integer, Integer> countIdSecurityMissingsMap = new HashMap<>();

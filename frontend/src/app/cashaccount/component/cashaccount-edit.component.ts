@@ -19,8 +19,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Edit a cash account the currency of a cash account can only be changed when there is no transaction for it.
  */
 @Component({
-  selector: 'cashaccount-edit',
-  template: `
+    selector: 'cashaccount-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px', minWidth: '350px', minHeight:'180px' }"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -29,7 +29,8 @@ import {AppSettings} from '../../shared/app.settings';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> implements OnInit {
 

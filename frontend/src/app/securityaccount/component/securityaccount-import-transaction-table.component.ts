@@ -35,8 +35,8 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
  * This table is controlled by a master data selection view.
  */
 @Component({
-  selector: 'securityaccount-import-transaction-table',
-  template: `
+    selector: 'securityaccount-import-transaction-table',
+    template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="entityList" [(selection)]="selectedEntities"
                dataKey="importTransactionPos.idTransactionPos" [paginator]="true" [rows]="50"
@@ -44,7 +44,7 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
                selectionMode="multiple" (onRowExpand)="onRowExpand($event)" sortMode="multiple"
                [multiSortMeta]="multiSortMeta"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
             <th style="width: 2.25em">
@@ -61,7 +61,7 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
           </tr>
         </ng-template>
 
-        <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td>
               <a href="#" [pRowToggler]="el">
@@ -94,7 +94,7 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
           </tr>
         </ng-template>
 
-        <ng-template pTemplate="rowexpansion" let-el let-columns="fields">
+        <ng-template #expandedrow let-el let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 2">
               <template-form-check-dialog-result-failed *ngIf="failedParsedTemplateStateList.length > 0"
@@ -128,7 +128,8 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
                                             [idSecuritycashAccount]="selectImportTransactionHead.securityaccount.idSecuritycashAccount"
                                             (closeDialog)="handleOnCloseSetDialog($event)">
     </securityaccount-import-set-cashaccount>
-  `
+  `,
+    standalone: false
 })
 export class SecurityaccountImportTransactionTableComponent extends TableConfigBase
   implements OnDestroy, CallBackSetSecurityWithAfter {

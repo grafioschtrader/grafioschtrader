@@ -4,8 +4,9 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
@@ -144,15 +145,15 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   }
 
   public double getGainLossSecurities() {
-    return DataHelper.roundStandard(gainLossSecurities);
+    return DataBusinessHelper.roundStandard(gainLossSecurities);
   }
 
   public double getValueSecurities() {
-    return DataHelper.roundStandard(valueSecurities);
+    return DataBusinessHelper.roundStandard(valueSecurities);
   }
 
   public double getGainLossSecuritiesMC() {
-    return DataHelper.roundStandard(gainLossSecuritiesMC);
+    return DataBusinessHelper.roundStandard(gainLossSecuritiesMC);
   }
 
   public double getValueSecuritiesMC() {

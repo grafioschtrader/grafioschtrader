@@ -29,7 +29,8 @@ import {FilterService, MenuItem, SelectItem} from 'primeng/api';
  * currencies or portfolios.
  */
 @Component({
-  templateUrl: '../view/tenant.summaries.cashaccount.table.html'
+    templateUrl: '../view/tenant.summaries.cashaccount.table.html',
+    standalone: false
 })
 export class TenantSummariesCashaccountComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 

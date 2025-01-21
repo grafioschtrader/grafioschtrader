@@ -19,6 +19,8 @@ public enum MessageComType {
   USER_ADMIN_ANNOUNCEMENT((byte) 3),
   // Administrator has sent a personal message
   USER_ADMIN_PERSONAL_TO_USER((byte) 4),
+  // Possibly missing dividend connector, in the calendar it has dividends for this security.
+  USER_SECURITY_MISSING_CONNECTOR((byte) 5),
   // User received a proposed change of the shared data
   USER_RECEIVED_PROPOSED_CHANGE((byte) 8),
   // Maybe a historical data provider is not working anymore

@@ -28,8 +28,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Dialog for define a strategy. Asset class can be added dynamically.
  */
 @Component({
-  selector: 'algo-rule-strategy-create',
-  template: `
+    selector: 'algo-rule-strategy-create',
+    template: `
     <p-dialog header="{{algoTitleKey | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '700px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -39,7 +39,7 @@ import {AppSettings} from '../../shared/app.settings';
       </dynamic-form>
     </p-dialog>
   `,
-
+    standalone: false
 })
 export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements OnInit {
 

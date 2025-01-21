@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import grafiosch.entities.BaseID;
 import grafioschtrader.types.MessageComType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;

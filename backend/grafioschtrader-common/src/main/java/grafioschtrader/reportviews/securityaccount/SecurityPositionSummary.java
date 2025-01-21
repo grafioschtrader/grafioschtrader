@@ -8,8 +8,9 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
@@ -157,11 +158,11 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   }
 
   public void roundUnits() {
-    units = DataHelper.round(units);
+    units = DataBusinessHelper.round(units);
   }
 
   public double getUnits() {
-    return DataHelper.round(units);
+    return DataBusinessHelper.round(units);
   }
 
   public double getAccountValueSecurity() {
@@ -230,7 +231,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     } else {
       gainLossSecurity = gainLossSecurity + valueSecurity - units * adjustedCostBase / units;
     }
-    transactionGainLossPercentage = DataHelper.roundStandard(gainLossSecurity * 100 / adjustedCostBase);
+    transactionGainLossPercentage = DataBusinessHelper.roundStandard(gainLossSecurity * 100 / adjustedCostBase);
   }
 
   private void calcGainLossByPriceForMargin(final Double price) {
@@ -242,8 +243,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
       }
     }
 
-    gainLossSecurity = DataHelper.roundStandard(gainLossSecurity + openWinLose);
-    accountValueSecurity += DataHelper.roundStandard(openWinLose);
+    gainLossSecurity = DataBusinessHelper.roundStandard(gainLossSecurity + openWinLose);
+    accountValueSecurity += DataBusinessHelper.roundStandard(openWinLose);
   }
 
   /**
@@ -273,7 +274,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
   @JsonIgnore
   public double getPositionGainLossPercentage() {
-    return DataHelper
+    return DataBusinessHelper
         .roundStandard(securitycurrency.isMarginInstrument() ? (this.gainLossSecurity / this.adjustedCostBase * 100)
             : transactionGainLossPercentage);
   }

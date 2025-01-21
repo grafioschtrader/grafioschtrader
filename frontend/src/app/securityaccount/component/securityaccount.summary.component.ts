@@ -31,7 +31,8 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
  * It is the summary for a single security account with its securities.
  */
 @Component({
-  templateUrl: '../view/securityaccount.table.html'
+    templateUrl: '../view/securityaccount.table.html',
+    standalone: false
 })
 export class SecurityaccountSummaryComponent extends SecurityaccountTable implements OnInit, OnDestroy {
 

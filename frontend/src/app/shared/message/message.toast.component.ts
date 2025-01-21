@@ -7,8 +7,9 @@ import {combineLatest, Subscription} from 'rxjs';
 import {ToastrService} from 'ngx-toastr';
 
 @Component({
-  selector: 'toast-message',
-  template: ``
+    selector: 'toast-message',
+    template: ``,
+    standalone: false
 })
 export class MessageToastComponent implements OnDestroy {
 

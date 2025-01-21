@@ -16,16 +16,16 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
  * Shows the dividends and other information of securities for one year in a table. One row per security.
  */
 @Component({
-  selector: 'tenant-dividends-security-extended',
-  template: `
+    selector: 'tenant-dividends-security-extended',
+    template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="securityDividendsPositions" selectionMode="single"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines" responsiveLayout="scroll"
                dataKey="security.idSecuritycurrency" sortMode="multiple" [multiSortMeta]="multiSortMeta">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h5>{{ 'INSTRUMENT'|translate }}</h5>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
@@ -36,7 +36,7 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td>
               <a href="#" [pRowToggler]="el">
@@ -51,7 +51,7 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
             </td>
           </tr>
         </ng-template>
-        <ng-template pTemplate="rowexpansion" let-sdp let-columns="fields">
+        <ng-template #expandedrow let-sdp let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1">
               <transaction-security-table *ngIf="!!sdp.security.stockexchange && !isMarginProduct(sdp.security)"
@@ -75,7 +75,8 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
         </ng-template>
       </p-table>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() idsSecurityaccount: number[];

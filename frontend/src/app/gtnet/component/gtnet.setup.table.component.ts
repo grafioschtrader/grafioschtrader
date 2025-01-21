@@ -20,7 +20,7 @@ import {GTNetMessageService} from '../service/gtnet.message.service';
 import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table #table [columns]="fields" [value]="gtNetList" selectionMode="single"
@@ -29,11 +29,11 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
                responsiveLayout="scroll"
                (sortFunction)="customSort($event)" [customSort]="true"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{'GT_NET_NET_AND_MESSAGE' | translate}}</h4>
           <h5 *ngIf="!gtNetMyEntryId" style="color:red;">{{'GT_NET_COMM_REQUIREMENT' | translate}}</h5>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
@@ -51,11 +51,11 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
                               ? field.dataType : ''" [field]="field.field" display="menu" [showOperator]="true"
                                   [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
                     <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                      <p-calendar #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
+                      <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
                                   (onSelect)="filter($event)"
                                   monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
                                   (onInput)="filter(cal.value)">
-                      </p-calendar>
+                      </p-datepicker>
                     </ng-template>
                   </p-columnFilter>
                   <p-columnFilter *ngSwitchCase="DataType.Numeric" type="numeric" [field]="field.field"
@@ -66,7 +66,7 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td>
               <a *ngIf="gtNetMessageMap[el.idGtNet]" href="#"
@@ -94,7 +94,7 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
             </td>
           </tr>
         </ng-template>
-        <ng-template pTemplate="rowexpansion" let-el let-columns="fields">
+        <ng-template #expandedrow let-el let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
               <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[el.idGtNet]"
@@ -118,7 +118,8 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
                         (closeDialog)="handleCloseDialogMsg($event)">
     </gtnet-message-edit>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   private readonly domainRemoteName = 'domainRemoteName';

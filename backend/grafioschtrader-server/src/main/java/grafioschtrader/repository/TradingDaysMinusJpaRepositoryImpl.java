@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.CopyTradingDaysFromSourceToTarget;
@@ -91,7 +92,7 @@ public class TradingDaysMinusJpaRepositoryImpl implements TradingDaysMinusJpaRep
             new Object[] { ctdfstt.sourceIdStockexchange }, user.createAndGetJavaLocale()));
       }
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 
@@ -99,7 +100,7 @@ public class TradingDaysMinusJpaRepositoryImpl implements TradingDaysMinusJpaRep
     Optional<Stockexchange> stockexchangeOpt = stockexchangeJpaRepository.findById(idStockexchange);
     if (stockexchangeOpt.isPresent()) {
       if (!UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, stockexchangeOpt.get())) {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     } else {
       throw new NoSuchElementException(messageSource.getMessage("entity.not.found", new Object[] { idStockexchange },

@@ -13,8 +13,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 
 
 @Component({
-  selector: 'transform-pdf-to-txt-dialog',
-  template: `
+    selector: 'transform-pdf-to-txt-dialog',
+    template: `
     <p-dialog header="{{'TRANSFORM_PDF_TO_TXT' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -22,7 +22,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements OnInit {
 

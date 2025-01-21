@@ -9,12 +9,13 @@
       "projectType": "application",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser-esbuild",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
             "aot": true,
-            "outputPath": "dist",
+            "outputPath": {
+              "base": "dist"
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
             "tsConfig": "./tsconfig.app.json",
             "polyfills": [
               "zone.js"
@@ -27,7 +28,6 @@
             "styles": [
               "node_modules/normalize.css/normalize.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/primeng/resources/primeng.min.css",
               "node_modules/primeicons/primeicons.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
               "node_modules/ngx-toastr/toastr.css",
@@ -50,7 +50,8 @@
               "angular2-uuid",
               "plotly.js-locales/de-ch",
               "plotly.js-locales/fr"
-            ]
+            ],
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {
@@ -75,9 +76,7 @@
               "outputHashing": "all"
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true,
@@ -119,7 +118,6 @@
             "styles": [
               "node_modules/primeng/resources/themes/omega/theme.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/primeng/resources/primeng.min.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
               "src/styles.css"
             ],

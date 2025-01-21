@@ -8,8 +8,8 @@ import {MenuItem} from 'primeng/api';
  * Test for Wizard - NOT used yet.
  */
 @Component({
-  selector: 'algo-strategy-create-wizard',
-  template: `
+    selector: 'algo-strategy-create-wizard',
+    template: `
     <p-dialog header="{{'STRATEGY_CREATE' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true"  [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -30,7 +30,8 @@ import {MenuItem} from 'primeng/api';
       </pe-steps>
 
 
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class AlgoRuleStrategyCreateWizardComponent implements OnInit {
   // Input from parent view

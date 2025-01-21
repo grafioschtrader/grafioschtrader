@@ -23,7 +23,7 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Currencypair;
@@ -87,7 +87,7 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
     var offset = FeedConnectorHelper.isCreatableGE(numbers[1]) ? 0 : 1;
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleGE(numbers[1 + offset]));
     securitycurrency.setSOpen(
-        DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleGE(numbers[2 + offset])));
+        DataBusinessHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleGE(numbers[2 + offset])));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }
 

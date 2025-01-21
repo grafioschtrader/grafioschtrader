@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Historyquote;
@@ -133,7 +133,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   public synchronized List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to,
       boolean intraday) throws Exception {
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
     String outputsize = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) / 7 * 5 >= 100.0 ? FULL : COMPACT;
 

@@ -9,10 +9,11 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 
 
 @Component({
-  template: `
+    template: `
     <p-tabMenu [model]="items" [activeItem]="items[idActiveItem]"></p-tabMenu>
     <router-outlet></router-outlet>
-  `
+  `,
+    standalone: false
 })
 export class TenantTabMenuComponent implements OnInit {
 

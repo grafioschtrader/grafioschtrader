@@ -5,9 +5,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.entities.BaseID;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.UserAccessHelper;
-import grafioschtrader.entities.BaseID;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserEntityChangeCount;
 import grafioschtrader.entities.UserEntityChangeCount.UserEntityChangeCountId;
@@ -69,7 +69,7 @@ public abstract class DailyLimitUpdCreateLogger<T extends BaseID> {
       Optional<UserCountLimit> userCountLimitOpt = userEntityChangeCountJpaRepository
           .getCudTransactionAndUserLimit(user.getIdUser(), entityName);
       if (userCountLimitOpt.isPresent()) {
-        String key = Globalparameters.GT_LIMIT_DAY + entityName;
+        String key = GlobalParamKeyDefault.GT_LIMIT_DAY + entityName;
         Integer limit = userCountLimitOpt.get().getDayLimit() != null ? userCountLimitOpt.get().getDayLimit()
             : globalparametersJpaRepository.getMaxValueByKey(key);
         int cudTransaction = userCountLimitOpt.get().getCudTrans();

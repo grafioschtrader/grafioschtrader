@@ -18,8 +18,8 @@ import moment from 'moment';
 import {Validators} from '@angular/forms';
 
 @Component({
-  selector: 'task-data-change-edit',
-  template: `
+    selector: 'task-data-change-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '500px'}" (onShow)="onShow($event)"
               (onHide)="onHide($event)" [modal]="true">
@@ -28,7 +28,8 @@ import {Validators} from '@angular/forms';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
   @Input() callParam: TaskDataChange;

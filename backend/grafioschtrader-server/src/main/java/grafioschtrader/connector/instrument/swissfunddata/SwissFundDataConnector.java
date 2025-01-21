@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -66,7 +66,7 @@ public class SwissFundDataConnector extends BaseFeedConnector {
     LocalDate fromDate = LocalDate.ofInstant(from.toInstant(), ZoneId.systemDefault());
     LocalDate toDate = LocalDate.ofInstant(to.toInstant(), ZoneId.systemDefault());
 
-    final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(GlobalConstants.STANDARD_DATE_FORMAT);
+    final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     String urlAsString = getSecurityHistoricalDownloadLink(security);
     log.info("In {} for security {} is URL for download csv file {}", getID(), security.getName(), urlAsString);
     try (BufferedReader br = new BufferedReader(new InputStreamReader(new URI(urlAsString).toURL().openStream()))) {

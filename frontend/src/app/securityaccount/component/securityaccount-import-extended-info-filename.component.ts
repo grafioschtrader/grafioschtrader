@@ -11,8 +11,9 @@ import {AppSettings} from '../../shared/app.settings';
  * Show the file name of an imported transaction file.
  */
 @Component({
-  selector: 'securityaccount-import-extended-info-filename',
-  templateUrl: '../view/securityaccount.import.extended.info.html'
+    selector: 'securityaccount-import-extended-info-filename',
+    templateUrl: '../view/securityaccount.import.extended.info.html',
+    standalone: false
 })
 export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRecordConfigBase implements OnInit {
 

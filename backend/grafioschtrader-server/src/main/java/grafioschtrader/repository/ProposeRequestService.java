@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.SerializationUtils;
 
-import grafioschtrader.entities.ProposeChangeField;
+import grafiosch.entities.ProposeChangeField;
 
 public abstract class ProposeRequestService<T> extends BaseRepositoryImpl<T> {
 

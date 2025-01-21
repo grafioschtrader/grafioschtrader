@@ -18,8 +18,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 
 @Component({
-  selector: 'trading-platform-plan-edit',
-  template: `
+    selector: 'trading-platform-plan-edit',
+    template: `
     <p-dialog header="{{'TRADING_PLATFORM_PLAN' | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -27,7 +27,8 @@ import {AppSettings} from '../../shared/app.settings';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<TradingPlatformPlan> implements OnInit {
   @Input() callParam: TradingPlatformPlan;

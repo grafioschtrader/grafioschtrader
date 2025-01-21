@@ -23,8 +23,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Edit security account
  */
 @Component({
-  selector: 'securityaccount-edit',
-  template: `
+    selector: 'securityaccount-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -33,7 +33,8 @@ import {AppSettings} from '../../shared/app.settings';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class SecurityaccountEditComponent extends SimpleEntityEditBase<Securityaccount> implements OnInit {
 

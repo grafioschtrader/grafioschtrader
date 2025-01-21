@@ -24,10 +24,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import grafiosch.common.DataHelper;
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.ImportTransactionPlatform;
@@ -115,7 +116,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
   public List<ValueKeyHtmlSelectOptions> getPossibleLanguagesForTemplate() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Locale userLocale = user.createAndGetJavaLocale();
-    return Arrays.stream(Locale.getAvailableLocales()).filter(DataHelper.distinctByKey(Locale::getLanguage))
+    return Arrays.stream(Locale.getAvailableLocales()).filter(DataBusinessHelper.distinctByKey(Locale::getLanguage))
         .map(loc -> new ValueKeyHtmlSelectOptions(loc.getLanguage(), loc.getDisplayLanguage(userLocale)))
         .sorted((x, y) -> x.value.compareTo(y.value)).collect(Collectors.toList());
   }

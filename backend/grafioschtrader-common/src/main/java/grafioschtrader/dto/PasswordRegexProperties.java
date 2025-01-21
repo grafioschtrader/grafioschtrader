@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import grafiosch.dto.IPropertiesSelfCheck;
 import grafioschtrader.GlobalConstants;
 
 public class PasswordRegexProperties implements IPropertiesSelfCheck {

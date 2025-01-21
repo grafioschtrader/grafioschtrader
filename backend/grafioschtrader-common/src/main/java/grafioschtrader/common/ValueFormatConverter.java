@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 
 public class ValueFormatConverter {
   private NumberFormat numberFormat;
@@ -28,8 +28,8 @@ public class ValueFormatConverter {
 
   public ValueFormatConverter() {
     this.numberFormat = NumberFormat.getInstance(Locale.getDefault());
-    simpleDateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
-    localDateFormatter = DateTimeFormatter.ofPattern(GlobalConstants.STANDARD_DATE_FORMAT);
+    simpleDateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
+    localDateFormatter = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     this.thousandSeparatorsPattern = Pattern.quote("" + "" + new DecimalFormatSymbols().getDecimalSeparator());
   }
 

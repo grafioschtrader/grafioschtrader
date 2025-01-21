@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
@@ -87,7 +88,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     Date toDate = new Date();
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
     return getSecurityHistoricalDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
         dateFormat);
@@ -96,7 +97,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
     Date toDate = new Date();
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
     return getCurrencypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
         dateFormat);
@@ -130,7 +131,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     return getEodSecurityCurrencypairHistory(
         new URI(getSecurityHistoricalDownloadLink(security, from, to, dateFormat)).toURL(), dateFormat,
         FeedConnectorHelper.getGBXLondonDivider(security));
@@ -139,7 +140,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws Exception {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     return getEodSecurityCurrencypairHistory(
         new URI(getCurrencypairHistoricalDownloadLink(currencyPair, from, to, dateFormat)).toURL(), dateFormat, 1.0);
   }
@@ -307,7 +308,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   }
 
   private static class DividendRead {
-    @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+    @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
     public LocalDate date;
     // public LocalDate declarationDate;
     // public LocalDate recordDate;
@@ -319,7 +320,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   }
 
   private static class Split {
-    @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+    @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
     public Date date;
     public String split;
   }

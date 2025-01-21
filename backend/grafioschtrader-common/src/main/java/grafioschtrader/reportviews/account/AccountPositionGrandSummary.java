@@ -3,7 +3,7 @@ package grafioschtrader.reportviews.account;
 import java.util.ArrayList;
 import java.util.List;
 
-import grafioschtrader.common.DataHelper;
+import grafiosch.common.DataHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import io.swagger.v3.oas.annotations.media.Schema;
 

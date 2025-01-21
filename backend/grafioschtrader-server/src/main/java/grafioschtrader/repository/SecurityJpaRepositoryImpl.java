@@ -33,6 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
@@ -151,7 +152,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final Security security = securityJpaRepository.getReferenceById(idSecuritycurrency);
     if (!UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, security)) {
-      throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
     }
     historyquoteThruConnector.reloadAsyncFullHistoryquote(securityServiceAsyncExectuion, this, security);
   }
@@ -536,7 +537,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   protected Security beforeSave(Security security, Security existingSecurity, User user) throws Exception {
     Security cloneSecurity = null;
     if (security.getIdTenantPrivate() != null && !user.getIdTenant().equals(security.getIdTenantPrivate())) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     checkAssetclassAndSpezInstrumentForExisting(security, existingSecurity);
     security.clearProperties();

@@ -12,8 +12,9 @@ import {UDFMetadataHelper} from './udf.metadata.helper';
  * Edit the content of user-defined fields. This editing is for information classes without a specific extension.
  */
 @Component({
-  selector: 'udf-general-edit',
-  templateUrl: '../view/general.udf.data.edit.html'
+    selector: 'udf-general-edit',
+    templateUrl: '../view/general.udf.data.edit.html',
+    standalone: false
 })
 export class UDFGeneralEditComponent extends BaseUDFDataEdit implements OnInit {
 

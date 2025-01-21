@@ -23,18 +23,18 @@ import {AppSettings} from '../../app.settings';
  * The header shows gain for each day or each month.
  */
 @Component({
-  selector: 'performance-period-treetable',
-  template: `
+    selector: 'performance-period-treetable',
+    template: `
       <p-treeTable [value]="periodWindowsNodes" [columns]="fields"
                    selectionMode="single" [(selection)]="selectedNodes">
-          <ng-template pTemplate="header" let-fields>
+          <ng-template #header let-fields>
               <tr>
                   <th *ngFor="let field of fields" [style.width.px]="field.width">
                       {{field.headerTranslated}}
                   </th>
               </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+          <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
               <tr>
                   <td *ngFor="let field of fields; let i = index"
                       [ngClass]="{'text-right': (field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric),
@@ -77,14 +77,15 @@ import {AppSettings} from '../../app.settings';
           </ng-template>
       </p-treeTable>
   `,
-  styles: [`
+    styles: [`
       .cell-holiday {
           background-color: greenyellow !important;
       }
       .cell-data-missing {
           background-color: orange !important;
       }
-  `]
+  `],
+    standalone: false
 })
 export class TenantPerformanceTreetableComponent extends TreeTableConfigBase implements OnInit, OnChanges {
   @Input() performancePeriod: PerformancePeriod;

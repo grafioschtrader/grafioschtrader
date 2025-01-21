@@ -8,7 +8,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 
 /**
  * Normally used for period of single year or week.
@@ -17,9 +17,9 @@ import grafioschtrader.GlobalConstants;
  *
  */
 public class PeriodWindow {
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate startDate;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate endDate;
   public Double gainPeriodMC;
   public List<PeriodStepMissingHoliday> periodStepList;

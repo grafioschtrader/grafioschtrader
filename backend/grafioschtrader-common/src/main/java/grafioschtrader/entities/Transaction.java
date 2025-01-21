@@ -9,8 +9,10 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -109,7 +111,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Column(name = "transaction_time")
   @Temporal(TemporalType.TIMESTAMP)
   @NotNull
-  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
+  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   private Date transactionTime;
 
   @Schema(description = "Transaction Date is set when an entity is saved. It was introduced for SQL performance reasons.")
@@ -121,7 +123,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       + "in which case the dividend date must be given.")
   @Column(name = "ex_date")
   @Temporal(TemporalType.DATE)
-  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
+  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   @Null(groups = { CashTransaction.class })
   private Date exDate;
 
@@ -670,9 +672,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     double transactionCostC = transactionCost == null ? 0 : transactionCost;
     if (getConnectedIdTransaction() == null) {
       // Open new position accumulate or reduce
-      double securityRiskC = DataHelper.round(Math.abs(validateSecurityGeneralCashaccountAmount(0))
+      double securityRiskC = DataBusinessHelper.round(Math.abs(validateSecurityGeneralCashaccountAmount(0))
           * (getTransactionType() == TransactionType.ACCUMULATE ? 1.0 : -1.0));
-      securityRisk = DataHelper.round(securityRisk);
+      securityRisk = DataBusinessHelper.round(securityRisk);
 
       if (securityRiskC != securityRisk) {
         throw new DataViolationException("security.risk", "gt.security.risk.calc",
@@ -680,7 +682,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       }
 
       // cash account amount is tax and transaction cost
-      return DataHelper.divideMultiplyExchangeRate((taxCostC + transactionCostC) * -1.0, currencyExRate,
+      return DataBusinessHelper.divideMultiplyExchangeRate((taxCostC + transactionCostC) * -1.0, currencyExRate,
           cashaccount.getCurrency(), security.getCurrency());
 
     } else if (getTransactionType() == TransactionType.FINANCE_COST) {
@@ -716,7 +718,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   // It is public for test
   public double validateSecurityGeneralCashaccountAmount(double buyQuotation) {
-    return DataHelper.divideMultiplyExchangeRate(calculateSecurityTransactionAmountWithoutExchangeRate(buyQuotation),
+    return DataBusinessHelper.divideMultiplyExchangeRate(calculateSecurityTransactionAmountWithoutExchangeRate(buyQuotation),
         currencyExRate, security.getCurrency(), cashaccount.getCurrency());
   }
 

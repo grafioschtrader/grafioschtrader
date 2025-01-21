@@ -7,7 +7,7 @@
            dataKey="idSecuritycurrency" sortMode="multiple"
            responsiveLayout="scroll"
            styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-    <ng-template pTemplate="header" let-fields >
+    <ng-template #header let-fields >
       <tr>
         <th style="width: 2.25em">
           <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
@@ -19,7 +19,7 @@
         </th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-columns="fields" let-el>
+    <ng-template #body let-columns="fields" let-el>
       <tr [pSelectableRow]="el">
         <td>
           <p-tableCheckbox [value]="el"></p-tableCheckbox>

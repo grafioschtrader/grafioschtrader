@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.User;
@@ -109,7 +109,7 @@ public class PerformanceReport {
         return firstAndMissingTradingDays;
       }
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 

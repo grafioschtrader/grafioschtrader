@@ -44,7 +44,8 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
 
 
 @Directive({
-  selector: 'dynamicField'
+    selector: 'dynamicField',
+    standalone: false
 })
 export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChanges, OnInit {
   @Input() config: FieldConfig;

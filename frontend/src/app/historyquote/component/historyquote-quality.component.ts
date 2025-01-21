@@ -14,8 +14,8 @@ import {CurrencypairService} from '../../securitycurrency/service/currencypair.s
  * Shows some statistical data on the quality of the historical price data
  */
 @Component({
-  selector: 'historyquote-quality',
-  template: `
+    selector: 'historyquote-quality',
+    template: `
     <div class="gbox">
       <div *ngFor="let field of fields" >
         <div class="glabel" [pTooltip]="field.headerTooltipTranslated">
@@ -26,7 +26,8 @@ import {CurrencypairService} from '../../securitycurrency/service/currencypair.s
         </div>
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class HistoryquoteQualityComponent extends SingleRecordConfigBase implements OnInit {
   @Input() historyquoteQuality: IHistoryquoteQuality;

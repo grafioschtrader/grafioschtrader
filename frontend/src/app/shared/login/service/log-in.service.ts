@@ -15,8 +15,8 @@ import moment from 'moment';
 import {UserOwnProjection} from '../../../entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
 import {ConfigurationWithLogin} from '../component/login.component';
-import {PrimeNGConfig} from 'primeng/api';
 import {AppHelper} from '../../helper/app.helper';
+import {PrimeNG} from 'primeng/config';
 
 
 @Injectable()
@@ -29,7 +29,7 @@ export class LoginService extends BaseAuthService<User> {
     super(httpClient, messageToastService);
   }
 
-  public static setGlobalLang(translateService: TranslateService, primeNGConfig: PrimeNGConfig): void {
+  public static setGlobalLang(translateService: TranslateService, primeNGConfig: PrimeNG): void {
     if (translateService.getLangs().find(lang => lang === sessionStorage.getItem(GlobalSessionNames.LANGUAGE))) {
       translateService.use(sessionStorage.getItem(GlobalSessionNames.LANGUAGE)).subscribe(params => console.log('loaded'));
     } else {

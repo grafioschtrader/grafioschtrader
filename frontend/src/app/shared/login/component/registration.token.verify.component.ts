@@ -6,11 +6,12 @@ import {Subscription} from 'rxjs';
 import {AppSettings} from '../../app.settings';
 
 @Component({
-  template: `
+    template: `
     <div class="container">
       <h1>{{'VERIFYING_TOKEN' | translate}}</h1>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class RegistrationTokenVerifyComponent implements OnInit, OnDestroy {
   token: string;

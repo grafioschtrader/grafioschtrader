@@ -17,16 +17,16 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                responsiveLayout="scroll"
                [dataKey]="entityKeyName" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field">
               {{field.headerTranslated}}
@@ -34,7 +34,7 @@ import {AuditHelper} from '../../shared/helper/audit.helper';
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-el let-columns="fields">
+        <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields">
               <ng-container [ngSwitch]="field.templateName">
@@ -60,7 +60,8 @@ import {AuditHelper} from '../../shared/helper/audit.helper';
                             (closeDialog)="handleCloseDialog($event)">
     </connector-api-key-edit>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<ConnectorApiKey> implements OnDestroy {
   callParam: CallParam;

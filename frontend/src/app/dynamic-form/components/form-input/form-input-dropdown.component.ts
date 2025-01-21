@@ -5,10 +5,10 @@ import {BaseInputComponent} from '../base.input.component';
  * This PrimeNG dropdown allows grouping the offered options.
  */
 @Component({
-  selector: 'form-input-dropdown',
-  template: `
+    selector: 'form-input-dropdown',
+    template: `
     <ng-container [formGroup]="group">
-      <p-dropdown #input
+      <p-select #input
                   [group]="config.groupItemUseOrLoading"
                   [options]="config.groupItem"
                   optionLabel="value"
@@ -35,9 +35,10 @@ import {BaseInputComponent} from '../base.input.component';
           </div>
         </ng-template>
 
-      </p-dropdown>
+      </p-select>
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 
 export class FormInputDropdownComponent extends BaseInputComponent {

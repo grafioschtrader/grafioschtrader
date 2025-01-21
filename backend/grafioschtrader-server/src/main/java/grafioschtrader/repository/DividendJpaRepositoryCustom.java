@@ -10,7 +10,7 @@ public interface DividendJpaRepositoryCustom {
    * Determines from the dividend calendar possible securities that have received
    * a dividend.
    */
-  public void appendThruDividendCalendar();
+  public List<Security> appendThruDividendCalendar();
 
   /**
    * The following algorithm is used to determine possible missing dividend income

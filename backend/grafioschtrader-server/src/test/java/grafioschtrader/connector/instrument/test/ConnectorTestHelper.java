@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
@@ -33,7 +34,7 @@ public class ConnectorTestHelper {
   final static String ISIN_TLT = "IE00BSKRJZ44";
   final static String ISIN_Walmart = "US9311421039";
 
-  final static SimpleDateFormat sdf = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+  final static SimpleDateFormat sdf = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
 
   public static void checkHistoryquoteUniqueDate(String name, List<Historyquote> historyquotes) {
     Set<Date> dateSet = new HashSet<>();

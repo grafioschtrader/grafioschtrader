@@ -13,8 +13,8 @@ import {ShowRecordConfigBase} from '../../shared/datashowbase/show.record.config
  * for security accounts.
  */
 @Component({
-  selector: 'tenant-dividend-security-account-selection-dialog',
-  template: `
+    selector: 'tenant-dividend-security-account-selection-dialog',
+    template: `
     <p-dialog header="{{'DIV_INCLUDE_SECURITYACCOUNT' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '600px'}"
               [contentStyle]="{'max-height':'800px'}"
@@ -49,7 +49,8 @@ import {ShowRecordConfigBase} from '../../shared/datashowbase/show.record.config
         </div>
       </div>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class TenantDividendSecurityAccountSelectionDialogComponent {
   @Input() portfolios: Portfolio[];

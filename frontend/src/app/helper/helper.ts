@@ -97,6 +97,8 @@ export abstract class Helper {
         targetObject[config.field] = config.formControl.value.getTime();
       } else if (config.dataType === DataType.DateStringShortUS) {
         this.formatDateString(config, targetObject, AppSettings.FORMAT_DATE_SHORT_US);
+      } else if(config.inputType === InputType.TriStateCheckbox && config.formControl.value === null) {
+        targetObject[config.field] = config.formControl.value;
       } else {
         targetObject[config.field] = config.formControl.value;
       }

@@ -10,8 +10,8 @@ import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.entities.projection.IUDFSupport;
 import grafioschtrader.validation.ValidCurrencyCode;
 import jakarta.persistence.Basic;

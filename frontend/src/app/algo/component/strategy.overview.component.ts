@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 
 @Component({
-  template: `
+    template: `
     <h4>Strategy Overview</h4>
     <input currencyMask [options]="optionsInput01"/>
     <input currencyMask [options]="optionsInput02"/>
@@ -35,8 +35,8 @@ import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
         <p-button icon="pi pi-check" (click)="displayBasic=false" label="Ok" styleClass="p-button-text"></p-button>
       </ng-template>
     </p-dialog>
-  `
-
+  `,
+    standalone: false
 })
 export class StrategyOverviewComponent {
   displayBasic: boolean;

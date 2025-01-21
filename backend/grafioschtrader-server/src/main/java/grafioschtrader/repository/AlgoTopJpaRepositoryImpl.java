@@ -10,7 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.algo.AlgoTopCreate;
 import grafioschtrader.algo.AlgoTopCreate.AssetclassPercentage;
 import grafioschtrader.algo.RuleStrategyType;
@@ -48,7 +48,7 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
         simulateRule.simulate(startDate, endDate, algoTop);
       }
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
 
   }

@@ -23,14 +23,14 @@ import {AppSettings} from '../../shared/app.settings';
  * TODO: Change to DatatableCRUDSupportMenu
  */
 @Component({
-  selector: 'import-transaction-template-table',
-  template: `
+    selector: 'import-transaction-template-table',
+    template: `
     <p-table [columns]="fields" [value]="entityList"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
              selectionMode="single" sortMode="multiple" [multiSortMeta]="multiSortMeta"
              responsiveLayout="scroll"
              [dataKey]="entityKeyName" [(selection)]="selectedEntity">
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field"
               [style.max-width.px]="field.width" [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -39,7 +39,7 @@ import {AppSettings} from '../../shared/app.settings';
           </th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-el let-columns="fields">
+      <ng-template #body let-el let-columns="fields">
         <tr [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
             <td *ngIf="field.visible" [style.max-width.px]="field.width"
@@ -66,7 +66,8 @@ import {AppSettings} from '../../shared/app.settings';
                                       (closeDialog)="handleCloseDialog($event)">
     </import-transaction-edit-template>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {
   callParam: CallParam;

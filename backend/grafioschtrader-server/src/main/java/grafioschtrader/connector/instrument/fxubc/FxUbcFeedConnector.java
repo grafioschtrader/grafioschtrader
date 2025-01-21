@@ -191,5 +191,5 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
     }
     return historyquotes;
   }
-
+   
 }

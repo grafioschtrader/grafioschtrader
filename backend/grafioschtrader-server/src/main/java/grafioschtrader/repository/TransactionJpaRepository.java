@@ -4,10 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.common.UpdateQuery;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
@@ -58,12 +57,10 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * This native query for removing all transaction exists because deleteAll() is
    * not working. Maybe because of the two references to
    */
-  @Transactional
-  @Modifying
-  @Query(value = "DELETE FROM transaction", nativeQuery = true)
+  @UpdateQuery(value = "DELETE FROM transaction", nativeQuery = true)
   void removeAllTransaction();
 
-  @Query(value = "DELETE FROM transaction WHERE id_tenant = ?1 AND note = 'System-Created' AND transaction_type = 6", nativeQuery = true)
+  @UpdateQuery(value = "DELETE FROM transaction WHERE id_tenant = ?1 AND note = 'System-Created' AND transaction_type = 6", nativeQuery = true)
   void removeSystemCreatedDividensFromTenant(Integer idTenant);
 
   /**
@@ -99,9 +96,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       WHERE s.idSecuritycurrency = :idSecurity AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)""")
   List<Transaction> getMarginTransactionMapForSecurity(Integer idSecurity);
 
-  @Transactional
-  @Modifying
-  @Query(value = "DELETE FROM Transaction WHERE id_cash_account = ?1", nativeQuery = true)
+  @UpdateQuery(value = "DELETE FROM Transaction WHERE id_cash_account = ?1", nativeQuery = true)
   void deleteByCashaccount_IdSecuritycashAccount(Integer idCashaccount);
 
   @Query(value = "SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.securityTransactionList t JOIN Fetch t.security s"

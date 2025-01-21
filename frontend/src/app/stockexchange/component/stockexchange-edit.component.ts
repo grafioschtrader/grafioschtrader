@@ -32,8 +32,8 @@ import {StockexchangeHelper} from './stockexchange.helper';
  * Edit stockexchnage
  */
 @Component({
-  selector: 'stockexchange-edit',
-  template: `
+    selector: 'stockexchange-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -42,7 +42,8 @@ import {StockexchangeHelper} from './stockexchange.helper';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
 

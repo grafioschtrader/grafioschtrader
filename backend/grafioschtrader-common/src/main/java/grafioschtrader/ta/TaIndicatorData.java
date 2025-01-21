@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 
 /**
  * Single data point for the chart
@@ -14,7 +14,7 @@ import grafioschtrader.GlobalConstants;
  */
 public class TaIndicatorData {
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate date;
   public Double value;
 

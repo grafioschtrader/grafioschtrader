@@ -9,10 +9,11 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
  * Showing the tab menu with period performance and missing EOD data
  */
 @Component({
-  template: `
+    template: `
     <p-tabMenu [model]="items" [activeItem]="items[0]"></p-tabMenu>
     <router-outlet></router-outlet>
-  `
+  `,
+    standalone: false
 })
 export class TenantPerformanceTabMenuComponent implements OnInit {
   items: MenuItem[];

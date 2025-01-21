@@ -26,8 +26,8 @@ import {AppSettings} from '../../shared/app.settings';
  * It is used as nested table.
  */
 @Component({
-  selector: 'tenant-transaction-cost-extended',
-  template: `
+    selector: 'tenant-transaction-cost-extended',
+    template: `
     <div #cmDiv class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable nestedtable">
@@ -39,7 +39,7 @@ import {AppSettings} from '../../shared/app.settings';
                  dataKey="transaction.idTransaction" [paginator]="true" [rows]="20"
                  styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
 
-          <ng-template pTemplate="header" let-fields>
+          <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -49,7 +49,7 @@ import {AppSettings} from '../../shared/app.settings';
             </tr>
           </ng-template>
 
-          <ng-template pTemplate="body" let-el let-columns="fields">
+          <ng-template #body let-el let-columns="fields">
             <tr [pSelectableRow]="el">
               <ng-container *ngFor="let field of fields">
                 <td *ngIf="field.visible" [style.max-width.px]="field.width"
@@ -70,7 +70,8 @@ import {AppSettings} from '../../shared/app.settings';
                                [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
                                (closeDialog)="handleCloseTransactionDialog($event)">
     </transaction-security-edit>
-  `
+  `,
+    standalone: false
 })
 export class TenantTransactionCostExtendedComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   @Input() transactionCostPositions: TransactionCostPosition[];

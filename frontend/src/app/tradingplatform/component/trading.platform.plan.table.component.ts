@@ -16,16 +16,16 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                responsiveLayout="scroll"
                [dataKey]="entityKeyName" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field">
               {{field.headerTranslated}}
@@ -33,7 +33,7 @@ import {AppSettings} from '../../shared/app.settings';
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-el let-columns="fields">
+        <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields">
               <ng-container [ngSwitch]="field.templateName">
@@ -57,7 +57,8 @@ import {AppSettings} from '../../shared/app.settings';
                                 (closeDialog)="handleCloseDialog($event)">
     </trading-platform-plan-edit>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> implements OnDestroy {
 

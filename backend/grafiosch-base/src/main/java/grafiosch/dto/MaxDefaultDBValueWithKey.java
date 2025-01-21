@@ -1,4 +1,4 @@
-package grafioschtrader.dto;
+package grafiosch.dto;
 
 public class MaxDefaultDBValueWithKey {
   public final String key;

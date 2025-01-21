@@ -17,6 +17,7 @@ import org.hibernate.annotations.Type;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dynamic.model.udf.UDFDataHelper;
 import grafioschtrader.types.UDFDataType;
@@ -181,7 +182,7 @@ public class UDFData {
   }
 
   private LocalDate checkLocalDate(String value) {
-    DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(GlobalConstants.STANDARD_DATE_FORMAT);
+    DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     try {
       return LocalDate.parse(value, localDateFormatter);
     } catch (DateTimeParseException dte) {

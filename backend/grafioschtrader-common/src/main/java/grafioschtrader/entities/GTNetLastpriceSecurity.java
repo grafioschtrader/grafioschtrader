@@ -1,6 +1,6 @@
 package grafioschtrader.entities;
 
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.validation.ValidCurrencyCode;
 import grafioschtrader.validation.ValidISIN;
 import io.swagger.v3.oas.annotations.media.Schema;

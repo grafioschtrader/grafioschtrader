@@ -1,0 +1,46 @@
+/* tri-state-checkbox.component.css */
+
+/* Base styles for the tri-state checkbox */
+.tri-state-checkbox {
+  display: flex; /* Use flexbox for centering */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  width: 20px; /* Default size: 20x20 */
+  height: 20px;
+  border: 2px solid #000;
+  border-radius: 4px;
+  font-size: 14px; /* Adjust font size for small size */
+  font-weight: bold;
+  user-select: none;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  text-align: center; /* Align text in the center */
+}
+
+/* Large size: 30x30 */
+.tri-state-checkbox.large {
+  width: 30px;
+  height: 30px;
+  font-size: 18px; /* Adjust font size for larger size */
+}
+
+/* Style for the "false" state */
+.tri-state-checkbox[data-state='false'] {
+  background-color: #fff;
+}
+
+/* Style for the "true" state */
+.tri-state-checkbox[data-state='true'] {
+  background-color: #d4edda;
+}
+
+/* Style for the "indeterminate" state */
+.tri-state-checkbox[data-state='indeterminate'] {
+  background-color: #f8d7da;
+}
+
+/* Focus styling */
+.tri-state-checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 4px 2px rgba(0, 123, 255, 0.5); /* Blue glow */
+}

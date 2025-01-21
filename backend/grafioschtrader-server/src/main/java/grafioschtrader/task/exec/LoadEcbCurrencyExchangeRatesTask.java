@@ -14,6 +14,15 @@ import grafioschtrader.task.ITask;
 import grafioschtrader.types.TaskDataExecPriority;
 import grafioschtrader.types.TaskType;
 
+/**
+ * Updating a currency pair such as USD/CHF takes place in two steps. First, the
+ * ECB exchange rate data must be downloaded with this background job. This is
+ * then written to the Grafioschtrader database. The second processing step
+ * takes place together with the updating of the other historical price data of
+ * the currency pairs. This does not access an external data source, but the
+ * rates previously stored in the database. A cross rate is calculated for
+ * currency pairs that do not contain the EUR.
+ */
 @Component
 public class LoadEcbCurrencyExchangeRatesTask implements ITask {
 

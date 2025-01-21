@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.exceptions.DataViolationException;
@@ -44,7 +44,7 @@ class CheckCashaccountAmountTransaction {
         } else if (!transaction.isMarginClosePosition()) {
           if (transaction.isMarginOpenPosition()) {
             transaction
-                .setSecurityRisk(DataHelper.round(Math.abs(transaction.validateSecurityGeneralCashaccountAmount(0))
+                .setSecurityRisk(DataBusinessHelper.round(Math.abs(transaction.validateSecurityGeneralCashaccountAmount(0))
                     * (transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1.0 : -1.0)));
             openPositionMap.put(transaction.getIdTransaction(), transaction);
           }

@@ -87,15 +87,23 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
         mainPredicates.add(builder.and(builder.isNull(securityRoot.get(Security_.idLinkSecuritycurrency))));
       }
 
-      if (securitycurrencySearch.getLeverageFactor() != null && securitycurrencySearch.getLeverageFactor() != 0 ) {
-        mainPredicates.add(builder
-            .and(builder.equal(securityRoot.get(Security_.leverageFactor), securitycurrencySearch.getLeverageFactor())));
+      if (securitycurrencySearch.getLeverageFactor() != null && securitycurrencySearch.getLeverageFactor() != 0) {
+        mainPredicates.add(builder.and(
+            builder.equal(securityRoot.get(Security_.leverageFactor), securitycurrencySearch.getLeverageFactor())));
       }
 
-      if (securitycurrencySearch.isOnlyTenantPrivate()) {
-        mainPredicates.add(builder.and(builder.equal(securityRoot.get(Security_.idTenantPrivate), idTenant)));
+      if (securitycurrencySearch.isOnlyTenantPrivate() != null) {
+        if (securitycurrencySearch.isOnlyTenantPrivate()) {
+          // Only records where idTenantPrivate matches idTenant
+          mainPredicates.add(builder.equal(securityRoot.get(Security_.idTenantPrivate), idTenant));
+        } else {
+          // Only records where idTenantPrivate is null
+          mainPredicates.add(builder.isNull(securityRoot.get(Security_.idTenantPrivate)));
+        }
       } else {
-        mainPredicates.add(builder.and(builder.isNull(securityRoot.get(Security_.idTenantPrivate))));
+        // isOnlyTenantPrivate is null, no filtering based on idTenantPrivate
+        mainPredicates.add(builder.or(builder.equal(securityRoot.get(Security_.idTenantPrivate), idTenant),
+            builder.isNull(securityRoot.get(Security_.idTenantPrivate))));
       }
 
       if (securitycurrencySearch.getName() != null) {
@@ -147,7 +155,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
   private void addFromToActiveDate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {
-    if(securitycurrencySearch.getMaxFromDate() != null && securitycurrencySearch.getMinToDate() != null) {
+    if (securitycurrencySearch.getMaxFromDate() != null && securitycurrencySearch.getMinToDate() != null) {
       mainPredicates.add(builder.and(builder.lessThanOrEqualTo(securityRoot.<Date>get(Security_.activeFromDate),
           securitycurrencySearch.getMinToDate())));
       mainPredicates.add(builder.and(builder.greaterThanOrEqualTo(securityRoot.<Date>get(Security_.activeToDate),
@@ -155,7 +163,6 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
     }
   }
-
 
   private void addAssetclassPredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {

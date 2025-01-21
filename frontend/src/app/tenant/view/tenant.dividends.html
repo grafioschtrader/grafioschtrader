@@ -6,7 +6,7 @@
              responsiveLayout="scroll"
              dataKey="year" selectionMode="single" sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-      <ng-template pTemplate="caption">
+      <ng-template #caption>
         <ng-container *ngIf="securityDividendsGrandTotal">
           <h4 [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"
               [translate]="'PORTFOLIO_DIVIDENDS_YEAR'"></h4>
@@ -15,7 +15,7 @@
         </ng-container>
       </ng-template>
 
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th style="width:24px"></th>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
@@ -27,7 +27,7 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-columns="fields" let-el let-expanded="expanded">
+      <ng-template #body let-columns="fields" let-el let-expanded="expanded">
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <td>
             <a [pRowToggler]="el" href="#">
@@ -58,7 +58,7 @@
         </tr>
       </ng-template>
 
-      <ng-template let-columns="fields" let-sDYG pTemplate="rowexpansion">
+      <ng-template let-columns="fields" let-sDYG #expandedrow>
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1">
             <tenant-dividends-security-extended

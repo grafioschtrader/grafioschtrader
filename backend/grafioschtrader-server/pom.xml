@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.3</version>
+		<version>0.33.4</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -32,12 +32,18 @@
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		
+		 <dependency>
+			<groupId>grafioschtrader</groupId>
+			<artifactId>grafiosch-base</artifactId>
+	        <version>0.33.4</version>	
+		</dependency>
 
 		<!-- Grafioschtrader common module -->
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.33.3</version>
+			<version>0.33.4</version>
 		</dependency>
 
 

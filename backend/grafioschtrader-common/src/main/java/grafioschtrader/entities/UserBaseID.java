@@ -1,5 +1,7 @@
 package grafioschtrader.entities;
 
+import grafiosch.entities.BaseID;
+
 /**
  * This class should extend an entity if the entities of an information class are associated with a user.
  */

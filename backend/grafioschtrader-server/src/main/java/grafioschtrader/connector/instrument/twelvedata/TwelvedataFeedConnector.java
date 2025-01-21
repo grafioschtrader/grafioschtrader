@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -146,7 +146,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     return DOMAIN_NAME
         +  "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
                 + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + "+23:59:59" + getApiKeyString();
@@ -171,7 +171,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   private List<Historyquote> getEodSecurityCurrencypairHistory(String ticker, final Date from, Date to, double divider,
       boolean hasVolume) throws Exception {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
     Date toDate = null;
     if (DateHelper.getDateDiff(from, to, TimeUnit.DAYS) / 7 * 5 > MAX_DATA_POINTS - 100) {

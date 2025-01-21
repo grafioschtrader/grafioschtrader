@@ -13,8 +13,8 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
 @Component({
-  selector: 'template-form-check-dialog',
-  template: `
+    selector: 'template-form-check-dialog',
+    template: `
     <p-dialog header="{{'CHECK_TEMPLATE_FORM' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" showEffect="fade" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -32,7 +32,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
                                                   [failedParsedTemplateStateList]="formTemplateCheck.failedParsedTemplateStateList">
         </template-form-check-dialog-result-failed>
       </ng-container>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class TemplateFormCheckDialogComponent extends SimpleEditBase implements OnInit {
   @Input() importTransactionPlatform: ImportTransactionPlatform;

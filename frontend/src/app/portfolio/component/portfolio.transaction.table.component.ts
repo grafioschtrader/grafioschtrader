@@ -18,7 +18,8 @@ import {ConfirmationService, FilterService} from 'primeng/api';
  * Shows all transactions of a Portfolio
  */
 @Component({
-  templateUrl: '../../transaction/view/transaction.cashaccount.table.html'
+    templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
+    standalone: false
 })
 export class PortfolioTransactionTableComponent extends TransactionTable implements OnInit, OnDestroy {
   private routeSubscribe: Subscription;

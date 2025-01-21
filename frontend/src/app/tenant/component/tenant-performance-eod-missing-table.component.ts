@@ -15,8 +15,8 @@ import {SecurityIdWithCurrency} from '../../securitycurrency/component/security-
  * Shows a table with the missing instruments that do not have a complete price history.
  */
 @Component({
-  selector: 'tenant-performance-eod-missing-table',
-  template: `
+    selector: 'tenant-performance-eod-missing-table',
+    template: `
     <p-table [columns]="fields" [value]="securities" selectionMode="single"
              [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
              (onRowUnselect)="onRowUnselect($event)"
@@ -24,10 +24,10 @@ import {SecurityIdWithCurrency} from '../../securitycurrency/component/security-
              dataKey="idSecuritycurrency" [responsive]="true" (sortFunction)="customSort($event)" [customSort]="true"
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-      <ng-template pTemplate="caption">
+      <ng-template #caption>
         <h5>{{'MISSING_DAY_TABLE_MARK'|translate}}</h5>
       </ng-template>
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
               [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -36,7 +36,7 @@ import {SecurityIdWithCurrency} from '../../securitycurrency/component/security-
           </th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-el let-columns="fields">
+      <ng-template #body let-el let-columns="fields">
         <tr [pSelectableRow]="el"
             [ngClass]="selectedDayIdSecurities.indexOf(el.idSecuritycurrency)>= 0 ? 'rowgroup-total' : null">
           <td *ngFor="let field of fields"
@@ -48,7 +48,8 @@ import {SecurityIdWithCurrency} from '../../securitycurrency/component/security-
         </tr>
       </ng-template>
     </p-table>
-  `
+  `,
+    standalone: false
 })
 export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit, OnChanges {
   /**

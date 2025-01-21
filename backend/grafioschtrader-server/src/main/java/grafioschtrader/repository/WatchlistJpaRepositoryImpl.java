@@ -10,12 +10,12 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
@@ -52,21 +52,21 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final Watchlist watchlist = watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
     if (watchlist == null) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     } else {
       var maxPositionForTenant = watchlistJpaRepository.countPostionsInAllWatchlistByIdTenant(user.getIdTenant())
           .intValue();
 
       if (watchlist.getWatchlistLength() + securitycurrencyLists.getLength() <= globalparametersJpaRepository
-          .getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_WATCHLIST_LENGTH)
+          .getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHLIST_LENGTH)
           && maxPositionForTenant + securitycurrencyLists.getLength() <= TenantLimitsHelper
-              .getMaxValueByKey(globalparametersJpaRepository, Globalparameters.GLOB_KEY_MAX_SECURITIES_CURRENCIES)) {
+              .getMaxValueByKey(globalparametersJpaRepository, GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITIES_CURRENCIES)) {
         securitycurrencyLists.currencypairList
             .forEach(currencypair -> watchlist.getSecuritycurrencyList().add(currencypair));
         securitycurrencyLists.securityList.forEach(security -> watchlist.getSecuritycurrencyList().add(security));
         return watchlistJpaRepository.save(watchlist);
       } else {
-        throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
       }
     }
   }
@@ -87,7 +87,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Watchlist watchlist = watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
     if (watchlist == null) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
 
     return new SecuritycurrencyLists(
@@ -143,7 +143,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
 
     final Watchlist watchlist = watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
     if (watchlist == null) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     } else {
       watchlist.getSecuritycurrencyList().remove(securitycurrency);
       return watchlistJpaRepository.save(watchlist);
@@ -200,7 +200,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
       watchlistJpaRepository.moveUpdateSecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency);
       return true;
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 
@@ -214,7 +214,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
           .tryUpToDateIntraDataWhenRetryIntraLoadGreaterThan0(user.getIdTenant(), idWatchlist);
       return new SecuritycurrencyLists(securityList, currencypair);
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 
@@ -228,7 +228,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
           .tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(user.getIdTenant(), idWatchlist);
       return new SecuritycurrencyLists(securityList, currencypairList);
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 
@@ -237,14 +237,14 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     TenantLimit[] tenantLimits = new TenantLimit[2];
     tenantLimits[0] = new TenantLimit(
-        globalparametersJpaRepository.getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_WATCHLIST_LENGTH),
+        globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHLIST_LENGTH),
         watchlistJpaRepository.countPostionsInWatchlist(user.getIdTenant(), idWatchlist).intValue(),
-        Globalparameters.GLOB_KEY_MAX_WATCHLIST_LENGTH, Watchlist.class.getSimpleName());
+        GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHLIST_LENGTH, Watchlist.class.getSimpleName());
 
     tenantLimits[1] = new TenantLimit(
-        globalparametersJpaRepository.getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_SECURITIES_CURRENCIES),
+        globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITIES_CURRENCIES),
         watchlistJpaRepository.countPostionsInAllWatchlistByIdTenant(user.getIdTenant()).intValue(),
-        Globalparameters.GLOB_KEY_MAX_SECURITIES_CURRENCIES, Watchlist.class.getSimpleName());
+        GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITIES_CURRENCIES, Watchlist.class.getSimpleName());
 
     return tenantLimits;
   }
@@ -263,7 +263,7 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
             globalparametersJpaRepository.getMaxIntraRetry());
       }
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
   }

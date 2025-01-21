@@ -5,8 +5,8 @@ import {BaseFieldFieldgroupConfig} from '../../models/base.field.fieldgroup.conf
  * Support the validation of a single field with its error message.
  */
 @Component({
-  selector: 'error-message',
-  template: `
+    selector: 'error-message',
+    template: `
     <div class="row" [ngxErrors]="baseFieldFieldgroupConfig.formControl">
       <div class="col-12 alert alert-danger" *ngFor="let error of baseFieldFieldgroupConfig.errors"
            [ngxError]="error.name"
@@ -14,7 +14,8 @@ import {BaseFieldFieldgroupConfig} from '../../models/base.field.fieldgroup.conf
         {{ error.text }}
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class ErrorMessageComponent {
   @Input() baseFieldFieldgroupConfig: BaseFieldFieldgroupConfig;

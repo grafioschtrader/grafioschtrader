@@ -21,8 +21,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Edit historical quotes.
  */
 @Component({
-  selector: 'historyquote-edit',
-  template: `
+    selector: 'historyquote-edit',
+    template: `
     <p-dialog header="{{'HISTORY_QUOTE_FOR' | translate}} {{callParam.showName}}" [(visible)]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -31,7 +31,8 @@ import {AppSettings} from '../../shared/app.settings';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote> implements OnInit {
 

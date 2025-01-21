@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
-import grafioschtrader.common.DataHelper;
+import grafiosch.common.DataHelper;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;

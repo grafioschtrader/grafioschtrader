@@ -3,12 +3,12 @@
            [multiSortMeta]="multiSortMeta" [paginator]="true" [rows]="20" [value]="data"
            class="leftRight2Table" selectionMode="single" responsiveLayout="scroll"
            sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-    <ng-template pTemplate="caption">
+    <ng-template #caption>
       <div class="table-header">
         <h5>{{groupTitle | translate}}</h5>
       </div>
     </ng-template>
-    <ng-template pTemplate="header" let-fields>
+    <ng-template #header let-fields>
       <tr>
         <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
             [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -17,7 +17,7 @@
         </th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-columns="fields" let-el>
+    <ng-template #body let-columns="fields" let-el>
       <tr [pSelectableRow]="el">
         <ng-container *ngFor="let field of fields">
           <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric

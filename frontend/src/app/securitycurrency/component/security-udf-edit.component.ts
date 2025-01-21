@@ -15,8 +15,9 @@ import {Security} from '../../entities/security';
  * The input fields offered may vary depending on the asset class and the financial instrument.
  */
 @Component({
-  selector: 'udf-security-edit',
-  templateUrl: '../../shared/udfmeta/view/general.udf.data.edit.html'
+    selector: 'udf-security-edit',
+    templateUrl: '../../shared/udfmeta/view/general.udf.data.edit.html',
+    standalone: false
 })
 export class SecurityUDFEditComponent extends BaseUDFDataEdit implements OnInit {
 

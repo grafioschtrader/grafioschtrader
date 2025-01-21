@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import grafioschtrader.entities.BaseID;
+import grafiosch.entities.BaseID;
 import jakarta.validation.Valid;
 
 /**

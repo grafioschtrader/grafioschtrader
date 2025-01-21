@@ -2,8 +2,8 @@ import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 
 @Component({
-  selector: 'form-input-suggestion',
-  template: `
+    selector: 'form-input-suggestion',
+    template: `
     <ng-container [formGroup]="group">
       <p-autoComplete #input
                       [id]="config.field" [formControlName]="config.field"
@@ -14,7 +14,8 @@ import {BaseInputComponent} from '../base.input.component';
                       pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}">
       </p-autoComplete>
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 
 export class FormInputSuggestionComponent extends BaseInputComponent {

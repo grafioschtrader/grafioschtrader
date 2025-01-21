@@ -22,7 +22,8 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
  * It groups asset classes of securities and includes balance of cash accounts as an asset class.
  */
 @Component({
-  templateUrl: '../../securityaccount/view/securityaccount.table.html'
+    templateUrl: '../../securityaccount/view/securityaccount.table.html',
+    standalone: false
 })
 export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable implements OnInit, OnDestroy {
 

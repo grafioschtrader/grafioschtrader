@@ -11,10 +11,11 @@ import {GlobalSessionNames} from '../../shared/global.session.names';
 import {UDFMetadataGeneralService} from '../../shared/udfmeta/service/udf.metadata.general.service';
 
 @Component({
-  template: `
+    template: `
     <p-tabMenu [model]="items" [activeItem]="activeTab"></p-tabMenu>
     <router-outlet></router-outlet>
-  `
+  `,
+    standalone: false
 })
 export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
   items: MenuItem[];

@@ -21,8 +21,9 @@ import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disa
  * Therefore, there is also a customized table for the tabular display.
  */
 @Component({
-  templateUrl: '../view/udf.metadata.table.html',
-  providers: [DialogService]
+    templateUrl: '../view/udf.metadata.table.html',
+    providers: [DialogService],
+    standalone: false
 })
 export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataSecurity> implements OnDestroy {
 

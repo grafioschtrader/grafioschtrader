@@ -23,7 +23,7 @@ public class SecuritycurrencySearch implements Serializable {
 
   private SpecialInvestmentInstruments specialInvestmentInstruments;
   private String subCategoryNLS;
-  private boolean onlyTenantPrivate;
+  private Boolean onlyTenantPrivate;
   private Float leverageFactor;
   private boolean excludeDerivedSecurity;
 
@@ -118,11 +118,11 @@ public class SecuritycurrencySearch implements Serializable {
     this.specialInvestmentInstruments = specialInvestmentInstruments;
   }
 
-  public boolean isOnlyTenantPrivate() {
+  public Boolean isOnlyTenantPrivate() {
     return onlyTenantPrivate;
   }
 
-  public void setOnlyTenantPrivate(boolean onlyTenantPrivate) {
+  public void setOnlyTenantPrivate(Boolean onlyTenantPrivate) {
     this.onlyTenantPrivate = onlyTenantPrivate;
   }
 

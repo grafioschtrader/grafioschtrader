@@ -98,7 +98,7 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
     return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
       + `/${idWatchlist}/search`, {
       headers: this.prepareHeaders(),
-      params: AppHelper.getHttpParamsOfObject(securitycurrencySearch)
+      params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
     }).pipe(catchError(this.handleError.bind(this)));
   }
 

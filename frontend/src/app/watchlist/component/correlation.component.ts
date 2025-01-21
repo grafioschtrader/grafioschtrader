@@ -21,7 +21,7 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
  * Main component of correlation set. It supports the creation and deletion of a correlation set.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -48,7 +48,8 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
                           [correlationLimit]="correlationLimit"
                           (closeDialog)="handleCloseEditDialog($event)">
     </correlation-set-edit>
-  `
+  `,
+    standalone: false
 })
 export class CorrelationComponent extends SingleRecordMasterViewBase<CorrelationSet, Securitycurrency>
   implements AfterViewInit, OnDestroy, ChildToParent {

@@ -10,6 +10,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.validation.AfterEqual;
@@ -47,10 +48,10 @@ public class Securitysplit extends DividendSplit implements Serializable {
   private Integer idSecuritysplit;
 
   @Schema(description = "The date of the split, on this day the split was carried out before the stock exchange opened")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Basic(optional = false)
   @NotNull
-  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
+  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "split_date")
   @Temporal(TemporalType.DATE)
   private Date splitDate;

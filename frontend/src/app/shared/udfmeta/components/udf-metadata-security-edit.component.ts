@@ -19,8 +19,8 @@ import {UDFMetadataHelper} from './udf.metadata.helper';
  * Edit user defined fields metadata of security in a dialog
  */
 @Component({
-  selector: 'udf-metadata-security-edit',
-  template: `
+    selector: 'udf-metadata-security-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '500px'}" (onShow)="onShow($event)" (onHide)="onHide($event)"
               [modal]="true">
@@ -29,7 +29,8 @@ import {UDFMetadataHelper} from './udf.metadata.helper';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class UDFMetadataSecurityEditComponent extends AssetClassTypeSpecInstrument<UDFMetadataSecurity> implements OnInit {
   @Input() callParam: UDFMetadataSecurityParam;

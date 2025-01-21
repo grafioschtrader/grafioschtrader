@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import grafioschtrader.common.UpdateQuery;
 import grafioschtrader.dto.StockexchangeHasSecurity;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
@@ -39,11 +40,11 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
   @Query(nativeQuery = true)
   List<IdStockexchangeIndexName> getIdStockexchangeAndIndexNameForCalendarUpd();
 
-  @Query(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE no_market_value = 0", nativeQuery = true)
+  @UpdateQuery(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE no_market_value = 0", nativeQuery = true)
   void updateHistoricalUpdateWithNowForAll();
 
 
-  @Query(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE id_stockexchange IN (?1)", nativeQuery = true)
+  @UpdateQuery(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE id_stockexchange IN (?1)", nativeQuery = true)
   void updateHistoricalUpdateWithNowByIdsStockexchange(List<Integer> ids);
 
   public interface IdStockexchangeIndexName {

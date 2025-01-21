@@ -19,8 +19,8 @@ import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propos
  * Component for editing the users properties.
  */
 @Component({
-  selector: 'user-edit',
-  template: `
+    selector: 'user-edit',
+    template: `
     <p-dialog header="{{'USER_SETTINGS' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -29,7 +29,8 @@ import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propos
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class UserEditComponent extends SimpleEntityEditBase<User> implements OnInit {
   @Input() callParam: User;

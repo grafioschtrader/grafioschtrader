@@ -34,13 +34,14 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
  * View to check the reliability of the price data feeds. It has some special function implemented to update price data.
  */
 @Component({
-  templateUrl: '../view/watchlist.data.html',
-  styles: [`
+    templateUrl: '../view/watchlist.data.html',
+    styles: [`
     .cell-move {
       cursor: move !important;
     }
   `],
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class WatchlistPriceFeedComponent extends WatchlistTable implements OnInit, OnDestroy {
 

@@ -3,7 +3,7 @@ package grafioschtrader.instrument;
 import java.util.List;
 import java.util.Map;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.config.NegativeIdNumberCreater;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
@@ -132,7 +132,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     }
     securityPositionSummary.roundUnits();
     securityPositionSummary.transactionGainLoss = (securityPositionSummary.transactionGainLoss != null)
-        ? DataHelper.round(securityPositionSummary.transactionGainLoss)
+        ? DataBusinessHelper.round(securityPositionSummary.transactionGainLoss)
         : null;
   }
 

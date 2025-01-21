@@ -22,7 +22,7 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
  * Shows the user register form.
  */
 @Component({
-  template: `
+    template: `
     <div class="container">
       <div class="login jumbotron center-block">
 
@@ -47,7 +47,8 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
         </ng-container>
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
   progressValue: number;

@@ -30,8 +30,8 @@ import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
  * Crate a new GTNet message. A message can not be changed.
  */
 @Component({
-  selector: 'gtnet-message-edit',
-  template: `
+    selector: 'gtnet-message-edit',
+    template: `
     <p-dialog header="{{'GT_NET_MESSAGE_SEND' | translate}}" [(visible)]="visibleDialog"
              [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -41,7 +41,8 @@ import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit {
   @Input() msgCallParam: MsgCallParam;

@@ -25,8 +25,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafiosch.BaseConstants;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -234,7 +234,7 @@ public class WatchlistReport {
 
     final Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
     if (!watchlist.getIdTenant().equals(idTenant)) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
 
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
@@ -282,7 +282,7 @@ public class WatchlistReport {
     final Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
 
     if (!watchlist.getIdTenant().equals(idTenant)) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     final List<SecuritycurrencyPosition<Security>> securityPositionList = createSecuritycurrencyPositionList(
         watchlist.getSecuritycurrencyListByType(Security.class));
@@ -513,7 +513,7 @@ public class WatchlistReport {
         .get(securitycurrencyPosition.securitycurrency.getIdSecuritycurrency());
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
       final double histroyClose = historyquote.getClose();
-      securitycurrencyPosition.ytdChangePercentage = DataHelper
+      securitycurrencyPosition.ytdChangePercentage = DataBusinessHelper
           .roundStandard((securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
     }
   }
@@ -526,10 +526,10 @@ public class WatchlistReport {
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
       final double histroyClose = historyquote.getClose();
       final int years = daysTimeFrame / 365;
-      securitycurrencyPosition.timeFrameChangePercentage = DataHelper
+      securitycurrencyPosition.timeFrameChangePercentage = DataBusinessHelper
           .roundStandard((securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
       if (years >= 1) {
-        securitycurrencyPosition.timeFrameAnnualChangePercentage = DataHelper.roundStandard(
+        securitycurrencyPosition.timeFrameAnnualChangePercentage = DataBusinessHelper.roundStandard(
             (Math.pow(securitycurrencyPosition.timeFrameChangePercentage / 100 + 1, 1.0 / years) - 1.0) * 100);
       }
     }

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
@@ -100,7 +101,7 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
     Date toDate = new Date();
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
     return getSecurityHistoricalDownloadLink(security.getIsin(), DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
         dateFormat);
@@ -109,7 +110,7 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
     Response[] response = objectMapper.readValue(
         new URL(getSecurityHistoricalDownloadLink(security.getIsin(), from, to, dateFormat)), Response[].class);

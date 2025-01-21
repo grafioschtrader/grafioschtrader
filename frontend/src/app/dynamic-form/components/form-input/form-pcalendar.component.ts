@@ -4,11 +4,10 @@ import {Helper} from '../../../helper/helper';
 
 
 @Component({
-  selector: 'form-pcalendar',
-
-  template: `
+    selector: 'form-pcalendar',
+    template: `
     <ng-container [formGroup]="group">
-      <p-calendar [id]="config.field"
+      <p-datepicker [id]="config.field"
                   [style]="{'max-width': '180px'}"
                   [inputStyleClass]="'form-control ' + (isRequired? 'required-input': '')"
                   [showTime]="config.dataType === DataType.DateTimeNumeric"
@@ -29,9 +28,10 @@ import {Helper} from '../../../helper/helper';
                   [showIcon]="true"
                   appendTo="body"
                   [formControlName]="config.field">
-      </p-calendar>
+      </p-datepicker>
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 export class FormPCalendarComponent extends BaseInputComponent implements OnInit {
 

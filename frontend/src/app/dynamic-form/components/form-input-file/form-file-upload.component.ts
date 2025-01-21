@@ -4,8 +4,8 @@ import {FileRequiredValidator} from './file-input.validator';
 
 
 @Component({
-  selector: 'form-file-upload',
-  template: `
+    selector: 'form-file-upload',
+    template: `
     <ng-container [formGroup]="group">
       <input class="form-control-file-input" type="file" #input [id]="config.field"
              [multiple]="config.dataType === DataType.Files"
@@ -14,7 +14,8 @@ import {FileRequiredValidator} from './file-input.validator';
              (change)="handleChangeFileInput($event.target.files)"
              [formControlName]="config.field">
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 export class FormFileUploadComponent extends BaseInputComponent {
   fileToUpload: File = null;

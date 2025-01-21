@@ -22,7 +22,8 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
  * The user can change the grouping for example by currency or financial instrument.
  */
 @Component({
-  templateUrl: '../../securityaccount/view/securityaccount.table.html'
+    templateUrl: '../../securityaccount/view/securityaccount.table.html',
+    standalone: false
 })
 export class TenantSummariesSecurityaccountComponent extends SecurityaccountTable implements OnInit, OnDestroy {
 

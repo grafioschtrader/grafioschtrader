@@ -14,8 +14,8 @@ import {StepComponent} from './step.component';
 import {MenuItem} from 'primeng/api';
 
 @Component({
-  selector: 'pe-steps',
-  template: `
+    selector: 'pe-steps',
+    template: `
     <p-steps [model]="items" [(activeIndex)]="activeIndex"
              [styleClass]="styleClass" [readonly]="true"></p-steps>
     <ng-content></ng-content>
@@ -23,7 +23,8 @@ import {MenuItem} from 'primeng/api';
             (click)="previous()" icon="pi pi-chevron-left" label="Previous"></button>
     <button pButton type="text" *ngIf="activeIndex < items.length - 1"
             (click)="next()" icon="pi pi-chevron-right" iconPos="right" label="Next"></button>
-  `
+  `,
+    standalone: false
 })
 export class StepsComponent implements AfterContentInit, OnChanges {
   @Input() activeIndex = 0;

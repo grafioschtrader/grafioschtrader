@@ -24,9 +24,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import grafiosch.entities.BaseID;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.BaseID;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.UserEntityChangeLimit;
 import grafioschtrader.security.JwtTokenHandler;

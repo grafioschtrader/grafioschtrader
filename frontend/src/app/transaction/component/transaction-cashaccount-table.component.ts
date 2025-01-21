@@ -32,8 +32,9 @@ import {TransactionType} from '../../shared/types/transaction.type';
  * The contextmenu has the table component as target.
  */
 @Component({
-  selector: 'transaction-cashaccount-table',
-  templateUrl: '../view/transaction.cashaccount.table.html'
+    selector: 'transaction-cashaccount-table',
+    templateUrl: '../view/transaction.cashaccount.table.html',
+    standalone: false
 })
 export class TransactionCashaccountTableComponent extends TransactionContextMenu
   implements ChildPreservePage, OnInit, OnDestroy {

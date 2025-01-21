@@ -18,8 +18,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Dialog to assign a cash account to an imported transaction position.
  */
 @Component({
-  selector: 'securityaccount-import-set-cashaccount',
-  template: `
+    selector: 'securityaccount-import-set-cashaccount',
+    template: `
     <p-dialog header="{{'CASHACCOUNT' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -27,7 +27,8 @@ import {AppSettings} from '../../shared/app.settings';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase implements OnInit {
   @Input() idSecuritycashAccount: number;

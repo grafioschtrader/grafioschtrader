@@ -1,7 +1,8 @@
 import {Directive, ElementRef, HostListener, Input} from '@angular/core';
 
 @Directive({
-  selector: '[upperCase]'
+    selector: '[upperCase]',
+    standalone: false
 })
 export class UpperCaseDirective {
   @Input('upperCase') allowUpperCase: boolean;

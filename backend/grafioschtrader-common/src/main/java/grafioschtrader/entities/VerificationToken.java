@@ -3,6 +3,7 @@ package grafioschtrader.entities;
 import java.util.Calendar;
 import java.util.Date;
 
+import grafiosch.entities.BaseID;
 import grafioschtrader.GlobalConstants;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;

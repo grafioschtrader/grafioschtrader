@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Currencypair;
@@ -88,7 +88,7 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   private String getSecurityHistoricalDownloadLink(final String productUrlPart, final Date startRange,
       String timeSpan) {
     return "https://api.onvista.de/api/v1/instruments/" + productUrlPart + "&startDate="
-        + new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT).format(startRange) + "&range=" + timeSpan;
+        + new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT).format(startRange) + "&range=" + timeSpan;
   }
 
   @Override

@@ -18,7 +18,7 @@ public interface UserJpaRepository
   Optional<User> findByNickname(String nickname);
 
   Optional<User> findByIdTenant(Integer idTenant);
-  
+
   User findByIdTenantAndIdUser(Integer idTenant, Integer idUser);
 
   UserOwnProjection findByIdUserAndIdTenant(Integer idUser, Integer idTenant);
@@ -26,6 +26,9 @@ public interface UserJpaRepository
   List<User> findAllByOrderByIdUserAsc();
 
   int countByEnabled(boolean value);
+
+  @Query("SELECT u.idUser AS idUser, u.localeStr AS localeStr FROM User u WHERE u.idUser IN ?1")
+  List<IdUserLocale> findIdUserAndLocaleStrByIdUsers(List<Integer> idUsers);
 
   @Query(value = """
       DELETE u FROM user u JOIN verificationtoken v ON u.id_user = v.id_user
@@ -43,7 +46,7 @@ public interface UserJpaRepository
    * has a field 'created_by', whereby tables beginning with "user" are excluded.
    *
    * @param fromIdUser ID from user
-   * @param toIdUser ID to user
+   * @param toIdUser   ID to user
    * @param schemaName database name
    * @return
    */
@@ -59,13 +62,17 @@ public interface UserJpaRepository
 
   public interface EMailLocale {
     String getEmail();
-
     String getLocale();
   }
 
   public interface IdUserAndNickname {
     int getIdUser();
-
     String getNickname();
+  }
+
+  public interface IdUserLocale {
+    Integer getIdUser();
+
+    String getLocaleStr();
   }
 }

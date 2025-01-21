@@ -12,8 +12,9 @@ import {Watchlist} from '../../entities/watchlist';
  * Shows found instrument in a table for adding to Watchlist
  */
 @Component({
-  selector: 'add-instrument-table',
-  templateUrl: '../view/add.instrument.table.html'
+    selector: 'add-instrument-table',
+    templateUrl: '../view/add.instrument.table.html',
+    standalone: false
 })
 export class WatchlistAddInstrumentTableComponent extends AddInstrumentTable<Watchlist> {
 

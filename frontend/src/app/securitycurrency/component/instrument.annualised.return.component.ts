@@ -11,8 +11,9 @@ import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
  * Shows the annualised return for an instrument.
  */
 @Component({
-  selector: 'instrument-annualised-return-table',
-  templateUrl: '../view/instrument.statistic.table.html'
+    selector: 'instrument-annualised-return-table',
+    templateUrl: '../view/instrument.statistic.table.html',
+    standalone: false
 })
 export class InstrumentAnnualisedReturnComponent extends TableConfigBase implements OnInit {
   @Input() values: AnnualisedYears[];

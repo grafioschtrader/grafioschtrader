@@ -23,15 +23,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.BaseConstants;
+import grafiosch.dto.IPropertiesSelfCheck;
+import grafiosch.entities.Globalparameters;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.config.ExposedResourceBundleMessageSource;
-import grafioschtrader.dto.IPropertiesSelfCheck;
 import grafioschtrader.dto.PasswordRegexProperties;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -40,7 +42,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   final static public Map<String, Class<?>> propertiesClassMap = new HashMap<>();
   static {
-    propertiesClassMap.put(Globalparameters.GLOB_KEY_PASSWORT_REGEX, PasswordRegexProperties.class);
+    propertiesClassMap.put(GlobalParamKeyDefault.GLOB_KEY_PASSWORT_REGEX, PasswordRegexProperties.class);
   }
 
 
@@ -66,8 +68,8 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   @Override
   public Map<String, Integer> getCurrencyPrecision() {
     Map<String, Integer> currencyPrecisionMap = new HashMap<>();
-    String curPrecision = globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_CURRENCY_PRECISION)
-        .map(Globalparameters::getPropertyString).orElse(Globalparameters.DEFAULT_CURRENCY_PRECISION);
+    String curPrecision = globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_CURRENCY_PRECISION)
+        .map(Globalparameters::getPropertyString).orElse(GlobalParamKeyDefault.DEFAULT_CURRENCY_PRECISION);
     String[] curSinglePre = curPrecision.split(",");
 
     for (String element : curSinglePre) {
@@ -84,13 +86,13 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Override
   public Integer getGTNetMyEntryID() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_GTNET_MY_ENTRY_ID)
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_MY_ENTRY_ID)
         .map(Globalparameters::getPropertyInt).orElse(null);
   }
 
   @Override
   public Globalparameters saveGTNetMyEntryID(Integer idGtNet) {
-    Globalparameters gp = new Globalparameters(Globalparameters.GLOB_KEY_GTNET_MY_ENTRY_ID);
+    Globalparameters gp = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_GTNET_MY_ENTRY_ID);
     gp.setPropertyInt(idGtNet);
     gp.setChangedBySystem(true);
     return globalparametersJpaRepository.save(gp);
@@ -98,8 +100,8 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Override
   public int getTaskDataDaysPreserve() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_TASK_DATA_DAYS_PRESERVE)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_TASK_DATA_DAYS_PRESERVE);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_TASK_DATA_DAYS_PRESERVE)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_TASK_DATA_DAYS_PRESERVE);
   }
 
   @Override
@@ -109,119 +111,119 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Override
   public int getSecurityCurrencyIntradayUpdateTimeout() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS);
   }
 
   @Override
   public int getAlertBitmap() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_ALERT_MAIL)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_ALERT_MAIL);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_ALERT_MAIL)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_ALERT_MAIL);
   }
 
   @Override
   public int getWatchlistIntradayUpdateTimeout() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_W_INTRA_UPDATE_TIMEOUT_SECONDS);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_W_INTRA_UPDATE_TIMEOUT_SECONDS);
   }
 
   @Override
   public int getMaxLimitExceededCount() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_MAX_LIMIT_EXCEEDED_COUNT)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_MAX_LIMIT_EXCEEDED_COUNT);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_MAX_LIMIT_EXCEEDED_COUNT)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_MAX_LIMIT_EXCEEDED_COUNT);
   }
 
 
   @Override
   public int getJWTExpirationMinutes() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_JWT_EXPIRATION_MINUTES)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_GLOB_KEY_JWT_EXPIRATION_MINUTES);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_JWT_EXPIRATION_MINUTES)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_GLOB_KEY_JWT_EXPIRATION_MINUTES);
   }
 
   @Override
   public int getMaxSecurityBreachCount() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_MAX_SECURITY_BREACH_COUNT)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_MAX_SECURITY_BREACH_COUNT);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITY_BREACH_COUNT)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_MAX_SECURITY_BREACH_COUNT);
   }
 
   @Override
   public short getMaxHistoryRetry() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_RETRY)
-        .map(g -> g.getPropertyInt().shortValue()).orElse(Globalparameters.DEFAULT_HISTORY_RETRY);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_RETRY)
+        .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_RETRY);
   }
 
   @Override
   public short getMaxIntraRetry() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_INTRA_RETRY)
-        .map(g -> g.getPropertyInt().shortValue()).orElse(Globalparameters.DEFAULT_INTRA_RETRY);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_INTRA_RETRY)
+        .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_INTRA_RETRY);
   }
 
   @Override
   public short getMaxDividendRetry() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_DIVIDEND_RETRY)
-        .map(g -> g.getPropertyInt().shortValue()).orElse(Globalparameters.DEFAULT_DIVIDEND_RETRY);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_DIVIDEND_RETRY)
+        .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_DIVIDEND_RETRY);
   }
 
   @Override
   public short getMaxSplitRetry() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_SPLIT_RETRY)
-        .map(g -> g.getPropertyInt().shortValue()).orElse(Globalparameters.DEFAULT_SPLIT_RETRY);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_SPLIT_RETRY)
+        .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_SPLIT_RETRY);
   }
 
   @Override
   public int getMaxFillDaysCurrency() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY);
   }
 
   @Override
   public int getIntradayObservationOrDaysBack() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_INTRADAY_OBSERVATION_OR_DAYS_BACK);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_INTRADAY_OBSERVATION_OR_DAYS_BACK);
   }
 
   @Override
   public int getIntradayObservationRetryMinus() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_INTRADAY_OBSERVATION_RETRY_MINUS)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_INTRADAY_OBSERVATION_RETRY_MINUS);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_INTRADAY_OBSERVATION_RETRY_MINUS)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_INTRADAY_OBSERVATION_RETRY_MINUS);
   }
 
   @Override
   public int getIntradayObservationFallingPercentage() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_INTRADAY_OBSERVATION_FALLING_PERCENTAGE)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_INTRADAY_OBSERVATION_FALLING_PERCENTAGE);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_INTRADAY_OBSERVATION_FALLING_PERCENTAGE)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_INTRADAY_OBSERVATION_FALLING_PERCENTAGE);
   }
 
   @Override
   public int getHistoryObservationDaysBack() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_DAYS_BACK);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_OBSERVATION_DAYS_BACK);
   }
 
   @Override
   public int getHistoryObservationRetryMinus() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_RETRY_MINUS);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_OBSERVATION_RETRY_MINUS);
   }
 
   @Override
   public int getHistoryObservationFallingPercentage() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE);
   }
 
 
   @Override
   public Date getStartFeedDate() throws ParseException {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_START_FEED_DATE)
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_START_FEED_DATE)
         .map(g -> DateHelper.getDateFromLocalDate(g.getPropertyDate()))
-        .orElse(Globalparameters.DEFAULT_START_FEED_DATE);
+        .orElse(GlobalParamKeyDefault.DEFAULT_START_FEED_DATE);
   }
 
   @Override
   public int getUpdatePriceByStockexchange() {
-    return globalparametersJpaRepository.findById(Globalparameters.GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE)
-        .map(Globalparameters::getPropertyInt).orElse(Globalparameters.DEFAULT_UPDATE_PRICE_BY_EXCHANGE);
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_UPDATE_PRICE_BY_EXCHANGE);
   }
 
   @Override
@@ -308,11 +310,11 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         return existingGp;
       }
     }
-    throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+    throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
   }
 
   private void checkBlobPropertyBeforeSave(Globalparameters updGp) throws Exception {
-    if (updGp.getPropertyName().endsWith(Globalparameters.BLOB_PROPERTIES)) {
+    if (updGp.getPropertyName().endsWith(BaseConstants.BLOB_PROPERTIES)) {
       Class<?> clazz = propertiesClassMap.get(updGp.getPropertyName());
       String errorMsg = updGp
           .checkBlobPropertyBeforeSave((IPropertiesSelfCheck) clazz.getDeclaredConstructor().newInstance());
@@ -326,14 +328,14 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   @Override
   public PasswordRegexProperties getPasswordRegexProperties() throws Exception {
     Optional<Globalparameters> globalparametersOpt = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_PASSWORT_REGEX);
+        .findById(GlobalParamKeyDefault.GLOB_KEY_PASSWORT_REGEX);
     PasswordRegexProperties prp = new PasswordRegexProperties();
     if (globalparametersOpt.isEmpty()) {
       prp = new PasswordRegexProperties(GlobalConstants.STANDARD_PASSWORD_REGEX,
           GlobalConstants.GT_LANGUAGE_CODES.stream().collect(
               Collectors.toMap(lang -> lang, lang -> messages.getMessage("gt.password.regex", null, Locale.of(lang)))),
           false);
-      Globalparameters gp = new Globalparameters(Globalparameters.GLOB_KEY_PASSWORT_REGEX);
+      Globalparameters gp = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_PASSWORT_REGEX);
       gp.transformClassIntoBlobPropertis(prp);
       globalparametersJpaRepository.save(gp);
     } else {

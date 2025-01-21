@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
-import grafioschtrader.common.DataHelper.CashaccountTransfer;
+import grafiosch.BaseConstants;
+import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.common.DataBusinessHelper.CashaccountTransfer;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
@@ -136,7 +136,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
         return new AccountPositionGroupSummary(portfolio.getName(), portfolio.getCurrency());
       }
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
 
   }
@@ -221,7 +221,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
       if (transaction.getTransactionType() == TransactionType.DEPOSIT
           || transaction.getTransactionType() == TransactionType.WITHDRAWAL) {
-        CashaccountTransfer ct = DataHelper.calcDepositOnTransactionsOfCashaccount(transaction,
+        CashaccountTransfer ct = DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(transaction,
             dateCurrencyMap.getFromToCurrencyWithDateMap(), mainCurrency, exchangeRateConnectedTransactionMap,
             dateCurrencyMap.getCurrencypairFromToCurrencyMap());
 

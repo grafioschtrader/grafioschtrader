@@ -1,10 +1,10 @@
 package grafioschtrader.rest;
 
+import grafiosch.entities.Globalparameters;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;

@@ -36,11 +36,11 @@ import {InfoLevelType} from '../../message/info.leve.type';
                  responsiveLayout="scroll"
                  (sortFunction)="customSort($event)" [customSort]="true"
                  styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-          <ng-template pTemplate="caption">
+          <ng-template #caption>
             <h4>{{'TASK_DATA_MONITOR' | translate}}</h4>
             <p>{{'NO_DATA_REFRESCH' | translate}}</p>
           </ng-template>
-          <ng-template pTemplate="header" let-fields>
+          <ng-template #header let-fields>
             <tr>
               <th style="width:24px"></th>
               <th *ngFor="let field of fields" [pSortableColumn]="field.field"
@@ -61,11 +61,11 @@ import {InfoLevelType} from '../../message/info.leve.type';
                                     [matchModeOptions]="customMatchModeOptions"
                                     [matchMode]="'gtNoFilter'">
                       <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                        <p-calendar #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
+                        <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
                                     (onSelect)="filter($event)"
                                     monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
                                     (onInput)="filter(cal.value)">
-                        </p-calendar>
+                        </p-datepicker>
                       </ng-template>
                     </p-columnFilter>
                     <p-columnFilter *ngSwitchCase="DataType.NumericShowZero" type="numeric"
@@ -81,7 +81,7 @@ import {InfoLevelType} from '../../message/info.leve.type';
               </th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+          <ng-template #body let-expanded="expanded" let-el let-columns="fields">
             <tr [pSelectableRow]="el">
               <td>
                 <a *ngIf="ProgressStateType[el.progressStateType] === ProgressStateType.PROG_FAILED"
@@ -107,7 +107,7 @@ import {InfoLevelType} from '../../message/info.leve.type';
               </td>
             </tr>
           </ng-template>
-          <ng-template pTemplate="rowexpansion" let-tdc let-columns="fields">
+          <ng-template #expandedrow let-tdc let-columns="fields">
             <tr>
               <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
                 <h4>{{tdc.failedMessageCode | translate}}</h4>
@@ -128,7 +128,8 @@ import {InfoLevelType} from '../../message/info.leve.type';
       </task-data-change-edit>
     `,
     styles: ['textarea { width:100%; }'],
-    providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> {
 

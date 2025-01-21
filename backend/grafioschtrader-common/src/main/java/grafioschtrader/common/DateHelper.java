@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 
 public class DateHelper {
@@ -22,7 +23,7 @@ public class DateHelper {
   //////////////////////////////////////////////////////////////////////////////
 
   public static Date getOldestTradingDay() throws ParseException {
-    SimpleDateFormat format = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    SimpleDateFormat format = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     return format.parse(GlobalConstants.OLDEST_TRADING_DAY);
   }
 

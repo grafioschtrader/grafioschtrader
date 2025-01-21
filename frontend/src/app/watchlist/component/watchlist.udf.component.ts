@@ -32,13 +32,14 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
  * Display of the watchlist with the user-defined additional fields.
  */
 @Component({
-  templateUrl: '../view/watchlist.data.html',
-  styles: [`
+    templateUrl: '../view/watchlist.data.html',
+    styles: [`
     .cell-move {
       cursor: move !important;
     }
   `],
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnDestroy {
 

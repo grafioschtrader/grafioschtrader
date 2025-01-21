@@ -4,6 +4,15 @@ html {
 }
 
 
+.p-button-label {
+  font-size: 75%;
+}
+
+.p-datatable-tbody > tr.p-datatable-row-selected {
+  background: #2563eb !important;
+}
+
+
 body {
   line-height: 1.3;
 }
@@ -49,6 +58,10 @@ label {
   height: 22px;
 }
 
+input[type=checkbox], input[type=radio] {
+  margin: 0 0 0;
+}
+
 .p-inputgroup .p-button {
   position: relative;
   height: 22px;
@@ -58,7 +71,7 @@ label {
 /* Correct matching boxes of elements with two inputs
  */
 .p-datepicker {
-  width: 400px !important;
+  width: 160px !important;
 }
 
 

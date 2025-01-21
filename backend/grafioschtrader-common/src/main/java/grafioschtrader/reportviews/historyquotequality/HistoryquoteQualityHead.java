@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 
 /**
  * Group by connector, stock exchange, asset class (equities, bond, ...),
@@ -13,7 +13,7 @@ import grafioschtrader.GlobalConstants;
  * @author Hugo Graf
  */
 public class HistoryquoteQualityHead extends HistoryquoteQualityGroup {
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate lastUpdate;
 
   public HistoryquoteQualityHead(String name, LocalDate lastUpdate) {

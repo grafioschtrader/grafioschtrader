@@ -25,15 +25,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.CrossRateResponse.CurrenciesAndClosePrice;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
@@ -266,14 +266,14 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
     if (currencypairNew.getIsCryptocurrency()) {
       currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
-          .getReferenceById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
+          .getReferenceById(GlobalParamKeyDefault.GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
-          .getReferenceById(Globalparameters.GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR).getPropertyString());
+          .getReferenceById(GlobalParamKeyDefault.GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR).getPropertyString());
     } else {
       currencypairNew.setIdConnectorIntra(globalparametersJpaRepository
-          .getReferenceById(Globalparameters.GLOB_KEY_CURRENCY_INTRA_CONNECTOR).getPropertyString());
+          .getReferenceById(GlobalParamKeyDefault.GLOB_KEY_CURRENCY_INTRA_CONNECTOR).getPropertyString());
       currencypairNew.setIdConnectorHistory(globalparametersJpaRepository
-          .getReferenceById(Globalparameters.GLOB_KEY_CURRENCY_HISTORY_CONNECTOR).getPropertyString());
+          .getReferenceById(GlobalParamKeyDefault.GLOB_KEY_CURRENCY_HISTORY_CONNECTOR).getPropertyString());
     }
     Currencypair currencypair = currencypairJpaRepository.save(currencypairNew);
     log.info("Create non existing currencypair from {}, to {}", fromCurrency, toCurrency);

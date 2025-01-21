@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.config.NegativeIdNumberCreater;
 import grafioschtrader.entities.Cashaccount;
@@ -73,7 +73,7 @@ public abstract class SecurityBaseCalc {
       Transaction openMarginTransaction, SplitFactorAfterBefore splitFactorAfterBefore,
       final SplitFactorAfterBefore splitToOpenTransaction) {
     final CalcTransactionPos ctp = new CalcTransactionPos(
-        DataHelper.getCurrencyExchangeRateToMainCurreny(transaction, dateCurrencyMap),
+        DataBusinessHelper.getCurrencyExchangeRateToMainCurreny(transaction, dateCurrencyMap),
         splitToOpenTransaction == null ? splitFactorAfterBefore.fromToDateFactor
             : splitToOpenTransaction.fromToDateFactor);
 

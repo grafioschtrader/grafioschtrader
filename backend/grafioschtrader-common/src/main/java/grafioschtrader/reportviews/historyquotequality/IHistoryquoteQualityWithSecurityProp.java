@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.dto.IHistoryquoteQuality;
 
 public interface IHistoryquoteQualityWithSecurityProp extends IHistoryquoteQuality {
@@ -12,10 +12,10 @@ public interface IHistoryquoteQualityWithSecurityProp extends IHistoryquoteQuali
 
   public String getCurrency();
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate getActiveFromDate();
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate getActiveToDate();
 
   public int getIdSecurity();

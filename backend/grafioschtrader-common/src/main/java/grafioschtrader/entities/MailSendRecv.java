@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.entities.BaseID;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.ReplyToRolePrivateType;
 import grafioschtrader.types.SendRecvType;

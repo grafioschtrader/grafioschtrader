@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.entities.Globalparameters;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.User;
@@ -76,8 +76,8 @@ public class CopyTenantToDemoAccountsTask implements ITask {
   @Override
   @Transactional
   public void doWork(TaskDataChange taskDataChange) {
-    copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE, demoAccountPatternDE);
-    copyTenant(Globalparameters.GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN, demoAccountPatternEN);
+    copyTenant(GlobalParamKeyDefault.GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE, demoAccountPatternDE);
+    copyTenant(GlobalParamKeyDefault.GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN, demoAccountPatternEN);
   }
 
   private void copyTenant(String sourceTenantKey, String dap) {

@@ -20,8 +20,8 @@ import {ProcessedAction} from '../../shared/types/processed.action';
  * TODO: This dialog could well be transformed into a dialog for dynamic inputs.
  */
 @Component({
-  selector: 'watchlist-add-edit-price-problem-instrument',
-  template: `
+    selector: 'watchlist-add-edit-price-problem-instrument',
+    template: `
     <p-dialog header="{{'WATCHLIST_ADD_PROBLEM_INSTRUMENT' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -29,7 +29,8 @@ import {ProcessedAction} from '../../shared/types/processed.action';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditBase implements OnInit {
   @Input() idWatchlist: number;

@@ -20,14 +20,15 @@ declare let Plotly: any;
  * receive its data over subscription.
  */
 @Component({
-  template: `
+    template: `
     <div class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
          (click)="onComponentClick($event)">
       <div #chart class="plot-container">
       </div>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('chart', {static: true}) chartElement: ElementRef;

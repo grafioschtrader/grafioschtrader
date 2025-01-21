@@ -2,8 +2,8 @@ package grafioschtrader.reportviews;
 
 import java.util.Map;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
 
 public abstract class SecurityCostGrand<S, T> extends MapGroup<S, T> {
   public String mainCurrency;

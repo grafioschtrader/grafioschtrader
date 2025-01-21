@@ -14,7 +14,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
@@ -159,7 +159,7 @@ public abstract class SecurityPositionSummaryReport {
       return getSecurityPositionGrandSummary(tenant, securityList, includeClosedPosition, tenant.isExcludeDivTax(),
           dateCurrencyMap);
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 

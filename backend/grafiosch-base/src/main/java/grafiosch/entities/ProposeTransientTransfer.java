@@ -1,4 +1,4 @@
-package grafioschtrader.entities;
+package grafiosch.entities;
 
 import jakarta.persistence.Transient;
 

@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.entities.User;
 import grafioschtrader.entities.UserBaseID;
 import grafioschtrader.types.OperationType;
@@ -34,7 +34,7 @@ public abstract class UpdateCreateDeleteWithUserIdResource<T extends UserBaseID>
     log.debug("Delete by id : {}", id);
     int countDel =  getUpdateCreateJpaRepository().delEntityWithUserId(id, user.getIdUser());
     if(countDel != 1) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     } else {
       this.logAddUpdDel(user.getIdUser(), type.getSimpleName(), OperationType.DELETE);  
     }

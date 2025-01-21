@@ -15,22 +15,22 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
  * It shows the messages in a tree table.
  */
 @Component({
-  selector: 'gtnet-message-treetable',
-  template: `
+    selector: 'gtnet-message-treetable',
+    template: `
     <div #cmDiv class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable nestedtable">
         <p-treeTable [value]="rootNode.children" [columns]="fields" dataKey="idGtNetMessage"
                      selectionMode="single" [(selection)]="selectedNode"
                      styleClass="p-treetable-gridlines">
-          <ng-template pTemplate="header" let-fields>
+          <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [style.width.px]="field.width">
                 {{field.headerTranslated}}
               </th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+          <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
             <tr [ttSelectableRow]="rowNode">
               <ng-container *ngFor="let field of fields; let i = index">
                 <td *ngIf="field.visible"
@@ -63,7 +63,8 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
                         [msgCallParam]="msgCallParam"
                         (closeDialog)="handleCloseDialogMsg($event)">
     </gtnet-message-edit>
-  `
+  `,
+    standalone: false
 })
 
 export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {

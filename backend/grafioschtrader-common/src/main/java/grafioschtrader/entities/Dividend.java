@@ -6,7 +6,7 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.validation.ValidCurrencyCode;
@@ -30,11 +30,11 @@ public class Dividend extends DividendSplit implements Serializable {
   @Column(name = "id_dividend")
   private Integer idDividend;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "ex_date")
   private LocalDate exDate;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "pay_date")
   private LocalDate payDate;
 

@@ -19,8 +19,8 @@ import {DataType} from '../../dynamic-form/models/data.type';
  * Add ar modify a GTNet entity.
  */
 @Component({
-  selector: 'gtnet-edit',
-  template: `
+    selector: 'gtnet-edit',
+    template: `
     <p-dialog header="{{'GT_NET_NET_AND_MESSAGE' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -30,7 +30,8 @@ import {DataType} from '../../dynamic-form/models/data.type';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
   @Input() callParam: GTNet;

@@ -17,8 +17,8 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
  * Dialog for editing the transaction import template group
  */
 @Component({
-  selector: 'correlation-set-edit',
-  template: `
+    selector: 'correlation-set-edit',
+    template: `
     <p-dialog header="{{'CORRELATION_SET' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -27,7 +27,8 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class CorrelationSetEditComponent extends SimpleEntityEditBase<CorrelationSet> implements OnInit {
 

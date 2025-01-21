@@ -83,7 +83,7 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
     this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'stockexchange.name', AppSettings.STOCKEXCHANGE.toUpperCase(),
       {fieldsetName: 'BASE_DATA'});
 
-    this.addFieldProperty(DataType.Boolean, this.SECURITYCURRENCY + 'isTenantPrivate', 'PRIVATE_SECURITY', {
+    this.addFieldProperty(DataType.Boolean, this.SECURITYCURRENCY + 'idTenantPrivate', 'PRIVATE_SECURITY', {
       fieldsetName: 'BASE_DATA', templateName: 'check'
     });
     if (!security.idLinkSecuritycurrency) {

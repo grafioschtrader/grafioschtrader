@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import grafioschtrader.common.UpdateQuery;
 import grafioschtrader.dto.HistoryquoteDateClose;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
@@ -62,7 +63,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.date = ?2 AND h.createType = 1", nativeQuery = false)
   Historyquote findByIdSecuritycurrencyAndDateAndCreateTypeFilled(Integer idSecuritycurrency, Date date);
 
-  @Query(value = "DELETE FROM historyquote WHERE id_securitycurrency = ?1", nativeQuery = true)
+  @UpdateQuery(value = "DELETE FROM historyquote WHERE id_securitycurrency = ?1", nativeQuery = true)
   void removeAllSecurityHistoryquote(Integer idSecuritycurrency);
 
   @Query(value = "SELECT MAX(date) FROM Historyquote h WHERE h.idSecuritycurrency = ?1")

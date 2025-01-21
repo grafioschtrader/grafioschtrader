@@ -10,10 +10,11 @@ import {AppHelper} from '../../shared/helper/app.helper';
  * The tab menu for messages.
  */
 @Component({
-  template: `
+    template: `
     <p-tabMenu [model]="items" [activeItem]="items[0]"></p-tabMenu>
     <router-outlet></router-outlet>
-  `
+  `,
+    standalone: false
 })
 export class SendRecvForwardTabMenuComponent implements OnInit {
   items: MenuItem[];

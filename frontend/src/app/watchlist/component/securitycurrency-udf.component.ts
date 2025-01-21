@@ -19,8 +19,9 @@ import {WatchlistService} from '../service/watchlist.service';
  * Shows all corresponding basic and additional fields grouped together.
  */
 @Component({
-  selector: 'securitycurrency-udf',
-  templateUrl: '../view/securitycurrency.base.info.fields.html'
+    selector: 'securitycurrency-udf',
+    templateUrl: '../view/securitycurrency.base.info.fields.html',
+    standalone: false
 })
 export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields implements OnInit {
 

@@ -26,7 +26,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
  * Shows the quality of historical price data per stock exchange or data provider.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)"
          #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-panel>
@@ -40,7 +40,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
       </p-panel>
       <p-treeTable [value]="qualityNode" [columns]="fields" dataKey="uniqueKey" sortField="name"
                    selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)">
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [ttSortableColumn]="field.field" [style.width.px]="field.width">
               {{field.headerTranslated}}
@@ -48,7 +48,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+        <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
           <tr [ttSelectableRow]="rowNode">
             <td *ngFor="let field of fields; let i = index"
                 [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
@@ -78,6 +78,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
       </p-contextMenu>
     </div>
   `,
+    standalone: false
 })
 export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
 

@@ -12,8 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import grafiosch.entities.Globalparameters;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.entities.Globalparameters;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.UDFMetadataSecurity;
@@ -81,9 +82,9 @@ public class UDFUser0FillPersitentValueTask implements ITask {
     Map<Integer, SecuritycurrencyUDFGroup> cacheSecurites = new HashMap<>();
    
     Optional<Globalparameters> globalparamUDFOpt = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_UDF_GENERAL_RECREATE);
+        .findById(GlobalParamKeyDefault.GLOB_KEY_UDF_GENERAL_RECREATE);
     Globalparameters globalparameter = globalparamUDFOpt
-        .orElseGet(() -> new Globalparameters(Globalparameters.GLOB_KEY_UDF_GENERAL_RECREATE));
+        .orElseGet(() -> new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_UDF_GENERAL_RECREATE));
     boolean recreateUDF = globalparameter.getPropertyInt() != null && globalparameter.getPropertyInt() == 0;
     
     for (IUDFForEveryUser udfEveryUser : udfForEveryUserSet) {

@@ -17,10 +17,11 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
  * Dialog for input optional year and Stock exchange to copy a single year or all years of a trading calendar.
  */
 @Component({
-  template: `
+    template: `
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                   (submitBt)="submit($event)">
-    </dynamic-form>`
+    </dynamic-form>`,
+    standalone: false
 })
 export class TradingCalendarOtherExchangeDynamicComponent extends FormBase implements OnInit {
   copyTradingDaysFromSourceToTarget: CopyTradingDaysFromSourceToTarget;

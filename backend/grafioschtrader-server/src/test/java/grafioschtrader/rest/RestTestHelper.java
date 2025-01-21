@@ -24,9 +24,9 @@ import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.entities.ProposeChangeField;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.types.Language;
 import weka.core.Debug.Random;

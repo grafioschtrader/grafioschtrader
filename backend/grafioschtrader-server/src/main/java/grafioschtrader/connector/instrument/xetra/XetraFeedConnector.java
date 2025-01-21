@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Historyquote;
@@ -77,7 +77,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
           security.setSTimestamp(new Date(new Date().getTime() - getIntradayDelayedSeconds() * 1000));
         } else {
           security.setSPrevClose(quotes.c[i]);
-          security.setSChangePercentage(DataHelper
+          security.setSChangePercentage(DataBusinessHelper
               .roundStandard((security.getSLast() - security.getSPrevClose()) / security.getSPrevClose() * 100));
         }
       }

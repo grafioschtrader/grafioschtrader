@@ -3,8 +3,8 @@ package grafioschtrader.repository;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 
 public abstract class BaseRepositoryImpl<T> {
 

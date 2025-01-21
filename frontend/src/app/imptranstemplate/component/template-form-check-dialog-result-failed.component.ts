@@ -12,16 +12,16 @@ import {FilterService} from 'primeng/api';
  * template is displayed.
  */
 @Component({
-  selector: 'template-form-check-dialog-result-failed',
-  template: `
+    selector: 'template-form-check-dialog-result-failed',
+    template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="failedParsedTemplateStateList" selectionMode="single"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
                responsiveLayout="scroll" sortField="security.name">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{'IMPORT_POS_CHECK_FAILED' | translate}}</h4>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field"
                 [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
@@ -31,7 +31,7 @@ import {FilterService} from 'primeng/api';
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-el let-columns="fields">
+        <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
@@ -43,7 +43,8 @@ import {FilterService} from 'primeng/api';
         </ng-template>
       </p-table>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {
   @Input() failedParsedTemplateStateList: FailedParsedTemplateState[];

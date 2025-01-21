@@ -3,7 +3,8 @@ package grafioschtrader.reportviews.securityaccount;
 import java.util.ArrayList;
 import java.util.List;
 
-import grafioschtrader.common.DataHelper;
+import grafiosch.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 
 public class SecurityPositionGrandSummary {
 
@@ -56,10 +57,10 @@ public class SecurityPositionGrandSummary {
   }
 
   public void roundGrandTotals() {
-    grandAccountValueSecurityMC = DataHelper.round(grandAccountValueSecurityMC);
-    grandGainLossSecurityMC = DataHelper.round(grandGainLossSecurityMC);
-    grandTaxCostMC = DataHelper.round(grandTaxCostMC);
-    grandSecurityRiskMC = DataHelper.roundStandard(grandSecurityRiskMC);
+    grandAccountValueSecurityMC = DataBusinessHelper.round(grandAccountValueSecurityMC);
+    grandGainLossSecurityMC = DataBusinessHelper.round(grandGainLossSecurityMC);
+    grandTaxCostMC = DataBusinessHelper.round(grandTaxCostMC);
+    grandSecurityRiskMC = DataBusinessHelper.roundStandard(grandSecurityRiskMC);
     // grandTransactionCostMC = DataHelper.round(grandTransactionCostMC);
   }
 

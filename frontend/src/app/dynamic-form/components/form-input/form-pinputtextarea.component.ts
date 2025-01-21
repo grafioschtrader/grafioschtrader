@@ -2,8 +2,8 @@ import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 
 @Component({
-  selector: 'form-pinputtextarea',
-  template: `
+    selector: 'form-pinputtextarea',
+    template: `
     <ng-container [formGroup]="group">
       <textarea pInputTextarea [rows]="config.textareaRows" [formControlName]="config.field" [id]="config.field"
                 [class.required-input]="isRequired && !config.readonly"
@@ -17,7 +17,8 @@ import {BaseInputComponent} from '../base.input.component';
       </textarea>
       <p-contextMenu *ngIf="config.contextMenuItems" [target]="input" [model]="config.contextMenuItems" />
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 export class FormPInputTextareaComponent extends BaseInputComponent {
 

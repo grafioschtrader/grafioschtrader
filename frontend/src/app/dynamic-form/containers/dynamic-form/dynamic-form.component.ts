@@ -16,10 +16,9 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
  * The form with its label, input fields and buttons.
  */
 @Component({
-  exportAs: 'dynamicForm',
-  selector: 'dynamic-form',
-
-  template: `
+    exportAs: 'dynamicForm',
+    selector: 'dynamic-form',
+    template: `
     <div class="nopadding container-fluid #actualTarget">
       <form [formGroup]="form" (ngSubmit)="handleSubmit($event)">
         <div *ngIf="showWithFieldset; then withFieldset else withoutFieldset"></div>
@@ -83,7 +82,8 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
         </div>
       </form>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class DynamicFormComponent implements OnChanges, OnInit {
   @Input() formConfig: FormConfig;

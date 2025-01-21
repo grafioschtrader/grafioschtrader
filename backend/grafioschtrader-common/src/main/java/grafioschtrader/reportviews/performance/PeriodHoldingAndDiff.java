@@ -8,11 +8,11 @@ import org.apache.commons.beanutils.PropertyUtils;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafiosch.BaseConstants;
+import grafioschtrader.common.DataBusinessHelper;
 
 public class PeriodHoldingAndDiff {
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate date;
   public double dividendRealMC;
   public double feeRealMC;
@@ -105,7 +105,7 @@ public class PeriodHoldingAndDiff {
   }
 
   public double getSecuritiesAndMarginGainMC() {
-    return DataHelper.roundStandard(securitiesMC + marginCloseGainMC);
+    return DataBusinessHelper.roundStandard(securitiesMC + marginCloseGainMC);
   }
 
   public void setSecuritiesMC(double securitiesMC) {
@@ -137,11 +137,11 @@ public class PeriodHoldingAndDiff {
   }
 
   public double getTotalGainMC() {
-    return DataHelper.roundStandard(gainMC + marginCloseGainMC);
+    return DataBusinessHelper.roundStandard(gainMC + marginCloseGainMC);
   }
 
   public double getTotalBalanceMC() {
-    return DataHelper.roundStandard(cashBalanceMC + this.securitiesMC + marginCloseGainMC);
+    return DataBusinessHelper.roundStandard(cashBalanceMC + this.securitiesMC + marginCloseGainMC);
   }
 
   public PeriodHoldingAndDiff calculateDiff(PeriodHoldingAndDiff subtrahendsHolding)
@@ -152,7 +152,7 @@ public class PeriodHoldingAndDiff {
       if (property.getWriteMethod() != null && property.getPropertyType() == double.class) {
         double minuedValue = (double) PropertyUtils.getProperty(this, property.getName());
         double subtrahends = (double) PropertyUtils.getProperty(subtrahendsHolding, property.getName());
-        PropertyUtils.setProperty(diff, property.getName(), DataHelper.roundStandard(minuedValue - subtrahends));
+        PropertyUtils.setProperty(diff, property.getName(), DataBusinessHelper.roundStandard(minuedValue - subtrahends));
       }
     }
     return diff;

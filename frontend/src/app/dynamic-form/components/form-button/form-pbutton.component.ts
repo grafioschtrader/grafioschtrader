@@ -11,8 +11,8 @@ import {FormConfig} from '../../models/form.config';
  * a label only the icon.
  */
 @Component({
-  selector: 'form-pbutton',
-  template: `
+    selector: 'form-pbutton',
+    template: `
       <button *ngIf="!config.buttonFN" pButton class="btn ml-1" [loading]="config.groupItemUseOrLoading"
               type="submit" [label]="config.labelKey | translate" [disabled]="!group.valid || config.disabled"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP' }}">
@@ -33,7 +33,8 @@ import {FormConfig} from '../../models/form.config';
         <svg-icon *ngIf="config.icon"
                   [src]="config.icon" [svgStyle]="{ 'width.px':13, 'height.px':13}"></svg-icon>
       </button>
-  `
+  `,
+    standalone: false
 })
 
 export class FormPButtonComponent implements FieldFormFormGroupConfig {

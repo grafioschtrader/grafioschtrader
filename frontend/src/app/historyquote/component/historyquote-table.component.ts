@@ -43,7 +43,7 @@ import {DialogService} from 'primeng/dynamicdialog';
  * Shows the history quotes in a table
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-panel>
@@ -64,7 +64,7 @@ import {DialogService} from 'primeng/dynamicdialog';
                  responsiveLayout="scroll"
                  [first]="firstRow" (onPage)="onPage($event)" sortMode="multiple" [multiSortMeta]="multiSortMeta"
                  [paginator]="true" [rows]="20" [dataKey]="entityKeyName">
-          <ng-template pTemplate="header" let-fields>
+          <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [pSortableColumn]="field.field"
                   [style.width.px]="field.width" [pTooltip]="field.headerTooltipTranslated">
@@ -80,11 +80,11 @@ import {DialogService} from 'primeng/dynamicdialog';
                               ? field.dataType : ''" [field]="field.field" display="menu" [showOperator]="true"
                                     [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
                       <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                        <p-calendar #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
+                        <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
                                     (onSelect)="filter($event)"
                                     monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
                                     (onInput)="filter(cal.value)">
-                        </p-calendar>
+                        </p-datepicker>
                       </ng-template>
                     </p-columnFilter>
                     <p-columnFilter *ngSwitchCase="DataType.Numeric" type="numeric" [field]="field.field"
@@ -100,7 +100,7 @@ import {DialogService} from 'primeng/dynamicdialog';
             </tr>
           </ng-template>
 
-          <ng-template pTemplate="body" let-el let-columns="fields">
+          <ng-template #body let-el let-columns="fields">
             <tr [pSelectableRow]="el">
               <ng-container *ngFor="let field of fields">
                 <td *ngIf="field.visible" [style.width.px]="field.width"
@@ -149,7 +149,8 @@ import {DialogService} from 'primeng/dynamicdialog';
                                 (closeDialog)="handleCloseDialogAndRead($event)">
     </historyquote-delete-dialog>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquote> implements OnDestroy {
 

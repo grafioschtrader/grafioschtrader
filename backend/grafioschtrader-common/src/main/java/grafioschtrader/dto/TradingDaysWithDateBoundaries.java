@@ -5,15 +5,16 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.CreateType;
 
 public class TradingDaysWithDateBoundaries {
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final String oldestTradingCalendarDay;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final String youngestTradingCalendarDay;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final List<LocalDate> dates;
   public final List<CreateType> createTypes;
 

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,15 +19,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.entities.Globalparameters;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.calendar.IDividendCalendarFeedConnector;
 import grafioschtrader.connector.calendar.IDividendCalendarFeedConnector.CalendarDividends;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.dto.SecurityKeyISINCurrency;
 import grafioschtrader.entities.Dividend;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TradingDaysPlus;
@@ -58,52 +61,66 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Override
-  public void appendThruDividendCalendar() {
+  public List<Security> appendThruDividendCalendar() {
+    Map<Integer, Security> missingConnectorSecurities = new HashMap<>();
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE);
-    gpLastAppend.ifPresentOrElse(gp -> loadDividendData(gp.getPropertyDate().plusDays(1)),
-        () -> loadDividendData(LocalDate.now()));
+        .findById(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE);
+    gpLastAppend.ifPresentOrElse(gp -> loadDividendData(gp.getPropertyDate().plusDays(1), missingConnectorSecurities),
+        () -> loadDividendData(LocalDate.now(), missingConnectorSecurities));
+    return missingConnectorSecurities.values().stream().sorted(Comparator.comparing(Security::getName))
+        .collect(Collectors.toList());
   }
 
-  private void loadDividendData(LocalDate fromDate) {
+  private void loadDividendData(LocalDate fromDate, Map<Integer, Security> missingConnectorSecurities) {
     LocalDate now = LocalDate.now();
     List<TradingDaysPlus> tradingDaysPlusList = tradingDaysPlusJpaRepository
         .findByTradingDateBetweenOrderByTradingDate(fromDate, now);
     dividendCalendarFeedConnectors.sort(Comparator.comparingInt(IDividendCalendarFeedConnector::getPriority));
-    stepThruEveryCalendarDay(tradingDaysPlusList);
+    stepThruEveryCalendarDay(tradingDaysPlusList, missingConnectorSecurities);
   }
 
-  private void stepThruEveryCalendarDay(List<TradingDaysPlus> tradingDaysPlusList) {
+  private void stepThruEveryCalendarDay(List<TradingDaysPlus> tradingDaysPlusList,
+      Map<Integer, Security> missingConnectorSecurities) {
     for (TradingDaysPlus tradingDaysPlus : tradingDaysPlusList) {
       for (IDividendCalendarFeedConnector calendarFeedConnector : dividendCalendarFeedConnectors) {
         try {
           List<CalendarDividends> cd = calendarFeedConnector.getExDateDividend(tradingDaysPlus.getTradingDate());
           if (calendarFeedConnector.supportISIN()) {
-            addDividendsByISIN(cd);
+            addDividendsByISIN(cd, missingConnectorSecurities);
           }
         } catch (Exception ex) {
           log.error(ex.getMessage(), ex);
         }
       }
     }
+    Globalparameters gp = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE);
+    gp.setPropertyDate(tradingDaysPlusList.getLast().getTradingDate());
+    gp.setChangedBySystem(true);
+    globalparametersJpaRepository.save(gp);
   }
 
-  private void addDividendsByISIN(List<CalendarDividends> calendarDividends) {
+  private void addDividendsByISIN(List<CalendarDividends> calendarDividends,
+      Map<Integer, Security> missingConnectorSecurities) {
     Set<String> isinSet = calendarDividends.stream().map(c -> c.isin).collect(Collectors.toSet());
-    Map<String, Security> securtiesMap = securityJpaRepository.findAllByIsinIn(isinSet).stream()
-        .collect(Collectors.toMap(Security::getIsin, Function.identity()));
-    if (!securtiesMap.isEmpty()) {
-      Map<String, List<CalendarDividends>> cdMap = calendarDividends.stream()
-          .collect(Collectors.groupingBy(cd -> cd.isin));
-      for (Map.Entry<String, List<CalendarDividends>> entry : cdMap.entrySet()) {
-        if (securtiesMap.containsKey(entry.getKey())) {
-          Security security = securtiesMap.get(entry.getKey());
-          loadAllDividendDataFromConnector(security, entry.getValue().stream()
-              .map(c -> c.getDivident(security.getIdSecuritycurrency())).collect(Collectors.toList()));
+    Map<SecurityKeyISINCurrency, Security> securitiesMap = securityJpaRepository.findAllByIsinIn(isinSet).stream()
+        .collect(Collectors.toMap(security -> new SecurityKeyISINCurrency(security.getIsin(), security.getCurrency()),
+            Function.identity()));
+    if (!securitiesMap.isEmpty()) {
+      Map<SecurityKeyISINCurrency, List<CalendarDividends>> cdMap = calendarDividends.stream()
+          .collect(Collectors.groupingBy(cd -> new SecurityKeyISINCurrency(cd.isin, cd.currency)));
+      for (Map.Entry<SecurityKeyISINCurrency, List<CalendarDividends>> entry : cdMap.entrySet()) {
+        if (securitiesMap.containsKey(entry.getKey())) {
+          Security security = securitiesMap.get(entry.getKey());
+          if (security.getIdConnectorDividend() != null) {
+            loadAllDividendDataFromConnector(security, entry.getValue().stream()
+                .map(c -> c.getDivident(security.getIdSecuritycurrency())).collect(Collectors.toList()));
+          } else {
+            missingConnectorSecurities.put(security.getIdSecuritycurrency(), security);
+          }
+
         }
       }
     }
-
   }
 
   @Override
@@ -140,7 +157,6 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   public List<String> loadAllDividendDataFromConnector(Security security) {
     return loadAllDividendDataFromConnector(security, Collections.emptyList());
   }
-
 
   private List<String> loadAllDividendDataFromConnector(Security security, List<Dividend> youngestDividends) {
     List<Dividend> userCreatedDividends = dividendJpaRepository.findByIdSecuritycurrencyAndCreateTypeOrderByExDateAsc(
@@ -194,10 +210,10 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
     securityJpaRepository.save(security);
     return replaceApiKey(connector, errorMessages);
   }
-  
-  private  List<String> replaceApiKey(IFeedConnector connector,  List<String> errorMessages) {
-    if(connector instanceof BaseFeedApiKeyConnector keyConnector) {
-      for(int i = 0; i < errorMessages.size(); i++) {
+
+  private List<String> replaceApiKey(IFeedConnector connector, List<String> errorMessages) {
+    if (connector instanceof BaseFeedApiKeyConnector keyConnector) {
+      for (int i = 0; i < errorMessages.size(); i++) {
         errorMessages.set(i, keyConnector.hideApiKeyForError(errorMessages.get(i)));
       }
     }

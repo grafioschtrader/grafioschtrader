@@ -8,7 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -31,7 +31,7 @@ public class ConnectorApiKeyJpaRepositoryImpl implements ConnectorApiKeyJpaRepos
       connectorApiKey = connectorApiKeyJpaRepository.save(connectorApiKey);
       resetConnectorApiKey(connectorApiKey.getIdProvider());
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return connectorApiKey;
   }

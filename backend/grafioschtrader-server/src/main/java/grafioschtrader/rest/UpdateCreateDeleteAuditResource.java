@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import grafioschtrader.entities.BaseID;
+import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.Operation;
 
 /**

@@ -29,17 +29,17 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
  * Main component for the user table. It contains nested table to change the limits on information classes.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                sortField="nickname" [dataKey]="entityKeyName"
                responsiveLayout="scroll" [contextMenu]="cmDiv"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
@@ -50,7 +50,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-el let-expanded="expanded" let-columns="fields">
+        <ng-template #body let-el let-expanded="expanded" let-columns="fields">
           <tr [pContextMenuRow] [pSelectableRow]="el">
             <td>
               <a *ngIf="el.userEntityChangeLimitList.length + el.userChangeLimitProposeList.length > 0" href="#"
@@ -77,7 +77,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
               </ng-container>
           </tr>
         </ng-template>
-        <ng-template pTemplate="rowexpansion" let-user let-columns="fields">
+        <ng-template #expandedrow let-user let-columns="fields">
           <tr *ngIf="user.userEntityChangeLimitList.length + user.userChangeLimitProposeList.length > 0">
             <td [attr.colspan]="numberOfVisibleColumns + 1">
               <user-entity-change-limit-table [user]="user"
@@ -106,7 +106,8 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
                                 (closeDialog)="handleChangeOwnerCloseDialog($event)">
     </user-change-owner-entities>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class UserTableComponent extends TableCrudSupportMenu<User> implements OnDestroy {
 

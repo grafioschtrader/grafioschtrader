@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.dto.MailInboxWithSend;
 import grafioschtrader.entities.MailSendRecv;
 import grafioschtrader.entities.User;
@@ -50,7 +50,7 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
   public void hideDeleteResource(Integer idMailSendRecv) {
     Optional<MailSendRecv> msrOpt = mailSendRecvJpaRepository.findById(idMailSendRecv);
     if (msrOpt.isEmpty()) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     MailSendRecv msrTarget = msrOpt.get();

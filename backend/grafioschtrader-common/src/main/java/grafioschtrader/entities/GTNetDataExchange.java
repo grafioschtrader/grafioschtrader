@@ -2,6 +2,7 @@ package grafioschtrader.entities;
 
 import java.time.LocalDateTime;
 
+import grafiosch.entities.BaseID;
 import grafioschtrader.gtnet.MessageCodesGTNetwork;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;

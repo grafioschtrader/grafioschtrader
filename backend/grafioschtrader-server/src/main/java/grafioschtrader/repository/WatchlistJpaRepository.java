@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.common.UpdateQuery;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
@@ -71,6 +72,6 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Query(value = "SELECT count(w) FROM Watchlist w WHERE w.idTenant = ?1 AND w.idWatchlist IN (?2)")
   int getWatchlistByTenantAndWatchlistIds(Integer idTenant, Integer[] watchlistsIds);
 
-  @Query(value = "UPDATE watchlist_sec_cur wsc SET wsc.id_watchlist = ?2 WHERE wsc.id_watchlist = ?1 AND wsc.id_securitycurrency = ?3", nativeQuery = true)
+  @UpdateQuery(value = "UPDATE watchlist_sec_cur wsc SET wsc.id_watchlist = ?2 WHERE wsc.id_watchlist = ?1 AND wsc.id_securitycurrency = ?3", nativeQuery = true)
   void moveUpdateSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget, Integer idSecuritycurrency);
 }

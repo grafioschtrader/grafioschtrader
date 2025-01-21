@@ -28,8 +28,8 @@ import {AlgoLevelType} from '../model/algo.top';
  * A strategy can consist of different parameters, therefore the output is created dynamically from a map.
  */
 @Component({
-  selector: 'algo-strategy-edit',
-  template: `
+    selector: 'algo-strategy-edit',
+    template: `
     <p-dialog header="{{'ALGO_STRATEGY' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -38,7 +38,8 @@ import {AlgoLevelType} from '../model/algo.top';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy> implements OnInit {
   @Input() algoCallParam: AlgoCallParam;

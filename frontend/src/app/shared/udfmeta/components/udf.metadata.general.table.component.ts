@@ -22,8 +22,9 @@ import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disa
  * for example for currency pairs.
  */
 @Component({
-  templateUrl: '../view/udf.metadata.table.html',
-  providers: [DialogService]
+    templateUrl: '../view/udf.metadata.table.html',
+    providers: [DialogService],
+    standalone: false
 })
 export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGeneral> implements OnDestroy {
   callParam: UDFMetadataGeneralParam = new UDFMetadataGeneralParam();

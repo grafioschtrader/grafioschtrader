@@ -20,8 +20,8 @@ import {AppSettings} from '../../shared/app.settings';
 
 
 @Component({
-  selector: 'algo-assetclass-edit',
-  template: `
+    selector: 'algo-assetclass-edit',
+    template: `
     <p-dialog header="{{'ALGO_ASSETCLASS' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -29,7 +29,8 @@ import {AppSettings} from '../../shared/app.settings';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoAssetclass> implements OnInit {
 

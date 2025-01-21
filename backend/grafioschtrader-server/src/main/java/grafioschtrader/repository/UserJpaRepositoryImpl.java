@@ -21,7 +21,7 @@ import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.Role;
@@ -103,7 +103,7 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
       userJpaRepository.getIdUserAndNicknameExcludeUser(user.getIdUser()).forEach(
           rs -> vkhsoList.add(new ValueKeyHtmlSelectOptions(String.valueOf(rs.getIdUser()), rs.getIdUser() + " - " + rs.getNickname())));
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return vkhsoList;
   }

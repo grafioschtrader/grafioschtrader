@@ -6,8 +6,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.platformimport.ImportTransactionHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
@@ -649,7 +650,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
       // TODO should not happended
       if (units != null && quotation != null) {
         correctQuotationForDividend();
-        calcCashaccountAmount = DataHelper.round(units * quotation);
+        calcCashaccountAmount = DataBusinessHelper.round(units * quotation);
 
         double taxCostC = getTaxCostEx();
         double transactionCostC = getTransactionCostEx();

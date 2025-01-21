@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
@@ -89,7 +89,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       }
 
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 
@@ -125,7 +125,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     if (user.getIdTenant().equals(importTransactionHead.getIdTenant())) {
       this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles, idTransactionImportTemplate);
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
 
   }

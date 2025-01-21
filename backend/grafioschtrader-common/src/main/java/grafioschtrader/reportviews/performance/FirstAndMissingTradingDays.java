@@ -10,22 +10,23 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 
 public class FirstAndMissingTradingDays {
   public final int maxWeekLimit = GlobalConstants.PERFORMANCE_MAX_WEEK_LIMIT;
   public final int minIncludeMonthLimit = GlobalConstants.PERFORMANCE_MIN_INCLUDE_MONTH_LIMIT;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate firstEverTradingDay;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate secondEverTradingDay;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate lastTradingDayOfLastYear;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate secondLatestTradingDay;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate latestTradingDay;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate leatestPossibleTradingDay;
 
   @JsonIgnore
@@ -49,7 +50,7 @@ public class FirstAndMissingTradingDays {
     this.missingQuoteDays = missingQuoteDays;
   }
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public List<Date> getHolidayAndMissingQuoteDays() {
     Set<Date> combinedMissingQuoteDaysAndHoliday = new HashSet<>(allHolydays);
     combinedMissingQuoteDaysAndHoliday.addAll(missingQuoteDays);

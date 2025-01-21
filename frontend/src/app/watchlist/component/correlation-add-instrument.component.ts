@@ -13,8 +13,8 @@ import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-i
  * Search dialog for adding an existing security or currency pair to a certain correlation set.
  */
 @Component({
-  selector: 'correlation-add-instrument',
-  template: `
+    selector: 'correlation-add-instrument',
+    template: `
     <p-dialog header="{{'ADD_EXISTING_SECURITY' | translate}}" [(visible)]="visibleAddInstrumentDialog"
               [responsive]="true" [style]="{width: '720px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -26,7 +26,8 @@ import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-i
       <correlation-set-add-instrument-table [tenantLimits]="tenantLimits">
       </correlation-set-add-instrument-table>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBase {
   // From parent view

@@ -26,8 +26,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Cashaccount;
@@ -151,7 +152,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       List<Integer> idTransactionPosList, V value, boolean requireValue, BiConsumer<ImportTransactionPos, V> setter) {
     List<ImportTransactionPos> setImportTransactionPosList = new ArrayList<>();
     if (value == null && requireValue) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     idTransactionPosList.forEach(idTransactionPos -> {
       ImportTransactionPos importTransactionPos = importTransactionPosJpaRepository
@@ -160,7 +161,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         setter.accept(importTransactionPos, value);
         setImportTransactionPosList.add(importTransactionPos);
       } else {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     });
     return saveAndCheckReady(setImportTransactionPosList);
@@ -378,7 +379,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         }
       }
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return savedImpPosAndTransactions;
   }
@@ -434,7 +435,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
             .contains(ImportKnownOtherFlags.CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE)
         && itp.getCashaccount().getCurrency() != null && itp.getSecurity().getCurrency() != null
         && !itp.getCashaccount().getCurrency().equals(itp.getSecurity().getCurrency())) {
-      Currencypair currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(itp.getSecurity().getCurrency(),
+      Currencypair currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(itp.getSecurity().getCurrency(),
           itp.getCashaccount().getCurrency());
       // It is as currency
       Integer idCurrencypair = this.currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(
@@ -460,16 +461,16 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       // Must have a currencypair
       switch (itp.getTransactionType()) {
       case WITHDRAWAL:
-        currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(itp.getCurrencyAccount(),
+        currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(itp.getCurrencyAccount(),
             idItpMap.get(itp.getConnectedIdTransactionPos()).getCurrencyAccount());
         break;
       case DEPOSIT:
-        currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(
+        currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(
             idItpMap.get(itp.getConnectedIdTransactionPos()).getCurrencyAccount(), itp.getCurrencyAccount());
         break;
 
       default:
-        currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(itp.getCurrencySecurity(),
+        currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(itp.getCurrencySecurity(),
             itp.getCashaccount().getCurrency());
       }
 

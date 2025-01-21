@@ -14,8 +14,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
@@ -98,7 +99,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   public List<Transaction> getTransactionsByIdPortfolio(Integer idPortfolio, Integer idTenant) {
     Portfolio portfolio = portfolioJpaRepository.getReferenceById(idPortfolio);
     if (!idTenant.equals(portfolio.getIdTenant())) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return transactionJpaRepository.getTransactionsByIdPortfolio(idPortfolio);
   }
@@ -185,13 +186,13 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       securityaccount = securityaccountJpaRepository
           .findByIdSecuritycashAccountAndIdTenant(transaction.getIdSecurityaccount(), transaction.getIdTenant());
       if (securityaccount == null) {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     }
     final Cashaccount cashaccount = this.cashaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(
         transaction.getCashaccount().getIdSecuritycashAccount(), transaction.getIdTenant());
     if (cashaccount == null) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     } else {
       transaction.setCashaccount(cashaccount);
     }
@@ -214,7 +215,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     transaction.clearCurrencypairExRate();
 
     if (transaction.getIdCurrencypair() != null) {
-      Currencypair currencypairRequried = DataHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency, targetCurrency);
+      Currencypair currencypairRequried = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency, targetCurrency);
       Currencypair currencypairFound = currencypairJpaRepository.findByFromCurrencyAndToCurrency(
           currencypairRequried.getFromCurrency(), currencypairRequried.getToCurrency());
       if (!transaction.getIdCurrencypair().equals(currencypairFound.getIdSecuritycurrency())) {
@@ -226,7 +227,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
         double diff = 100.0 / (expectedExchangeRate / Math.abs(expectedExchangeRate - transaction.getCurrencyExRate()));
         if (diff >= GlobalConstants.ACCEPTESD_PERCENTAGE_EXCHANGE_RATE_DIFF) {
           throw new DataViolationException("currencypair", "gt.exchangerate.exceeds.expected",
-              new Object[] { transaction.getCurrencyExRate(), DataHelper.round(diff), expectedExchangeRate });
+              new Object[] { transaction.getCurrencyExRate(), DataBusinessHelper.round(diff), expectedExchangeRate });
         }
       }
     }
@@ -303,7 +304,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       openPositionMarginTransaction = this.transactionJpaRepository
           .findByIdTransactionAndIdTenant(transaction.getConnectedIdTransaction(), transaction.getIdTenant());
       if (openPositionMarginTransaction == null) {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       } else if (transaction.getTransactionType() == TransactionType.FINANCE_COST) {
         openPositionMarginTransaction = null;
       }

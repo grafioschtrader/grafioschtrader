@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Currencypair;
@@ -74,7 +74,7 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     return DOMAIN_NAME_WITH_VERSION + "data/eod?symbols=" + ticker + "&date_from=" + dateFormat.format(from)
         + "&date_to=" + dateFormat.format(to) + getApiKeyString(false);
   }

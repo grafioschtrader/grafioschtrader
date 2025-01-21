@@ -18,8 +18,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Component for editing the portfolio.
  */
 @Component({
-  selector: 'portfolio-edit',
-  template: `
+    selector: 'portfolio-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -27,7 +27,8 @@ import {AppSettings} from '../../shared/app.settings';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> implements OnInit {
 

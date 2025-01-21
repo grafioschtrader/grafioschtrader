@@ -12,6 +12,8 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import grafiosch.BaseConstants;
+import grafiosch.entities.ProposeTransientTransfer;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.ImportDataRequired;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
@@ -43,8 +45,8 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
   private Integer idHistoryQuote;
 
   @Schema(description = "Trading date to which these data belong")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
-  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   @Basic(optional = false)
   @Column(name = "date")
   @Temporal(TemporalType.DATE)

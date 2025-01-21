@@ -36,7 +36,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Shows all cash accounts of a certain portfolio. Over this view the cash account can be edited.
  */
 @Component({
-  templateUrl: '../view/portfolio.cashaccount.table.html'
+    templateUrl: '../view/portfolio.cashaccount.table.html',
+    standalone: false
 })
 export class PortfolioCashaccountSummaryComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 

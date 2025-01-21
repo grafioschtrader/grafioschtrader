@@ -21,8 +21,8 @@ import {UDFConfig} from '../../login/component/login.component';
  * This can be used to edit the metadata of an information class that has no specific extensions.
  */
 @Component({
-  selector: 'udf-metadata-general-edit',
-  template: `
+    selector: 'udf-metadata-general-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '500px'}" (onShow)="onShow($event)" (onHide)="onHide($event)"
               [modal]="true">
@@ -31,7 +31,8 @@ import {UDFConfig} from '../../login/component/login.component';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMetadataGeneral> implements OnInit {
   @Input() callParam: UDFMetadataGeneralParam;

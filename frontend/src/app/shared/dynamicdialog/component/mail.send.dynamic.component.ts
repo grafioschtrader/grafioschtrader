@@ -23,10 +23,11 @@ import {UserAdminService} from '../../../user/service/user.admin.service';
  * This input form can be used to compose and send a message. It is a dynamic dialog, as it can be used in different places in the GUI.
  */
 @Component({
-  template: `
+    template: `
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                   (submitBt)="submit($event)">
-    </dynamic-form>`
+    </dynamic-form>`,
+    standalone: false
 })
 export class MailSendDynamicComponent extends FormBase implements OnInit {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;

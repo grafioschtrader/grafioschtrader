@@ -28,8 +28,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.IConnectorNames;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
@@ -152,7 +153,7 @@ public class InvestingConnector extends BaseFeedConnector {
     var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;
     securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]));
     securitycurrency.setSOpen(
-        DataHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
+        DataBusinessHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
     securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
   }

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
 import grafioschtrader.dto.ProposedMarginFinanceCost;
@@ -86,7 +86,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Transaction transaction = transactionJpaRepository.getReferenceById(idTransaction);
     if (!user.getIdTenant().equals(transaction.getIdTenant())) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
 
     return new ResponseEntity<>(transaction, HttpStatus.OK);

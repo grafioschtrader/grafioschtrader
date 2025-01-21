@@ -10,25 +10,25 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
  * Display all portfolios and corresponding accounts in a tree structure. This enables a selection of these.
  */
 @Component({
-  selector: 'tenant-dividend-account-selection',
-  template: `
+    selector: 'tenant-dividend-account-selection',
+    template: `
     <p-treeTable [value]="portfolioAccounts" [columns]="fields" selectionMode="checkbox" [(selection)]="selectedNodes"
                  [scrollable]="true" scrollHeight="600px">
-      <ng-template pTemplate="caption">
+      <ng-template #caption>
         <div style="text-align:left">
           <h4>{{title | translate}}</h4>
           <p-treeTableHeaderCheckbox></p-treeTableHeaderCheckbox>
           <span style="margin-left: .25em; vertical-align: middle">{{'TOGGLE_ALL' | translate}}</span>
         </div>
       </ng-template>
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields">
             {{field.headerTranslated}}
           </th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+      <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
         <tr>
           <td *ngFor="let field of fields; let i = index">
             <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
@@ -43,7 +43,8 @@ import {ColumnConfig} from '../../shared/datashowbase/column.config';
         {{'selectionrequried' | translate}}
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase implements OnInit {
   @Input() columnConfig: ColumnConfig[];

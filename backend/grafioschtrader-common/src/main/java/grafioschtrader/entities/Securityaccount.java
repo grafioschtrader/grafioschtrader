@@ -12,7 +12,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -45,32 +45,32 @@ public class Securityaccount extends Securitycashaccount implements Serializable
   @PropertyAlwaysUpdatable
   private TradingPlatformPlan tradingPlatformPlan;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "share_use_until")
   @PropertyAlwaysUpdatable
   private LocalDate shareUseUntil;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "bond_use_until")
   @PropertyAlwaysUpdatable
   private LocalDate bondUseUntil;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "etf_use_until")
   @PropertyAlwaysUpdatable
   private LocalDate etfUseUntil;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "fond_use_until")
   @PropertyAlwaysUpdatable
   private LocalDate fondUseUntil;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "forex_use_until")
   @PropertyAlwaysUpdatable
   private LocalDate forexUseUntil;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "cfd_use_until")
   @PropertyAlwaysUpdatable
   private LocalDate cfdUseUntil;

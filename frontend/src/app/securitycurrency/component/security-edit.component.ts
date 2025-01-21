@@ -43,8 +43,8 @@ import {FormConfig} from '../../dynamic-form/models/form.config';
  * Edit a security with possible security split and history quote period
  */
 @Component({
-  selector: 'security-edit',
-  template: `
+    selector: 'security-edit',
+    template: `
       <p-dialog styleClass="big-dialog"
                 header="{{'SECURITY' | translate}}" [(visible)]="visibleEditSecurityDialog"
                 [style]="{width: '600px', minHeight: '500px'}"
@@ -78,7 +78,8 @@ import {FormConfig} from '../../dynamic-form/models/form.config';
                   </security-historyquote-period-edit-table>
               </p-tabPanel>
           </p-tabView>
-      </p-dialog>`
+      </p-dialog>`,
+    standalone: false
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
   // Access child components

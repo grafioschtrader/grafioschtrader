@@ -8,8 +8,9 @@ import {LastYears} from '../../entities/view/instrument.statistics.result';
 import {DataType} from '../../dynamic-form/models/data.type';
 
 @Component({
-  selector: 'instrument-year-performance-table',
-  templateUrl: '../view/instrument.statistic.table.html'
+    selector: 'instrument-year-performance-table',
+    templateUrl: '../view/instrument.statistic.table.html',
+    standalone: false
 })
 export class InstrumentYearPerformanceTableComponent extends TableConfigBase implements OnInit {
   @Input() values: LastYears[];

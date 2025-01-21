@@ -6,8 +6,8 @@ import {Component} from '@angular/core';
  * A html multi select component
  */
 @Component({
-  selector: 'form-input-multi-select',
-  template: `
+    selector: 'form-input-multi-select',
+    template: `
     <ng-container [formGroup]="group">
       <p-multiSelect
               [ngStyle]="{'width': (config.inputWidth+1) + 'em'}"
@@ -20,7 +20,8 @@ import {Component} from '@angular/core';
               [formControlName]="config.field"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"/>
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 export class FormInputMultiSelectComponent extends BaseInputComponent {
 }

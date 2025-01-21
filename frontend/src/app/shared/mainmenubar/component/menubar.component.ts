@@ -24,10 +24,11 @@ import {AppSettings} from '../../app.settings';
  * Represents the menubar of GT
  */
 @Component({
-  selector: 'menubar',
-  template: `
+    selector: 'menubar',
+    template: `
     <p-menubar [model]="this.activePanelService.topMenuItems"></p-menubar>
   `,
+    standalone: false
 })
 export class MenubarComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = new Array<MenuItem>(4);
