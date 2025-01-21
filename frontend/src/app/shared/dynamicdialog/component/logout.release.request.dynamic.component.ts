@@ -17,11 +17,12 @@ import {AppSettings} from '../../app.settings';
  * Apply for admin to release security breaches or the too often to many serve requests.
  */
 @Component({
-  template: `
+    template: `
       {{'RESET_USER_MISUSED_QUESTiON' | translate}}
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
-      </dynamic-form>`
+      </dynamic-form>`,
+    standalone: false
 })
 export class LogoutReleaseRequestDynamicComponent extends FormBase implements OnInit {
   readonly NOTE = 'note';

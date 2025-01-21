@@ -1,4 +1,4 @@
-package grafioschtrader.dto;
+package grafiosch.dto;
 
 public class MaxDefaultDBValue {
   int defaultValue;

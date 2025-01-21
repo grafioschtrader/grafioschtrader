@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -264,7 +264,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @JsonProperty("sChangePercentage")
   public Double getSChangePercentage() {
-    return sChangePercentage == null ? null : DataHelper.roundStandard(sChangePercentage);
+    return sChangePercentage == null ? null : DataBusinessHelper.roundStandard(sChangePercentage);
   }
 
   public Date getFullLoadTimestamp() {

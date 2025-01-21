@@ -4,13 +4,13 @@
            sortMode="single" [sortField]="datakey" [sortOrder]="sortOrder"
            [paginator]="true" [rows]="5" responsiveLayout="scroll"
            styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-    <ng-template pTemplate="caption">
+    <ng-template #caption>
       <div class="table-header">
         <h5>{{groupTitle | translate}}</h5>
         <p>{{titleRemark | translate}}</p>
       </div>
     </ng-template>
-    <ng-template pTemplate="header" let-fields>
+    <ng-template #header let-fields>
       <tr>
         <th *ngFor="let field of fields" [pSortableColumn]="field.field"
             [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
@@ -21,7 +21,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="body" let-columns="fields" let-el>
+    <ng-template #body let-columns="fields" let-el>
       <tr [pSelectableRow]="el">
         <ng-container *ngFor="let field of fields">
           <td *ngIf="field.visible"

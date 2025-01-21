@@ -10,6 +10,7 @@ import org.apache.coyote.ajp.AbstractAjpProtocol;
 import org.apache.coyote.ajp.AjpNioProtocol;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +31,8 @@ import jakarta.annotation.PostConstruct;
 @EnableAsync
 @EnableConfigurationProperties
 @Configuration
-@ComponentScan(basePackages = { "grafioschtrader" }, excludeFilters = {
+@EntityScan(basePackages = { "grafiosch.entities", "grafioschtrader.entities" })
+@ComponentScan(basePackages = { "grafiosch", "grafioschtrader" }, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GTforTest.class) })
 public class GrafioschtraderApplication {
 
@@ -66,6 +68,8 @@ public class GrafioschtraderApplication {
   @PostConstruct
   void started() {
     TimeZone.setDefault(TimeZone.getTimeZone(GlobalConstants.TIME_ZONE));
+    new GlobalParamKeyDefault();
+    
   }
 
 }

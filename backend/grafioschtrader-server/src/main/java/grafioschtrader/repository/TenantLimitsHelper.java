@@ -8,12 +8,13 @@ import java.util.Optional;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.dto.MaxDefaultDBValueWithKey;
+import grafiosch.dto.MaxDefaultDBValueWithKey;
+import grafiosch.entities.BaseID;
+import grafiosch.entities.Globalparameters;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.dto.TenantLimit;
-import grafioschtrader.entities.BaseID;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.CorrelationSet;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.User;
@@ -30,11 +31,11 @@ public abstract class TenantLimitsHelper {
      * Put only entities in here which can be checked when added with "SELECT
      * count() FROM ..."
      */
-    globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_CASH_ACCOUNT, Cashaccount.class);
-    globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class);
-    globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_PORTFOLIO, Portfolio.class);
-    globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_SECURITY_ACCOUNT, Securityaccount.class);
-    globalLimitKeyToEntityMap.put(Globalparameters.GLOB_KEY_MAX_WATCHTLIST, Watchlist.class);
+    globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CASH_ACCOUNT, Cashaccount.class);
+    globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class);
+    globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_PORTFOLIO, Portfolio.class);
+    globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITY_ACCOUNT, Securityaccount.class);
+    globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHTLIST, Watchlist.class);
   }
 
   public static <T extends BaseID> boolean canAddWhenCheckedAgainstMayBeExistingTenantLimit(
@@ -78,7 +79,7 @@ public abstract class TenantLimitsHelper {
     List<TenantLimit> tenantLimits = new ArrayList<>();
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     msgKeys.forEach(msgKey -> {
-      String key = Globalparameters.getKeyFromMsgKey(msgKey);
+      String key = Globalparameters.getKeyFromMsgKey(GlobalParamKeyDefault.GT_PREFIX + msgKey);
       String className = globalLimitKeyToEntityMap.get(key).getSimpleName();
       tenantLimits.add(new TenantLimit(msgKey, getMaxValueByKey(globalparametersJpaRepository, key),
           countUsersEntityLimit(globalparametersJpaRepository.getEntityManager(), key, user), className));
@@ -112,7 +113,7 @@ public abstract class TenantLimitsHelper {
 
   public static int getMaxValueByMsgKey(GlobalparametersJpaRepository globalparametersJpaRepository, String msgKey) {
     return getMaxValueByMaxDefaultDBValueWithKey(globalparametersJpaRepository,
-        Globalparameters.getMaxDefaultDBValueByMsgKey(msgKey));
+        Globalparameters.getMaxDefaultDBValueByMsgKey(GlobalParamKeyDefault.GT_PREFIX + msgKey));
   }
 
 }

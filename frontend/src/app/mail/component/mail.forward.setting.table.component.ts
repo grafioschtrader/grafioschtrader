@@ -25,7 +25,7 @@ import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support
  * This component shows the message settings in a table.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -33,7 +33,7 @@ import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support
                [(selection)]="selectedEntity" dataKey="idMailSettingForward" responsiveLayout="scroll"
                (sortFunction)="customSort($event)" [customSort]="true"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field"
                 [pTooltip]="field.headerTooltipTranslated"
@@ -44,7 +44,7 @@ import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-el let-columns="fields">
+        <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -61,7 +61,8 @@ import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support
                                (closeDialog)="handleCloseDialog($event)">
     </mail-forward-setting-edit>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailSettingForward> implements OnDestroy {
   callParam: MailSettingForwardParam;

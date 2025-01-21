@@ -19,15 +19,16 @@ import {TranslateHelper} from '../../helper/translate.helper';
  * Change nickname and locale of a user
  */
 @Component({
-  selector: 'nickname-lang-edit',
-  template: `
+    selector: 'nickname-lang-edit',
+    template: `
     <p-dialog header="{{'NICKNAME_LOCALE_CHANGE' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class NicknameLangEditComponent extends SimpleEditBase implements OnInit {
 

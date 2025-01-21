@@ -5,11 +5,11 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 
 // Warning implements IDateAndClose wont work!!!
 public class HistoryquoteDateClose {
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate date;
   public Double close;
 

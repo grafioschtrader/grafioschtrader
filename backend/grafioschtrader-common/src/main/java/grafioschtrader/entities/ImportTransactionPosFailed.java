@@ -2,6 +2,7 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 
+import grafiosch.entities.BaseID;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

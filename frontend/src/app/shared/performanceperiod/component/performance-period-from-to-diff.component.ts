@@ -7,8 +7,8 @@ import {DataType} from '../../../dynamic-form/models/data.type';
 import {AppHelper} from '../../helper/app.helper';
 
 @Component({
-  selector: 'performance-period-from-to-diff',
-  template: `
+    selector: 'performance-period-from-to-diff',
+    template: `
     <div class="fcontainer">
       <fieldset *ngFor="let phad of periodHoldingsAndDiff;  let i = index" class="out-border fbox">
         <legend class="out-border-legend">{{titles[i]}}</legend>
@@ -24,7 +24,8 @@ import {AppHelper} from '../../helper/app.helper';
         </ng-container>
       </fieldset>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase implements OnInit, OnChanges {
   @Input() periodHoldingsAndDiff: PeriodHoldingAndDiff[];

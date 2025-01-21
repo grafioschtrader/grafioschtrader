@@ -9,7 +9,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.Globalparameters;
+import grafiosch.entities.Globalparameters;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.TaskDataChangeJpaRepository;
@@ -34,7 +35,7 @@ public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyE
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
+        .findById(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
     if (gpLastAppend.isEmpty() || gpLastAppend.get().getPropertyDate().isBefore(LocalDate.now().minusDays(1L))) {
       addDataUpdateTask();
     } else if (taskDataChangeJpaRepository.count() == 0) {

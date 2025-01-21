@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.HoldCashaccountDeposit;
@@ -187,23 +187,23 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
 
     for (Transaction transaction : transactionCaAcList) {
       holdDepositForTenant.depositCashaccoutCurrency += transaction.getCashaccountAmount();
-      holdDepositForTenant.depositTenantCurrency += DataHelper.calcDepositOnTransactionsOfCashaccount(transaction,
+      holdDepositForTenant.depositTenantCurrency += DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(transaction,
           holdDepositForTenant.fromToCurrencyWithDateMap, holdDepositForTenant.tenant.getCurrency(),
           holdDepositForTenant.exchangeRateConnectedTransactionMap,
           holdDepositForTenant.currencypairFromToCurrencyMap).amountMC;
       HoldCashaccountDeposit holdCashaccount = new HoldCashaccountDeposit(transaction.getIdTenant(), idPortfolio,
           transaction.getCashaccount().getIdSecuritycashAccount(), transaction.getTransactionDate(), toHoldDate,
-          DataHelper.round(holdDepositForTenant.depositCashaccoutCurrency),
-          DataHelper.round(holdDepositForTenant.depositTenantCurrency));
+          DataBusinessHelper.round(holdDepositForTenant.depositCashaccoutCurrency),
+          DataBusinessHelper.round(holdDepositForTenant.depositTenantCurrency));
       if (!holdDepositForTenant.tenant.getCurrency().equals(portfolioCurrency)) {
-        holdDepositForTenant.depositPortfolioCurrency += DataHelper.calcDepositOnTransactionsOfCashaccount(transaction,
+        holdDepositForTenant.depositPortfolioCurrency += DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(transaction,
             holdDepositForTenant.fromToCurrencyWithDateMap, portfolioCurrency,
             holdDepositForTenant.exchangeRateConnectedTransactionMap,
             holdDepositForTenant.currencypairFromToCurrencyMap).amountMC;
       } else {
         holdDepositForTenant.depositPortfolioCurrency = holdDepositForTenant.depositTenantCurrency;
       }
-      holdCashaccount.setDepositPortfolioCurrency(DataHelper.round(holdDepositForTenant.depositPortfolioCurrency));
+      holdCashaccount.setDepositPortfolioCurrency(DataBusinessHelper.round(holdDepositForTenant.depositPortfolioCurrency));
       holdCashaccount.setToHoldDate(toHoldDate);
       if (!holdCashaccountList.isEmpty()) {
         holdCashaccountList.getLast().setToHoldDate(transaction.getTransactionDate().minusDays(1));

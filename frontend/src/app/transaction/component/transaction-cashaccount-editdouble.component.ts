@@ -33,8 +33,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Cash transfer between two cash accounts which are managed by this application.
  */
 @Component({
-  selector: 'transaction-cashaccount-editdouble',
-  template: `
+    selector: 'transaction-cashaccount-editdouble',
+    template: `
     <p-dialog header="{{'ACCOUNT_TRANSFER' | translate}}" [(visible)]="visibleCashaccountTransactionDoubleDialog"
               [responsive]="true" [style]="{width: '550px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -45,6 +45,7 @@ import {AppSettings} from '../../shared/app.settings';
       </dynamic-form>
     </p-dialog>
   `,
+    standalone: false
 })
 export class TransactionCashaccountEditDoubleComponent extends TransactionCashaccountBaseOperations implements OnInit {
 

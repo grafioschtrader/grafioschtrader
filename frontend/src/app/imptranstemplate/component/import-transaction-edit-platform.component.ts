@@ -19,8 +19,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
  * Dialog for editing the transaction import template group
  */
 @Component({
-  selector: 'import-transaction-edit-platform',
-  template: `
+    selector: 'import-transaction-edit-platform',
+    template: `
     <p-dialog header="{{'IMPORT_TRANSACTION_PLATFORM' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -28,7 +28,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class ImportTransactionEditPlatformComponent extends SimpleEntityEditBase<ImportTransactionPlatform> implements OnInit {
 

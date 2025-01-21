@@ -95,7 +95,7 @@ export class SecurityService extends SecurityCurrencyService<Security> {
     return <Observable<Security[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/search`,
       {
         headers: this.prepareHeaders(),
-        params: AppHelper.getHttpParamsOfObject(securitycurrencySearch)
+        params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
       }).pipe(catchError(this.handleError.bind(this)));
   }
 

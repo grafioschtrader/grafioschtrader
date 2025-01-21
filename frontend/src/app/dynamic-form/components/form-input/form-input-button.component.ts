@@ -5,8 +5,8 @@ import {BaseInputComponent} from '../base.input.component';
  * Creates an input field with a following button.
  */
 @Component({
-  selector: 'form-input-button',
-  template: `
+    selector: 'form-input-button',
+    template: `
       <ng-container [formGroup]="group">
           <div class="p-inputgroup">
               <input
@@ -30,7 +30,8 @@ import {BaseInputComponent} from '../base.input.component';
               </button>
           </div>
       </ng-container>
-  `
+  `,
+    standalone: false
 })
 
 export class FormInputButtonComponent extends BaseInputComponent {

@@ -9,8 +9,8 @@ import {FormConfig} from '../../models/form.config';
  * It handles one input with its label.
  */
 @Component({
-  selector: 'dynamic-form-layout',
-  template: `
+    selector: 'dynamic-form-layout',
+    template: `
       <div *ngIf="formConfig.fieldHeaders && formConfig.fieldHeaders[config.field]" class="row">
           <div class="col-md-12">
               <h5 class="text-center">{{formConfig.fieldHeaders[config.field]}}</h5>
@@ -42,7 +42,8 @@ import {FormConfig} from '../../models/form.config';
               <div *ngIf="config.labelShowText" class="bg-info" [innerHTML]="config.labelShowText"></div>
           </div>
       </div>
-  `
+  `,
+    standalone: false
 })
 
 export class DynamicFormLayoutComponent {

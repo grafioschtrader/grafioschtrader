@@ -14,6 +14,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.MailSendForwardDefault;
 import grafioschtrader.entities.MailSendRecv;
@@ -85,7 +86,7 @@ public class SendMailInternalExternalService {
     if ((Role.ROLE_LIMIT_EDIT.equals(mailSendRecv.getRoleNameTo())
         || Role.ROLE_USER.equals(mailSendRecv.getRoleNameTo()) || ROLE_EVERY_USER.equals(mailSendRecv.getRoleNameTo()))
         && !isAdmin) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     // this.initialMsgUserToUserSecurityCheck(mailSendRecv, fromUser, isAdmin);
     return isAdmin;
@@ -101,19 +102,19 @@ public class SendMailInternalExternalService {
     if (!isAdmin && mailSendRecv.getIdUserTo() != null) {
       if (mailSendRecv.getIdReplyToLocal() == null) {
         // Initial message from user to user only possible for admin
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       } else {
         Optional<MailSendRecv> initialMsgOpt = mailSendRecvJpaRepository.findById(mailSendRecv.getIdReplyToLocal());
         if (initialMsgOpt.isEmpty()) {
           // Initial message must be present otherwise misuse is possible
-          throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+          throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
         } else {
           MailSendRecv initialMsg = initialMsgOpt.get();
           if (!(initialMsg.getIdUserFrom().equals(fromUser.getId()) || fromUser.getId().equals(initialMsg.getIdUserTo())
               || (initialMsg.getIdRoleTo() != null && fromUser.hasIdRole(initialMsg.getIdRoleTo())))) {
             // There is no connection of this user with the initial messages.
             // Neither via the sender nor the receiver or the receiver role.
-            throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+            throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
           }
         }
       }
@@ -176,7 +177,7 @@ public class SendMailInternalExternalService {
   /**
    * Sending an internal or external message to the main administrator.
    *
-   * @param idUserFrom
+   * @param idUserFrom If 0, it is a message from the system.
    * @param subjectKey
    * @param message
    * @param messageComType

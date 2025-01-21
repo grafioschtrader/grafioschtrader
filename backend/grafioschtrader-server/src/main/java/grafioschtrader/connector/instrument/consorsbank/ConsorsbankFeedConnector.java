@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Security;
 
@@ -84,7 +84,7 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
     RootData[] rootData = mapper.readValue(jsonData, RootData[].class);
     PriceV2 priceV2 = rootData[0].PriceV2;
     security.setSLast(priceV2.PRICE);
-    security.setSChangePercentage(DataHelper.roundStandard(priceV2.PERFORMANCE_PCT));
+    security.setSChangePercentage(DataBusinessHelper.roundStandard(priceV2.PERFORMANCE_PCT));
     security.setSPrevClose(priceV2.PREVIOUS_LAST);
     security.setSLow(priceV2.LOW);
     security.setSHigh(priceV2.HIGH);

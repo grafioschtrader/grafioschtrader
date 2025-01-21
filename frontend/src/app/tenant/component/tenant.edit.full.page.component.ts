@@ -11,7 +11,7 @@ import {LoginService} from '../../shared/login/service/log-in.service';
  * Edit tenant fields on a full page layout used for a new tenant.
  */
 @Component({
-  template: `
+    template: `
     <div class="container">
       <div class="jumbotron center-block">
         <h2>{{'CLIENT' | translate}}</h2>
@@ -22,7 +22,8 @@ import {LoginService} from '../../shared/login/service/log-in.service';
         </dynamic-form>
       </div>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TenantEditFullPageComponent extends TenantEditComponent implements OnInit, AfterViewInit {
 

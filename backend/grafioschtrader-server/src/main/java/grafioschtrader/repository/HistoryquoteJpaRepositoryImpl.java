@@ -27,8 +27,9 @@ import org.springframework.util.ClassUtils;
 
 import com.ezylang.evalex.EvaluationException;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
@@ -117,7 +118,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
             @Override
             public double getClose() {
-              return DataHelper.round(securitycurrencyIdDateClose.getClose() * factor);
+              return DataBusinessHelper.round(securitycurrencyIdDateClose.getClose() * factor);
             }
           };
         }
@@ -132,7 +133,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Auditable autitable = historyquoteJpaRepository.getParentSecurityCurrency(user, idSecuritycurrency);
     if (!UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, autitable)) {
-      throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
     }
     return new UserAuditable(autitable, user);
   }
@@ -419,7 +420,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
             HistoryquoteCreateType.MANUAL_IMPORTED.getValue());
         break;
       default:
-        throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
       }
     }
     return dhs;

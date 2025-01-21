@@ -10,7 +10,7 @@
              [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single"
              sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
               [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -28,10 +28,10 @@
                                 [matchMode]="'gtNoFilter'"
                                 [showOperator]="true" display="menu">
                   <ng-template let-filter="filterCallback" let-value pTemplate="filter">
-                    <p-calendar #cal (onInput)="filter(cal.value)" (onSelect)="filter($event)"
+                    <p-datepicker #cal (onInput)="filter(cal.value)" (onSelect)="filter($event)"
                                 [dateFormat]="baseLocale.dateFormat"
                                 [ngModel]="value">
-                    </p-calendar>
+                    </p-datepicker>
                   </ng-template>
                 </p-columnFilter>
                 <p-columnFilter *ngSwitchCase="DataType.Numeric" [field]="field.field" [locale]="formLocale"
@@ -47,7 +47,7 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-columns="fields" let-el>
+      <ng-template #body let-columns="fields" let-el>
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
 

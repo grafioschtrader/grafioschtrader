@@ -44,8 +44,8 @@ import {FormHelper} from '../../dynamic-form/components/FormHelper';
  * so there is no connector.
  */
 @Component({
-  selector: 'security-derived-edit',
-  template: `
+    selector: 'security-derived-edit',
+    template: `
     <p-dialog header="{{'DERIVED_DATA' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -62,7 +62,8 @@ import {FormHelper} from '../../dynamic-form/components/FormHelper';
                                        (closeDialog)="handleOnCloseSetDialog($event)">
       </securitycurrency-search-and-set>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit, CallBackSetSecurityWithAfter {
 // Input from parent component

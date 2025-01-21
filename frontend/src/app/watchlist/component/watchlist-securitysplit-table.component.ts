@@ -14,8 +14,9 @@ import {FilterService} from 'primeng/api';
  * Time the splits created or imported as a table for a security.
  */
 @Component({
-  selector: 'watchlist-securitysplit-table',
-  templateUrl: '../view/dividend.split.table.html'
+    selector: 'watchlist-securitysplit-table',
+    templateUrl: '../view/dividend.split.table.html',
+    standalone: false
 })
 export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase<Securitysplit> implements OnInit {
   private static SPLIT_DATE = 'splitDate';

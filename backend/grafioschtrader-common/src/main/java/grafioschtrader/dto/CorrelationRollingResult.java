@@ -6,13 +6,13 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.entities.Securitycurrency;
 
 public class CorrelationRollingResult {
 
   public final List<Securitycurrency<?>> securitycurrencyList;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate[] dates;
   public final Double[] correlation;
 

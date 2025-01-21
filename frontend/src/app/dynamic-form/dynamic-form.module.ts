@@ -25,11 +25,10 @@ import {FileValueAccessorDirective} from './components/form-input-file/file-cont
 import {UpperCaseDirective} from './components/form-input/upper-case.directive';
 import {FormTriStateCheckboxComponent} from './components/form-input/form-tri-state-checkbox.component';
 import {AutoCompleteModule} from 'primeng/autocomplete';
-import {CalendarModule} from 'primeng/calendar';
 import {DialogModule} from 'primeng/dialog';
 import {ButtonModule} from 'primeng/button';
-import {TriStateCheckboxModule} from 'primeng/tristatecheckbox';
-import {OverlayPanelModule} from 'primeng/overlaypanel';
+import {CheckboxModule} from 'primeng/checkbox';
+
 import {FieldsetModule} from 'primeng/fieldset';
 import {TooltipModule} from 'primeng/tooltip';
 import {FilterOutPipe} from './pipe/FilterOutPipe';
@@ -40,34 +39,38 @@ import {FormInputCurrencyNumberComponent} from './components/form-input/form-inp
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {HttpClientModule} from '@angular/common/http';
 import {FormInputDropdownComponent} from './components/form-input/form-input-dropdown.component';
-import {DropdownModule} from 'primeng/dropdown';
 import {InputNumberModule} from 'primeng/inputnumber';
 import {NgxCurrencyDirective} from 'ngx-currency';
 import {FormInputMultiSelectComponent} from './components/form-input/form-input-multi-select.component';
 import {MultiSelect, MultiSelectModule} from 'primeng/multiselect';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {KeyFilterModule} from 'primeng/keyfilter';
+import {DatePicker} from 'primeng/datepicker';
+import {SelectModule} from 'primeng/select';
+import {PopoverModule} from 'primeng/popover';
+import {TriStateCheckboxComponent} from './components/form-input/tri-state-checkbox';
 
 
 @NgModule({
   imports: [
     AutoCompleteModule,
-    CalendarModule,
+    DatePicker,
     InputNumberModule,
     KeyFilterModule,
     CommonModule,
-    DropdownModule,
+    SelectModule,
     ReactiveFormsModule,
-    TriStateCheckboxModule,
+    CheckboxModule,
     ButtonModule,
     MultiSelectModule,
     DialogModule,
     FieldsetModule,
     FormsModule,
-    OverlayPanelModule,
+    PopoverModule,
     TooltipModule,
     TranslateModule,
-    HttpClientModule, AngularSvgIconModule.forRoot(), NgxCurrencyDirective, ContextMenuModule
+    TriStateCheckboxComponent,
+    HttpClientModule, AngularSvgIconModule.forRoot(), NgxCurrencyDirective, ContextMenuModule, TriStateCheckboxComponent
   ],
   declarations: [
     ErrorMessageComponent,

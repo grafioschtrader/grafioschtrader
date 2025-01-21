@@ -11,13 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.common.DataHelper;
+import grafiosch.entities.ProposeChangeField;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.HistoryquotePeriodDeleteAndCreateMultiple;
 import grafioschtrader.entities.HistoryquotePeriod;
 import grafioschtrader.entities.ProposeChangeEntity;
-import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.User;
 import grafioschtrader.types.HistoryquotePeriodCreateType;
@@ -84,7 +84,7 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
       LocalDate activeToDate = ((java.sql.Date) security.getActiveToDate()).toLocalDate();
       List<HistoryquotePeriod> hpsNewSorted = Arrays.stream(hpdacm.getHistoryquotePeriods())
           .filter(hp -> !hp.getFromDate().isAfter(activeToDate)).collect(Collectors.toList());
-      if (!DataHelper.compareCollectionsSorted(hpsNewSorted, historyquotePeriodsExisting, hpCompare)) {
+      if (!DataBusinessHelper.compareCollectionsSorted(hpsNewSorted, historyquotePeriodsExisting, hpCompare)) {
         // Historyquote periods has changed
         return changeHistoryquotePeriods(user, security, hpsNewSorted, hpdacm.getNoteRequest());
       }

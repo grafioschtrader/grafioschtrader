@@ -102,7 +102,6 @@ public class GlobalConstants {
 
   public static final String TIME_ZONE = "UTC";
   public static final String SHORT_STANDARD_DATE_FORMAT = "yyyyMMdd";
-  public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
   public static final String STANDARD_LOCAL_DATE_TIME = "yyyy-MM-dd HH:mm";
   public static final String STANDARD_LOCAL_DATE_TIME_SECOND = "yyyy-MM-dd HH:mm:ss";
   public static final String STARNDARD_LOCAL_TIME = "HH:mm";
@@ -234,10 +233,6 @@ public class GlobalConstants {
   public static final int BANDWITH_HOOUR_BUCKET_SIZE = 300;
   public static final int BANDWITH_HOUR_REFILL = 300;
   /**
-   * User try to access data of a other tenant
-   */
-  public static final String CLIENT_SECURITY_BREACH = "client.security.breach";
-  /**
    * User hat not the privileges to access certain shared date
    */
   public static final String RIGHTS_SECURITY_BREACH = "rights.security.breach";
@@ -247,12 +242,6 @@ public class GlobalConstants {
    * tenant data.
    */
   public static final String STEAL_DATA_SECURITY_BREACH = "steal.data.security.breach";
-  /**
-   * User tries to write tenant data outside the defined limits. For example a
-   * watchlist may have a maximum of instruments, if it is exceeded then this
-   * exception thrown.
-   */
-  public static final String LIMIT_SECURITY_BREACH = "limit.security.breach";
   /**
    * User tries to update a field which can only updated when it is created
    */

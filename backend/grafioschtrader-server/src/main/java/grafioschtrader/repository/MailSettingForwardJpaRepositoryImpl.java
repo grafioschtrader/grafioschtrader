@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.dto.MailSendForwardDefault;
 import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.MailSettingForward;
@@ -34,7 +34,7 @@ public class MailSettingForwardJpaRepositoryImpl extends BaseRepositoryImpl<Mail
         || mailSettingForward.getMessageComType().getValue() >=  MailSendForwardDefault.MAIN_ADMIN_BASE_VALUE)
         || !MailSendForwardDefault.mailSendForwardDefaultMap.get(mailSettingForward.getMessageComType()).canRedirect
         && mailSettingForward.getIdUserRedirect() != null) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return RepositoryHelper.saveOnlyAttributes(mailSettingForwardJpaRepository, mailSettingForward, existingEntity,
         updatePropertyLevelClasses);

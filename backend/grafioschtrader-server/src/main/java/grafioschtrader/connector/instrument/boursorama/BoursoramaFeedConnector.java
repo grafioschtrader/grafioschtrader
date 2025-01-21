@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -255,7 +255,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     public void setValues(Securitycurrency<?> securitycurrency, double divider) {
       super.setValues(securitycurrency, divider);
       if (o > 0 && var != 0.0) {
-        securitycurrency.setSChangePercentage(DataHelper.roundStandard(var / o * 100));
+        securitycurrency.setSChangePercentage(DataBusinessHelper.roundStandard(var / o * 100));
       } else {
         securitycurrency.setSChangePercentage(0.0);
       }

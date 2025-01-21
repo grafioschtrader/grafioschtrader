@@ -7,7 +7,7 @@
                  [columns]="fields" [value]="securityPositionAll" responsiveLayout="scroll"
                  dataKey="security.idSecuritycurrency" selectionMode="single"
                  sortMode="none" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-            <ng-template pTemplate="caption">
+            <ng-template #caption>
                 <div class="flex-two-columns">
                     <div class="left-half">
                         <h4 #title>{{'SECURITYACCOUNT' | translate}}: {{portfolio?.name}} {{securityAccount?.name}}
@@ -21,14 +21,13 @@
                     <div class="center-half">
                         <label for="untilDate"
                                style="margin-right: 5px; margin-top: 5px;">{{'UNTIL_DATE' | translate}}</label>
-                        <p-calendar #cal (onSelect)="filterDate($event)"
+                        <p-datepicker #cal (onSelect)="filterDate($event)"
                                     [(ngModel)]="untilDate"
                                     [dateFormat]="baseLocale.dateFormat"
                                     appendTo="body"
                                     id="untilDate">
-                        </p-calendar>
+                        </p-datepicker>
                         <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
-
                     </div>
                     <div *ngIf="securityAccount?.tradingPlatformPlan?.importTransactionPlatform" class="right-half">
                         <ngx-file-drop (onFileDrop)="dropped($event)" contentClassName="content-trans"
@@ -39,7 +38,7 @@
                 </div>
             </ng-template>
 
-            <ng-template pTemplate="header" let-fields>
+            <ng-template #header let-fields>
                 <tr>
                     <th style="width:24px"></th>
                     <ng-container *ngFor="let field of fields">
@@ -53,7 +52,7 @@
                 </tr>
             </ng-template>
 
-            <ng-template pTemplate="body" let-columns="fields" let-el let-expanded="expanded" let-rowIndex="rowIndex">
+            <ng-template #body let-columns="fields" let-el let-expanded="expanded" let-rowIndex="rowIndex">
                 <tr [pContextMenuRow]="el" [pSelectableRow]="el">
                     <td>
                         <a [pRowToggler]="el" href="#">
@@ -138,7 +137,7 @@
                 </tr>
             </ng-template>
 
-            <ng-template pTemplate="rowexpansion" let-columns="fields" let-securityPositionAll>
+            <ng-template #expandedrow let-columns="fields" let-securityPositionAll>
                 <tr>
                     <td [attr.colspan]="numberOfVisibleColumns + 1">
                         <transaction-security-table

@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Portfolio;
@@ -89,7 +89,7 @@ public class TransferDividendToTransactionTest implements ITask {
 
       String subCategory = security.getAssetClass().getSubCategoryByLanguage(Language.GERMAN);
       double cashaccountAmount = dfh.getHoldings() * dfh.getAmount();
-      double taxCost = subCategory.contains("Schweiz") ? DataHelper.round(cashaccountAmount * 0.35) : 0;
+      double taxCost = subCategory.contains("Schweiz") ? DataBusinessHelper.round(cashaccountAmount * 0.35) : 0;
       cashaccountAmount -= taxCost;
       Date transactionTime = dfh.getPayDate() == null ? DateHelper.setTimeToZeroAndAddDay(dfh.getExDate(), 28)
           : new Date(dfh.getPayDate().getTime());

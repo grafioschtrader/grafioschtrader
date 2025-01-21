@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafiosch.BaseConstants;
+import grafiosch.common.DataHelper;
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
+import grafiosch.entities.BaseID;
+import grafiosch.entities.ProposeChangeField;
+import grafiosch.entities.ProposeTransientTransfer;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.entities.Auditable;
-import grafioschtrader.entities.BaseID;
 import grafioschtrader.entities.ProposeChangeEntity;
-import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.entities.ProposeRequest;
-import grafioschtrader.entities.ProposeTransientTransfer;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TenantBaseID;
 import grafioschtrader.entities.User;
@@ -93,13 +93,13 @@ public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreate
       if (entity instanceof Tenant) {
         // User can have only one Tenant
         if (user.getIdTenant() != null) {
-          throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+          throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
         }
       } else {
         entity = checkAndSetEntityWithTenant(entity, user);
       }
       if (!TenantLimitsHelper.canAddWhenCheckedAgainstMayBeExistingTenantLimit(globalparametersJpaRepository, entity)) {
-        throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
       }
     } else {
       if (entity instanceof UserBaseID) {
@@ -284,7 +284,7 @@ public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreate
 
     if (((TenantBaseID) entity).getIdTenant() != null) {
       if (!user.getIdTenant().equals(((TenantBaseID) entity).getIdTenant())) {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     }
 
@@ -295,7 +295,7 @@ public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreate
       existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
       if (existingEntity != null) {
         if (!user.getIdTenant().equals(((TenantBaseID) existingEntity).getIdTenant())) {
-          throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+          throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
         }
       } else {
         // TODO Not existing ID -> should not happened
@@ -325,7 +325,7 @@ public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreate
       existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
       if (existingEntity != null) {
         if (!user.getIdUser().equals(((UserBaseID) existingEntity).getIdUser())) {
-          throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+          throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
         }
       } else {
         // TODO Not existing ID -> should not happened
@@ -340,7 +340,7 @@ public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreate
   public static void checkAndSetUserBaseIDWithUser(UserBaseID entity, final User user) {
     if (entity.getIdUser() != null) {
       if (!user.getIdUser().equals(entity.getIdUser())) {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     }
     // Maybe the user is not set by the client, we set it always

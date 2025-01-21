@@ -20,8 +20,8 @@ import {ProcessedAction} from '../../shared/types/processed.action';
  * Dialog for changing the owner of entities.
  */
 @Component({
-  selector: 'user-change-owner-entities',
-  template: `
+    selector: 'user-change-owner-entities',
+    template: `
     <p-dialog header="{{'USER_CHANGE_OWNER_ENTITIES' | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -30,7 +30,8 @@ import {ProcessedAction} from '../../shared/types/processed.action';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 
 export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements OnInit {

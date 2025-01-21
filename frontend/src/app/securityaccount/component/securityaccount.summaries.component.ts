@@ -22,7 +22,8 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
  * is expected.
  */
 @Component({
-  templateUrl: '../view/securityaccount.table.html'
+    templateUrl: '../view/securityaccount.table.html',
+    standalone: false
 })
 export class SecurityaccountSummariesComponent extends SecurityaccountTable implements OnInit, OnDestroy {
 

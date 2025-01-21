@@ -9,7 +9,7 @@
              [value]="transactionPositionList" dataKey="transaction.idTransaction" selectionMode="single"
              sortMode="multiple"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field"
               [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
@@ -19,7 +19,7 @@
           </th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-columns="fields" let-el>
+      <ng-template #body let-columns="fields" let-el>
         <tr [pContextMenuRow] [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
             <td *ngIf="field.visible"

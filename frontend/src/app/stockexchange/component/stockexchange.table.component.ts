@@ -26,7 +26,7 @@ import {StockexchangeHelper} from './stockexchange.helper';
  * Shows stock exchanges in a table
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
@@ -34,10 +34,10 @@ import {StockexchangeHelper} from './stockexchange.helper';
                responsiveLayout="scroll" scrollHeight="flex" [scrollable]="true"
                [multiSortMeta]="multiSortMeta"
                [dataKey]="entityKeyName" styleClass="p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th style="max-width:24px"></th>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
@@ -47,7 +47,7 @@ import {StockexchangeHelper} from './stockexchange.helper';
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td style="max-width:24px">
               <a *ngIf="!el.noMarketValue" href="#" [pRowToggler]="el">
@@ -70,7 +70,7 @@ import {StockexchangeHelper} from './stockexchange.helper';
             </td>
           </tr>
         </ng-template>
-        <ng-template pTemplate="rowexpansion" let-stockexchange let-columns="fields">
+        <ng-template #expandedrow let-stockexchange let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
               <trading-calendar-stockexchange [stockexchange]="stockexchange"
@@ -88,7 +88,8 @@ import {StockexchangeHelper} from './stockexchange.helper';
                         (closeDialog)="handleCloseDialog($event)">
     </stockexchange-edit>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> implements OnDestroy {
 

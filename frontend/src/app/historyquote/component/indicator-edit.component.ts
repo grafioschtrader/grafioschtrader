@@ -10,8 +10,8 @@ import {ProcessedAction} from '../../shared/types/processed.action';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 
 @Component({
-  selector: 'indicator-edit',
-  template: `
+    selector: 'indicator-edit',
+    template: `
     <p-dialog header="{{'DEFINITION' | translate}}: {{taEditParam.taIndicators | translate}}"
               [(visible)]="visibleDialog"
               [style]="{width: '400px'}"
@@ -21,7 +21,8 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class IndicatorEditComponent extends DynamicSimpleEditBase implements OnInit {
   @Input() taEditParam: TaEditParam;

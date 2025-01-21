@@ -17,15 +17,15 @@ import {FilterService} from 'primeng/api';
  * After a search over securities or currency the search result ist shown in a table to select a certain security.
  */
 @Component({
-  selector: 'securitycurrency-search-and-set-table',
-  template: `
+    selector: 'securitycurrency-search-and-set-table',
+    template: `
     <div class="col-md-12">
 
       <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single" [(selection)]="selectedSecurity"
                dataKey="idSecuritycurrency" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20,30]"
                sortField="name" sortMode="multiple" responsiveLayout="scroll"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -35,7 +35,7 @@ import {FilterService} from 'primeng/api';
           </tr>
         </ng-template>
 
-        <ng-template pTemplate="body" let-el let-columns="fields">
+        <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <ng-container *ngFor="let field of fields">
               <td *ngIf="field.visible" [style.max-width.px]="field.width"
@@ -56,7 +56,8 @@ import {FilterService} from 'primeng/api';
               (click)="chooseSecurity()" type="button">
       </button>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class SecuritycurrencySearchAndSetTableComponent extends SecuritycurrencySearchTableBase {
   @Input() callBackSetSecurity: CallBackSetSecurity;

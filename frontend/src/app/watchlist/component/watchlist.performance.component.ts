@@ -32,14 +32,16 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
  * Shows the performance watchlist. It has no special function implemented.
  */
 @Component({
-  templateUrl: '../view/watchlist.data.html',
-  styles: [`
+    templateUrl: '../view/watchlist.data.html',
+    styles: [`
     .cell-move {
       cursor: move !important;
     }
   `],
-  providers: [DialogService]
-  // changeDetection: ChangeDetectionStrategy.OnPush
+    providers: [DialogService]
+    // changeDetection: ChangeDetectionStrategy.OnPush
+    ,
+    standalone: false
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
 

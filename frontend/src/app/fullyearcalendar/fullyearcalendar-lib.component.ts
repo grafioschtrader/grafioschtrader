@@ -7,8 +7,8 @@ import {DisabledDate} from './Interface/disabled.date';
 import {DayOfWeek} from './model/day.of.week';
 
 @Component({
-  selector: 'ng-fullyearcalendar-lib',
-  template: `
+    selector: 'ng-fullyearcalendar-lib',
+    template: `
     <div *ngIf="year" class="flex-container">
       <div *ngFor="let month of year.months" class="grid-item">
         <month-calendar [underline]="underline" (dayClicked)="dayClicked($event)" [month]="month"
@@ -16,7 +16,8 @@ import {DayOfWeek} from './model/day.of.week';
       </div>
     </div>
   `,
-  styleUrls: ['./fullyearcalendar-lib.scss']
+    styleUrls: ['./fullyearcalendar-lib.scss'],
+    standalone: false
 })
 export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
 

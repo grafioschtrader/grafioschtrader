@@ -3,10 +3,8 @@ package grafioschtrader.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.common.UpdateQuery;
 import grafioschtrader.entities.ProposeChangeEntity;
 import grafioschtrader.rest.UpdateCreateJpaRepository;
 
@@ -24,9 +22,7 @@ public interface ProposeChangeEntityJpaRepository extends JpaRepository<ProposeC
    * unidirectional mapping
    */
   @Override
-  @Transactional
-  @Modifying
-  @Query(value = "DELETE FROM propose_request WHERE id_propose_request = ?1", nativeQuery = true)
+  @UpdateQuery(value = "DELETE FROM propose_request WHERE id_propose_request = ?1", nativeQuery = true)
   void deleteById(Integer id);
 
 }

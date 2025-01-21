@@ -13,10 +13,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import grafiosch.BaseConstants;
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyOnlyCreation;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.entities.projection.IUDFSupport;
 import grafioschtrader.types.AssetclassType;
@@ -122,21 +123,21 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private String productLink;
 
   @Schema(description = "A security has a life span. This is defined with two dates. This is the date for trading from.")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "active_from_date")
   @Temporal(TemporalType.DATE)
   @PropertyAlwaysUpdatable
   @NotNull
-  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
+  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   private Date activeFromDate;
 
   @Schema(description = "A security has a life span. This is defined with two dates. This is the date for delisting, due date, etc.")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "active_to_date")
   @Temporal(TemporalType.DATE)
   @PropertyAlwaysUpdatable
   @NotNull
-  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = GlobalConstants.STANDARD_DATE_FORMAT)
+  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   private Date activeToDate;
 
   @Schema(description = """
@@ -521,10 +522,12 @@ public class Security extends Securitycurrency<Security> implements Serializable
             || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
         break;
       case COMMODITIES:
-        canHaveDividend = this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
+        canHaveDividend = assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
+        break;
+      case CURRENCY_PAIR:
+        canHaveDividend = assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
         break;
       case CREDIT_DERIVATIVE:
-      case CURRENCY_PAIR:
         canHaveDividend = false;
         break;
       default:

@@ -190,7 +190,8 @@ import {UserEntityChangeLimitEditComponent} from './user/component/user-entity-c
 import {
   LimitTransactionRequestDynamicComponent
 } from './shared/dynamicdialog/component/limit.transaction.request.dynamic.component';
-import {DynamicDialogModule} from 'primeng/dynamicdialog';
+
+
 import {
   LogoutReleaseRequestDynamicComponent
 } from './shared/dynamicdialog/component/logout.release.request.dynamic.component';
@@ -235,7 +236,6 @@ import {
 } from './shared/performanceperiod/component/performance-period-from-to-diff.component';
 import {NgxFileDropModule} from 'ngx-file-drop';
 import {ButtonModule} from 'primeng/button';
-import {CalendarModule} from 'primeng/calendar';
 import {DialogModule} from 'primeng/dialog';
 import {InputTextModule} from 'primeng/inputtext';
 import {MessagesModule} from 'primeng/messages';
@@ -246,7 +246,7 @@ import {TreeTableModule} from 'primeng/treetable';
 import {CheckboxModule} from 'primeng/checkbox';
 import {ConfirmDialogModule} from 'primeng/confirmdialog';
 import {InputMaskModule} from 'primeng/inputmask';
-import {InputTextareaModule} from 'primeng/inputtextarea';
+import {InputTextarea} from 'primeng/inputtextarea';
 import {TabViewModule} from 'primeng/tabview';
 import {StepsModule} from 'primeng/steps';
 import {TooltipModule} from 'primeng/tooltip';
@@ -338,6 +338,8 @@ import {UDFGeneralEditComponent} from './shared/udfmeta/components/udf-general-e
 import {UDFSpecialTypeDisableUserService} from './shared/udfmeta/service/udf.special.type.disable.user.service';
 import {AlarmSetupService} from './algo/service/alarm.setup.service';
 import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
+import {DatePicker} from 'primeng/datepicker';
+import {DynamicDialogModule } from 'primeng/dynamicdialog';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -399,7 +401,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     BrowserAnimationsModule,
     BrowserModule,
     ButtonModule,
-    CalendarModule,
+    DatePicker,
     CardModule,
     ConfirmDialogModule,
     CheckboxModule,
@@ -429,7 +431,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     FullyearcalendarLibModule,
     HttpClientModule,
     InputMaskModule,
-    InputTextareaModule,
+    InputTextarea,
     InputTextModule,
     MenubarModule,
     MenuModule,

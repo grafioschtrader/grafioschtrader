@@ -22,7 +22,7 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
  * Shows the asset class as a table.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -31,10 +31,10 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
                responsiveLayout="scroll" scrollHeight="flex" [scrollable]="true"
                [dataKey]="entityKeyName" sortMode="multiple" [multiSortMeta]="multiSortMeta"
                (sortFunction)="customSort($event)" [customSort]="true">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field"
                 [style.max-width.px]="field.width"
@@ -44,7 +44,7 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-el let-columns="fields">
+        <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields"
                 [style.max-width.px]="field.width"
@@ -76,7 +76,8 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
                      (closeDialog)="handleCloseDialog($event)">
     </assetclass-edit>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> implements OnDestroy {
   callParam: AssetclassCallParam = new AssetclassCallParam();

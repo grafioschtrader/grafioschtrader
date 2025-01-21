@@ -15,7 +15,8 @@ import {AuditHelper} from '../../shared/helper/audit.helper';
  * Component for the  global trading calendar
  */
 @Component({
-  templateUrl: '../view/trading.calendar.html'
+    templateUrl: '../view/trading.calendar.html',
+    standalone: false
 })
 export class TradingCalendarGlobalComponent extends TradingCalendarBase implements OnInit {
 

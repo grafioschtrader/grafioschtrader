@@ -36,7 +36,7 @@ import {FieldConfig} from '../../dynamic-form/models/field.config';
  * Main component for the transaction import
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -60,7 +60,8 @@ import {FieldConfig} from '../../dynamic-form/models/field.config';
                         [fileUploadParam]="fileUploadParam"
                         (closeDialog)="handleCloseImportUploadDialog($event)">
     </upload-file-dialog>
-  `
+  `,
+    standalone: false
 })
 export class SecurityaccountImportTransactionComponent
   extends SingleRecordMasterViewBase<ImportTransactionHead, CombineTemplateAndImpTransPos>

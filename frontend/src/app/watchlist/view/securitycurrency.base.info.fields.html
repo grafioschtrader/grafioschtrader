@@ -19,7 +19,7 @@
             <span *ngIf="!(field.dataType === DataType.String)">{{getValueByPath(content, field)}}</span>
           </ng-container>
           <ng-container *ngSwitchCase="'check'">
-            <span><i [ngClass]="{'fa fa-check': getValueByPath(content, field)}" aria-hidden="true"></i></span>
+            <span><i [ngClass]="{'fa fa-check': getValueByPath(content, field)}"></i></span>
           </ng-container>
           <ng-container *ngSwitchDefault>
             {{getValueByPath(content, field)}}

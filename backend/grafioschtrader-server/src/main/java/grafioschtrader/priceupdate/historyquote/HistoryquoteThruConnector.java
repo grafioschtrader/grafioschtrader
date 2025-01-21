@@ -16,12 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.entities.Globalparameters;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.DownloadLink;
 import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -245,7 +246,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
       SecurityJpaRepository securityJpaRepository, MessageSource messages) {
 
     Optional<Globalparameters> globalparameters = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE);
+        .findById(GlobalParamKeyDefault.GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE);
 
     HistoryquoteQualityHead historyquoteQualityHead = new HistoryquoteQualityHead("head",
         globalparameters.isPresent() ? globalparameters.get().getPropertyDate() : null);

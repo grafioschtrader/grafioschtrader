@@ -1,6 +1,7 @@
 package grafioschtrader.reportviews.securityaccount;
 
-import grafioschtrader.common.DataHelper;
+import grafiosch.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 
 public class SecurityPositionDynamicGrandSummary<S extends SecurityPositionGroupSummary>
     extends SecurityPositionGrandSummary {
@@ -21,8 +22,8 @@ public class SecurityPositionDynamicGrandSummary<S extends SecurityPositionGroup
   @Override
   public void roundGrandTotals() {
     super.roundGrandTotals();
-    grandValueSecurityShort = DataHelper.round(grandValueSecurityShort);
-    grandSecurityRiskMC = DataHelper.roundStandard(grandSecurityRiskMC);
+    grandValueSecurityShort = DataBusinessHelper.round(grandValueSecurityShort);
+    grandSecurityRiskMC = DataBusinessHelper.roundStandard(grandSecurityRiskMC);
   }
 
   public double getGrandValueSecurityShort() {

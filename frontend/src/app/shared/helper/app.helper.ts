@@ -15,6 +15,7 @@ import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {AppSettings} from '../app.settings';
+import {atLeastOneFieldValidator} from '../validator/validator';
 
 export const enum Comparison { GT, LT, EQ }
 
@@ -225,16 +226,22 @@ export class AppHelper {
   }
 
   public static getHttpParamsOfObject(dataobject: any): HttpParams {
+    return this.getHttpParamsOfObjectAllowBooleanNullFields(dataobject, []);
+  }
+
+  public static getHttpParamsOfObjectAllowBooleanNullFields(dataobject: any, allowBooleanNullFields: string[]): HttpParams {
     let params = new HttpParams();
     for (const key in dataobject) {
-      if (dataobject.hasOwnProperty(key) && dataobject[key] != null
-        && dataobject[key] !== '') {
+      if (dataobject.hasOwnProperty(key) && (dataobject[key] != null
+        && dataobject[key] !== '' || allowBooleanNullFields.length > 0 && allowBooleanNullFields.indexOf(key) >= 0)) {
         const val = dataobject[key];
-        params = params.append(key, '' + val);
+        params = (dataobject[key] === null)? params.append(key, ''): params.append(key, '' + val);
       }
     }
     return params;
+
   }
+
 
   public static processDroppedFiles(files: NgxFileDropEntry[], messageToastService: MessageToastService,
                                     allowedFileExtension: string, uploadFunc: (formData: FormData) => void): void {

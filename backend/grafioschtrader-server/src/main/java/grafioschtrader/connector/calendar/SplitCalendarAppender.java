@@ -18,9 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafiosch.entities.Globalparameters;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector.TickerSecuritysplit;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TaskDataChange;
@@ -74,7 +75,7 @@ public class SplitCalendarAppender {
 
   public void appendSecuritySplitsUntilToday() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
+        .findById(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
     gpLastAppend.ifPresentOrElse(gp -> loadSplitData(gp.getPropertyDate().plusDays(1)),
         () -> loadSplitData(LocalDate.now()));
   }
@@ -87,7 +88,7 @@ public class SplitCalendarAppender {
     SimilarityScore<Double> similarityAlgo = new JaroWinklerSimilarity();
     splitCalendarFeedConnectors.sort(Comparator.comparingInt(ISplitCalendarFeedConnector::getPriority));
     stepThruEveryCalendarDay(tradingDaysPlusList, countryCodes, similarityAlgo);
-    Globalparameters globalparameters = new Globalparameters(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE, now,
+    Globalparameters globalparameters = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE, now,
         true);
     globalparametersJpaRepository.save(globalparameters);
   }

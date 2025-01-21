@@ -15,8 +15,9 @@ import {AppHelper} from '../../shared/helper/app.helper';
  * import template could read the data.
  */
 @Component({
-  selector: 'securityaccount-import-extended-info',
-  templateUrl: '../view/securityaccount.import.extended.info.html'
+    selector: 'securityaccount-import-extended-info',
+    templateUrl: '../view/securityaccount.import.extended.info.html',
+    standalone: false
 })
 export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnInit {
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;

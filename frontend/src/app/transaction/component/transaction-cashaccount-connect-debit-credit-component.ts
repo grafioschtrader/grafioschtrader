@@ -7,8 +7,8 @@ import {TranslateService} from '@ngx-translate/core';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
 
 @Component({
-  selector: 'transaction-cashaccount-connect-debit-credit',
-  template: `
+    selector: 'transaction-cashaccount-connect-debit-credit',
+    template: `
     <p-dialog header="{{'CHANGE_TO_ACCOUNT_TRANSFER' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -17,7 +17,8 @@ import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class TransactionCashaccountConnectDebitCreditComponent extends SimpleEditBase implements OnInit {
 

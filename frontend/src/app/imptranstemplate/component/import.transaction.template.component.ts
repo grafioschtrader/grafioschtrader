@@ -33,7 +33,7 @@ import {AppHelper} from '../../shared/helper/app.helper';
  * Main component of import transaction template. It combines other components like a table.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -68,7 +68,8 @@ import {AppHelper} from '../../shared/helper/app.helper';
                                 [importTransactionPlatform]="selectedEntity"
                                 (closeDialog)="handleCloseTemplateFormCheckDialog()">
     </template-form-check-dialog>
-  `
+  `,
+    standalone: false
 })
 export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBase<ImportTransactionPlatform, ImportTransactionTemplate>
   implements OnInit, OnDestroy, ParentChildRowSelection<ImportTransactionTemplate> {

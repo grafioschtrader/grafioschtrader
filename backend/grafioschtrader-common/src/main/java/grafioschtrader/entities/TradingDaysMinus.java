@@ -7,7 +7,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.types.CreateType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -65,7 +65,7 @@ public class TradingDaysMinus {
     return tradingDaysMinusKey.idStockexchange;
   }
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate getTradingDateMinus() {
     return tradingDaysMinusKey.tradingDateMinus;
   }

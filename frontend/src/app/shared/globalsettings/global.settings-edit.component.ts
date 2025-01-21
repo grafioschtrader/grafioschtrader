@@ -16,8 +16,8 @@ import {AppHelper} from '../helper/app.helper';
 import {AppSettings} from '../app.settings';
 
 @Component({
-  selector: 'globalsettings-edit',
-  template: `
+    selector: 'globalsettings-edit',
+    template: `
     <p-dialog header="{{'GLOBAL_SETTINGS' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '800px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -27,7 +27,8 @@ import {AppSettings} from '../app.settings';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalparameters> implements OnInit {
 

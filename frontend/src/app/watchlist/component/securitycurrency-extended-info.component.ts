@@ -19,8 +19,9 @@ import {WatchlistHelper} from './watchlist.helper';
  * Shows detailed information of a currency or instrument
  */
 @Component({
-  selector: 'securitycurrency-extended-info',
-  templateUrl: '../view/securitycurrency.base.info.fields.html'
+    selector: 'securitycurrency-extended-info',
+    templateUrl: '../view/securitycurrency.base.info.fields.html',
+    standalone: false
 })
 export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseInfoFields implements OnInit {
   @Input() intradayUrl: string;

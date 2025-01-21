@@ -27,8 +27,8 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
  * For a user it is possible to set a limit cf changes for a certain entity. It is implemented as a nested table.
  */
 @Component({
-  selector: 'user-entity-change-limit-table',
-  template: `
+    selector: 'user-entity-change-limit-table',
+    template: `
     <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable nestedtable">
@@ -39,7 +39,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
                  sortMode="multiple" [multiSortMeta]="multiSortMeta"
                  responsiveLayout="scroll" [contextMenu]="cm"
                  styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-          <ng-template pTemplate="header" let-fields>
+          <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
@@ -50,7 +50,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
             </tr>
           </ng-template>
 
-          <ng-template pTemplate="body" let-el let-columns="fields">
+          <ng-template #body let-el let-columns="fields">
             <tr [pContextMenuRow] [pSelectableRow]="el">
               <ng-container *ngFor="let field of fields">
 
@@ -83,7 +83,8 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
                                    [proposeChangeEntityWithEntity]="proposeChangeEntityWithEntity"
                                    (closeDialog)="handleCloseDialog($event)">
     </user-entity-change-limit-edit>
-  `
+  `,
+    standalone: false
 })
 export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 

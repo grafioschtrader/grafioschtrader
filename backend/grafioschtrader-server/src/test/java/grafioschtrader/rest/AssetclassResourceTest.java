@@ -23,8 +23,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
+import grafiosch.entities.ProposeChangeField;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.AssetclassType;

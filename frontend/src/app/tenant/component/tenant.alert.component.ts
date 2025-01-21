@@ -1,9 +1,10 @@
 import {Component} from '@angular/core';
 
 @Component({
-  template: `
+    template: `
     Alert
-  `
+  `,
+    standalone: false
 })
 export class TenantAlertComponent {
 

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.UDFData;
@@ -67,10 +68,10 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
     if (foundClass.isPresent()) {
       Object uDFSupport = entityManager.getReference(foundClass.get(), udfData.getuDFDataKey().getIdEntity());
       if (!((IUDFSupport) uDFSupport).tenantHasAccess(user.getIdTenant())) {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     } else {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 

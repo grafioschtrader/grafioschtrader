@@ -34,6 +34,8 @@ public class MailSendForwardDefault {
         new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL, intExtTargetTypeSet, false));
     mailSendForwardDefaultMap.put(MessageComType.USER_ADMIN_PERSONAL_TO_USER,
         new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL, intExtTargetTypeSet, false));
+    mailSendForwardDefaultMap.put(MessageComType.USER_SECURITY_MISSING_CONNECTOR,
+        new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL, intExtTargetTypeSet, false));
     mailSendForwardDefaultMap.put(MessageComType.MAIN_ADMIN_RELEASE_LOGOUT,
         new MailSendForwardDefaultConfig(MessageTargetType.NO_MAIL,
             EnumHelper.cloneSetAndAddEnum(standardTargetTypeSet, MessageTargetType.NO_MAIL), true));

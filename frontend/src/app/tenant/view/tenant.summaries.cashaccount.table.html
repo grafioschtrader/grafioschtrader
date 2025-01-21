@@ -5,7 +5,7 @@
     <p-table [columns]="fields" [value]="accountPositionSummaryAll" selectionMode="single" sortMode="none"
              responsiveLayout="scroll"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-      <ng-template pTemplate="caption">
+      <ng-template #caption>
         <div class="flex-two-columns">
           <div class="left-half">
             <h4>{{'PORTFOLIOS' | translate}}:
@@ -17,18 +17,18 @@
           <div class="right-half">
             <label [pTooltip]="'UNTIL_DATE_TOOLTIP' | translate" for="untilDate" style="margin-right: 5px; margin-top: 5px;">
               {{'UNTIL_DATE' | translate}}</label>
-            <p-calendar #cal (onSelect)="filterDate($event)"
+            <p-datepicker #cal (onSelect)="filterDate($event)"
                         [(ngModel)]="untilDate"
                         [dateFormat]="baseLocale.dateFormat"
                         appendTo="body"
                         id="untilDate">
-            </p-calendar>
+            </p-datepicker>
             <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
           </div>
         </div>
       </ng-template>
 
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields" [pTooltip]="field.headerTooltipTranslated" [style.width.px]="field.width">
             {{field.headerTranslated}}
@@ -36,7 +36,7 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-columns="fields" let-el let-rowIndex="rowIndex">
+      <ng-template #body let-columns="fields" let-el let-rowIndex="rowIndex">
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <ng-container *ngFor="let field of fields">
             <td *ngIf="field.visible"

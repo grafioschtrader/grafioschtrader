@@ -4,11 +4,11 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public interface IDateAndClose {
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Schema(description = "Date of close")
   LocalDate getDate();
 

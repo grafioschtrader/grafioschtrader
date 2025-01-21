@@ -14,8 +14,9 @@ import {AppSettings} from '../../shared/app.settings';
  * Time the imported dividends as a table for a security.
  */
 @Component({
-  selector: 'watchlist-dividend-table',
-  templateUrl: '../view/dividend.split.table.html'
+    selector: 'watchlist-dividend-table',
+    templateUrl: '../view/dividend.split.table.html',
+    standalone: false
 })
 export class WatchlistDividendTableComponent extends DividendSplitTableBase<Dividend> implements OnInit {
   private static EX_DATE = 'exDate';

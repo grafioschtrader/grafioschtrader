@@ -1,7 +1,7 @@
 <p-table [(selection)]="selectedRow" [columns]="fields" [dataKey]="dataSortKey" [multiSortMeta]="multiSortMeta" [paginator]="true"
          [rows]="10" [value]="_dataList" responsiveLayout="scroll" selectionMode="single" sortMode="multiple"
          styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-  <ng-template pTemplate="header" let-fields >
+  <ng-template #header let-fields >
     <tr>
       <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
           [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -10,7 +10,7 @@
       </th>
     </tr>
   </ng-template>
-  <ng-template pTemplate="body" let-columns="fields" let-el>
+  <ng-template #body let-columns="fields" let-el>
     <tr [pSelectableRow]="el">
       <ng-container *ngFor="let field of fields">
         <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric

@@ -2,8 +2,8 @@ import {BaseInputComponent} from '../base.input.component';
 import {Component} from '@angular/core';
 
 @Component({
-  selector: 'form-input-currency-number',
-  template: `
+    selector: 'form-input-currency-number',
+    template: `
     <ng-container [formGroup]="group">
       <input currencyMask [options]="config.currencyMaskConfig"  #input
              [id]="config.field"
@@ -17,7 +17,8 @@ import {Component} from '@angular/core';
              autocomplete="off"
              onfocus="this.select()"/>
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 export class FormInputCurrencyNumberComponent extends BaseInputComponent {
 }

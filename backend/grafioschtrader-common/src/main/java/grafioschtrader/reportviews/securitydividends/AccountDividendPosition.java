@@ -2,8 +2,8 @@ package grafioschtrader.reportviews.securitydividends;
 
 import java.util.Map;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Transaction;

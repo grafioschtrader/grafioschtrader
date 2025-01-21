@@ -64,7 +64,7 @@ export class CorrelationSetService extends AuthServiceWithLogout<CorrelationSet>
     return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.CORRELATION_SET_KEY}`
       + `/${idCorrelationSet}/search`, {
       headers: this.prepareHeaders(),
-      params: AppHelper.getHttpParamsOfObject(securitycurrencySearch)
+      params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
     }).pipe(catchError(this.handleError.bind(this)));
   }
 

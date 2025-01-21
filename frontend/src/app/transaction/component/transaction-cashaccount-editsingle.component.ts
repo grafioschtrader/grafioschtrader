@@ -31,8 +31,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Used for cash account transaction where only one cash account is involved.
  */
 @Component({
-  selector: 'transaction-cashaccount-editsingle',
-  template: `
+    selector: 'transaction-cashaccount-editsingle',
+    template: `
     <p-dialog header="{{'SINGLE_ACCOUNT_TRANSACTION' | translate}}"
               [(visible)]="visibleCashaccountTransactionSingleDialog"
               [responsive]="true" [style]="{width: '400px'}"
@@ -43,7 +43,8 @@ import {AppSettings} from '../../shared/app.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
 

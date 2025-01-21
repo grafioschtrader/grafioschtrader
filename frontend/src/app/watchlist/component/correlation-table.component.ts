@@ -37,14 +37,14 @@ import {AppHelper} from '../../shared/helper/app.helper';
  * for showing the rolling correlation.
  */
 @Component({
-  selector: 'correlation-table',
-  template: `
+    selector: 'correlation-table',
+    template: `
     <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single"
              [(selection)]="selectedEntity" dataKey="idSecuritycurrency"
              (sortFunction)="customSort($event)" [customSort]="true"
              responsiveLayout="scroll"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th style="width:24px"></th>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
@@ -55,7 +55,7 @@ import {AppHelper} from '../../shared/helper/app.helper';
           </th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+      <ng-template #body let-expanded="expanded" let-el let-columns="fields">
         <tr [pSelectableRow]="el">
           <td>
             <a href="#" [pRowToggler]="el">
@@ -78,7 +78,7 @@ import {AppHelper} from '../../shared/helper/app.helper';
           </td>
         </tr>
       </ng-template>
-      <ng-template pTemplate="rowexpansion" let-securitycrrency let-columns="fields">
+      <ng-template #expandedrow let-securitycrrency let-columns="fields">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
             <instrument-statistics-result [idSecuritycurrency]="securitycrrency.idSecuritycurrency"
@@ -93,7 +93,8 @@ import {AppHelper} from '../../shared/helper/app.helper';
                                 [visibleAddInstrumentDialog]="visibleAddInstrumentDialog"
                                 (closeDialog)="handleCloseAddInstrumentDialog($event)">
     </correlation-add-instrument>
-  `
+  `,
+    standalone: false
 })
 export class CorrelationTableComponent extends TableConfigBase implements OnDestroy {
   @Input() childToParent: ChildToParent;

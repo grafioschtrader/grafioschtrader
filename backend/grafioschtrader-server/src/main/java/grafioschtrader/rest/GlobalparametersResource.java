@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.Globalparameters;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyChangePassword;
 import grafioschtrader.common.PropertyOnlyCreation;
@@ -28,7 +29,6 @@ import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.dynamic.model.DynamicModelHelper;
 import grafioschtrader.dynamic.model.FieldDescriptorInputAndShow;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.User;
 import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.types.AssetclassType;

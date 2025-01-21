@@ -22,16 +22,17 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.Globalparameters;
+import grafiosch.entities.ProposeChangeField;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.GlobalParamKeyDefault;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.SecuritysplitDeleteAndCreateMultiple;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.ProposeChangeEntity;
-import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TaskDataChange;
@@ -98,7 +99,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
     List<Securitysplit> securitysplitsExisting = securitysplitJpaRepository
         .findByIdSecuritycurrencyOrderBySplitDateAsc(sdacm.idSecuritycurrency);
-    if (!DataHelper.compareCollectionsUnSorted(Arrays.asList(sdacm.getSecuritysplits()), securitysplitsExisting,
+    if (!DataBusinessHelper.compareCollectionsUnSorted(Arrays.asList(sdacm.getSecuritysplits()), securitysplitsExisting,
         splitCompare)) {
       // Security split has changed
       Optional<Security> securityOpt = securityJpaRepository.findById(sdacm.idSecuritycurrency);
@@ -185,7 +186,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
   private LocalDate getSplitToDate() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
-        .findById(Globalparameters.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
+        .findById(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
     return gpLastAppend.isPresent() ? gpLastAppend.get().getPropertyDate() : LocalDate.now().minusDays(1);
   }
 

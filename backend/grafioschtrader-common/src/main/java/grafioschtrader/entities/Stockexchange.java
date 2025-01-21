@@ -22,10 +22,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.common.PropertyOnlyCreation;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -122,7 +123,7 @@ public class Stockexchange extends Auditable implements Serializable {
   private Integer idIndexUpdCalendar;
 
   @Schema(description = "Until this date, the update of the trading calendar was performed via the index. This date is set by the system")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "max_calendar_upd_date")
   private LocalDate maxCalendarUpdDate;
 

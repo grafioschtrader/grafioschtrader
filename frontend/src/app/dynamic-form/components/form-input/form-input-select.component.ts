@@ -5,8 +5,8 @@ import {BaseInputComponent} from '../base.input.component';
  * A html select component
  */
 @Component({
-  selector: 'form-input-select',
-  template: `
+    selector: 'form-input-select',
+    template: `
     <ng-container [formGroup]="group">
       <select #input
               [ngStyle]="{'width': (config.inputWidth+1) + 'em'}"
@@ -20,7 +20,8 @@ import {BaseInputComponent} from '../base.input.component';
         </option>
       </select>
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 
 export class FormInputSelectComponent extends BaseInputComponent {

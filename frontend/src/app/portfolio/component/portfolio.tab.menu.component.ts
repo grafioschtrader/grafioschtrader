@@ -12,10 +12,11 @@ import {GlobalSessionNames} from '../../shared/global.session.names';
  * Component for the tab menu of a single portfolio.
  */
 @Component({
-  template: `
+    template: `
       <p-tabMenu [model]="items" [activeItem]="items[idActiveItem]"></p-tabMenu>
       <router-outlet></router-outlet>
-  `
+  `,
+    standalone: false
 })
 export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
   items: MenuItem[] = [];

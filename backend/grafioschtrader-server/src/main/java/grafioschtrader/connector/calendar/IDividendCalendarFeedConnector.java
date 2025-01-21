@@ -8,6 +8,14 @@ import grafioschtrader.types.CreateType;
 
 public interface IDividendCalendarFeedConnector {
 
+  /**
+   * Retrieves a list of calendar dividends for a specified ex-date.
+   * 
+   * @param exDate the ex-date for which to retrieve dividends, specified as a {@link LocalDate}.
+   * @return a list of {@link CalendarDividends} objects representing the dividends associated with the specified ex-date.
+   * @throws Exception if an error occurs while fetching or processing the data, such as issues with the URL, 
+   *         data deserialization, or other runtime exceptions.
+   **/
   List<CalendarDividends> getExDateDividend(LocalDate exDate) throws Exception;
 
   int getPriority();

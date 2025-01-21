@@ -6,15 +6,15 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafiosch.BaseConstants;
+import grafioschtrader.common.DataBusinessHelper;
 
 public class AnnualisedPerformance {
   public final String securityCurrency;
   public final String mainCurrency;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate dateFrom;
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate dateTo;
 
   public final List<LastYears> lastYears = new ArrayList<>();
@@ -39,11 +39,11 @@ public class AnnualisedPerformance {
     }
 
     public double getPerformanceYear() {
-      return DataHelper.roundStandard(performanceYear);
+      return DataBusinessHelper.roundStandard(performanceYear);
     }
 
     public double getPerformanceYearMC() {
-      return DataHelper.roundStandard(performanceYearMC);
+      return DataBusinessHelper.roundStandard(performanceYearMC);
     }
 
   }
@@ -60,11 +60,11 @@ public class AnnualisedPerformance {
     }
 
     public double getPerformanceAnnualised() {
-      return DataHelper.roundStandard(performanceAnnualised);
+      return DataBusinessHelper.roundStandard(performanceAnnualised);
     }
 
     public double getPerformanceAnnualisedMC() {
-      return DataHelper.roundStandard(performanceAnnualisedMC);
+      return DataBusinessHelper.roundStandard(performanceAnnualisedMC);
     }
 
   }

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
@@ -143,7 +143,7 @@ class TransactionTimeUnits {
   public TransactionTimeUnits(final Transaction transaction, final double units) {
     super();
     this.transaction = transaction;
-    this.units = DataHelper.round(units);
+    this.units = DataBusinessHelper.round(units);
   }
 
 }

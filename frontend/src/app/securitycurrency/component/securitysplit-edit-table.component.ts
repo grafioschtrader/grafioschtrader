@@ -16,8 +16,9 @@ import {FilterService} from 'primeng/api';
  * Shows the table of splits
  */
 @Component({
-  selector: 'securitysplit-edit-table',
-  templateUrl: '../view/split.period.table.html'
+    selector: 'securitysplit-edit-table',
+    templateUrl: '../view/split.period.table.html',
+    standalone: false
 })
 export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securitysplit> {
 

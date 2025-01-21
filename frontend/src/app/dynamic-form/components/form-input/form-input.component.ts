@@ -6,8 +6,8 @@ import {BaseInputComponent} from '../base.input.component';
  * Input for normal text, password email and number with minimal and maximal value
  */
 @Component({
-  selector: 'form-input',
-  template: `
+    selector: 'form-input',
+    template: `
     <ng-container [formGroup]="group">
       <div *ngIf="config.maxLength; then withSize else withoutSize"></div>
       <ng-template #withSize>
@@ -58,7 +58,8 @@ import {BaseInputComponent} from '../base.input.component';
         {{config.fieldSuffix|translate}}
       </ng-template>
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 
 export class FormInputComponent extends BaseInputComponent {

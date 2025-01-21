@@ -30,10 +30,10 @@ import {TranslateHelper} from '../helper/translate.helper';
                      [(selection)]="selectedEntity" dataKey="propertyName" responsiveLayout="scroll"
                      (sortFunction)="customSort($event)" [customSort]="true"
                      styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-                <ng-template pTemplate="caption">
+                <ng-template #caption>
                     <h4>{{'GLOBAL_SETTINGS' | translate}}</h4>
                 </ng-template>
-                <ng-template pTemplate="header" let-fields>
+                <ng-template #header let-fields>
                     <tr>
                         <td style="max-width:24px">
                         <th *ngFor="let field of fields" [pSortableColumn]="field.field"
@@ -45,7 +45,7 @@ import {TranslateHelper} from '../helper/translate.helper';
                         </th>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+                <ng-template #body let-expanded="expanded" let-el let-columns="fields">
                     <tr [pSelectableRow]="el">
                         <td style="max-width:24px">
                             <a *ngIf="el.propertyBlobAsText" href="#" [pRowToggler]="el">
@@ -66,7 +66,7 @@ import {TranslateHelper} from '../helper/translate.helper';
                         </td>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="rowexpansion" let-gp let-columns="fields">
+                <ng-template #expandedrow let-gp let-columns="fields">
                     <tr>
                         <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
               <textarea [rows]="10" pInputTextarea style="width: 100%;"
@@ -82,7 +82,8 @@ import {TranslateHelper} from '../helper/translate.helper';
                              [globalparameters]="selectedEntity"
                              (closeDialog)="handleGlobalparameterCloseDialog($event)">
         </globalsettings-edit>
-    `
+    `,
+    standalone: false
 })
 export class GlobalSettingsTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
 

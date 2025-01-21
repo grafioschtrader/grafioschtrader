@@ -19,7 +19,7 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
 
   protected abstract initializeOthers(): void;
 
-  constructor(private fieldCategoryType: string,
+  protected constructor(private fieldCategoryType: string,
     private fieldSpecialInvestmentInstrument: string,
     helpId: HelpIds,
     i18nRecord: string,

@@ -11,7 +11,7 @@ import org.springframework.util.Assert;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.platformimport.TemplateConfiguration;
 import grafioschtrader.types.TemplateCategory;
@@ -62,7 +62,7 @@ public class ImportTransactionTemplate extends Auditable {
   @PropertyAlwaysUpdatable
   private byte templateFormatType;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Temporal(TemporalType.DATE)
   @Column(name = "valid_since")
   @PropertyAlwaysUpdatable

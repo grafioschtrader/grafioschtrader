@@ -6,8 +6,8 @@ import {FieldConfig} from '../../models/field.config';
 import {FormConfig} from '../../models/form.config';
 
 @Component({
-  selector: 'form-button',
-  template: `
+    selector: 'form-button',
+    template: `
       <button *ngIf="!config.buttonFN" class="btn ml-1"
               type="submit" [disabled]="!group.valid || config.disabled">
           {{config.labelKey | translate}}
@@ -16,7 +16,8 @@ import {FormConfig} from '../../models/form.config';
               [disabled]="config.disabled" type="button" (click)="config.buttonFN($event)">
           {{config.labelKey | translate}}
       </button>
-  `
+  `,
+    standalone: false
 })
 
 export class FormButtonComponent implements FieldFormFormGroupConfig {

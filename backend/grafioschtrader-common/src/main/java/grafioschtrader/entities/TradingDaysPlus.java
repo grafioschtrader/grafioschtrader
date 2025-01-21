@@ -5,7 +5,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -19,7 +19,7 @@ public class TradingDaysPlus {
 
   @Id
   @Column(name = "trading_date")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   private LocalDate tradingDate;
 
   public TradingDaysPlus() {

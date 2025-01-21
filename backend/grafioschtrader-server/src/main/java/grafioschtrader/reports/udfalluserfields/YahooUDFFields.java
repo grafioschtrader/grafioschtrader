@@ -22,6 +22,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.yahoo.CrumbManager;
@@ -56,7 +57,7 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
    * adapted to the local user.
    */
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h a z", Locale.ENGLISH);
-  private final SimpleDateFormat dateFormatEarnings = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+  private final SimpleDateFormat dateFormatEarnings = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
   private UDFMetadataSecurity udfMDSYahooSymbol;
 
   protected void createYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, UDFSpecialType uDFSpecialType,

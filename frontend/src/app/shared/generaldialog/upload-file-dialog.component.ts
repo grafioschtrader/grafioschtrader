@@ -21,8 +21,8 @@ import {FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess} from '.
  * General dialog for importing one or more file/s. Optional it allows to set some separators.
  */
 @Component({
-  selector: 'upload-file-dialog',
-  template: `
+    selector: 'upload-file-dialog',
+    template: `
     <p-dialog header="{{fileUploadParam.title | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -30,7 +30,8 @@ import {FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess} from '.
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class UploadFileDialogComponent extends SimpleEditBase implements OnInit {
 

@@ -14,8 +14,8 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
  * for changing the currencies on the client and its portfolios.
  */
 @Component({
-  selector: 'tenant-edit-dialog',
-  template: `
+    selector: 'tenant-edit-dialog',
+    template: `
     <p-dialog header="{{(onlyCurrency? 'CLIENT_CHANGE_CURRENCY': 'CLIENT') | translate}}" [(visible)]="visibleTenantDialog"
               [responsive]="true" [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -25,7 +25,8 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class TenantEditDialogComponent extends TenantEditComponent implements OnInit {
   @Input() onlyCurrency: boolean;

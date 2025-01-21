@@ -20,8 +20,8 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
  * Create or edit a key for the connectors API. It is intended for the admin only.
  */
 @Component({
-  selector: 'connector-api-key-edit',
-  template: `
+    selector: 'connector-api-key-edit',
+    template: `
     <p-dialog header="{{'CONNECTOR_API_KEY' | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -30,7 +30,8 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<ConnectorApiKey> implements OnInit {
   @Input() callParam: CallParam;

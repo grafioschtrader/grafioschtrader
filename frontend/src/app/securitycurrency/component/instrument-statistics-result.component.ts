@@ -6,8 +6,8 @@ import {SecurityService} from '../service/security.service';
  * Shows the yield and statistical data about an instrument.
  */
 @Component({
-  selector: 'instrument-statistics-result',
-  template: `
+    selector: 'instrument-statistics-result',
+    template: `
     <div>
       <h4>{{"RETURN_STATISTICAL_DATA" | translate}}</h4>
       <div class="fcontainer">
@@ -24,7 +24,7 @@ import {SecurityService} from '../service/security.service';
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .tabletree {
       min-width: 250px;
       max-width: 33.12%;
@@ -32,8 +32,8 @@ import {SecurityService} from '../service/security.service';
       border-style: solid;
       border-color: darkgrey;
     }
-  `]
-
+  `],
+    standalone: false
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
   @Input() idSecuritycurrency: number;

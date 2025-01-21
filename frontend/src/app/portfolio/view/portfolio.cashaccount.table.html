@@ -9,25 +9,26 @@
              selectionMode="single" responsiveLayout="scroll"
              sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
 
-      <ng-template pTemplate="caption">
+      <ng-template #caption>
         <div class="flex-two-columns">
           <div class=".left-half">
             <h4>{{'PORTFOLIO' | translate}}: {{accountPositionGroupSummary?.groupName}}</h4>
           </div>
           <div class="right-half">
             <label for="untilDate" style="margin-right: 5px; margin-top: 5px;">{{'UNTIL_DATE' | translate}}</label>
-            <p-calendar #cal (onSelect)="filterDate($event)"
+            <p-datepicker #cal (onSelect)="filterDate($event)"
                         [(ngModel)]="untilDate"
                         [dateFormat]="baseLocale.dateFormat"
                         appendTo="body"
+                        style="width: 80px !important;"
                         id="untilDate">
-            </p-calendar>
+            </p-datepicker>
             <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
           </div>
         </div>
       </ng-template>
 
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th style="width:24px"></th>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field"
@@ -40,7 +41,7 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-columns="fields" let-el let-expanded="expanded">
+      <ng-template #body let-columns="fields" let-el let-expanded="expanded">
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <td>
             <a [pRowToggler]="el" href="#">
@@ -91,7 +92,7 @@
         </tr>
       </ng-template>
 
-      <ng-template let-apgs let-columns="fields" pTemplate="rowexpansion">
+      <ng-template let-apgs let-columns="fields" #expandedrow>
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
             <transaction-cashaccount-table (dateChanged)="transactionDataChanged($event)"

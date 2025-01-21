@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.ChangePasswordDTO;
 import grafioschtrader.dto.PasswordRegexProperties;
@@ -231,7 +232,7 @@ public class UserServiceImpl implements UserService {
   private void checkPasswordAgainstRegex(String password) throws Exception {
     String regex = globalparametersJpaRepository.getPasswordRegexProperties().regex;
     if (!password.matches(regex)) {
-        throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 

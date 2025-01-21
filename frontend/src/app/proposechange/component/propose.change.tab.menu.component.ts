@@ -6,10 +6,11 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {MenuItem} from 'primeng/api';
 
 @Component({
-  template: `
+    template: `
     <p-tabMenu [model]="items" [activeItem]="items[0]"></p-tabMenu>
     <router-outlet></router-outlet>
-  `
+  `,
+    standalone: false
 })
 export class ProposeChangeTabMenuComponent implements OnInit {
   items: MenuItem[];

@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.types.TimePeriodType;
 
 public class StatisticsSummary {
@@ -55,11 +55,11 @@ public class StatisticsSummary {
     }
 
     public double getValue() {
-      return DataHelper.roundStandard(value);
+      return DataBusinessHelper.roundStandard(value);
     }
 
     public double getValueMC() {
-      return DataHelper.roundStandard(valueMC);
+      return DataBusinessHelper.roundStandard(valueMC);
     }
   }
 }

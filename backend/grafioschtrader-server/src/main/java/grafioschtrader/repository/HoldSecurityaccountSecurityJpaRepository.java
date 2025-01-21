@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import grafioschtrader.common.UpdateQuery;
 import grafioschtrader.entities.HoldSecurityaccountSecurity;
 import grafioschtrader.entities.HoldSecurityaccountSecurityKey;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
@@ -18,7 +19,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
     extends JpaRepository<HoldSecurityaccountSecurity, HoldSecurityaccountSecurityKey>,
     HoldSecurityaccountSecurityJpaRepositoryCustom {
 
-  @Query(value = "DELETE FROM hold_securityaccount_security WHERE id_securitycash_account = ?1", nativeQuery = true)
+  @UpdateQuery(value = "DELETE FROM hold_securityaccount_security WHERE id_securitycash_account = ?1", nativeQuery = true)
   void removeAllByIdSecuritycashAccount(Integer idSecuritycashAccount);
 
   void deleteByHsskIdSecuritycashAccountAndHsskIdSecuritycurrency(Integer idSecuritycashAccount,

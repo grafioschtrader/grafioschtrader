@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Contains the data for period performance")
@@ -53,11 +53,11 @@ public class PerformancePeriod {
         performanceChartDayDiff.add(new PerformanceChartDayDiff(periodHolding.getDate()));
       } else {
         performanceChartDayDiff.add(new PerformanceChartDayDiff(periodHolding.getDate(),
-            DataHelper.roundStandard(periodHolding.getExternalCashTransferMC() - firstDayTotals.externalCashTransferMC),
-            DataHelper.roundStandard(periodHolding.getGainMC() - firstDayTotals.gainMC),
-            DataHelper.roundStandard(periodHolding.getCashBalanceMC() - firstDayTotals.cashBalanceMC),
-            DataHelper.roundStandard(periodHolding.getSecuritiesMC() - firstDayTotals.securitiesMC),
-            DataHelper.roundStandard(periodHolding.getSecuritiesMC() - firstDayTotals.securitiesMC
+            DataBusinessHelper.roundStandard(periodHolding.getExternalCashTransferMC() - firstDayTotals.externalCashTransferMC),
+            DataBusinessHelper.roundStandard(periodHolding.getGainMC() - firstDayTotals.gainMC),
+            DataBusinessHelper.roundStandard(periodHolding.getCashBalanceMC() - firstDayTotals.cashBalanceMC),
+            DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - firstDayTotals.securitiesMC),
+            DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - firstDayTotals.securitiesMC
                 + periodHolding.getCashBalanceMC() - firstDayTotals.cashBalanceMC)));
       }
     }
@@ -125,13 +125,13 @@ public class PerformancePeriod {
             if (phIndex > 0) {
               IPeriodHolding pHDayBefore = periodHoldings.get(lastIndex);
               periodWindow.addPeriodStep(weekYear, weekDay,
-                  DataHelper.roundStandard(
+                  DataBusinessHelper.roundStandard(
                       periodHolding.getExternalCashTransferMC() - pHDayBefore.getExternalCashTransferMC()),
-                  DataHelper.roundStandard(periodHolding.getGainMC() - pHDayBefore.getGainMC()),
-                  DataHelper.roundStandard(periodHolding.getMarginCloseGainMC() - pHDayBefore.getMarginCloseGainMC()),
-                  DataHelper.roundStandard(periodHolding.getCashBalanceMC() - pHDayBefore.getCashBalanceMC()),
-                  DataHelper.roundStandard(periodHolding.getSecuritiesMC() - pHDayBefore.getSecuritiesMC()),
-                  DataHelper.roundStandard(periodHolding.getSecuritiesMC() - pHDayBefore.getSecuritiesMC()
+                  DataBusinessHelper.roundStandard(periodHolding.getGainMC() - pHDayBefore.getGainMC()),
+                  DataBusinessHelper.roundStandard(periodHolding.getMarginCloseGainMC() - pHDayBefore.getMarginCloseGainMC()),
+                  DataBusinessHelper.roundStandard(periodHolding.getCashBalanceMC() - pHDayBefore.getCashBalanceMC()),
+                  DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - pHDayBefore.getSecuritiesMC()),
+                  DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - pHDayBefore.getSecuritiesMC()
                       + periodHolding.getCashBalanceMC() - pHDayBefore.getCashBalanceMC()),
                   missingDayCountFromDayToDay);
               lastIndex = phIndex;
@@ -159,7 +159,7 @@ public class PerformancePeriod {
     Double beforePeriodGainMC = lastDayWeekGainMap.get(periodWindowBefore.startDate);
     Double periodGainMC = lastDayWeekGainMap.get(periodWindow.startDate);
     if (beforePeriodGainMC != null && periodGainMC != null) {
-      periodWindow.gainPeriodMC = DataHelper.roundStandard(periodGainMC - beforePeriodGainMC);
+      periodWindow.gainPeriodMC = DataBusinessHelper.roundStandard(periodGainMC - beforePeriodGainMC);
     }
     lastDayWeekGainMap.remove(periodWindowBefore.startDate);
   }
@@ -190,7 +190,7 @@ public class PerformancePeriod {
 
   public double[] getSumPeriodColSteps() {
     for (int i = 0; i < sumPeriodColSteps.length; i++) {
-      sumPeriodColSteps[i] = DataHelper.roundStandard(sumPeriodColSteps[i]);
+      sumPeriodColSteps[i] = DataBusinessHelper.roundStandard(sumPeriodColSteps[i]);
     }
     return sumPeriodColSteps;
   }

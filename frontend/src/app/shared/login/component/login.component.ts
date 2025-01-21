@@ -23,7 +23,7 @@ import {AppHelper} from '../../helper/app.helper';
  * Shows the login form
  */
 @Component({
-  template: `
+    template: `
     <div class="container">
       <div class="login jumbotron center-block">
         <div class="alert alert-success" role="alert" *ngIf="successLastRegistration">
@@ -51,7 +51,8 @@ import {AppHelper} from '../../helper/app.helper';
                    [visibleDialog]="visiblePasswordDialog">
     </password-edit>
   `,
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;

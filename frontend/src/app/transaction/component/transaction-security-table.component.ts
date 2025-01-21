@@ -26,8 +26,9 @@ import {HelpIds} from '../../shared/help/help.ids';
  * It is used as a nested table.
  */
 @Component({
-  selector: 'transaction-security-table',
-  templateUrl: '../view/transaction.security.table.html',
+    selector: 'transaction-security-table',
+    templateUrl: '../view/transaction.security.table.html',
+    standalone: false
 })
 export class TransactionSecurityTableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   @Input() idsSecurityaccount: number[];

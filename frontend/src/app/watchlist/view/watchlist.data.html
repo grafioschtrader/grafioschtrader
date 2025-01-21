@@ -6,15 +6,15 @@
            [multiSortMeta]="multiSortMeta" [selectionMode]="selectMultiMode" [value]="securityPositionList"
            dataKey="securitycurrency.idSecuritycurrency" loadingIcon="fa fa-circle-o-notch fa-5x" sortMode="multiple"
            responsiveLayout="scroll"
-           styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-    <ng-template pTemplate="caption">
+           stripedRows showGridlines>
+    <ng-template #caption>
       <h4>{{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{
           securitycurrencyGroup?.lastTimestamp
             | date: 'HH:mm dd.MM.yy'
         }}</h4>
     </ng-template>
 
-    <ng-template pTemplate="header" let-fields>
+    <ng-template #header let-fields>
       <tr>
         <th style="width:24px"></th>
         <th *ngIf="selectMultiMode === 'multiple'" style="width: 2.25em">
@@ -32,7 +32,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="body" let-columns="fields" let-expanded="expanded" let-spl>
+    <ng-template #body let-columns="fields" let-expanded="expanded" let-spl>
       <tr [pSelectableRow]="spl">
         <td style="width:24px">
           <a *ngIf="spl.watchlistSecurityHasEver || watchlistType === WatchListType.PRICE_FEED
@@ -84,7 +84,7 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="rowexpansion" let-columns="fields" let-spl>
+    <ng-template #expandedrow let-columns="fields" let-spl>
       <tr *ngIf="spl.watchlistSecurityHasEver || watchlistType !== WatchListType.PERFORMANCE">
         <td [attr.colspan]="numberOfVisibleColumns + 1">
           <transaction-security-table (dateChanged)="handleCloseTransactionDialog($event)"

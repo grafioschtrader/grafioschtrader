@@ -15,8 +15,8 @@ import {AppSettings} from '../../shared/app.settings';
 
 
 @Component({
-  selector: 'securityaccount-import-transaction-edit-head',
-  template: `
+    selector: 'securityaccount-import-transaction-edit-head',
+    template: `
     <p-dialog header="{{'IMPORT_SET' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -24,7 +24,8 @@ import {AppSettings} from '../../shared/app.settings';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEntityEditBase<ImportTransactionHead> implements OnInit {
 

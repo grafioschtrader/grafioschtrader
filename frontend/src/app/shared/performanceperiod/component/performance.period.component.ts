@@ -29,7 +29,7 @@ import {FormHelper} from '../../../dynamic-form/components/FormHelper';
  * Performance over a certain period for a tenant or portfolio.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p>{{'PERFORMANCE_REMARK' | translate}} {{firstAndMissingTradingDays?.firstEverTradingDay
@@ -48,7 +48,8 @@ import {FormHelper} from '../../../dynamic-form/components/FormHelper';
       <performance-period-treetable [performancePeriod]="performancePeriod">
       </performance-period-treetable>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class PerformancePeriodComponent extends FormBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 

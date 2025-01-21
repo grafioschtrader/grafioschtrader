@@ -16,8 +16,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Create or modify a watchlist, only the name can be edited.
  */
 @Component({
-  selector: 'watchlist-edit',
-  template: `
+    selector: 'watchlist-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true"  [style]="{width: '350px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -25,7 +25,8 @@ import {AppSettings} from '../../shared/app.settings';
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class WatchlistEditComponent extends SimpleEntityEditBase<Watchlist> implements OnInit {
 

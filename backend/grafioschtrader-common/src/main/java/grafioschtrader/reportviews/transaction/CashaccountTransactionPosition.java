@@ -1,6 +1,6 @@
 package grafioschtrader.reportviews.transaction;
 
-import grafioschtrader.common.DataHelper;
+import grafiosch.common.DataHelper;
 import grafioschtrader.entities.Transaction;
 
 /**

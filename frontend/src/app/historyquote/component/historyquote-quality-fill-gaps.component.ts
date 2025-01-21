@@ -19,8 +19,8 @@ import {ProcessedAction} from '../../shared/types/processed.action';
  * Dialog to fill gaps of history quotes.
  */
 @Component({
-  selector: 'historyquote-quality-fill-gaps',
-  template: `
+    selector: 'historyquote-quality-fill-gaps',
+    template: `
     <p-dialog header="{{'HISTORYQUOTE_FILL_GAPS' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -29,7 +29,8 @@ import {ProcessedAction} from '../../shared/types/processed.action';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class HistoryquoteQualityFillGapsComponent extends SimpleEditBase implements OnInit {
   @Input() historyquoteQuality: IHistoryquoteQuality;

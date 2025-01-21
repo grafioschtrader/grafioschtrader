@@ -13,18 +13,18 @@ import {FilterService} from 'primeng/api';
  * Shows the securities in a table.
  */
 @Component({
-  selector: 'security-historyquote-quality-table',
-  template: `
+    selector: 'security-historyquote-quality-table',
+    template: `
     <p-table [columns]="fields" [value]="hqwspList" selectionMode="single"
              [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
              (onRowUnselect)="onRowUnselect($event)"
              dataKey="idSecurity" responsiveLayout="scroll"
              (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta"
              styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-      <ng-template pTemplate="caption">
+      <ng-template #caption>
         <h5>{{groupTitle | translate}}</h5>
       </ng-template>
-      <ng-template pTemplate="header" let-fields>
+      <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
             {{field.headerTranslated}}
@@ -32,7 +32,7 @@ import {FilterService} from 'primeng/api';
           </th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-el let-columns="fields">
+      <ng-template #body let-el let-columns="fields">
         <tr [pSelectableRow]="el">
           <td *ngFor="let field of fields"
               [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericInteger
@@ -42,7 +42,8 @@ import {FilterService} from 'primeng/api';
         </tr>
       </ng-template>
     </p-table>
-  `
+  `,
+    standalone: false
 })
 export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
   @Input() historyquoteQualityIds: HistoryquoteQualityIds;

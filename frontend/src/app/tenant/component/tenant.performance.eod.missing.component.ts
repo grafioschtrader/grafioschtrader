@@ -26,7 +26,7 @@ import {AppSettings} from '../../shared/app.settings';
  * Displays an annual calendar with a table of missing EOD courses.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
          #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-panel>
@@ -61,7 +61,8 @@ import {AppSettings} from '../../shared/app.settings';
       <p-contextMenu *ngIf="contextMenuItems" #contextMenu [model]="contextMenuItems" [target]="cmDiv">
       </p-contextMenu>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TenantPerformanceEodMissingComponent extends CalendarNavigation implements IGlobalMenuAttach, OnInit, OnDestroy {
   missingQuotesWithSecurities: MissingQuotesWithSecurities;

@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.entities.ProposeChangeField;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.ProposeDataChangeState;
 import jakarta.persistence.Basic;

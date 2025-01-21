@@ -12,23 +12,23 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
  * Shows statistical data about an instrument.
  */
 @Component({
-  selector: 'instrument-statistics-summary',
-  template: `
+    selector: 'instrument-statistics-summary',
+    template: `
     <div class="datatable nestedtable" style="min-width: 200px; max-width: 400px;">
       <p-treeTable [value]="rootNodes" [columns]="fields">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <div style="text-align:left">
             <h5>{{"STATISTICS_DATA" | translate}}</h5>
           </div>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [style.width.px]="field.width">
               {{field.headerTranslated}}
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+        <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
           <tr>
             <ng-container *ngFor="let field of fields; let i = index">
               <td *ngIf="field.visible"
@@ -53,7 +53,8 @@ import {TranslateValue} from '../../shared/datashowbase/column.config';
         </ng-template>
       </p-treeTable>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase implements OnInit {
   @Input() statisticsSummary: StatisticsSummary;

@@ -1,6 +1,6 @@
 package grafioschtrader.reportviews;
 
-import grafioschtrader.common.DataHelper;
+import grafiosch.common.DataHelper;
 
 public class SecurityCostGroup {
   public double groupTotalTransactionCostMC;

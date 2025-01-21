@@ -68,12 +68,12 @@ interface Data {
  * removed.
  */
 @Component({
-  template: `
+    template: `
     <div #container class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
          (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)">
       <div class="input-w">
         <label for="fromDate">{{'FROM_DATE' | translate}}</label>
-        <p-calendar #cal appendTo="body"
+        <p-datepicker #cal appendTo="body"
                     baseZIndex="100"
                     [(ngModel)]="fromDate" id="fromDate"
                     [dateFormat]="dateFormat"
@@ -81,7 +81,7 @@ interface Data {
                     (onBlur)="onBlurFromDate($event)"
                     (onSelect)="onBlurFromDate($event)"
                     [minDate]="startDate" [maxDate]="endDate">
-        </p-calendar>
+        </p-datepicker>
         <i class="fa fa-undo fa-border fa-lg" (click)="onResetOldestDate($event)"></i>
         <button type="button" (click)="fiveDays($event)">5{{"D" | translate}}</button>
         <button type="button" (click)="oneMonth($event)">1M</button>
@@ -117,8 +117,8 @@ interface Data {
                     (closeDialog)="handleCloseTaDialog($event)">
     </indicator-edit>
   `,
-  styles: ['button { border: 0; margin-left: 3px}']
-
+    styles: ['button { border: 0; margin-left: 3px}'],
+    standalone: false
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('container', {static: true}) container: ElementRef;

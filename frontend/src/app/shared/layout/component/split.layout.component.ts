@@ -9,8 +9,8 @@ declare function Split(ids, options);
  * The size of these areas can be adjusted.
  */
 @Component({
-  selector: 'split-layout',
-  template: `
+    selector: 'split-layout',
+    template: `
     <menubar></menubar>
     <div class="row fullheight" #split (window:resize)="onResize($event)">
       <div id="tree" class="split split-horizontal">
@@ -27,7 +27,8 @@ declare function Split(ids, options);
     </div>
 
     <main-dialog></main-dialog>
-  `
+  `,
+    standalone: false
 })
 
 export class SplitLayoutComponent implements OnInit {

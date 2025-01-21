@@ -3,7 +3,7 @@ package grafioschtrader.reportviews.securityaccount;
 import java.util.ArrayList;
 import java.util.List;
 
-import grafioschtrader.common.DataHelper;
+import grafiosch.common.DataHelper;
 
 /**
  * Base class for a group of securities. For example they may be grouped by

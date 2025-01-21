@@ -6,8 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Transaction.CashTransaction;
 import grafioschtrader.exceptions.DataViolationException;
@@ -87,7 +88,7 @@ public class CashAccountTransfer {
   public void validateWithdrawalCashaccountAmount(Integer withdrawalCurrencyFraction) {
 
     // Calculate the withdrawal amount
-    double calcWithCashaccountAmountExact = (DataHelper.divideMultiplyExchangeRate(
+    double calcWithCashaccountAmountExact = (DataBusinessHelper.divideMultiplyExchangeRate(
         depositTransaction.getCashaccountAmount(), getCurrencyExRate(),
         withdrawalTransaction.getCashaccount().getCurrency(), depositTransaction.getCashaccount().getCurrency(), true)
         + getTransactionCost()) * -1;

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.common.UpdateQuery;
 import grafioschtrader.dto.ITransactionCost;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
@@ -31,9 +32,7 @@ public interface SecurityaccountJpaRepository extends JpaRepository<Securityacco
 
   List<Securityaccount> findByPortfolio_IdPortfolioAndIdTenant(Integer idPortfolio, Integer idTenant);
 
-  @Transactional
-  @Modifying
-  @Query(value = "DELETE FROM Securityaccount s WHERE s.idSecuritycashAccount = ?1 AND s.idTenant = ?2")
+  @UpdateQuery(value = "DELETE FROM Securityaccount s WHERE s.idSecuritycashAccount = ?1 AND s.idTenant = ?2")
   int deleteSecurityaccount(Integer idSecuritycashAccount, Integer idTenant);
 
   @Query(nativeQuery = true)

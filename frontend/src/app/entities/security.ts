@@ -70,8 +70,10 @@ export class Security extends Securitycurrency implements BaseID {
             canHaveDividend = assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF];
             break;
           case AssetclassType.CREDIT_DERIVATIVE:
-          case AssetclassType.CURRENCY_PAIR:
             canHaveDividend = false;
+            break;
+          case AssetclassType.CURRENCY_PAIR:
+            canHaveDividend = assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF];
             break;
         }
       }

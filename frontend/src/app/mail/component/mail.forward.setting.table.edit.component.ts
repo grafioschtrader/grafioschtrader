@@ -34,7 +34,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
  *   See https://stackoverflow.com/questions/74102652/primeng-table-programmatically-handle-row-editing-psaveeditablerow.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -44,7 +44,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
                dataKey="idMailSettingForward" responsiveLayout="scroll" editMode="row"
                (sortFunction)="customSort($event)" [customSort]="true"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field"
                 [pTooltip]="field.headerTooltipTranslated"
@@ -56,7 +56,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
             <th style="width:20%"></th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-elEdit let-columns="fields" let-editing="editing" let-ri="rowIndex">
+        <ng-template #body let-elEdit let-columns="fields" let-editing="editing" let-ri="rowIndex">
           <tr [pEditableRow]="elEdit" [pSelectableRow]="elEdit">
             <td *ngFor="let field of fields" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
@@ -112,7 +112,8 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
       </p-table>
       <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class MailForwardSettingTableEditComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
   contextMenuItems: MenuItem[] = [];

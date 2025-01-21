@@ -13,8 +13,9 @@ import {DataType} from '../../dynamic-form/models/data.type';
  * Table part of the search dialog, which is used to select instruments for the correlation set.
  */
 @Component({
-  selector: 'correlation-set-add-instrument-table',
-  templateUrl: '../view/add.instrument.table.html'
+    selector: 'correlation-set-add-instrument-table',
+    templateUrl: '../view/add.instrument.table.html',
+    standalone: false
 })
 export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTable<CorrelationSet> {
 

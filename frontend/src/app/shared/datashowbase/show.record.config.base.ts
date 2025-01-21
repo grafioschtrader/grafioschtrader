@@ -57,7 +57,6 @@ export abstract class ShowRecordConfigBase {
       changeVisibility, optionalParams);
   }
 
-
   addColumnToFields(fields: ColumnConfig[], dataType: DataType, field: string, headerKey: string,
                     visible: boolean = true, changeVisibility: boolean = true, optionalParams?: OptionalParams): ColumnConfig {
     const cc: ColumnConfig = ShowRecordConfigBase.createColumnConfig(dataType, field, headerKey, visible, changeVisibility, optionalParams);
@@ -167,7 +166,7 @@ export abstract class ShowRecordConfigBase {
   }
 
   protected translateHeaders(translateHeaderKeys: string[], columConfig: ColumnConfig[]): void {
-    this.translateService.get(translateHeaderKeys).subscribe((allTranslatedTexts: any) =>
+    this.translateService.get(translateHeaderKeys.filter(thk => !!thk)).subscribe((allTranslatedTexts: any) =>
       columConfig.map(field => field.headerTranslated =
         ((field.headerPrefix == null) ? '' : field.headerSuffix + ' ')
         + allTranslatedTexts[field.headerKey]

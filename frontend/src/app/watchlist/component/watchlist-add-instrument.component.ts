@@ -14,8 +14,8 @@ import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-t
  * Search dialog for adding an existing security or currency pair to a certain watchlist.
  */
 @Component({
-  selector: 'watchlist-add-instrument',
-  template: `
+    selector: 'watchlist-add-instrument',
+    template: `
     <p-dialog styleClass="big-dialog" header="{{'ADD_EXISTING_SECURITY' | translate}}" [(visible)]="visibleAddInstrumentDialog"
               [responsive]="true" [style]="{width: '720px'}" [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -27,7 +27,8 @@ import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-t
       <add-instrument-table [tenantLimits]="tenantLimits">
       </add-instrument-table>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase {
   // From parent view

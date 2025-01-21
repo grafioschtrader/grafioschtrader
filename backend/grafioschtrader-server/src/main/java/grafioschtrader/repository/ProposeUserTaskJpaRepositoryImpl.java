@@ -17,8 +17,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.ProposeChangeField;
 import grafioschtrader.common.ValueFormatConverter;
-import grafioschtrader.entities.ProposeChangeField;
 import grafioschtrader.entities.ProposeUserTask;
 import grafioschtrader.entities.Role;
 import grafioschtrader.entities.User;

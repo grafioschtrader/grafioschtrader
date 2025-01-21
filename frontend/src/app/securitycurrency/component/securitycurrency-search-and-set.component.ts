@@ -14,8 +14,8 @@ import {MultipleRequestToOneService} from '../../shared/service/multiple.request
  * Dialog for selecting a security or currency by search criterias.
  */
 @Component({
-  selector: 'securitycurrency-search-and-set',
-  template: `
+    selector: 'securitycurrency-search-and-set',
+    template: `
       <p-dialog header="{{'SET_SECURITY' | translate}}" [(visible)]="visibleDialog" appendTo="body"
                 [responsive]="true" [style]="{width: '720px'}" [resizable]="false"
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -27,7 +27,8 @@ import {MultipleRequestToOneService} from '../../shared/service/multiple.request
           <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria">
           </securitycurrency-search-and-set-table>
       </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearchBase implements CallBackSetSecurity, AfterSetSecurity {
 

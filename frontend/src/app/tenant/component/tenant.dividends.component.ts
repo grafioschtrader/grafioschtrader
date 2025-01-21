@@ -23,7 +23,8 @@ import {IdsAccounts} from '../model/ids.accounts';
  * Shows the dividends and some other information like transaction cost grouped by year.
  */
 @Component({
-  templateUrl: '../view/tenant.dividends.html'
+    templateUrl: '../view/tenant.dividends.html',
+    standalone: false
 })
 export class TenantDividendsComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
 

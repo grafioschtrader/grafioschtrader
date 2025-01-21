@@ -3,10 +3,9 @@ package grafioschtrader.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.common.UpdateQuery;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
@@ -30,9 +29,8 @@ public interface CashaccountJpaRepository extends JpaRepository<Cashaccount, Int
   // @Query("SELECT COUNT(c) from Cashaccount c WHERE c.idTenant = ?1")
   int countByIdTenant(Integer idTenant);
 
-  @Transactional
-  @Modifying
-  @Query(value = "DELETE FROM Cashaccount c WHERE c.idSecuritycashAccount = ?1 AND c.idTenant = ?2")
+ 
+  @UpdateQuery(value = "DELETE FROM Cashaccount c WHERE c.idSecuritycashAccount = ?1 AND c.idTenant = ?2")
   int deleteCashaccount(Integer idSecuritycashAccount, Integer idTenant);
 
 }

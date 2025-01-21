@@ -17,16 +17,16 @@ import {ParentChildRegisterService} from '../../shared/service/parent.child.regi
  * Displays the cash accounts in the interest/dividend report.
  */
 @Component({
-  selector: 'tenant-dividends-cashaccount-extended',
-  template: `
+    selector: 'tenant-dividends-cashaccount-extended',
+    template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="cashAccountPositions" selectionMode="single"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines" responsiveLayout="scroll"
                dataKey="cashaccount.idSecuritycashAccount" sortMode="multiple" [multiSortMeta]="multiSortMeta">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h5>{{ 'CASHACCOUNTS'|translate }}</h5>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
@@ -37,7 +37,7 @@ import {ParentChildRegisterService} from '../../shared/service/parent.child.regi
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-expanded="expanded" let-el let-columns="fields">
+        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td>
               <a href="#" [pRowToggler]="el">
@@ -52,7 +52,7 @@ import {ParentChildRegisterService} from '../../shared/service/parent.child.regi
             </td>
           </tr>
         </ng-template>
-        <ng-template let-cap let-columns="fields" pTemplate="rowexpansion">
+        <ng-template let-cap let-columns="fields" #expandedrow>
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
               <transaction-cashaccount-table (dateChanged)="transactionDataChanged($event)"
@@ -64,7 +64,8 @@ import {ParentChildRegisterService} from '../../shared/service/parent.child.regi
         </ng-template>
       </p-table>
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TenantDividendsCashaccountExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() securityDividendsGrandTotal: SecurityDividendsGrandTotal;

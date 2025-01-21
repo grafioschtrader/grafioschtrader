@@ -14,8 +14,8 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertySelectiveUpdatableOrWhenNull;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.Language;
 import grafioschtrader.types.SpecialInvestmentInstruments;

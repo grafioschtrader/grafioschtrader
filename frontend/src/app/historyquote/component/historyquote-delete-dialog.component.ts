@@ -16,8 +16,8 @@ import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 
 @Component({
-  selector: 'historyquote-delete-dialog',
-  template: `
+    selector: 'historyquote-delete-dialog',
+    template: `
       <p-dialog header="{{'DELETE_CREATE_TYPES_QUOTES' | translate}}" [(visible)]="visibleDialog"
                 [responsive]="true" [style]="{width: '500px'}"
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -26,7 +26,8 @@ import {ProcessedAction} from '../../shared/types/processed.action';
                         (submitBt)="submit($event)">
           </dynamic-form>
       </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements OnInit {
   @Input() idSecuritycurrency: number;

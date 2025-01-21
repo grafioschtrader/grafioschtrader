@@ -3,7 +3,7 @@ package grafioschtrader.reportviews.historyquotequality;
 import java.util.ArrayList;
 import java.util.List;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -62,7 +62,7 @@ public class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
   }
 
   public double getQualityPercentage() {
-    return DataHelper.roundStandard(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
+    return DataBusinessHelper.roundStandard(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
   }
 
 }

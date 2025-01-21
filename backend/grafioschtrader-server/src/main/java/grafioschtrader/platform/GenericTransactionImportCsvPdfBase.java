@@ -3,7 +3,7 @@ package grafioschtrader.platform;
 import java.util.ArrayList;
 import java.util.List;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.ImportTransactionHead;
@@ -95,7 +95,7 @@ public abstract class GenericTransactionImportCsvPdfBase {
     ImportProperties depositIp = importPropertiesList.get(lineNumberIndex);
     ImportProperties withdrawalIp = importPropertiesList.get((lineNumberIndex + 1) % 2);
 
-    Currencypair currencypair = DataHelper.getCurrencypairWithSetOfFromAndTo(withdrawalIp.getCac(), depositIp.getCac());
+    Currencypair currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(withdrawalIp.getCac(), depositIp.getCac());
     Double exchangeRate = null;
     if (currencypair != null) {
       if (depositIp.getCac().equals(currencypair.getFromCurrency())) {

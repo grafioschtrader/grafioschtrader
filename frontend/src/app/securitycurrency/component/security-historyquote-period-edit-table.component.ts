@@ -13,8 +13,9 @@ import {FilterService} from 'primeng/api';
  * The split and history quote period table component.
  */
 @Component({
-  selector: 'security-historyquote-period-edit-table',
-  templateUrl: '../view/split.period.table.html'
+    selector: 'security-historyquote-period-edit-table',
+    templateUrl: '../view/split.period.table.html',
+    standalone: false
 })
 export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTableBase<HistoryquotePeriod> {
  // readonly dataSortKey = 'fromDate';

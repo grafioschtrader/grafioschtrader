@@ -1,9 +1,10 @@
 import {Component} from '@angular/core';
 
 @Component({
-  template: `
+    template: `
      Consumer Monitor
   `,
+    standalone: false
 })
 export class GTNetConsumerMonitorComponent {
 

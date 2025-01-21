@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.entities.BaseID;
 import grafioschtrader.types.CreateType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;

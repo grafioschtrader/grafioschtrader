@@ -29,8 +29,8 @@ import {AlgoDialogVisible} from '../../algo/model/algo.dialog.visible';
  * View to check the reliability of the dividend, split feed. It supports multi selection for removal.
  */
 @Component({
-  templateUrl: '../view/watchlist.data.html',
-  styles: [`
+    templateUrl: '../view/watchlist.data.html',
+    styles: [`
     .cell-move {
       cursor: move !important;
     }
@@ -40,7 +40,8 @@ import {AlgoDialogVisible} from '../../algo/model/algo.dialog.visible';
     }
 
   `],
-  providers: [DialogService]
+    providers: [DialogService],
+    standalone: false
 })
 export class WatchlistDividendSplitFeedComponent extends WatchlistTable implements OnInit, OnDestroy {
   private feedConnectorsKV: { [id: string]: string } = {};

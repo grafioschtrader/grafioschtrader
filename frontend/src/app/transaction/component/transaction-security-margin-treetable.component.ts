@@ -27,8 +27,8 @@ import {HelpIds} from '../../shared/help/help.ids';
  * It shows margin transactions as a tree. It supports editing existing transaction and close an open position.
  */
 @Component({
-  selector: 'transaction-security-margin-treetable',
-  template: `
+    selector: 'transaction-security-margin-treetable',
+    template: `
     <div #cmDiv class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable nestedtable">
@@ -36,7 +36,7 @@ import {HelpIds} from '../../shared/help/help.ids';
                      selectionMode="single" [scrollable]="false" dataKey="transaction.idTransaction"
                      (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
                      [paginator]="true" [rows]="20" styleClass="p-treetable-gridlines">
-          <ng-template pTemplate="header" let-fields>
+          <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [style.width.px]="field.width"
                   [pTooltip]="field.headerTooltipTranslated">
@@ -44,7 +44,7 @@ import {HelpIds} from '../../shared/help/help.ids';
               </th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+          <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
             <tr [ttSelectableRow]="rowNode" [ttSelectableRowDisabled]="rowData.transaction.idTransaction < 0"
                 [ngClass]="{'rowgroup-total': rowData.transaction.idTransaction < 0}">
               <td *ngFor="let field of fields; let i = index"
@@ -75,7 +75,8 @@ import {HelpIds} from '../../shared/help/help.ids';
       </transaction-security-edit>
 
     </div>
-  `
+  `,
+    standalone: false
 })
 export class TransactionSecurityMarginTreetableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   @Input() idsSecurityaccount: number[];

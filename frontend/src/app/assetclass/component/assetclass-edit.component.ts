@@ -19,8 +19,8 @@ import {AssetClassTypeSpecInstrument} from '../../shared/udfmeta/components/asse
  * Edit asset classes in a dialog
  */
 @Component({
-  selector: 'assetclass-edit',
-  template: `
+    selector: 'assetclass-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '500px'}" (onShow)="onShow($event)" (onHide)="onHide($event)"
               [modal]="true">
@@ -29,7 +29,8 @@ import {AssetClassTypeSpecInstrument} from '../../shared/udfmeta/components/asse
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetclass> implements OnInit {
 

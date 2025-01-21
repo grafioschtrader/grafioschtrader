@@ -26,8 +26,8 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
  * This component contains a form with which the message settings can be edited.
  */
 @Component({
-  selector: 'mail-forward-setting-edit',
-  template: `
+    selector: 'mail-forward-setting-edit',
+    template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -37,7 +37,8 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class MailForwardSettingEditComponent extends SimpleEntityEditBase<MailSettingForward> implements OnInit {
   @Input() callParam: MailSettingForwardParam;

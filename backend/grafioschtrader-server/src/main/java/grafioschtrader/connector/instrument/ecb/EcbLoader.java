@@ -21,6 +21,7 @@ import javax.xml.stream.XMLStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.EcbExchangeRates;
@@ -56,7 +57,7 @@ public class EcbLoader {
 
   private Date getFromDate(Date youngestDate) throws ParseException {
     if (youngestDate == null) {
-      SimpleDateFormat sdf = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+      SimpleDateFormat sdf = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
       return sdf.parse(GlobalConstants.OLDEST_TRADING_DAY);
     } else {
       return DateHelper.setTimeToZeroAndAddDay(youngestDate, 1);
@@ -87,7 +88,7 @@ public class EcbLoader {
   private List<EcbExchangeRates> readCubes(XMLStreamReader reader, Date fromDate)
       throws XMLStreamException, ParseException {
 
-    SimpleDateFormat sdf = new SimpleDateFormat(GlobalConstants.STANDARD_DATE_FORMAT);
+    SimpleDateFormat sdf = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     List<EcbExchangeRates> ecbExchangeRatesList = new ArrayList<>();
     Date readDate = null;
 

@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.exceptions.DataViolationException;
@@ -66,13 +67,13 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   private String note;
 
   @Schema(description = "This allows you to restrict the period with respect to the start date.")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "date_from")
   @PropertyAlwaysUpdatable
   private LocalDate dateFrom;
 
   @Schema(description = "This allows you to restrict the period with respect to the to date.")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "date_to")
   @PropertyAlwaysUpdatable
   private LocalDate dateTo;

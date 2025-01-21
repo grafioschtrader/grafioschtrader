@@ -4,6 +4,7 @@ import static jakarta.persistence.InheritanceType.JOINED;
 
 import java.util.Date;
 
+import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;

@@ -42,9 +42,9 @@ import {FeatureType} from '../../login/component/login.component';
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
  */
 @Component({
-  selector: 'main-tree',
-  templateUrl: '../view/maintree.html',
-  // changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'main-tree',
+    templateUrl: '../view/maintree.html',
+    standalone: false
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('cm', {static: true}) contextMenu: any;

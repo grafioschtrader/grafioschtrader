@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.common.DataHelper;
-import grafioschtrader.entities.BaseID;
+import grafiosch.common.DataHelper;
+import grafiosch.entities.BaseID;
 
 public class RepositoryHelper {
 

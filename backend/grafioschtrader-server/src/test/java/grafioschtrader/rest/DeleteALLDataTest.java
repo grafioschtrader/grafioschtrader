@@ -27,8 +27,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
+import grafiosch.entities.BaseID;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.BaseID;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.SecurityJpaRepository;

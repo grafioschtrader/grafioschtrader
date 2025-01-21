@@ -24,21 +24,21 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
  * This component contains a tree structure for displaying sent and received messages. The message text is displayed in a text area.
  */
 @Component({
-  template: `
+    template: `
       <div class="data-container" (click)="onComponentClick($event)"
            #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
           <p-treeTable [value]="sendRecvRootNode" [columns]="fields" dataKey="idMailSendRecv"
                        selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)"
                        sortField="sendRecvTime" [sortOrder]="sortOrder" styleClass="p-treetable-gridlines">
-              <ng-template pTemplate="caption">
+              <ng-template #caption>
                   <div style="text-align:left">
                       <h5>{{"MAIL_TO_FROM" | translate}} {{gps.getIdUser()}}, {{"MOST_PRIVILEGED_ROLE" | translate}}
                           : {{gps.getMostPrivilegedRole() | translate}}</h5>
                   </div>
               </ng-template>
 
-              <ng-template pTemplate="header" let-fields>
+              <ng-template #header let-fields>
                   <tr>
                       <th *ngFor="let field of fields" [ttSortableColumn]="field.field" [style.width.px]="field.width"
                           [pTooltip]="field.headerTooltipTranslated">
@@ -47,7 +47,7 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
                       </th>
                   </tr>
               </ng-template>
-              <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+              <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
                   <tr [ngClass]="rowNode.level === 0 && rowNode.node?.children.length > 0 ? 'row-total' : null"
                       [ttSelectableRow]="rowNode">
                       <td *ngFor="let field of fields; let i = index"
@@ -76,8 +76,9 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
           <p-contextMenu [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
       </div>
   `,
-  styles: ['textarea { width:100%; }'],
-  providers: [DialogService]
+    styles: ['textarea { width:100%; }'],
+    providers: [DialogService],
+    standalone: false
 })
 export class SendRecvTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   @ViewChild('cm') contextMenu: any;

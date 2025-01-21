@@ -12,14 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.dto.CorrelationLimits;
 import grafioschtrader.dto.CorrelationResult;
 import grafioschtrader.dto.CorrelationRollingResult;
 import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.CorrelationSet;
-import grafioschtrader.entities.Globalparameters;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.User;
 import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
@@ -116,18 +116,18 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   public CorrelationLimits getCorrelationSetLimit() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new CorrelationLimits(
-        new TenantLimit(globalparametersJpaRepository.getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_CORRELATION_SET),
+        new TenantLimit(globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET),
             correlationSetJpaRepository.countByIdTenant(user.getIdTenant()).intValue(),
-            Globalparameters.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class.getSimpleName()));
+            GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class.getSimpleName()));
   }
 
   @Override
   public TenantLimit getCorrelationSetInstrumentLimit(Integer idCorrelationSet) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new TenantLimit(
-        globalparametersJpaRepository.getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS),
+        globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS),
         correlationSetJpaRepository.countInstrumentsInCorrelationSet(user.getIdTenant(), idCorrelationSet).intValue(),
-        Globalparameters.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS, CorrelationSet.class.getSimpleName());
+        GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS, CorrelationSet.class.getSimpleName());
   }
 
   @Override
@@ -136,13 +136,13 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     var correlationSet = getCorrelationSetById(idCorrelationSet);
     if (correlationSet.getSecuritycurrencyList().size()
         + securitycurrencyLists.getLength() <= globalparametersJpaRepository
-            .getMaxValueByKey(Globalparameters.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS)) {
+            .getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS)) {
       securitycurrencyLists.currencypairList
           .forEach(currencypair -> correlationSet.getSecuritycurrencyList().add(currencypair));
       securitycurrencyLists.securityList.forEach(security -> correlationSet.getSecuritycurrencyList().add(security));
       return correlationSetJpaRepository.save(correlationSet);
     } else {
-      throw new SecurityException(GlobalConstants.LIMIT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
     }
   }
 
@@ -168,7 +168,7 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     Optional<CorrelationSet> correlationSetOpt = correlationSetJpaRepository
         .findByIdTenantAndIdCorrelationSet(user.getIdTenant(), idCorrelationSet);
     if (correlationSetOpt.isEmpty()) {
-      throw new SecurityException(GlobalConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return correlationSetOpt.get();
   }

@@ -5,8 +5,8 @@ import {BaseInputComponent} from '../base.input.component';
  * It is not working als expected: https://github.com/primefaces/primeng/issues/9380
  */
 @Component({
-  selector: 'form-inputnumber',
-  template: `
+    selector: 'form-inputnumber',
+    template: `
     <ng-container [formGroup]="group">
       <p-inputNumber
         [class.required-input]="isRequired && !config.readonly"
@@ -29,7 +29,8 @@ import {BaseInputComponent} from '../base.input.component';
         currencyDisplay="code">
       </p-inputNumber>
     </ng-container>
-  `
+  `,
+    standalone: false
 })
 
 export class FormInputNumberComponent extends BaseInputComponent implements OnInit {

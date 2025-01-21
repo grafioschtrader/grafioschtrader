@@ -5,7 +5,8 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafiosch.entities.BaseID;
 import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.types.HistoryquotePeriodCreateType;
 import jakarta.persistence.Basic;
@@ -32,13 +33,13 @@ public class HistoryquotePeriod extends BaseID implements Serializable {
   @Column(name = "id_securitycurrency")
   private Integer idSecuritycurrency;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Basic(optional = false)
   @Column(name = "from_date")
   @PropertyAlwaysUpdatable
   private LocalDate fromDate;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "to_date")
   @PropertyAlwaysUpdatable
   private LocalDate toDate;

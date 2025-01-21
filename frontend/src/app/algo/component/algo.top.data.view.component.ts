@@ -46,26 +46,26 @@ import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} fro
  * Shows algorithmic trading tree with its strategies.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
          #cmDiv [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-treeTable [columns]="fields" [value]="treeNodes" selectionMode="single" [(selection)]="selectedNode"
                    (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
                    [(contextMenuSelection)]="selectedNode" dataKey="idTree">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{ 'ALGO_OVERVIEW' | translate }}
             ({{ (algoTop.ruleStrategy === RuleStrategy[RuleStrategy.RS_RULE] ? 'ALGO_PORTFOLIO_STRATEGY' : 'ALGO_RULE_BASED') | translate }}
             )</h4>
         </ng-template>
 
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields">
               {{ field.headerTranslated }}
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="fields">
+        <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
           <tr [ttContextMenuRow]="rowNode" [ttSelectableRow]="rowNode"
               [ngClass]="{'kb-row': rowData.constructor.name  === 'AlgoAssetclass'}">
             <td *ngFor="let field of fields; let i = index"
@@ -98,11 +98,12 @@ import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} fro
                         (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
     </algo-strategy-edit>
   `,
-  styles: [`
+    styles: [`
     .kb-row {
       font-weight: 700 !important;
     }
-  `]
+  `],
+    standalone: false
 })
 export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   @ViewChild('contextMenu', {static: true}) contextMenu: any;

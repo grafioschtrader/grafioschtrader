@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import grafiosch.entities.BaseID;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.ProgressStateType;
 import grafioschtrader.types.TaskDataExecPriority;

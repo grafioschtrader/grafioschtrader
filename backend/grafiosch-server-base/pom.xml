@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+
+	<!-- This module is part of the bigger project, this allows us to build 
+		the whole project in one hit -->
+	<parent>
+		<groupId>grafioschtrader</groupId>
+		<artifactId>grafioschtrader</artifactId>
+		<version>0.33.3</version>
+	</parent>
+
+	<artifactId>grafiosch-server-base</artifactId>
+	<packaging>jar</packaging>
+
+	
+	<dependencies>
+		<!-- When building a war file, disable when building jar with included 
+			tomcat -->
+
+				
+		 <dependency>
+			<groupId>grafioschtrader</groupId>
+			<artifactId>grafiosch-base</artifactId>
+	        <version>0.33.3</version>	
+		</dependency>
+
+		
+
+		<!-- Provide JUnit 5 API -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- and the engine for surefire and failsafe -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-launcher</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-runner</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+
+		
+
+        <dependency>
+           <groupId>org.hibernate</groupId>
+           <artifactId>hibernate-jcache</artifactId>
+           <version>${hibernate.version}</version>
+        </dependency>
+
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.14</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+ 		
+
+	</dependencies>
+
+	
+
+
+</project>

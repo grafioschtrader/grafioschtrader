@@ -57,8 +57,8 @@ import {AppSettings} from '../../shared/app.settings';
  * finance cost) can not be changed in this form, it has to be set in advance.
  */
 @Component({
-  selector: 'transaction-security-edit',
-  template: `
+    selector: 'transaction-security-edit',
+    template: `
     <p-dialog [(visible)]="visibleSecurityTransactionDialog"
               [responsive]="true" [style]="{width: '720px'}" [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -74,7 +74,8 @@ import {AppSettings} from '../../shared/app.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `
+  `,
+    standalone: false
 })
 export class TransactionSecurityEditComponent extends TransactionBaseOperations implements OnInit {
 

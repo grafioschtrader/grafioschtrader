@@ -12,10 +12,11 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
  * TODO Until now the change detection for the disabled menu does not work as expected.
  */
 @Component({
-  template: `
+    template: `
     <p-tabMenu #tabMenu [model]="items" [activeItem]="activeTab"></p-tabMenu>
     <router-outlet></router-outlet>
-  `
+  `,
+    standalone: false
 })
 export class SecurityaccountTabMenuComponent implements OnInit, OnDestroy {
 

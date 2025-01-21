@@ -44,7 +44,7 @@ import {AppSettings} from '../../shared/app.settings';
  * Shows the requested changes on entities in a table.
  */
 @Component({
-  template: `
+    template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -53,10 +53,10 @@ import {AppSettings} from '../../shared/app.settings';
                responsiveLayout="scroll"
                styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
                dataKey="proposeChangeEntity.idProposeRequest">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <h4>{{'PROPOSE_CHANGE_ENTITY_FOR_USER' | translate}} {{gps.getIdUser()}}</h4>
         </ng-template>
-        <ng-template pTemplate="header" let-fields>
+        <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
               {{field.headerTranslated}}
@@ -64,7 +64,7 @@ import {AppSettings} from '../../shared/app.settings';
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-el let-columns="fields">
+        <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td *ngFor="let field of fields">
               {{getValueByPath(el, field)}}
@@ -132,7 +132,8 @@ import {AppSettings} from '../../shared/app.settings';
                        [proposeChangeEntityWithEntity]="selectedEntity"
                        (closeDialog)="handleCloseDialog(selectedEntity, $event)">
     </historyquote-edit>
-  `
+  `,
+    standalone: false
 })
 export class RequestForYouTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
 

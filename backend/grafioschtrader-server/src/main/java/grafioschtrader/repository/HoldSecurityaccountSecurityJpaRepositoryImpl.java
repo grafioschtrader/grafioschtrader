@@ -23,7 +23,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.dto.MissingQuotesWithSecurities;
 import grafioschtrader.entities.Currencypair;
@@ -475,7 +475,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
         }
         units += tss.getFactorUnits();
       }
-      if (DataHelper.round(units) != 0d) {
+      if (DataBusinessHelper.round(units) != 0d) {
         // Per transaction when units <> 0 -> create new HoldSecurityaccountSecurity
 
         if (tss.getCurrency() != null) {
@@ -492,7 +492,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
             tss.getTsDate().toLocalDate(), css.securitysplitMap);
 
         HoldSecurityaccountSecurity holdSecurityaccountSecurity = new HoldSecurityaccountSecurity(idTenant, idPortfolio,
-            idSecuritycashAccount, tss.getIdSecuritycurrency(), tss.getTsDate().toLocalDate(), DataHelper.round(units),
+            idSecuritycashAccount, tss.getIdSecuritycurrency(), tss.getTsDate().toLocalDate(), DataBusinessHelper.round(units),
             marginRealHoldings != 0 ? marginRealHoldings : null, marginAveragePrice, splitPriceFactor,
             idCurrencypairTenant, idCurrencypairPortfolio);
         toSaveHoldForSecurityList.add(holdSecurityaccountSecurity);

@@ -20,8 +20,8 @@ import {ProcessedAction} from '../../types/processed.action';
  * Change the password with a dialog.
  */
 @Component({
-  selector: 'password-edit',
-  template: `
+    selector: 'password-edit',
+    template: `
     <p-dialog header="{{'PASSWORD_CHANGE' | translate}}" [(visible)]="visibleDialog"
               [responsive]="true" [style]="{width: '450px'}"
               [closeOnEscape]="!forcePasswordChange" [closable]="!forcePasswordChange"
@@ -30,7 +30,8 @@ import {ProcessedAction} from '../../types/processed.action';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {
   @Input() forcePasswordChange: boolean;

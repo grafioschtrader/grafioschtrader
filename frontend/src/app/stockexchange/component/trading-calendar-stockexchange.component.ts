@@ -30,8 +30,9 @@ import {CreateType} from '../../entities/dividend.split';
  * The calendar component for the stock exchange.
  */
 @Component({
-  selector: 'trading-calendar-stockexchange',
-  templateUrl: '../../tradingcalendar/view/trading.calendar.html'
+    selector: 'trading-calendar-stockexchange',
+    templateUrl: '../../tradingcalendar/view/trading.calendar.html',
+    standalone: false
 })
 export class TradingCalendarStockexchangeComponent extends TradingCalendarBase implements OnInit {
   static readonly SYSTEM_CREATED_COLOR = 'red';

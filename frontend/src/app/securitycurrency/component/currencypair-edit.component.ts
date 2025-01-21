@@ -29,8 +29,8 @@ import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.he
  * Only on a new record is the source and target currency editable.
  */
 @Component({
-  selector: 'currencypair-edit',
-  template: `
+    selector: 'currencypair-edit',
+    template: `
     <p-dialog header="{{'CURRENCYPAIR' | translate}}" [(visible)]="visibleEditCurrencypairDialog"
               [responsive]="true" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -39,7 +39,8 @@ import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.he
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`
+    </p-dialog>`,
+    standalone: false
 })
 export class CurrencypairEditComponent extends SecuritycurrencyEdit implements OnInit {
 

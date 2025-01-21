@@ -21,8 +21,8 @@ import jakarta.annotation.PostConstruct;
  */
 @SpringBootApplication()
 @EnableAsync
-@EntityScan(basePackages = { "grafioschtrader.entities" })
-@ComponentScan(basePackages = { "grafioschtrader" }, excludeFilters = {
+@EntityScan(basePackages = { "grafiosch.entities", "grafioschtrader.entities" })
+@ComponentScan(basePackages = { "grafiosch", "grafioschtrader" }, excludeFilters = {
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class) })
 
 // Since Spring Boot 3.2 it requires and read this properties

@@ -17,7 +17,8 @@ import {ConfirmationService, FilterService} from 'primeng/api';
  * Shows all transactions of a tenant
  */
 @Component({
-  templateUrl: '../../transaction/view/transaction.cashaccount.table.html'
+    templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
+    standalone: false
 })
 export class TenantTransactionTableComponent extends TransactionTable implements OnInit {
 

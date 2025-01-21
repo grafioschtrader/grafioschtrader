@@ -3,8 +3,8 @@ import {ApplicationInfo} from '../../service/actuator.service';
 import {TranslateService} from '@ngx-translate/core';
 
 @Component({
-  selector: 'application-info',
-  template: `
+    selector: 'application-info',
+    template: `
     <div *ngIf="applicationInfo else serverDown">
       <h3>{{applicationInfo.name}}</h3>
       Version: {{applicationInfo.version}}
@@ -15,6 +15,7 @@ import {TranslateService} from '@ngx-translate/core';
       </div>
     </ng-template>
   `,
+    standalone: false
 })
 export class ApplicationInfoComponent {
   @Input() applicationInfo: ApplicationInfo;

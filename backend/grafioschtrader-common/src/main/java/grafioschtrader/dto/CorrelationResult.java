@@ -6,18 +6,18 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafiosch.BaseConstants;
+import grafiosch.common.DataHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "The calculated result of correlation set")
 public class CorrelationResult {
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Schema(description = "Oldest date which all instruments have a closing price.")
   public final LocalDate firstAvailableDate;
 
-  @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Schema(description = "Latest date which all instruments have a closing price.")
   public final LocalDate lastAvailableDate;
 
@@ -50,11 +50,11 @@ public class CorrelationResult {
     public final Integer idSecuritycurrency;
 
     @Schema(description = "The oldest date of the closing price.")
-    @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+    @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
     public final LocalDate minDate;
 
     @Schema(description = "The date of the most recent closing price.")
-    @JsonFormat(pattern = GlobalConstants.STANDARD_DATE_FORMAT)
+    @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
     public final LocalDate maxDate;
 
     public MinMaxDateHistoryquote(Integer idSecuritycurrency, LocalDate minDate, LocalDate maxDate) {

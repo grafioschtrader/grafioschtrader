@@ -43,7 +43,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   formConfig: FormConfig;
   private monitor: boolean;
 
-  constructor(protected multiplyAddClose: boolean,
+  protected constructor(protected multiplyAddClose: boolean,
               protected gps: GlobalparameterService,
               protected multipleRequestToOneService: MultipleRequestToOneService,
               public translateService: TranslateService) {
@@ -156,7 +156,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
           const secondGroupIsEmpty = this.isSecondGroupEmpty();
           this.dynamicFormComponent.controls.filter(fieldConfig => fieldConfig.userDefinedValue === this.firstGroup)
             .forEach(fieldConfig => AppHelper.invisibleAndHide(fieldConfig, !secondGroupIsEmpty));
-          AppHelper.invisibleAndHide(this.configObject.name, this.configObject.name.invisible || this.isExactCurrecny());
+          AppHelper.invisibleAndHide(this.configObject.name, this.configObject.name.invisible || this.isExactCurrency());
           AppHelper.invisibleAndHide(this.configObject.tickerSymbol, this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.onlyTenantPrivate, this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.leverageFactor, this.isCurrency());
@@ -183,7 +183,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
     return this.configObject.assetclassType.formControl.value === AssetclassType[AssetclassType.CURRENCY_PAIR];
   }
 
-  private isExactCurrecny(): boolean {
+  private isExactCurrency(): boolean {
     return this.isCurrency() && !!this.configObject.currency.formControl.value;
   }
 

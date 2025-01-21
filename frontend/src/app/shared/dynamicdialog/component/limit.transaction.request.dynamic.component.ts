@@ -24,11 +24,12 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
  * The daily limit of changing public data was passed. The user can apply for a different daily limit.
  */
 @Component({
-  template: `
+    template: `
       {{'APPLY_LIMIT_TEXT' | translate}}
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
-      </dynamic-form>`
+      </dynamic-form>`,
+    standalone: false
 })
 export class LimitTransactionRequestDynamicComponent extends FormBase implements OnInit {
   private readonly ENTITY_NAME = 'entity';

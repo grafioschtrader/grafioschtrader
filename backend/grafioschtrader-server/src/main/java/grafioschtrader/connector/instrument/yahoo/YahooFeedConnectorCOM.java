@@ -43,7 +43,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -451,7 +451,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private double parseAndRound(final String doubleValueStr, final double divider) {
     final double value = Double.parseDouble(doubleValueStr);
-    return DataHelper.round(value / divider);
+    return DataBusinessHelper.round(value / divider);
   }
 
   static class Quote {
