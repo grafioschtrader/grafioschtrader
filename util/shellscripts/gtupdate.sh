@@ -35,6 +35,7 @@ UPDATED_SCRIPT="$builddir/grafioschtrader/util/shellscripts/$(basename "$SCRIPT_
 if [ -f "$UPDATED_SCRIPT" ] && ! cmp -s "$SCRIPT_PATH" "$UPDATED_SCRIPT"; then
   echo "The script itself has been updated. Restarting..."
   cp "$UPDATED_SCRIPT" "$SCRIPT_PATH"
+  chmod +x "$SCRIPT_PATH"
   exec "$SCRIPT_PATH"
 fi
 
