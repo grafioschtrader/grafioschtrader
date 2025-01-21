@@ -6,6 +6,9 @@
 # Required Node.js versions
 node_required="^18.19.1 || ^20.11.1 || ^22.0.0"
 
+# Required Angular CLI version
+angular_cli_required=19
+
 # Function to check Node.js version manually
 check_node_version() {
     local version=$1
@@ -14,11 +17,11 @@ check_node_version() {
     IFS='.' read -r major minor patch <<<"$version"
 
     # Check for ^18.19.1 compatibility
-    if [[ "$major" -eq 18 && ( "$minor" -gt 19 || ( "$minor" -eq 19 && "$patch" -ge 1 ) ) ]]; then
+    if [[ "$major" -eq 18 && ( "$minor" -gt 19 || ( "$minor" -eq 19 && "$patch" -ge 1 ) ]]; then
         return 0
     fi
     # Check for ^20.11.1 compatibility
-    if [[ "$major" -eq 20 && ( "$minor" -gt 11 || ( "$minor" -eq 11 && "$patch" -ge 1 ) ) ]]; then
+    if [[ "$major" -eq 20 && ( "$minor" -gt 11 || ( "$minor" -eq 11 && "$patch" -ge 1 ) ]]; then
         return 0
     fi
     # Check for ^22.0.0 compatibility
@@ -62,22 +65,26 @@ else
 fi
 
 # Check Angular CLI version
-GTVERSION=$(grep -Eo '"@angular/cli": ".*"' $builddir/grafioschtrader/frontend/package.json | sed -En 's/[^0-9]*([0-9]*).*/\1/p')
 CLIVERSION=$(npm list -global --depth 0 | grep "@angular/cli" | cut -d "@" -f3 | cut -d "." -f1)
 
-if [ -z "$GTVERSION" ]; then
+if [ -z "$CLIVERSION" ]; then
+    tput setaf 1
     echo "=========================================================="
-    echo "GT Client is missing"
+    echo "Angular CLI is not installed."
+    echo "Run as root to install Angular CLI version $angular_cli_required:"
+    echo "  npm install -g @angular/cli@$angular_cli_required"
     echo "=========================================================="
+    tput sgr0
     exit 1
 fi
 
-if [[ -z "$CLIVERSION" || "$CLIVERSION" -lt "$GTVERSION" ]]; then
+if [[ "$CLIVERSION" -lt "$angular_cli_required" ]]; then
     tput setaf 1
     echo "=========================================================="
+    echo "Angular CLI version ($CLIVERSION) is less than the required version ($angular_cli_required)."
     echo "Run as root to update Angular CLI:"
     echo "  npm uninstall -g @angular/cli"
-    echo "  npm install -g @angular/cli@^${GTVERSION}"
+    echo "  npm install -g @angular/cli@$angular_cli_required"
     echo "=========================================================="
     tput sgr0
     exit 1
