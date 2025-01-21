@@ -11,10 +11,10 @@ angular_cli_required=19
 
 # Function to check and install semver if missing
 ensure_semver_installed() {
-    if ! command -v npx >/dev/null 2>&1 || ! npx semver --help >/dev/null 2>&1; then
+    if ! npm list -g semver >/dev/null 2>&1; then
         tput setaf 3
         echo "=========================================================="
-        echo "'semver' is not installed. Installing it now..."
+        echo "'semver' is not installed globally. Installing it now..."
         echo "=========================================================="
         tput sgr0
         npm install -g semver
