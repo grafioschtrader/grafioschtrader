@@ -20,4 +20,4 @@ if [ $memorytotal -lt 3700 ]
    fi
 rm -rf $docroot/${basehref}assets
 rm -f $docroot/${basehref}*
-cp -r $builddir/grafioschtrader/frontend/dist/* $docroot/$basehref
+cp -r $builddir/grafioschtrader/frontend/dist/browser/* $docroot/$basehref
