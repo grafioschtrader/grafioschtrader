@@ -18,9 +18,6 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * Creates the report for the security accounts. It supports the tree levels,
  * that means all security accounts of a tenant or one or more security account
  * for a portfolio and a certain security account.
- *
- *
- * @author Hugo Graf
  */
 @Component
 public class SecurityPositionByCurrencyGrandSummaryReport extends SecurityPositionSummaryReport {
@@ -51,7 +48,7 @@ public class SecurityPositionByCurrencyGrandSummaryReport extends SecurityPositi
         .createAndCalcSubtotalsPerCurrency(historyquoteJpaRepository, securityPositionSummaryList, dateCurrencyMap);
     final SecurityPositionGrandSummary securityPositionGrandSummary = new SecurityPositionGrandSummary(
         dateCurrencyMap.getMainCurrency(),
-        globalparametersJpaRepository.getPrecisionForCurrency(dateCurrencyMap.getMainCurrency()));
+        globalparametersService.getPrecisionForCurrency(dateCurrencyMap.getMainCurrency()));
     for (final Map.Entry<String, SecurityPositionCurrenyGroupSummary> ospcs : currencyTotalMap.entrySet()) {
       securityPositionGrandSummary.calcGrandTotal(ospcs.getValue());
     }

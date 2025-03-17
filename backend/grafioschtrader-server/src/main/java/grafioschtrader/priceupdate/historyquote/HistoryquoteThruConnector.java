@@ -17,6 +17,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.entities.Globalparameters;
+import grafiosch.entities.User;
 import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -26,12 +27,11 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.entities.User;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.ISecuritycurrencyService;
 import grafioschtrader.repository.SecurityJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -57,9 +57,9 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   private final Class<S> entityType;
 
   public HistoryquoteThruConnector(EntityManager entityManager,
-      GlobalparametersJpaRepository globalparametersJpaRepository, List<IFeedConnector> feedConnectorbeans,
+      GlobalparametersService globalparametersService, List<IFeedConnector> feedConnectorbeans,
       IHistoryquoteEntityAccess<S> historyquoteEntityAccess, Class<S> entityType) {
-    super(globalparametersJpaRepository, historyquoteEntityAccess);
+    super(globalparametersService, historyquoteEntityAccess);
     this.entityManager = entityManager;
     this.feedConnectorbeans = feedConnectorbeans;
     this.historyquoteEntityAccess = historyquoteEntityAccess;
@@ -156,7 +156,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     final TypedQuery<S> query = entityManager
         .createQuery("SELECT s FROM " + entityType.getSimpleName() + " s WHERE s.idConnectorHistory IS NOT NULL "
             + "AND s.retryHistoryLoad < ?1 AND NOT EXISTS (SELECT h FROM s.historyquoteList h)", entityType)
-        .setParameter(1, globalparametersJpaRepository.getMaxHistoryRetry());
+        .setParameter(1, globalparametersService.getMaxHistoryRetry());
     return catchUpEmptyHistoryquote(query.getResultList());
   }
 
@@ -245,8 +245,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   public HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy,
       SecurityJpaRepository securityJpaRepository, MessageSource messages) {
 
-    Optional<Globalparameters> globalparameters = globalparametersJpaRepository
-        .findById(GlobalParamKeyDefault.GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE);
+    Optional<Globalparameters> globalparameters = globalparametersService.getGlobalparametersByProperty(
+        GlobalParamKeyDefault.GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE);
 
     HistoryquoteQualityHead historyquoteQualityHead = new HistoryquoteQualityHead("head",
         globalparameters.isPresent() ? globalparameters.get().getPropertyDate() : null);

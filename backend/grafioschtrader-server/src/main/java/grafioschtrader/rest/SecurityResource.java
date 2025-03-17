@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.Auditable;
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateJpaRepository;
+import grafiosch.rest.UpdateCreateResource;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
-import grafioschtrader.entities.Auditable;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.User;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteQualityService;
 import grafioschtrader.reports.SecruityTransactionsReport;
 import grafioschtrader.reports.SecruityTransactionsReport.SecruityTransactionsReportOptions;
@@ -48,7 +51,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.SECURITY_MAP)
+@RequestMapping(RequestGTMappings.SECURITY_MAP)
 @Tag(name = Security.TABNAME, description = """
     This is the controller for a security. The deletion of a security is not addressed via this resource. The deletion is done via the watchlist.""")
 public class SecurityResource extends UpdateCreateResource<Security> {
@@ -185,7 +188,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Searches securities  by a s search criteria", description = "", tags = { Security.TABNAME })
+  @Operation(summary = "Searches securities by a search criteria", description = "", tags = { Security.TABNAME })
   @GetMapping(value = "/search", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Security>> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
     return new ResponseEntity<>(securityJpaRepository.searchByCriteria(securitycurrencySearch), HttpStatus.OK);
@@ -247,4 +250,12 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return securityJpaRepository.checkUserCanChangeDerivedFields(user, newEntity, existingEntity);
   }
 
+  @Operation(summary = """
+      Returns a name if the task works at the level of an entity. This allows a name for the ID to be displayed 
+      in the user interface as a tooltip, for example.""", description = "", tags = {Security.TABNAME})
+  @GetMapping(value="/tooltip", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Map<Integer, String>> getSecurityCurrencyPairInfo() {
+    return new ResponseEntity<>(securityJpaRepository.getSecurityCurrencyPairInfo(), HttpStatus.OK);
+  }
+  
 }

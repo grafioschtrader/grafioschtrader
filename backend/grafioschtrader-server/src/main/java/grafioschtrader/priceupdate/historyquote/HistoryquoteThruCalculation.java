@@ -13,15 +13,14 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.ISecuritycurrencyService;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Update calculation of derived security.
- *
  */
 public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> extends BaseHistoryquoteThru<Security> {
 
@@ -32,9 +31,9 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
   public HistoryquoteThruCalculation(final SecurityJpaRepository securityJpaRepository,
       HistoryquoteJpaRepository historyquoteJpaRepository,
       SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository,
-      GlobalparametersJpaRepository globalparametersJpaRepository,
+      GlobalparametersService globalparametersService,
       IHistoryqouteEntityBaseAccess<Security> historyqouteEntityBaseAccess) {
-    super(globalparametersJpaRepository, historyqouteEntityBaseAccess);
+    super(globalparametersService, historyqouteEntityBaseAccess);
     this.securityJpaRepository = securityJpaRepository;
     this.historyquoteJpaRepository = historyquoteJpaRepository;
     this.securityDerivedLinkJpaRepository = securityDerivedLinkJpaRepository;
@@ -63,7 +62,7 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
   @Override
   protected List<Security> fillEmptyHistoryquote() {
     return catchUpEmptyHistoryquote(securityJpaRepository
-        .findDerivedEmptyHistoryquoteByMaxRetryHistoryLoad(globalparametersJpaRepository.getMaxHistoryRetry()));
+        .findDerivedEmptyHistoryquoteByMaxRetryHistoryLoad(globalparametersService.getMaxHistoryRetry()));
   }
 
   @Override

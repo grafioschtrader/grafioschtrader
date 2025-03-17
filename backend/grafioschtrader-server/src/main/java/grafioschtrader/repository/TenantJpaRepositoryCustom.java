@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.util.Optional;
 
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.entities.Tenant;
 import jakarta.servlet.http.HttpServletResponse;
 

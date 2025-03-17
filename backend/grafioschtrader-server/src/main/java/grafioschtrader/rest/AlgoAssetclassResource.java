@@ -13,15 +13,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.entities.AlgoAssetclass;
-import grafioschtrader.entities.User;
 import grafioschtrader.repository.AlgoAssetclassJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.ALGOASSETCLASS_MAP)
-@Tag(name = RequestMappings.ALGOASSETCLASS, description = "Controller for top level algorithmic trading assetclass")
+@RequestMapping(RequestGTMappings.ALGOASSETCLASS_MAP)
+@Tag(name = RequestGTMappings.ALGOASSETCLASS, description = "Controller for top level algorithmic trading assetclass")
 public class AlgoAssetclassResource extends UpdateCreateDeleteWithTenantResource<AlgoAssetclass> {
 
   @Autowired
@@ -32,7 +34,7 @@ public class AlgoAssetclassResource extends UpdateCreateDeleteWithTenantResource
   }
 
   @Operation(summary = "Get the full algorithmic tranding tree for a strategy without the top level", description = "", tags = {
-      RequestMappings.ALGOASSETCLASS })
+      RequestGTMappings.ALGOASSETCLASS })
   @GetMapping(value = "/{idAlgoAssetclassParent}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AlgoAssetclass>> getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(
       @PathVariable final Integer idAlgoAssetclassParent) {

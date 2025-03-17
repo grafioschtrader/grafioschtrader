@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import grafioschtrader.common.ValueFormatConverter;
+import grafiosch.common.ValueFormatConverter;
 import grafioschtrader.platformimport.ImportProperties;
 
 /**

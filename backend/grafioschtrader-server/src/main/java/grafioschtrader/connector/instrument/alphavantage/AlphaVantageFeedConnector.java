@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;

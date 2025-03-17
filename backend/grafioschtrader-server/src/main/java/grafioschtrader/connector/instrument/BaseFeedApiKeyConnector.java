@@ -6,10 +6,10 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import grafioschtrader.entities.ConnectorApiKey;
+import grafiosch.entities.ConnectorApiKey;
+import grafiosch.repository.ConnectorApiKeyJpaRepository;
+import grafiosch.types.ISubscriptionType;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.repository.ConnectorApiKeyJpaRepository;
-import grafioschtrader.types.SubscriptionType;
 
 public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
 
@@ -70,7 +70,7 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
     return connectorApiKey == null ? null : connectorApiKey.getApiKey();
   }
 
-  public SubscriptionType getSubscriptionType() {
+  public ISubscriptionType getSubscriptionType() {
     getConnectorApiKey();
     return connectorApiKey.getSubscriptionType();
   }

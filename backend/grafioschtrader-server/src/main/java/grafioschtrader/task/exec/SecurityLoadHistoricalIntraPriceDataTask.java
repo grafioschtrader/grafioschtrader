@@ -8,11 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * When a security is created, the intraday and historical price data is read.
@@ -27,8 +28,8 @@ public class SecurityLoadHistoricalIntraPriceDataTask implements ITask {
   private SecurityJpaRepository securityJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA;
   }
 
   @Override

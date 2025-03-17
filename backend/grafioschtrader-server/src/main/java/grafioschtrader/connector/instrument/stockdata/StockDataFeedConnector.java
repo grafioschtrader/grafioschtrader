@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.BaseConstants;
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;

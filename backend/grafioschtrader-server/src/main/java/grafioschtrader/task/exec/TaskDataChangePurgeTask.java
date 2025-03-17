@@ -7,9 +7,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
+import grafiosch.BaseConstants;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.TaskDataChangeJpaRepository;
 
 @Service
 @Transactional
@@ -21,7 +21,7 @@ public class TaskDataChangePurgeTask {
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
-  @Scheduled(cron = "${gt.purge.task.data}", zone = GlobalConstants.TIME_ZONE)
+  @Scheduled(cron = "${gt.purge.task.data}", zone = BaseConstants.TIME_ZONE)
   public void purgeExpired() {
     taskDataChangeJpaRepository.removeByExecEndTimeBefore(
         LocalDateTime.now().minusDays(globalparametersJpaRepository.getTaskDataDaysPreserve()));

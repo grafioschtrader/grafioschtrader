@@ -11,18 +11,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.UserAccessHelper;
+import grafiosch.dto.TenantLimit;
+import grafiosch.entities.User;
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.RepositoryHelper;
+import grafiosch.repository.TenantLimitsHelper;
 import grafioschtrader.GlobalParamKeyDefault;
-import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
-import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.service.GlobalparametersService;
 
 public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> implements WatchlistJpaRepositoryCustom {
 
@@ -42,6 +47,9 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
+  private GlobalparametersService globalparametersService;
+
+  @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
   @Override
@@ -59,8 +67,9 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
 
       if (watchlist.getWatchlistLength() + securitycurrencyLists.getLength() <= globalparametersJpaRepository
           .getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHLIST_LENGTH)
-          && maxPositionForTenant + securitycurrencyLists.getLength() <= TenantLimitsHelper
-              .getMaxValueByKey(globalparametersJpaRepository, GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITIES_CURRENCIES)) {
+          && maxPositionForTenant + securitycurrencyLists.getLength() <= TenantLimitsHelper.getMaxValueByKey(
+              globalparametersJpaRepository.getEntityManager(),
+              GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITIES_CURRENCIES)) {
         securitycurrencyLists.currencypairList
             .forEach(currencypair -> watchlist.getSecuritycurrencyList().add(currencypair));
         securitycurrencyLists.securityList.forEach(security -> watchlist.getSecuritycurrencyList().add(security));
@@ -253,14 +262,15 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   public Watchlist addInstrumentsWithPriceDataProblems(Integer idWatchlist, IntraHistoricalWatchlistProblem ihwp) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final Watchlist watchlist = watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
-    if(watchlist != null && watchlist.getSecuritycurrencyList().isEmpty() && UserAccessHelper.hasHigherPrivileges(user)) {
-      if(ihwp.addHistorical) {
+    if (watchlist != null && watchlist.getSecuritycurrencyList().isEmpty()
+        && UserAccessHelper.hasHigherPrivileges(user)) {
+      if (ihwp.addHistorical) {
         watchlistJpaRepository.addInstrumentsWithHistoricalPriceDataTrouble(idWatchlist, ihwp.daysSinceLastWork,
-            globalparametersJpaRepository.getMaxHistoryRetry());
+            globalparametersService.getMaxHistoryRetry());
       }
-      if(ihwp.addIntraday) {
+      if (ihwp.addIntraday) {
         watchlistJpaRepository.addInstrumentsWithIntradayPriceDataTrouble(idWatchlist, ihwp.daysSinceLastWork,
-            globalparametersJpaRepository.getMaxIntraRetry());
+            globalparametersService.getMaxIntraRetry());
       }
     } else {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
@@ -274,11 +284,10 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
         : currencypairJpaRepository.getDataProviderResponseForUser(idSecuritycurrency, isIntraday);
   }
 
-
   @Override
   public String getDataProviderLinkForUser(Integer idSecuritycurrency, boolean isIntraday, boolean isSecurity) {
-     return isSecurity ? securityJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday)
-         : currencypairJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday);
+    return isSecurity ? securityJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday)
+        : currencypairJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday);
   }
 
   @Override

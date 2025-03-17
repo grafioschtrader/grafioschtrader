@@ -5,11 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
-import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.AssetclassJpaRepository;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 
@@ -20,7 +19,7 @@ public class MultipleRequestToOneService {
   private AssetclassJpaRepository assetclassJpaRepository;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   @Autowired
   private StockexchangeJpaRepository stockexchangeJpaRepository;
@@ -29,7 +28,7 @@ public class MultipleRequestToOneService {
   private SecurityJpaRepository securityJpaRepository;
 
   public DataForCurrencySecuritySearch getDataForCurrencySecuritySearch() {
-    return new DataForCurrencySecuritySearch(globalparametersJpaRepository.getCurrencies(),
+    return new DataForCurrencySecuritySearch(globalparametersService.getCurrencies(),
         assetclassJpaRepository.getSubcategoryForLanguage(),
         securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.FS_HISTORY),
         securityJpaRepository.getAllFeedConnectorsAsKeyValue(FeedSupport.FS_INTRA),

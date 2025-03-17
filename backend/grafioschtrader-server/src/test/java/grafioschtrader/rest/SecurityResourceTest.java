@@ -36,8 +36,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
+import grafiosch.common.DateHelper;
+import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
@@ -45,7 +46,6 @@ import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
-import grafioschtrader.types.Language;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @TestMethodOrder(OrderAnnotation.class)
@@ -78,7 +78,7 @@ class SecurityResourceTest {
   @Order(2)
   void getAllAssetclassTest() {
     ResponseEntity<Assetclass[]> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestMappings.ASSETCLASS_MAP + "/", port), HttpMethod.GET,
+        RestTestHelper.createURLWithPort(RequestGTMappings.ASSETCLASS_MAP + "/", port), HttpMethod.GET,
         RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null), Assetclass[].class);
 
     Optional<Assetclass> assetclassOpt = Arrays.stream(response.getBody())
@@ -95,7 +95,7 @@ class SecurityResourceTest {
   @Order(3)
   void getAllStockexchangesTest() {
     ResponseEntity<Stockexchange[]> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestMappings.STOCKEXCHANGE_MAP + "/", port), HttpMethod.GET,
+        RestTestHelper.createURLWithPort(RequestGTMappings.STOCKEXCHANGE_MAP + "/", port), HttpMethod.GET,
         RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null), Stockexchange[].class);
 
     Optional<Stockexchange> stockexchangeOpt = Arrays.stream(response.getBody())
@@ -126,7 +126,7 @@ class SecurityResourceTest {
     HttpEntity<Security> request = RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, s);
 
     ResponseEntity<Security> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestMappings.SECURITY_MAP + "/", port), HttpMethod.POST, request,
+        RestTestHelper.createURLWithPort(RequestGTMappings.SECURITY_MAP + "/", port), HttpMethod.POST, request,
         Security.class);
     assertNotNull(response);
     security = response.getBody();
@@ -137,7 +137,7 @@ class SecurityResourceTest {
   @Order(5)
   @DisplayName("Delete singe security with user 'limit1'")
   void deleteByIdTest() throws ParseException {
-    String entityUrl = RestTestHelper.createURLWithPort(RequestMappings.SECURITY_MAP + "/", port)
+    String entityUrl = RestTestHelper.createURLWithPort(RequestGTMappings.SECURITY_MAP + "/", port)
         + security.getIdSecuritycurrency();
     restTemplate.exchange(entityUrl, HttpMethod.DELETE, RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null),
         String.class);
@@ -154,7 +154,7 @@ class SecurityResourceTest {
   void createAllSecuritiesTest(@AggregateWith(SecurityAggregator.class) Security security) {
     HttpEntity<Security> request = RestTestHelper.getHttpEntity(RestTestHelper.getRadomUser(), security);
     ResponseEntity<Security> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestMappings.SECURITY_MAP + "/", port), HttpMethod.POST, request,
+        RestTestHelper.createURLWithPort(RequestGTMappings.SECURITY_MAP + "/", port), HttpMethod.POST, request,
         Security.class);
     assertNotNull(response);
     security = response.getBody();

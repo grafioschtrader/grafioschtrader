@@ -11,7 +11,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafiosch.entities.UDFData;
+import grafiosch.entities.UDFData.UDFDataKey;
+import grafiosch.entities.UDFMetadata;
+import grafiosch.entities.UDFMetadataGeneral;
+import grafiosch.entities.User;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.ImportTransactionHead;
@@ -22,12 +27,7 @@ import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.entities.UDFData;
-import grafioschtrader.entities.UDFData.UDFDataKey;
-import grafioschtrader.entities.UDFMetadata;
-import grafioschtrader.entities.UDFMetadataGeneral;
 import grafioschtrader.entities.UDFMetadataSecurity;
-import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -202,7 +202,7 @@ public class CopyTenantService {
     List<UDFData> udfDataList = q.setParameter(1, sourceIdUser).getResultList();
     for (UDFData u : udfDataList) {
       Map<String, Object> jvNew = u.getJsonValues().entrySet().stream().collect(Collectors.toMap(e -> 
-      GlobalConstants.UDF_FIELD_PREFIX + fieldMap.get(Integer.parseInt(e.getKey().substring(1))), e-> e.getValue()));
+      BaseConstants.UDF_FIELD_PREFIX + fieldMap.get(Integer.parseInt(e.getKey().substring(1))), e-> e.getValue()));
       UDFData uDFData = new UDFData(
           new UDFDataKey(targetIdUser, u.getuDFDataKey().getEntity(), u.getuDFDataKey().getIdEntity()),
           jvNew);

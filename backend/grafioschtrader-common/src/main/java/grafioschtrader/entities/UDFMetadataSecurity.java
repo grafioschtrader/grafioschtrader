@@ -4,11 +4,12 @@ import java.util.EnumSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.common.EnumHelper;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.common.EnumHelper;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.entities.UDFMetadata;
+import grafiosch.types.UDFDataType;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
-import grafioschtrader.types.UDFDataType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

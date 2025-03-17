@@ -3,7 +3,7 @@ package grafioschtrader.algo.strategy.model;
 import java.io.Serializable;
 import java.util.List;
 
-import grafioschtrader.dynamic.model.FieldDescriptorInputAndShow;
+import grafiosch.dynamic.model.FieldDescriptorInputAndShow;
 
 public class InputAndShowDefinitionStrategy implements Serializable {
 

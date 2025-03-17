@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteAuditResource;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.TradingPlatformPlan;
-import grafioschtrader.entities.User;
 import grafioschtrader.platformimport.FormTemplateCheck;
 import grafioschtrader.repository.ImportTransactionTemplateJpaRepository;
 import grafioschtrader.repository.ImportTransactionTemplateJpaRepositoryCustom.SuccessFailedImportTransactionTemplate;
@@ -31,8 +33,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
-@RequestMapping(RequestMappings.IMPORTTRANSACTIONTEMPLATE_MAP)
-@Tag(name = RequestMappings.IMPORTTRANSACTIONTEMPLATE, description = "Controller for Import Transaction Tempalte")
+@RequestMapping(RequestGTMappings.IMPORTTRANSACTIONTEMPLATE_MAP)
+@Tag(name = RequestGTMappings.IMPORTTRANSACTIONTEMPLATE, description = "Controller for Import Transaction Tempalte")
 public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditResource<ImportTransactionTemplate> {
 
   @Autowired
@@ -42,7 +44,7 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   private TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
 
   @Operation(summary = "Return all import transaction template for a certain import transaction platform", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/importtransactionplatform/{idTransactionImportPlatform}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionTemplate>> getImportTransactionPlatformByPlatform(
       @Parameter(description = "ID of the import transaction platform", required = true) @PathVariable final Integer idTransactionImportPlatform,
@@ -52,7 +54,7 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   }
 
   @Operation(summary = "Return all import transaction template for a certain trading platform plan", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/importtransactionplatform/tradingplatformplan/{idTradingPlatformPlan}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionTemplate>> getImportTransactionPlatformByTradingPlatformPlan(
       @Parameter(description = "Id of trading platform plan", required = true) @PathVariable final Integer idTradingPlatformPlan,
@@ -64,7 +66,7 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   }
 
   @Operation(summary = "Return all CSV of certain trading platform plan with its templateId", description = "Can be used as options for a html select", tags = {
-      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/importtransactionplatform/tradingplatformplan/csv/{idTradingPlatformPlan}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCSVTemplateIdsAsValueKeyHtmlSelectOptions(
       @Parameter(description = "Id of trading platform plan", required = true) @PathVariable final Integer idTradingPlatformPlan) {
@@ -90,7 +92,7 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   }
 
   @Operation(summary = "Check a text of a transaction report against the form temlates to match the input fields", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @PostMapping(value = "/checkformagainsttemplate")
   public ResponseEntity<FormTemplateCheck> checkFormAgainstTemplate(@RequestBody FormTemplateCheck formTemplateCheck)
       throws Exception {
@@ -100,7 +102,7 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   }
 
   @Operation(summary = "Returns the possible languages for the template", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/languages", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getPossibleLanguagesForTemplate() {
     return new ResponseEntity<>(importTransactionTemplateJpaRepository.getPossibleLanguagesForTemplate(),
@@ -108,7 +110,7 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   }
 
   @Operation(summary = "Export all import transaction template of a certain trading platform plan", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/exportalltemplates/{idTransactionImportPlatform}", produces = "application/zip")
   public void getTemplatesByPlatformPlanAsZip(
       @Parameter(description = "ID of the import transaction platform", required = true) @PathVariable final Integer idTransactionImportPlatform,
@@ -117,7 +119,7 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   }
 
   @Operation(summary = "Upload one or more Template files, each Import transaction template", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONTEMPLATE })
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @PostMapping(value = "uploadtemplatefiles/{idTransactionImportPlatform}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessFailedImportTransactionTemplate> uploadImportTemplateFiles(
       @PathVariable() Integer idTransactionImportPlatform, @RequestParam("file") MultipartFile[] uploadFiles)

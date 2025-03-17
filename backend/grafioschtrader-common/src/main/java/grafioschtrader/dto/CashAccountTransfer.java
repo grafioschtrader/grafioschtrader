@@ -6,12 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Transaction.CashTransaction;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.types.TransactionType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -118,7 +119,7 @@ public class CashAccountTransfer {
     double withoutTransCost = Math.abs(DataHelper
         .round(withdrawalTransaction.getCashaccountAmount() - getTransactionCost(), withdrawalCurrencyFraction));
     double exactCurrencyExRate = DataHelper.round(depositTransaction.getCashaccountAmount() / withoutTransCost,
-        GlobalConstants.FID_MAX_FRACTION_DIGITS);
+        BaseConstants.FID_MAX_FRACTION_DIGITS);
     withdrawalTransaction.setCurrencyExRate(exactCurrencyExRate);
     depositTransaction.setCurrencyExRate(exactCurrencyExRate);
     log.debug("Corrected currency exchange rate for difference {} from {} to {}", difference, getCurrencyExRate(),

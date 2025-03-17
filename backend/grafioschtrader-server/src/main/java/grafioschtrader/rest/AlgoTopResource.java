@@ -15,17 +15,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.algo.AlgoTopCreate;
 import grafioschtrader.entities.AlgoTop;
-import grafioschtrader.entities.User;
 import grafioschtrader.repository.AlgoTopJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.ALGOTOP_MAP)
-@Tag(name = RequestMappings.ALGOTOP, description = "Controller for top level algorithmic trading strategy")
+@RequestMapping(RequestGTMappings.ALGOTOP_MAP)
+@Tag(name = RequestGTMappings.ALGOTOP, description = "Controller for top level algorithmic trading strategy")
 public class AlgoTopResource extends UpdateCreateDeleteWithTenantResource<AlgoTop> {
 
   @Autowired
@@ -36,7 +38,7 @@ public class AlgoTopResource extends UpdateCreateDeleteWithTenantResource<AlgoTo
   }
 
   @Operation(summary = "Returns all top level allgorithmic tranding", description = "Can be used to shown in a tree", tags = {
-      RequestMappings.ALGOTOP })
+      RequestGTMappings.ALGOTOP })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AlgoTop>> getAlgoTopByIdTenantOrderByName() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -44,7 +46,7 @@ public class AlgoTopResource extends UpdateCreateDeleteWithTenantResource<AlgoTo
   }
 
   @Operation(summary = "Returns top level allgorithmic tranding by specified ", description = "", tags = {
-      RequestMappings.ALGOTOP })
+      RequestGTMappings.ALGOTOP })
   @GetMapping(value = "/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AlgoTop> getAlgoTopByIdAlgoAssetclassSecurity(
       @Parameter(description = "Id of top level algorithmic trading", required = true) @PathVariable final Integer idAlgoAssetclassSecurity) {
@@ -59,7 +61,7 @@ public class AlgoTopResource extends UpdateCreateDeleteWithTenantResource<AlgoTo
     return algoTopJpaRepository;
   }
 
-  @Operation(summary = "", description = "", tags = { RequestMappings.ALGOTOP })
+  @Operation(summary = "", description = "", tags = { RequestGTMappings.ALGOTOP })
   @PostMapping(value = "/create", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AlgoTop> create(@RequestBody AlgoTopCreate algoTopCreate) throws Exception {
     return createEntity(algoTopCreate);

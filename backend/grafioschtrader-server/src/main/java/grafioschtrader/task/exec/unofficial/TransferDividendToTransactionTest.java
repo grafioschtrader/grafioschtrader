@@ -9,12 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.common.DateHelper;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
+import grafiosch.types.Language;
 import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.DividendJpaRepository.DivdendForHoldings;
@@ -22,9 +25,7 @@ import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.Language;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 import grafioschtrader.types.TransactionType;
 
 @Component
@@ -46,8 +47,8 @@ public class TransferDividendToTransactionTest implements ITask {
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.UNOFFICIAL_CREATE_TRANSACTION_FROM_DIVIDENDS_TABLE;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.UNOFFICIAL_CREATE_TRANSACTION_FROM_DIVIDENDS_TABLE;
   }
 
   @Override

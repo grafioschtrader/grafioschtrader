@@ -6,9 +6,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import grafioschtrader.common.UpdateQuery;
+import grafiosch.common.UpdateQuery;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.rest.UpdateCreateJpaRepository;
 
 public interface TransactionJpaRepository extends JpaRepository<Transaction, Integer>, TransactionJpaRepositoryCustom,
     UpdateCreateJpaRepository<Transaction> {

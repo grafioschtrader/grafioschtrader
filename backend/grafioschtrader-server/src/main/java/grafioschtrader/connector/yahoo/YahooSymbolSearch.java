@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.MicProviderMap.IdProviderMic;
 import grafioschtrader.repository.MicProviderMapRepository;
@@ -31,7 +32,7 @@ import grafioschtrader.repository.MicProviderMapRepository;
  */
 public class YahooSymbolSearch {
 
-  private static final String DOMAIN_NAME_WITH_SEARCH = "https://query1.finance.yahoo.com/v1/finance/search";
+  private static final String DOMAIN_NAME_WITH_SEARCH = "https://query2.finance.yahoo.com/v1/finance/search";
   private static final Logger log = LoggerFactory.getLogger(YahooSymbolSearch.class);
 
   /**
@@ -83,24 +84,45 @@ public class YahooSymbolSearch {
   private String serachSymbol(String query, String yahooExchangeCode, String symbol, String suffix) {
     String completeUrl = DOMAIN_NAME_WITH_SEARCH + "?" + createParams(query);
     HttpClient client = HttpClient.newHttpClient();
-    HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(completeUrl)).build();
+    HttpRequest request = HttpRequest.newBuilder()
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
+        .GET()
+        .uri(URI.create(completeUrl))
+        .build();
     HttpResponse<String> response;
     try {
       response = client.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() == HttpURLConnection.HTTP_OK) {
         List<Quote> quotes = mapToObject(response.body());
-        Optional<Quote> qouteOpt = quotes.stream().filter(q -> q.exchange.equals(yahooExchangeCode)).findFirst();
-        if (qouteOpt.isPresent()) {
-          return qouteOpt.get().symbol;
+        String foundSymbol = null;
+        
+        // First, try matching by Yahoo exchange code.
+        Optional<Quote> quoteOpt = quotes.stream()
+            .filter(q -> q.exchange.equals(yahooExchangeCode))
+            .findFirst();
+        if (quoteOpt.isPresent()) {
+          foundSymbol = quoteOpt.get().symbol;
         } else if (symbol != null) {
-          qouteOpt = quotes.stream().filter(q -> symbol.equals(q.symbol)).findFirst();
-          if (qouteOpt.isPresent()) {
-            return qouteOpt.get().symbol;
+          // Next, try matching by symbol directly.
+          quoteOpt = quotes.stream()
+              .filter(q -> symbol.equals(q.symbol))
+              .findFirst();
+          if (quoteOpt.isPresent()) {
+            foundSymbol = quoteOpt.get().symbol;
           } else {
+            // Finally, try matching by symbol with the suffix appended.
             String symbolSuffix = symbol + suffix;
-            qouteOpt = quotes.stream().filter(q -> symbolSuffix.equals(q.symbol)).findFirst();
+            quoteOpt = quotes.stream()
+                .filter(q -> symbolSuffix.equals(q.symbol))
+                .findFirst();
+            if (quoteOpt.isPresent()) {
+              foundSymbol = quoteOpt.get().symbol;
+            }
           }
-          return qouteOpt.isPresent() ? qouteOpt.get().symbol : null;
+        }
+       if (foundSymbol != null) {
+          log.info("Got Yahoo Symbol {} for query {} and symbol {}", foundSymbol, query, symbol);
+          return foundSymbol;
         }
       } else {
         log.error("Get status code {} for query {} and symbol {}", response.statusCode(), query, symbol);

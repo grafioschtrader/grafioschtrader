@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafioschtrader.entities.Security;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.rest.RequestMappings;
+import grafioschtrader.rest.RequestGTMappings;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
-@RequestMapping(RequestMappings.SECURITY_M2M_MAP)
+@RequestMapping(RequestGTMappings.SECURITY_M2M_MAP)
 public class SecurityM2MResource {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
-  @Operation(summary = "Returns a security ISIN and currency", description = "", tags = {RequestMappings.SECURITY_M2M })
+  @Operation(summary = "Returns a security ISIN and currency", description = "", tags = {RequestGTMappings.SECURITY_M2M })
   @GetMapping(value = "/{isin}/{currency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Security> getSecurityByIdSecuritycurrency(@PathVariable final String isin,
       @PathVariable final String currency) {

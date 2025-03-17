@@ -8,6 +8,7 @@ import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {Tenant} from '../../entities/tenant';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Dialog for change the existing tenant properties. It can also show only the currency, this is used
@@ -31,11 +32,12 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
 export class TenantEditDialogComponent extends TenantEditComponent implements OnInit {
   @Input() onlyCurrency: boolean;
 
-  constructor(gps: GlobalparameterService,
+  constructor(gpsGT: GlobalparameterGTService,
+              gps: GlobalparameterService,
               messageToastService: MessageToastService,
               tenantService: TenantService,
               translateSercice: TranslateService) {
-    super(gps, messageToastService, tenantService, translateSercice, false, 6);
+    super(gpsGT, gps, messageToastService, tenantService, translateSercice, false, 6);
   }
 
   ngOnInit(): void {

@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.entities.DividendSplit;
 import grafioschtrader.entities.Security;
 import grafioschtrader.types.CreateType;

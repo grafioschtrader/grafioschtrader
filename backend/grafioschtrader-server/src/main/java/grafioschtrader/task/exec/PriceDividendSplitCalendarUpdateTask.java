@@ -5,18 +5,19 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.connector.calendar.SplitCalendarAppender;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquotePeriodJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * It reads the EOD day from external resources and the dividend, split
@@ -50,9 +51,9 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
-  @Scheduled(cron = "${gt.eod.cron.quotation}", zone = GlobalConstants.TIME_ZONE)
+  @Scheduled(cron = "${gt.eod.cron.quotation}", zone = BaseConstants.TIME_ZONE)
   public void createPriceDividendSplitCalendarUpdateTask() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_HIGH);
     taskDataChangeRepository.save(taskDataChange);
@@ -63,7 +64,7 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
     currencypairJpaRepository.catchAllUpCurrencypairHistoryquote();
     currencypairJpaRepository.allCurrenciesFillEmptyDaysInHistoryquote();
 
-    if (globalparametersJpaRepository.getUpdatePriceByStockexchange() == 0) {
+    if (globalparametersService.getUpdatePriceByStockexchange() == 0) {
       securityJpaRepository.catchAllUpSecurityHistoryquote(null);
     }
     historyquotePeriodJpaRepository.updatLastPriceFromHistoricalPeriod();
@@ -74,8 +75,8 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   }
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU;
   }
 
   @Override

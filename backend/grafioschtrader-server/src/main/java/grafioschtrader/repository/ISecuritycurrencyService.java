@@ -2,9 +2,10 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
-import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;

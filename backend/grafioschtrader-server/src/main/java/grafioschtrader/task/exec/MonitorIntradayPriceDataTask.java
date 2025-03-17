@@ -8,17 +8,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.alert.AlertType;
+import grafiosch.BaseConstants;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
+import grafiosch.types.TaskDataExecPriority;
+import grafioschtrader.alert.AlertGTType;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository.MonitorFailedConnector;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Checks whether a connector for intraday price data may no longer be working.
@@ -35,15 +36,15 @@ public class MonitorIntradayPriceDataTask extends MonitorPriceData implements IT
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
-  @Scheduled(cron = "${gt.intraday.cron.monitor.quotation}", zone = GlobalConstants.TIME_ZONE)
+  @Scheduled(cron = "${gt.intraday.cron.monitor.quotation}", zone = BaseConstants.TIME_ZONE)
   public void monitorIntradayPriceDataConnectors() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_NORMAL);
     taskDataChangeRepository.save(taskDataChange);
   }
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.MONITOR_INTRADAY_PRICE_DATA;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.MONITOR_INTRADAY_PRICE_DATA;
   }
 
   @Override
@@ -52,13 +53,13 @@ public class MonitorIntradayPriceDataTask extends MonitorPriceData implements IT
     List<MonitorFailedConnector> monitorFailedConnectors = Collections.emptyList();
     do {
       monitorFailedConnectors = securityJpaRepository.getFailedIntradayConnector(
-          LocalDate.now().minusDays(globalparametersJpaRepository.getIntradayObservationOrDaysBack()),
-          globalparametersJpaRepository.getMaxIntraRetry()
-              - globalparametersJpaRepository.getIntradayObservationRetryMinus(),
-          globalparametersJpaRepository.getIntradayObservationFallingPercentage());
+          LocalDate.now().minusDays(globalparametersService.getIntradayObservationOrDaysBack()),
+          globalparametersService.getMaxIntraRetry()
+              - globalparametersService.getIntradayObservationRetryMinus(),
+              globalparametersService.getIntradayObservationFallingPercentage());
       if (!monitorFailedConnectors.isEmpty()) {
         if (leave != 0) {
-          generateMessageAndPublishAlert(AlertType.ALERT_CONNECTOR_INTRADAY_MAY_NOT_WORK_ANYMORE,
+          generateMessageAndPublishAlert(AlertGTType.ALERT_CONNECTOR_INTRADAY_MAY_NOT_WORK_ANYMORE,
               monitorFailedConnectors, FeedSupport.FS_INTRA);
         } else {
           updateIntraday();

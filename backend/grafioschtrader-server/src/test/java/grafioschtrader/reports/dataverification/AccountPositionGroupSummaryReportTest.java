@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.reports.AccountPositionGroupSummaryReport;
 import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
 import grafioschtrader.reportviews.account.AccountPositionGroupSummary;

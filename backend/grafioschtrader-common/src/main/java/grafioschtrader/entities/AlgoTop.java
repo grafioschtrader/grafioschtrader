@@ -1,8 +1,8 @@
 package grafioschtrader.entities;
 
+import grafiosch.common.PropertyAlwaysUpdatable;
 import grafioschtrader.algo.RuleStrategyType;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;

@@ -14,6 +14,7 @@ import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {Subscription} from 'rxjs';
 import {UDFMetadataHelper} from './udf.metadata.helper';
+import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 
 /**
  * Edit user defined fields metadata of security in a dialog
@@ -39,10 +40,11 @@ export class UDFMetadataSecurityEditComponent extends AssetClassTypeSpecInstrume
   private dataTypeSubscribe: Subscription;
 
   constructor(translateService: TranslateService,
+    gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     uDFMetadataSecurityService: UDFMetadataSecurityService) {
-    super('categoryTypeEnums', 'specialInvestmentInstrumentEnums',
+    super('categoryTypeEnums', gpsGT, 'specialInvestmentInstrumentEnums',
       HelpIds.HELP_BASEDATA_UDF_METADATA_SECURITY, AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
       translateService, gps, messageToastService, uDFMetadataSecurityService);
   }

@@ -13,7 +13,7 @@ import grafioschtrader.connector.instrument.IFeedConnector.DownloadLink;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Update intraday prices thru the connector for securities or currency pair.
@@ -29,9 +29,9 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   private final IIntradayEntityAccess<S> intraEntityAccess;
 
   public IntradayThruConnector(JpaRepository<S, Integer> jpaRepository,
-      GlobalparametersJpaRepository globalparametersJpaRepository, List<IFeedConnector> feedConnectorbeans,
+      GlobalparametersService globalparametersService, List<IFeedConnector> feedConnectorbeans,
       IIntradayEntityAccess<S> intraEntityAccess) {
-    super(globalparametersJpaRepository);
+    super(globalparametersService);
     this.jpaRepository = jpaRepository;
     this.feedConnectorbeans = feedConnectorbeans;
     this.intraEntityAccess = intraEntityAccess;

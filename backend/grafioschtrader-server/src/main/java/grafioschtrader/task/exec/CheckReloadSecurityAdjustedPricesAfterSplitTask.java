@@ -10,14 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * If a split is added for a security, it may take a few days for the adjusted
@@ -37,8 +38,8 @@ public class CheckReloadSecurityAdjustedPricesAfterSplitTask implements ITask {
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES;
   }
 
   @Override

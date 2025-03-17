@@ -2,10 +2,11 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
+import grafiosch.dto.TenantLimit;
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.dto.CorrelationLimits;
 import grafioschtrader.dto.CorrelationResult;
 import grafioschtrader.dto.CorrelationRollingResult;
-import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.search.SecuritycurrencySearch;

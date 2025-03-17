@@ -27,6 +27,7 @@ import {ColumnConfig, OptionalParams} from '../../shared/datashowbase/column.con
 import {HelpIds} from '../../shared/help/help.ids';
 import {WatchlistHelper} from './watchlist.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Display of the watchlist with the user-defined additional fields.
@@ -66,12 +67,13 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     changeDetectionStrategy: ChangeDetectorRef,
     filterService: FilterService,
     translateService: TranslateService,
+    gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService) {
     super(WatchListType.UDF, AppSettings.WATCHLIST_UDF_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
       timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
-      gps, usersettingsService, WatchlistTable.SINGLE);
+      gpsGT, gps, usersettingsService, WatchlistTable.SINGLE);
     WatchlistUdfComponent.registerIcons(iconReg);
     this.addBaseColumns();
     this.fdSecurityList = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY))

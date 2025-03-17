@@ -1,5 +1,6 @@
 package grafioschtrader.repository;
 
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.GTNetWithMessages;

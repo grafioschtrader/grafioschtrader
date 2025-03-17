@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.DIVIDEND_MAP)
+@RequestMapping(RequestGTMappings.DIVIDEND_MAP)
 @Tag(name = Dividend.TABNAME, description = "Controller for security dividend")
 public class DividendResource {
 

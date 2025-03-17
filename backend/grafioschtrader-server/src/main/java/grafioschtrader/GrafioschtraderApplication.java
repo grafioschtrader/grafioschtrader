@@ -2,7 +2,6 @@ package grafioschtrader;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.TimeZone;
 
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.ProtocolHandler;
@@ -21,7 +20,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import grafioschtrader.test.start.GTforTest;
-import jakarta.annotation.PostConstruct;
 
 
 //Spring ehcache is not working,
@@ -65,11 +63,5 @@ public class GrafioschtraderApplication {
     return ajpConnector;
   }
 
-  @PostConstruct
-  void started() {
-    TimeZone.setDefault(TimeZone.getTimeZone(GlobalConstants.TIME_ZONE));
-    new GlobalParamKeyDefault();
-    
-  }
-
+  
 }

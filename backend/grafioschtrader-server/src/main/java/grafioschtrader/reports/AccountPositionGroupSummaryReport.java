@@ -15,9 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DateHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DataBusinessHelper.CashaccountTransfer;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
@@ -32,7 +32,6 @@ import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 import grafioschtrader.reportviews.account.CashaccountPositionSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionCurrenyGroupSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
@@ -40,6 +39,7 @@ import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.helper.AccountGroupMap;
 import grafioschtrader.repository.helper.GroupPortfolio;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
 /**
@@ -68,12 +68,12 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   public AccountPositionGroupSummaryReport(TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository,
-      GlobalparametersJpaRepository globalparametersJpaRepository) {
-    super(tradingDaysPlusJpaRepository, globalparametersJpaRepository.getCurrencyPrecision());
-    this.globalparametersJpaRepository = globalparametersJpaRepository;
+      GlobalparametersService globalparametersService) {
+    super(tradingDaysPlusJpaRepository, globalparametersService.getCurrencyPrecision());
+    this.globalparametersService = globalparametersService;
   }
 
   /**
@@ -99,7 +99,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
         tenant.isExcludeDivTax(), dateCurrencyMap);
 
     return grouping.getGrandGroupSummary(dateCurrencyMap,
-        globalparametersJpaRepository.getPrecisionForCurrency(tenant.getCurrency()));
+        globalparametersService.getPrecisionForCurrency(tenant.getCurrency()));
   }
 
   /**
@@ -159,7 +159,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
     final long untilDateTime = DateHelper.setTimeToZeroAndAddDay(dateCurrencyMap.getUntilDate(), 1).getTime();
     final AccessCashaccountPositionSummary accessCashaccountPositionSummary = new AccessCashaccountPositionSummary(
-        globalparametersJpaRepository.getCurrencyPrecision());
+        globalparametersService.getCurrencyPrecision());
 
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdTenant(idTenant);
@@ -424,7 +424,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
         .collect(Collectors.toSet());
 
     return createAndCalcSubtotalsPerCurrencyAndIdSecurityaccount(historyquoteJpaRepository, securityPositionSummaryList,
-        dateCurrencyMap, seperateSecurityaccountCurrencySet, globalparametersJpaRepository.getCurrencyPrecision());
+        dateCurrencyMap, seperateSecurityaccountCurrencySet, globalparametersService.getCurrencyPrecision());
 
   }
 

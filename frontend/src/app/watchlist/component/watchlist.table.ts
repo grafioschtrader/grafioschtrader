@@ -44,6 +44,7 @@ import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.h
 import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
 import {WatchlistHelper} from './watchlist.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
@@ -102,6 +103,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     protected changeDetectionStrategy: ChangeDetectorRef,
     filterService: FilterService,
     translateService: TranslateService,
+    private gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
     public selectMultiMode: string) {
@@ -343,7 +345,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         this.writeTableDefinition(this.storeKey);
       } else {
         //  first time
-        this.gps.getIntraUpdateTimeout()
+        this.gpsGT.getIntraUpdateTimeout()
           .subscribe((updateTimeout: number) => this.intraUpdateTimoutSeconds = updateTimeout);
         this.readTableDefinition(this.storeKey);
       }

@@ -9,11 +9,12 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.entities.User;
+import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.entities.AlgoStrategy;
-import grafioschtrader.entities.User;
 
 public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrategy>
     implements AlgoStrategyJpaRepositoryCustom {

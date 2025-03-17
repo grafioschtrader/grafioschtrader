@@ -21,20 +21,20 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.dto.UserDTO;
-import grafioschtrader.entities.ProposeUserTask;
-import grafioschtrader.entities.User;
+import grafiosch.dto.UserDTO;
+import grafiosch.entities.ProposeUserTask;
+import grafiosch.entities.User;
+import grafiosch.exceptions.RequestLimitAndSecurityBreachException;
+import grafiosch.repository.ProposeUserTaskJpaRepository;
+import grafiosch.service.UserService;
+import grafiosch.usertask.UserTaskType;
 import grafioschtrader.error.ErrorWithLogout;
 import grafioschtrader.error.ImpatientAtLoginError;
-import grafioschtrader.exceptions.RequestLimitAndSecurityBreachException;
-import grafioschtrader.repository.ProposeUserTaskJpaRepository;
 import grafioschtrader.rest.helper.RestErrorHandler;
 import grafioschtrader.security.CustomAuthenticationFailureHandler;
 import grafioschtrader.security.TokenAuthenticationService;
 import grafioschtrader.security.UserAuthentication;
 import grafioschtrader.service.LoginAttemptServiceIpAddress;
-import grafioschtrader.service.UserService;
-import grafioschtrader.usertask.UserTaskType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

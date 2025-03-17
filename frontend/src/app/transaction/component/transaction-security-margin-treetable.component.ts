@@ -176,6 +176,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   }
 
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
+
   }
 
   private addTreeNodes(): void {

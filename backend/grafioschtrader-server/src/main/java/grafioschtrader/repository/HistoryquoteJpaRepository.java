@@ -9,14 +9,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import grafioschtrader.common.UpdateQuery;
+import grafiosch.common.UpdateQuery;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.dto.HistoryquoteDateClose;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Historyquote;
-import grafioschtrader.rest.UpdateCreateJpaRepository;
 import jakarta.transaction.Transactional;
 
 public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, Integer>,

@@ -5,6 +5,8 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.RepositoryHelper;
 import grafioschtrader.entities.TradingPlatformPlan;
 
 public class TradingPlatformPlanJpaRepositoryImpl extends BaseRepositoryImpl<TradingPlatformPlan>

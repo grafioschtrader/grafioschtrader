@@ -5,7 +5,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.entities.Auditable;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;

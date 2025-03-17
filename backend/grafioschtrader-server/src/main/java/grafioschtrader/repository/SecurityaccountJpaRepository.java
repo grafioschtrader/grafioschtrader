@@ -7,11 +7,11 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.common.UpdateQuery;
+import grafiosch.common.UpdateQuery;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.dto.ITransactionCost;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
-import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
 public interface SecurityaccountJpaRepository extends JpaRepository<Securityaccount, Integer>,
     SecurityaccountJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<Securityaccount> {

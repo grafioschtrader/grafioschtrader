@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.entities.Portfolio;
-import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
 public interface PortfolioJpaRepository extends JpaRepository<Portfolio, Integer>, PortfolioJpaRepositoryCustom,
     UpdateCreateDeleteWithTenantJpaRepository<Portfolio> {

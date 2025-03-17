@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping(RequestMappings.SECURITYSPLIT_MAP)
+@RequestMapping(RequestGTMappings.SECURITYSPLIT_MAP)
 @Tag(name = Securitysplit.TABNAME, description = "Controller for security split")
 public class SecuritysplitResource {
 

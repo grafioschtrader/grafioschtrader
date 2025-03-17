@@ -3,9 +3,10 @@ package grafioschtrader.reports.udfalluserfields;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import grafiosch.types.IUDFSpecialType;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
 import grafioschtrader.repository.MicProviderMapRepository;
-import grafioschtrader.types.UDFSpecialType;
+import grafioschtrader.types.UDFSpecialGTType;
 
 @Service
 public class YahooEarningNextDate extends YahooUDFFields implements IUDFForEveryUser {
@@ -19,8 +20,8 @@ public class YahooEarningNextDate extends YahooUDFFields implements IUDFForEvery
   }
 
   @Override
-  public UDFSpecialType getUDFSpecialType() {
-    return UDFSpecialType.UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE;
+  public IUDFSpecialType getUDFSpecialType() {
+    return UDFSpecialGTType.UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE;
   }
 
   @Override

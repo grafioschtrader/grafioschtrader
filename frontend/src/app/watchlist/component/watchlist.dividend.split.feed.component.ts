@@ -24,6 +24,7 @@ import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.con
 import {HelpIds} from '../../shared/help/help.ids';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {AlgoDialogVisible} from '../../algo/model/algo.dialog.visible';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * View to check the reliability of the dividend, split feed. It supports multi selection for removal.
@@ -62,12 +63,13 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
+              gpsGT: GlobalparameterGTService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.DIVIDEND_SPLIT_FEED, AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
       dialogService, alarmSetupService, timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router,
       activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
-      filterService, translateService, gps, usersettingsService, WatchlistTable.MULTIPLE);
+      filterService, translateService, gpsGT, gps, usersettingsService, WatchlistTable.MULTIPLE);
     this.addBaseColumns();
     this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
       true, {translateValues: TranslateValue.NORMAL});

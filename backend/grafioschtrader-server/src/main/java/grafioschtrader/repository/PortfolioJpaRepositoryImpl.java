@@ -13,11 +13,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.RepositoryHelper;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.Portfolio;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -84,7 +87,7 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
 
     if (currencyChanged) {
       taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO, TaskDataExecPriority.PRIO_NORMAL,
+          .save(new TaskDataChange(TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now(), portfolioNew.getIdPortfolio(), Portfolio.class.getSimpleName()));
     }
 

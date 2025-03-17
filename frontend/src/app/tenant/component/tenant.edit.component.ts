@@ -17,6 +17,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
@@ -36,7 +37,8 @@ export abstract class TenantEditComponent {
   config: FieldConfig[] = [];
   formConfig: FormConfig;
 
-  constructor(protected gps: GlobalparameterService,
+ protected constructor(protected gpsGT: GlobalparameterGTService,
+              protected gps: GlobalparameterService,
               protected messageToastService: MessageToastService,
               protected tenantService: TenantService,
               public translateService: TranslateService,
@@ -76,7 +78,7 @@ export abstract class TenantEditComponent {
   protected abstract afterSaved(tenant: Tenant): void;
 
   protected loadData() {
-    this.gps.getCurrencies().subscribe(data => {
+    this.gpsGT.getCurrencies().subscribe(data => {
         this.form.setDefaultValuesAndEnableSubmit();
         this.configObject.currency.valueKeyHtmlOptions = data;
         if (this.callParam && this.callParam.thisObject != null) {

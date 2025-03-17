@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessageAnswer;

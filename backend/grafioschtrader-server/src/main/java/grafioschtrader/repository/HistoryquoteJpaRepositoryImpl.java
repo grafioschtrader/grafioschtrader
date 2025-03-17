@@ -28,10 +28,16 @@ import org.springframework.util.ClassUtils;
 import com.ezylang.evalex.EvaluationException;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DateHelper;
+import grafiosch.common.UserAccessHelper;
+import grafiosch.entities.Auditable;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.User;
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.DateHelper;
-import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
 import grafioschtrader.dto.HistoryquoteDateClose;
 import grafioschtrader.dto.HistoryquotesWithMissings;
@@ -39,15 +45,13 @@ import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.dto.UserAuditable;
-import grafioschtrader.entities.Auditable;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.entities.projection.IFormulaSecurityLoad;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.ta.TaIndicators;
 import grafioschtrader.ta.TaTraceIndicatorData;
 import grafioschtrader.ta.indicator.calc.CalcAccessIndicator;
@@ -55,8 +59,7 @@ import grafioschtrader.ta.indicator.calc.ExponentialMovingAverage;
 import grafioschtrader.ta.indicator.calc.SimpleMovingAverage;
 import grafioschtrader.ta.indicator.model.ShortMediumLongInputPeriod;
 import grafioschtrader.types.HistoryquoteCreateType;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquote>
     implements HistoryquoteJpaRepositoryCustom {
@@ -65,7 +68,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -176,7 +179,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       Optional<Security> securityOpt = securityJpaRepository.findById(historyquote.getIdSecuritycurrency());
       if (securityOpt.isEmpty()) {
         taskDataChangeJpaRepository
-            .save(new TaskDataChange(TaskType.REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE,
+            .save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE,
                 TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), null, null));
       }
     }
@@ -251,7 +254,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * @param historyquoteBefore
    */
   private void updateHolidaysWeekendHistoryquotes(final Historyquote historyquoteBefore) {
-    final int maxFillDays = globalparametersJpaRepository.getMaxFillDaysCurrency();
+    final int maxFillDays = globalparametersService.getMaxFillDaysCurrency();
     Pageable limit = PageRequest.of(0, maxFillDays);
     List<Historyquote> toSaveHistoryquotes = new ArrayList<>();
 

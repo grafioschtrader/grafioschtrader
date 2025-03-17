@@ -3,10 +3,11 @@ package grafioschtrader.task.exec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.TaskDataChange;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 @Component
 public class RebuildHoldingCashaccountDepositTask implements ITask {
@@ -15,8 +16,8 @@ public class RebuildHoldingCashaccountDepositTask implements ITask {
   private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE;
   }
 
   @Override

@@ -7,13 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Normally called when the dividend data connector is changed.
@@ -28,8 +29,8 @@ public class UpdateDividendForSecurityTask implements ITask {
   private SecurityJpaRepository securityJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY;
   }
 
   @Override

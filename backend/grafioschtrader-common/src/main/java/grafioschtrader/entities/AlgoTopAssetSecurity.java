@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import grafiosch.entities.TenantBaseID;
 import grafioschtrader.algo.rule.BuySellType;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;

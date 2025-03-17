@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.entities.Portfolio;
 
 public interface PortfolioJpaRepositoryCustom extends BaseRepositoryCustom<Portfolio> {

@@ -2,8 +2,9 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
+import grafiosch.dto.TenantLimit;
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
-import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.search.SecuritycurrencySearch;

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import grafiosch.rest.UpdateCreateDeleteAuditResource;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.platform.IPlatformTransactionImport;
 import grafioschtrader.platformimport.pdf.ImportTransactionHelperPdf;
@@ -23,8 +25,8 @@ import grafioschtrader.repository.ImportTransactionPlatformJpaRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.IMPORTTRANSACTION_PLATFORM_MAP)
-@Tag(name = RequestMappings.IMPORTTRANSACTION_PLATFORM, description = "Controller for import transaction platform")
+@RequestMapping(RequestGTMappings.IMPORTTRANSACTION_PLATFORM_MAP)
+@Tag(name = RequestGTMappings.IMPORTTRANSACTION_PLATFORM, description = "Controller for import transaction platform")
 public class ImportTransactionPlatformResource extends UpdateCreateDeleteAuditResource<ImportTransactionPlatform> {
 
   @Autowired

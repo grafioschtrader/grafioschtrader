@@ -7,14 +7,15 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyOnlyCreation;
+import grafiosch.entities.User;
+import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.algo.AlgoSecurityStrategyImplType;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.entities.AlgoSecurity;
-import grafioschtrader.entities.User;
 
 public class AlgoSecurityJpaRepositoryImpl extends BaseRepositoryImpl<AlgoSecurity>
     implements AlgoSecurityJpaRepositoryCustom {

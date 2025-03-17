@@ -5,6 +5,8 @@
  */
 package grafioschtrader.types;
 
+import grafiosch.types.StableEnum;
+
 /**
  * GT distinguishes between different asset classes of instruments. This may
  * result in different functionality per asset class.

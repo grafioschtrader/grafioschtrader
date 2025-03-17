@@ -14,21 +14,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
+import grafiosch.entities.AdditionalRights;
+import grafiosch.entities.User;
+import grafiosch.entities.projection.IUDFSupport;
+import grafiosch.validation.DateRange;
+import grafiosch.validation.WebUrl;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
-import grafioschtrader.entities.projection.IUDFSupport;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.validation.AfterEqual;
-import grafioschtrader.validation.DateRange;
 import grafioschtrader.validation.NonZeroFloatConstraint;
 import grafioschtrader.validation.ValidCurrencyCode;
 import grafioschtrader.validation.ValidISIN;
-import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -57,7 +59,7 @@ import jakarta.validation.constraints.Size;
 @NamedEntityGraph(name = "graph.security.historyquote", attributeNodes = { @NamedAttributeNode("historyquoteList"),
     @NamedAttributeNode("assetClass"), @NamedAttributeNode("stockexchange") })
 @Schema(description = "Contains the characteristics of a security that may be traded")
-public class Security extends Securitycurrency<Security> implements Serializable, IFormulaInSecurity, IUDFSupport {
+public class Security extends Securitycurrency<Security> implements Serializable, IFormulaInSecurity, IUDFSupport, AdditionalRights  {
 
   public static final String TABNAME = "security";
 
@@ -118,7 +120,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @Schema(description = "HTML link to the product description")
   @Column(name = "product_link")
   @WebUrl
-  @Size(max = GlobalConstants.FIELD_SIZE_MAX_G_WEB_URL)
+  @Size(max = BaseConstants.FIELD_SIZE_MAX_G_WEB_URL)
   @PropertyAlwaysUpdatable
   private String productLink;
 
@@ -614,6 +616,12 @@ public class Security extends Securitycurrency<Security> implements Serializable
   @Override
   public boolean tenantHasAccess(Integer idTenant) {
     return this.idTenantPrivate == null || idTenant == this.idTenantPrivate;
+  }
+
+  @Override
+  public boolean hasAdditionalRights(User user) {
+    return this.getIdTenantPrivate() != null && 
+        this.getIdTenantPrivate().equals(user.getIdTenant());
   }
 
 }

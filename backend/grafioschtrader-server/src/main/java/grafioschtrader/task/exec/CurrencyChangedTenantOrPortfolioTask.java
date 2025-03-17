@@ -7,16 +7,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.entities.Portfolio;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * If the main currency of a tenant or one of their portfolios changes, any
@@ -42,8 +43,8 @@ public class CurrencyChangedTenantOrPortfolioTask implements ITask {
   private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO;
   }
 
   @Override

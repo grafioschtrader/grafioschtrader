@@ -38,6 +38,7 @@ import {SecurityDerivedLink} from '../../entities/security.derived.link';
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
 import {AppSettings} from '../../shared/app.settings';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * To create a derived instrument a base instrument is required. Additionally, a formula can be added. Prices depend on other instrument,
@@ -89,6 +90,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   private usedFormulaVars: string[];
 
   constructor(public translateService: TranslateService,
+              private gpsGT: GlobalparameterGTService,
               private messageToastService: MessageToastService,
               private loginService: LoginService,
               private mainDialogService: MainDialogService,
@@ -191,7 +193,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[]
       | Assetclass[] | IFeedConnector[] | SecurityCurrencypairDerivedLinks>[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
-    observables.push(this.gps.getCurrencies());
+    observables.push(this.gpsGT.getCurrencies());
     observables.push(this.assetclassService.getAllAssetclass());
     if (this.securityCallParam) {
       observables.push(this.securityService.getDerivedInstrumentsLinksForSecurity(this.securityCallParam.idSecuritycurrency));

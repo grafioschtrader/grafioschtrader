@@ -44,7 +44,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import jakarta.xml.bind.annotation.XmlRootElement;
 
 @Schema(description = "Contains a global setting configuration")
 @Entity
@@ -59,7 +58,7 @@ public class Globalparameters implements Serializable {
 
   public static final Map<String, MaxDefaultDBValue> defaultLimitMap = new HashMap<>();
   
-
+  
   private static final long serialVersionUID = 1L;
 
   @Id

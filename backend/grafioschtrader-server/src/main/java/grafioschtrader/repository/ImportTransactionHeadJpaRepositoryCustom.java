@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.repository.ImportTransactionHeadJpaRepositoryImpl.SuccessFailedDirectImportTransaction;
 

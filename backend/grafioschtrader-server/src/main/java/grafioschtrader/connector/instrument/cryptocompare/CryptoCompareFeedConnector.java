@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;

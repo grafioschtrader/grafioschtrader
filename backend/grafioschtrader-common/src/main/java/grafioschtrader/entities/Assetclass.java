@@ -14,10 +14,12 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.entities.Auditable;
+import grafiosch.entities.MultilanguageString;
+import grafiosch.types.Language;
 import grafioschtrader.types.AssetclassType;
-import grafioschtrader.types.Language;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.validation.ValidMultilanguage;
 import io.swagger.v3.oas.annotations.media.Schema;

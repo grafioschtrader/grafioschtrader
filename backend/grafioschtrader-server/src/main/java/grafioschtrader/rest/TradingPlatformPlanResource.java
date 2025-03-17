@@ -11,13 +11,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.rest.UpdateCreateDeleteAuditResource;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.repository.TradingPlatformPlanJpaRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.TRADINGPLATFORMPLAND_MAP)
-@Tag(name = RequestMappings.TRADINGPLATFORMPLAND, description = "Controller for trading platform plan")
+@RequestMapping(RequestGTMappings.TRADINGPLATFORMPLAND_MAP)
+@Tag(name = RequestGTMappings.TRADINGPLATFORMPLAND, description = "Controller for trading platform plan")
 public class TradingPlatformPlanResource extends UpdateCreateDeleteAuditResource<TradingPlatformPlan> {
 
   @Autowired

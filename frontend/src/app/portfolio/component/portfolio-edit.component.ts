@@ -13,6 +13,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Component for editing the portfolio.
@@ -34,7 +35,8 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
 
   @Input() callParam: CallParam;
 
-  constructor(translateService: TranslateService,
+  constructor(private gpsGT: GlobalparameterGTService,
+              translateService: TranslateService,
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               portfolioService: PortfolioService) {
@@ -54,7 +56,7 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
   }
 
   protected override initialize(): void {
-    this.gps.getCurrencies().subscribe(data => {
+    this.gpsGT.getCurrencies().subscribe(data => {
         this.configObject.currency.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('key',
           'value', data, false);
         this.form.setDefaultValuesAndEnableSubmit();

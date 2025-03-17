@@ -2,7 +2,8 @@ package grafioschtrader.types;
 
 import java.util.EnumSet;
 
-import grafioschtrader.common.EnumHelper;
+import grafiosch.common.EnumHelper;
+import grafiosch.types.StableEnum;
 
 /**
  * Attention: The order must not be changed. Flags that start with "CAN" can be

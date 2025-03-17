@@ -21,16 +21,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.common.DataHelper;
+import grafiosch.common.DateHelper;
+import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
-import grafioschtrader.common.DateHelper;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.entities.User;
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
-import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.entities.User;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteEntityAccess;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
 import grafioschtrader.priceupdate.intraday.IIntradayEntityAccess;
@@ -38,6 +40,7 @@ import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
+import grafioschtrader.service.GlobalparametersService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -52,6 +55,9 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   @Autowired
   protected GlobalparametersJpaRepository globalparametersJpaRepository;
 
+  @Autowired
+  protected GlobalparametersService globalparametersService;
+  
   @Autowired
   protected HistoryquoteJpaRepository historyquoteJpaRepository;
 

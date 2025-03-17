@@ -34,9 +34,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DateHelper;
+import grafiosch.common.UserAccessHelper;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.User;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DateHelper;
-import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
@@ -45,8 +49,6 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
 import grafioschtrader.entities.Securitysplit;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.entities.User;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruCalculation;
@@ -63,13 +65,12 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
-import grafioschtrader.rest.RequestMappings;
+import grafioschtrader.rest.RequestGTMappings;
 import grafioschtrader.search.SecuritySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.HistoryquoteCreateType;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 import jakarta.annotation.PostConstruct;
 
 public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security, SecurityPositionSummary>
@@ -104,7 +105,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Autowired
   protected JdbcTemplate jdbcTemplate;
-
+  
+ 
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
@@ -116,13 +118,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @PostConstruct
   private void postConstruct() {
-    historyquoteThruConnector = new HistoryquoteThruConnector<>(entityManager, globalparametersJpaRepository,
+    historyquoteThruConnector = new HistoryquoteThruConnector<>(entityManager, globalparametersService,
         feedConnectorbeans, this, Security.class);
     historyquoteThruCalculation = new HistoryquoteThruCalculation<>(securityJpaRepository, historyquoteJpaRepository,
-        securityDerivedLinkJpaRepository, globalparametersJpaRepository, this);
-    intradayThruConnector = new IntradayThruConnector<>(securityJpaRepository, globalparametersJpaRepository,
+        securityDerivedLinkJpaRepository, globalparametersService, this);
+    intradayThruConnector = new IntradayThruConnector<>(securityJpaRepository, globalparametersService,
         feedConnectorbeans, this);
-    intradayThruCalculation = new IntradayThruCalculation<>(globalparametersJpaRepository, securityJpaRepository,
+    intradayThruCalculation = new IntradayThruCalculation<>(globalparametersService, securityJpaRepository,
         securityDerivedLinkJpaRepository);
   }
 
@@ -262,8 +264,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    * for dividend and split data.
    */
   public String getDownlinkDivSplitWithApiKey(Security security, boolean isDiv) {
-    return GlobalConstants.PREFIX_FOR_DOWNLOAD_REDIRECT_TO_BACKEND + RequestMappings.WATCHLIST_MAP
-        + RequestMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE + security.getIdSecuritycurrency()
+    return GlobalConstants.PREFIX_FOR_DOWNLOAD_REDIRECT_TO_BACKEND + RequestGTMappings.WATCHLIST_MAP
+        + RequestGTMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE + security.getIdSecuritycurrency()
         + "?isDiv=" + isDiv;
   }
 
@@ -307,7 +309,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     Date now = new Date();
     intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
         .filter(s -> !s.isDerivedInstrument() && !now.after(s.getActiveToDate()) && !now.before(s.getActiveFromDate())
-            && s.getRetryIntraLoad() < globalparametersJpaRepository.getMaxIntraRetry()
+            && s.getRetryIntraLoad() < globalparametersService.getMaxIntraRetry()
             && s.getIdConnectorIntra() != null)
         .collect(Collectors.toList()), true);
     intradayThruCalculation.updateLastPriceOfSecuritycurrency(
@@ -590,7 +592,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {
     if (historyAccessHasChanged) {
       taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskType.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA, TaskDataExecPriority.PRIO_NORMAL,
+          .save(new TaskDataChange(TaskTypeExtended.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
 
@@ -600,7 +602,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         || (securityBefore == null && security.getIdConnectorSplit() != null)) {
       // Split connector has changed
       taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
+          .save(new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
 
@@ -610,7 +612,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         || (securityBefore == null && security.getIdConnectorDividend() != null)) {
       // Dividend connector has changed
       taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskType.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
+          .save(new TaskDataChange(TaskTypeExtended.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
   }
@@ -720,4 +722,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     return historyquoteJpaRepository;
   }
 
+  @Override
+  @Transactional
+  public Map<Integer, String> getSecurityCurrencyPairInfo() {
+    return securityJpaRepository.getAllTaskDataChangeSecurityCurrencyPairInfoWithId()
+            .collect(Collectors.toMap(isi -> isi.getIdSecuritycurrency(), isi -> isi.getTooltip()));
+  }
+  
 }

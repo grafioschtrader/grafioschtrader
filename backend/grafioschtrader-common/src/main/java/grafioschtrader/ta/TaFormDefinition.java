@@ -3,7 +3,7 @@ package grafioschtrader.ta;
 import java.io.Serializable;
 import java.util.List;
 
-import grafioschtrader.dynamic.model.FieldDescriptorInputAndShow;
+import grafiosch.dynamic.model.FieldDescriptorInputAndShow;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

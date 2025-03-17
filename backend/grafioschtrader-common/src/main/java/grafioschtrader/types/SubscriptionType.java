@@ -1,8 +1,8 @@
 package grafioschtrader.types;
 
-import java.util.Arrays;
+import grafiosch.types.ISubscriptionType;
 
-public enum SubscriptionType {
+public enum SubscriptionType implements ISubscriptionType {
   // eodhistoricaldata
   EOD_HISTORICAL_DATA_ALL_IN_ONE((short) 11),
   EOD_HISTORICAL_DATA_ALL_WORLD((short) 12),
@@ -37,11 +37,14 @@ public enum SubscriptionType {
     this.value = value;
   }
 
+  @Override
   public Short getValue() {
     return this.value;
   }
 
-  public static SubscriptionType getTaskTypeByValue(short value) {
-    return Arrays.stream(SubscriptionType.values()).filter(e -> e.getValue().equals(value)).findFirst().orElse(null);
+  @Override
+  public Enum<SubscriptionType>[] getValues() {
+    return SubscriptionType.values();
   }
+ 
 }

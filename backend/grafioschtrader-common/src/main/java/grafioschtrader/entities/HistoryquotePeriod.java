@@ -6,8 +6,8 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
 import grafioschtrader.types.HistoryquotePeriodCreateType;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;

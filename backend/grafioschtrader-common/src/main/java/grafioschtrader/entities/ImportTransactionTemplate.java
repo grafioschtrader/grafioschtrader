@@ -12,7 +12,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.entities.Auditable;
 import grafioschtrader.platformimport.TemplateConfiguration;
 import grafioschtrader.types.TemplateCategory;
 import grafioschtrader.types.TemplateFormatType;

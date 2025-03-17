@@ -10,18 +10,19 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.User;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.repository.UserJpaRepository;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalParamKeyDefault;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.entities.User;
 import grafioschtrader.repository.CopyTenantService;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
-import grafioschtrader.repository.UserJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Copies the data of one client to other clients. This function can be used for
@@ -63,11 +64,11 @@ public class CopyTenantToDemoAccountsTask implements ITask {
   private String demoAccountPatternEN;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.COPY_SOURCE_ACCOUNT_TO_DEMO_ACCOUNTS;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.COPY_SOURCE_ACCOUNT_TO_DEMO_ACCOUNTS;
   }
 
-  @Scheduled(cron = "${gt.demo.account.tenant.copy}", zone = GlobalConstants.TIME_ZONE)
+  @Scheduled(cron = "${gt.demo.account.tenant.copy}", zone = BaseConstants.TIME_ZONE)
   public void createCopyTenantToDemoAccountsTask() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_LOW);
     taskDataChangeRepository.save(taskDataChange);
@@ -91,7 +92,7 @@ public class CopyTenantToDemoAccountsTask implements ITask {
       for (User targetUser : targetUsers) {
         copyTenantService.copyTenant(sourceUserOpt.get(), targetUser);
         taskDataChangeRepository
-            .save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT, TaskDataExecPriority.PRIO_NORMAL,
+            .save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT, TaskDataExecPriority.PRIO_NORMAL,
                 LocalDateTime.now().plusMinutes(1), targetUser.getIdTenant(), Tenant.class.getSimpleName()));
       }
     }

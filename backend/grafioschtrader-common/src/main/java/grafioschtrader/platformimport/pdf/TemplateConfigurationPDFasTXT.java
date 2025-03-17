@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.ImportTransactionTemplate;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.platformimport.TemplateConfiguration;
 
 /*-

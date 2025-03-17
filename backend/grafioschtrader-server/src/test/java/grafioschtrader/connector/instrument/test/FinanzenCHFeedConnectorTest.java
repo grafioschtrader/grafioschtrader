@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.finanzench.FinanzenCHFeedConnector;
 import grafioschtrader.entities.Assetclass;
@@ -17,7 +18,6 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.AssetclassType;
-import grafioschtrader.types.Language;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @SpringBootTest(classes = GTforTest.class)

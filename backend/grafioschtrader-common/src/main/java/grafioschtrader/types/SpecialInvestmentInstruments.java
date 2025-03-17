@@ -1,5 +1,7 @@
 package grafioschtrader.types;
 
+import grafiosch.types.StableEnum;
+
 /**
  * An asset class can be offered in different instruments. Shares can be
  * invested in directly or through an ETF or fund, etc. GT must be able to

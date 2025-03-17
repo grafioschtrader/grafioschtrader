@@ -1,12 +1,6 @@
 package grafioschtrader;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import grafioschtrader.entities.Currencypair;
-import grafioschtrader.types.UDFDataType;
 
 public class GlobalConstants {
 
@@ -34,11 +28,6 @@ public class GlobalConstants {
   public static final String CC_BTC = "BTC";
 
   /**
-   * Supported languages in this application
-   */
-  public static final List<String> GT_LANGUAGE_CODES = Arrays.asList("de", "en");
-
-  /**
    * If a record is created by the system id gets this id
    */
   public static final int SYSTEM_ID_USER = 0;
@@ -56,21 +45,9 @@ public class GlobalConstants {
   // public static final int FID_STANDARD_INTEGER_DIGITS = 9;
   // public static final int FID_SMALL_INTEGER_LIMIT = 6;
 
-  /**
-   * Number maybe rounded to this precision
-   */
-  public static final int FID_MAX_FRACTION_DIGITS = 8;
-
   public static final int FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
   public static final int FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;
 
-  // public static final int FID_MAX_INTEGER_DIGITS = 11;
-  public static final int FID_MAX_DIGITS = 16;
-
-  /**
-   * The maximum length of a web URL in characters.
-   */
-  public static final int FIELD_SIZE_MAX_G_WEB_URL = 254;
   public static final int FIELD_SIZE_MAX_Stockexchange_Website = 128;
 
   /** Step, min value and max value **/
@@ -95,21 +72,11 @@ public class GlobalConstants {
 
   public static final int DIVIDEND_CHECK_PAY_DATE_TOLERANCE_IN_DAYS = 4;
 
-  /**
-   * The standard note text size
-   */
-  public static final int FID_MAX_LETTERS = 1000;
-
-  public static final String TIME_ZONE = "UTC";
   public static final String SHORT_STANDARD_DATE_FORMAT = "yyyyMMdd";
-  public static final String STANDARD_LOCAL_DATE_TIME = "yyyy-MM-dd HH:mm";
-  public static final String STANDARD_LOCAL_DATE_TIME_SECOND = "yyyy-MM-dd HH:mm:ss";
   public static final String STARNDARD_LOCAL_TIME = "HH:mm";
   public static final String OLDEST_TRADING_DAY = "2000-01-01";
   public static final int OLDEST_TRADING_YEAR = 2000;
   public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2025-12-31";
-
-  public static final String STANDARD_PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
 
   /**
    * Sometimes the EOD of the currency pair is not yet updated, in this case the
@@ -123,9 +90,6 @@ public class GlobalConstants {
    * that is waited before an update of historical prices is made.
    */
   public static final int WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES = 180;
-
-  public static final String NEW_LINE = "\n";
-  public static final String RETURN_AND_NEW_LINE = "\r\n";
 
   /**
    * Time that had to elapse before the next obtainment of historical prices from
@@ -177,44 +141,7 @@ public class GlobalConstants {
    */
   public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of(CC_BTC, "BNB", "ETH", "ETC", "LTC", "XRP");
 
-  /**
-   * Which entities can be extended with user-defined fields? Security has a
-   * specific implementation and is not listed here.
-   */
-  public static final List<Class<?>> UDF_GENERAL_ENTITIES = List.of(Currencypair.class);
-
-  /**
-   * Global user-defined fields belong to user 0.
-   */
-  public static final int UDF_ID_USER = 0;
   
-  /**
-   * For user-defined fields, the sorting number must be less than 100.
-   */
-  public static final byte MAX_USER_UI_ORDER_VALUE = 100;
-  
-  /**
-   * Defines the maximum values for user-defined input fields. The validation of
-   * these values should also be carried out in the frontend.
-   */
-  public static final Map<UDFDataType, UDFPrefixSuffix> uDFPrefixSuffixMap = new HashMap<>();
-  static {
-    uDFPrefixSuffixMap.put(UDFDataType.UDF_NumericInteger,
-        new UDFPrefixSuffix(Integer.MIN_VALUE, Integer.MAX_VALUE, null));
-    uDFPrefixSuffixMap.put(UDFDataType.UDF_String, new UDFPrefixSuffix(0, 2048, null));
-    uDFPrefixSuffixMap.put(UDFDataType.UDF_Numeric, new UDFPrefixSuffix(22, 8, 1));
-  }
-
-  /**
-   * Property names of user-defined properties are indicated by this prefix. This
-   * is then extended with the ID of the metadata for this property.
-   */
-  public static final String UDF_FIELD_PREFIX = "f";
-
-  /**
-   * The Email verification expiration time in minutes
-   */
-  public static final int EMAIL_VERIFICATION_EXPIRATION_MINUTES = 180;
 
   public static final double DETECT_SPLIT_ADJUSTED_FACTOR_STEP = 18.0;
   public static final int SPLIT_DAYS_LOOK_BACK_END_DATE_BEFORE_SPLIT = 30;
@@ -233,10 +160,6 @@ public class GlobalConstants {
   public static final int BANDWITH_HOOUR_BUCKET_SIZE = 300;
   public static final int BANDWITH_HOUR_REFILL = 300;
   /**
-   * User hat not the privileges to access certain shared date
-   */
-  public static final String RIGHTS_SECURITY_BREACH = "rights.security.breach";
-  /**
    * User tries to access shared data outside its boundary. For example access
    * history quotes of a security or currency pair which has no context to the
    * tenant data.
@@ -253,17 +176,5 @@ public class GlobalConstants {
    */
   public static final String PREFIX_FOR_DOWNLOAD_REDIRECT_TO_BACKEND = "--";
 
-  public static class UDFPrefixSuffix {
-    public final int prefix;
-    public final int suffix;
-    public final Integer together;
-
-    public UDFPrefixSuffix(int prefix, int suffix, Integer together) {
-      this.prefix = prefix;
-      this.suffix = suffix;
-      this.together = together;
-    }
-
-  }
-
+ 
 }

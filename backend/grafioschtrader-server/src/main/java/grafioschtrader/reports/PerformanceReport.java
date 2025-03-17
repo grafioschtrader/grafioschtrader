@@ -23,10 +23,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
+import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.TradingDaysPlus;
-import grafioschtrader.entities.User;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.reportviews.performance.FirstAndMissingTradingDays;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
 import grafioschtrader.reportviews.performance.PerformancePeriod;

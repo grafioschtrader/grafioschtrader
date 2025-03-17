@@ -14,9 +14,9 @@ import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks.VarNameLastPrice;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Intraday update for calculated prices.</br>
@@ -32,9 +32,9 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
   private final SecurityJpaRepository securityJpaRepository;
   private final SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
 
-  public IntradayThruCalculation(GlobalparametersJpaRepository globalparametersJpaRepository,
+  public IntradayThruCalculation(GlobalparametersService globalparametersService,
       SecurityJpaRepository securityJpaRepository, SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository) {
-    super(globalparametersJpaRepository);
+    super(globalparametersService);
     this.securityJpaRepository = securityJpaRepository;
     this.securityDerivedLinkJpaRepository = securityDerivedLinkJpaRepository;
 

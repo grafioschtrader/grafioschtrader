@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.entities.AlgoStrategy;
-import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
 public interface AlgoStrategyJpaRepository extends JpaRepository<AlgoStrategy, Integer>,
     AlgoStrategyJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<AlgoStrategy> {

@@ -59,7 +59,7 @@ class StockexchangeResourceTest {
       boolean secondaryMarket) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     Stockexchange s = new Stockexchange(name, mic, timeClose, timeZone, noMarketValue, secondaryMarket);
     ResponseEntity<Stockexchange> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestMappings.STOCKEXCHANGE_MAP + "/", port), HttpMethod.POST,
+        RestTestHelper.createURLWithPort(RequestGTMappings.STOCKEXCHANGE_MAP + "/", port), HttpMethod.POST,
         RestTestHelper.getHttpEntity(RestTestHelper.getRadomUser(), s), Stockexchange.class);
     assertNotNull(response);
     Stockexchange sNew = response.getBody();
@@ -73,12 +73,12 @@ class StockexchangeResourceTest {
   @DisplayName("Limited user can not delete Stockexchange from other user")
   void deleteByIdTest() {
     ResponseEntity<Stockexchange[]> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestMappings.STOCKEXCHANGE_MAP + "/", port), HttpMethod.GET,
+        RestTestHelper.createURLWithPort(RequestGTMappings.STOCKEXCHANGE_MAP + "/", port), HttpMethod.GET,
         RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null), Stockexchange[].class);
     assertThat(response.getBody().length).isGreaterThan(0);
     Stockexchange s = response.getBody()[0];
 
-    String entityUrl = RestTestHelper.createURLWithPort(RequestMappings.STOCKEXCHANGE_MAP + "/", port)
+    String entityUrl = RestTestHelper.createURLWithPort(RequestGTMappings.STOCKEXCHANGE_MAP + "/", port)
         + s.getIdStockexchange();
     ResponseEntity<?> error = restTemplate.exchange(entityUrl, HttpMethod.DELETE,
         RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null), Object.class);

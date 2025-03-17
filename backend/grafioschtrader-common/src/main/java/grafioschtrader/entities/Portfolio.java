@@ -11,7 +11,8 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.entities.TenantBaseID;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;

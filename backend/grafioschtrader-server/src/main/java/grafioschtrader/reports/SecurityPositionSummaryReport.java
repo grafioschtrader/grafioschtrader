@@ -15,38 +15,35 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
+import grafiosch.entities.User;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.entities.User;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionGrandSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.repository.CashaccountJpaRepository;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 
 /**
  * There may be only one instance of this class, to not use any class members.
- *
- * @author Hugo Graf
- *
  */
 public abstract class SecurityPositionSummaryReport {
 
   @Autowired
-  protected GlobalparametersJpaRepository globalparametersJpaRepository;
+  protected GlobalparametersService globalparametersService;
 
   @Autowired
   protected SecurityCalcService securityCalcService;

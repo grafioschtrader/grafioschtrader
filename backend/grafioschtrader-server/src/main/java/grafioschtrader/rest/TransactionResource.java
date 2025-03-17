@@ -22,13 +22,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.BaseConstants;
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreate;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
 import grafioschtrader.dto.ProposedMarginFinanceCost;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Transaction.CashTransaction;
 import grafioschtrader.entities.Transaction.SecurityTransaction;
-import grafioschtrader.entities.User;
 import grafioschtrader.instrument.SecurityMarginUnitsCheck;
 import grafioschtrader.reportviews.transaction.CashaccountTransactionPosition;
 import grafioschtrader.repository.TransactionJpaRepository;
@@ -37,7 +39,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.TRANSACTION_MAP)
+@RequestMapping(RequestGTMappings.TRANSACTION_MAP)
 @Tag(name = Transaction.TABNAME, description = "Controller for transaction")
 public class TransactionResource extends UpdateCreate<Transaction> {
 

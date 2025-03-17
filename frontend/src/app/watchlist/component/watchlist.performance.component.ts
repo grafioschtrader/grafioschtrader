@@ -27,6 +27,7 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Shows the performance watchlist. It has no special function implemented.
@@ -64,11 +65,12 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
               changeDetectionStrategy: ChangeDetectorRef,
               filterService: FilterService,
               translateService: TranslateService,
+              gpsGT: GlobalparameterGTService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService) {
     super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
       timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
-      messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, gps,
+      messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, gpsGT, gps,
       usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();
 

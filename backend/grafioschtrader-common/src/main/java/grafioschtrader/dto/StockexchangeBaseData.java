@@ -2,6 +2,7 @@ package grafioschtrader.dto;
 
 import java.util.List;
 
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.StockexchangeMic;
 

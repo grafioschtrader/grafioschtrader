@@ -190,17 +190,8 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
       securityPositionSummary.balanceSecurityCurrency -= securityPositionSummary.transactionGainLoss;
       securityPositionSummary.currencyGainLossMC += securityPositionSummary.transactionCurrencyGainLossMC;
     }
-    // xxxSilber(transaction, securityPositionSummary);
   }
 
-  private void xxxSilber(final Transaction transaction, final SecurityPositionSummary securityPositionSummary) {
-    if(transaction.getSecurity().getIdSecuritycurrency().equals(2003)) {
-      System.out.println(transaction);
-      System.out.println("Adjusted cost base:" + securityPositionSummary.adjustedCostBase);
-      System.out.println("----");
-    }
-  }
-  
   private void simulateAccruedInterest(final Transaction transaction,
       final SecurityPositionSummary securityPositionSummary, final boolean excludeDivTaxcost, final Double exchangeRate,
       NegativeIdNumberCreater negativeIdNumberCreater) {

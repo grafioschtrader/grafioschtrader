@@ -92,7 +92,6 @@ export interface AnswerWithFirstSend {
 }
 
 export interface MailSendForwardDefault {
-  mainAdminBaseValue: number;
   canRedirectToUsers: ValueKeyHtmlSelectOptions[];
   mailSendForwardDefaultMapForUser: { [messageComType: MessageComType|number]: MailSendForwardDefaultConfig};
 }

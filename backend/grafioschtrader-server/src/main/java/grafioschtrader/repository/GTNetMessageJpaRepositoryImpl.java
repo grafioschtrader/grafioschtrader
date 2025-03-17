@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.entities.GTNetMessage;
 
 public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessage>

@@ -9,6 +9,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.RepositoryHelper;
 import grafioschtrader.dto.StockexchangeBaseData;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.StockexchangeMic;

@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import grafioschtrader.common.UpdateQuery;
+import grafiosch.common.UpdateQuery;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.entities.Cashaccount;
-import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
 public interface CashaccountJpaRepository extends JpaRepository<Cashaccount, Integer>, CashaccountJpaRepositoryCustom,
  UpdateCreateDeleteWithTenantJpaRepository<Cashaccount> {

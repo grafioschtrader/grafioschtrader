@@ -22,10 +22,10 @@ import org.springframework.stereotype.Component;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 
 @Component
 public class QuoteBackgroundUpdateWorker
@@ -38,7 +38,7 @@ public class QuoteBackgroundUpdateWorker
   private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -54,7 +54,7 @@ public class QuoteBackgroundUpdateWorker
 
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
-    if (globalparametersJpaRepository.getUpdatePriceByStockexchange() != 0) {
+    if (globalparametersService.getUpdatePriceByStockexchange() != 0) {
       log.info("Historical price quote updater was started");
       runningLoop = true;
       backgroundThread.start();

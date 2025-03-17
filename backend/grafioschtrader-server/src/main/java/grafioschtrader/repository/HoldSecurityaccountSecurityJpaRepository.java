@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import grafioschtrader.common.UpdateQuery;
+import grafiosch.common.UpdateQuery;
 import grafioschtrader.entities.HoldSecurityaccountSecurity;
 import grafioschtrader.entities.HoldSecurityaccountSecurityKey;
 import grafioschtrader.reportviews.performance.IPeriodHolding;

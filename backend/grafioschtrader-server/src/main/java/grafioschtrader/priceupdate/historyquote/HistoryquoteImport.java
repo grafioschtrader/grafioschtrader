@@ -21,19 +21,19 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import grafiosch.common.DataHelper;
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyOnlyCreation;
+import grafiosch.common.ValueFormatConverter;
+import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
+import grafioschtrader.common.DateBusinessHelper;
 import grafioschtrader.common.FieldColumnMapping;
 import grafioschtrader.common.ImportDataRequired;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertyOnlyCreation;
-import grafioschtrader.common.ValueFormatConverter;
 import grafioschtrader.dto.SupportedCSVFormat;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
 import grafioschtrader.dto.UserAuditable;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.User;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository.SecurityCurrencyIdAndDate;
 import grafioschtrader.types.HistoryquoteCreateType;
@@ -89,7 +89,7 @@ public class HistoryquoteImport {
       ValueFormatConverter valueFormatConverter) throws Exception {
     Map<Date, Historyquote> historyquoteNewMap = new HashMap<>();
     Set<Date> existingHistoryquoteDateSet = this.getExistingHistoryquotes(idSecuritycurrency);
-    Date oldestDate = DateHelper.getOldestTradingDay();
+    Date oldestDate = DateBusinessHelper.getOldestTradingDay();
     List<FieldColumnMapping> fieldColumnMappings = null;
     int lineCounter = 0;
     while (reader.ready()) {

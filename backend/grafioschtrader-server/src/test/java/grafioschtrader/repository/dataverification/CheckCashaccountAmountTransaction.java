@@ -12,11 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.TransactionType;

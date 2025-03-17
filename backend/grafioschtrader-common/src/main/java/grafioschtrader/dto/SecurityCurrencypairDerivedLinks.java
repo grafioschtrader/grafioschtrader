@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import grafioschtrader.common.DateHelper;
+import grafioschtrader.common.DateBusinessHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
@@ -63,7 +63,7 @@ public class SecurityCurrencypairDerivedLinks {
   }
 
   public Date getNewestIntradayTimestamp() throws ParseException {
-    Date oldestDate = DateHelper.getOldestTradingDay();
+    Date oldestDate = DateBusinessHelper.getOldestTradingDay();
 
     Date maxDateSecurity = securities.stream().map(Security::getSTimestamp).max(Date::compareTo).orElse(oldestDate);
     Date maxDateCurrencypair = currencypairs.stream().map(Currencypair::getSTimestamp).max(Date::compareTo)
