@@ -1,4 +1,4 @@
-package grafioschtrader.error;
+package grafiosch.error;
 
 /**
  * Used when an user attempt to misuse tenant id.

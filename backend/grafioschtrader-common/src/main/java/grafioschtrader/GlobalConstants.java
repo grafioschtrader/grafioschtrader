@@ -2,7 +2,9 @@ package grafioschtrader;
 
 import java.util.List;
 
-public class GlobalConstants {
+import grafiosch.BaseConstants;
+
+public class GlobalConstants extends BaseConstants {
 
   public static final String STOCK_EX_MIC_UK = "XLON";
   public static final String STOCK_EX_MIC_NASDAQ = "XNAS";
@@ -96,18 +98,6 @@ public class GlobalConstants {
    * the external data source.
    */
   public static final int TiME_MUST_HAVE_PASSED_SINCE_LAST_UPDATE_IN_MINUTES = 20 * 60;
-
-  /**
-   * With this number of failed attempts for a user login, the user will be
-   * blocked. The IP address is taken.
-   */
-  public static final int MAX_LOGIN_ATTEMPT = 5;
-
-  /**
-   * Number of miliseconds an IP address is blocked from further user login
-   * attempts.
-   */
-  public static final int SUSPEND_IP_ADDRESS_TIME = 60 * 60 * 24 * 1000;
 
   /**
    * Dividend frequency + days for the next dividend check

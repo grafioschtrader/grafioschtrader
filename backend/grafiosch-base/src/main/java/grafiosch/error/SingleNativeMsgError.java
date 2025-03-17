@@ -1,8 +1,7 @@
-package grafioschtrader.error;
+package grafiosch.error;
 
 /**
  * Most single message error should transformed in this class for a response.
- *
  */
 public class SingleNativeMsgError {
   public String message;

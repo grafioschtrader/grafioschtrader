@@ -13,13 +13,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
 import grafiosch.entities.User;
+import grafiosch.error.ErrorWithLogout;
+import grafiosch.error.SingleNativeMsgError;
 import grafiosch.exceptions.RequestLimitAndSecurityBreachException;
+import grafiosch.rest.helper.RestErrorHandler;
 import grafiosch.service.UserService;
 import grafiosch.types.UserRightLimitCounter;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.error.ErrorWithLogout;
-import grafioschtrader.error.SingleNativeMsgError;
-import grafioschtrader.rest.helper.RestErrorHandler;
 import grafioschtrader.security.TokenAuthenticationService;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;

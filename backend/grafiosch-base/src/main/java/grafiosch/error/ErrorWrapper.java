@@ -1,4 +1,4 @@
-package grafioschtrader.error;
+package grafiosch.error;
 
 /**
  * Errors are mapped into this class.

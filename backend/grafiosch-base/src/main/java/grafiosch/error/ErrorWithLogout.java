@@ -1,4 +1,4 @@
-package grafioschtrader.error;
+package grafiosch.error;
 
 public class ErrorWithLogout extends SecurityBreachError {
 

@@ -1,9 +1,9 @@
-package grafioschtrader.service;
+package grafiosch.service;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 import org.springframework.stereotype.Service;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
@@ -13,7 +13,7 @@ public class LoginAttemptServiceIpAddress {
 
   public LoginAttemptServiceIpAddress() {
     super();
-    attemptsIPAdressCache = new PassiveExpiringMap<>(GlobalConstants.SUSPEND_IP_ADDRESS_TIME);
+    attemptsIPAdressCache = new PassiveExpiringMap<>(BaseConstants.SUSPEND_IP_ADDRESS_TIME);
   }
 
   public void loginSucceeded(HttpServletRequest request) {
@@ -29,7 +29,7 @@ public class LoginAttemptServiceIpAddress {
 
   public boolean isBlocked(HttpServletRequest request) {
     Integer attempts = attemptsIPAdressCache.getOrDefault(getClientIP(request), 0);
-    return attempts >= GlobalConstants.MAX_LOGIN_ATTEMPT;
+    return attempts >= BaseConstants.MAX_LOGIN_ATTEMPT;
   }
 
   private String getClientIP(HttpServletRequest request) {
