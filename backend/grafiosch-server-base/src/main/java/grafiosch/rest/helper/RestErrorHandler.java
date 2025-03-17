@@ -1,4 +1,4 @@
-package grafioschtrader.rest.helper;
+package grafiosch.rest.helper;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,18 +28,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.User;
+import grafiosch.error.ErrorWithLogout;
+import grafiosch.error.ErrorWrapper;
+import grafiosch.error.SecurityBreachError;
+import grafiosch.error.SingleNativeMsgError;
 import grafiosch.error.ValidationError;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.exceptions.LimitEntityTransactionException;
 import grafiosch.exceptions.RequestLimitAndSecurityBreachException;
-import grafiosch.rest.helper.RestHelper;
 import grafiosch.service.UserService;
 import grafiosch.types.UserRightLimitCounter;
-import grafioschtrader.error.ErrorWithLogout;
-import grafioschtrader.error.ErrorWrapper;
-import grafioschtrader.error.SecurityBreachError;
-import grafioschtrader.error.SingleNativeMsgError;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

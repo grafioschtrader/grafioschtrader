@@ -115,4 +115,16 @@ public class BaseConstants {
 
   public static final String TIME_ZONE = "UTC";
 
+  /**
+   * Number of milliseconds an IP address is blocked from further user login
+   * attempts.
+   */
+  public static final int SUSPEND_IP_ADDRESS_TIME = 60 * 60 * 24 * 1000;
+
+  /**
+   * With this number of failed attempts for a user login, the user will be
+   * blocked. The IP address is taken.
+   */
+  public static final int MAX_LOGIN_ATTEMPT = 5;
+
 }

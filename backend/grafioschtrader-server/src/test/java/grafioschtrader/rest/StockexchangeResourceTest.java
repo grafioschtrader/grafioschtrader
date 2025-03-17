@@ -27,8 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import grafiosch.entities.ProposeChangeField;
+import grafiosch.error.SecurityBreachError;
 import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.error.SecurityBreachError;
 import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 

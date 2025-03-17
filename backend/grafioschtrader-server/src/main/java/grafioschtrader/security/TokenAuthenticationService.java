@@ -125,24 +125,28 @@ public class TokenAuthenticationService {
 
   /**
    * The frontend must know certain values for input fields.
-   * 
+   *
    * @return
    */
   private Map<String, Integer> getGlobalConstantsFieldsByFieldPrefix(String fieldPrefix) {
     final Map<String, Integer> globalConstantsMap = new HashMap<>();
-    Field[] fields = GlobalConstants.class.getDeclaredFields();
-    for (Field f : fields) {
-      if (Modifier.isStatic(f.getModifiers()) && f.getName().startsWith(fieldPrefix)) {
-        try {
-          globalConstantsMap.put(f.getName(), f.getInt(null));
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+    Class<?> currentClass = GlobalConstants.class;
+
+    while (currentClass != null && currentClass != Object.class) {
+        Field[] fields = currentClass.getDeclaredFields();
+        for (Field f : fields) {
+            if (Modifier.isStatic(f.getModifiers()) && f.getName().startsWith(fieldPrefix)) {
+                try {
+                    globalConstantsMap.put(f.getName(), f.getInt(null));
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-      }
+        currentClass = currentClass.getSuperclass();
     }
     return globalConstantsMap;
-  }
+}
 
   /**
    * The frontend may need the field name of the key field of an entity.
