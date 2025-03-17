@@ -6,9 +6,9 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import grafiosch.repository.UDFMetadataBase.UiOrderDescriptionCount;
+import grafiosch.rest.UpdateCreateDeleteWithUserIdJpaRepository;
 import grafioschtrader.entities.UDFMetadataSecurity;
-import grafioschtrader.repository.UDFMetadataBase.UiOrderDescriptionCount;
-import grafioschtrader.rest.UpdateCreateDeleteWithUserIdJpaRepository;
 
 public interface UDFMetadataSecurityJpaRepository
     extends JpaRepository<UDFMetadataSecurity, Integer>, UDFMetadataSecurityJpaRepositoryCustom,

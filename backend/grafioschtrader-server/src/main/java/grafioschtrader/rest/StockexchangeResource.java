@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.rest.UpdateCreateDeleteAuditResource;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.dto.StockexchangeBaseData;
 import grafioschtrader.dto.StockexchangeHasSecurity;
 import grafioschtrader.entities.Stockexchange;
@@ -22,7 +24,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.STOCKEXCHANGE_MAP)
+@RequestMapping(RequestGTMappings.STOCKEXCHANGE_MAP)
 @Tag(name = Stockexchange.TABNAME, description = "Controller for stockexchange")
 public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stockexchange> {
 

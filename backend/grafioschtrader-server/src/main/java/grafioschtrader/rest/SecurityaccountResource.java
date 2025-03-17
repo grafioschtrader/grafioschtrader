@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.reports.SecurityGroupByAssetclassSubCategoryReport;
 import grafioschtrader.reports.SecurityGroupByAssetclassWithCashReport;
@@ -28,7 +30,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.SECURITYACCOUNT_MAP)
+@RequestMapping(RequestGTMappings.SECURITYACCOUNT_MAP)
 @Tag(name = Securityaccount.TABNAME, description = "Controller for security account")
 public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResource<Securityaccount> {
 

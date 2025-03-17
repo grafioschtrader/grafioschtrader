@@ -7,10 +7,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import grafiosch.entities.User;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
-import grafioschtrader.entities.User;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
@@ -135,6 +135,12 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   SplitAdjustedHistoryquotesResult isLatestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits) throws Exception;
 
+  /**
+   * Returns the name or text of the currency pair for the ID of the entity for securities and currency pairs.   
+   * @return Map with the ID of the entity and the name or text as value.
+   */
+  Map<Integer, String> getSecurityCurrencyPairInfo();
+  
   // TODO remove it
   void checkAndClearSecuritycurrencyConnectors(final Security security);
 

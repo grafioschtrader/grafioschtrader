@@ -8,15 +8,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import grafiosch.config.ExposedResourceBundleMessageSource;
+
 @Configuration
 public class MessageConfig {
 
   @Bean
   MessageSource messageSource() {
     final ReloadableResourceBundleMessageSource messageSource = new ExposedResourceBundleMessageSource();
-    // final ReloadableResourceBundleMessageSource messageSource = new
-    // ReloadableResourceBundleMessageSource();
-    messageSource.setBasenames("classpath:i18n/messages");
+    messageSource.setBasenames("classpath:i18n/messages", "classpath:message/messages");
     messageSource.setUseCodeAsDefaultMessage(false);
     messageSource.setDefaultLocale(Locale.US);
     return messageSource;

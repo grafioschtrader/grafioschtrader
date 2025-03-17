@@ -2,7 +2,8 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
-import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.entities.Assetclass;
 
 public interface AssetclassJpaRepositoryCustom extends BaseRepositoryCustom<Assetclass> {

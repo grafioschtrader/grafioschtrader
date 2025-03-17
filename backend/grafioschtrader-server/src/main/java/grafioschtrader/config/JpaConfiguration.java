@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
-@EnableJpaRepositories(basePackages = {  "grafioschtrader.repository" })
+@EnableJpaRepositories(basePackages = {  "grafiosch.repository", "grafioschtrader.repository"  })
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class JpaConfiguration {
 

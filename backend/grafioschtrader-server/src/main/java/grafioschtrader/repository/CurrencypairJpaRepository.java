@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.projection.CurrencyCount;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
-import grafioschtrader.rest.UpdateCreateJpaRepository;
 
 public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaRepository<Currencypair>,
     JpaSpecificationExecutor<Currencypair>, CurrencypairJpaRepositoryCustom, UpdateCreateJpaRepository<Currencypair> {

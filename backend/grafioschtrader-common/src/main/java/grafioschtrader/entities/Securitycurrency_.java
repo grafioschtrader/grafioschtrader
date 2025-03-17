@@ -9,7 +9,7 @@ import jakarta.persistence.metamodel.StaticMetamodel;
 
 @Generated(value = "org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor")
 @StaticMetamodel(Securitycurrency.class)
-public abstract class Securitycurrency_ extends grafioschtrader.entities.Auditable_ {
+public abstract class Securitycurrency_ extends grafiosch.entities.Auditable_ {
 
   public static volatile SingularAttribute<Securitycurrency<?>, String> idConnectorIntra;
   public static volatile SingularAttribute<Securitycurrency<?>, String> note;

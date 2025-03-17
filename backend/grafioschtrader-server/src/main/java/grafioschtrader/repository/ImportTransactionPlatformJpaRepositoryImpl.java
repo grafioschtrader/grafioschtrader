@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.platform.IPlatformTransactionImport;
 

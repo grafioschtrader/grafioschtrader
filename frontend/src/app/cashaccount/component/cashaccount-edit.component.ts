@@ -14,6 +14,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Edit a cash account the currency of a cash account can only be changed when there is no transaction for it.
@@ -39,6 +40,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
   portfolio: Portfolio;
 
   constructor(private portfolioService: PortfolioService,
+              private gpsGT: GlobalparameterGTService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
@@ -64,7 +66,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
 
   protected override initialize(): void {
     this.portfolio = <Portfolio>this.callParam.parentObject;
-    this.gps.getCurrencies().subscribe(data => {
+    this.gpsGT.getCurrencies().subscribe(data => {
       this.configObject.currency.valueKeyHtmlOptions = data;
 
       this.prepareSecurityaccountOption();

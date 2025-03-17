@@ -11,7 +11,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
-import grafioschtrader.entities.User;
+import grafiosch.entities.User;
 import grafioschtrader.reports.WatchlistReport;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;
 import grafioschtrader.security.UserAuthentication;;

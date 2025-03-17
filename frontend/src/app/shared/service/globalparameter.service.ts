@@ -24,7 +24,6 @@ import {SpecialInvestmentInstruments} from '../types/special.investment.instrume
 import {FeatureType} from '../login/component/login.component';
 import NumberFormat = Intl.NumberFormat;
 
-
 @Injectable()
 export class GlobalparameterService extends BaseAuthService<Globalparameters> implements ServiceEntityUpdate<Globalparameters> {
 
@@ -256,12 +255,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  public getCurrencies(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
-      + `${AppSettings.GLOBALPARAMETERS_P_KEY}/${AppSettings.CURRENCIES_P_KEY}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
-  }
-
   public getCountriesForSelectBox(): Observable<ValueKeyHtmlSelectOptions[]> {
     return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/countries`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
@@ -294,24 +287,10 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  public getIntraUpdateTimeout(): Observable<number> {
-    return this.getGlobalparameterNumber(GlobalSessionNames.UPDATE_TIME, 'updatetimeout');
-  }
-
-  public getStartFeedDateAsTime(): Observable<number> {
-    return this.getGlobalparameterNumber(GlobalSessionNames.START_FEED_DATE, 'startfeeddate');
-  }
-
   update(globalparameters: Globalparameters): Observable<Globalparameters> {
     return <Observable<Globalparameters>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}`, globalparameters,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
-  }
-
-  public getPossibleAssetclassInstrumentMap(): Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }> {
-    return <Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }>>
-        this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.GLOBALPARAMETERS_P_KEY}/possibleassetclassspezinstrument`,
-            this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   private getDateFormatYearCalendar(yearReplace: string): string {
@@ -319,18 +298,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     const formatYear = moment.localeData().longDateFormat('L');
     return formatYear.replace(/YYYY/g, yearReplace);
   }
-
-  private getGlobalparameterNumber(globalSessionNames: GlobalSessionNames, uriPart: string): Observable<number> {
-    if (sessionStorage.getItem(globalSessionNames)) {
-      return of(+sessionStorage.getItem(globalSessionNames));
-    } else {
-      return <Observable<number>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
-        + `${AppSettings.GLOBALPARAMETERS_P_KEY}/${uriPart}`,
-        this.getHeaders()).pipe(tap(value => sessionStorage.setItem(globalSessionNames, '' + value)),
-        catchError(this.handleError.bind(this)));
-    }
-  }
-
 }
 
 export interface PasswordRegexProperties {

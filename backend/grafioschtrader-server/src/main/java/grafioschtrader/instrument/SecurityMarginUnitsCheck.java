@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
+import grafiosch.types.OperationType;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.ProposedMarginFinanceCost;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.entities.User;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
-import grafioschtrader.types.OperationType;
 import grafioschtrader.types.TransactionType;
 
 public class SecurityMarginUnitsCheck {

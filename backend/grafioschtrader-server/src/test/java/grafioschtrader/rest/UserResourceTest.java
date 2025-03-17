@@ -24,16 +24,18 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
-import grafioschtrader.entities.Role;
+import grafiosch.entities.Role;
+import grafiosch.entities.User;
+import grafiosch.entities.VerificationToken;
+import grafiosch.repository.RoleJpaRepository;
+import grafiosch.repository.VerificationTokenJpaRepository;
+import grafiosch.rest.RequestMappings;
+import grafiosch.rest.UserResource;
+import grafiosch.types.TenantKindType;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.entities.User;
-import grafioschtrader.entities.VerificationToken;
-import grafioschtrader.repository.RoleJpaRepository;
-import grafioschtrader.repository.VerificationTokenJpaRepository;
 import grafioschtrader.rest.RestTestHelper.UserRegister;
 import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
-import grafioschtrader.types.TenantKindType;
 
 @TestMethodOrder(OrderAnnotation.class)
 @SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -106,7 +108,7 @@ class UserResourceTest {
     for (UserRegister user : RestTestHelper.users) {
       Tenant tenant = new Tenant("Tenant " + user.nickname, user.currency, user.idUser, TenantKindType.MAIN, false);
       ResponseEntity<Tenant> response = restTemplate.exchange(
-          RestTestHelper.createURLWithPort(RequestMappings.TENANT_MAP + "/", port), HttpMethod.POST,
+          RestTestHelper.createURLWithPort(RequestGTMappings.TENANT_MAP + "/", port), HttpMethod.POST,
           RestTestHelper.getHttpEntity(user.nickname, tenant), Tenant.class);
       assertThat(response.getBody().getIdTenant()).isGreaterThan(0);
     }

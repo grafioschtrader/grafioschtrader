@@ -6,15 +6,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import grafiosch.entities.Auditable;
+import grafiosch.entities.User;
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.dto.UserAuditable;
-import grafioschtrader.entities.Auditable;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.entities.User;
 import grafioschtrader.ta.TaIndicators;
 import grafioschtrader.ta.TaTraceIndicatorData;
 import grafioschtrader.ta.indicator.model.ShortMediumLongInputPeriod;

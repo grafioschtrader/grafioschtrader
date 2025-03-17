@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.entities.AlgoTop;
-import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
 public interface AlgoTopJpaRepository extends JpaRepository<AlgoTop, Integer>, AlgoTopJpaRepositoryCustom,
     UpdateCreateDeleteWithTenantJpaRepository<AlgoTop> {

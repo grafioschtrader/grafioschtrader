@@ -3,7 +3,7 @@ package grafioschtrader.ta;
 import java.util.HashMap;
 import java.util.Map;
 
-import grafioschtrader.dynamic.model.DynamicModelHelper;
+import grafiosch.dynamic.model.DynamicModelHelper;
 import grafioschtrader.ta.indicator.model.ShortMediumLongInputPeriod;
 
 public abstract class TaIndicatorHelper {

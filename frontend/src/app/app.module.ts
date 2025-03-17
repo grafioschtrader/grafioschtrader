@@ -7,14 +7,12 @@ import {MenubarComponent} from './shared/mainmenubar/component/menubar.component
 import {MenuModule} from 'primeng/menu';
 import {MenubarModule} from 'primeng/menubar';
 import {routing} from './app.routes';
-import {AppComponent} from './app.component';
+import {AppComponent, TASK_EXTENDED_SERVICE} from './app.component';
 import {PortfolioService} from './portfolio/service/portfolio.service';
 import {MainTreeComponent} from './shared/maintree/component/main-tree.component';
 import {TreeModule} from 'primeng/tree';
 import {WatchlistService} from './watchlist/service/watchlist.service';
 import {ContextMenuModule} from 'primeng/contextmenu';
-import {SecurityService} from './securitycurrency/service/security.service';
-import {GlobalparameterService} from './shared/service/globalparameter.service';
 import {PortfolioCashaccountSummaryComponent} from './portfolio/component/portfolio.cashaccount.summary.component';
 import {DropdownModule} from 'primeng/dropdown';
 import {SecurityaccountSummariesComponent} from './securityaccount/component/securityaccount.summaries.component';
@@ -98,7 +96,9 @@ import {HistoryquoteEditComponent} from './historyquote/component/historyquote-e
 import {TransactionCashaccountTableComponent} from './transaction/component/transaction-cashaccount-table.component';
 import {TransactionSecurityTableComponent} from './transaction/component/transaction-security-table.component';
 import {TenantEditDialogComponent} from './tenant/component/tenant-edit-dialog.component';
-import {TenantDividendsSecurityExtendedComponent} from './tenant/component/tenant-dividends-security-extended.component';
+import {
+  TenantDividendsSecurityExtendedComponent
+} from './tenant/component/tenant-dividends-security-extended.component';
 import {SecuritycurrencyExtendedInfoComponent} from './watchlist/component/securitycurrency-extended-info.component';
 import {TenantTransactionCostExtendedComponent} from './tenant/component/tenant-transaction-cost-extended.component';
 import {SecuritysplitEditTableComponent} from './securitycurrency/component/securitysplit-edit-table.component';
@@ -339,7 +339,11 @@ import {UDFSpecialTypeDisableUserService} from './shared/udfmeta/service/udf.spe
 import {AlarmSetupService} from './algo/service/alarm.setup.service';
 import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
 import {DatePicker} from 'primeng/datepicker';
-import {DynamicDialogModule } from 'primeng/dynamicdialog';
+import {DynamicDialogModule} from 'primeng/dynamicdialog';
+import {SecurityService} from './securitycurrency/service/security.service';
+import {GlobalparameterGTService} from './gtservice/globalparameter.gt.service';
+import {GlobalparameterService} from './shared/service/globalparameter.service';
+import {TabsModule} from 'primeng/tabs';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -446,6 +450,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     SharedModule,
     StepsModule,
     TabViewModule,
+    TabsModule,
     TabMenuModule,
     TieredMenuModule,
     ToastrModule.forRoot({
@@ -467,7 +472,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
   ],
   providers: [ActivePanelService, ActuatorService, AlarmSetupService, AlgoAssetclassService, AlgoSecurityService, AlgoStrategyService,
     AlgoTopService, AssetclassService, CashaccountService, ChartDataService, ConfirmationService, ConnectorApiKeyService,
-    CorrelationSetService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService, GTNetMessageService,
+    CorrelationSetService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService,
+    GlobalparameterGTService, GTNetMessageService,
     GTNetService, HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
     ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, LoginService,
     MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,
@@ -476,7 +482,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TaskDataChangeService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
     TradingPlatformPlanService, TransactionService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
     UDFSpecialTypeDisableUserService, UserAdminService, UserEntityChangeLimitService, UserSettingsService,
-    ViewSizeChangedService, WatchlistService],
+    ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService}],
   bootstrap: [AppComponent]
 })
 export class AppModule {

@@ -11,10 +11,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
+import grafiosch.common.DateHelper;
+import grafiosch.entities.TenantBaseID;
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.DateHelper;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.SecurityCostPosition;
 import grafioschtrader.types.TransactionType;
@@ -98,7 +99,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   private Double transactionCost;
 
   @Column(name = "note")
-  @Size(max = GlobalConstants.FID_MAX_LETTERS)
+  @Size(max = BaseConstants.FID_MAX_LETTERS)
   private String note;
 
   @Schema(description = "The sum of these amounts is the balance of the corresponding account. This value can therefore be both positive and negative.")
@@ -650,7 +651,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     if (roundCashaccountAmount == calcCashaccountAmount) {
       if (quotation != null && GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {
         if (calcCashaccountAmount != DataHelper.round(cashaccountAmount,
-            Math.min(GlobalConstants.FID_MAX_FRACTION_DIGITS, currencyFraction + (currencyExRate == null? 3: 5)))) {
+            Math.min(BaseConstants.FID_MAX_FRACTION_DIGITS, currencyFraction + (currencyExRate == null? 3: 5)))) {
           correctSecurityTransactionToAmount(roundCashaccountAmount - cashaccountAmount, buyQuotation);
         }
       }
@@ -710,7 +711,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     } else if (quotation != null) {
       double oldQuotation = quotation;
       quotation = DataHelper.round((getSeucritiesNetPrice(0) + diff) / this.units,
-          GlobalConstants.FID_MAX_FRACTION_DIGITS);
+          BaseConstants.FID_MAX_FRACTION_DIGITS);
       log.debug("Corrected quotation for difference {} from {} to {}", diff, oldQuotation, quotation);
     }
     cashaccountAmount = this.validateSecurityGeneralCashaccountAmount(buyQuotation);

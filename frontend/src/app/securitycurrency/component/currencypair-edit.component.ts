@@ -23,6 +23,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SecurityDerived, SecurityEditSupport} from './security.edit.support';
 import {AppSettings} from '../../shared/app.settings';
 import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 
 /**
@@ -53,6 +54,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   private fromCurrencyChangedSub: Subscription;
 
   constructor(private messageToastService: MessageToastService,
+              private gpsGT: GlobalparameterGTService,
               private stockexchangeService: StockexchangeService,
               private assetclassService: AssetclassService,
               private currencypairService: CurrencypairService,
@@ -118,7 +120,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
 
   protected loadHelperData(): void {
     this.hideVisibleFeedConnectorsFields(this.connectorPriceFieldConfig, false, FeedIdentifier.CURRENCY);
-    const observableCurrencies: Observable<ValueKeyHtmlSelectOptions[]> = this.gps.getCurrencies();
+    const observableCurrencies: Observable<ValueKeyHtmlSelectOptions[]> = this.gpsGT.getCurrencies();
     const observalbeFeedConnectors: Observable<IFeedConnector[]> = this.currencypairService.getFeedConnectors();
     const observalbeAllCurrencypairs: Observable<Currencypair[]> = this.currencypairService.getAllCurrencypairs();
     combineLatest([observableCurrencies, observalbeFeedConnectors, observalbeAllCurrencypairs])

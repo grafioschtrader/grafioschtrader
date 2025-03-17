@@ -15,9 +15,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DateHelper;
+import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.types.OperationType;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
 import grafioschtrader.entities.Cashaccount;
@@ -27,13 +31,11 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.entities.User;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.instrument.SecurityGeneralUnitsCheck;
 import grafioschtrader.instrument.SecurityMarginUnitsCheck;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
 import grafioschtrader.reportviews.transaction.CashaccountTransactionPosition;
-import grafioschtrader.types.OperationType;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
 public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction>
@@ -49,7 +51,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
@@ -119,7 +121,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
     cashAccountTransfer.setToMinus();
 
-    Integer withdrawalCurrencyFraction = globalparametersJpaRepository
+    Integer withdrawalCurrencyFraction = globalparametersService
         .getPrecisionForCurrency(cashAccountTransfer.getWithdrawalTransaction().getCashaccount().getCurrency());
 
     cashAccountTransfer.validateWithdrawalCashaccountAmount(withdrawalCurrencyFraction);
@@ -252,7 +254,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       // is accepted
       transaction.setCashaccountAmount(transaction.getCashaccountAmount() * -1);
     }
-    Integer currencyFraction = globalparametersJpaRepository
+    Integer currencyFraction = globalparametersService
         .getPrecisionForCurrency(transaction.getCashaccount().getCurrency());
     switch (transaction.getTransactionType()) {
     case ACCUMULATE:
@@ -515,7 +517,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     final CashaccountTransactionPosition[] cashaccountTransactionPositions = new CashaccountTransactionPosition[transactions
         .size()];
     if (cashaccountTransactionPositions.length > 0) {
-      int precision = globalparametersJpaRepository
+      int precision = globalparametersService
           .getPrecisionForCurrency(transactions.get(0).getCashaccount().getCurrency());
       for (int i = cashaccountTransactionPositions.length - 1; i >= 0; i--) {
         cashaccountTransactionPositions[i] = new CashaccountTransactionPosition(transactions.get(i),

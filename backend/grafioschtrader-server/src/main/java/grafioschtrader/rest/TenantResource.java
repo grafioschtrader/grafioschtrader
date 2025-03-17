@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateJpaRepository;
+import grafiosch.rest.UpdateCreateResource;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.entities.User;
 import grafioschtrader.repository.TenantJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,7 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
-@RequestMapping(RequestMappings.TENANT_MAP)
+@RequestMapping(RequestGTMappings.TENANT_MAP)
 @Tag(name = Tenant.TABNAME, description = "Controller for tenant")
 public class TenantResource extends UpdateCreateResource<Tenant> {
 

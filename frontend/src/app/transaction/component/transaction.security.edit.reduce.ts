@@ -29,7 +29,7 @@ export class TransactionSecurityEditDividendReduce implements ITransactionEditTy
    */
   acceptSecurityaccount(securitycashaccount: Securityaccount | Cashaccount,
                         securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
-                        isSellBuyMarginInstrument: boolean): boolean {
+                        isSellBuyMarginInstrument: boolean, closeMarginIdSecurityaccount: number): boolean {
     if (securitycashaccount.hasOwnProperty('currency')) {
       // it is a cash account
       return true;

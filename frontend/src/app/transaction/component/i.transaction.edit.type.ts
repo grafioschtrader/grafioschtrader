@@ -16,5 +16,5 @@ export interface ITransactionEditType {
 
   acceptSecurityaccount(securitycashaccount: Securityaccount | Cashaccount,
                         securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
-                        isSellBuyMarginInstrument: boolean): boolean;
+                        isSellBuyMarginInstrument: boolean, closeMarginIdSecurityaccount: number): boolean;
 }

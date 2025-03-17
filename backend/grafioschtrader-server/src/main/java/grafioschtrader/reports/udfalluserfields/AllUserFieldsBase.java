@@ -16,18 +16,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.EnumHelper;
+import grafiosch.BaseConstants;
+import grafiosch.common.EnumHelper;
+import grafiosch.entities.UDFData;
+import grafiosch.entities.UDFData.UDFDataKey;
+import grafiosch.repository.UDFDataJpaRepository;
+import grafiosch.types.IUDFSpecialType;
+import grafiosch.types.UDFDataType;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.UDFData;
-import grafioschtrader.entities.UDFData.UDFDataKey;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
-import grafioschtrader.repository.UDFDataJpaRepository;
 import grafioschtrader.repository.UDFMetadataSecurityJpaRepository;
-import grafioschtrader.types.UDFDataType;
-import grafioschtrader.types.UDFSpecialType;
 
 public abstract class AllUserFieldsBase {
 
@@ -73,20 +73,22 @@ public abstract class AllUserFieldsBase {
     if (value != null && udfMetaDataSecurity.getUdfDataType() == UDFDataType.UDF_DateTimeNumeric) {
       value = formatter.format((LocalDateTime) value);
     }
-    jsonValuesMap.put(GlobalConstants.UDF_FIELD_PREFIX + udfMetaDataSecurity.getIdUDFMetadata(), value);
+    jsonValuesMap.put(BaseConstants.UDF_FIELD_PREFIX + udfMetaDataSecurity.getIdUDFMetadata(), value);
     return objectMapper.writeValueAsString(jsonValuesMap);
   }
 
   protected void writeValueToUser0(UDFMetadataSecurity udfMetaDataSecurity, int idSecurity, Object value) {
     if (value != null) {
-      UDFDataKey udfDataKey = new UDFDataKey(GlobalConstants.UDF_ID_USER, Security.class.getSimpleName(), idSecurity);
+      UDFDataKey udfDataKey = new UDFDataKey(BaseConstants.UDF_ID_USER, Security.class.getSimpleName(), idSecurity);
       UDFData udfData = uDFDataJpaRepository.findById(udfDataKey).orElse(new UDFData(udfDataKey, new HashMap<>()));
       switch (udfMetaDataSecurity.getUdfDataType()) {
       case UDF_DateTimeNumeric:
         value = formatter.format((LocalDateTime) value);
         break;
+      default:
+        break;
       }
-      udfData.getJsonValues().put(GlobalConstants.UDF_FIELD_PREFIX + udfMetaDataSecurity.getIdUDFMetadata(), value);
+      udfData.getJsonValues().put(BaseConstants.UDF_FIELD_PREFIX + udfMetaDataSecurity.getIdUDFMetadata(), value);
       uDFDataJpaRepository.save(udfData);
     }
   }
@@ -101,16 +103,18 @@ public abstract class AllUserFieldsBase {
    */
   protected Object readValueFromUser0(UDFMetadataSecurity udfMetaDataSecurity, int idSecurity) {
     Optional<UDFData> udfDataOpt = uDFDataJpaRepository
-        .findById(new UDFDataKey(GlobalConstants.UDF_ID_USER, Security.class.getSimpleName(), idSecurity));
+        .findById(new UDFDataKey(BaseConstants.UDF_ID_USER, Security.class.getSimpleName(), idSecurity));
     Object value = null;
     if (udfDataOpt.isPresent()) {
       Map<String, Object> jsonValues = udfDataOpt.get().getJsonValues();
       if (jsonValues != null) {
-        value = jsonValues.get(GlobalConstants.UDF_FIELD_PREFIX + udfMetaDataSecurity.getIdUDFMetadata());
+        value = jsonValues.get(BaseConstants.UDF_FIELD_PREFIX + udfMetaDataSecurity.getIdUDFMetadata());
         if (value != null) {
           switch (udfMetaDataSecurity.getUdfDataType()) {
           case UDF_DateTimeNumeric:
             return LocalDateTime.parse((String) value);
+          default:
+            break;
           }
         }
       }
@@ -118,9 +122,9 @@ public abstract class AllUserFieldsBase {
     return value;
   }
 
-  protected UDFMetadataSecurity getMetadataSecurity(UDFSpecialType udfSpecialType) {
+  protected UDFMetadataSecurity getMetadataSecurity(IUDFSpecialType udfSpecialType) {
     return uDFMetadataSecurityJpaRepository.getByUdfSpecialTypeAndIdUser(udfSpecialType.getValue(),
-        GlobalConstants.UDF_ID_USER);
+        BaseConstants.UDF_ID_USER);
   }
 
   protected boolean matchAssetclassAndSpecialInvestmentInstruments(UDFMetadataSecurity udfMetadataSecurity,

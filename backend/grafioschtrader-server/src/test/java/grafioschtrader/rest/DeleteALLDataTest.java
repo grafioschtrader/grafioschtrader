@@ -28,12 +28,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
 import grafiosch.entities.BaseID;
+import grafiosch.repository.UserEntityChangeCountJpaRepository;
+import grafiosch.repository.UserEntityChangeLimitJpaRepository;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.repository.UserEntityChangeCountJpaRepository;
-import grafioschtrader.repository.UserEntityChangeLimitJpaRepository;
 import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 
@@ -117,9 +117,9 @@ class DeleteALLDataTest {
   }
 
   private Stream<Arguments> resoureClass() {
-    return Stream.of(Arguments.of(RequestMappings.SECURITY_MAP, Security.class, securityJpaRepository),
-        Arguments.of(RequestMappings.STOCKEXCHANGE_MAP, Stockexchange.class, null),
-        Arguments.of(RequestMappings.ASSETCLASS_MAP, Assetclass.class, null));
+    return Stream.of(Arguments.of(RequestGTMappings.SECURITY_MAP, Security.class, securityJpaRepository),
+        Arguments.of(RequestGTMappings.STOCKEXCHANGE_MAP, Stockexchange.class, null),
+        Arguments.of(RequestGTMappings.ASSETCLASS_MAP, Assetclass.class, null));
   }
 
 }

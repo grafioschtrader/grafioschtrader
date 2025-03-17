@@ -2,8 +2,8 @@ package grafioschtrader.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.entities.BaseID;
-import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.gtnet.GTNetServerStateTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;

@@ -2,7 +2,7 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyAlwaysUpdatable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

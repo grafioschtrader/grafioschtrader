@@ -12,8 +12,8 @@ import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.ImportTransactionTemplate;
-import grafioschtrader.exceptions.DataViolationException;
 
 public abstract class ImportTransactionHelperPdf {
 

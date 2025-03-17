@@ -2,10 +2,10 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
+import grafiosch.entities.User;
 import grafioschtrader.dto.HistoryquotePeriodDeleteAndCreateMultiple;
 import grafioschtrader.entities.HistoryquotePeriod;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.User;
 
 public interface HistoryquotePeriodJpaRepositoryCustom {
 

@@ -14,6 +14,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {AppSettings} from '../../shared/app.settings';
 import {AssetClassTypeSpecInstrument} from '../../shared/udfmeta/components/asset.class.type.spec.instrument';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Edit asset classes in a dialog
@@ -39,10 +40,11 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
 
 
   constructor(translateService: TranslateService,
+    gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     assetclassService: AssetclassService) {
-    super(AppSettings.CATEGORY_TYPE, 'specialInvestmentInstrument', HelpIds.HELP_BASEDATA_ASSETCLASS, AppSettings.ASSETCLASS.toUpperCase(), translateService, gps,
+    super(AppSettings.CATEGORY_TYPE, gpsGT, 'specialInvestmentInstrument', HelpIds.HELP_BASEDATA_ASSETCLASS, AppSettings.ASSETCLASS.toUpperCase(), translateService, gps,
       messageToastService, assetclassService);
   }
 

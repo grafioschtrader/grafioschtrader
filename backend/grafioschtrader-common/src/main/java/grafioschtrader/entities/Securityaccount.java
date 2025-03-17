@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyAlwaysUpdatable;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;

@@ -10,17 +10,17 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import grafiosch.entities.Globalparameters;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalParamKeyDefault;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Execute Job PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU when it was not executed
  * the day before or there is no existing
- * {@link grafioschtrader.entities.TaskDataChange}.
+ * {@link grafiosch.entities.TaskDataChange}.
  *
  */
 @Component
@@ -40,13 +40,13 @@ public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyE
       addDataUpdateTask();
     } else if (taskDataChangeJpaRepository.count() == 0) {
       addDataUpdateTask();
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
           TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(10), null, null));
     }
   }
 
   private void addDataUpdateTask() {
-    TaskDataChange taskDataChange = new TaskDataChange(TaskType.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU,
+    TaskDataChange taskDataChange = new TaskDataChange(TaskTypeExtended.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU,
         TaskDataExecPriority.PRIO_HIGH, LocalDateTime.now().plusMinutes(5), null, null);
     taskDataChangeJpaRepository.save(taskDataChange);
   }

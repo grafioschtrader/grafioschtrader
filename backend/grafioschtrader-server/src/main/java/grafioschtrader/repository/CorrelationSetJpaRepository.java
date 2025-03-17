@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.entities.CorrelationSet;
-import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
 
 public interface CorrelationSetJpaRepository extends JpaRepository<CorrelationSet, Integer>,
     CorrelationSetJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<CorrelationSet> {

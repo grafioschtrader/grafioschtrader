@@ -856,7 +856,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
     securitycashaccounts.forEach((securityaccount: Securityaccount | Cashaccount) => {
         if (this.transactionEditType.acceptSecurityaccount(securityaccount, securityaccountOpenPositionUnits,
-          this.isOpenMarginInstrument)) {
+          this.isOpenMarginInstrument, this.transactionCallParam?.closeMarginPosition?.idSecurityaccount)) {
           valueKeyHtmlSelect.push(new ValueKeyHtmlSelectOptions(securityaccount.idSecuritycashAccount, securityaccount.name + ' / '
             + portfolioName + (callBackFn ? callBackFn(<Securityaccount>securityaccount) : '')));
         }

@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.entities.Cashaccount;
-import grafioschtrader.entities.User;
 import grafioschtrader.reports.AccountPositionGroupSummaryReport;
 import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 import grafioschtrader.repository.CashaccountJpaRepository;
@@ -25,7 +27,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.CASHACCOUNT_MAP)
+@RequestMapping(RequestGTMappings.CASHACCOUNT_MAP)
 @Tag(name = Cashaccount.TABNAME, description = "Controller for the cash account")
 public class CashaccountResource extends UpdateCreateDeleteWithTenantResource<Cashaccount> {
 

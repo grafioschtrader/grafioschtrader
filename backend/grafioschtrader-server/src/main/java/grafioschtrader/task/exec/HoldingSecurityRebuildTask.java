@@ -3,10 +3,11 @@ package grafioschtrader.task.exec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.TaskDataChange;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * When a security split happens it influences the calculation of the
@@ -21,8 +22,8 @@ public class HoldingSecurityRebuildTask implements ITask {
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.HOLDINGS_SECURITY_REBUILD;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.HOLDINGS_SECURITY_REBUILD;
   }
 
   @Override

@@ -447,7 +447,7 @@
   "NO": "no",
   "NON_OVERLAPPING_DATES": "Calculation not possible, because instruments have no overlapping closing prices!",
   "NOTE": "Note",
-  "NO_DATA_REFRESCH": "There is no automatic update of the data displayed here!",
+  "NO_DATA_REFRESH": "There is no automatic update of the data displayed here!",
   "NOTE_REQUEST": "Remark data change",
   "NO_MARKET_VALUE": "No market value",
   "NUMBER_OF_ANSWER": "Number of responses",

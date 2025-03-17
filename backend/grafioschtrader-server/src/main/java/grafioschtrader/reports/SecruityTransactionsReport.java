@@ -19,7 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
+import grafiosch.entities.User;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
@@ -27,7 +28,6 @@ import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.entities.User;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.SecurityOpenPositionPerSecurityaccount;
@@ -36,7 +36,6 @@ import grafioschtrader.reportviews.securityaccount.SecurityaccountOpenPositionUn
 import grafioschtrader.reportviews.transaction.SecurityTransactionPosition;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.IPositionCloseOnLatestPrice;
 import grafioschtrader.repository.PortfolioJpaRepository;
@@ -45,6 +44,7 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
 /**
@@ -81,7 +81,7 @@ public class SecruityTransactionsReport {
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   public enum SecruityTransactionsReportOptions {
     /**
@@ -315,7 +315,7 @@ public class SecruityTransactionsReport {
     final SecurityTransactionSummary securityTransactionSummary = new SecurityTransactionSummary(
         securityJpaRepository.findById(security.getIdSecuritycurrency()).get(),
         (dateCurrencyMap != null) ? dateCurrencyMap.getMainCurrency() : null,
-        globalparametersJpaRepository.getCurrencyPrecision());
+            globalparametersService.getCurrencyPrecision());
     final boolean excludeDivTaxcost = tenantJpaRepository.isExcludeDividendTaxcost();
 
     final Map<Integer, List<Securitysplit>> securitySplitMap = this.securitysplitJpaRepository
@@ -331,7 +331,7 @@ public class SecruityTransactionsReport {
     securityCalcService.calcTransactions(security, excludeDivTaxcost, securityTransactionSummary, securitySplitMap,
         transactions, untilDate, dateCurrencyMap);
 
-    if (securityTransactionSummary.securityPositionSummary.units != 0.0
+    if ((securityTransactionSummary.securityPositionSummary.units != 0.0 || !securityTransactionSummary.transactionPositionList.isEmpty()) 
         && secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
 
       securityJpaRepository.calcGainLossBasedOnDateOrNewestPrice(securityTransactionSummary.securityPositionSummary,

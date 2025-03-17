@@ -27,7 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import grafiosch.BaseConstants;
-import grafioschtrader.GlobalConstants;
+import grafiosch.entities.User;
+import grafiosch.error.ValidationError;
+import grafiosch.exceptions.DataViolationException;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
+import grafiosch.rest.helper.RestHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
@@ -39,12 +43,7 @@ import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.entities.User;
-import grafioschtrader.error.ValidationError;
-import grafioschtrader.exceptions.DataViolationException;
-import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
-import grafioschtrader.rest.helper.RestHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManager;
@@ -569,7 +568,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     final StringBuilder errorStringBuilder = new StringBuilder();
     ValidationError validationError = RestHelper.createValidationError(dvex, messageSource);
     validationError.getFieldErrors()
-        .forEach(fe -> errorStringBuilder.append(fe.getField() + ": " + fe.getMessage() + GlobalConstants.NEW_LINE));
+        .forEach(fe -> errorStringBuilder.append(fe.getField() + ": " + fe.getMessage() + BaseConstants.NEW_LINE));
     itp.setTransactionError(errorStringBuilder.toString());
     importTransactionPosJpaRepository.save(itp);
   }

@@ -2,8 +2,8 @@ package grafioschtrader.dto;
 
 import java.util.EnumSet;
 
-import grafioschtrader.dynamic.model.DataType;
-import grafioschtrader.dynamic.model.FieldDescriptorInputAndShowExtended;
+import grafiosch.dynamic.model.DataType;
+import grafiosch.dynamic.model.FieldDescriptorInputAndShowExtended;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.media.Schema;

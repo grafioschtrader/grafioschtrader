@@ -1,7 +1,7 @@
 package grafioschtrader.validation;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.entities.MultilanguageString;
+import grafiosch.BaseConstants;
+import grafiosch.entities.MultilanguageString;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -10,7 +10,7 @@ public class ValidMultilanguageValidator implements ConstraintValidator<ValidMul
   @Override
   public boolean isValid(MultilanguageString value, ConstraintValidatorContext context) {
     return value.getMap().size() == 2
-        && value.getMap().entrySet().stream().filter(x -> (GlobalConstants.GT_LANGUAGE_CODES.contains(x.getKey()))
+        && value.getMap().entrySet().stream().filter(x -> (BaseConstants.GT_LANGUAGE_CODES.contains(x.getKey()))
             && x.getValue() != null && x.getValue().trim().length() > 0).count() == 2;
   }
 

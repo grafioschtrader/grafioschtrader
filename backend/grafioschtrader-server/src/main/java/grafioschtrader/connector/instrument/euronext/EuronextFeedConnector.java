@@ -31,15 +31,16 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.BaseConstants;
+import grafiosch.common.DateHelper;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import jakarta.xml.bind.DatatypeConverter;
@@ -224,7 +225,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
       throws Exception {
 
     final List<Historyquote> historyquotes = new ArrayList<>();
-    final DateFormat dateFormat = new SimpleDateFormat(GlobalConstants.STANDARD_LOCAL_DATE_TIME);
+    final DateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_LOCAL_DATE_TIME);
     objectMapper.setDateFormat(dateFormat);
     String maxOr1M = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) > 30 ? PERIOD_MAX : PERIOD_1M;
     String url = getSecurityHistoricalDownloadLink(security, maxOr1M);

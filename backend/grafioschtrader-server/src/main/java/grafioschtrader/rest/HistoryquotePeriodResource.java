@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
 import grafioschtrader.dto.HistoryquotePeriodDeleteAndCreateMultiple;
 import grafioschtrader.entities.HistoryquotePeriod;
-import grafioschtrader.entities.User;
 import grafioschtrader.repository.HistoryquotePeriodJpaRepository;
 import grafioschtrader.types.HistoryquotePeriodCreateType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,15 +26,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping(RequestMappings.HISTORYQUOTE_PERDIO_MAP)
-@Tag(name = RequestMappings.HISTORYQUOTE_PERIOD, description = "Controller for historyquote period")
+@RequestMapping(RequestGTMappings.HISTORYQUOTE_PERDIO_MAP)
+@Tag(name = RequestGTMappings.HISTORYQUOTE_PERIOD, description = "Controller for historyquote period")
 public class HistoryquotePeriodResource {
 
   @Autowired
   private HistoryquotePeriodJpaRepository historyquotePeriodJpaRepository;
 
   @Operation(summary = "Returns historyquote peroid for a spezified security", description = "", tags = {
-      RequestMappings.HISTORYQUOTE_PERIOD })
+      RequestGTMappings.HISTORYQUOTE_PERIOD })
   @GetMapping(value = "/{idSecuritycurrency}/security", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<HistoryquotePeriod>> getHistoryquotePeriodByIdSecuritycurrency(
       @Parameter(description = "Id of security", required = true) @PathVariable final Integer idSecuritycurrency) {
@@ -44,7 +44,7 @@ public class HistoryquotePeriodResource {
 
   @Operation(summary = """
       Historyquote period are created manually, normally used when one price does not fit the whole lifetime of a security""", description = "", tags = {
-      RequestMappings.HISTORYQUOTE_PERIOD })
+      RequestGTMappings.HISTORYQUOTE_PERIOD })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<HistoryquotePeriod>> deleteAndCreateMultiple(
       @Valid @RequestBody final HistoryquotePeriodDeleteAndCreateMultiple hpdacm) {

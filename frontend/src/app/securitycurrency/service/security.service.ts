@@ -1,5 +1,5 @@
 import {Security} from '../../entities/security';
-import {Injectable} from '@angular/core';
+import {Injectable, InjectionToken} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {SecurityOpenPositionPerSecurityaccount} from '../../entities/view/security.open.position.per.securityaccount';
@@ -21,9 +21,13 @@ import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.d
 import {SecurityCurrencyService} from './security.currency.service';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 import moment from 'moment';
+import {ITaskExtendService} from '../../shared/taskdatamonitor/component/itask.extend.service';
+import {ColumnConfig} from '../../shared/datashowbase/column.config';
+
+
 
 @Injectable()
-export class SecurityService extends SecurityCurrencyService<Security> {
+export class SecurityService extends SecurityCurrencyService<Security> implements ITaskExtendService {
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
@@ -151,6 +155,23 @@ export class SecurityService extends SecurityCurrencyService<Security> {
   private getOptionHistoryqouteQuality(groupedBy: string) {
     const httpParams = new HttpParams().set('groupedBy', groupedBy);
     return {headers: this.prepareHeaders(), params: httpParams};
+  }
+
+  supportAdditionalToolTipData(): boolean {
+    return true;
+  }
+
+  getAdditionalData(): Observable<{[key: number]: string}> {
+    return <Observable<{[key: number]: string}>>this.httpClient.get(
+      `${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/tooltip`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getToolTipByPath(dataobject: any, field: ColumnConfig, additionalData: {[key: number]: string}): any {
+    if (field.field === 'idEntity' && (dataobject.entity === 'Security' || dataobject.entity === 'Currencypair' )) {
+      return additionalData[dataobject['idEntity']];
+    }
+    return null;
   }
 
 }

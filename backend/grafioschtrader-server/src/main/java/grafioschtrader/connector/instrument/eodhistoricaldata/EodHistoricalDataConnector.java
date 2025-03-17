@@ -29,8 +29,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Currencypair;
@@ -208,7 +208,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-    updateLastPrice(currencypair, getCurrencypairIntradayDownloadLink(currencypair), getIntradayDelayedSeconds());
+    updateLastPrice(currencypair, getCurrencypairIntradayDownloadLink(currencypair), 1.0);
   }
 
   /**

@@ -22,10 +22,13 @@ export class TransactionSecurityEditAccumulate implements ITransactionEditType {
   }
 
   acceptSecurityaccount(securitycashaccount: Securityaccount | Cashaccount,
-                        securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[], isSellBuyMarginInstrument: boolean): boolean {
+                        securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
+                        isSellBuyMarginInstrument: boolean, closeMarginIdSecurityaccount: number): boolean {
     if (securitycashaccount.hasOwnProperty('currency')) {
       // it is a Cashaccount
       return true;
+    } else if(closeMarginIdSecurityaccount) {
+      return securitycashaccount.idSecuritycashAccount === closeMarginIdSecurityaccount;
     } else {
       // it is a Securityaccount
       return this.transactionCallParam.securityaccount === null

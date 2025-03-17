@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, InjectionToken, OnDestroy} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {LoginService} from './shared/login/service/log-in.service';
 import {PrimeNG} from 'primeng/config';
@@ -6,10 +6,10 @@ import {AppSettings} from './shared/app.settings';
 import {Subscription} from 'rxjs';
 import {NavigationStart, Router} from '@angular/router';
 import Aura from '@primeng/themes/aura';
-import Lara from '@primeng/themes/lara';
-import Nora from '@primeng/themes/nora';
 import {definePreset} from '@primeng/themes';
+import {ITaskExtendService} from './shared/taskdatamonitor/component/itask.extend.service';
 
+export const TASK_EXTENDED_SERVICE = new InjectionToken<ITaskExtendService>('SecurityService');
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -33,6 +33,16 @@ const MyPreset = definePreset(Aura, {
         selectedBackground: "{blue.600}",
         selectedColor: "#ffffff",
 
+      }
+    },
+    menubar: {
+      root: {
+        padding: "0rem 0rem",
+      }
+    },
+    tabs: {
+      tab: {
+        borderWidth: "1px 1px 1px 1px"
       }
     },
     tree: {

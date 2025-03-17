@@ -7,12 +7,10 @@ import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -30,8 +28,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -42,9 +38,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.connector.yahoo.YahooHelper;
@@ -72,7 +67,6 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 @Component
 public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final String DIVDEND_EVENT = "div";
@@ -400,60 +394,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
             entry.getValue().numerator, CreateType.CONNECTOR_CREATED))
         .collect(Collectors.toList());
   }
-
   
-
-  /**
-   * Yahoo creates sometimes more than only one quote for the same day.
-   *
-   * @param historyquotes
-   * @param historyquote
-   * @return
-   */
-  private boolean isDifferentDay(final List<Historyquote> historyquotes, final Historyquote historyquote) {
-    return historyquotes.size() < 1
-        || historyquotes.size() > 0 && !historyquote.getDate().equals(historyquotes.getLast().getDate());
-  }
-
-  private Historyquote parseResponseLine(final String inputLine, final SimpleDateFormat dateFormatSecurity,
-      final SimpleDateFormat dateFormatSecurityOld, boolean isCurrency, final double divider) throws ParseException {
-    final String[] item = inputLine.split(","); //$NON-NLS-1$
-    if (item.length < 7 || !item[4].matches("[0-9.]*")) {
-      return null;
-    }
-
-    final Calendar day = Calendar.getInstance();
-    try {
-      day.setTime(dateFormatSecurity.parse(item[0]));
-    } catch (final ParseException e) {
-      try {
-        day.setTime(dateFormatSecurityOld.parse(item[0]));
-      } catch (final ParseException e1) {
-        throw e1;
-      }
-    }
-
-    DateHelper.setTimeToZero(day);
-
-    final Historyquote historyQuote = new Historyquote();
-    historyQuote.setDate(day.getTime());
-    historyQuote.setOpen(parseAndRound(item[1], divider));
-    historyQuote.setHigh(parseAndRound(item[2], divider));
-    historyQuote.setLow(parseAndRound(item[3], divider));
-    historyQuote.setClose(parseAndRound(item[4], divider));
-    if (!isCurrency) {
-      historyQuote.setVolume(Long.parseLong(item[6]));
-    }
-
-    return historyQuote;
-
-  }
-
-  private double parseAndRound(final String doubleValueStr, final double divider) {
-    final double value = Double.parseDouble(doubleValueStr);
-    return DataBusinessHelper.round(value / divider);
-  }
-
   static class Quote {
     public QuoteResponse quoteResponse;
   }

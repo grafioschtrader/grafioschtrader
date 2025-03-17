@@ -10,6 +10,7 @@ import {Subscription} from 'rxjs';
 import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {InputType} from '../../../dynamic-form/models/input.type';
+import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 
 export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBase<T> {
 
@@ -20,6 +21,7 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
   protected abstract initializeOthers(): void;
 
   protected constructor(private fieldCategoryType: string,
+    private gpsGT: GlobalparameterGTService,
     private fieldSpecialInvestmentInstrument: string,
     helpId: HelpIds,
     i18nRecord: string,
@@ -62,7 +64,7 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
   }
 
   protected override initialize(): void {
-    this.gps.getPossibleAssetclassInstrumentMap().subscribe(assetclassSpezInstMap => {
+    this.gpsGT.getPossibleAssetclassInstrumentMap().subscribe(assetclassSpezInstMap => {
       this.assetclassSpezInstMap = assetclassSpezInstMap;
       this.form.setDefaultValuesAndEnableSubmit();
       this.configObject[this.fieldCategoryType].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,

@@ -10,7 +10,7 @@ import jakarta.persistence.metamodel.StaticMetamodel;
 
 @Generated(value = "org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor")
 @StaticMetamodel(Stockexchange.class)
-public abstract class Stockexchange_ extends grafioschtrader.entities.Auditable_ {
+public abstract class Stockexchange_ extends grafiosch.entities.Auditable_ {
 
   public static volatile SingularAttribute<Stockexchange, Boolean> secondaryMarket;
   public static volatile SingularAttribute<Stockexchange, Integer> idStockexchange;

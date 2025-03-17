@@ -23,11 +23,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
+import grafiosch.entities.Auditable;
+import grafiosch.validation.WebUrl;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertyOnlyCreation;
-import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
@@ -128,7 +129,7 @@ public class Stockexchange extends Auditable implements Serializable {
   private LocalDate maxCalendarUpdDate;
 
   @Schema(description = "When was the last update performed for this stock exchange ")
-  @JsonFormat(pattern = GlobalConstants.STANDARD_LOCAL_DATE_TIME)
+  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME)
   @Column(name = "last_direct_price_update")
   private LocalDateTime lastDirectPriceUpdate;
 

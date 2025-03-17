@@ -38,6 +38,7 @@ import {Securitysplit} from '../../entities/dividend.split';
 import {Helper} from '../../helper/helper';
 import {AppSettings} from '../../shared/app.settings';
 import {FormConfig} from '../../dynamic-form/models/form.config';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Edit a security with possible security split and history quote period
@@ -107,6 +108,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private distributionFrequencySubscribe: Subscription;
 
   constructor(private messageToastService: MessageToastService,
+    private gpsGT: GlobalparameterGTService,
     private stockexchangeService: StockexchangeService,
     private assetclassService: AssetclassService,
     private securityService: SecurityService,
@@ -264,7 +266,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[] | Assetclass[] | IFeedConnector[]
       | Securitysplit[] | HistoryquotePeriod[]>[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
-    observables.push(this.gps.getCurrencies());
+    observables.push(this.gpsGT.getCurrencies());
     observables.push(this.securityCurrencypairCallParam ?
       this.assetclassService.getPossibleAssetclassForExistingSecurityOrAll(this.securityCurrencypairCallParam.idSecuritycurrency) :
       this.assetclassService.getAllAssetclass());

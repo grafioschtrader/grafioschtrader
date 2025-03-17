@@ -59,7 +59,7 @@ class AssetclassResourceTest {
         SpecialInvestmentInstruments.getSpecialInvestmentInstrumentsByValue(specialInvestmentInstrument), subCategoryDE,
         subCategoryEN);
     ResponseEntity<Assetclass> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestMappings.ASSETCLASS_MAP + "/", port), HttpMethod.POST,
+        RestTestHelper.createURLWithPort(RequestGTMappings.ASSETCLASS_MAP + "/", port), HttpMethod.POST,
         RestTestHelper.getHttpEntity(RestTestHelper.getRadomUser(), a), Assetclass.class);
     assertNotNull(response);
     Assetclass aNew = response.getBody();

@@ -2,7 +2,8 @@ package grafioschtrader.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafiosch.entities.TenantBaseID;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,7 +42,7 @@ public class ImportTransactionHead extends TenantBaseID {
   private String name;
 
   @Column(name = "note")
-  @Size(max = GlobalConstants.FID_MAX_LETTERS)
+  @Size(max = BaseConstants.FID_MAX_LETTERS)
   private String note;
 
   public ImportTransactionHead() {

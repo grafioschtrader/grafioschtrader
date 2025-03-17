@@ -1,5 +1,6 @@
 package grafioschtrader.connector.instrument.test;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 

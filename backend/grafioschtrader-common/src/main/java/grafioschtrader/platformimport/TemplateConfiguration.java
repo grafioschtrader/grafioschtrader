@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import grafioschtrader.common.EnumHelper;
-import grafioschtrader.common.ValueFormatConverter;
+import grafiosch.common.EnumHelper;
+import grafiosch.common.ValueFormatConverter;
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.ImportTransactionTemplate;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 

@@ -5,7 +5,7 @@
            [customSort]="true" [loading]="loading"
            [multiSortMeta]="multiSortMeta" [selectionMode]="selectMultiMode" [value]="securityPositionList"
            dataKey="securitycurrency.idSecuritycurrency" loadingIcon="fa fa-circle-o-notch fa-5x" sortMode="multiple"
-           responsiveLayout="scroll"
+           scrollHeight="flex" [scrollable]="true"
            stripedRows showGridlines>
     <ng-template #caption>
       <h4>{{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{

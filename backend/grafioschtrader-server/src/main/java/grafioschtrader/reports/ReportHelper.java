@@ -16,11 +16,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.entities.User;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.CurrencyCount;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.repository.CurrencypairJpaRepository;

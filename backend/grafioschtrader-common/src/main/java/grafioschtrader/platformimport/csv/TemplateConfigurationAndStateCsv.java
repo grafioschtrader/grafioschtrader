@@ -9,8 +9,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.ImportTransactionTemplate;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.platformimport.TemplateConfiguration;
 

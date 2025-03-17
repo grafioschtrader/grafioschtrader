@@ -8,9 +8,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.common.UpdateQuery;
+import grafiosch.common.UpdateQuery;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.entities.Watchlist;
-import grafioschtrader.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup.IUDFEntityValues;
 
 public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer>, WatchlistJpaRepositoryCustom,
     UpdateCreateDeleteWithTenantJpaRepository<Watchlist> {
@@ -51,6 +52,10 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Query(nativeQuery = true)
   void addInstrumentsWithHistoricalPriceDataTrouble(Integer idWatchlist, Integer daysSinceLastWork, Short retryHistoricalCounter);
 
+  @Query(nativeQuery = true)
+  List<IUDFEntityValues> getUDFByIdWatchlistAndIdUserAndEntity(Integer idWatchlist, Integer idUser, String[] entities);
+  
+  
   /**
    * Returns the Security ids from used Securities. They can be referenced by a
    * watchlist or a transaction. The watchlist in of the parameter is excluded. It

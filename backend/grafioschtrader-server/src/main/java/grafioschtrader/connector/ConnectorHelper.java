@@ -9,11 +9,11 @@ import java.util.List;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.common.UserAccessHelper;
+import grafiosch.common.UserAccessHelper;
+import grafiosch.entities.User;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
-import grafioschtrader.entities.User;
 
 public class ConnectorHelper {
 

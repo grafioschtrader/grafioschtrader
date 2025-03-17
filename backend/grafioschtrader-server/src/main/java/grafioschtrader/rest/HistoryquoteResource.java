@@ -25,7 +25,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.common.UserAccessHelper;
+import grafiosch.common.UserAccessHelper;
+import grafiosch.entities.Auditable;
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteAudit;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
@@ -33,10 +37,8 @@ import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.dto.SupportedCSVFormat;
 import grafioschtrader.dto.SupportedCSVFormat.SupportedCSVFormats;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
-import grafioschtrader.entities.Auditable;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.entities.User;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteImport;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.ta.TaFormDefinition;
@@ -51,7 +53,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Validator;
 
 @RestController
-@RequestMapping(RequestMappings.HISTORYQUOTE_MAP)
+@RequestMapping(RequestGTMappings.HISTORYQUOTE_MAP)
 @Tag(name = Historyquote.TABNAME, description = "Controller for historyquote")
 public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> {
 

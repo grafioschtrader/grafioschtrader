@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.User;
 import grafioschtrader.dto.AnnualisedPerformance;
 import grafioschtrader.dto.AnnualisedPerformance.AnnualisedYears;
 import grafioschtrader.dto.AnnualisedPerformance.LastYears;
@@ -23,7 +24,6 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.entities.User;
 import grafioschtrader.entities.projection.SecurityYearClose;
 import grafioschtrader.reports.ReportHelper.ClosePricesCurrencyClose;
 import grafioschtrader.reports.ReportHelper.CurrencyAvailableRequired;

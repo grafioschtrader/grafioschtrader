@@ -26,6 +26,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.entities.User;
+import grafiosch.repository.UDFSpecialTypeDisableUserRepository;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Currencypair;
@@ -35,7 +37,6 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reports.udfalluserfields.IUDFForEveryUser;
@@ -46,17 +47,15 @@ import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup.IUDFEntityValues;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.IPositionCloseOnLatestPrice;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
-import grafioschtrader.repository.UDFDataJpaRepository;
-import grafioschtrader.repository.UDFSpecialTypeDisableUserRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.service.GTNetLastpriceService;
+import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Prepares the Data for every kind of Watchlists.
@@ -70,7 +69,7 @@ public class WatchlistReport {
   private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   @Autowired
   private WatchlistJpaRepository watchlistJpaRepository;
@@ -96,8 +95,6 @@ public class WatchlistReport {
   @Autowired
   private GTNetLastpriceService gTNetLastpriceService;
 
-  @Autowired
-  private UDFDataJpaRepository uDFDataJpaRepository;
 
   @Autowired(required = false)
   private List<IUDFForEveryUser> uDFForEveryUser;
@@ -195,7 +192,7 @@ public class WatchlistReport {
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final CompletableFuture<List<IUDFEntityValues>> entityValuesCF = CompletableFuture
-        .supplyAsync(() -> uDFDataJpaRepository.getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(),
+        .supplyAsync(() -> watchlistJpaRepository.getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(),
             new String[] { Currencypair.class.getSimpleName(), Security.class.getSimpleName() }));
     return combineWatchlistWithUDF(getWatchlistWithoutUpdate(idWatchlist), entityValuesCF.get(), user);
   }
@@ -297,7 +294,7 @@ public class WatchlistReport {
     final List<Currencypair> currencypairs = watchlist.getSecuritycurrencyListByType(Currencypair.class);
 
     final Date timeframe = new Date(
-        System.currentTimeMillis() - 1000 * globalparametersJpaRepository.getWatchlistIntradayUpdateTimeout());
+        System.currentTimeMillis() - 1000 * globalparametersService.getWatchlistIntradayUpdateTimeout());
     if (watchlist.getLastTimestamp() == null || timeframe.after(watchlist.getLastTimestamp())) {
       watchlist.setLastTimestamp(new Date(System.currentTimeMillis()));
       watchlist = watchlistJpaRepository.save(watchlist);

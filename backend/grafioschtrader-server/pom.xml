@@ -23,6 +23,7 @@
 		<!-- <maven.test.skip>true</maven.test.skip> -->
 	</properties>
 
+
 	<dependencies>
 		<!-- When building a war file, disable when building jar with included 
 			tomcat -->
@@ -36,6 +37,12 @@
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
+	        <version>0.33.4</version>	
+		</dependency>
+
+ 		<dependency>
+			<groupId>grafioschtrader</groupId>
+			<artifactId>grafiosch-server-base</artifactId>
 	        <version>0.33.4</version>	
 		</dependency>
 
@@ -169,7 +176,6 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20240303</version>
 		</dependency>
 
 		<dependency>
@@ -225,13 +231,13 @@
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.18.3</version>
+			<version>1.19.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.12.0</version>
+			<version>1.13.0</version>
 		</dependency>
 
 		<dependency>

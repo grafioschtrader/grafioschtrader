@@ -13,16 +13,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteAuditResource;
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.User;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 @RestController
-@RequestMapping(RequestMappings.ASSETCLASS_MAP)
+@RequestMapping(RequestGTMappings.ASSETCLASS_MAP)
 @Tag(name = Assetclass.TABNAME, description = "Controller for asset class")
 public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetclass> {
 

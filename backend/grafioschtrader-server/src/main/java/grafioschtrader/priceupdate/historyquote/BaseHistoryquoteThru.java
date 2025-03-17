@@ -10,17 +10,17 @@ import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.priceupdate.BaseQuoteThru;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.SecurityServiceAsyncExectuion;
 import grafioschtrader.repository.SecuritycurrencyService;
+import grafioschtrader.service.GlobalparametersService;
 
 /*-
  * This is the base class for loading or calculating historical price data.
@@ -31,16 +31,16 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
     implements IHistoryquoteLoad<S> {
   protected final String LINK_DOWNLOAD_LAZY = "lazy";
 
-  protected final GlobalparametersJpaRepository globalparametersJpaRepository;
+  protected final GlobalparametersService globalparametersService;
   private final IHistoryqouteEntityBaseAccess<S> historyqouteEntityBaseAccess;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   protected abstract List<S> fillEmptyHistoryquote();
 
-  public BaseHistoryquoteThru(GlobalparametersJpaRepository globalparametersJpaRepository,
+  public BaseHistoryquoteThru(GlobalparametersService globalparametersService,
       IHistoryqouteEntityBaseAccess<S> historyqouteEntityBaseAccess) {
-    this.globalparametersJpaRepository = globalparametersJpaRepository;
+    this.globalparametersService = globalparametersService;
     this.historyqouteEntityBaseAccess = historyqouteEntityBaseAccess;
   }
 
@@ -58,8 +58,8 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
 
     Hibernate.initialize(securitycurrency.getHistoryquoteList());
     securityServiceAsyncExectuion.asyncLoadHistoryIntraData(securitycurrencyService, securitycurrency, true,
-        globalparametersJpaRepository.getMaxIntraRetry(),
-        globalparametersJpaRepository.getSecurityCurrencyIntradayUpdateTimeout());
+        globalparametersService.getMaxIntraRetry(),
+        globalparametersService.getSecurityCurrencyIntradayUpdateTimeout());
   }
 
   /**
@@ -73,7 +73,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
     final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(
         idsStockexchange == null || idsStockexchange.size() == 0);
     final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList = historyqouteEntityBaseAccess
-        .getMaxHistoryquoteResult(globalparametersJpaRepository.getMaxHistoryRetry(), this, idsStockexchange);
+        .getMaxHistoryquoteResult(globalparametersService.getMaxHistoryRetry(), this, idsStockexchange);
 
     return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar);
   }
@@ -137,7 +137,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
   protected Date getCorrectedFromDate(final S securitycurrency, final Date fromDate) throws ParseException {
     if (fromDate == null) {
       return securitycurrency instanceof Security ? ((Security) securitycurrency).getActiveFromDate()
-          : this.globalparametersJpaRepository.getStartFeedDate();
+          : this.globalparametersService.getStartFeedDate();
     } else {
       return fromDate;
     }

@@ -19,10 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.common.DateHelper;
 import grafiosch.entities.Globalparameters;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.calendar.IDividendCalendarFeedConnector;
 import grafioschtrader.connector.calendar.IDividendCalendarFeedConnector.CalendarDividends;
@@ -33,6 +34,7 @@ import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TradingDaysPlus;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.CreateType;
 
 public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
@@ -51,6 +53,9 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
+
+  @Autowired
+  private GlobalparametersService globalparametersService;
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
@@ -73,10 +78,15 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
 
   private void loadDividendData(LocalDate fromDate, Map<Integer, Security> missingConnectorSecurities) {
     LocalDate now = LocalDate.now();
-    List<TradingDaysPlus> tradingDaysPlusList = tradingDaysPlusJpaRepository
-        .findByTradingDateBetweenOrderByTradingDate(fromDate, now);
-    dividendCalendarFeedConnectors.sort(Comparator.comparingInt(IDividendCalendarFeedConnector::getPriority));
-    stepThruEveryCalendarDay(tradingDaysPlusList, missingConnectorSecurities);
+    if (!fromDate.isAfter(now)) {
+      List<TradingDaysPlus> tradingDaysPlusList = tradingDaysPlusJpaRepository
+          .findByTradingDateBetweenOrderByTradingDate(fromDate, now);
+      if (!tradingDaysPlusList.isEmpty()) {
+        dividendCalendarFeedConnectors.sort(Comparator.comparingInt(IDividendCalendarFeedConnector::getPriority));
+        stepThruEveryCalendarDay(tradingDaysPlusList, missingConnectorSecurities);
+      }
+    }
+
   }
 
   private void stepThruEveryCalendarDay(List<TradingDaysPlus> tradingDaysPlusList,
@@ -127,7 +137,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   public List<String> periodicallyUpdate() {
     List<String> errorMessages = new ArrayList<>();
     List<Integer> securityIds = dividendJpaRepository.getIdSecurityForPeriodicallyUpdate(
-        GlobalConstants.DIVIDEND_FREQUENCY_PLUS_DAY, globalparametersJpaRepository.getMaxDividendRetry());
+        GlobalConstants.DIVIDEND_FREQUENCY_PLUS_DAY, globalparametersService.getMaxDividendRetry());
     List<Security> securities = securityJpaRepository.findAllById(securityIds);
     Map<Integer, List<Dividend>> idSecurityDividendsMap = dividendJpaRepository
         .findByIdSecuritycurrencyInAndCreateTypeOrderByIdSecuritycurrencyAscExDateAsc(securityIds,

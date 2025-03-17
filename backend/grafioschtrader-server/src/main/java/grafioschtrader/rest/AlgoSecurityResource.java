@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.algo.AlgoSecurityStrategyImplType;
 import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.repository.AlgoSecurityJpaRepository;
@@ -17,14 +19,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.ALGOSECURITY_MAP)
-@Tag(name = RequestMappings.ALGOSECURITY, description = "Controller for top level algorithmic trading assetclass security")
+@RequestMapping(RequestGTMappings.ALGOSECURITY_MAP)
+@Tag(name = RequestGTMappings.ALGOSECURITY, description = "Controller for top level algorithmic trading assetclass security")
 public class AlgoSecurityResource extends UpdateCreateDeleteWithTenantResource<AlgoSecurity> {
 
   @Autowired
   private AlgoSecurityJpaRepository algoSecurityJpaRepository;
 
-  @Operation(summary = "", description = "", tags = { RequestMappings.ALGOSECURITY })
+  @Operation(summary = "", description = "", tags = { RequestGTMappings.ALGOSECURITY })
   @GetMapping(value = "/security/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AlgoSecurityStrategyImplType> getAlgoSecurityStrategyImplTypeByIdSecuritycurrency(
       @PathVariable final Integer idSecuritycurrency) {

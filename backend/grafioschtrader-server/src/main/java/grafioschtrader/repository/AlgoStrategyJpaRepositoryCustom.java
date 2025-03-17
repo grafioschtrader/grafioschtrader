@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.util.Set;
 
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.entities.AlgoStrategy;

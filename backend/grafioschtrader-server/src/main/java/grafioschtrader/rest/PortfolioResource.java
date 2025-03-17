@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.entities.Portfolio;
-import grafioschtrader.entities.User;
 import grafioschtrader.reports.AccountPositionGroupSummaryReport;
 import grafioschtrader.reports.SecurityDividendsReport;
 import grafioschtrader.reports.SecurityTransactionCostReport;
@@ -33,7 +35,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.PORTFOLIO_MAP)
+@RequestMapping(RequestGTMappings.PORTFOLIO_MAP)
 @Tag(name = Portfolio.TABNAME, description = "Controller for portfolio")
 public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Portfolio> {
 

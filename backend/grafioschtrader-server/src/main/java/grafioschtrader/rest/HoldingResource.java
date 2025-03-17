@@ -26,8 +26,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.HOLDING_MAP)
-@Tag(name = RequestMappings.HOLDING, description = "Controller for security holdings and performance report")
+@RequestMapping(RequestGTMappings.HOLDING_MAP)
+@Tag(name = RequestGTMappings.HOLDING, description = "Controller for security holdings and performance report")
 public class HoldingResource {
 
   @Autowired
@@ -63,7 +63,7 @@ public class HoldingResource {
   }
 
   @Operation(summary = "Returns the missing qoutes for securties during the holding period", description = "", tags = {
-      RequestMappings.HOLDING })
+      RequestGTMappings.HOLDING })
   @GetMapping(value = "/missingquotes/{year}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<MissingQuotesWithSecurities> getMissingQuotesWithSecurities(@PathVariable() final Integer year)
       throws InterruptedException, ExecutionException {

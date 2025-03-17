@@ -14,8 +14,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
-import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
+import grafiosch.BaseConstants;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.entities.TenantBaseID;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -54,7 +55,7 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   private String name;
 
   @Column(name = "note")
-  @Size(max = GlobalConstants.FID_MAX_LETTERS)
+  @Size(max = BaseConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
   private String note;
 

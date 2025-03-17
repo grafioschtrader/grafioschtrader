@@ -19,7 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import grafioschtrader.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.test.start.GTforTest;
 
 @SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)

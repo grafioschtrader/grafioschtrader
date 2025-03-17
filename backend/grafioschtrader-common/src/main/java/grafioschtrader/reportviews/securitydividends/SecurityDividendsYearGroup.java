@@ -65,20 +65,20 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
   }
 
   public List<CashAccountPosition> getCashAccountPositions() {
-    return cashaccountGroupMap.values().stream().sorted((x, y) -> x.cashaccount.getName().compareTo(y.cashaccount.getName()))
-        .collect(Collectors.toList());
+    return cashaccountGroupMap.values().stream()
+        .sorted((x, y) -> x.cashaccount.getName().compareTo(y.cashaccount.getName())).collect(Collectors.toList());
   }
 
-  public SecurityDividendsPosition getOrCreateSecurityDividendsPosition(Security security, List<Securitysplit> securitysplitList) {
+  public SecurityDividendsPosition getOrCreateSecurityDividendsPosition(Security security,
+      List<Securitysplit> securitysplitList) {
     SecurityDividendsPosition securityDividendsPosition = this.getOrCreateGroup(security.getIdSecuritycurrency());
     securityDividendsPosition.security = security;
-    if(securitysplitList != null && securityDividendsPosition.splitFactorAfter == null) {
-      securityDividendsPosition.splitFactorAfter =
-      Securitysplit.calcSplitFatorForFromDate(securitysplitList, new GregorianCalendar(year, 11, 31).getTime());
+    if (securitysplitList != null && securityDividendsPosition.splitFactorAfter == null) {
+      securityDividendsPosition.splitFactorAfter = Securitysplit.calcSplitFatorForFromDate(securitysplitList,
+          new GregorianCalendar(year, 11, 31).getTime());
     }
     return securityDividendsPosition;
   }
-
 
   public CashAccountPosition getOrCreateAccountDividendPosition(Cashaccount cashaccount) {
     return cashaccountGroupMap.computeIfAbsent(cashaccount.getIdSecuritycashAccount(),
@@ -97,8 +97,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
       yearTaxableAmountMC += securityDividendsPosition.taxableAmountMC;
     });
     cashaccountGroupMap.values().forEach(cashAccountPosition -> {
-      cashAccountPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year),
-          dateCurrencyMap);
+      cashAccountPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year), dateCurrencyMap);
 
     });
 
@@ -115,7 +114,8 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
         SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(entry.getKey(),
             fromDate, untilDate, securitysplitMap);
         entry.getValue().units = entry.getValue().units * splitFactorAfterBefore.fromToDateFactor;
-        securityDividendsPosition = this.getOrCreateSecurityDividendsPosition(entry.getValue().security, securitysplitMap.get(entry.getValue().security) );
+        securityDividendsPosition = this.getOrCreateSecurityDividendsPosition(entry.getValue().security,
+            securitysplitMap.get(entry.getValue().security.getIdSecuritycurrency()));
       }
       if (securityDividendsPosition != null) {
         securityDividendsPosition.unitsAtEndOfYear = entry.getValue().units;
@@ -128,7 +128,6 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
       yearInterestMC += interestMC;
     }
   }
-
 
   public double getValueAtEndOfYearMC() {
     return DataHelper.round(valueAtEndOfYearMC, precisionMC);

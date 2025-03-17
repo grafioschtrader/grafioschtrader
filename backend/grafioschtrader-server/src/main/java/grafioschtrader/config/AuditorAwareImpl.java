@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafioschtrader.entities.User;
+import grafiosch.entities.User;
 
 public class AuditorAwareImpl implements AuditorAware<Integer> {
 

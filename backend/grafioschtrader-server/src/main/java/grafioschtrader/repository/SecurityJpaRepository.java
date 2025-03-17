@@ -12,14 +12,15 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
 
+import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.projection.IFormulaSecurityLoad;
+import grafioschtrader.entities.projection.IdSecurityCurrencyPairInfo;
 import grafioschtrader.entities.projection.SecurityYearClose;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithSecurityProp;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
-import grafioschtrader.rest.UpdateCreateJpaRepository;
 
 public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository<Security>,
     JpaSpecificationExecutor<Security>, SecurityJpaRepositoryCustom, UpdateCreateJpaRepository<Security> {
@@ -46,6 +47,10 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   List<Security> findByAssetClass_CategoryTypeInAndAssetClass_SpecialInvestmentInstrumentInAndActiveToDateAfterAndIdTenantPrivateIsNull(
      Set<Byte> categoryTypes, Set<Byte> specialInvestmentInstruments, Date date);
+  
+  
+  @Query(nativeQuery = true)
+  Stream<IdSecurityCurrencyPairInfo>getAllTaskDataChangeSecurityCurrencyPairInfoWithId();
   
   /**
    * Determination of the positions held by instruments that are no longer traded,

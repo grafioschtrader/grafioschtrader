@@ -6,13 +6,14 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.TaskDataChange;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * The inventory tables are only updated if the transactions are processed in
@@ -33,8 +34,8 @@ public class RebuildHolingAllTenantOrSingleTask implements ITask {
   private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT;
   }
 
   @Override

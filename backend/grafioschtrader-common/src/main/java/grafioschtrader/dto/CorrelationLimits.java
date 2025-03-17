@@ -1,5 +1,6 @@
 package grafioschtrader.dto;
 
+import grafiosch.dto.TenantLimit;
 import grafioschtrader.GlobalConstants;
 
 public class CorrelationLimits {

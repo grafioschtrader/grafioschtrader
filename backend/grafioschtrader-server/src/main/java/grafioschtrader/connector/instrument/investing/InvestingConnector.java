@@ -20,8 +20,6 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -29,9 +27,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.common.DataHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.IConnectorNames;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -61,7 +59,6 @@ public class InvestingConnector extends BaseFeedConnector {
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private static final String URL_HISTORICAL_REGEX = "^\\d+$";
   private static final String URL_INTRA_REGEX = "^(?!equities)[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   Map<String, String> cryptoCurrencyMap = Map.of(GlobalConstants.CC_BTC, "bitcoin", "BNB", "binance-coin", "ETH",
       "ethereum", "ETC", "ethereum-classic", "LTC", "litecoin", "XPR", "xrp");
@@ -138,7 +135,7 @@ public class InvestingConnector extends BaseFeedConnector {
       i++;
       final Document doc = investingConnection.timeout(10000).get();
       div = securitycurrency instanceof Security
-          || securitycurrency instanceof Currencypair cp
+          || securitycurrency instanceof Currencypair
               ? doc.getElementsByClass("md:text-[42px]").first().parent()
               : doc.select("div[class^=instrument-price_instrument-price]").first();
       try {
@@ -169,8 +166,6 @@ public class InvestingConnector extends BaseFeedConnector {
         + "&resolution=D&from=" + (new Timestamp(from.getTime()).getTime() / 1000) + "&to="
         + (new Timestamp(to.getTime()).getTime() / 1000);
   }
-
- 
 
   
   @Override

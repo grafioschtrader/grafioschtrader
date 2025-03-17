@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.entities.AlgoAssetclass;
 
 public class AlgoAssetclassJpaRepositoryImpl extends BaseRepositoryImpl<AlgoAssetclass>

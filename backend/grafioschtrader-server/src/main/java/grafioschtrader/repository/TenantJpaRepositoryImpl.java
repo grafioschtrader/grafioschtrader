@@ -23,15 +23,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.entities.TaskDataChange;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.User;
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.repository.UserJpaRepository;
+import grafiosch.rest.helper.RestHelper;
+import grafiosch.types.TaskDataExecPriority;
+import grafiosch.types.TenantKindType;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.entities.User;
 import grafioschtrader.exportdelete.MySqlDeleteMyData;
 import grafioschtrader.exportdelete.MySqlExportMyData;
-import grafioschtrader.rest.helper.RestHelper;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
-import grafioschtrader.types.TenantKindType;
+import grafioschtrader.types.TaskTypeExtended;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletResponse;
@@ -117,7 +120,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     }
     if (currencyChanged) {
       // Holding tables recreation
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO,
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO,
           TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), teantNew.getIdTenant(), Tenant.class.getSimpleName()));
     }
 
@@ -169,7 +172,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     tenant.setCurrency(currency);
     tenant.getPortfolioList().forEach(p -> p.setCurrency(currency));
     tenantJpaRepository.save(tenant);
-    taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CURRENCY_CHANGED_ON_TENANT_AND_PORTFOLIO,
+    taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_AND_PORTFOLIO,
         TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), tenant.getIdTenant(), Tenant.TABNAME));
     return tenant;
   }

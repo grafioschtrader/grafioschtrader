@@ -6,12 +6,12 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import grafiosch.dynamic.model.DynamicModelHelper;
 import grafioschtrader.algo.strategy.model.alerts.AbsoluteValuePriceAlert;
 import grafioschtrader.algo.strategy.model.alerts.HoldingGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.PeriodPriceGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.rebalacing.RebalancingAssetclassSecurity;
 import grafioschtrader.algo.strategy.model.rebalacing.RebalancingTop;
-import grafioschtrader.dynamic.model.DynamicModelHelper;
 
 public abstract class StrategyHelper {
 

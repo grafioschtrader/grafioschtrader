@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Currencypair;
@@ -26,7 +27,7 @@ public abstract class DataBusinessHelper {
   }
 
   public static double round(double valueToRound) {
-    return DataHelper.round(valueToRound, GlobalConstants.FID_MAX_FRACTION_DIGITS);
+    return DataHelper.round(valueToRound, BaseConstants.FID_MAX_FRACTION_DIGITS);
   }
 
   public static double divideMultiplyExchangeRate(double amount, Double currencyExRate, String sourceCurrency,

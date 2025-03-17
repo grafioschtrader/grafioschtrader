@@ -6,6 +6,7 @@ import {TenantService} from '../service/tenant.service';
 import {TranslateService} from '@ngx-translate/core';
 import {Tenant} from '../../entities/tenant';
 import {LoginService} from '../../shared/login/service/log-in.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Edit tenant fields on a full page layout used for a new tenant.
@@ -28,11 +29,12 @@ import {LoginService} from '../../shared/login/service/log-in.service';
 export class TenantEditFullPageComponent extends TenantEditComponent implements OnInit, AfterViewInit {
 
   constructor(private loginService: LoginService,
+              gpsGT: GlobalparameterGTService,
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               tenantService: TenantService,
               translateSercice: TranslateService) {
-    super(gps, messageToastService, tenantService, translateSercice, true, 4);
+    super(gpsGT, gps, messageToastService, tenantService, translateSercice, true, 4);
   }
 
   ngOnInit(): void {

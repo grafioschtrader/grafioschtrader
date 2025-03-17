@@ -7,7 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.config.NegativeIdNumberCreater;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
@@ -15,8 +15,8 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
 @Service
@@ -29,7 +29,7 @@ public class SecurityCalcService {
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   private final SecurityGeneralCalc securityGeneralCalc;
   private final SecurityMarginCalc securityMarginCalc;
@@ -86,7 +86,7 @@ public class SecurityCalcService {
       final DateTransactionCurrencypairMap dateCurrencyMap) {
     getSecurityCalc(transaction.getSecurity()).calcSingleSecurityTransaction(transaction, summarySecurityMap,
         securitysplitMap, excludeDivTaxcost, dateCurrencyMap, negativeIdNumberCreater,
-        globalparametersJpaRepository.getCurrencyPrecision());
+        globalparametersService.getCurrencyPrecision());
   }
 
   /**

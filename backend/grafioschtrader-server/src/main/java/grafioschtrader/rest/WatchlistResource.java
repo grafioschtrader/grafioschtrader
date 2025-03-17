@@ -20,9 +20,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.dto.TenantLimit;
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
-import grafioschtrader.dto.TenantLimit;
-import grafioschtrader.entities.User;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reports.WatchlistReport;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;
@@ -36,7 +38,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping(RequestMappings.WATCHLIST_MAP)
+@RequestMapping(RequestGTMappings.WATCHLIST_MAP)
 @Tag(name = Watchlist.TABNAME, description = "Controller for watchlist")
 public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watchlist> {
 
@@ -240,7 +242,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
       All other users must use the following functionality. The content is created in the backend and returned to the user in the frontend. 
       In this case, either historical or intraday price data.""", tags = {
       Watchlist.TABNAME })
-  @GetMapping(value = RequestMappings.SECURITY_DATAPROVIDER_INTRA_HISTORICAL_RESPONSE + "{idSecuritycurrency}")
+  @GetMapping(value = RequestGTMappings.SECURITY_DATAPROVIDER_INTRA_HISTORICAL_RESPONSE + "{idSecuritycurrency}")
   public String getDataProviderIntraHistoricalResponseForUser(@PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "True when for intraday otherwise false", required = true) @RequestParam() final boolean isIntraday,
       @Parameter(description = "True when whenn security, false for currency", required = true) @RequestParam() final boolean isSecurity) {
@@ -265,7 +267,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
       All other users must use the following functionality. The content is created in the backend and returned to the user in the frontend. 
       In this case, either splits or dividends.""", tags = {
       Watchlist.TABNAME })
-  @GetMapping(value = RequestMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE + "{idSecuritycurrency}")
+  @GetMapping(value = RequestGTMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE + "{idSecuritycurrency}")
   public String getDataProviderDivSplitResponseForUser(@PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "True when for dividen otherwise false", required = true) @RequestParam() final boolean isDiv) {
     return watchlistJpaRepository.getDataProviderDivSplitResponseForUser(idSecuritycurrency, isDiv);

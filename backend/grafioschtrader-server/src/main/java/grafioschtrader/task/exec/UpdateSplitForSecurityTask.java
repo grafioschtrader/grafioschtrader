@@ -10,14 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Is triggered if the data connector of the split has been changed or if a
@@ -35,8 +36,8 @@ public class UpdateSplitForSecurityTask implements ITask {
   private SecurityJpaRepository securityJpaRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY;
   }
 
   @Override

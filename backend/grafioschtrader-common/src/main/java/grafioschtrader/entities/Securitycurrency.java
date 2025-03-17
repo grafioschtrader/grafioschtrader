@@ -15,10 +15,11 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.entities.Auditable;
+import grafiosch.validation.WebUrl;
 import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.validation.WebUrl;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
@@ -67,7 +68,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @Schema(description = "This is a comment on the instrument that any user can view.")
   @Column(name = "note")
-  @Size(max = GlobalConstants.FID_MAX_LETTERS)
+  @Size(max = BaseConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
   protected String note;
 
@@ -102,7 +103,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @Column(name = "stockexchange_link")
   @PropertyAlwaysUpdatable
-  @Size(max = GlobalConstants.FIELD_SIZE_MAX_G_WEB_URL)
+  @Size(max = BaseConstants.FIELD_SIZE_MAX_G_WEB_URL)
   @WebUrl
   protected String stockexchangeLink;
 

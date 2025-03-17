@@ -4,15 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.connector.instrument.ecb.EcbLoader;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.EcbExchangeRatesRepository;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Updating a currency pair such as USD/CHF takes place in two steps. First, the
@@ -33,11 +34,11 @@ public class LoadEcbCurrencyExchangeRatesTask implements ITask {
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.LOAD_ECB_CURRENCY_EXCHANGE_RATES;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.LOAD_ECB_CURRENCY_EXCHANGE_RATES;
   }
 
-  @Scheduled(cron = "${gt.load.ecb.data}", zone = GlobalConstants.TIME_ZONE)
+  @Scheduled(cron = "${gt.load.ecb.data}", zone = BaseConstants.TIME_ZONE)
   public void loadEcbCurrencyHistoryquotes() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_LOW);
     taskDataChangeRepository.save(taskDataChange);

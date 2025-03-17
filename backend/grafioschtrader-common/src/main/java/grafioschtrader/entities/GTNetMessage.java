@@ -4,10 +4,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.entities.BaseID;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.common.PropertyOnlyCreation;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.SendReceivedType;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -9,10 +9,10 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafiosch.common.DateHelper;
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.exceptions.DataViolationException;
 
 /**
  * Die instance is filled with the currency data. Reports which calculate in the

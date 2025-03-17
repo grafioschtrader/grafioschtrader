@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.DataHelper;
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.HoldCashaccountBalance;
 import grafioschtrader.entities.Tenant;
@@ -19,6 +19,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.FromToCurrency;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository.CashaccountBalanceChangeTransaction;
 import grafioschtrader.repository.helper.HoldingsHelper;
+import grafioschtrader.service.GlobalparametersService;
 
 /**
  * It changes with every new or updated transaction.
@@ -36,7 +37,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
   private TenantJpaRepository tenantJpaRepository;
   
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   @Override
   @Transactional
@@ -135,7 +136,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     cashaccountSum.interestCashaccount += csct.getInterestCashaccount();
     cashaccountSum.fee += csct.getFee();
     
-    int precision = globalparametersJpaRepository.getPrecisionForCurrency(csct.getAccountCurrency());
+    int precision = globalparametersService.getPrecisionForCurrency(csct.getAccountCurrency());
     return new HoldCashaccountBalance(tenant.getIdTenant(), csct.getIdPortfolio(), csct.getIdCashaccount(),
         csct.getFromDate(), cashaccountSum.withdrawlDeposit, cashaccountSum.interestCashaccount, cashaccountSum.fee,
         cashaccountSum.accumulateReduce, cashaccountSum.dividend,

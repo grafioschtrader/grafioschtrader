@@ -11,20 +11,23 @@ import org.springframework.context.MessageSource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import grafiosch.BaseConstants;
+import grafiosch.entities.MailEntity;
+import grafiosch.entities.MailSendRecv;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.repository.MailEntityJpaRepository;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.service.SendMailInternalExternalService;
+import grafiosch.task.ITask;
+import grafiosch.types.IMessageComType;
+import grafiosch.types.ITaskType;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.entities.MailEntity;
-import grafioschtrader.entities.MailSendRecv;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.exceptions.TaskBackgroundException;
-import grafioschtrader.repository.MailEntityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository.CheckSecurityTransIntegrity;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
-import grafioschtrader.service.SendMailInternalExternalService;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.MessageComType;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.MessageGTComType;
+import grafioschtrader.types.TaskTypeExtended;
 import jakarta.mail.MessagingException;
 
 /**
@@ -53,11 +56,11 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.CHECK_INACTIVE_SECURITY_AND_DIVIDEND_INTEREST;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.CHECK_INACTIVE_SECURITY_AND_DIVIDEND_INTEREST;
   }
 
-  @Scheduled(cron = "${gt.check.inactive.dividend}", zone = GlobalConstants.TIME_ZONE)
+  @Scheduled(cron = "${gt.check.inactive.dividend}", zone = BaseConstants.TIME_ZONE)
   public void checkInactiveSecurityAndDivInterest() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_LOW);
     taskDataChangeRepository.save(taskDataChange);
@@ -66,18 +69,18 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     processCheckSecurityTransIntegrityList(securityJpaRepository.getHoldingsOfInactiveSecurties(),
-        MessageComType.USER_SECURITY_HELD_INACTIVE, "gt.holding.inactive.security");
+        MessageGTComType.USER_SECURITY_HELD_INACTIVE, "gt.holding.inactive.security");
     processCheckSecurityTransIntegrityList(securityJpaRepository.getPossibleMissingDivInterestByFrequency(),
-        MessageComType.USER_SECURITY_MISSING_DIV_INTEREST, "gt.possible.missing.div.frequency.interest");
+        MessageGTComType.USER_SECURITY_MISSING_DIV_INTEREST, "gt.possible.missing.div.frequency.interest");
     processCheckSecurityTransIntegrityList(
         securityJpaRepository.getPossibleMissingDividentsByDividendTable(GlobalConstants.DIVIDEND_CHECK_DAYS_LOOK_BACK,
             GlobalConstants.DIVIDEND_CHECK_PAY_DATE_TOLERANCE_IN_DAYS),
-        MessageComType.USER_SECURITY_MISSING_DIV_INTEREST, "gt.possible.missing.div.divtable.interest");
+        MessageGTComType.USER_SECURITY_MISSING_DIV_INTEREST, "gt.possible.missing.div.divtable.interest");
 
   }
 
   private void processCheckSecurityTransIntegrityList(List<CheckSecurityTransIntegrity> cstiList,
-      MessageComType messageComType, String msgKey) throws TaskBackgroundException {
+      IMessageComType messageComType, String msgKey) throws TaskBackgroundException {
     CheckSecurityTransIntegrity lastCsti = null;
     StringBuilder compoundMsg = new StringBuilder();
     Locale locale = null;
@@ -94,7 +97,7 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
         mailEntityList.clear();
       } else {
         if (compoundMsg.length() < MailSendRecv.MAX_TEXT_LENGTH) {
-          compoundMsg.append(GlobalConstants.NEW_LINE);
+          compoundMsg.append(BaseConstants.NEW_LINE);
         }
       }
       String msgTransformed = messageSource.getMessage(msgKey,
@@ -117,7 +120,7 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
   }
 
   private void sendMail(String msgKey, StringBuilder compoundMsg, List<MailEntity> mailEntityList, Locale locale,
-      List<String> msgException, Integer idUser, MessageComType messageComType) {
+      List<String> msgException, Integer idUser, IMessageComType messageComType) {
     try {
       String subject = messageSource.getMessage(msgKey + ".subject", null, locale);
       Integer idMailSendRecv = sendMailInternalExternalService.sendMailInternAndOrExternal(

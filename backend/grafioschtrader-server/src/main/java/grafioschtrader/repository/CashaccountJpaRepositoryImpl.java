@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.entities.Cashaccount;
 
 public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount>

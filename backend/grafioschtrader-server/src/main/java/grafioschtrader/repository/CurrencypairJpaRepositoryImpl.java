@@ -26,18 +26,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import grafiosch.common.DataHelper;
+import grafiosch.common.DateHelper;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.User;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
-import grafioschtrader.common.DateHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.CrossRateResponse.CurrenciesAndClosePrice;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.entities.User;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruConnector;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
@@ -47,8 +49,7 @@ import grafioschtrader.reportviews.account.CashaccountPositionSummary;
 import grafioschtrader.search.CurrencySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 import jakarta.annotation.PostConstruct;
 
 public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Currencypair, CashaccountPositionSummary>
@@ -71,9 +72,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @PostConstruct
   private void postConstruct() {
-    historyquoteThruConnector = new HistoryquoteThruConnector<>(entityManager, globalparametersJpaRepository,
+    historyquoteThruConnector = new HistoryquoteThruConnector<>(entityManager, globalparametersService,
         feedConnectorbeans, this, Currencypair.class);
-    intradayThruConnector = new IntradayThruConnector<>(currencypairJpaRepository, globalparametersJpaRepository,
+    intradayThruConnector = new IntradayThruConnector<>(currencypairJpaRepository, globalparametersService,
         feedConnectorbeans, this);
   }
 
@@ -106,13 +107,13 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Modifying
   public void allCurrenciesFillEmptyDaysInHistoryquote() {
     final List<Currencypair> currencypairs = currencypairJpaRepository.findAll();
-    final int maxFillDays = globalparametersJpaRepository.getMaxFillDaysCurrency();
+    final int maxFillDays = globalparametersService.getMaxFillDaysCurrency();
     currencypairs.forEach(currencypair -> currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays));
   }
 
   @Override
   public void currencieyFillEmptyDaysInHistoryquote(Currencypair currencypair) {
-    final int maxFillDays = globalparametersJpaRepository.getMaxFillDaysCurrency();
+    final int maxFillDays = globalparametersService.getMaxFillDaysCurrency();
     currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays);
   }
 
@@ -135,7 +136,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Override
   protected Currencypair afterFullLoad(final Currencypair currencypair) throws Exception {
-    final int maxFillDays = globalparametersJpaRepository.getMaxFillDaysCurrency();
+    final int maxFillDays = globalparametersService.getMaxFillDaysCurrency();
     currencypair.getHistoryquoteList().sort((h1, h2) -> h1.getDate().compareTo(h2.getDate()));
     return currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays);
   }
@@ -279,8 +280,8 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     log.info("Create non existing currencypair from {}, to {}", fromCurrency, toCurrency);
     if (loadAsync) {
       securityServiceAsyncExectuion.asyncLoadHistoryIntraData(this, currencypairNew, false,
-          globalparametersJpaRepository.getMaxIntraRetry(),
-          globalparametersJpaRepository.getSecurityCurrencyIntradayUpdateTimeout());
+          globalparametersService.getMaxIntraRetry(),
+          globalparametersService.getSecurityCurrencyIntradayUpdateTimeout());
     } else {
       currencypair = fillEmptyCurrencypair(currencypair);
     }
@@ -301,7 +302,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     List<Integer> ids = currencypairJpaRepository.getAllIdOfEmptyHistorqute();
     for (int i = 0; i < ids.size(); i++) {
       taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskType.LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES, TaskDataExecPriority.PRIO_VERY_LOW,
+          .save(new TaskDataChange(TaskTypeExtended.LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES, TaskDataExecPriority.PRIO_VERY_LOW,
               LocalDateTime.now().plusMinutes(i), ids.get(i), Currencypair.class.getSimpleName()));
     }
   }
@@ -328,7 +329,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
    public void updateAllLastPrices() {
     updateLastPriceByList(currencypairJpaRepository
-        .findByRetryIntraLoadLessThan(globalparametersJpaRepository.getMaxIntraRetry()), true);
+        .findByRetryIntraLoadLessThan(globalparametersService.getMaxIntraRetry()), true);
 
   }
 

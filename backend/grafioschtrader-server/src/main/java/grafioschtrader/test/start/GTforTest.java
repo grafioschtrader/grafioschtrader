@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 import grafioschtrader.GrafioschtraderApplication;
 import jakarta.annotation.PostConstruct;
 
@@ -38,7 +38,7 @@ public class GTforTest {
 
   @PostConstruct
   void started() {
-    TimeZone.setDefault(TimeZone.getTimeZone(GlobalConstants.TIME_ZONE));
+    TimeZone.setDefault(TimeZone.getTimeZone(BaseConstants.TIME_ZONE));
   }
 
 }

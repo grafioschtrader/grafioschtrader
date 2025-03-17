@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import grafioschtrader.common.ValueFormatConverter;
+import grafiosch.common.ValueFormatConverter;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.platform.GenericTransactionImportCSV;

@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.InputAndShowDefinitionStrategy;
@@ -22,8 +24,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.ALGOSTRATEGY_MAP)
-@Tag(name = RequestMappings.ALGOSTRATEGY, description = "Controller for algorithmic trading strategy")
+@RequestMapping(RequestGTMappings.ALGOSTRATEGY_MAP)
+@Tag(name = RequestGTMappings.ALGOSTRATEGY, description = "Controller for algorithmic trading strategy")
 public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<AlgoStrategy> {
 
   @Autowired
@@ -36,7 +38,7 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
   @Operation(summary = """
   Return the field properties so that they can be used as an input form.
   There is one definition each for the corresponding level like security, asset class etc.""",
-  description = "", tags = { RequestMappings.ALGOSTRATEGY })
+  description = "", tags = { RequestGTMappings.ALGOSTRATEGY })
   @GetMapping(value = "/form/{algoStrategyImplementations}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<InputAndShowDefinitionStrategy> getFormDefinitionsByAlgoStrategy(
       @PathVariable final byte algoStrategyImplementations) {
@@ -46,7 +48,7 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
 
   // DOTO Maybe not used
   @Operation(summary = "Return of the possible strategies that can be applied to a non-existent level of an investment hierarchy.", 
-      description = "", tags = { RequestMappings.ALGOSTRATEGY })
+      description = "", tags = { RequestGTMappings.ALGOSTRATEGY })
   @GetMapping(value = "/level/{algoLevelType}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<AlgoStrategyImplementationType>> getStrategiesForLevel(
       @PathVariable() final AlgoLevelType algoLevelType) {
@@ -56,7 +58,7 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
   
   
   @Operation(summary = "Return of the possible strategies that can be applied to an existing level of this investment hierarchy.", 
-      description = "", tags = { RequestMappings.ALGOSTRATEGY })
+      description = "", tags = { RequestGTMappings.ALGOSTRATEGY })
   @GetMapping(value = "/unusedsrategies/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<AlgoStrategyImplementationType>> getUnusedStrategiesForManualAdding(
       @PathVariable() final Integer idAlgoAssetclassSecurity) {

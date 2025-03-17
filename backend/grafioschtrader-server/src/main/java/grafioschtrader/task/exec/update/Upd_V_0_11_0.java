@@ -3,13 +3,14 @@ package grafioschtrader.task.exec.update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.repository.AssetclassJpaRepository;
-import grafioschtrader.task.ITask;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  *
@@ -30,8 +31,8 @@ public class Upd_V_0_11_0 implements ITask {
 
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.UPD_V_0_11_0;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.UPD_V_0_11_0;
   }
 
   @Override

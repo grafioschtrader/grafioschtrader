@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.RepositoryHelper;
 import grafioschtrader.entities.Securityaccount;
 
 public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securityaccount>

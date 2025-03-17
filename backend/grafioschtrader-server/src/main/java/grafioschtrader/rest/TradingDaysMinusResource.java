@@ -20,8 +20,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping(RequestMappings.TRADINGDAYSMINUS_MAP)
-@Tag(name = RequestMappings.TRADINGDAYSMINUS, description = "Controller for stock exchange calendar")
+@RequestMapping(RequestGTMappings.TRADINGDAYSMINUS_MAP)
+@Tag(name = RequestGTMappings.TRADINGDAYSMINUS, description = "Controller for stock exchange calendar")
 public class TradingDaysMinusResource {
 
   @Autowired

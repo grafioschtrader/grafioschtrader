@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
+import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
 import grafioschtrader.entities.Transaction;

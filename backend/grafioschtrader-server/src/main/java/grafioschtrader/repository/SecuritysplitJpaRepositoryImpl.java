@@ -22,26 +22,30 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.common.DateHelper;
+import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.Globalparameters;
+import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.ProposeChangeField;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.User;
+import grafiosch.repository.ProposeChangeEntityJpaRepository;
+import grafiosch.repository.ProposeChangeFieldJpaRepository;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DataBusinessHelper;
-import grafioschtrader.common.DateHelper;
-import grafioschtrader.common.UserAccessHelper;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.SecuritysplitDeleteAndCreateMultiple;
-import grafioschtrader.entities.ProposeChangeEntity;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.entities.User;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.CreateType;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositoryCustom {
 
@@ -66,7 +70,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
   private List<IFeedConnector> feedConnectors = new ArrayList<>();
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private GlobalparametersService globalparametersService;
 
   @Override
   public Map<Integer, List<Securitysplit>> getSecuritysplitMapByIdTenant(final Integer idTenant) {
@@ -141,7 +145,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
       }
       // Adjust holdings
       taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
+          .save(new TaskDataChange(TaskTypeExtended.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     } else {
       // User can't change splits directly if another user created the security ->
@@ -163,30 +167,32 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
   @Override
   public List<String> loadAllSplitDataFromConnectorForSecurity(Security security, Date requestedSplitdate) {
     List<String> errorMessages = new ArrayList<>();
-    short retrySplitLoad = security.getRetrySplitLoad();
-    try {
-      IFeedConnector connector = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
-          security.getIdConnectorSplit(), IFeedConnector.FeedSupport.FS_SPLIT);
-      List<Securitysplit> securitysplitsRead = connector.getSplitHistory(security,
-          LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), getSplitToDate());
-      updateSplitData(security, securitysplitsRead, requestedSplitdate);
-      retrySplitLoad = 0;
-    } catch (ParseException pe) {
-      log.error(pe.getMessage() + "Offset: " + pe.getErrorOffset(), pe);
-      errorMessages.add(pe.getMessage());
-    } catch (final Exception ex) {
-      retrySplitLoad++;
-      log.error(ex.getMessage() + " " + security, ex);
-      errorMessages.add(ex.getMessage());
+    if (globalparametersService.getMaxSplitRetry() > security.getRetrySplitLoad()) {
+      short retrySplitLoad = security.getRetrySplitLoad();
+      try {
+        IFeedConnector connector = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
+            security.getIdConnectorSplit(), IFeedConnector.FeedSupport.FS_SPLIT);
+        List<Securitysplit> securitysplitsRead = connector.getSplitHistory(security,
+            LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY), getSplitToDate());
+        updateSplitData(security, securitysplitsRead, requestedSplitdate);
+        retrySplitLoad = 0;
+      } catch (ParseException pe) {
+        log.error(pe.getMessage() + "Offset: " + pe.getErrorOffset(), pe);
+        errorMessages.add(pe.getMessage());
+      } catch (final Exception ex) {
+        retrySplitLoad++;
+        log.error(ex.getMessage() + " " + security, ex);
+        errorMessages.add(ex.getMessage());
+      }
+      security.setRetrySplitLoad(retrySplitLoad);
+      securityJpaRepository.save(security);
     }
-    security.setRetrySplitLoad(retrySplitLoad);
-    securityJpaRepository.save(security);
     return errorMessages;
   }
 
   private LocalDate getSplitToDate() {
-    Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
-        .findById(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
+    Optional<Globalparameters> gpLastAppend = globalparametersService
+        .getGlobalparametersByProperty(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
     return gpLastAppend.isPresent() ? gpLastAppend.get().getPropertyDate() : LocalDate.now().minusDays(1);
   }
 
@@ -221,7 +227,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
       // The expected split is not yet mapped via the connector.
       if (DateHelper.getDateDiff(requestedSplitdate, new Date(),
           TimeUnit.DAYS) <= GlobalConstants.MAX_DAYS_FOR_SECURITY_IS_REFLECTING_SPLIT) {
-        var taskDataChange = new TaskDataChange(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
+        var taskDataChange = new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
             TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusDays(1), security.getIdSecuritycurrency(),
             Security.class.getSimpleName());
         taskDataChange.setOldValueString(
@@ -249,15 +255,16 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
       securityJpaRepository.reloadAsyncFullHistoryquote(security);
       if (requireHoldingBuild) {
         taskDataChangeJpaRepository
-            .save(new TaskDataChange(TaskType.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
+            .save(new TaskDataChange(TaskTypeExtended.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
                 LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
       }
     } else if (security.getFullLoadTimestamp() != null && sahr.addDaysForNextAttempt != null) {
       // The historical price data does not yet reflect the split, so repeat the
       // process in the future.
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskType.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
-          TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(sahr.addDaysForNextAttempt),
-          security.getIdSecuritycurrency(), Security.class.getSimpleName()));
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskTypeExtended.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES,
+              TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusDays(sahr.addDaysForNextAttempt),
+              security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
   }
 

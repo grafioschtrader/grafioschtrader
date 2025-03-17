@@ -19,22 +19,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafiosch.entities.Globalparameters;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.ProgressStateType;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector.TickerSecuritysplit;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
-import grafioschtrader.entities.TaskDataChange;
 import grafioschtrader.entities.TradingDaysPlus;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
-import grafioschtrader.types.ProgressStateType;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  *
@@ -166,10 +166,10 @@ public class SplitCalendarAppender {
       if (securitysplit == null || !(security.getIdSecuritycurrency().equals(securitysplit.getIdSecuritycurrency())
           && tss.securitysplit.getSplitDate().equals(securitysplit.getSplitDate()))) {
         if (taskDataChangeJpaRepository
-            .findByIdTaskAndIdEntityAndProgressStateType(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY.getValue(),
+            .findByIdTaskAndIdEntityAndProgressStateType(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY.getValue(),
                 security.getIdSecuritycurrency(), ProgressStateType.PROG_WAITING.getValue())
             .isEmpty()) {
-          var taskDataChange = new TaskDataChange(TaskType.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
+          var taskDataChange = new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
               TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(2), security.getIdSecuritycurrency(),
               Security.class.getSimpleName());
           taskDataChange.setOldValueString(new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)

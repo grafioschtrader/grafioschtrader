@@ -1,7 +1,7 @@
 package grafioschtrader.dto;
 
-import grafioschtrader.entities.Auditable;
-import grafioschtrader.entities.User;
+import grafiosch.entities.Auditable;
+import grafiosch.entities.User;
 
 public class UserAuditable {
   public Auditable auditable;

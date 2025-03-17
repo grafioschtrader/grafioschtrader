@@ -19,13 +19,16 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.BaseConstants;
+import grafiosch.BaseConstants.UDFPrefixSuffix;
+import grafiosch.entities.User;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.UDFDataJpaRepositoryImpl;
+import grafiosch.types.UDFDataType;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.GlobalConstants.UDFPrefixSuffix;
 import grafioschtrader.config.FeatureConfig;
-import grafioschtrader.entities.User;
-import grafioschtrader.repository.GlobalparametersJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.FeatureType;
-import grafioschtrader.types.UDFDataType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.metamodel.EntityType;
@@ -48,7 +51,11 @@ public class TokenAuthenticationService {
   private ObjectMapper jacksonObjectMapper;
 
   @Autowired
+  private GlobalparametersService globalparametersService;
+  
+  @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
+  
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -110,7 +117,7 @@ public class TokenAuthenticationService {
   public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole,
       boolean passwordRegexOk) {
     ConfigurationWithLogin configurationWithLogin = new ConfigurationWithLogin(getAllEntitiyNamesWithTheirKeys(),
-        featureConfig.getEnabledFeatures(), globalparametersJpaRepository.getCurrencyPrecision(),
+        featureConfig.getEnabledFeatures(), globalparametersService.getCurrencyPrecision(),
         getGlobalConstantsFieldsByFieldPrefix("FID"), getGlobalConstantsFieldsByFieldPrefix("FIELD_SIZE"),
         uiShowMyProperty, mostPrivilegedRole, passwordRegexOk);
     return configurationWithLogin;
@@ -192,9 +199,9 @@ public class TokenAuthenticationService {
   }
 
   static class UDFConfig {
-    public Set<String> udfGeneralSupportedEntities = GlobalConstants.UDF_GENERAL_ENTITIES.stream()
+    public Set<String> udfGeneralSupportedEntities = UDFDataJpaRepositoryImpl.UDF_GENERAL_ENTITIES.stream()
         .map(c -> c.getSimpleName()).collect(Collectors.toSet());
-    public Map<UDFDataType, UDFPrefixSuffix> uDFPrefixSuffixMap = GlobalConstants.uDFPrefixSuffixMap;;
+    public Map<UDFDataType, UDFPrefixSuffix> uDFPrefixSuffixMap = BaseConstants.uDFPrefixSuffixMap;;
   }
 
 }

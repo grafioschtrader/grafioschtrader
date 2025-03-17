@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.BaseConstants;
+import grafiosch.entities.User;
+import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.algo.AlgoTopCreate;
 import grafioschtrader.algo.AlgoTopCreate.AssetclassPercentage;
 import grafioschtrader.algo.RuleStrategyType;
@@ -18,7 +20,6 @@ import grafioschtrader.algo.simulate.SimulateRule;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.User;
 
 public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implements AlgoTopJpaRepositoryCustom {
 

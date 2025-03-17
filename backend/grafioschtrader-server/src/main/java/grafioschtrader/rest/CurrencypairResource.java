@@ -15,12 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateJpaRepository;
+import grafiosch.rest.UpdateCreateResource;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.User;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithHistoryquote;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
 import grafioschtrader.repository.CurrencypairJpaRepository;
@@ -32,7 +34,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.CURRENCYPAIR_MAP)
+@RequestMapping(RequestGTMappings.CURRENCYPAIR_MAP)
 @Tag(name = Currencypair.TABNAME, description = "Controller for the currency pair")
 public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
 
@@ -103,6 +105,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return currencypairJpaRepository;
   }
 
+  @Operation(summary = "Searches securities by a search criteria", description = "", tags = { Currencypair.TABNAME })
   @GetMapping(value = "/search", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch) {
     return new ResponseEntity<>(currencypairJpaRepository.searchByCriteria(securitycurrencySearch), HttpStatus.OK);

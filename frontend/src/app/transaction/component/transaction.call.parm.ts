@@ -35,7 +35,7 @@ export class TransactionCallParam {
 
 export class CloseMarginPosition {
   constructor(public quotationOpenPosition: number,
-              public originUntis: number,
+              public originUnits: number,
               public closeMaxMarginUnits: number,
               public idSecurityaccount: number,
               public idOpenMarginTransaction: number) {

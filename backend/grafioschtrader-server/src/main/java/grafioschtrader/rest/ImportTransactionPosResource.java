@@ -31,15 +31,15 @@ import jakarta.validation.constraints.Min;
  *
  */
 @RestController
-@RequestMapping(RequestMappings.IMPORTTRANSACTIONPOS_MAP)
-@Tag(name = RequestMappings.IMPORTTRANSACTIONPOS, description = "Controller for import transaction position")
+@RequestMapping(RequestGTMappings.IMPORTTRANSACTIONPOS_MAP)
+@Tag(name = RequestGTMappings.IMPORTTRANSACTIONPOS, description = "Controller for import transaction position")
 public class ImportTransactionPosResource {
 
   @Autowired
   private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
 
   @Operation(summary = "Gets all import transaction position for a specified ID of import transaction head", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONPOS })
+      RequestGTMappings.IMPORTTRANSACTIONPOS })
   @GetMapping(value = "/importtransactionhead/{idTransactionHead}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<CombineTemplateAndImpTransPos>> getCombineTemplateAndImpTransPosListByTransactionHead(
       @PathVariable final Integer idTransactionHead) {
@@ -49,7 +49,7 @@ public class ImportTransactionPosResource {
   }
 
   @Operation(summary = "Set a security for some specified import transaction positions", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONPOS })
+      RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PutMapping(value = "/setsecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> setSecurity(@RequestBody SetSecurityImport setSecurityImport) {
     return new ResponseEntity<>(importTransactionPosJpaRepository.setSecurity(setSecurityImport.idSecuritycurrency,
@@ -57,7 +57,7 @@ public class ImportTransactionPosResource {
   }
 
   @Operation(summary = "Set a cash account for some specified import transaction positions", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONPOS })
+      RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PutMapping(value = "/setcashaccount", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> setCashAccount(
       @RequestBody SetCashAccountImport setCashAccountImport) {
@@ -66,7 +66,7 @@ public class ImportTransactionPosResource {
   }
 
   @Operation(summary = "Sometimes the brooker round some value, is corrects the the qouatation to match the total value", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONPOS })
+      RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PostMapping(value = "/adjustcurrencyexrateorquotation", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> adjustCurrencyExRateOrQuotation(
       @RequestBody final List<Integer> idTransactionPosList) {
@@ -75,7 +75,7 @@ public class ImportTransactionPosResource {
   }
 
   @Operation(summary = "The calculated total of the import transactions is taken for the possible transaction.", description = "This should be used only in case of small difference between calculated and imported total.", tags = {
-      RequestMappings.IMPORTTRANSACTIONPOS })
+      RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PostMapping(value = "/accepttotaldiff", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> acceptTotalDiff(
       @RequestBody final List<Integer> idTransactionPosList) {
@@ -83,7 +83,7 @@ public class ImportTransactionPosResource {
   }
 
   @Operation(summary = "Deletes existing import transaction of the passed ID's..", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONPOS })
+      RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PostMapping(value = "/deletes", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteMultiple(@RequestBody final List<Integer> idTransactionPosList) {
     importTransactionPosJpaRepository.deleteMultiple(idTransactionPosList);
@@ -91,7 +91,7 @@ public class ImportTransactionPosResource {
   }
 
   @Operation(summary = "Check or ignore for possible existing import transaction", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONPOS })
+      RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PatchMapping(value = "/setidtransactionmaybe", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> setIdTransactionMayBe(@RequestBody SetIdTransactionMayBe setIdTransactionMayBe) {
     importTransactionPosJpaRepository.setIdTransactionMayBe(setIdTransactionMayBe.idTransactionMayBe,
@@ -100,7 +100,7 @@ public class ImportTransactionPosResource {
   }
 
   @Operation(summary = "Creates the corresponding transaction from the passed IDs of import transactions, updating existing transactions.", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONPOS })
+      RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PostMapping(value = "/createtransaction", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> createTransaction(
       @RequestBody final List<Integer> idTransactionPosList) {

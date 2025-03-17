@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.entities.ImportTransactionHead;
-import grafioschtrader.entities.User;
 import grafioschtrader.repository.ImportTransactionHeadJpaRepository;
 import grafioschtrader.repository.ImportTransactionHeadJpaRepositoryImpl.SuccessFailedDirectImportTransaction;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,8 +29,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * Rest service for head of import transactions.
  */
 @RestController
-@RequestMapping(RequestMappings.IMPORTTRANSACTIONHEAD_MAP)
-@Tag(name = RequestMappings.IMPORTTRANSACTIONHEAD, description = "Controller for Import transaction head")
+@RequestMapping(RequestGTMappings.IMPORTTRANSACTIONHEAD_MAP)
+@Tag(name = RequestGTMappings.IMPORTTRANSACTIONHEAD, description = "Controller for Import transaction head")
 public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantResource<ImportTransactionHead> {
 
   @Autowired
@@ -39,7 +41,7 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
   }
 
   @Operation(summary = "Return all import transaction head for a specified security account", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONHEAD })
+      RequestGTMappings.IMPORTTRANSACTIONHEAD })
   @GetMapping(value = "/securityaccount/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionHead>> getImportTransactionHeadBySecurityaccount(
       @PathVariable final Integer idSecuritycashaccount) {
@@ -50,7 +52,7 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
   }
 
   @Operation(summary = "Upload one or more PDF files, each for a single transaction.", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONHEAD })
+      RequestGTMappings.IMPORTTRANSACTIONHEAD })
   @PostMapping(value = "/{idSecuritycashaccount}/uploadpdftransactions", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessFailedDirectImportTransaction> uploadPdfTransactions(
       @PathVariable() Integer idSecuritycashaccount, @RequestParam("file") MultipartFile[] uploadFiles)
@@ -61,7 +63,7 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
   }
 
   @Operation(summary = "Upload different kind of transaction files with a existing transaction head record.", description = "", tags = {
-      RequestMappings.IMPORTTRANSACTIONHEAD })
+      RequestGTMappings.IMPORTTRANSACTIONHEAD })
   @PostMapping(value = "/{idTransactionHead}/uploadtransaction", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> uploadCsvFileSecurityAccountTransactions(@PathVariable() Integer idTransactionHead,
       @RequestParam("file") MultipartFile[] uploadFiles,

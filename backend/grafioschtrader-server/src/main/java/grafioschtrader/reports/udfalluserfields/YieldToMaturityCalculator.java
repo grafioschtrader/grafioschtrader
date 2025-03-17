@@ -8,10 +8,11 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 import grafiosch.common.DataHelper;
+import grafiosch.types.IUDFSpecialType;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
-import grafioschtrader.types.UDFSpecialType;
+import grafioschtrader.types.UDFSpecialGTType;
 
 @Service
 public class YieldToMaturityCalculator extends AllUserFieldsBase implements IUDFForEveryUser {
@@ -32,8 +33,8 @@ public class YieldToMaturityCalculator extends AllUserFieldsBase implements IUDF
   }
   
   @Override
-  public UDFSpecialType getUDFSpecialType() {
-    return UDFSpecialType.UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY;
+  public IUDFSpecialType getUDFSpecialType() {
+    return UDFSpecialGTType.UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY;
   }
 
   @Override

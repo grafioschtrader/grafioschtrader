@@ -1,0 +1,106 @@
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { AppSettings } from '../../shared/app.settings';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { Watchlist } from '../../entities/watchlist';
+import { TranslateHelper } from '../../shared/helper/translate.helper';
+import { UDFMetadataSecurityService } from '../../shared/udfmeta/service/udf.metadata.security.service';
+import { GlobalSessionNames } from '../../shared/global.session.names';
+import { UDFMetadataGeneralService } from '../../shared/udfmeta/service/udf.metadata.general.service';
+import { TabItem } from '../../shared/types/tab.item'; // Import TabItem interface
+
+@Component({
+  template: `
+    <div class="card">
+      <p-tabs [value]="activeRoute">
+        <p-tablist>
+          @for (tab of tabs; track tab.route) {
+            <p-tab [value]="tab.route" (click)="navigateTo(tab.route)">
+              <span>{{ tab.label }}</span>
+            </p-tab>
+          }
+        </p-tablist>
+      </p-tabs>
+      <router-outlet></router-outlet>
+    </div>
+  `,
+  standalone: false,
+})
+export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
+  tabs: TabItem[];
+  activeRoute: string;
+  lastActiveRoute: string = AppSettings.WATCHLIST_PERFORMANCE_KEY;
+  private routeSubscribe: Subscription;
+  private watchlist: Watchlist;
+
+  constructor(
+    private uDFMetadataSecurityService: UDFMetadataSecurityService,
+    private uDFMetadataGeneralService: UDFMetadataGeneralService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
+    public translateService: TranslateService
+  ) {
+    this.tabs = [
+      {
+        label: 'WATCHLIST_PERFORMANCE',
+        route: AppSettings.WATCHLIST_PERFORMANCE_KEY,
+        icon: '', // Optional: Icon class
+      },
+      {
+        label: 'WATCHLIST_PRICE_FEED',
+        route: AppSettings.WATCHLIST_PRICE_FEED_KEY,
+        icon: '', // Optional: Icon class
+      },
+      {
+        label: 'UDF',
+        route: AppSettings.WATCHLIST_UDF_KEY,
+        icon: '', // Optional: Icon class
+      },
+      {
+        label: 'WATCHLIST_DIVIDEND_SPLIT_FEED',
+        route: AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY,
+        icon: '', // Optional: Icon class
+      },
+    ];
+    TranslateHelper.translateMenuItems(this.tabs, this.translateService);
+  }
+
+  ngOnInit(): void {
+    const observables: Observable<any>[] = [];
+    !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY) &&
+    observables.push(this.uDFMetadataSecurityService.getAllByIdUserInOrderByUiOrderExcludeDisabled());
+    !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL) &&
+    observables.push(this.uDFMetadataGeneralService.getFieldDescriptorByIdUserAndEveryUserForEntity(AppSettings.CURRENCYPAIR));
+    if (observables.length > 0) {
+      combineLatest(observables).subscribe((data: any[]) => {
+        !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY) &&
+        sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY, JSON.stringify(data[0]));
+        !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL) &&
+        sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL, JSON.stringify(data[data.length - 1]));
+        this.subscribeWatchlistChange();
+      });
+    } else {
+      this.subscribeWatchlistChange();
+    }
+  }
+
+  private subscribeWatchlistChange(): void {
+    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
+      this.watchlist = JSON.parse(params['object']);
+      this.navigateTo(this.lastActiveRoute); // Set active route from URL
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.routeSubscribe && this.routeSubscribe.unsubscribe();
+  }
+
+  navigateTo(route: string) {
+    // Navigate with watchlist ID and object
+    this.lastActiveRoute = route;
+    this.router.navigate([route, this.watchlist.idWatchlist, { watchlist: JSON.stringify(this.watchlist) }], {
+      relativeTo: this.activatedRoute,
+    });
+  }
+}

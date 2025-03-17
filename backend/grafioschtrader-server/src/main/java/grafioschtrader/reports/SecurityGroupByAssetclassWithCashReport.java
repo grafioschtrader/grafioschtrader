@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.common.DateHelper;
+import grafiosch.common.DateHelper;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Tenant;
@@ -50,7 +50,7 @@ public class SecurityGroupByAssetclassWithCashReport extends SecurityGroupByBase
         security.setName(cashaccount.getName());
         security.setCurrency(cashaccount.getCurrency());
         SecurityPositionSummary securityPositionSummary = new SecurityPositionSummary(dateCurrencyMap.getMainCurrency(),
-            security, globalparametersJpaRepository.getCurrencyPrecision());
+            security, globalparametersService.getCurrencyPrecision());
         securityPositionSummaryList.add(securityPositionSummary);
 
         securityPositionSummary.valueSecurity = cashaccount.calculateBalanceOnTransactions(untilDatePlus);

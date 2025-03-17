@@ -13,19 +13,22 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.BaseConstants;
+import grafiosch.common.NetworkHelper;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.repository.UserJpaRepository;
+import grafiosch.repository.UserJpaRepository.IdUserLocale;
+import grafiosch.service.SendMailInternalExternalService;
+import grafiosch.task.ITask;
+import grafiosch.types.ITaskType;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.TaskDataChange;
-import grafioschtrader.exceptions.TaskBackgroundException;
 import grafioschtrader.repository.DividendJpaRepository;
-import grafioschtrader.repository.TaskDataChangeJpaRepository;
-import grafioschtrader.repository.UserJpaRepository;
-import grafioschtrader.repository.UserJpaRepository.IdUserLocale;
-import grafioschtrader.service.SendMailInternalExternalService;
-import grafioschtrader.task.ITask;
-import grafioschtrader.types.MessageComType;
-import grafioschtrader.types.TaskDataExecPriority;
-import grafioschtrader.types.TaskType;
+import grafioschtrader.types.MessageGTComType;
+import grafioschtrader.types.TaskTypeExtended;
 import jakarta.mail.MessagingException;
 
 /**
@@ -54,15 +57,15 @@ public class PeriodicallyDividendUpdCheckTask implements ITask {
   @Autowired
   private UserJpaRepository userJpaRepository;
 
-  @Scheduled(cron = "${gt.dividend.update.data}", zone = GlobalConstants.TIME_ZONE)
+  @Scheduled(cron = "${gt.dividend.update.data}", zone = BaseConstants.TIME_ZONE)
   public void periodicallCheckDividendUpdCheck() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_LOW);
     taskDataChangeRepository.save(taskDataChange);
   }
 
   @Override
-  public TaskType getTaskType() {
-    return TaskType.PERIODICALLY_DIVIDEND_UPDATE_CHECK;
+  public ITaskType getTaskType() {
+    return TaskTypeExtended.PERIODICALLY_DIVIDEND_UPDATE_CHECK;
   }
 
   @Override
@@ -90,9 +93,8 @@ public class PeriodicallyDividendUpdCheckTask implements ITask {
     if (!msgException.isEmpty()) {
       throw new TaskBackgroundException("gt.external.mail.failure", msgException, false);
     }
-
   }
-  
+
   private void createMails(List<IdUserLocale> idUserLocales, Map<Integer, List<Security>> groupedMissing,
       List<String> msgException) {
     for (IdUserLocale idUserLocale : idUserLocales) {
@@ -104,17 +106,18 @@ public class PeriodicallyDividendUpdCheckTask implements ITask {
             "gt.dividend.calenar.security", new Object[] { security.getName(),
                 messageSource.getMessage("currency", null, locale), security.getCurrency(), security.getIsin() },
             locale));
-        compoundMsg.append(GlobalConstants.NEW_LINE);
+        compoundMsg.append(BaseConstants.NEW_LINE);
       }
       sendMail(idUserLocale.getIdUser(), locale, compoundMsg.toString(), msgException);
     }
   }
 
   private void sendMail(Integer idUser, Locale locale, String message, List<String> msgException) {
-    String subject = messageSource.getMessage("gt.dividend.calenar.security.subject", null, locale);
+    String subject = messageSource.getMessage("gt.dividend.calenar.security.subject",
+        new Object[] { NetworkHelper.getIpAddressToOutside() }, locale);
     try {
       sendMailInternalExternalService.sendMailInternAndOrExternal(GlobalConstants.SYSTEM_ID_USER, idUser, subject,
-          message, MessageComType.USER_SECURITY_MISSING_CONNECTOR);
+          message, MessageGTComType.USER_SECURITY_MISSING_CONNECTOR);
     } catch (MessagingException e) {
       msgException.add(e.getLocalizedMessage());
     }

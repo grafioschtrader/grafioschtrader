@@ -7,6 +7,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.common.DataHelper;
+import grafiosch.entities.TenantBaseID;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.platformimport.ImportProperties;

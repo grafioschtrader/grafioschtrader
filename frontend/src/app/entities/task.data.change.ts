@@ -22,14 +22,6 @@ export class TaskDataChange implements BaseID {
   }
 }
 
-
-export class TaskDataChangeSecurityCurrencyPairInfo {
-  taskDataChangeList: TaskDataChange[];
-  securityInfo: { [idSecuritycurrency: number]: string};
-}
-
-
-
 export enum ProgressStateType {
   PROG_WAITING = 0,
   PROG_PROCESSED = 1,
@@ -37,7 +29,6 @@ export enum ProgressStateType {
   PROG_TASK_NOT_FOUND = 3,
   PROG_RUNNING = 4,
   PROG_INTERRUPTED = 5
-
 }
 
 export enum TaskDataExecPriority {
@@ -59,7 +50,7 @@ export enum TaskType {
   REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE = 7,
   CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES = 8,
   REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT = 9,
-  LOAD_EMPTY_CURRENCYPAIR_HISTORYQOUTES = 10,
+  LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES = 10,
   COPY_SOURCE_ACCOUNT_TO_DEMO_ACCOUNTS = 11,
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX = 12,
   PERIODICALLY_DIVIDEND_UPDATE_CHECK = 13,

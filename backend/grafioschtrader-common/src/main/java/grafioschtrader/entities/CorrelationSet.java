@@ -15,9 +15,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.entities.TenantBaseID;
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.PropertyAlwaysUpdatable;
-import grafioschtrader.exceptions.DataViolationException;
 import grafioschtrader.types.SamplingPeriodType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -62,7 +63,7 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   private String name;
 
   @Column(name = "note")
-  @Size(max = GlobalConstants.FID_MAX_LETTERS)
+  @Size(max = BaseConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
   private String note;
 

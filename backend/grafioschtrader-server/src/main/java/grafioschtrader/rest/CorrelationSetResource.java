@@ -17,12 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.dto.TenantLimit;
+import grafiosch.entities.User;
+import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.dto.CorrelationLimits;
 import grafioschtrader.dto.CorrelationResult;
 import grafioschtrader.dto.CorrelationRollingResult;
-import grafioschtrader.dto.TenantLimit;
 import grafioschtrader.entities.CorrelationSet;
-import grafioschtrader.entities.User;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.repository.CorrelationSetJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
@@ -31,8 +33,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping(RequestMappings.CORRELATION_SET_MAP)
-@Tag(name = RequestMappings.CORRELATION_SET, description = "Controller for correlation set")
+@RequestMapping(RequestGTMappings.CORRELATION_SET_MAP)
+@Tag(name = RequestGTMappings.CORRELATION_SET, description = "Controller for correlation set")
 public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource<CorrelationSet> {
 
   @Autowired
@@ -43,7 +45,7 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   }
 
   @Operation(summary = "Return all correlation set for this tenant", description = "", tags = {
-      RequestMappings.CORRELATION_SET })
+      RequestGTMappings.CORRELATION_SET })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<CorrelationSet>> getCorrelationSetByTenant() {
     var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -52,7 +54,7 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   }
 
   @Operation(summary = "Return the calculated results for a correlation set", description = "", tags = {
-      RequestMappings.CORRELATION_SET })
+      RequestGTMappings.CORRELATION_SET })
   @GetMapping(value = "/calculation/{idCorrelationSet}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CorrelationResult> getCalculationByCorrelationSet(
       @PathVariable final Integer idCorrelationSet) {
@@ -61,7 +63,7 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   }
 
   @Operation(summary = "Add one or more instruments to the correlation set", description = "", tags = {
-      RequestMappings.CORRELATION_SET })
+      RequestGTMappings.CORRELATION_SET })
   @PutMapping(value = "{idCorrelationSet}/addSecuritycurrency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CorrelationSet> addSecuritycurrenciesToWatchlist(@PathVariable final Integer idCorrelationSet,
       @RequestBody final SecuritycurrencyLists securitycurrencyLists) {
@@ -70,14 +72,14 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   }
 
   @Operation(summary = "Return the limits for the number of correlation sets", description = "", tags = {
-      RequestMappings.CORRELATION_SET })
+      RequestGTMappings.CORRELATION_SET })
   @GetMapping(value = "limit", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CorrelationLimits> getCorrelationSetLimit() {
     return new ResponseEntity<>(correlationSetJpaRepository.getCorrelationSetLimit(), HttpStatus.OK);
   }
 
   @Operation(summary = "Searches instruments which are not in the specified correlation set by a s search criteria", description = "", tags = {
-      RequestMappings.CORRELATION_SET })
+      RequestGTMappings.CORRELATION_SET })
   @GetMapping(value = "/{idCorrelationSet}/search", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyLists> searchByCriteria(
       @Parameter(description = "Id of correlation set", required = true) @PathVariable final Integer idCorrelationSet,
@@ -87,7 +89,7 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   }
 
   @Operation(summary = "Return the limits for instruments on a correlation sets", description = "", tags = {
-      RequestMappings.CORRELATION_SET })
+      RequestGTMappings.CORRELATION_SET })
   @GetMapping(value = "limit/{idCorrelationSet}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TenantLimit> getCorrelationSetInstrumentLimit(@PathVariable final Integer idCorrelationSet) {
     return new ResponseEntity<>(correlationSetJpaRepository.getCorrelationSetInstrumentLimit(idCorrelationSet),
@@ -95,7 +97,7 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   }
 
   @Operation(summary = "Return the rolling correlations for spezified list security pairs and its correlation set", description = "", tags = {
-      RequestMappings.CORRELATION_SET })
+      RequestGTMappings.CORRELATION_SET })
   @GetMapping(value = "corrrolling/{idCorrelationSet}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<CorrelationRollingResult>> getRollingCorrelations(
       @PathVariable final Integer idCorrelationSet, @RequestParam() final String securityIdsPairs) {
@@ -109,7 +111,7 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
   }
 
   @Operation(summary = "Remove an instrument from specified correlation set", description = "", tags = {
-      RequestMappings.CORRELATION_SET })
+      RequestGTMappings.CORRELATION_SET })
   @DeleteMapping(value = "{idCorrelationSet}/removeinstrument/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CorrelationSet> removeCurrencypairFromWatchlist(@PathVariable final Integer idCorrelationSet,
       @PathVariable final Integer idSecuritycurrency) {
