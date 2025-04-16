@@ -44,6 +44,7 @@ import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} fro
 
 /**
  * Shows algorithmic trading tree with its strategies.
+ * Project: Grafioschtrader
  */
 @Component({
     template: `

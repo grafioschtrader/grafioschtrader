@@ -261,15 +261,15 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
     return this.getEodHistory(security.getUrlHistoryExtend(), from, to, false,
-        FeedConnectorHelper.getGBXLondonDivider(security));
+        FeedConnectorHelper.getGBXLondonDivider(security),
+        security.getStockexchange().getTimeDifferenceFromUTCInSeconds());
   }
 
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws Exception {
-
     return FeedConnectorHelper.checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(from, to,
-        getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0), currencyPair.getName());
+        getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0, 0), currencyPair.getName());
   }
 
   @Override
@@ -301,7 +301,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
-      final double divider) throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
+      final double divider, final int diffUTCSeconds)
+      throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
     symbol = URLEncoder.encode(symbol, StandardCharsets.UTF_8);
 
     List<Historyquote> historyquotes = new ArrayList<>();
@@ -324,7 +325,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         historyquote.setLow(quotes.low.get(i) / divider);
         historyquote.setOpen(quotes.open.get(i) / divider);
         historyquote.setVolume(quotes.volume.get(i));
-        historyquote.setDate(DateHelper.setTimeToZeroAndAddDay(new Date(timestamps.get(i) * 1000), 0));
+        historyquote
+            .setDate(DateHelper.setTimeToZeroAndAddDay(new Date((timestamps.get(i) + diffUTCSeconds) * 1000), 0));
       }
     }
     return historyquotes;
@@ -348,10 +350,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     Events events = getSplitDividendEvent(security.getUrlDividendExtend(), fromDate, LocalDate.now(), DIVDEND_EVENT);
     return events.dividends.entrySet().stream()
         .map(entry -> new Dividend(security.getIdSecuritycurrency(),
-            Instant.ofEpochSecond(entry.getValue().date)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate(), null, null, entry.getValue().amount / divider,
-            security.getCurrency(), CreateType.CONNECTOR_CREATED))
+            Instant.ofEpochSecond(entry.getValue().date).atZone(ZoneId.systemDefault()).toLocalDate(), null, null,
+            entry.getValue().amount / divider, security.getCurrency(), CreateType.CONNECTOR_CREATED))
         .collect(Collectors.toList());
   }
 
@@ -374,13 +374,13 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
 
   }
-  
-  private Events getSplitDividendEvent(String urlExtend, LocalDate fromDate, LocalDate toDate, String event) throws Exception {
+
+  private Events getSplitDividendEvent(String urlExtend, LocalDate fromDate, LocalDate toDate, String event)
+      throws Exception {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.EventsView.class).forType(TopLevelChart.class)
         .readValue(FeedConnectorHelper
-            .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event))
-            .body());
+            .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event)).body());
     return topLevelChart.chart.result.get(0).events;
   }
 
@@ -394,7 +394,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
             entry.getValue().numerator, CreateType.CONNECTOR_CREATED))
         .collect(Collectors.toList());
   }
-  
+
   static class Quote {
     public QuoteResponse quoteResponse;
   }
@@ -417,7 +417,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     public Long regularMarketVolume;
   }
 
-  
   static class QuoteSummaryV10 {
     public QuoteSummary quoteSummary;
   }

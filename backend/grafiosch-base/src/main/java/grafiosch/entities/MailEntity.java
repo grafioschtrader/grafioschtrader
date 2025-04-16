@@ -21,14 +21,15 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Certain messages are created by the system. For example, if a client still
- * has an open position on an inactive instrument. It must be excluded that such
- * a message is sent more than once.
  */
+@Schema(description="""
+ Certain messages are created by the system. For example, if a client still
+ has an open position on an inactive instrument. It must be excluded that such
+ a message is sent more than once.""")
 @Entity
 @Table(name = MailEntity.TABNAME)
 @EntityListeners(AuditingEntityListener.class)
-public class MailEntity extends BaseID {
+public class MailEntity extends BaseID<Integer> {
 
   public static final String TABNAME = "mail_entity";
 

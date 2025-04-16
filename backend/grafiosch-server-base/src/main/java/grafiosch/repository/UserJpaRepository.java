@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import grafiosch.common.UpdateQuery;
 import grafiosch.entities.User;
 import grafiosch.entities.projection.UserOwnProjection;
 import grafiosch.rest.UpdateCreateJpaRepository;
@@ -30,7 +31,7 @@ public interface UserJpaRepository
   @Query("SELECT u.idUser AS idUser, u.localeStr AS localeStr FROM User u WHERE u.idUser IN ?1")
   List<IdUserLocale> findIdUserAndLocaleStrByIdUsers(List<Integer> idUsers);
 
-  @Query(value = """
+  @UpdateQuery(value = """
       DELETE u FROM user u JOIN verificationtoken v ON u.id_user = v.id_user
       WHERE u.id_tenant IS NULL AND v.expiry_date < NOW()""", nativeQuery = true)
   void removeWithExpiredVerificationToken();

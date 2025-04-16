@@ -14,9 +14,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
+@Schema(description = "Sets a limit of possible changes and additions which a user with limit rights can do")
 @Entity
 @Table(name = UserEntityChangeLimit.TABNAME)
-@Schema(description = "Sets a limit of possible changes and additions which a user with limit rights can do")
 public class UserEntityChangeLimit extends Auditable implements AdminEntity, Serializable {
 
   public static final String TABNAME = "user_entity_change_limit";
@@ -29,6 +29,7 @@ public class UserEntityChangeLimit extends Auditable implements AdminEntity, Ser
   @Column(name = "id_user_entity_change_limit")
   private Integer idUserEntityChangeLimit;
 
+  @Schema(description = "ID of the user who is limited in his rights")
   @NotNull
   @Column(name = "id_user")
   private Integer idUser;
@@ -38,11 +39,13 @@ public class UserEntityChangeLimit extends Auditable implements AdminEntity, Ser
   @Column(name = "entity_name")
   private String entityName;
 
+  @Schema(description = "Maximum number of CUD operations that may be performed daily.")
   @NotNull
   @Column(name = "day_limit")
   @PropertyAlwaysUpdatable
   private Integer dayLimit;
 
+  @Schema(description = "Until which date these rights are valid")
   @NotNull
   @Column(name = "until_date")
   @PropertyAlwaysUpdatable

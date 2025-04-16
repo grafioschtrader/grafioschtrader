@@ -16,6 +16,7 @@ import grafioschtrader.dto.CopyTradingDaysFromSourceToTarget;
 import grafioschtrader.dto.TradingDaysWithDateBoundaries;
 import grafioschtrader.repository.TradingDaysBase.SaveTradingDays;
 import grafioschtrader.repository.TradingDaysMinusJpaRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -25,8 +26,10 @@ import jakarta.validation.Valid;
 public class TradingDaysMinusResource {
 
   @Autowired
-  TradingDaysMinusJpaRepository tradingDaysMinusJpaRepository;
+  private TradingDaysMinusJpaRepository tradingDaysMinusJpaRepository;
 
+  @Operation(summary = "Return of the non-trading days of a specific stock exchange and a specific year.", description = "", tags = {
+      RequestGTMappings.TRADINGDAYSMINUS })
   @GetMapping(value = "/{idStockexchange}/{year}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TradingDaysWithDateBoundaries> getTradingDaysMinusByStockexchangeAndYear(
       @PathVariable final int idStockexchange, @PathVariable final int year) {
@@ -34,12 +37,18 @@ public class TradingDaysMinusResource {
         tradingDaysMinusJpaRepository.getTradingDaysByIdStockexchangeAndYear(idStockexchange, year), HttpStatus.OK);
   }
 
+  @Operation(summary = "Change in the trading calendar of a particular stock exchange in a particular year.", description = "", tags = {
+      RequestGTMappings.TRADINGDAYSMINUS })
   @PutMapping(value = "/{idStockexchange}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TradingDaysWithDateBoundaries> deleteAndCreateMultiple(@PathVariable final int idStockexchange,
       @Valid @RequestBody final SaveTradingDays saveTradingDays) {
     return new ResponseEntity<>(tradingDaysMinusJpaRepository.save(idStockexchange, saveTradingDays), HttpStatus.OK);
   }
 
+  @Operation(summary = """
+      This allows a trading calendar from one stock exchange to be copied to another.
+      It is possible to copy a single year or all years whose date range GT supports.""", description = "", tags = {
+      RequestGTMappings.TRADINGDAYSMINUS })
   @PutMapping(value = "/copytradingdays", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TradingDaysWithDateBoundaries> copyAllTradingDaysMinusToOtherStockexchange(
       @Valid @RequestBody final CopyTradingDaysFromSourceToTarget copyTradingDaysFromSourceToTarget) {

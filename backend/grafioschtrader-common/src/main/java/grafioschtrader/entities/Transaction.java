@@ -41,9 +41,9 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.groups.Default;
 
+@Schema(description = "Entity that contains the information for a single transaction. There are cash and securities transaction.")
 @Entity
 @Table(name = Transaction.TABNAME)
-@Schema(description = "Entity that contains the information for a single transaction. There are cash and securities transaction.")
 public class Transaction extends TenantBaseID implements Serializable, Comparable<Transaction> {
 
   public static final String TABNAME = "transaction";

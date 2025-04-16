@@ -6,12 +6,16 @@ import java.util.Objects;
 
 import grafiosch.common.DateHelper;
 import grafiosch.types.OperationType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+@Schema(description = """
+Counts the CUD (create, update, delete) operations of the individual users on the individual information classes. 
+Is used to evaluate whether the limits of the CUD operations have been exceeded.""")
 @Entity
 @Table(name = UserEntityChangeCount.TABNAME)
 public class UserEntityChangeCount {
@@ -21,17 +25,19 @@ public class UserEntityChangeCount {
   @EmbeddedId
   UserEntityChangeCountId idUserEntityChangeCount;
 
+  @Schema(description = "Number of insert operations")
   @Column(name = "count_insert")
   private int countInsert;
 
+  @Schema(description = "Number of update operations")  
   @Column(name = "count_update")
   private int countUpdate;
 
+  @Schema(description = "Number of delete operations")  
   @Column(name = "count_delete")
   private int countDelete;
 
   public UserEntityChangeCount() {
-
   }
 
   public UserEntityChangeCount(UserEntityChangeCountId idUserEntityChangeCounter) {
@@ -76,17 +82,19 @@ public class UserEntityChangeCount {
 
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "ID of the user who is counted")
     @Column(name = "id_user")
     private Integer idUser;
 
+    @Schema(description = "Date of the count")
     @Column(name = "date")
     private Date date;
 
+    @Schema(description = "Name of the entity which is counted")
     @Column(name = "entity_name")
     private String entityName;
 
     public UserEntityChangeCountId() {
-
     }
 
     public UserEntityChangeCountId(Integer idUser, Date date, String tablename) {

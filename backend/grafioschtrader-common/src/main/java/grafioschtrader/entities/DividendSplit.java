@@ -15,8 +15,9 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 
 @MappedSuperclass
-public abstract class DividendSplit extends BaseID {
+public abstract class DividendSplit extends BaseID<Integer> {
 
+  @Schema(description = "Reference to the security")
   @Basic(optional = false)
   @Column(name = "id_securitycurrency")
   protected Integer idSecuritycurrency;

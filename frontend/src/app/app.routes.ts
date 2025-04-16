@@ -9,7 +9,7 @@ import {SecurityaccountEmptyComponent} from './securityaccount/component/securit
 import {AssetclassTableComponent} from './assetclass/component/assetclass.table.component';
 import {StockexchangeTableComponent} from './stockexchange/component/stockexchange.table.component';
 import {RegisterComponent} from './shared/login/component/register.component';
-import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.page.component';
+import {TenantEditFullPageComponent} from './lib/tenant/component/tenant.edit.full.page.component';
 import {WatchlistTabMenuComponent} from './watchlist/component/watchlist.tab.menu.component';
 import {WatchlistPerformanceComponent} from './watchlist/component/watchlist.performance.component';
 import {TimeSeriesChartComponent} from './historyquote/component/time.series.chart.component';
@@ -17,14 +17,14 @@ import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.gener
 import {RegistrationTokenVerifyComponent} from './shared/login/component/registration.token.verify.component';
 import {CorrelationComponent} from './watchlist/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
-import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
-import {TenantTransactionCostComponent} from './tenant/component/tenant.transaction.cost.component';
-import {TenantSummariesAssetclassComponent} from './tenant/component/tenant.summaries.assetclass.component';
-import {TenantSummariesCashaccountComponent} from './tenant/component/tenant.summaries.cashaccount.component';
-import {TenantSummariesSecurityaccountComponent} from './tenant/component/tenant.summaries.securityaccount.component';
-import {TenantTabMenuComponent} from './tenant/component/tenant.tab.menu.component';
+import {TenantDividendsComponent} from './lib/tenant/component/tenant.dividends.component';
+import {TenantTransactionCostComponent} from './lib/tenant/component/tenant.transaction.cost.component';
+import {TenantSummariesAssetclassComponent} from './lib/tenant/component/tenant.summaries.assetclass.component';
+import {TenantSummariesCashaccountComponent} from './lib/tenant/component/tenant.summaries.cashaccount.component';
+import {TenantSummariesSecurityaccountComponent} from './lib/tenant/component/tenant.summaries.securityaccount.component';
+import {TenantTabMenuComponent} from './lib/tenant/component/tenant.tab.menu.component';
 import {PortfolioTabMenuComponent} from './portfolio/component/portfolio.tab.menu.component';
-import {TenantTransactionTableComponent} from './tenant/component/tenant.transaction.table.component';
+import {TenantTransactionTableComponent} from './lib/tenant/component/tenant.transaction.table.component';
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
 import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
@@ -33,16 +33,16 @@ import {
   SecurityaccountImportTransactionComponent
 } from './securityaccount/component/securityaccount.import.transaction.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
-import {ProposeChangeTabMenuComponent} from './proposechange/component/propose.change.tab.menu.component';
-import {RequestForYouTableComponent} from './proposechange/component/request.for.you.table.component';
-import {YourProposalTableComponent} from './proposechange/component/your.proposal.table.component';
+import {ProposeChangeTabMenuComponent} from './lib/proposechange/component/propose.change.tab.menu.component';
+import {RequestForYouTableComponent} from './lib/proposechange/component/request.for.you.table.component';
+import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
 import {UserTableComponent} from './user/component/user.table.component';
 import {TradingCalendarGlobalComponent} from './tradingcalendar/component/trading.calendar.global.component';
-import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
+import {TenantPerformanceTabMenuComponent} from './lib/tenant/component/tenant.performance.tab.menu.component';
 import {PerformancePeriodComponent} from './shared/performanceperiod/component/performance.period.component';
-import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.performance.eod.missing.component';
+import {TenantPerformanceEodMissingComponent} from './lib/tenant/component/tenant.performance.eod.missing.component';
 import {
   SecurityHistoryquoteQualityTreetableComponent
 } from './securitycurrency/component/security.historyquote.quality.treetable.component';
@@ -55,15 +55,15 @@ import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.mo
 import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
 import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
-import {SendRecvTreetableComponent} from './mail/component/send.recv.treetable.component';
+import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetable.component';
 import {adminGuard, authGuard} from './shared/service/guards.definition';
-import {SendRecvForwardTabMenuComponent} from './mail/component/send.recv.forward.tab.menu.component';
-import {MailForwardSettingTableComponent} from './mail/component/mail.forward.setting.table.component';
+import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
+import {MailForwardSettingTableComponent} from './lib/mail/component/mail.forward.setting.table.component';
 import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf.metadata.security.table.component';
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
 import {UDFMetadataGeneral} from './shared/udfmeta/model/udf.metadata';
 import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.metadata.general.table.component';
-import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
+import {TenantAlertComponent} from './lib/tenant/component/tenant.alert.component';
 
 
 const APP_ROUTES: Routes = [

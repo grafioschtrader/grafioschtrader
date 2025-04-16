@@ -46,12 +46,16 @@ public class Watchlist extends TenantBaseID implements Serializable {
   @Column(name = "id_watchlist")
   private Integer idWatchlist;
 
+  @Schema(description = "Name of the watchlist, is determined by the user and must be unique for the tenant.")
   @Basic(optional = false)
   @NotNull
   @Size(min = 1, max = 25)
   @PropertyAlwaysUpdatable
   private String name;
 
+  @Schema(description = """
+      Contains the instruments on this watchlist as a list. This must have a lazy loading, 
+      otherwise it would be loaded too much unused. In addition, the payload of this list can become quite large.""")
   @JsonIgnore
   @JoinTable(name = TABNAME_SEC_CUR, joinColumns = {
       @JoinColumn(name = "id_watchlist", referencedColumnName = "id_watchlist") }, inverseJoinColumns = {
@@ -60,9 +64,11 @@ public class Watchlist extends TenantBaseID implements Serializable {
   @ManyToMany(fetch = FetchType.LAZY)
   private List<Securitycurrency<?>> securitycurrencyList;
 
+  @Schema(description = "Reference to the tenant")
   @Column(name = "id_tenant")
   private Integer idTenant;
 
+  @Schema(description = "Time of the last intraday price update, used to determine the time interval for the next earliest possible price update.")
   @Column(name = "last_timestamp")
   protected Date lastTimestamp;
 

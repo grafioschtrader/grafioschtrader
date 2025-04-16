@@ -19,6 +19,9 @@ import jakarta.persistence.StoredProcedureParameter;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
+@Schema(description = """
+    Contains the amount of dates for a single exchange on which trading is not taking place.
+    With the TradingDaysPlus entity minus the days contained in this entity, you get the days on which trading is possible on the corresponding exchange.""")
 @Entity
 @Table(name = TradingDaysMinus.TABNAME)
 @NamedStoredProcedureQuery(name = "TradingDaysMinusKey.copyTradingMinusToOtherStockexchange", procedureName = "copyTradingMinusToOtherStockexchange", parameters = {

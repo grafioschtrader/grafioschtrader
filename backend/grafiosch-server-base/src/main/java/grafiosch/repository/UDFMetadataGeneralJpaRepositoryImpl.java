@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.BaseConstants;
 import grafiosch.dynamic.model.DataType;
 import grafiosch.dynamic.model.FieldDescriptorInputAndShowExtendedGeneral;
+import grafiosch.entities.UDFData;
 import grafiosch.entities.UDFMetadataGeneral;
 import grafiosch.entities.User;
 
@@ -60,7 +61,7 @@ public class UDFMetadataGeneralJpaRepositoryImpl extends UDFMetadataBase<UDFMeta
 
   @Override
   public List<String> getSupportedEntities() {
-    return UDFDataJpaRepositoryImpl.UDF_GENERAL_ENTITIES.stream().map(c -> c.getSimpleName()).collect(Collectors.toList());
+    return UDFData.UDF_GENERAL_ENTITIES.stream().map(c -> c.getSimpleName()).collect(Collectors.toList());
   }
 
   @Override

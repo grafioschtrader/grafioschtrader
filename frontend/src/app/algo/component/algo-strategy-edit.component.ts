@@ -26,6 +26,8 @@ import {AlgoLevelType} from '../model/algo.top';
  * Allows editing a new or existing strategy. The input fields will be different according to the selected strategy.
  * For this reason, except for the selection box, all input fields are created dynamically.
  * A strategy can consist of different parameters, therefore the output is created dynamically from a map.
+ *
+ * Project: Grafioschtrader
  */
 @Component({
     selector: 'algo-strategy-edit',

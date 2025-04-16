@@ -142,7 +142,6 @@ public class GlobalparametersService {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_OBSERVATION_DAYS_BACK);
   }
-
   
   public Date getStartFeedDate() throws ParseException {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_START_FEED_DATE)
@@ -160,7 +159,6 @@ public class GlobalparametersService {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY);
   }
- 
   
   
   /**

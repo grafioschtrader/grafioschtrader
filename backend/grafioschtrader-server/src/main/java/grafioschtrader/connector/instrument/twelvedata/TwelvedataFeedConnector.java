@@ -40,7 +40,6 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.SubscriptionType;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Refill;
 
 /**
@@ -87,21 +86,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
     return "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
   }
 
-  private void waitForTokenOrGo() {
-    do {
-      ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
-      if (probe.isConsumed()) {
-        return;
-      } else {
-        long waitForRefill = TimeUnit.MILLISECONDS.convert(probe.getNanosToWaitForRefill(), TimeUnit.NANOSECONDS);
-        try {
-          Thread.sleep(waitForRefill);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-    } while (true);
-  }
+  
 
   @Override
   protected boolean isConnectionOk(HttpURLConnection huc) {
@@ -191,7 +176,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   private List<Historyquote> getEodSecurityCurrencypairHistoryMax5000(URL url, SimpleDateFormat dateFormat,
       double divider, boolean hasVolume) throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
-    waitForTokenOrGo();
+    waitForTokenOrGo(bucket);
     URLConnection connection = url.openConnection();
     try (InputStreamReader inputStream = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStream)) {
@@ -247,7 +232,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    waitForTokenOrGo();
+    waitForTokenOrGo(bucket);
     var quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(), Quote.class);
     quote.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security), getIntradayDelayedSeconds());
   }
@@ -263,7 +248,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-    waitForTokenOrGo();
+    waitForTokenOrGo(bucket);
     var quote = objectMapper.readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL(), Quote.class);
     quote.setValues(currencypair, 1.0, getIntradayDelayedSeconds());
   }

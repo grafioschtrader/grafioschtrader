@@ -9,6 +9,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * The exchange has a unique MIC (Market Identifier Code). Some data providers may have
+ * other exchange codes, such as Yahoo Finance. These can therefore be mapped
+ * here. Is only used internally and cannot yet be edited via a user interface.
+ */
 @Entity
 @Table(name = MicProviderMap.TABNAME)
 public class MicProviderMap {
@@ -18,6 +23,9 @@ public class MicProviderMap {
   @EmbeddedId
   private IdProviderMic idProviderMic;
 
+  /**
+   * The code which the provider uses for this exchange.
+   */
   @Column(name = "code_provider")
   @NotNull
   private String codeProvider;
@@ -48,10 +56,16 @@ public class MicProviderMap {
       this.mic = mic;
     }
 
+    /**
+     * ID of the data provider, for example “yahoo”.
+     */
     @Column(name = "id_provider")
     @NotNull
     private String idProvider;
 
+    /**
+     * The official MIC of the exchange, for example “XETR”.
+     */
     @Column(name = "mic")
     @NotNull
     private String mic;

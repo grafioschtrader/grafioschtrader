@@ -14,6 +14,7 @@ import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.entities.projection.IUDFSupport;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.validation.ValidCurrencyCode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -23,7 +24,10 @@ import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
-
+@Schema(description = """
+Used for currency pairs, including cryptocurrencies. No transactions can be carried out on currencies. 
+Currency pairs can be created by the user. 
+In addition, the system also creates currency pairs, which is necessary for the performance calculations to work.""")
 @Entity
 @Table(name = Currencypair.TABNAME)
 @DiscriminatorValue("C")
@@ -34,6 +38,7 @@ public class Currencypair extends Securitycurrency<Currencypair> implements Seri
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "The base currency as an ISO code.")
   @Basic(optional = false)
   @NotNull
   @ValidCurrencyCode
@@ -41,6 +46,7 @@ public class Currencypair extends Securitycurrency<Currencypair> implements Seri
   @PropertySelectiveUpdatableOrWhenNull
   private String fromCurrency;
 
+  @Schema(description = "The quotation currency as an ISO code.")
   @Basic(optional = false)
   @NotNull
   @ValidCurrencyCode

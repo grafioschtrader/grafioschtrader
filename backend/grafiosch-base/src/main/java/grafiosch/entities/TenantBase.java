@@ -18,30 +18,39 @@ import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * TenantBase is the shared base for Tenant entities. Contains common attributes
+ * for Tenant entities. This class must be expanded. A special implementation
+ * for a specific application will always extend Tenant with
+ * application-specific attributes.
+ * 
+ * TODO The user can currently only have one tenant. This should possibly be
+ * extended to a many to many relationship.
+ */
 @MappedSuperclass
-@Schema(title = "TenantBase is the shared base for Tenant entities", description = "Contains common attributes for Tenant entities.")
 public abstract class TenantBase extends TenantBaseID implements Serializable {
- 
+
   private static final long serialVersionUID = 1L;
-  
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
   @Column(name = "id_tenant")
   private Integer idTenant;
 
+  @Schema(description = "Name of the tenant.")
   @NotBlank
   @Basic(optional = false)
   @Size(min = 1, max = 25)
   @Column(name = "tenant_name")
   private String tenantName;
 
-  @Column(name = "create_id_user")
   @Schema(description = "User ID which created this tenant, can not be set from outside")
+  @Column(name = "create_id_user")
   private Integer createIdUser;
 
-  @Column(name = "tenant_kind_type")
   @Schema(description = "Type of tenant, can not be set from outside")
+  @Column(name = "tenant_kind_type")
   private byte tenantKindType;
 
   @JoinColumn(name = "id_tenant")
@@ -106,8 +115,4 @@ public abstract class TenantBase extends TenantBaseID implements Serializable {
     this.userList = usergroupList;
   }
 
-  @Override
-  public String toString() {
-    return "grafioschtrader.entities.Tenant[ idTenant=" + idTenant + " ]";
-  }
 }

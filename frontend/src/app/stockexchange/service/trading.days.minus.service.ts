@@ -25,7 +25,7 @@ export class TradingDaysMinusService extends AuthServiceWithLogout<TradingDaysMi
 
   save(idStockexchange: number, saveTradingDays: SaveTradingDays): Observable<TradingDaysWithDateBoundaries> {
     return <Observable<TradingDaysWithDateBoundaries>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
-      + `${AppSettings.TRADING_DAYS_MINUS_KEY}/${idStockexchange}/`, saveTradingDays,
+      + `${AppSettings.TRADING_DAYS_MINUS_KEY}/${idStockexchange}`, saveTradingDays,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 

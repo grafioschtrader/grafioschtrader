@@ -22,6 +22,7 @@ import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.platform.IPlatformTransactionImport;
 import grafioschtrader.platformimport.pdf.ImportTransactionHelperPdf;
 import grafioschtrader.repository.ImportTransactionPlatformJpaRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -30,13 +31,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ImportTransactionPlatformResource extends UpdateCreateDeleteAuditResource<ImportTransactionPlatform> {
 
   @Autowired
-  ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
+  private ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
 
+  @Operation(summary = "Return of all template groups", description = "", tags = {
+      RequestGTMappings.IMPORTTRANSACTION_PLATFORM })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPlatform>> getAllImportTransactionPlatform() {
     return new ResponseEntity<>(importTransactionPlatformJpaRepository.findAll(), HttpStatus.OK);
   }
 
+  @Operation(summary = "Return of the special import transaction Implementation of trading platforms that have such an implementation", description = "", tags = {
+      RequestGTMappings.IMPORTTRANSACTION_PLATFORM })
   @GetMapping(value = "/platformImports", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IPlatformTransactionImport>> getPlatformTransactionImport() {
     return new ResponseEntity<>(importTransactionPlatformJpaRepository.getPlatformTransactionImport(), HttpStatus.OK);
@@ -47,6 +52,8 @@ public class ImportTransactionPlatformResource extends UpdateCreateDeleteAuditRe
     return importTransactionPlatformJpaRepository;
   }
 
+  @Operation(summary = "Receives PDF as an upload and converts it into a text string and returns it.", description = "", tags = {
+      RequestGTMappings.IMPORTTRANSACTION_PLATFORM })
   @PostMapping(value = "/transformpdftotxt")
   public ResponseEntity<String> uploadAndTransformPDFToTxt(@RequestParam("file") MultipartFile uploadPDFFile)
       throws IOException {

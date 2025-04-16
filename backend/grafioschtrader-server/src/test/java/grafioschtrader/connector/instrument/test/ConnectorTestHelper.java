@@ -297,9 +297,9 @@ public class ConnectorTestHelper {
 
   }
 
-  public static class SecurityHistoricalDate extends HistoricalDate {
-
-    public Security security;
+    public static class SecurityHistoricalDate extends HistoricalDate {
+  
+      public Security security;
 
     public SecurityHistoricalDate(final String name, int expectedRows, String fromStr, String toStr)
         throws ParseException {

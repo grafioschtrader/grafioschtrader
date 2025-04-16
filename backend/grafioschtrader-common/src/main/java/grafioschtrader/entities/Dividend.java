@@ -18,6 +18,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+@Schema(description = """
+ Contains the dividends as they are paid for the individual shares. These are
+ mainly used for evaluations or messages to the user. They are filled by
+ providers and are not edited manually. They also do not lead to transactions
+ for tenants, as tax deductions vary greatly from country to country.""")
 @Entity
 @Table(name = Dividend.TABNAME)
 public class Dividend extends DividendSplit implements Serializable {
@@ -30,25 +35,31 @@ public class Dividend extends DividendSplit implements Serializable {
   @Column(name = "id_dividend")
   private Integer idDividend;
 
+  @Schema(description = """
+      Investors who buy the stock on or after this date will not get the upcoming
+      dividend; instead, it goes to the seller. To receive the dividend, you must
+      own shares before the ex-dividend date.""")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "ex_date")
   private LocalDate exDate;
 
+  @Schema(description = """
+      The payment date is the day when the dividend is actually paid to shareholders who owned the stock before
+      the ex-dividend date. It typically occurs a few days or weeks after the ex-dividend date.""")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "pay_date")
   private LocalDate payDate;
 
   @Schema(description = """
-    A data source may only provide real dividends. In such a case, the split-adjusted amount is calculated from this"
-    Even if the dividend were automatically transferred into transactions, this amount would be relevant.
-  """)
+      A data source may only provide real dividends. In such a case, the split-adjusted amount is calculated from this"
+      Even if the dividend were automatically transferred into transactions, this amount would be relevant.""")
   @Column(name = "amount")
   private Double amount;
 
   @Schema(description = """
-     Since GT always works with split-adjusted data, the dividends must also be split-adjusted,
-     otherwise an addition with price data would lead to incorrect results.
-    """)
+       Since GT always works with split-adjusted data, the dividends must also be split-adjusted,
+       otherwise an addition with price data would lead to incorrect results.
+      """)
   @Column(name = "amount_adjusted")
   private Double amountAdjusted;
 

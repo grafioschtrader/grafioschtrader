@@ -1,5 +1,8 @@
 package grafiosch.entities.projection;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Reduced internal and external representation of user data.")
 public class UserOwnProjection {
   public final Integer idUser;
   public final String email;

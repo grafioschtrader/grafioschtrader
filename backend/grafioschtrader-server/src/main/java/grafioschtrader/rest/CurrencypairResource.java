@@ -94,11 +94,13 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairJpaRepository.getFeedConnectors(true), HttpStatus.OK);
   }
 
-
+  /*
+ // NOT USED 
   @GetMapping(value = "/usedCurrencypairs", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> getUsedCurrencypairs() {
     return new ResponseEntity<>(currencypairJpaRepository.getAllUsedCurrencypairs(), HttpStatus.OK);
   }
+  */
 
   @Override
   protected UpdateCreateJpaRepository<Currencypair> getUpdateCreateJpaRepository() {

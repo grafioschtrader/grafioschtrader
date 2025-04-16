@@ -98,9 +98,6 @@ public class Assetclass extends Auditable implements Serializable {
     possibleInstrumentsMap.put(AssetclassType.CURRENCY_PAIR, new SpecialInvestmentInstruments[] {
         SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.FOREX,
         SpecialInvestmentInstruments.ETF });
-
-   
-
   }
 
   private static final long serialVersionUID = 1L;
@@ -125,6 +122,10 @@ public class Assetclass extends Auditable implements Serializable {
   @Max(98)
   private byte specialInvestmentInstrument;
 
+  @Schema(description = """
+      The asset class can also have an additional non-specified grouping. This grouping is probably 
+      best suited for a geographical breakdown. As GT is multilingual, 
+      the grouping must also be recorded in multiple languages.""")
   @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
   @JoinColumn(name = "sub_category_nls")

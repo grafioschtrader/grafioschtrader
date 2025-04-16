@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.TenantBaseID;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -32,6 +33,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * It is the basis of a security or a cash account.
+ */
 @Entity
 @Table(name = Securitycashaccount.TABNAME)
 @Inheritance(strategy = JOINED)
@@ -47,6 +51,7 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   @Column(name = "id_securitycash_account")
   protected Integer idSecuritycashAccount;
 
+  @Schema(description = "Name of the custody account or a cash account.")
   @NotBlank
   @Size(min = 1, max = 25)
   @Basic(optional = false)
@@ -54,6 +59,7 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   @PropertyAlwaysUpdatable
   private String name;
 
+  @Schema(description = "User note for this account.")
   @Column(name = "note")
   @Size(max = BaseConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
@@ -69,6 +75,7 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   private Integer idTenant;
 
   // TODO integrate in UI and somewhere else
+  @Schema(description = "Up to what date can entries be made to this account?")
   @Column(name = "active_to_date")
   private LocalDate activeToDate;
 

@@ -12,9 +12,9 @@ import {catchError} from 'rxjs/operators';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {BaseAuthService} from './base.auth.service';
 import moment from 'moment';
-import {UserOwnProjection} from '../../../entities/projection/user.own.projection';
+import {UserOwnProjection} from '../../../lib/entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
-import {ConfigurationWithLogin} from '../component/login.component';
+import {ConfigurationWithLoginGT} from '../component/login.component';
 import {AppHelper} from '../../helper/app.helper';
 import {PrimeNG} from 'primeng/config';
 
@@ -48,7 +48,7 @@ export class LoginService extends BaseAuthService<User> {
   }
 
 
-  afterSuccessfulLogin(token: string, configurationWithLogin: ConfigurationWithLogin): boolean {
+  afterSuccessfulLogin(token: string, configurationWithLogin: ConfigurationWithLoginGT): boolean {
     this.gps.clearValues();
     const number = 1000.45;
 

@@ -25,7 +25,7 @@ import grafiosch.types.OperationType;
  * 
  * @param <T>
  */
-public abstract class DailyLimitUpdCreateLogger<T extends BaseID> {
+public abstract class DailyLimitUpdCreateLogger<T extends BaseID<Integer>> {
 
   @Autowired
   protected GlobalparametersJpaRepository globalparametersJpaRepository;

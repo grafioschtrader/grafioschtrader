@@ -2,6 +2,10 @@ package grafiosch.usertask;
 
 import java.util.Arrays;
 
+/**
+ * Enum constants for marking violations of a user against the limit for request
+ * to client or the number of CUD operations on an information class.
+ */
 public enum UserTaskType {
   /**
    * Used for the User violations (request per period or security breach).

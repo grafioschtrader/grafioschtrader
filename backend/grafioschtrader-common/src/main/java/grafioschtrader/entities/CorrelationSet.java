@@ -35,6 +35,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = "A correlation set has a number of properties and a reference to associated instruments.")
 @Entity
 @Table(name = CorrelationSet.TABNAME)
 public class CorrelationSet extends TenantBaseID implements Serializable {
@@ -50,11 +51,14 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @Column(name = "id_correlation_set")
   private Integer idCorrelationSet;
 
+  /**
+   * A correlation set belongs to a tenant
+   */
   @JsonIgnore
   @Column(name = "id_tenant")
   private Integer idTenant;
 
-  @Schema(description = "The correlation set is used for the recognition of the corresponding correlation matrix by the user.")
+  @Schema(description = "The name of the correlation set. This must be unique together with the ID Tenant.")
   @Basic(optional = false)
   @NotNull
   @Size(min = 1, max = 25)
@@ -62,6 +66,7 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @Column(name = "name")
   private String name;
 
+  @Schema(description = "User comments on this correlation set.")
   @Column(name = "note")
   @Size(max = BaseConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
@@ -96,6 +101,7 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @PropertyAlwaysUpdatable
   private boolean adjustCurrency;
 
+  @Schema(description = "Contains the instruments of correlation")
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JoinTable(name = TABNAME_CORRELATION_INSTRUMENT, joinColumns = {
       @JoinColumn(name = "id_correlation_set", referencedColumnName = "id_correlation_set") }, inverseJoinColumns = {
@@ -227,7 +233,6 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   }
 
   public void validateBeforeSave() {
-
     switch (getSamplingPeriod()) {
     case DAILY_RETURNS:
       validateAgainstAllowedPeriodDefinition(GlobalConstants.CORR_DAILY);
@@ -247,7 +252,6 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
       }
       this.rolling = null;
     }
-
   }
 
   private void validateAgainstAllowedPeriodDefinition(String stepMinMaxDefinition) {

@@ -6,6 +6,7 @@ import {MenuItem} from 'primeng/api';
 
 /**
  * Test for Wizard - NOT used yet.
+ * Project: Grafioschtrader
  */
 @Component({
     selector: 'algo-strategy-create-wizard',

@@ -9,6 +9,7 @@ import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
 import grafioschtrader.types.HistoryquotePeriodCreateType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,9 +18,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+@Schema(description = """
+There is no price data for certain securities. GT needs prices for all
+securities to calculate performance. These prices can therefore be entered
+manually. Initial prices are entered by the system, for example for a
+fixed-term deposit that does not change its price.""")
 @Entity
 @Table(name = HistoryquotePeriod.TABNAME)
-public class HistoryquotePeriod extends BaseID implements Serializable {
+public class HistoryquotePeriod extends BaseID<Integer> implements Serializable {
 
   public static final String TABNAME = "historyquote_period";
 
@@ -30,24 +36,29 @@ public class HistoryquotePeriod extends BaseID implements Serializable {
   @Column(name = "id_historyquote_period")
   private Integer idHistoryquotePeriod;
 
+  @Schema(description = "ID Security")
   @Column(name = "id_securitycurrency")
   private Integer idSecuritycurrency;
 
+  @Schema(description = "Start date of the price period")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Basic(optional = false)
   @Column(name = "from_date")
   @PropertyAlwaysUpdatable
   private LocalDate fromDate;
 
+  @Schema(description = "End date of the price period. For the most recent period, this date can also be NULL.")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "to_date")
   @PropertyAlwaysUpdatable
   private LocalDate toDate;
 
+  @Schema(description = "Price for the period")
   @Column(name = "price")
   @PropertyAlwaysUpdatable
   private double price;
 
+  @Schema(description = "Enum is used. 0: System created, 1: User created")
   @Column(name = "create_type")
   private byte createType;
 

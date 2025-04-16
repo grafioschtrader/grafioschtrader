@@ -54,7 +54,7 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
       hisoricalDate.add(new SecurityHistoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "CAC.PA",
           GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4011, "2008-01-02", "2023-08-31"));
       hisoricalDate.add(new SecurityHistoricalDate("iShares SMIM ETF (CH)", SpecialInvestmentInstruments.ETF,
-          "CSSMIM.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4708, "2004-12-09", "2023-08-31"));
+          "CSSMIM.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4705, "2004-12-09", "2023-08-31"));
       hisoricalDate.add(new SecurityHistoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "ZGLD.SW",
           GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4206, "2006-03-15", "2023-08-31"));
       hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,

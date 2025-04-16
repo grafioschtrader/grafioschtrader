@@ -20,6 +20,8 @@ import grafiosch.entities.Role;
 import grafiosch.repository.ProposeUserTaskJpaRepository;
 import grafiosch.rest.RequestMappings;
 import grafiosch.security.SecurityConfig;
+import grafiosch.security.filter.StatelessAuthenticationFilter;
+import grafiosch.security.filter.StatelessLoginFilter;
 import grafiosch.service.UserService;
 import grafioschtrader.rest.RequestGTMappings;
 import grafioschtrader.security.TokenAuthenticationService;

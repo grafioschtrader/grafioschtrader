@@ -15,7 +15,7 @@ public class CopyTradingDaysFromSourceToTarget {
   }
 
   public CopyTradingDaysFromSourceToTarget(int sourceIdStockexchange, int targetIdStockexchange,
-      @Min(2000) int returnOrCopyYear, boolean fullCopy) {
+      @Min(GlobalConstants.OLDEST_TRADING_YEAR) int returnOrCopyYear, boolean fullCopy) {
     super();
     this.sourceIdStockexchange = sourceIdStockexchange;
     this.targetIdStockexchange = targetIdStockexchange;

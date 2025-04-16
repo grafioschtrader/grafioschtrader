@@ -47,7 +47,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.groups.Default;
 
-@Schema(description = "Contains a user of this GT instances")
+@Schema(description = "Contains a user of this framework. The user can have different roles.")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Entity
 @Table(name = User.TABNAME, uniqueConstraints = @UniqueConstraint(columnNames = { "email" }))
@@ -65,6 +65,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Column(name = "id_user")
   private Integer idUser;
 
+  @Schema(description = "Contains the user's e-mail address. Is also used as a login name")
   @NotNull
   @Size(min = 4, max = 255)
   @PropertyOnlyCreation
@@ -72,6 +73,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Pattern(regexp = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
   private String email;
 
+  @Schema(description = "Contains the encrypted password")
   @NotNull(groups = { PropertyChangePassword.class })
   @PropertyChangePassword
   @Column(name = "password")
@@ -81,23 +83,28 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Null(groups = { AdminModify.class })
   private String password;
 
+  @Schema(description = "Contains the nickname. Could possibly be used as a name for other users of this instance. This must be unambiguous.")
   @NotNull
   @Size(min = 2, max = 30)
   @PropertyAlwaysUpdatable
   private String nickname;
 
+  @Schema(description = "Contains the user's roles. The function of these roles must be consistent with Spring Security.")
   @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(name = TABNAME_USER_ROLE, joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_role", referencedColumnName = "id_role"))
   private Collection<Role> roles;
 
+  @Schema(description = "The time-limited exception limits for CUD operations of certain information classes. ")
   @JoinColumn(name = "id_user")
   @OneToMany(fetch = FetchType.LAZY)
   private List<UserEntityChangeLimit> userEntityChangeLimitList;
 
+  @Schema(description = "Tenant reference")
   @Column(name = "id_tenant")
   private Integer idTenant;
 
+  @Schema(description = "Can a user log on to this application?")
   @Column(name = "enabled")
   @PropertyAlwaysUpdatable
   private boolean enabled;
@@ -109,18 +116,22 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @PropertyAlwaysUpdatable
   private String localeStr;
 
+  @Schema(description = "This framework uses the UTC time zone. Contains the deviation in minutes compared to UTC, can therefore also be minus.")
   @Column(name = "timezone_offset")
   @PropertyAlwaysUpdatable
   private Integer timezoneOffset;
 
+  @Schema(description = "Counts violations of the data limit or access to third-party data.")
   @Column(name = "security_breach_count")
   @PropertyAlwaysUpdatable
   private short securityBreachCount;
 
+  @Schema(description = "Counts the number of violations that exceeds the number of requests in one or more time units.")
   @Column(name = "limit_request_exceed_count")
   @PropertyAlwaysUpdatable
   private short limitRequestExceedCount;
 
+  @Schema(description = "When was the user's role last changed? Is used for the message or mail system of this framework.")
   @JsonIgnore
   @Column(name = "last_role_modified_time")
   private Date lastRoleModifiedTime;
@@ -130,6 +141,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @PropertyAlwaysUpdatable
   private boolean uiShowMyProperty;
 
+  @Schema(description = "Contains the user role with the most extensive rights.")
   @Transient
   @PropertyAlwaysUpdatable
   private String mostPrivilegedRole;
@@ -137,6 +149,11 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Transient
   private Map<String, Role> roleMap;
 
+  @Schema(description = """
+Not used yet. Designed for the future: 
+- A portfolio is simulated and would have to be linked to another tenant ID. 
+  Only then could the result of this simulation be viewed in full.
+- An additional table would be created containing the permission to view a tenant.""")
   @Transient
   private Integer actualIdTenant;
 

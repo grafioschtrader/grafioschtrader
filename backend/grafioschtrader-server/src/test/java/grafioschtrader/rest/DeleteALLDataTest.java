@@ -30,11 +30,11 @@ import org.springframework.http.ResponseEntity;
 import grafiosch.entities.BaseID;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
 import grafiosch.repository.UserEntityChangeLimitJpaRepository;
+import grafiosch.security.JwtTokenHandler;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 
 @TestMethodOrder(OrderAnnotation.class)
@@ -87,7 +87,7 @@ class DeleteALLDataTest {
   @MethodSource("resoureClass")
   @Order(3)
   @DisplayName("Admin user deletes all data of most entities")
-  <T extends BaseID> void deleteAllEntities(String resourceMap, final Class<T> clazz,
+  <T extends BaseID<Integer>> void deleteAllEntities(String resourceMap, final Class<T> clazz,
       JpaRepository<?, ?> jpaRepository) {
 
     if (jpaRepository == null) {
@@ -98,7 +98,7 @@ class DeleteALLDataTest {
           ParameterizedTypeReference.forType(ResolvableType.forClassWithGenerics(List.class, clazz).getType()));
       // Delete every single entity
       for (T baseID : response.getBody()) {
-        String entityUrl = RestTestHelper.createURLWithPort(resourceMap + "/", port) + ((BaseID) baseID).getId();
+        String entityUrl = RestTestHelper.createURLWithPort(resourceMap + "/", port) + ((BaseID<Integer>) baseID).getId();
         restTemplate.exchange(entityUrl, HttpMethod.DELETE, RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null),
             BaseID.class);
       }

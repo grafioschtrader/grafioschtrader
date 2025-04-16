@@ -18,6 +18,7 @@ import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.h
 /**
  * Displays the parameters of a selected strategy.
  * A strategy can consist of different parameters, therefore the output is created dynamically from a map.
+ * Project: Grafioschtrader
  */
 @Component({
     selector: 'strategy-detail',

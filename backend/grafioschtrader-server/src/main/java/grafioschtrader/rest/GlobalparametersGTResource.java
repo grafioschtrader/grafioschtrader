@@ -32,17 +32,21 @@ public class GlobalparametersGTResource {
   @Autowired
   private GlobalparametersService globalparametersService;
   
+  @Operation(summary = "Return waiting time in seconds before the next intraday price query of the watch list", description = "", tags = {
+      Globalparameters.TABNAME })
   @GetMapping(value = "/updatetimeout", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Integer> getIntraUpdateQuotesTimeoutSeconds() {
     return new ResponseEntity<>(globalparametersService.getWatchlistIntradayUpdateTimeout(), HttpStatus.OK);
   }
-
+    
+  @Operation(summary = "Return start date of historical data", description = "", tags = {
+      Globalparameters.TABNAME })
   @GetMapping(value = "/startfeeddate", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Date> getStartFeedDate() throws ParseException {
     return new ResponseEntity<>(globalparametersService.getStartFeedDate(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns the possible currencies as it can be used in html option", description = "", tags = {
+  @Operation(summary = "Returns the possible currencies as it can be used in HTML option", description = "", tags = {
       Globalparameters.TABNAME })
   @GetMapping(value = "/currencies", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCurrencies() {

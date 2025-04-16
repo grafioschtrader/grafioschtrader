@@ -17,6 +17,9 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 
+/**
+ * Project: Grafioschtrader
+ */
 @Component({
     selector: 'algo-security-edit',
     template: `

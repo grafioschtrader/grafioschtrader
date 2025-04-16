@@ -21,14 +21,6 @@ import jakarta.persistence.PersistenceContext;
 
 public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
 
-  /**
-   * Which entities can be extended with user-defined fields? Some entities has a
-   * specific implementation and is not listed here.
-   */
-  public static final List<Class<?>> UDF_GENERAL_ENTITIES = new ArrayList<>();
-    
-  public static List<Class<?>> UDF_GENERAl_AND_SPECIAL_ENTITIES = new ArrayList<>();
-  
   @PersistenceContext
   private EntityManager entityManager;
 
@@ -62,7 +54,7 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
    * @param user
    */
   private void checkEntityAndObject(UDFData udfData, User user) {
-    Optional<Class<?>> foundClass = UDF_GENERAl_AND_SPECIAL_ENTITIES.stream()
+    Optional<Class<?>> foundClass = UDFData.UDF_GENERAl_AND_SPECIAL_ENTITIES.stream()
         .filter(c -> c.getSimpleName().equals(udfData.getuDFDataKey().getEntity())).findFirst();
     if (foundClass.isPresent()) {
       Object uDFSupport = entityManager.getReference(foundClass.get(), udfData.getuDFDataKey().getIdEntity());

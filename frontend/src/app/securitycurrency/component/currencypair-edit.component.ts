@@ -121,9 +121,9 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   protected loadHelperData(): void {
     this.hideVisibleFeedConnectorsFields(this.connectorPriceFieldConfig, false, FeedIdentifier.CURRENCY);
     const observableCurrencies: Observable<ValueKeyHtmlSelectOptions[]> = this.gpsGT.getCurrencies();
-    const observalbeFeedConnectors: Observable<IFeedConnector[]> = this.currencypairService.getFeedConnectors();
-    const observalbeAllCurrencypairs: Observable<Currencypair[]> = this.currencypairService.getAllCurrencypairs();
-    combineLatest([observableCurrencies, observalbeFeedConnectors, observalbeAllCurrencypairs])
+    const observableFeedConnectors: Observable<IFeedConnector[]> = this.currencypairService.getFeedConnectors();
+    const observableAllCurrencypairs: Observable<Currencypair[]> = this.currencypairService.getAllCurrencypairs();
+    combineLatest([observableCurrencies, observableFeedConnectors, observableAllCurrencypairs])
       .subscribe(data => {
         this.configObject.fromCurrency.valueKeyHtmlOptions = data[0];
         this.prepareFeedConnectors(data[1], true);

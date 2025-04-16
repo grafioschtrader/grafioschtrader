@@ -36,6 +36,8 @@ public class HoldingResource {
   @Autowired
   private PerformanceReport performanceReport;
 
+  @Operation(summary = "Return of certain dates, which are used by the user to narrow down the period earnings reports.", description = "", tags = {
+      RequestGTMappings.HOLDING })
   @GetMapping(value = "/getdatesforform", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<FirstAndMissingTradingDays> getFirstAndMissingTradingDays(
       @RequestParam(required = false) final Integer idPortfolio) throws InterruptedException, ExecutionException {
@@ -47,6 +49,8 @@ public class HoldingResource {
     }
   }
 
+  @Operation(summary = "Return of the period income report according to time period and period breakdown.", description = "", tags = {
+      RequestGTMappings.HOLDING })
   @GetMapping(value = "/{dateFrom}/{dateTo}/{periodSplit}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<PerformancePeriod> getPeriodPerformance(
       @PathVariable() @DateTimeFormat(iso = ISO.DATE) final LocalDate dateFrom,

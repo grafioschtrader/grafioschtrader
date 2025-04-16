@@ -18,7 +18,7 @@ import jakarta.validation.Valid;
  *
  * @param <T>
  */
-public abstract class UpdateCreateResource<T extends BaseID> extends UpdateCreate<T> {
+public abstract class UpdateCreateResource<T extends BaseID<Integer>> extends UpdateCreate<T> {
 
   /**
    * Request for a new entity. The new URI-location of the created record is not

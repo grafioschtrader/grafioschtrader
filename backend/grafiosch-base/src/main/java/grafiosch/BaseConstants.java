@@ -7,7 +7,7 @@ import java.util.Map;
 
 import grafiosch.types.UDFDataType;
 
-public class BaseConstants {
+public abstract class BaseConstants {
 
   // TODO This should be in GT Artifacts
   public static final String GT_PREFIX = "gt.";
@@ -126,5 +126,19 @@ public class BaseConstants {
    * blocked. The IP address is taken.
    */
   public static final int MAX_LOGIN_ATTEMPT = 5;
+
+  /**
+   * Maximum tokens that can be held per bucket in one minute.
+   */
+  public static final int BANDWITH_MINUTE_BUCKET_SIZE = 30;
+
+  /**
+   * Number of tokens regenerated in one minute per bucket.
+   */
+  public static final int BANDWITH_MINUTE_REFILL = 30;
+
+  public static final int BANDWITH_HOOUR_BUCKET_SIZE = 300;
+
+  public static final int BANDWITH_HOUR_REFILL = 300;
 
 }

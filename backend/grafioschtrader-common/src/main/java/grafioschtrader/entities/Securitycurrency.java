@@ -43,7 +43,6 @@ import jakarta.validation.constraints.Size;
 /**
  * It is not mapped to transaction, because the right way goes from
  * Securityaccount -> Transaction -> Security.
- *
  */
 @Entity
 @Table(name = Securitycurrency.TABNAME)
@@ -77,6 +76,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @Column(name = "full_load_timestamp")
   protected Date fullLoadTimestamp;
 
+  @Schema(description = "This is the reference to the corresponding connector of the intraday price data.")
   @Column(name = "id_connector_intra")
   @PropertyAlwaysUpdatable
   protected String idConnectorIntra;
@@ -91,16 +91,23 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @PropertyAlwaysUpdatable
   protected Short retryIntraLoad = 0;
 
+  @Schema(title = """
+      The URL with access to the historical data differs for each security. 
+      Therefore, depending on the data source, additional information must be provided for the creation of the URL.""")
   @Column(name = "url_history_extend")
   @Size(min = 1, max = 254)
   @PropertyAlwaysUpdatable
   private String urlHistoryExtend;
 
+  @Schema(title = """
+      The URL with access to the intraday data differs for each security.
+      Therefore, depending on the data source, additional information must be provided for the creation of the URL.""")
   @Column(name = "url_intra_extend")
   @Size(min = 1, max = 254)
   @PropertyAlwaysUpdatable
   private String urlIntraExtend;
 
+  @Schema(description = "Link to trading exchange, probably not needed for currency pairs. But possibly for cryptocurrency pairs.")
   @Column(name = "stockexchange_link")
   @PropertyAlwaysUpdatable
   @Size(max = BaseConstants.FIELD_SIZE_MAX_G_WEB_URL)
@@ -110,9 +117,14 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   // @Max(value=?) @Min(value=?)//if you know range of your decimal fields
   // consider using these annotations to enforce
   // field validation
+  @Schema(description = "Last closing price of the previous trading day. But can also be on the “after hours” price.")
   @Column(name = "s_prev_close")
   protected Double sPrevClose;
 
+  @Schema(title = """
+      The percentage daily change in shares is usually calculated on the basis 
+      of the last closing price of the previous trading day. However, it can also 
+      be based on the after-hours price or the opening price.""")
   @Column(name = "s_change_percentage")
   protected Double sChangePercentage;
 

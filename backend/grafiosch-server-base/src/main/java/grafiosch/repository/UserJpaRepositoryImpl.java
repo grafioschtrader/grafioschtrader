@@ -35,7 +35,7 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
   private UserJpaRepository userJpaRepository;
 
   @Autowired
-  RoleJpaRepository roleJpaRepository;
+  private RoleJpaRepository roleJpaRepository;
 
   @Autowired
   private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;

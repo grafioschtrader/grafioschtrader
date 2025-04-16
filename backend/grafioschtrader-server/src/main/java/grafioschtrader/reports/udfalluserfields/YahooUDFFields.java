@@ -30,6 +30,7 @@ import grafiosch.BaseConstants;
 import grafiosch.entities.UDFData;
 import grafiosch.entities.UDFData.UDFDataKey;
 import grafiosch.types.IUDFSpecialType;
+import grafiosch.udfalluserfields.UDFFieldsHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.yahoo.CrumbManager;
@@ -46,7 +47,7 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Refill;
 
-public abstract class YahooUDFFields extends AllUserFieldsBase {
+public abstract class YahooUDFFields extends AllUserFieldsSecurity {
 
   private static final Logger log = LoggerFactory.getLogger(YahooUDFFields.class);
 
@@ -109,7 +110,8 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
   private void createWhenNotExistsYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
       UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository,
       boolean recreate) {
-    Object value = readValueFromUser0(udfMetaDataSecurity, security.getIdSecuritycurrency());
+    Object value = UDFFieldsHelper.readValueFromUser0(udfMetaDataSecurity, uDFDataJpaRepository, Security.class,
+        security.getIdSecuritycurrency());
     if (value == null || recreate
         || (udfMetaDataSecurity.getUdfSpecialType() == UDFSpecialGTType.UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE
             && LocalDateTime.now().isAfter((LocalDateTime) value))) {
@@ -175,7 +177,8 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
       Optional<UDFData> udfDataSymbolOpt = uDFDataJpaRepository.findById(
           new UDFDataKey(BaseConstants.UDF_ID_USER, Security.class.getSimpleName(), security.getIdSecuritycurrency()));
       if (udfDataSymbolOpt.isPresent()) {
-        yahooSymbol = (String) readValueFromUser0(udfMDSYahooSymbol, security.getIdSecuritycurrency());
+        yahooSymbol = (String) UDFFieldsHelper.readValueFromUser0(udfMDSYahooSymbol, uDFDataJpaRepository,
+            Security.class, security.getIdSecuritycurrency());
       }
       if (yahooSymbol == null || recreate) {
         yahooSymbol = CACHE_SYMBOL.get(security.getIdSecuritycurrency());
@@ -189,7 +192,8 @@ public abstract class YahooUDFFields extends AllUserFieldsBase {
                 security.getStockexchange().getMic(), security.getIsin(), security.getTickerSymbol(),
                 security.getName());
           }
-          writeValueToUser0(udfMDSYahooSymbol, security.getIdSecuritycurrency(), yahooSymbol);
+          UDFFieldsHelper.writeValueToUser0(udfMDSYahooSymbol, uDFDataJpaRepository, security.getClass(),
+              security.getIdSecuritycurrency(), yahooSymbol);
           CACHE_SYMBOL.put(security.getIdSecuritycurrency(), yahooSymbol);
         }
       }
