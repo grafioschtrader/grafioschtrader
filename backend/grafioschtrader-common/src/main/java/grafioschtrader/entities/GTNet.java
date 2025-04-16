@@ -19,7 +19,7 @@ import jakarta.validation.constraints.Size;
 @Entity
 @Table(name = GTNet.TABNAME)
 @Schema(description = "Contains the domain configuration for the GT-Network")
-public class GTNet extends BaseID {
+public class GTNet extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net";
 

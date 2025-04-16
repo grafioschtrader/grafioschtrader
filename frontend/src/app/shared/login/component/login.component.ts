@@ -144,7 +144,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 }
 
-export interface ConfigurationWithLogin {
+export interface ConfigurationWithLoginGT {
   useFeatures: FeatureType[];
   entityNameWithKeyNameList: EntityNameWithKeyName[];
   cryptocurrencies: string[];

@@ -20,19 +20,20 @@ import jakarta.validation.constraints.Size;
 Describes the roles of a user. The user can have multiple roles.
 Each user belongs to 'LIMIT_EDIT' or to 'USER'. For 'LIMIT_EDIT' the user can have only this role.
 For the 'USER' role, the more privileged roles are added.""")
-
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Entity
 @Table(name = Role.TABNAME)
-public class Role extends BaseID implements Serializable {
+public class Role extends BaseID<Integer> implements Serializable {
 
   public static final String TABNAME = "role";
 
+  // The access restrictions in Spring Security are defined without the prefix “ROLE_”.
   public static final String ADMIN = "ADMIN";
   public static final String ALL_EDIT = "ALLEDIT";
   public static final String USER = "USER";
   public static final String LIMIT_EDIT = "LIMITEDIT";
 
+  // Spring recognizes roles based on the prefix "ROLE_"
   public static final String ROLE = "ROLE_";
   public static final String ROLE_ADMIN = ROLE + ADMIN;
   public static final String ROLE_ALL_EDIT = ROLE + ALL_EDIT;
@@ -41,12 +42,14 @@ public class Role extends BaseID implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "ID of the role.")
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
   @Column(name = "id_role")
   private Integer idRole;
 
+  @Schema(description = "The role with the prefix “ROLE_”.")
   @NotNull
   @Size(max = 50)
   @Column(name = "rolename", length = 50)

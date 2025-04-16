@@ -17,10 +17,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
+@Schema(description = "Contains the base data of a security or cash account")
 @Entity
 @Table(name = Cashaccount.TABNAME)
 @DiscriminatorValue("C")
-@Schema(description = "Contains the base data of a security or cash account")
 public class Cashaccount extends Securitycashaccount implements Serializable {
 
   public static final String TABNAME = "cashaccount";

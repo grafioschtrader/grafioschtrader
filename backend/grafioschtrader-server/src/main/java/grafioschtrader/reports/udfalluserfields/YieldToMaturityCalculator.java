@@ -15,7 +15,7 @@ import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
 import grafioschtrader.types.UDFSpecialGTType;
 
 @Service
-public class YieldToMaturityCalculator extends AllUserFieldsBase implements IUDFForEveryUser {
+public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements IUDFForEveryUser {
   
   @Override
   public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, boolean recreate) {

@@ -23,12 +23,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = """
+An instance corresponds to an input or output field.  A meta description is required for the user defined fields.
+This is the general description of this metadata.""")
 @Entity
 @Table(name = UDFMetadata.TABNAME)
 @Inheritance(strategy = JOINED)
-@Schema(description = """
-    An instance corresponds to an input or output field.  A meta description is required for the user defined fields.
-    This is the general description of this metadata.""")
 public abstract class UDFMetadata extends UserBaseID {
 
   public static final String TABNAME = "udf_metadata";

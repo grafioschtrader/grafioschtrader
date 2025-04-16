@@ -33,9 +33,6 @@ public class ViennaStockExchangeFeedConnectorTest extends BaseFeedConnectorCheck
       hisoricalDate
           .add(new SecurityHistoricalDate("ANDRITZ AG", "AT0000730007", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
               AssetclassType.EQUITIES, "740752", null, 5363, "2001-06-25", "2023-01-11"));
-      hisoricalDate.add(new SecurityHistoricalDate("3 Banken Anleihefonds-Selektion", "AT0000A1LFF3",
-          SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, AssetclassType.EQUITIES, "162838966", null, 1543,
-          "2016-07-06", "2023-01-09"));
       hisoricalDate.add(new SecurityHistoricalDate("3 Banken Anleihefonds-Selektion", "AT0000744594",
           SpecialInvestmentInstruments.MUTUAL_FUND, AssetclassType.FIXED_INCOME, "8595610", null, 3755, "2004-11-04",
           "2023-01-09"));

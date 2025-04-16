@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
-import grafioschtrader.security.JwtTokenHandler;
+import grafiosch.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 
 @TestMethodOrder(OrderAnnotation.class)

@@ -24,8 +24,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
 import grafiosch.entities.ProposeChangeField;
+import grafiosch.security.JwtTokenHandler;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;

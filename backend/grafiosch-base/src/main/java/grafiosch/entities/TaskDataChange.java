@@ -22,10 +22,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = "Entity that contains the information for background processing")
 @Entity
 @Table(name = TaskDataChange.TABNAME)
-@Schema(description = "Entity that contains the information for background processing")
-public class TaskDataChange extends BaseID {
+public class TaskDataChange extends BaseID<Integer> {
   public static final String TABNAME = "task_data_change";
   public static final int MAX_SIZE_FAILED_STRACK_TRACE = 4096;
 

@@ -65,8 +65,6 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
     return new ResponseEntity<>(assetclassJpaRepository.assetclassHasSecurity(idAssetClass) > 0, HttpStatus.OK);
   }
 
-
-
   @Operation(summary = "Return of all investable asset classes used in a specific watchlist. CFD is excluded.", description = "", tags = {
       Assetclass.TABNAME })
   @GetMapping(value = "/watchlist/{idWatchlist}", produces = APPLICATION_JSON_VALUE)

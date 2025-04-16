@@ -42,6 +42,10 @@ import grafioschtrader.entities.Historyquote;
  * possible that the provider does not supply any data for one or all of these
  * requests due to its load.
  *
+ * This provider only wants to answer a few requests in a certain time period.
+ * Unfortunately, the attempt with Bucket did not bring any improvement, so
+ * these are commented out.
+ *
  * No regex pattern is used, as the user cannot make an entry regarding the URL
  * extension. However, the presence of the currency pair is checked.
  */
@@ -59,8 +63,12 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
     supportedFeed.put(FeedSupport.FS_HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
   }
 
+ // private final Bucket bucket;
+
   public FxUbcFeedConnector() {
     super(supportedFeed, "fxubc", "Pacific Exchange Rate Service", null, EnumSet.of(UrlCheck.HISTORY));
+    // Bandwidth limit = Bandwidth.classic(1, Refill.intervally(1, Duration.ofSeconds(4)));
+    // this.bucket = Bucket.builder().addLimit(limit).build();
   }
 
   @Override
@@ -81,6 +89,7 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
     final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd"); //$NON-NLS-1$
     fromDate.setTime(from);
     toDate.setTime(to);
+    // waitForTokenOrGo(bucket);
 
     Calendar startDate = (Calendar) toDate.clone();
     int againstLoseDataCounter = 0;
@@ -164,10 +173,10 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
 
     while ((inputLine = in.readLine()) != null) {
       i++;
-      if(i == 4 && inputLine.contains("Server is too busy.")) {
+      if (i == 4 && inputLine.contains("Server is too busy.")) {
         throw new IOException("Server is too busy");
       }
-      
+
       if (inputLine.startsWith("&quot;")) {
         continue;
       }
@@ -191,5 +200,5 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
     }
     return historyquotes;
   }
-   
+
 }

@@ -39,7 +39,6 @@ import grafioschtrader.entities.Security;
  *
  */
 @Component
-@ConfigurationProperties(prefix = "gt.connector.alphavantage")
 public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
 
   private static final String ALPHAVANTAGE_BASE = "https://www.alphavantage.co/query?function=";

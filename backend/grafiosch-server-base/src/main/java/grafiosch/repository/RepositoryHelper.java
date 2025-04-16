@@ -14,7 +14,7 @@ public class RepositoryHelper {
 
   @Transactional
   @Modifying
-  public static <T extends BaseID> T saveOnlyAttributes(final JpaRepository<T, Integer> jpaRepository, final T entity,
+  public static <T extends BaseID<Integer>> T saveOnlyAttributes(final JpaRepository<T, Integer> jpaRepository, final T entity,
       final T existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     if (existingEntity != null) {
       DataHelper.updateEntityWithUpdatable(entity, existingEntity, updatePropertyLevelClasses);

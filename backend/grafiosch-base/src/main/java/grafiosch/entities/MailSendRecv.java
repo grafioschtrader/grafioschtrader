@@ -22,11 +22,14 @@ import jakarta.validation.constraints.Size;
 /**
  * Base class for mailing system. Mail also supports M2M on GT. Attention the
  * ID's of the role must be the same on all GT instances.
- *
  */
+@Schema(description="""
+Base class for mailing system. Mail also supports M2M on GT. Attention the
+ID's of the role must be the same on all GT instances.
+""")
 @Entity
 @Table(name = MailSendRecv.TABNAME)
-public class MailSendRecv extends BaseID {
+public class MailSendRecv extends BaseID<Integer> {
 
   public static final String TABNAME = "mail_send_recv";
   public static final int MAX_TEXT_LENGTH = 4096;

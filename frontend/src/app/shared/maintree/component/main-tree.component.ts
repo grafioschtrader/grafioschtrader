@@ -18,7 +18,7 @@ import {MessageToastService} from '../../message/message.toast.service';
 import {Securityaccount} from '../../../entities/securityaccount';
 import {SecurityaccountService} from '../../../securityaccount/service/securityaccount.service';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import {TenantService} from '../../../tenant/service/tenant.service';
+import {TenantService} from '../../../lib/tenant/service/tenant.service';
 import {combineLatest, Subscription} from 'rxjs';
 import {WatchlistService} from '../../../watchlist/service/watchlist.service';
 import {Watchlist} from '../../../entities/watchlist';

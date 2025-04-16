@@ -12,7 +12,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "For the period performance report, certain dates are required for the date selection by the user.")
 public class FirstAndMissingTradingDays {
   public final int maxWeekLimit = GlobalConstants.PERFORMANCE_MAX_WEEK_LIMIT;
   public final int minIncludeMonthLimit = GlobalConstants.PERFORMANCE_MIN_INCLUDE_MONTH_LIMIT;
@@ -26,6 +28,8 @@ public class FirstAndMissingTradingDays {
   public final LocalDate secondLatestTradingDay;
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate latestTradingDay;
+  
+  @Schema(description = "Most recent date for which the data is complete")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate leatestPossibleTradingDay;
 

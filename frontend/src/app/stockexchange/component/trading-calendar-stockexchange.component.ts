@@ -194,7 +194,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   /**
-   * Prepare mark ever day of year but saturday and sunday
+   * Prepare mark every day of year but saturday and sunday
    */
   private markWorkingDaysOfFullYear(): void {
     const startDate = new Date(this.yearCalendarData.year, 0, 1);

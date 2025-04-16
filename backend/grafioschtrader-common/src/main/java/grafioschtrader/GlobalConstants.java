@@ -16,6 +16,7 @@ public class GlobalConstants extends BaseConstants {
   public static final String STOCK_EX_MIC_JAPAN = "XTKS";
   public static final String STOCK_EX_MIC_AUSTRIA = "XVIE";
   public static final String STOCK_EX_MIC_FRANCE = "XPAR";
+  public static final String STOCK_EX_MIC_AUSTRALIA = "XASX";
 
   public static final String STOCK_EX_MIC_ZKB = "ZKBX";
   public static final String STOCK_EX_MIC_STUTTGART = "XSTU";
@@ -26,6 +27,7 @@ public class GlobalConstants extends BaseConstants {
   public static final String MC_GBP = "GBP";
   public static final String MC_JPY = "JPY";
   public static final String MC_CHF = "CHF";
+  public static final String MC_AUD = "AUD";
 
   public static final String CC_BTC = "BTC";
 
@@ -76,9 +78,22 @@ public class GlobalConstants extends BaseConstants {
 
   public static final String SHORT_STANDARD_DATE_FORMAT = "yyyyMMdd";
   public static final String STARNDARD_LOCAL_TIME = "HH:mm";
-  public static final String OLDEST_TRADING_DAY = "2000-01-01";
+  /**
+   * GT supports back to this year, the entries of transactions and prices of
+   * securities.
+   */
   public static final int OLDEST_TRADING_YEAR = 2000;
-  public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2025-12-31";
+  /**
+   * GT supports back to this date, the entries of transactions and prices of
+   * securities.
+   */
+  public static final String OLDEST_TRADING_DAY = OLDEST_TRADING_YEAR + "-01-01";
+
+  /**
+   * The youngest trading day in the future. The trading calendar can be entered
+   * up to this date in the future.
+   */
+  public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2028-12-31";
 
   /**
    * Sometimes the EOD of the currency pair is not yet updated, in this case the
@@ -105,7 +120,7 @@ public class GlobalConstants extends BaseConstants {
   public static final int DIVIDEND_FREQUENCY_PLUS_DAY = 10;
 
   /**
-   * Earliest Day for the next dividend check, but the combination of frequency
+   * Earliest day for the next dividend check, but the combination of frequency
    * and this value control the date of next possible check.
    */
   public static final int DIVIDEND_FROM_NOW_FOR_NEXT_CHECK_IN_DAYS = 8;
@@ -131,8 +146,6 @@ public class GlobalConstants extends BaseConstants {
    */
   public static final List<String> CRYPTO_CURRENCY_SUPPORTED = List.of(CC_BTC, "BNB", "ETH", "ETC", "LTC", "XRP");
 
-  
-
   public static final double DETECT_SPLIT_ADJUSTED_FACTOR_STEP = 18.0;
   public static final int SPLIT_DAYS_LOOK_BACK_END_DATE_BEFORE_SPLIT = 30;
   public static final int SPLIT_DAYS_LOCK_BACK_START_DATE = SPLIT_DAYS_LOOK_BACK_END_DATE_BEFORE_SPLIT + 7;
@@ -145,10 +158,6 @@ public class GlobalConstants extends BaseConstants {
    */
   public static final double MAX_DAYS_FOR_SECURITY_IS_REFLECTING_SPLIT = 5;
 
-  public static final int BANDWITH_MINUTE_BUCKET_SIZE = 30;
-  public static final int BANDWITH_MINUTE_REFILL = 30;
-  public static final int BANDWITH_HOOUR_BUCKET_SIZE = 300;
-  public static final int BANDWITH_HOUR_REFILL = 300;
   /**
    * User tries to access shared data outside its boundary. For example access
    * history quotes of a security or currency pair which has no context to the
@@ -166,5 +175,4 @@ public class GlobalConstants extends BaseConstants {
    */
   public static final String PREFIX_FOR_DOWNLOAD_REDIRECT_TO_BACKEND = "--";
 
- 
 }

@@ -120,7 +120,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     long endDay = DateHelper.getLocalDate(to).toEpochDay();
 
     final List<Historyquote> historyquotes = new ArrayList<>();
-    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(),
+    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 10).body(),
         HeaderEOD.class);
     for (QuoteTabEOD data : header.d.QuoteTab) {
       if (data.d >= startDay && data.d <= endDay) {

@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = GTNetDataExchange.TABNAME)
 @Schema(description = "Contains definition which data will be exchanged. It works only for existing data")
-public class GTNetDataExchange extends BaseID {
+public class GTNetDataExchange extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net_exchange";
 

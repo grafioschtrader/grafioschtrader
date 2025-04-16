@@ -12,9 +12,9 @@ import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
 import grafiosch.entities.User;
+import grafiosch.security.UserAuthentication;
 import grafioschtrader.reports.WatchlistReport;
-import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;
-import grafioschtrader.security.UserAuthentication;;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;;
 
 @Controller
 @ConditionalOnExpression("${gt.use.websocket:false}")

@@ -4,6 +4,9 @@ import {InputAndShowDefinitionStrategy} from '../model/input.and.show.definition
 import {AlgoTop} from '../model/algo.top';
 import {AlgoAssetclass} from '../model/algo.assetclass';
 
+/**
+ * Project: Grafioschtrader
+ */
 export class AlgoStrategyHelper {
 
   public static readonly FIELD_STRATEGY_IMPL = 'algoStrategyImplementations';

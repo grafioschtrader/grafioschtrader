@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 
  * @param <T>
  */
-public abstract class UpdateCreateDeleteAuditResource<T extends BaseID> extends UpdateCreateDeleteAudit<T> {
+public abstract class UpdateCreateDeleteAuditResource<T extends BaseID<Integer>> extends UpdateCreateDeleteAudit<T> {
 
   @Override
   protected abstract UpdateCreateJpaRepository<T> getUpdateCreateJpaRepository();

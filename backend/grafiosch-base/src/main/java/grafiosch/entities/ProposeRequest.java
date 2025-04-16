@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafiosch.types.ProposeDataChangeState;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -24,6 +25,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 
+/**
+ * 
+ */
 @Entity
 @Table(name = ProposeRequest.TABNAME)
 @Inheritance(strategy = JOINED)
@@ -40,17 +44,21 @@ public abstract class ProposeRequest extends Auditable {
   @Column(name = "id_propose_request")
   protected Integer idProposeRequest;
 
+  @Schema(description = "Name of the entity whose fields are affected by the change")
   @Column(name = "entity")
   protected String entity;
-
+  
+  @Schema(description = "The state of a propose data change.")
   @Basic(optional = false)
   @Column(name = "data_change_state")
   protected byte dataChangeState;
 
+  @Schema(description = "The reason for the change request")
   @Column(name = "note_request")
   @Size(max = BaseConstants.FID_MAX_LETTERS)
   protected String noteRequest;
 
+  @Schema(description = "The note of the accept or reject action")
   @Column(name = "note_accept_reject")
   @Size(max = BaseConstants.FID_MAX_LETTERS)
   protected String noteAcceptReject;
@@ -82,7 +90,7 @@ public abstract class ProposeRequest extends Auditable {
   public void setEntity(String entity) {
     this.entity = entity;
   }
-
+  
   public ProposeDataChangeState getDataChangeState() {
     return ProposeDataChangeState.getProposeDataChangeStateByValue(dataChangeState);
   }

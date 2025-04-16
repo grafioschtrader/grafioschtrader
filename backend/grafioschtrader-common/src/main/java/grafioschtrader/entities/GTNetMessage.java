@@ -34,7 +34,7 @@ import jakarta.persistence.TemporalType;
     Mininmal there will always be a message on the sender and the receiver.
     However, a message can be sent to several recipients, so the number of records on the sender
     depends on the number of recipients.""")
-public class GTNetMessage extends BaseID {
+public class GTNetMessage extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net_message";
   public static final String GT_NET_MESSAGE_PARAM = "gt_net_message_param";

@@ -31,9 +31,9 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
+@Schema(description = "Contains a single qoute for end of day data")
 @Entity
 @Table(name = Historyquote.TABNAME)
-@Schema(description = "Contains a single qoute for end of day data")
 public class Historyquote extends ProposeTransientTransfer implements Serializable {
 
   public static final String TABNAME = "historyquote";

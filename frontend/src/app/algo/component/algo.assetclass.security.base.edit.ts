@@ -14,6 +14,9 @@ import {AlgoAssetclassSecurity} from '../model/algo.assetclass.security';
 import {AlgoCallParam} from '../model/algo.dialog.visible';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 
+/**
+ * Project: Grafioschtrader
+ */
 @Directive()
 export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEditBase<T> {
   @Input() algoCallParam: AlgoCallParam;

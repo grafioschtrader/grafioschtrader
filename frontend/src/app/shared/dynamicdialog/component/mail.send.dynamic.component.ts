@@ -8,14 +8,14 @@ import {HelpIds} from '../../help/help.ids';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {MessageToastService} from '../../message/message.toast.service';
-import {MailSendRecvService} from '../../../mail/service/mail.send.recv.service';
+import {MailSendRecvService} from '../../../lib/mail/service/mail.send.recv.service';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {AppSettings} from '../../app.settings';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {MailSendRecv, ReplyToRolePrivateType} from '../../../mail/model/mail.send.recv';
+import {MailSendRecv, ReplyToRolePrivateType} from '../../../lib/mail/model/mail.send.recv';
 import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
 import {UserAdminService} from '../../../user/service/user.admin.service';
 

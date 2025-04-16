@@ -21,7 +21,7 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
   // =======================================
   @Test
   void getEodSecurityHistoryTest() {
-    getEodSecurityHistory(false);
+    getEodSecurityHistory(false, true);
   }
 
   @Test
@@ -33,6 +33,9 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
   protected List<SecurityHistoricalDate> getHistoricalSecurities() {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
+      hisoricalDate.add(new SecurityHistoricalDate("S&P/ASX All Ordinaries",
+          SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "^AORD", GlobalConstants.STOCK_EX_MIC_AUSTRALIA,
+          GlobalConstants.MC_AUD, 6392, "2000-01-04", "2025-04-11"));
       hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5926, "2000-01-03", "2023-07-24"));
       hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
@@ -42,25 +45,25 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
       hisoricalDate.add(new SecurityHistoricalDate("Nestlé S.A", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
           "NESN.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 5911, "2000-04-21", "2023-07-24"));
       hisoricalDate.add(new SecurityHistoricalDate("Tesco PLC", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-          "TSCO.L", GlobalConstants.STOCK_EX_MIC_UK, GlobalConstants.MC_GBP, 5999, "2000-01-03", "2023-07-24"));
+          "TSCO.L", GlobalConstants.STOCK_EX_MIC_UK, GlobalConstants.MC_GBP, 6000, "2000-01-03", "2023-07-24"));
       hisoricalDate.add(new SecurityHistoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "CAC.PA",
           GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 3982, "2008-01-02", "2023-07-24"));
       hisoricalDate.add(new SecurityHistoricalDate("UBSFund Solutions - CMCI Oil SF ETF",
           SpecialInvestmentInstruments.ETF, "OILUSA.SW", GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_USD,
           3282, "2010-06-15", "2023-07-24"));
-  
     } catch (ParseException pe) {
       pe.printStackTrace();
     }
     return hisoricalDate;
   }
 
+  
+
   // Currency pair price tests
   // =======================================
   @Test
   void getEodCurrencyHistoryTest() throws ParseException {
     getEodCurrencyHistory();
-
   }
 
   @Test

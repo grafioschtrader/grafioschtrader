@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import grafiosch.BaseConstants;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,9 +17,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+@Schema(description = """
+1. a verification token is created with the registration. 
+2. this verification token is sent to the user by e-mail as a link.
+3. this token must be verified with this link within a certain period of time.""")
 @Entity
 @Table(name = "verificationtoken")
-public class VerificationToken extends BaseID {
+public class VerificationToken extends BaseID<Integer> {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,10 +33,12 @@ public class VerificationToken extends BaseID {
 
   private String token;
 
+  @Schema(description = "The user to whom this token belongs")
   @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
   @JoinColumn(nullable = false, name = "id_user", foreignKey = @ForeignKey(name = "FK_Verify_User"))
   private User user;
 
+  @Schema(description = "The date and time when the token expires")
   @Column(name = "expiry_date")
   private Date expiryDate;
 

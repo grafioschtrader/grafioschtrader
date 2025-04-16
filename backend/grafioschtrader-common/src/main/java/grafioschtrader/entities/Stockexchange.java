@@ -43,19 +43,17 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- * Stock exchange
- */
 @Schema(description = "Contains a stock exchange")
 @Entity
 @Table(name = Stockexchange.TABNAME)
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Stockexchange extends Auditable implements Serializable {
+  public class Stockexchange extends Auditable implements Serializable {
 
   public static final String TABNAME = "stockexchange";
 
   private static final long serialVersionUID = 1L;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_stockexchange")
@@ -108,7 +106,6 @@ public class Stockexchange extends Auditable implements Serializable {
   @NotNull
   @PropertyAlwaysUpdatable
   private LocalTime timeClose;
-
 
   @Schema(description = "The time zone of this stock exchange")
   @Basic(optional = false)
@@ -325,15 +322,21 @@ public class Stockexchange extends Auditable implements Serializable {
     return hasPriceUpdate;
   }
 
+  @JsonIgnore
+  public int getTimeDifferenceFromUTCInSeconds() {
+    ZoneId zoneId = ZoneId.of(timeZone);
+    ZonedDateTime nowInZone = ZonedDateTime.now(zoneId);
+    ZoneOffset offset = nowInZone.getOffset();
+    return offset.getTotalSeconds();
+  }
+
   @Override
   public String toString() {
     return "Stockexchange [idStockexchange=" + idStockexchange + ", mic=" + mic + ", name=" + name + ", countryCode="
         + countryCode + ", noMarketValue=" + noMarketValue + ", secondaryMarket=" + secondaryMarket + ", timeOpen="
-        + timeOpen + ", timeClose=" + timeClose + ", MIC=" + mic + ", timeZone=" + timeZone
-        + ", idIndexUpdCalendar=" + idIndexUpdCalendar + ", lastDirectPriceUpdate=" + lastDirectPriceUpdate
-        + ", website=" + website + ", nameIndexUpdCalendar=" + nameIndexUpdCalendar + "]";
+        + timeOpen + ", timeClose=" + timeClose + ", MIC=" + mic + ", timeZone=" + timeZone + ", idIndexUpdCalendar="
+        + idIndexUpdCalendar + ", lastDirectPriceUpdate=" + lastDirectPriceUpdate + ", website=" + website
+        + ", nameIndexUpdCalendar=" + nameIndexUpdCalendar + "]";
   }
-
-
 
 }

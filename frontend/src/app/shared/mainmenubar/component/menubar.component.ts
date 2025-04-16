@@ -10,7 +10,7 @@ import {HelpIds} from '../../help/help.ids';
 import {Location} from '@angular/common';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import filesaver from '../../../shared/filesaver/filesaver';
-import {TenantService} from '../../../tenant/service/tenant.service';
+import {TenantService} from '../../../lib/tenant/service/tenant.service';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {UserSettingsDialogs} from './main.dialog.component';

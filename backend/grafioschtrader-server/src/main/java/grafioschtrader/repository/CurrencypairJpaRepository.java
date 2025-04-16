@@ -87,8 +87,11 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   @Query(nativeQuery = true)
   List<Currencypair> getCurrencypairInTransactionByPortfolioId(Integer idPortfolio, Integer idTenant);
 
+  /*
+  // NOT USED
   @Query(nativeQuery = true)
   List<Currencypair> getAllUsedCurrencypairs();
+  */
 
   @Query(nativeQuery = true)
   List<Integer> getAllIdOfEmptyHistorqute();

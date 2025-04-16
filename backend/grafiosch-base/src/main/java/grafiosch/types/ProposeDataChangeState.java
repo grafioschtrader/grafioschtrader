@@ -2,8 +2,16 @@ package grafiosch.types;
 
 import java.util.Arrays;
 
+/**
+ * The state of a propose data change.
+ */
 public enum ProposeDataChangeState {
-  OPEN((byte) 0), REJECT((byte) 1), ACCEPTED((byte) 2);
+  // The propose data change is open.
+  OPEN((byte) 0),
+  // The propose data change is rejected.
+  REJECT((byte) 1),
+  // The propose data change is accepted
+  ACCEPTED((byte) 2);
 
   private final Byte value;
 

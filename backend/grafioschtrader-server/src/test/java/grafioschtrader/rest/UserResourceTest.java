@@ -31,10 +31,10 @@ import grafiosch.repository.RoleJpaRepository;
 import grafiosch.repository.VerificationTokenJpaRepository;
 import grafiosch.rest.RequestMappings;
 import grafiosch.rest.UserResource;
+import grafiosch.security.JwtTokenHandler;
 import grafiosch.types.TenantKindType;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.rest.RestTestHelper.UserRegister;
-import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 
 @TestMethodOrder(OrderAnnotation.class)

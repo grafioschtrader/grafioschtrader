@@ -28,13 +28,10 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-/**
- * A security split hat not been mapped to security because of performance
- * reason.
- */
+
+@Schema(description = "A security split hat not been mapped to security because of performance reason.")
 @Entity
 @Table(name = Securitysplit.TABNAME)
-@Schema(description = "Defines the split for a security")
 public class Securitysplit extends DividendSplit implements Serializable {
 
   public static final String TABNAME = "securitysplit";
@@ -56,6 +53,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
   @Temporal(TemporalType.DATE)
   private Date splitDate;
 
+  
   @Schema(description = "From factor")
   @Basic(optional = false)
   @Column(name = "from_factor")

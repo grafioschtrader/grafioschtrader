@@ -9,7 +9,7 @@ import {LoginService} from '../service/log-in.service';
 import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.component';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
 import {combineLatest} from 'rxjs';
-import {UserOwnProjection} from '../../../entities/projection/user.own.projection';
+import {UserOwnProjection} from '../../../lib/entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';

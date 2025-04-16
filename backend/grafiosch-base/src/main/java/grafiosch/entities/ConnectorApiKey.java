@@ -7,6 +7,7 @@ import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
 import grafiosch.types.ISubscriptionType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,28 +17,33 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-
+@Schema(description="""
+This allows API keys to be saved for each provider. Most providers offer different access and performance levels. 
+Of course, the application must know the corresponding API and therefore also have an implementation to use it.        
+""")
 @Entity
 @Table(name = ConnectorApiKey.TABNAME)
-public class ConnectorApiKey {
+public class ConnectorApiKey extends BaseID<String> {
 
   public static final String TABNAME = "connector_apikey";
   public static final EnumRegistry<Short, ISubscriptionType> SUBSCRIPTION_REGISTRY = new EnumRegistry<>();
-  
-  private static StringEncryptor stringEncryptor =  stringEncryptor();
 
+  private static StringEncryptor stringEncryptor = stringEncryptor();
 
+  @Schema(description = "The name of the provider can be used as a key. The possible providers are specified by the implementation in the application.")
   @Id
   @Basic(optional = false)
   @Column(name = "id_provider")
   private String idProvider;
 
+  @Schema(description = "The API key is stored in encrypted form in the persistence.")
   @NotBlank
   @Basic(optional = false)
   @Size(min = 10, max = 255)
   @Column(name = "api_key")
   private String apiKey;
 
+  @Schema(description = "Speicherung der Zugangs- bzw. Leistungsstufen.")
   @Basic(optional = false)
   @Column(name = "subscription_type")
   private Short subscriptionType;
@@ -54,7 +60,7 @@ public class ConnectorApiKey {
   }
 
   public String getApiKey() {
-    if(apiKeyDecrypt == null) {
+    if (apiKeyDecrypt == null) {
       apiKeyDecrypt = stringEncryptor.decrypt(apiKey);
     }
     return apiKeyDecrypt;
@@ -72,8 +78,8 @@ public class ConnectorApiKey {
   public void setSubscriptionType(ISubscriptionType subscriptionType) {
     this.subscriptionType = subscriptionType.getValue();
   }
-  
-  //Change the setter to accept a String from the JSON payload.
+
+  // Change the setter to accept a String from the JSON payload.
   @JsonSetter("subscriptionType")
   public void setSubscriptionType(String subscriptionTypeName) {
     ISubscriptionType subscriptionType = SUBSCRIPTION_REGISTRY.getTypeByName(subscriptionTypeName);
@@ -82,45 +88,15 @@ public class ConnectorApiKey {
     }
     this.subscriptionType = subscriptionType.getValue();
   }
+
   
-  
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((idProvider == null) ? 0 : idProvider.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if ((obj == null) || (getClass() != obj.getClass())) {
-      return false;
-    }
-    ConnectorApiKey other = (ConnectorApiKey) obj;
-    if (idProvider == null) {
-      if (other.idProvider != null) {
-        return false;
-      }
-    } else if (!idProvider.equals(other.idProvider)) {
-      return false;
-    }
-    return true;
-  }
-
-
   @Override
   public String toString() {
-    return "ConnectorApiKey [idProvider=" + idProvider + ", apiKey=" + this.getApiKey() + ", subscriptionType=" + subscriptionType
-        + "]";
+    return "ConnectorApiKey [idProvider=" + idProvider + ", apiKey=" + this.getApiKey() + ", subscriptionType="
+        + subscriptionType + "]";
   }
 
-
-  public static  StringEncryptor stringEncryptor() {
+  public static StringEncryptor stringEncryptor() {
     PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
     SimpleStringPBEConfig config = new SimpleStringPBEConfig();
     config.setPassword(System.getenv("JASYPT_ENCRYPTOR_PASSWORD"));
@@ -133,7 +109,11 @@ public class ConnectorApiKey {
     config.setStringOutputType("base64");
     encryptor.setConfig(config);
     return encryptor;
-}
+  }
 
+  @Override
+  public String getId() {
+    return idProvider;
+  }
 
 }

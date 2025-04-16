@@ -28,9 +28,9 @@ import grafiosch.common.DateHelper;
 import grafiosch.entities.BaseID;
 import grafiosch.entities.UserEntityChangeLimit;
 import grafiosch.rest.RequestMappings;
+import grafiosch.security.JwtTokenHandler;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 
 @TestMethodOrder(OrderAnnotation.class)
@@ -55,7 +55,7 @@ class UserEntityChangeLimitRessourceTest {
   @ParameterizedTest
   @MethodSource("userLimitEntity")
   @DisplayName("Increase change limit for limited users")
-  <T extends BaseID> void createTest(final Class<T> clazz) {
+  <T extends BaseID<Integer>> void createTest(final Class<T> clazz) {
     LocalDate localDate = LocalDate.now().plusDays(1);
 
     for (String nickname : RestTestHelper.LIMIT_USERS) {

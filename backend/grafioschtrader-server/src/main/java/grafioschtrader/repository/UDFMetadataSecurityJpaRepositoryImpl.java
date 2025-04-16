@@ -17,10 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.BaseConstants;
 import grafiosch.dynamic.model.DataType;
 import grafiosch.entities.Globalparameters;
+import grafiosch.entities.UDFData;
 import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.RepositoryHelper;
-import grafiosch.repository.UDFDataJpaRepositoryImpl;
 import grafiosch.repository.UDFMetadataBase;
 import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.dto.FieldDescriptorInputAndShowExtendedSecurity;
@@ -45,9 +45,9 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
     this.securityJpaRepository = securityJpaRepository;
     this.globalparametersJpaRepository = globalparametersJpaRepository;
     
-    UDFDataJpaRepositoryImpl.UDF_GENERAL_ENTITIES.add(Currencypair.class);
-    UDFDataJpaRepositoryImpl.UDF_GENERAl_AND_SPECIAL_ENTITIES.add(Security.class);
-    UDFDataJpaRepositoryImpl.UDF_GENERAl_AND_SPECIAL_ENTITIES.addAll(UDFDataJpaRepositoryImpl.UDF_GENERAL_ENTITIES);
+    UDFData.UDF_GENERAL_ENTITIES.add(Currencypair.class);
+    UDFData.UDF_GENERAl_AND_SPECIAL_ENTITIES.add(Security.class);
+    UDFData.UDF_GENERAl_AND_SPECIAL_ENTITIES.addAll(UDFData.UDF_GENERAL_ENTITIES);
   }
 
   @Override

@@ -41,6 +41,8 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.ConsumptionProbe;
 
 public abstract class BaseFeedConnector implements IFeedConnector {
 
@@ -375,6 +377,28 @@ public abstract class BaseFeedConnector implements IFeedConnector {
 
   public String hideApiKeyForError(String url) {
     return url;
+  }
+
+  /**
+   * Some providers only work correctly if the number of requests is limited to
+   * one time unit. This method can therefore be used for wait cycles.
+   * 
+   * @param bucket
+   */
+  protected void waitForTokenOrGo(Bucket bucket) {
+    do {
+      ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+      if (probe.isConsumed()) {
+        return;
+      } else {
+        long waitForRefill = TimeUnit.MILLISECONDS.convert(probe.getNanosToWaitForRefill(), TimeUnit.NANOSECONDS);
+        try {
+          Thread.sleep(waitForRefill);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    } while (true);
   }
 
   /**

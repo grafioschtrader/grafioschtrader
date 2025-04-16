@@ -12,40 +12,39 @@ import jakarta.persistence.Transient;
  * changes may be only a proposal. It would be complicated to save composite key
  * in the {@link ProposeChangeEntity}.
  */
-public abstract class BaseID {
+public abstract class BaseID<T> {
 
   @Transient
   @JsonIgnore
-  UUID uuid;
+  private UUID uuid;
 
-  public abstract Integer getId();
+  public abstract T getId();
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    BaseID that = (BaseID) o;
-    return Objects.equals(this.getNotNullId(), that.getNotNullId());
+      if (this == o) {
+          return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+          return false;
+      }
+      BaseID<?> that = (BaseID<?>) o;
+      return Objects.equals(this.getNotNullId(), that.getNotNullId());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.getNotNullId());
+      return Objects.hash(this.getNotNullId());
   }
 
   private Object getNotNullId() {
-    if (this.getId() != null) {
-      return this.getId();
-    } else {
-      if (uuid == null) {
-        uuid = UUID.randomUUID();
+      if (this.getId() != null) {
+          return this.getId();
+      } else {
+          if (uuid == null) {
+              uuid = UUID.randomUUID();
+          }
+          return uuid;
       }
-      return uuid;
-    }
   }
-
 }

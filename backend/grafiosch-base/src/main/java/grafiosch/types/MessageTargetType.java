@@ -1,8 +1,8 @@
 package grafiosch.types;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-@Schema(description ="The selection of possible message channels for a message")
+/**
+ * The selection of possible message channels for a message
+ */
 public enum MessageTargetType {
   // No message is send
   NO_MAIL((byte) 0),

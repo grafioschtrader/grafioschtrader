@@ -41,11 +41,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.validation.Valid;
 
-public abstract class UpdateCreate<T extends BaseID> extends DailyLimitUpdCreateLogger<T> {
+public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimitUpdCreateLogger<T> {
 
   @PersistenceContext
   private EntityManager entityManager;
-
  
   @Autowired
   private ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;

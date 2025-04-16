@@ -33,7 +33,7 @@ import {UserSettingsService} from './shared/service/user.settings.service';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {DynamicFormModule} from './dynamic-form/dynamic-form.module';
 import {ActivePanelService} from './shared/mainmenubar/service/active.panel.service';
-import {TenantService} from './tenant/service/tenant.service';
+import {TenantService} from './lib/tenant/service/tenant.service';
 import {SecurityaccountEmptyComponent} from './securityaccount/component/securityaccount.empty.component';
 import {AssetclassTableComponent} from './assetclass/component/assetclass.table.component';
 import {StockexchangeTableComponent} from './stockexchange/component/stockexchange.table.component';
@@ -42,7 +42,7 @@ import {DataChangedService} from './shared/maintree/service/data.changed.service
 import {AssetclassService} from './assetclass/service/assetclass.service';
 import {SecuritysplitService} from './securitycurrency/service/securitysplit.service';
 import {RegisterComponent} from './shared/login/component/register.component';
-import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.page.component';
+import {TenantEditFullPageComponent} from './lib/tenant/component/tenant.edit.full.page.component';
 import {MainDialogComponent} from './shared/mainmenubar/component/main.dialog.component';
 import {MainDialogService} from './shared/mainmenubar/service/main.dialog.service';
 import {TransactionSecurityEditComponent} from './transaction/component/transaction-security-edit.component';
@@ -66,14 +66,14 @@ import {TimeSeriesQuotesService} from './historyquote/service/time.series.quotes
 import {CorrelationComponent} from './watchlist/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TradingPlatformPlanService} from './tradingplatform/service/trading.platform.plan.service';
-import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
-import {TenantTransactionCostComponent} from './tenant/component/tenant.transaction.cost.component';
-import {TenantSummariesAssetclassComponent} from './tenant/component/tenant.summaries.assetclass.component';
-import {TenantSummariesCashaccountComponent} from './tenant/component/tenant.summaries.cashaccount.component';
-import {TenantSummariesSecurityaccountComponent} from './tenant/component/tenant.summaries.securityaccount.component';
-import {TenantTabMenuComponent} from './tenant/component/tenant.tab.menu.component';
+import {TenantDividendsComponent} from './lib/tenant/component/tenant.dividends.component';
+import {TenantTransactionCostComponent} from './lib/tenant/component/tenant.transaction.cost.component';
+import {TenantSummariesAssetclassComponent} from './lib/tenant/component/tenant.summaries.assetclass.component';
+import {TenantSummariesCashaccountComponent} from './lib/tenant/component/tenant.summaries.cashaccount.component';
+import {TenantSummariesSecurityaccountComponent} from './lib/tenant/component/tenant.summaries.securityaccount.component';
+import {TenantTabMenuComponent} from './lib/tenant/component/tenant.tab.menu.component';
 import {PortfolioTabMenuComponent} from './portfolio/component/portfolio.tab.menu.component';
-import {TenantTransactionTableComponent} from './tenant/component/tenant.transaction.table.component';
+import {TenantTransactionTableComponent} from './lib/tenant/component/tenant.transaction.table.component';
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
 import {FormInputSuggestionComponent} from './dynamic-form/components/form-input/form-input-suggestion.component';
 import {FormFileUploadComponent} from './dynamic-form/components/form-input-file/form-file-upload.component';
@@ -95,12 +95,12 @@ import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit
 import {HistoryquoteEditComponent} from './historyquote/component/historyquote-edit.component';
 import {TransactionCashaccountTableComponent} from './transaction/component/transaction-cashaccount-table.component';
 import {TransactionSecurityTableComponent} from './transaction/component/transaction-security-table.component';
-import {TenantEditDialogComponent} from './tenant/component/tenant-edit-dialog.component';
+import {TenantEditDialogComponent} from './lib/tenant/component/tenant-edit-dialog.component';
 import {
   TenantDividendsSecurityExtendedComponent
-} from './tenant/component/tenant-dividends-security-extended.component';
+} from './lib/tenant/component/tenant-dividends-security-extended.component';
 import {SecuritycurrencyExtendedInfoComponent} from './watchlist/component/securitycurrency-extended-info.component';
-import {TenantTransactionCostExtendedComponent} from './tenant/component/tenant-transaction-cost-extended.component';
+import {TenantTransactionCostExtendedComponent} from './lib/tenant/component/tenant-transaction-cost-extended.component';
 import {SecuritysplitEditTableComponent} from './securitycurrency/component/securitysplit-edit-table.component';
 import {PortfolioEditComponent} from './portfolio/component/portfolio-edit.component';
 import {AssetclassEditComponent} from './assetclass/component/assetclass-edit.component';
@@ -153,10 +153,10 @@ import {
   SecurityaccountImportExtendedInfoComponent
 } from './securityaccount/component/securityaccount-import-extended-info.component';
 import {ToastrModule} from 'ngx-toastr';
-import {ProposeChangeTabMenuComponent} from './proposechange/component/propose.change.tab.menu.component';
-import {YourProposalTableComponent} from './proposechange/component/your.proposal.table.component';
-import {RequestForYouTableComponent} from './proposechange/component/request.for.you.table.component';
-import {ProposeChangeEntityService} from './proposechange/service/propose.change.entity.service';
+import {ProposeChangeTabMenuComponent} from './lib/proposechange/component/propose.change.tab.menu.component';
+import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
+import {RequestForYouTableComponent} from './lib/proposechange/component/request.for.you.table.component';
+import {ProposeChangeEntityService} from './lib/proposechange/service/propose.change.entity.service';
 import {
   TransactionCashaccountConnectDebitCreditComponent
 } from './transaction/component/transaction-cashaccount-connect-debit-credit-component';
@@ -178,8 +178,8 @@ import {IndicatorEditComponent} from './historyquote/component/indicator-edit.co
 import {AlgoRuleStrategyCreateComponent} from './algo/component/algo-rule-strategy-create.component';
 import {
   TenantDividendSecurityAccountSelectionDialogComponent
-} from './tenant/component/tenant-dividend-security-account-selection-dialog.component';
-import {TenantDividendAccountSelectionComponent} from './tenant/component/tenant-dividend-account-selection.component';
+} from './lib/tenant/component/tenant-dividend-security-account-selection-dialog.component';
+import {TenantDividendAccountSelectionComponent} from './lib/tenant/component/tenant-dividend-account-selection.component';
 import {UserAdminService} from './user/service/user.admin.service';
 import {UserTableComponent} from './user/component/user.table.component';
 import {UserEntityChangeLimitTableComponent} from './user/component/user-entity-change-limit-table.component';
@@ -209,9 +209,9 @@ import {TradingDaysMinusService} from './stockexchange/service/trading.days.minu
 import {
   TradingCalendarStockexchangeComponent
 } from './stockexchange/component/trading-calendar-stockexchange.component';
-import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
+import {TenantPerformanceTabMenuComponent} from './lib/tenant/component/tenant.performance.tab.menu.component';
 import {PerformancePeriodComponent} from './shared/performanceperiod/component/performance.period.component';
-import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.performance.eod.missing.component';
+import {TenantPerformanceEodMissingComponent} from './lib/tenant/component/tenant.performance.eod.missing.component';
 import {HoldingService} from './shared/performanceperiod/service/holding.service';
 import {
   TenantPerformanceTreetableComponent
@@ -221,7 +221,7 @@ import {
 } from './stockexchange/component/trading.calendar.other.exchange.dynamic.component';
 import {
   TenantPerformanceEodMissingTableComponent
-} from './tenant/component/tenant-performance-eod-missing-table.component';
+} from './lib/tenant/component/tenant-performance-eod-missing-table.component';
 import {HistoryquoteQualityComponent} from './historyquote/component/historyquote-quality.component';
 // eslint-disable-next-line max-len
 import {
@@ -265,7 +265,7 @@ import {HistoryquotePeriodService} from './securitycurrency/service/historyquote
 import {HistoryquoteDeleteDialogComponent} from './historyquote/component/historyquote-delete-dialog.component';
 import {DragDropModule} from 'primeng/dragdrop';
 import {MailSendDynamicComponent} from './shared/dynamicdialog/component/mail.send.dynamic.component';
-import {MailSendRecvService} from './mail/service/mail.send.recv.service';
+import {MailSendRecvService} from './lib/mail/service/mail.send.recv.service';
 import {ScrollPanelModule} from 'primeng/scrollpanel';
 import {CommonModule} from '@angular/common';
 import {InputNumberModule} from 'primeng/inputnumber';
@@ -311,12 +311,12 @@ import {GTNetEditComponent} from './gtnet/component/gtnet-edit.component';
 import {GTNetMessageEditComponent} from './gtnet/component/gtnet-message-edit.component';
 import {GTNetMessageService} from './gtnet/service/gtnet.message.service';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
-import {SendRecvTreetableComponent} from './mail/component/send.recv.treetable.component';
-import {MailForwardSettingTableEditComponent} from './mail/component/mail.forward.setting.table.edit.component';
-import {SendRecvForwardTabMenuComponent} from './mail/component/send.recv.forward.tab.menu.component';
-import {MailSettingForwardService} from './mail/service/mail.setting.forward.service';
-import {MailForwardSettingTableComponent} from './mail/component/mail.forward.setting.table.component';
-import {MailForwardSettingEditComponent} from './mail/component/mail-forward-setting-edit.component';
+import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetable.component';
+import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
+import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
+import {MailSettingForwardService} from './lib/mail/service/mail.setting.forward.service';
+import {MailForwardSettingTableComponent} from './lib/mail/component/mail.forward.setting.table.component';
+import {MailForwardSettingEditComponent} from './lib/mail/component/mail-forward-setting-edit.component';
 import {
   WatchlistAddEditPriceProblemInstrumentComponent
 } from './watchlist/component/watchlist-add-edit-price-problem-instrument.component';
@@ -326,7 +326,7 @@ import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf
 import {UDFMetadataSecurityEditComponent} from './shared/udfmeta/components/udf-metadata-security-edit.component';
 import {
   TenantDividendsCashaccountExtendedComponent
-} from './tenant/component/tenant-dividends-cashaccount-extended.component';
+} from './lib/tenant/component/tenant-dividends-cashaccount-extended.component';
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
 import {SecurityUDFEditComponent} from './securitycurrency/component/security-udf-edit.component';
 import {UDFDataService} from './shared/udfmeta/service/udf.data.service';
@@ -337,7 +337,7 @@ import {UDFMetadataGeneralEditComponent} from './shared/udfmeta/components/udf-m
 import {UDFGeneralEditComponent} from './shared/udfmeta/components/udf-general-edit.component';
 import {UDFSpecialTypeDisableUserService} from './shared/udfmeta/service/udf.special.type.disable.user.service';
 import {AlarmSetupService} from './algo/service/alarm.setup.service';
-import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
+import {TenantAlertComponent} from './lib/tenant/component/tenant.alert.component';
 import {DatePicker} from 'primeng/datepicker';
 import {DynamicDialogModule} from 'primeng/dynamicdialog';
 import {SecurityService} from './securitycurrency/service/security.service';

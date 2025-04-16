@@ -22,7 +22,7 @@ import grafiosch.types.OperationType;
  *
  * @param <T>
  */
-public abstract class UpdateCreateDeleteAudit<T extends BaseID> extends UpdateCreateResource<T> {
+public abstract class UpdateCreateDeleteAudit<T extends BaseID<Integer>> extends UpdateCreateResource<T> {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 

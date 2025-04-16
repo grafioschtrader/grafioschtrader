@@ -25,10 +25,10 @@ import org.springframework.http.ResponseEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.entities.ProposeChangeField;
+import grafiosch.security.JwtTokenHandler;
 import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.security.JwtTokenHandler;
 import weka.core.Debug.Random;
 
 public class RestTestHelper {

@@ -20,7 +20,7 @@ import jakarta.persistence.TemporalType;
 @Entity
 @Table(name = GTNetLastprice.TABNAME)
 @Inheritance(strategy = JOINED)
-public abstract class GTNetLastprice extends BaseID {
+public abstract class GTNetLastprice extends BaseID<Integer> {
   public static final String TABNAME = "gt_net_lastprice";
 
   @Id

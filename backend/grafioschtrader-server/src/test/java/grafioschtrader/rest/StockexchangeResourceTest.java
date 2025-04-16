@@ -28,8 +28,8 @@ import org.springframework.http.ResponseEntity;
 
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.error.SecurityBreachError;
+import grafiosch.security.JwtTokenHandler;
 import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 
 @TestMethodOrder(OrderAnnotation.class)

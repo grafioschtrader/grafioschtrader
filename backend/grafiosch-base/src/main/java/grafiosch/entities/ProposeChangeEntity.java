@@ -8,7 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 /**
- * Public data can only changed directly with privileged rights or by the owner
+ * Shared data can only changed directly with privileged rights or by the owner
  * of the entity. Otherwise a change is a proposal and is written in this
  * entity. The user with the required rights may be accept or deny this
  * requested change.

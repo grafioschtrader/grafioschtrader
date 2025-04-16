@@ -4,7 +4,7 @@ import {LimitTransactionRequestDynamicComponent} from './limit.transaction.reque
 import {LogoutReleaseRequestDynamicComponent} from './logout.release.request.dynamic.component';
 import {MailSendDynamicComponent, MailSendParam} from './mail.send.dynamic.component';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {MailSendRecv} from '../../../mail/model/mail.send.recv';
+import {MailSendRecv} from '../../../lib/mail/model/mail.send.recv';
 
 export class DynamicDialogHelper {
 

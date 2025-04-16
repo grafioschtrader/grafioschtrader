@@ -27,10 +27,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-
+@Schema(description = "Entity containing the information of a portfolio")
 @Entity
 @Table(name = Portfolio.TABNAME)
-@Schema(description = "Entity containing the information of a portfolio")
 public class Portfolio extends TenantBaseID implements Serializable {
 
   public static final String TABNAME = "portfolio";
@@ -55,9 +54,11 @@ public class Portfolio extends TenantBaseID implements Serializable {
   @PropertyAlwaysUpdatable
   private String currency;
 
+  @Schema(description = "ID fo Tenant")
   @Column(name = "id_tenant")
   private Integer idTenant;
 
+  @Schema(description = "The security accounts and cash accounts in this portfolio.")
   @OneToMany(mappedBy = "portfolio", orphanRemoval = true, fetch = FetchType.EAGER)
   private List<Securitycashaccount> securitycashaccountList;
 

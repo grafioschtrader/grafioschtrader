@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.CreateType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Contains the dates on which trading or non-trading is possible.")
 public class TradingDaysWithDateBoundaries {
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final String oldestTradingCalendarDay;

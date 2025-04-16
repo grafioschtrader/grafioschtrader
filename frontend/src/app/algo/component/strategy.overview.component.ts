@@ -1,6 +1,9 @@
 import {Component} from '@angular/core';
 import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 
+/**
+ * Project: Grafioschtrader
+ */
 @Component({
     template: `
     <h4>Strategy Overview</h4>

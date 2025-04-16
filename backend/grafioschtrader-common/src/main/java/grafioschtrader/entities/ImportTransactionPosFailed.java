@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = ImportTransactionPosFailed.TABNAME)
-public class ImportTransactionPosFailed extends BaseID implements Serializable {
+public class ImportTransactionPosFailed extends BaseID<Integer> implements Serializable {
 
   public static final String TABNAME = "imp_trans_pos_failed";
 

@@ -1,5 +1,9 @@
 package grafioschtrader.types;
 
+/**
+ * The trading platforms have different bases for calculating transaction costs.
+ * Here are some possible variants.
+ */
 public enum TradingPlatformFeePlan {
 
   // free - no pay

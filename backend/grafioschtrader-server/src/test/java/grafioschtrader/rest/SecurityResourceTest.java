@@ -37,12 +37,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
 import grafiosch.common.DateHelper;
+import grafiosch.security.JwtTokenHandler;
 import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;

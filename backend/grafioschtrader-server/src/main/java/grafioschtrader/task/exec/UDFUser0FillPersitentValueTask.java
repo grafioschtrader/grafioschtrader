@@ -29,15 +29,9 @@ public class UDFUser0FillPersitentValueTask implements ITask {
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 
-//  @Autowired
-//  private SecurityJpaRepository securityJpaRepository;
-//
-   @Autowired
-   private UDFMetadataSecurityJpaRepository uMetaSecurityRepository;
-//
-//  @Autowired
-//  private GlobalparametersJpaRepository globalparametersJpaRepository;
-//  
+  @Autowired
+  private UDFMetadataSecurityJpaRepository uMetaSecurityRepository;
+
   @Autowired
   private List<IUDFForEveryUser> uDFForEveryUser;
 
@@ -56,60 +50,10 @@ public class UDFUser0FillPersitentValueTask implements ITask {
   public boolean removeAllOtherJobsOfSameTask() {
     return true;
   }
-  
+
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     uMetaSecurityRepository.recreateUDFFieldsForEveryUser(uDFForEveryUser);
-  }
-  
-
-//  @Override
-//  public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-//    Set<IUDFForEveryUser> udfForEveryUserSet = uDFForEveryUser.stream().filter(u -> u.mayRunInBackground())
-//        .collect(Collectors.toSet());
-//    Set<UDFMetadataSecurity> udfMSSet = uMetaSecurityRepository.getByUdfSpecialTypeInAndIdUser(
-//        udfForEveryUserSet.stream().map(u -> u.getUDFSpecialType().getValue()).collect(Collectors.toSet()), 0);
-//    Date now = new Date();
-//    // It is possible that two user-defined fields have the same selection criteria.  
-//    // This means that the second query can be avoided and processing can be carried out on the securities that have already been selected.
-//    Map<Integer, SecuritycurrencyUDFGroup> cacheSecurites = new HashMap<>();
-//   
-//    Optional<Globalparameters> globalparamUDFOpt = globalparametersJpaRepository
-//        .findById(GlobalParamKeyDefault.GLOB_KEY_UDF_GENERAL_RECREATE);
-//    Globalparameters globalparameter = globalparamUDFOpt
-//        .orElseGet(() -> new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_UDF_GENERAL_RECREATE));
-//    boolean recreateUDF = globalparameter.getPropertyInt() != null && globalparameter.getPropertyInt() == 0;
-//    
-//    for (IUDFForEveryUser udfEveryUser : udfForEveryUserSet) {
-//      UDFMetadataSecurity uDFMetadataSecurity = udfMSSet.stream()
-//          .filter(u -> u.getUdfSpecialType() == udfEveryUser.getUDFSpecialType()).findFirst().get();
-//      SecuritycurrencyUDFGroup scUDFGroup = cacheSecurites
-//          .get(calcHash(uDFMetadataSecurity.getCategoryTypes(), uDFMetadataSecurity.getSpecialInvestmentInstruments()));
-//      if (scUDFGroup == null) {
-//        List<Security> securities = securityJpaRepository
-//            .findByAssetClass_CategoryTypeInAndAssetClass_SpecialInvestmentInstrumentInAndActiveToDateAfterAndIdTenantPrivateIsNull(
-//                uDFMetadataSecurity.getCategoryTypeEnums().stream().map(c -> c.getValue()).collect(Collectors.toSet()),
-//                uDFMetadataSecurity.getSpecialInvestmentInstrumentEnums().stream().map(c -> c.getValue())
-//                    .collect(Collectors.toSet()),
-//                now);
-//        List<SecuritycurrencyPosition<Security>> securityPositionList = securities.stream()
-//            .map(security -> new SecuritycurrencyPosition<Security>(security)).collect(Collectors.toList());
-//        scUDFGroup = new SecuritycurrencyUDFGroup(securityPositionList);
-//        cacheSecurites.put(
-//            calcHash(uDFMetadataSecurity.getCategoryTypes(), uDFMetadataSecurity.getSpecialInvestmentInstruments()),
-//            scUDFGroup);
-//      }
-//      udfEveryUser.addUDFForEveryUser(scUDFGroup, recreateUDF);
-//    }
-//    globalparameter.setPropertyInt(0);
-//    globalparametersJpaRepository.save(globalparameter);    
-//  }
-//  
-  
-
-  private int calcHash(long value1, long value2) {
-    long combinedValue = (value1 << 32) | (value2 & 0xFFFFFFFFL);
-    return (int) (combinedValue ^ (combinedValue >>> 32));
   }
 
 }

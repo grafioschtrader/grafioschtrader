@@ -45,13 +45,13 @@ public class BoursoramaFeedConnectorTest extends BaseFeedConnectorCheck {
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME, "2aBNZ01",
           GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 135, "2021-12-15", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CSCO",
-          GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4686, "2005-01-03", dateTo));
+          GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 4435, "2006-01-03", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "1rPCAC",
           GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4007, "2008-01-02", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "2aZGLD",
           GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4370, "2006-03-15", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "$COMPX",
-          GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 4698, "2005-01-03", dateTo));
+          GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 4446, "2006-01-03", dateTo));
 
     } catch (ParseException pe) {
       pe.printStackTrace();

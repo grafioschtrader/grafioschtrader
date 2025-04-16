@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.Auditable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
@@ -18,10 +19,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/**
- * It contains the header information of the transaction import templates.
- *
- */
+@Schema(description = "Defines a template group. This groups the transaction import templates.")
 @Entity
 @Table(name = ImportTransactionPlatform.TABNAME)
 @Cacheable

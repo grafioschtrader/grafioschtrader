@@ -7,18 +7,28 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 
+/**
+ * One can be addressed according to a role. This means that they cannot be
+ * physically deleted by a user of this role. The corresponding message is
+ * marked as deleted and thus hidden from the user. It is also marked as read.
+ */
 @Entity
 public class MailSendRecvReadDel {
 
   @EmbeddedId
   private MailSendRecvReadDelKey msrrdk;
 
+  /**
+   * The message has been read by the recipient
+   */
   @Column(name = "has_been_read")
   private boolean hasBeenRead;
 
+  /**
+   * The message has been marked as deleted by the recipient
+   */
   @Column(name = "mark_hide_del")
   private boolean markHideDel;
-
 
   public MailSendRecvReadDel() {
   }
@@ -26,7 +36,6 @@ public class MailSendRecvReadDel {
   public MailSendRecvReadDel(MailSendRecvReadDelKey mailSendRecvReadDelKey) {
     this.msrrdk = mailSendRecvReadDelKey;
   }
-
 
   public MailSendRecvReadDelKey getMsrrdk() {
     return msrrdk;
@@ -52,6 +61,9 @@ public class MailSendRecvReadDel {
     this.markHideDel = markHideDel;
   }
 
+  /**
+   * The key consists of the ID of the mail and the user.
+   */
   @Embeddable
   public static class MailSendRecvReadDelKey {
 

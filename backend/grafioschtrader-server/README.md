@@ -1,0 +1,2 @@
+## Why this module
+This is the main module of Grafioschtrader (GT) and is deployed on or with a server. It implements the main logic of GT and also contains the application for starting this Spring Boot application.

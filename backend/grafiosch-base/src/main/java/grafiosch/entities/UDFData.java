@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,14 @@ public class UDFData {
   @Type(JsonType.class)
   @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
   private Map<String, Object> jsonValues;
+
+  public static List<Class<?>> UDF_GENERAl_AND_SPECIAL_ENTITIES = new ArrayList<>();
+
+  /**
+   * Which entities can be extended with user-defined fields? Some entities has a
+   * specific implementation and is not listed here.
+   */
+  public static final List<Class<?>> UDF_GENERAL_ENTITIES = new ArrayList<>();
 
   public UDFData() {
   }

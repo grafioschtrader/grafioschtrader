@@ -299,9 +299,6 @@ public class Globalparameters implements Serializable {
     return true;
   }
 
-  @Override
-  public String toString() {
-    return "grafioschtrader.entities.Globalparameters[ propertyName=" + propertyName + " ]";
-  }
+ 
 
 }

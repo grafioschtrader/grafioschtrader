@@ -22,7 +22,7 @@ public abstract class TenantLimitsHelper {
   public static final Map<String, Class<?>> globalLimitKeyToEntityMap = new HashMap<>();
   
 
-  public static <T extends BaseID> boolean canAddWhenCheckedAgainstMayBeExistingTenantLimit(
+  public static <T extends BaseID<Integer>> boolean canAddWhenCheckedAgainstMayBeExistingTenantLimit(
       final EntityManager entityManager, final T entityClass) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Optional<String> keyOptional = globalLimitKeyToEntityMap.entrySet().stream()

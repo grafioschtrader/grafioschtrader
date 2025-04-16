@@ -26,6 +26,7 @@ import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Dialog for define a strategy. Asset class can be added dynamically.
+ * Project: Grafioschtrader
  */
 @Component({
     selector: 'algo-rule-strategy-create',

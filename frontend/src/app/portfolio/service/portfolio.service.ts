@@ -12,7 +12,7 @@ import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {AppHelper} from '../../shared/helper/app.helper';
-import {TenantPortfolioSummary} from '../../tenant/model/tenant.portfolio.summary';
+import {TenantPortfolioSummary} from '../../lib/tenant/model/tenant.portfolio.summary';
 
 
 @Injectable()
