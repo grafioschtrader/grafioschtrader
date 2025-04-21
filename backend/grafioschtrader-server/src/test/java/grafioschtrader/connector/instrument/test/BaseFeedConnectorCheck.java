@@ -98,6 +98,10 @@ public abstract class BaseFeedConnectorCheck {
   }
 
   protected void getEodCurrencyHistory() {
+    getEodCurrencyHistory(false);
+  }
+  
+  protected void getEodCurrencyHistory(boolean needSort) {
     final List<CurrencyPairHistoricalDate> currencies = this.getHistoricalCurrencies();
     currencies.parallelStream().forEach(cphd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
@@ -106,6 +110,10 @@ public abstract class BaseFeedConnectorCheck {
       } catch (Exception e) {
         e.printStackTrace();
       }
+      if (needSort) {
+        Collections.sort(historyquotes, Comparator.comparing(Historyquote::getDate));
+      }
+      
       assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
       assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
       assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
@@ -116,6 +124,9 @@ public abstract class BaseFeedConnectorCheck {
   protected void updateCurrencyPairLastPrice() {
     getHistoricalCurrencies().parallelStream().forEach(cphd -> {
       try {
+        if (cphd.currencypair.getUrlHistoryExtend() != null && cphd.currencypair.getUrlIntraExtend() == null) {
+          cphd.currencypair.setUrlIntraExtend(cphd.currencypair.getUrlHistoryExtend());
+        }
         getIFeedConnector().updateCurrencyPairLastPrice(cphd.currencypair);
         System.out.println(String.format("%s/%s last:%f change: %f high: %f low: %f",
             cphd.currencypair.getFromCurrency(), cphd.currencypair.getToCurrency(), cphd.currencypair.getSLast(),

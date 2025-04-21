@@ -50,9 +50,8 @@ import {AppSettings} from '../../../shared/app.settings';
 
       <p-table [columns]="fields" [value]="proposeChangeEntityWithEntityList" selectionMode="single"
                [(selection)]="selectedEntity"
-               responsiveLayout="scroll"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
-               dataKey="proposeChangeEntity.idProposeRequest">
+               responsiveLayout="scroll" dataKey="proposeChangeEntity.idProposeRequest"
+               stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{'PROPOSE_CHANGE_ENTITY_FOR_USER' | translate}} {{gps.getIdUser()}}</h4>
         </ng-template>

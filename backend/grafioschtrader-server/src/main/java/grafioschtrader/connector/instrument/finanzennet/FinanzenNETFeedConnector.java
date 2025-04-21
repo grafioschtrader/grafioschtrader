@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -19,11 +18,7 @@ import org.springframework.stereotype.Component;
 
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
-import grafioschtrader.connector.instrument.finanzen.FinanzenBase;
 import grafioschtrader.connector.instrument.finanzen.FinanzenHelper;
-import grafioschtrader.connector.instrument.finanzen.FinanzenWithAjaxControllerCallCurrencypair;
-import grafioschtrader.connector.instrument.finanzen.FinanzenWithAjaxControllerCallSecurity;
-import grafioschtrader.connector.instrument.finanzen.UseLastPartUrl;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -74,18 +69,8 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
 
-    FinanzenBase<Security> finanzenBase;
-    if (security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
-        && security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES) {
-      finanzenBase = new FinanzenNETStockAndBond(domain, this, Locale.GERMAN);
-    } else {
-      finanzenBase = new FinanzenWithAjaxControllerCallSecurity(domain,
-          security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF
-              ? FinanzenWithAjaxControllerCallSecurity.HISTORICAL_PRICE_LIST_REDESIGN
-              : FinanzenWithAjaxControllerCallSecurity.HISTORICAL_PRICE_LIST,
-          this, Locale.GERMAN, UseLastPartUrl.None, 1);
-    }
-    return finanzenBase.getHistoryquotes(security, from, to);
+    
+    return null;
   }
 
   @Override
@@ -96,9 +81,8 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws Exception {
-    FinanzenBase<Currencypair> finanzenBase = new FinanzenWithAjaxControllerCallCurrencypair(domain, this,
-        Locale.GERMAN, 1);
-    return finanzenBase.getHistoryquotes(currencyPair, from, to);
+   
+    return null;
   }
 
   @Override

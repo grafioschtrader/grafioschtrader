@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.4</version>
+		<version>0.33.5</version>
 	</parent>
 
 	<artifactId>grafiosch-server-base</artifactId>
@@ -37,7 +37,7 @@
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.33.4</version>	
+	        <version>0.33.5</version>	
 		</dependency>
 
         <dependency>
@@ -77,7 +77,6 @@
         <dependency>
 			<groupId>com.github.vladimir-bukhtoyarov</groupId>
 			<artifactId>bucket4j-core</artifactId>
-			<version>8.0.1</version>
 		</dependency>
 		
 		<dependency>
@@ -103,17 +102,9 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.14</version>
-		</dependency>
-
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
-			<version>0.12.6</version>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
@@ -137,7 +128,6 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
-			<version>4.4</version>
 		</dependency>
 		
 		<dependency>

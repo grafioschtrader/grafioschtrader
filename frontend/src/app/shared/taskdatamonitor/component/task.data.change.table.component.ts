@@ -32,9 +32,8 @@ import {TASK_EXTENDED_SERVICE} from '../../../app.component';
                selectionMode="single"
                [(selection)]="selectedEntity" dataKey="idTaskDataChange"
                sortMode="multiple" [multiSortMeta]="multiSortMeta"
-               responsiveLayout="scroll"
-               (sortFunction)="customSort($event)" [customSort]="true"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               responsiveLayout="scroll" (sortFunction)="customSort($event)" [customSort]="true"
+               stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{ 'TASK_DATA_MONITOR' | translate }}</h4>
           <p>{{ 'NO_DATA_REFRESH' | translate }}</p>

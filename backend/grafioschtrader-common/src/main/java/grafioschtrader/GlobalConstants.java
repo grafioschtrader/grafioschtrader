@@ -10,7 +10,8 @@ public class GlobalConstants extends BaseConstants {
   public static final String STOCK_EX_MIC_NASDAQ = "XNAS";
   public static final String STOCK_EX_MIC_NYSE = "XNYS";
   public static final String STOCK_EX_MIC_SIX = "XSWX";
-  public static final String STOCK_EX_MIC_XETRA = "XSWX";
+  public static final String STOCK_EX_MIC_XETRA = "XETR";
+  public static final String STOCK_EX_MIC_FRANKFURT = "XFRA";
   public static final String STOCK_EX_MIC_SPAIN = "XMAD";
   public static final String STOCK_EX_MIC_ITALY = "XMIL";
   public static final String STOCK_EX_MIC_JAPAN = "XTKS";

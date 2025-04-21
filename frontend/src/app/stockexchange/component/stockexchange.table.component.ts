@@ -32,8 +32,8 @@ import {StockexchangeHelper} from './stockexchange.helper';
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple"
                responsiveLayout="scroll" scrollHeight="flex" [scrollable]="true"
-               [multiSortMeta]="multiSortMeta"
-               [dataKey]="entityKeyName" styleClass="p-datatable-striped p-datatable-gridlines">
+               [multiSortMeta]="multiSortMeta" [dataKey]="entityKeyName"
+               stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>

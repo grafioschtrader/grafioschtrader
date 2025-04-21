@@ -1,6 +1,6 @@
 <p-table [(selection)]="selectedRow" [columns]="fields" [dataKey]="dataSortKey" [multiSortMeta]="multiSortMeta" [paginator]="true"
          [rows]="10" [value]="_dataList" responsiveLayout="scroll" selectionMode="single" sortMode="multiple"
-         styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+         stripedRows showGridlines>
   <ng-template #header let-fields >
     <tr>
       <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"

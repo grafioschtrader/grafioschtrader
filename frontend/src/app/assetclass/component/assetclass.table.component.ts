@@ -27,10 +27,10 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               styleClass="p-datatable-striped p-datatable-gridlines"
                responsiveLayout="scroll" scrollHeight="flex" [scrollable]="true"
                [dataKey]="entityKeyName" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-               (sortFunction)="customSort($event)" [customSort]="true">
+               (sortFunction)="customSort($event)" [customSort]="true"
+               stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>

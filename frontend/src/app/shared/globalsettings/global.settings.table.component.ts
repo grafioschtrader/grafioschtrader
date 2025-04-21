@@ -29,7 +29,7 @@ import {TranslateHelper} from '../helper/translate.helper';
             <p-table [columns]="fields" [value]="globalparametersList" selectionMode="single"
                      [(selection)]="selectedEntity" dataKey="propertyName" responsiveLayout="scroll"
                      (sortFunction)="customSort($event)" [customSort]="true"
-                     styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+                     stripedRows showGridlines>
                 <ng-template #caption>
                     <h4>{{'GLOBAL_SETTINGS' | translate}}</h4>
                 </ng-template>

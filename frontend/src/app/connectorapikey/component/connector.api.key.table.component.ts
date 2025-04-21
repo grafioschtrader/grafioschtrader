@@ -22,7 +22,7 @@ import {AuditHelper} from '../../shared/helper/audit.helper';
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                responsiveLayout="scroll"
-               [dataKey]="entityKeyName" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               [dataKey]="entityKeyName" stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>

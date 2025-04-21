@@ -1,101 +1,90 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.finanzench.FinanzenCHFeedConnector;
-import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Security;
-import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.test.start.GTforTest;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-@SpringBootTest(classes = GTforTest.class)
-class FinanzenCHFeedConnectorTest {
+class FinanzenCHFeedConnectorTest extends BaseFeedConnectorCheck {
+  private FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
 
+  // Security price tests
+  // =======================================
   @Test
   void updateSecurityLastPriceTest() {
-    final List<Security> securities = new ArrayList<>();
-
-    final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
-    securities.add(createSecurityIntra("etf/zkb-gold-etf-aa-chf-klasse", AssetclassType.COMMODITIES,
-        SpecialInvestmentInstruments.ETF, "CH0139101593"));
-    securities.add(createSecurityIntra("aktien/swiss_re-aktie", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0126881561"));
-    securities.add(createSecurityIntra("obligationen/crédit_agricole_sasf-preferred_mtn_202129-obligation-2029-ch1118460984",
-        AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH1118460984"));
-    securities.add(createSecurityIntra("index/SLI", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "CH0030252883"));
-
-    securities.parallelStream().forEach(security -> {
-      try {
-        finanzenCHFeedConnector.updateSecurityLastPrice(security);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      assertThat(security.getSLast()).as("Security %s", security.getIdConnectorIntra()).isNotNull().isGreaterThan(0.0);
-    });
+    updateSecurityLastPrice();
   }
 
-
-  private Security createSecurityIntra(final String quoteFeedExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String isin) {
-    return this.createSecurity(quoteFeedExtend, assectClass, specialInvestmentInstruments, isin, null, true, false);
-
+  @Test
+  void getEodSecurityHistoryTest() {
+    getEodSecurityHistory(true);
   }
 
-  private Security createSecurity(final String quoteFeedExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String mic, final boolean securityMarket,
-      final boolean history) {
-    final Security security = new Security();
-    if (history) {
-      security.setUrlHistoryExtend(quoteFeedExtend);
-    } else {
-      security.setUrlIntraExtend(quoteFeedExtend);
+  @Override
+  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+    List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
+    try {
+      hisoricalDate.add(
+          new SecurityHistoricalDate("Geberit Aktie", "CH0030170408", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+              AssetclassType.EQUITIES, "geberit-aktie/swx", null, 6023, "2000-01-04", "2023-12-08"));
+      hisoricalDate.add(new SecurityHistoricalDate("Swisscanto (CH) Gold ETF EA CHF", "CH0139101593",
+          SpecialInvestmentInstruments.ETF, AssetclassType.COMMODITIES, "swisscanto-ch-gold-etf-ea-ch0139101593/swx",
+          null, 3508, "2010-01-04", "2023-12-08"));
+      hisoricalDate.add(new SecurityHistoricalDate("Crédit Agricole S.A.SF-Preferred MTN 2021(29)", "CH1118460984",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME,
+          "crédit_agricole_sasf-preferred_mtn_202129-obligation-2029-ch1118460984/swx", null, 633, "2021-06-16",
+          "2023-12-08"));
+      hisoricalDate.add(new SecurityHistoricalDate("Allianz Global Investors Fund - Allianz Income and Growth AMg2",
+          "LU1597252862", SpecialInvestmentInstruments.MUTUAL_FUND, AssetclassType.MULTI_ASSET,
+          "allianz-global-investors-fund-allianz-income-and-growth-amg2-h2-cad-lu1597252862/sonst", null, 1565,
+          "2017-05-18", "2023-12-08"));
+      hisoricalDate
+          .add(new SecurityHistoricalDate("SLI", "CH0030252883", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+              AssetclassType.EQUITIES, "SLI", null, 6023, "2000-01-04", "2023-12-08"));
+    } catch (ParseException pe) {
+      pe.printStackTrace();
     }
+    return hisoricalDate;
+  }
 
-    if (assectClass != null && specialInvestmentInstruments != null) {
-      security.setAssetClass(
-          new Assetclass(assectClass, "Bond/Aktien Schweiz", specialInvestmentInstruments, Language.GERMAN));
-    }
-    security.setIsin(isin);
-    security.setStockexchange(new Stockexchange("XXXX", mic, null, null, false, securityMarket));
-
-    return security;
+  //Currency pair price tests
+  // =======================================
+  @Test
+  void getEodCurrencyHistoryTest() throws ParseException {
+    getEodCurrencyHistory(true);
   }
 
   @Test
   void updateCurrencyPairLastPriceTest() {
-    final FinanzenCHFeedConnector finanzenCHFeedConnector = new FinanzenCHFeedConnector();
-    final List<Currencypair> currencies = new ArrayList<>();
-    currencies.add(createCurrencypairIntra(GlobalConstants.MC_CHF, GlobalConstants.MC_EUR, "devisen/schweizer_franken-euro-kurs"));
-    currencies.parallelStream().forEach(currencyPair -> {
-      try {
-        finanzenCHFeedConnector.updateCurrencyPairLastPrice(currencyPair);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      assertTrue(currencyPair.getSLast() > 0.0);
-    });
+    updateCurrencyPairLastPrice();
   }
 
+  @Override
+  protected List<CurrencyPairHistoricalDate> getHistoricalCurrencies() {
+    final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
+    try {
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_CHF, GlobalConstants.MC_EUR, 7707, "2000-01-03",
+          "2025-04-17", "schweizer_franken-euro-kurs"));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_CHF, 4490, "2013-01-01",
+          "2025-04-17", "bitcoin-franken-kurs"));
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+    }
+    return currencies;
+  }
 
-
-  private Currencypair createCurrencypairIntra(final String fromCurrency, String toCurrency,
-      final String urlIntraExtend) {
-    Currencypair currencypair = ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF);
-    currencypair.setUrlIntraExtend(urlIntraExtend);
-    return currencypair;
+  @Override
+  protected IFeedConnector getIFeedConnector() {
+    return finanzenCHFeedConnector;
   }
 
 }

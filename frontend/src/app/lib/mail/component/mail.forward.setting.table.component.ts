@@ -32,7 +32,7 @@ import {TableCrudSupportMenu} from '../../../shared/datashowbase/table.crud.supp
       <p-table [columns]="fields" [value]="mailSettingForwardList" selectionMode="single"
                [(selection)]="selectedEntity" dataKey="idMailSettingForward" responsiveLayout="scroll"
                (sortFunction)="customSort($event)" [customSort]="true"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               stripedRows showGridlines>
         <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field"

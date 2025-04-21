@@ -37,8 +37,7 @@ import {AppSettings} from '../../../shared/app.settings';
                  responsiveLayout="scroll"
                  sortMode="multiple" [multiSortMeta]="multiSortMeta"
                  dataKey="transaction.idTransaction" [paginator]="true" [rows]="20"
-                 styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-
+                 stripedRows showGridlines>
           <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"

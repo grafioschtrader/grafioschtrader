@@ -19,9 +19,9 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
     selector: 'tenant-dividends-security-extended',
     template: `
     <div class="datatable">
-      <p-table [columns]="fields" [value]="securityDividendsPositions" selectionMode="single"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines" responsiveLayout="scroll"
-               dataKey="security.idSecuritycurrency" sortMode="multiple" [multiSortMeta]="multiSortMeta">
+      <p-table [columns]="fields" [value]="securityDividendsPositions" selectionMode="single" responsiveLayout="scroll"
+               dataKey="security.idSecuritycurrency" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+               stripedRows showGridlines>
         <ng-template #caption>
           <h5>{{ 'INSTRUMENT'|translate }}</h5>
         </ng-template>

@@ -4,9 +4,8 @@
   </ng-container>
   <p-table [(selection)]="selectedSecuritycurrencies" [columns]="fields" [multiSortMeta]="multiSortMeta"
            [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [rows]="10" [value]="securitycurrencyList"
-           dataKey="idSecuritycurrency" sortMode="multiple"
-           responsiveLayout="scroll"
-           styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+           dataKey="idSecuritycurrency" sortMode="multiple" responsiveLayout="scroll"
+           stripedRows showGridlines>
     <ng-template #header let-fields >
       <tr>
         <th style="width: 2.25em">

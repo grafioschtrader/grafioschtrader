@@ -5,8 +5,8 @@
         <p-table [(contextMenuSelection)]="selectedSecurityPositionSummary"
                  [(selection)]="selectedSecurityPositionSummary"
                  [columns]="fields" [value]="securityPositionAll" responsiveLayout="scroll"
-                 dataKey="security.idSecuritycurrency" selectionMode="single"
-                 sortMode="none" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+                 dataKey="security.idSecuritycurrency" selectionMode="single" sortMode="none"
+                 stripedRows showGridlines>
             <ng-template #caption>
                 <div class="flex-two-columns">
                     <div class="left-half">

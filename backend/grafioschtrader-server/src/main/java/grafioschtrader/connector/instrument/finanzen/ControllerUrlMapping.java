@@ -30,7 +30,8 @@ public class ControllerUrlMapping {
       return false;
     }
     ControllerUrlMapping other = (ControllerUrlMapping) obj;
-    if ((assetClassType != other.assetClassType) || (specialInvestmentInstrument != other.specialInvestmentInstrument)) {
+    if ((assetClassType != other.assetClassType)
+        || (specialInvestmentInstrument != other.specialInvestmentInstrument)) {
       return false;
     }
     return true;

@@ -11,7 +11,7 @@
     <groupId>grafioschtrader</groupId>
     <artifactId>grafioschtrader</artifactId>
 	<packaging>pom</packaging>
-	<version>0.33.4</version>
+	<version>0.33.5</version>
 	
 	
 	<parent>
@@ -29,6 +29,21 @@
       			<artifactId>json</artifactId>
       			<version>20240303</version>
     		</dependency>
+			<dependency>
+			     <groupId>io.jsonwebtoken</groupId>
+			     <artifactId>jjwt-api</artifactId>
+			     <version>0.12.6</version>
+		    </dependency>
+			<dependency>
+			     <groupId>org.apache.commons</groupId>
+			     <artifactId>commons-collections4</artifactId>
+			     <version>4.4</version>
+		    </dependency>
+			<dependency>
+			   <groupId>com.github.vladimir-bukhtoyarov</groupId>
+			   <artifactId>bucket4j-core</artifactId>
+			   <version>8.0.1</version>
+		    </dependency>
 			<dependency>
 				<groupId>org.apache.pdfbox</groupId>
 				<artifactId>pdfbox</artifactId>

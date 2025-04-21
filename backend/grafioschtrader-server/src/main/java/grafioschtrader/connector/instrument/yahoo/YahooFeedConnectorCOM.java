@@ -1,10 +1,12 @@
-
 package grafioschtrader.connector.instrument.yahoo;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Instant;
@@ -19,15 +21,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -80,6 +73,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String DOMAIN_NAME_WITH_10_VERSION = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/";
   private static final boolean USE_V10_LASTPRICE = false;
 
+  private final HttpClient httpClient;
+
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
@@ -92,7 +87,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   public YahooFeedConnectorCOM() {
     super(supportedFeed, YahooHelper.YAHOO, "Yahoo USA Finance", null, EnumSet.noneOf(UrlCheck.class));
-
+    this.httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
   }
 
   @Override
@@ -124,22 +119,29 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     String contentPage = null;
     InputStream is = null;
     try {
-      is = loadContentWithCrump(httpPageUrl);
-      contentPage = IOUtils.toString(is, StandardCharsets.UTF_8);
+      HttpResponse<InputStream> response = loadContentWithCrump(httpPageUrl);
+      if (response.statusCode() == 200) {
+        is = response.body();
+        contentPage = IOUtils.toString(is, StandardCharsets.UTF_8);
+      } else {
+        contentPage = "Failure! Status code: " + response.statusCode();
+      }
     } catch (Exception e) {
-      contentPage = "Failure!";
+      contentPage = "Failure! " + e.getMessage();
     } finally {
-      try {
-        is.close();
-      } catch (IOException e) {
-        contentPage = "Failure!";
+      if (is != null) {
+        try {
+          is.close();
+        } catch (IOException e) {
+          contentPage = "Failure! " + e.getMessage();
+        }
       }
     }
     return contentPage;
   }
 
   @Override
-  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws IOException, ParseException {
+  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     readLastPriceWithCrumb(getCurrencypairIntradayDownloadLink(currencypair), currencypair);
   }
@@ -168,15 +170,18 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private <T extends Securitycurrency<T>> void readLastPriceWithCrumb(String urlStr, final T securitycurrency)
-      throws ClientProtocolException, IOException {
+      throws IOException, InterruptedException {
     boolean success = false;
     for (int i = 0; i <= 2 && !success; i++) {
       i++;
-      InputStream is = loadContentWithCrump(urlStr);
-      if (urlStr.startsWith(DOMAIN_NAME_WITH_10_VERSION)) {
-        success = processV10LastPrice(is, securitycurrency);
-      } else {
-        success = processV7LastPrice(is, securitycurrency);
+      HttpResponse<InputStream> response = loadContentWithCrump(urlStr);
+      if (response.statusCode() == 200) {
+        InputStream is = response.body();
+        if (urlStr.startsWith(DOMAIN_NAME_WITH_10_VERSION)) {
+          success = processV10LastPrice(is, securitycurrency);
+        } else {
+          success = processV7LastPrice(is, securitycurrency);
+        }
       }
       if (!success) {
         CrumbManager.resetCookieCrumb();
@@ -184,18 +189,12 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     }
   }
 
-  private InputStream loadContentWithCrump(String urlStr) throws ClientProtocolException, IOException {
-    HttpClient client = HttpClientBuilder.create()
-        .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build()).build();
-    HttpClientContext context = HttpClientContext.create();
+  private HttpResponse<InputStream> loadContentWithCrump(String urlStr) throws IOException, InterruptedException {
+    String crumb = CrumbManager.getCrumb();
     String cookie = CrumbManager.getCookie();
-    HttpGet request = new HttpGet(urlStr + "&crumb=" + CrumbManager.getCrumb());
-    request.addHeader("Cookie", cookie);
-    request.addHeader("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
-
-    HttpResponse response = client.execute(request, context);
-    HttpEntity entity = response.getEntity();
-    return entity.getContent();
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(urlStr + "&crumb=" + crumb)).header("Cookie", cookie)
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).build();
+    return httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
   }
 
   @Override
@@ -206,7 +205,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private <T extends Securitycurrency<T>> boolean processV7LastPrice(InputStream is, final T securitycurrency)
       throws StreamReadException, DatabindException, IOException {
     Quote quote = objectMapper.readValue(is, Quote.class);
-    if (quote.quoteResponse != null) {
+    if (quote.quoteResponse != null && quote.quoteResponse.result != null && quote.quoteResponse.result.length > 0) {
       setQuoteResult(quote, securitycurrency);
       return true;
     }
@@ -216,7 +215,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private <T extends Securitycurrency<T>> boolean processV10LastPrice(InputStream is, final T securitycurrency)
       throws StreamReadException, DatabindException, IOException {
     final QuoteSummaryV10 quoteSummary = objectMapper.readValue(is, QuoteSummaryV10.class);
-    if (quoteSummary.quoteSummary != null) {
+    if (quoteSummary.quoteSummary != null && quoteSummary.quoteSummary.result != null
+        && quoteSummary.quoteSummary.result.length == 1) {
       setQuoteSummary(quoteSummary, securitycurrency);
       return true;
     }
@@ -296,8 +296,12 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   @Override
-  protected boolean isConnectionOk(HttpURLConnection huc) {
-    return !huc.getURL().getPath().contains("lookup");
+  protected boolean isConnectionOk(java.net.HttpURLConnection huc) {
+    try {
+      return huc.getResponseCode() < 400;
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
@@ -311,24 +315,54 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         DOMAIN_NAME_WITH_8_VERSION_Q2 + "chart/%s?period1=%s&period2=%s&interval=1d&events=history", symbol,
         startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60);
 
-    final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.TimestampIndicatorsView.class)
-        .forType(TopLevelChart.class).readValue(FeedConnectorHelper.getByHttpClient(urlStr).body());
-    ResultData resultData = topLevelChart.chart.result.get(0);
-    List<Long> timestamps = resultData.timestamp;
-    Quotes quotes = resultData.indicators.quote.get(0);
-    for (int i = 0; i < timestamps.size(); i++) {
-      Historyquote historyquote = new Historyquote();
-      if (quotes.close.get(i) != null) {
-        historyquotes.add(historyquote);
-        historyquote.setClose(quotes.close.get(i) / divider);
-        historyquote.setHigh(quotes.high.get(i) / divider);
-        historyquote.setLow(quotes.low.get(i) / divider);
-        historyquote.setOpen(quotes.open.get(i) / divider);
-        historyquote.setVolume(quotes.volume.get(i));
-        historyquote
-            .setDate(DateHelper.setTimeToZeroAndAddDay(new Date((timestamps.get(i) + diffUTCSeconds) * 1000), 0));
+    HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(urlStr);
+    if (response.statusCode() == 200) {
+      final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.TimestampIndicatorsView.class)
+          .forType(TopLevelChart.class).readValue(response.body());
+      if (topLevelChart != null && topLevelChart.chart != null && topLevelChart.chart.result != null
+          && !topLevelChart.chart.result.isEmpty()) {
+        ResultData resultData = topLevelChart.chart.result.get(0);
+        if (resultData != null && resultData.timestamp != null && resultData.indicators != null
+            && resultData.indicators.quote != null && !resultData.indicators.quote.isEmpty()) {
+          List<Long> timestamps = resultData.timestamp;
+          Quotes quotes = resultData.indicators.quote.get(0);
+
+          // Variable to hold the date of the last added Historyquote
+          Date lastAddedDate = null;
+
+          for (int i = 0; i < timestamps.size(); i++) {
+            // Calculate the date for the current item
+            Date quoteDate = DateHelper.setTimeToZeroAndAddDay(new Date((timestamps.get(i) + diffUTCSeconds) * 1000),
+                0);
+
+            // Check if quote data is valid
+            if (quotes.close.get(i) != null) {
+              // Check for consecutive duplicates based on calculated date
+              // Only add if it's the first item, OR if the current date is different from the
+              // last added date
+              if (historyquotes.isEmpty() || !quoteDate.equals(lastAddedDate)) {
+
+                Historyquote historyquote = new Historyquote();
+                historyquotes.add(historyquote);
+
+                historyquote.setClose(quotes.close.get(i) / divider);
+                historyquote.setHigh(quotes.high.get(i) / divider);
+                historyquote.setLow(quotes.low.get(i) / divider);
+                historyquote.setOpen(quotes.open.get(i) / divider);
+                historyquote.setVolume(quotes.volume.get(i));
+                historyquote.setDate(quoteDate); // Set the calculated date
+
+                // Update the last added date after successful addition
+                lastAddedDate = quoteDate;
+              }
+            }
+          }
+        }
       }
+    } else {
+      throw new IOException("Failed to fetch historical data. Status code: " + response.statusCode());
     }
+
     return historyquotes;
   }
 
@@ -348,11 +382,14 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     final double divider = FeedConnectorHelper.getGBXLondonDivider(security);
 
     Events events = getSplitDividendEvent(security.getUrlDividendExtend(), fromDate, LocalDate.now(), DIVDEND_EVENT);
-    return events.dividends.entrySet().stream()
-        .map(entry -> new Dividend(security.getIdSecuritycurrency(),
-            Instant.ofEpochSecond(entry.getValue().date).atZone(ZoneId.systemDefault()).toLocalDate(), null, null,
-            entry.getValue().amount / divider, security.getCurrency(), CreateType.CONNECTOR_CREATED))
-        .collect(Collectors.toList());
+    if (events != null && events.dividends != null) {
+      return events.dividends.entrySet().stream()
+          .map(entry -> new Dividend(security.getIdSecuritycurrency(),
+              Instant.ofEpochSecond(entry.getValue().date).atZone(ZoneId.systemDefault()).toLocalDate(), null, null,
+              entry.getValue().amount / divider, security.getCurrency(), CreateType.CONNECTOR_CREATED))
+          .collect(Collectors.toList());
+    }
+    return new ArrayList<>();
   }
 
   @Override
@@ -378,21 +415,33 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private Events getSplitDividendEvent(String urlExtend, LocalDate fromDate, LocalDate toDate, String event)
       throws Exception {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.EventsView.class).forType(TopLevelChart.class)
-        .readValue(FeedConnectorHelper
-            .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event)).body());
-    return topLevelChart.chart.result.get(0).events;
+    HttpResponse<String> response = FeedConnectorHelper
+        .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event));
+    if (response.statusCode() == 200) {
+      final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.EventsView.class)
+          .forType(TopLevelChart.class).readValue(response.body());
+      if (topLevelChart != null && topLevelChart.chart != null && topLevelChart.chart.result != null
+          && !topLevelChart.chart.result.isEmpty()) {
+        return topLevelChart.chart.result.get(0).events;
+      }
+    } else {
+      throw new IOException("Failed to fetch split/dividend data. Status code: " + response.statusCode());
+    }
+    return new Events();
   }
 
   @Override
   public List<Securitysplit> getSplitHistory(final Security security, LocalDate fromDate, LocalDate toDate)
       throws Exception {
     Events events = getSplitDividendEvent(security.getUrlSplitExtend(), fromDate, toDate, SPLIT_EVENT);
-    return events.splits.entrySet().stream()
-        .map(entry -> new Securitysplit(security.getIdSecuritycurrency(),
-            DateHelper.setTimeToZeroAndAddDay(new Date(entry.getValue().date * 1000), 0), entry.getValue().denominator,
-            entry.getValue().numerator, CreateType.CONNECTOR_CREATED))
-        .collect(Collectors.toList());
+    if (events != null && events.splits != null) {
+      return events.splits.entrySet().stream()
+          .map(entry -> new Securitysplit(security.getIdSecuritycurrency(),
+              DateHelper.setTimeToZeroAndAddDay(new Date(entry.getValue().date * 1000), 0),
+              entry.getValue().denominator, entry.getValue().numerator, CreateType.CONNECTOR_CREATED))
+          .collect(Collectors.toList());
+    }
+    return new ArrayList<>();
   }
 
   static class Quote {

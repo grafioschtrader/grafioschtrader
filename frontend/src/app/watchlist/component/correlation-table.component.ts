@@ -41,9 +41,8 @@ import {AppHelper} from '../../shared/helper/app.helper';
     template: `
     <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single"
              [(selection)]="selectedEntity" dataKey="idSecuritycurrency"
-             (sortFunction)="customSort($event)" [customSort]="true"
-             responsiveLayout="scroll"
-             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+             (sortFunction)="customSort($event)" [customSort]="true" responsiveLayout="scroll"
+             stripedRows showGridlines>
       <ng-template #header let-fields>
         <tr>
           <th style="width:24px"></th>

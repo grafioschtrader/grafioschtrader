@@ -1,8 +1,8 @@
 <div class="datatable nestedtable">
   <p-table (onPage)="onPage($event)" [columns]="fields" [dataKey]="keyfield"
            [multiSortMeta]="multiSortMeta" [paginator]="true" [rows]="20" [value]="data"
-           class="leftRight2Table" selectionMode="single" responsiveLayout="scroll"
-           sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+           class="leftRight2Table" selectionMode="single" responsiveLayout="scroll" sortMode="multiple"
+           stripedRows showGridlines>
     <ng-template #caption>
       <div class="table-header">
         <h5>{{groupTitle | translate}}</h5>

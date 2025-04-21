@@ -20,10 +20,9 @@ import {SecurityIdWithCurrency} from '../../../securitycurrency/component/securi
     <p-table [columns]="fields" [value]="securities" selectionMode="single"
              [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
              (onRowUnselect)="onRowUnselect($event)"
-             responsiveLayout="scroll"
-             dataKey="idSecuritycurrency" [responsive]="true" (sortFunction)="customSort($event)" [customSort]="true"
+             responsiveLayout="scroll" dataKey="idSecuritycurrency" (sortFunction)="customSort($event)" [customSort]="true"
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
-             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+             stripedRows showGridlines>
       <ng-template #caption>
         <h5>{{'MISSING_DAY_TABLE_MARK'|translate}}</h5>
       </ng-template>

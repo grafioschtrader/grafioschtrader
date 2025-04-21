@@ -21,8 +21,8 @@ import {ParentChildRegisterService} from '../../../shared/service/parent.child.r
     template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="cashAccountPositions" selectionMode="single"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines" responsiveLayout="scroll"
-               dataKey="cashaccount.idSecuritycashAccount" sortMode="multiple" [multiSortMeta]="multiSortMeta">
+               responsiveLayout="scroll" dataKey="cashaccount.idSecuritycashAccount" sortMode="multiple" [multiSortMeta]="multiSortMeta"
+               stripedRows showGridlines>
         <ng-template #caption>
           <h5>{{ 'CASHACCOUNTS'|translate }}</h5>
         </ng-template>

@@ -16,8 +16,8 @@ import {FilterService} from 'primeng/api';
     template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="failedParsedTemplateStateList" selectionMode="single"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
-               responsiveLayout="scroll" sortField="security.name">
+               responsiveLayout="scroll" sortField="security.name"
+               stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{'IMPORT_POS_CHECK_FAILED' | translate}}</h4>
         </ng-template>

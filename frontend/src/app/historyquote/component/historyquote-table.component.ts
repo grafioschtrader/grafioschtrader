@@ -60,10 +60,10 @@ import {DialogService} from 'primeng/dynamicdialog';
       </p-panel>
       <div class="datatable">
         <p-table #table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-                 styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
                  responsiveLayout="scroll"
                  [first]="firstRow" (onPage)="onPage($event)" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                 [paginator]="true" [rows]="20" [dataKey]="entityKeyName">
+                 [paginator]="true" [rows]="20" [dataKey]="entityKeyName"
+                 stripedRows showGridlines>
           <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [pSortableColumn]="field.field"
