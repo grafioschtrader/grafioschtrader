@@ -7,12 +7,8 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.http.HttpException;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-// import org.apache.http.HttpException;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;

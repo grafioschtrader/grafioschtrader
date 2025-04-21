@@ -23,10 +23,9 @@ import {AppSettings} from '../../../shared/app.settings';
     template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                [dataKey]="entityKeyName" responsiveLayout="scroll"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{'YOUR_CHANGE_REQUESTS' | translate}}</h4>
         </ng-template>

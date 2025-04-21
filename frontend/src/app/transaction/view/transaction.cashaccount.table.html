@@ -9,7 +9,7 @@
              [rowsPerPageOptions]="[20,30,50,100]" responsiveLayout="scroll" [rows]="50"
              [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single"
              sortMode="multiple"
-             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+             stripedRows showGridlines>
       <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"

@@ -2,6 +2,7 @@ package grafioschtrader.connector.instrument.boursorama;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -108,19 +109,19 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws IOException, ParseException, URISyntaxException, InterruptedException {
+      throws Exception {
     return getEodSecurityCurrencypairHistory(from, to,
         getSecurityCurrecnypairHistoricalDownloadLink(currencyPair, from, true), 1.0);
   }
 
   private List<Historyquote> getEodSecurityCurrencypairHistory(final Date from, final Date to, String urlStr,
-      double divider) throws StreamReadException, DatabindException, IOException, InterruptedException {
+      double divider) throws Exception {
 
     long startDay = DateHelper.getLocalDate(from).toEpochDay();
     long endDay = DateHelper.getLocalDate(to).toEpochDay();
 
     final List<Historyquote> historyquotes = new ArrayList<>();
-    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 10).body(),
+    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 40).body(),
         HeaderEOD.class);
     for (QuoteTabEOD data : header.d.QuoteTab) {
       if (data.d >= startDay && data.d <= endDay) {

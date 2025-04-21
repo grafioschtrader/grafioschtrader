@@ -5,7 +5,7 @@
              [paginator]="true" [rows]="30" [value]="securityDividendsYearGroup"
              responsiveLayout="scroll"
              dataKey="year" selectionMode="single" sortMode="multiple"
-             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+             stripedRows showGridlines>
       <ng-template #caption>
         <ng-container *ngIf="securityDividendsGrandTotal">
           <h4 [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"

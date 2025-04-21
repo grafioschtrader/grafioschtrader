@@ -6,9 +6,8 @@
     <p-table (onRowCollapse)="onRowCollapse($event)" (onRowExpand)="onRowExpand($event)" [(selection)]="selectedAccountPositionSummary"
              [columns]="fields" [multiSortMeta]="multiSortMeta"
              [value]="accountPositionGroupSummary?.accountPositionSummaryList" dataKey="cashaccount.idSecuritycashAccount"
-             selectionMode="single" responsiveLayout="scroll"
-             sortMode="multiple" styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
-
+             selectionMode="single" responsiveLayout="scroll" sortMode="multiple"
+             stripedRows showGridlines>
       <ng-template #caption>
         <div class="flex-two-columns">
           <div class=".left-half">

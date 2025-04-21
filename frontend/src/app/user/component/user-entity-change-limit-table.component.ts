@@ -38,7 +38,7 @@ import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose
                  (sortFunction)="customSort($event)" [customSort]="true"
                  sortMode="multiple" [multiSortMeta]="multiSortMeta"
                  responsiveLayout="scroll" [contextMenu]="cm"
-                 styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+                 stripedRows showGridlines>
           <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"

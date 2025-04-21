@@ -43,7 +43,7 @@ import {MessageToastService} from '../../../shared/message/message.toast.service
                (onRowUnselect)="onRowUnselect($event)"
                dataKey="idMailSettingForward" responsiveLayout="scroll" editMode="row"
                (sortFunction)="customSort($event)" [customSort]="true"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               stripedRows showGridlines>
         <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field"

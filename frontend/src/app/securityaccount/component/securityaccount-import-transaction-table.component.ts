@@ -43,7 +43,7 @@ import {ImportTransactionPos} from '../../entities/import.transaction.pos';
                [rowsPerPageOptions]="[20,30,50,80]" responsiveLayout="scroll"
                selectionMode="multiple" (onRowExpand)="onRowExpand($event)" sortMode="multiple"
                [multiSortMeta]="multiSortMeta"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               stripedRows showGridlines>
         <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>

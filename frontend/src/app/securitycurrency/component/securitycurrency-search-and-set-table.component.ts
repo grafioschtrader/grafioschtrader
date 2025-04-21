@@ -24,7 +24,7 @@ import {FilterService} from 'primeng/api';
       <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single" [(selection)]="selectedSecurity"
                dataKey="idSecuritycurrency" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20,30]"
                sortField="name" sortMode="multiple" responsiveLayout="scroll"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               stripedRows showGridlines>
         <ng-template #header let-fields>
           <tr>
             <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"

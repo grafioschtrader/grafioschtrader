@@ -35,7 +35,7 @@ import {InfoLevelType} from '../../shared/message/info.leve.type';
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                sortField="nickname" [dataKey]="entityKeyName"
                responsiveLayout="scroll" [contextMenu]="cmDiv"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>

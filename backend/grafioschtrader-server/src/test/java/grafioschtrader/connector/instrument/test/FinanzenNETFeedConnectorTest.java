@@ -12,7 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.finanzennet.FinanzenNETFeedConnector;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
@@ -23,70 +25,50 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 /**
  * Sometimes Finanzen.NET can not always satisfy every request.
  */
-@SpringBootTest(classes = GTforTest.class)
-class FinanzenNETFeedConnectorTest {
 
+class FinanzenNETFeedConnectorTest extends BaseFeedConnectorCheck {
+
+  private FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
+
+  // Security price tests
+  // =======================================
   @Test
   void updateSecurityLastPriceTest() {
-    final List<Security> securities = new ArrayList<>();
-    final FinanzenNETFeedConnector finanzenNETFeedConnector = new FinanzenNETFeedConnector();
-
-    // For some securities, there is a redirect to the corresponding country page. These securities can therefore not be queried.
-//    securities.add(createSecurityIntra("rohstoffe/goldpreis/chf", AssetclassType.COMMODITIES,
-//        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, ""));
-//    securities.add(createSecurityIntra("rohstoffe/oelpreis", AssetclassType.COMMODITIES,
-//        SpecialInvestmentInstruments.CFD, null, ""));
-//    securities.add(createSecurityIntra("index/smi", AssetclassType.EQUITIES,
-//        SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, GlobalConstants.STOCK_EX_MIC_SIX));
-
-//    securities.add(createSecurityIntra("fonds/uniimmo-europa-de0009805515", AssetclassType.REAL_ESTATE,
-//        SpecialInvestmentInstruments.MUTUAL_FUND, null, GlobalConstants.STOCK_EX_MIC_XETRA));
-
-    securities.add(createSecurityIntra("etf/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581",
-        AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF, null, GlobalConstants.STOCK_EX_MIC_XETRA));
-
-    securities.add(createSecurityIntra("aktien/lufthansa-aktie@stBoerse_XETRA", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_XETRA));
-
-    securities.add(createSecurityIntra("anleihen/a19jgw-grande-dixence-anleihe", AssetclassType.FIXED_INCOME,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_SIX));
-
-    securities.add(createSecurityIntra("etf/xtrackers-ftse-developed-europe-real-estate-etf-1c-lu0489337690",
-        AssetclassType.REAL_ESTATE, SpecialInvestmentInstruments.ETF, null, GlobalConstants.STOCK_EX_MIC_XETRA));
-
-    securities.add(createSecurityIntra("aktien/apple-aktie@stBoerse_NAS", AssetclassType.EQUITIES,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT, null, GlobalConstants.STOCK_EX_MIC_NASDAQ));
-
-    securities.parallelStream().forEach(security -> {
-      try {
-        finanzenNETFeedConnector.updateSecurityLastPrice(security);
-      } catch (IOException | ParseException e) {
-        e.printStackTrace();
-      }
-      // System.out.println(security);
-      assertThat(security.getSLast()).isGreaterThan(0.0);
-
-    });
+    updateSecurityLastPrice();
   }
 
-  private Security createSecurityIntra(final String historyExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String stockexchangeSymbol) {
-    return createSecurity(historyExtend, assectClass, specialInvestmentInstruments, isin, stockexchangeSymbol, false);
-  }
+  @Override
+  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+    List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
+    try {
+      hisoricalDate.add(new SecurityHistoricalDate("Xtrackers FTSE 100 Short Daily Swap UCITS ETF 1C", "LU0328473581",
+          SpecialInvestmentInstruments.ETF, AssetclassType.EQUITIES,
+          "etf/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581", GlobalConstants.STOCK_EX_MIC_XETRA, 6023,
+          "2000-01-04", "2023-12-08"));
+      hisoricalDate.add(new SecurityHistoricalDate("Lufthansa Aktie", "DE0008232125",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.EQUITIES,
+          "aktien/lufthansa-aktie@stBoerse_XETRA", GlobalConstants.STOCK_EX_MIC_XETRA, 6023,
+          "2000-01-04", "2023-12-08"));
+      hisoricalDate.add(new SecurityHistoricalDate("Deutschland, Bundesrepublik-Anleihe: 2,900% bis 15.08.2056", "DE000BU2D012",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME,
+          "anleihen/bu2d01-deutschland-bundesrepublik-anleihe", GlobalConstants.STOCK_EX_MIC_FRANKFURT, 6023,
+          "2000-01-04", "2023-12-08"));
+//    hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", "US6311011026",
+//    SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES,
+//    "index/nasdaq_100", GlobalConstants.STOCK_EX_MIC_NASDAQ, 6023,
+//    "2000-01-04", "2023-12-08"));
 
-  private Security createSecurity(final String urlExtend, final AssetclassType assectClass,
-      SpecialInvestmentInstruments specialInvestmentInstruments, String isin, String mic, boolean historical) {
-    final Security security = new Security();
-    if (historical) {
-      security.setUrlHistoryExtend(urlExtend);
-    } else {
-      security.setUrlIntraExtend(urlExtend);
+    } catch (ParseException pe) {
+      pe.printStackTrace();
     }
-    security.setIsin(isin);
-    security.setAssetClass(
-        new Assetclass(assectClass, "Bond/Aktien Schweiz", specialInvestmentInstruments, Language.GERMAN));
-    security.setStockexchange(new Stockexchange("XXXX", mic, null, null, false, true));
-    return security;
+    return hisoricalDate;
+  }
+
+
+
+  @Override
+  protected IFeedConnector getIFeedConnector() {
+    return finanzenNETFeedConnector;
   }
 
 }

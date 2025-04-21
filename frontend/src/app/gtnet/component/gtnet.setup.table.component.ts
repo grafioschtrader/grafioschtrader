@@ -28,7 +28,7 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
                sortMode="multiple" [multiSortMeta]="multiSortMeta"
                responsiveLayout="scroll"
                (sortFunction)="customSort($event)" [customSort]="true"
-               styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+               stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{'GT_NET_NET_AND_MESSAGE' | translate}}</h4>
           <h5 *ngIf="!gtNetMyEntryId" style="color:red;">{{'GT_NET_COMM_REQUIREMENT' | translate}}</h5>

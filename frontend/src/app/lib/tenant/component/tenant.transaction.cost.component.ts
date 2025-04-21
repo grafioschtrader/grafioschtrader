@@ -35,8 +35,7 @@ import {FilterService, MenuItem} from 'primeng/api';
         <p-table #dataTable [columns]="fields" [value]="transactionCostGroupSummaries" selectionMode="single"
                  [(selection)]="selectedRow" dataKey="securityaccount.idSecuritycashAccount"
                  [expandedRowKeys]="expandedTCGSid" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                 responsiveLayout="scroll"
-                 styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+                 responsiveLayout="scroll" stripedRows showGridlines>
           <ng-template #header let-fields>
             <tr>
               <th style="width:24px"></th>

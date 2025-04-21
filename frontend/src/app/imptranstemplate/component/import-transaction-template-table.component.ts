@@ -26,10 +26,9 @@ import {AppSettings} from '../../shared/app.settings';
     selector: 'import-transaction-template-table',
     template: `
     <p-table [columns]="fields" [value]="entityList"
-             styleClass="sticky-table p-datatable-striped p-datatable-gridlines"
              selectionMode="single" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-             responsiveLayout="scroll"
-             [dataKey]="entityKeyName" [(selection)]="selectedEntity">
+             responsiveLayout="scroll" [dataKey]="entityKeyName" [(selection)]="selectedEntity"
+             stripedRows showGridlines>
       <ng-template #header let-fields>
         <tr>
           <th *ngFor="let field of fields" [pSortableColumn]="field.field"

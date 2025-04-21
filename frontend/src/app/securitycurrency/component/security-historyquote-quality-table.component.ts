@@ -20,7 +20,7 @@ import {FilterService} from 'primeng/api';
              (onRowUnselect)="onRowUnselect($event)"
              dataKey="idSecurity" responsiveLayout="scroll"
              (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-             styleClass="sticky-table p-datatable-striped p-datatable-gridlines">
+             stripedRows showGridlines>
       <ng-template #caption>
         <h5>{{groupTitle | translate}}</h5>
       </ng-template>
