@@ -1,7 +1,5 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +11,6 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.boursorama.BoursoramaFeedConnector;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
-import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.Historyquote;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 

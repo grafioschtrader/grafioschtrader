@@ -1,24 +1,15 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.finanzennet.FinanzenNETFeedConnector;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
-import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.Security;
-import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 

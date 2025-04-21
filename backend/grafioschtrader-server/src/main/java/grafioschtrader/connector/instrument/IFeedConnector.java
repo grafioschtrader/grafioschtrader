@@ -7,8 +7,8 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
