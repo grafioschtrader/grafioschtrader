@@ -32,10 +32,13 @@ jobs:
           mvn clean install -DskipTests
           # Then generate docs in the specific module
           cd grafioschtrader-server
+          mvn spring-boot:start
+          sleep 15
           # Execute package (compiles), javadoc, and openapi generation
           # The springdoc plugin is bound to the 'package' phase (see pom.xml change)
           # The javadoc plugin is called explicitly
           mvn package javadoc:javadoc -DskipTests -Dmaven.javadoc.failOnError=false -Ddoclint=none
+          mvn spring-boot:stop
 
       # 4. Prepare docs directory for Pages
       - name: Prepare docs directory
