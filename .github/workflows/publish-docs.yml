@@ -3,50 +3,50 @@ name: Generate and Publish Documentation
 on:
   push:
     paths:
-    - 'backend/**'
+      - 'backend/**'
   workflow_dispatch:
     branches:
-    - master 
+      - master
 
 jobs:
   build-docs:
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout the repository
+      # 1. Check out the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up JDK 21
+      # 2. Set up Java 21
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: '21'
 
-      # 3. Build Spring Boot server, generate Javadoc and OpenAPI spec
+      # 3. Build server and generate Javadoc & OpenAPI spec
       - name: Build server and generate docs
         run: |
           cd backend/grafioschtrader-server
           mvn clean javadoc:javadoc springdoc-openapi:generate
 
-      # 4. Prepare docs directory for GitHub Pages
+      # 4. Prepare docs directory for Pages
       - name: Prepare docs directory
         run: |
           rm -rf docs
           mkdir -p docs/swagger
 
-          # Copy generated Javadoc
+          # Copy Javadoc
           cp -R backend/grafioschtrader-server/target/site/apidocs/* docs/
 
-          # Copy generated OpenAPI spec
+          # Copy OpenAPI spec
           cp backend/grafioschtrader-server/target/generated-docs/openapi.json docs/swagger/
 
-          # Download and extract Swagger UI distribution
+          # Download & extract Swagger UI
           wget -qO- https://github.com/swagger-api/swagger-ui/archive/refs/tags/v4.15.5.tar.gz \
             | tar xz --strip-components=1 swagger-ui-4.15.5/dist
           cp -R * docs/swagger/
 
-          # Create an index.html that loads the OpenAPI spec
+          # Generate index.html for Swagger UI
           cat > docs/swagger/index.html << 'EOF'
           <!DOCTYPE html>
           <html lang="en">
@@ -80,7 +80,7 @@ jobs:
           </html>
           EOF
 
-      # 5. Upload the docs directory as a Pages artifact
+      # 5. Upload the docs folder as a Pages artifact
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
