@@ -116,7 +116,7 @@ jobs:
               </script>
             </body>
           </html>
-EOF
+EOF # <<< THIS LINE MUST HAVE NO LEADING SPACES/TABS
           echo "Swagger UI index.html created."
           echo "--- Docs directory preparation complete ---"
 
