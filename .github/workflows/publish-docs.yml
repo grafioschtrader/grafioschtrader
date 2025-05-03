@@ -4,9 +4,9 @@ on:
   push:
     paths:
       - 'backend/**'
-  workflow_dispatch:
     branches:
-      - master
+      - master # Trigger only on master branch upon push
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
   build-docs:
@@ -22,73 +22,105 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: 'maven' # Enable Maven caching
 
-      # 3. Build all backend modules and install to local repo
-      - name: Build & install all backend modules
+      # 3. Build, generate Javadoc and OpenAPI spec for grafioschtrader-server
+      - name: Build & Generate Docs
         run: |
           cd backend
+          # First build and install all modules (important for dependencies)
           mvn clean install -DskipTests
+          # Then generate docs in the specific module
+          cd grafioschtrader-server
+          # Execute package (compiles), javadoc, and openapi generation
+          # The springdoc plugin is bound to the 'package' phase (see pom.xml change)
+          # The javadoc plugin is called explicitly
+          mvn package javadoc:javadoc -DskipTests -Dmaven.javadoc.failOnError=false -Ddoclint=none
 
-      # 4. Generate Javadoc & OpenAPI spec, disabling strict Javadoc checks
-      - name: Generate Javadoc & OpenAPI spec
-        run: |
-          cd backend/grafioschtrader-server
-          mvn javadoc:javadoc springdoc-openapi:generate \
-            -Dmaven.javadoc.failOnError=false \
-            -Ddoclint=none
-
-      # 5. Prepare docs directory for Pages
+      # 4. Prepare docs directory for Pages
       - name: Prepare docs directory
         run: |
+          echo "--- Preparing docs directory ---"
           rm -rf docs
           mkdir -p docs/swagger
 
-          # Copy Javadoc output
-          cp -R backend/grafioschtrader-server/target/site/apidocs/* docs/
+          echo "--- Copying Javadoc ---"
+          # Check if the directory exists before copying
+          if [ -d "backend/grafioschtrader-server/target/site/apidocs" ]; then
+            cp -R backend/grafioschtrader-server/target/site/apidocs/* docs/
+            echo "Javadoc copied."
+          else
+            echo "ERROR: Javadoc directory 'backend/grafioschtrader-server/target/site/apidocs' not found!"
+            # Optional: Fail the workflow
+            # exit 1
+          fi
 
-          # Copy OpenAPI spec
-          cp backend/grafioschtrader-server/target/generated-docs/openapi.json docs/swagger/
+          echo "--- Copying OpenAPI spec ---"
+           # Check if the file exists
+          if [ -f "backend/grafioschtrader-server/target/generated-docs/openapi.json" ]; then
+            cp backend/grafioschtrader-server/target/generated-docs/openapi.json docs/swagger/
+            echo "OpenAPI spec copied."
+          else
+             echo "ERROR: OpenAPI spec 'backend/grafioschtrader-server/target/generated-docs/openapi.json' not found!"
+             # Optional: Fail the workflow
+             # exit 1
+          fi
 
+          echo "--- Setting up Swagger UI ---"
           # Download & extract Swagger UI
-          wget -qO- https://github.com/swagger-api/swagger-ui/archive/refs/tags/v4.15.5.tar.gz \
-            | tar xz --strip-components=1 swagger-ui-4.15.5/dist
-          cp -R * docs/swagger/
+          # Use a newer version of Swagger UI if desired/needed
+          SWAGGER_UI_VERSION="v5.17.14" # Example: Check for the latest version
+          wget -qO- "https://github.com/swagger-api/swagger-ui/archive/refs/tags/${SWAGGER_UI_VERSION}.tar.gz" \
+            | tar xz --strip-components=1 "swagger-ui-${SWAGGER_UI_VERSION#v}/dist" -C docs/swagger/
 
-          # Write the Swagger UI index.html
+          # Set the correct path to openapi.json in index.html
+          # The path must be relative to index.html (which is in docs/swagger/)
           cat > docs/swagger/index.html << 'EOF'
           <!DOCTYPE html>
           <html lang="en">
             <head>
-              <meta charset="UTF-8" />
+              <meta charset="UTF-8">
               <title>API Documentation</title>
-              <link rel="stylesheet" href="swagger-ui.css" />
-              <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
-              <link rel="icon" href="favicon-16x16.png" sizes="16x16" />
-              <style> body { margin:0; background:#fafafa; } </style>
+              <link rel="stylesheet" type="text/css" href="./swagger-ui.css" />
+              <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
+              <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
+              <style>
+                html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+                *, *:before, *:after { box-sizing: inherit; }
+                body { margin:0; background: #fafafa; }
+              </style>
             </head>
             <body>
               <div id="swagger-ui"></div>
-              <script src="swagger-ui-bundle.js"></script>
-              <script src="swagger-ui-standalone-preset.js"></script>
+              <script src="./swagger-ui-bundle.js" charset="UTF-8"> </script>
+              <script src="./swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
               <script>
-                window.onload = function() {
-                  SwaggerUIBundle({
-                    url: './openapi.json',
-                    dom_id: '#swagger-ui',
-                    deepLinking: true,
-                    presets: [
-                      SwaggerUIBundle.presets.apis,
-                      SwaggerUIStandalonePreset
-                    ],
-                    layout: 'StandaloneLayout'
-                  });
-                };
+              window.onload = function() {
+                // Begin Swagger UI call region
+                const ui = SwaggerUIBundle({
+                  url: "./openapi.json", // Path to JSON relative to this HTML
+                  dom_id: '#swagger-ui',
+                  deepLinking: true,
+                  presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                  ],
+                  plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                  ],
+                  layout: "StandaloneLayout"
+                });
+                // End Swagger UI call region
+                window.ui = ui;
+              };
               </script>
             </body>
           </html>
-          EOF
+EOF
+          echo "Swagger UI index.html created."
+          echo "--- Docs directory preparation complete ---"
 
-      # 6. Upload the docs folder as a Pages artifact
+      # 5. Upload the docs folder as a Pages artifact
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -96,8 +128,17 @@ jobs:
 
   deploy-pages:
     needs: build-docs
+    # Grant GITHUB_TOKEN the permissions required to deploy Pages
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      # 7. Deploy to GitHub Pages
+      # 6. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
+        id: deployment # Add ID for the step
         uses: actions/deploy-pages@v4
+        # No configuration needed when using the upload step
