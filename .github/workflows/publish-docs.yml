@@ -2,8 +2,11 @@ name: Generate and Publish Documentation
 
 on:
   push:
+    paths:
+    - 'backend/**'
+  workflow_dispatch:
     branches:
-      - main
+    - master 
 
 jobs:
   build-docs:
