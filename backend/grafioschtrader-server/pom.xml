@@ -346,23 +346,21 @@
                 </configuration>
             </plugin>
             <plugin>
-			  <groupId>org.springdoc</groupId>
-			  <artifactId>springdoc-openapi-maven-plugin</artifactId>
-			  <version>1.4</version> <!-- oder Deine verwendete Version -->
-			  <executions>
-			    <execution>
-			      <id>generate-openapi-spec</id>
-			      <goals>
-			        <goal>generate</goal>
-			      </goals>
-			      <phase>verify</phase>
-			    </execution>
-			  </executions>
-			  <configuration>
-			    <apiDocsUrl>http://localhost:8080/api-docs</apiDocsUrl>
-			    <outputDir>${project.build.directory}/generated-docs</outputDir>
-			    <outputFileName>openapi.json</outputFileName>
-			  </configuration>
+			    <groupId>org.springdoc</groupId>
+			    <artifactId>springdoc-openapi-maven-plugin</artifactId>
+			    <version>1.4</version> <executions>
+			        <execution>
+			            <id>generate-openapi-spec</id>
+			            <goals>
+			                <goal>generate</goal>
+			            </goals>
+			            <phase>package</phase>
+			        </execution>
+			    </executions>
+			    <configuration>
+			        <outputDir>${project.build.directory}/generated-docs</outputDir>
+			        <outputFileName>openapi.json</outputFileName>
+			        </configuration>
 			</plugin>
 			<plugin>
                     <groupId>org.apache.maven.plugins</groupId>
