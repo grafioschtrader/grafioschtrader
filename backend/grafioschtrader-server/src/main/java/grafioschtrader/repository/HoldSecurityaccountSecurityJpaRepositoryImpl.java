@@ -45,9 +45,9 @@ import grafioschtrader.repository.helper.HoldingsHelper;
 import grafioschtrader.types.TransactionType;
 
 /**
- * HoldSecurityaccountSecurity is affected:<b> When a tenant buys or sells a
- * security.<b> When a tenants global main currency or a portfolio currency
- * changes. For every tenant when security splits changes.<b>
+ * HoldSecurityaccountSecurity is affected:<br/> When a tenant buys or sells a
+ * security.<br/> When a tenants global main currency or a portfolio currency
+ * changes. For every tenant when security splits changes.<br/>
  *
  * Margin transaction are handled differently, every single transaction is
  * processed, while for other transactions the database query delivers a
