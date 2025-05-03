@@ -1,4 +1,4 @@
-name: Generate and Publish Documentation
+name: Generate and Publish Backend Documentation
 
 on:
   push:
@@ -23,19 +23,25 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      # 3. Build server and generate Javadoc & OpenAPI spec
-      - name: Build server and generate docs
+      # 3. Build all backend modules and install to local repo
+      - name: Build & install all backend modules
+        run: |
+          cd backend
+          mvn clean install -DskipTests
+
+      # 4. Generate Javadoc & OpenAPI spec in the server module
+      - name: Generate Javadoc & OpenAPI spec
         run: |
           cd backend/grafioschtrader-server
-          mvn clean javadoc:javadoc springdoc-openapi:generate
+          mvn javadoc:javadoc springdoc-openapi:generate
 
-      # 4. Prepare docs directory for Pages
+      # 5. Prepare docs directory for Pages
       - name: Prepare docs directory
         run: |
           rm -rf docs
           mkdir -p docs/swagger
 
-          # Copy Javadoc
+          # Copy Javadoc output
           cp -R backend/grafioschtrader-server/target/site/apidocs/* docs/
 
           # Copy OpenAPI spec
@@ -46,7 +52,7 @@ jobs:
             | tar xz --strip-components=1 swagger-ui-4.15.5/dist
           cp -R * docs/swagger/
 
-          # Generate index.html for Swagger UI
+          # Write the Swagger UI index.html
           cat > docs/swagger/index.html << 'EOF'
           <!DOCTYPE html>
           <html lang="en">
@@ -80,7 +86,7 @@ jobs:
           </html>
           EOF
 
-      # 5. Upload the docs folder as a Pages artifact
+      # 6. Upload the docs folder as a Pages artifact
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -90,6 +96,6 @@ jobs:
     needs: build-docs
     runs-on: ubuntu-latest
     steps:
-      # 6. Deploy to GitHub Pages
-        - name: Deploy to GitHub Pages
-          uses: actions/deploy-pages@v4
+      # 7. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
