@@ -69,8 +69,8 @@ jobs:
           echo "--- Setting up Swagger UI ---"
           # Download & extract Swagger UI
           # Use a newer version of Swagger UI if desired/needed
-          SWAGGER_UI_VERSION="v5.17.14" # Example: Check for the latest version
-          wget -qO- "https://github.com/swagger-api/swagger-ui/archive/refs/tags/${SWAGGER_UI_VERSION}.tar.gz" \
+          SWAGGER_UI_VERSION="v5.21.0" # Example: Check for the latest version
+          wget -qO- https://github.com/swagger-api/swagger-ui/archive/refs/tags/${SWAGGER_UI_VERSION}.tar.gz" \
             | tar xz --strip-components=1 "swagger-ui-${SWAGGER_UI_VERSION#v}/dist" -C docs/swagger/
 
           # Set the correct path to openapi.json in index.html
