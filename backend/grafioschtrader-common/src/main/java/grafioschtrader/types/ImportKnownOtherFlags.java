@@ -10,7 +10,7 @@ import grafiosch.types.StableEnum;
  * set be the user, others are set by the system.
  *
  */
-public enum ImportKnownOtherFlags implements StableEnum{
+public enum ImportKnownOtherFlags implements StableEnum {
 
   /**
    * Bonds may pay interest two or more times in a year. But the document shows
@@ -26,7 +26,7 @@ public enum ImportKnownOtherFlags implements StableEnum{
 
   /**
    * Some times a dividend are not paid in the currency of the security paper, in
-   * such cases the assigment of the security may be wrong it has to be checked
+   * such cases the assignment of the security may be wrong it has to be checked
    * against the holdings of security account
    */
   SECURITY_CURRENCY_MISMATCH((byte) 2),
@@ -59,18 +59,16 @@ public enum ImportKnownOtherFlags implements StableEnum{
    * Otherwise, Subject to Tax is set.
    */
   CAN_NO_TAX_ON_DIVIDEND_INTEREST((byte) 6);
-  
+
   private final Byte value;
 
   private ImportKnownOtherFlags(final Byte value) {
     this.value = value;
   }
 
-  
   public Byte getValue() {
     return this.value;
   }
-
 
   public static long encode(EnumSet<ImportKnownOtherFlags> importKnownOtherFlagsSet) {
     return EnumHelper.encodeEnumSet(importKnownOtherFlagsSet);

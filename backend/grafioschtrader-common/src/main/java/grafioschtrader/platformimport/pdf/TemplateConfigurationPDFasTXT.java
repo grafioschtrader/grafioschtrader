@@ -129,23 +129,29 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
               propertyWithOptionsAndBraces);
           break;
         case "PL":
+        case "PLI":  
           if (startRow > 0) {
             String[] rowSplitSpacePL = templateLines[startRow - 1].split("\\s+", 2);
             propertyWithOptions.startPL = setFirstWord(rowSplitSpacePL, propertyWithOptionsAndBraces,
                 dataViolationException, propertyOptionsSplit[i], 1);
+            propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("PLI")? false: true;
           } else {
             dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.pl.row", null, false);
           }
           break;
         case "SL":
+        case "SLI":  
           propertyWithOptions.startSL = setFirstWord(rowSplitSpace, propertyWithOptionsAndBraces,
               dataViolationException, propertyOptionsSplit[i], 2);
+          propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("SLI")? false: true;
           break;
         case "NL":
+        case "NLI":
           if (startRow < lastLine) {
             String[] rowSplitSpaceNL = templateLines[startRow + 1].split("\\s+", 2);
             propertyWithOptions.startNL = setFirstWord(rowSplitSpaceNL, propertyWithOptionsAndBraces,
                 dataViolationException, propertyOptionsSplit[i], 1);
+            propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("NLI")? false: true;
           } else {
             dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.nl.row", null, false);
           }

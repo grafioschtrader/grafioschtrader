@@ -1,7 +1,7 @@
 import {HttpHeaders} from '@angular/common/http';
 
 export abstract class BaseService {
-  getHeaders(): { [header: string]: HttpHeaders } {
+  getHeaders(): { headers: HttpHeaders } {
     return {headers: this.prepareHeaders()};
   }
 
@@ -14,7 +14,7 @@ export abstract class BaseService {
     return new HttpHeaders(header);
   }
 
-  getMultipartHeaders(): { [header: string]: HttpHeaders } {
+  getMultipartHeaders(): { headers: HttpHeaders } {
     return {headers: this.prepareMultipartHeaders()};
   }
 

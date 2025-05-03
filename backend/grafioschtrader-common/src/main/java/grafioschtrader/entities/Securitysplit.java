@@ -28,7 +28,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-
 @Schema(description = "A security split hat not been mapped to security because of performance reason.")
 @Entity
 @Table(name = Securitysplit.TABNAME)

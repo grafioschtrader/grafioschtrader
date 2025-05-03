@@ -1,9 +1,7 @@
 package grafioschtrader.types;
 
 public enum TemplateCategory {
-
   BUY_SELL_INSTRUMENT((byte) 0), BUY_SELL_EQUITY((byte) 1), BUY_SELL_BOND((byte) 2),
-
   // Buy instrument
   BUY_INSTRUMENT((byte) 3),
   // Buy equity
