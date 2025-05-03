@@ -277,7 +277,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Method to adjust the date if it's a weekend (Saturday or Sunday)
    * 
    * @param date Date to be checked
-   * @return for Saturaday remove one day and for Sunday add one day
+   * @return for Saturday remove one day and for Sunday add one day
    */
   private Date adjustIfWeekend(Date date) {
     Calendar calendar = Calendar.getInstance();

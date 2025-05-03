@@ -17,6 +17,7 @@ import grafiosch.entities.Auditable;
 import grafioschtrader.platformimport.TemplateConfiguration;
 import grafioschtrader.types.TemplateCategory;
 import grafioschtrader.types.TemplateFormatType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,12 +28,11 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
-/**
- * It contains the pdf or csv template as text, which will be used for import
- * transactions.
- *
- */
 // @JsonFilter("NON_TEMPLATE")
+@Schema(description = """
+    As each trading platform implements its own document design, one or more import templates
+    must be created in GT according to these documents. It contains the pdf or csv template as text,
+    which will be used for import transactions.""")
 @Entity
 @Table(name = ImportTransactionTemplate.TABNAME)
 public class ImportTransactionTemplate extends Auditable {
@@ -51,28 +51,38 @@ public class ImportTransactionTemplate extends Auditable {
   @Column(name = "id_trans_imp_platform")
   private Integer idTransactionImportPlatform;
 
+  @Schema(description = "The purpose of the template.")
   @Column(name = "template_purpose")
   @PropertyAlwaysUpdatable
   private String templatePurpose;
 
+  @Schema(description = "The category is also used for importing templates.")
   @Column(name = "template_category")
   @PropertyAlwaysUpdatable
   private byte templateCategory;
 
+  @Schema(description = "Document type which are supported by the import of transactions.")
   @Column(name = "template_format_type")
   @PropertyAlwaysUpdatable
   private byte templateFormatType;
 
+  @Schema(description = """
+      The template is valid from this date, but this is only used if a transaction import matches several templates.
+      In this case, the template with the most recent date compared to the date in the transaction import is used.""")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Temporal(TemporalType.DATE)
   @Column(name = "valid_since")
   @PropertyAlwaysUpdatable
   private Date validSince;
 
+  @Schema(description = """
+      The same import template is differentiated by language. Has an informative character for the user
+      and is used for differentiation when importing and exporting import templates.""")
   @Column(name = "template_language")
   @PropertyAlwaysUpdatable
   private String templateLanguage;
 
+  @Schema(description = "Contains the import template as text.")
   @Column(name = "template_as_txt")
   @PropertyAlwaysUpdatable
   private String templateAsTxt;

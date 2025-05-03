@@ -29,10 +29,10 @@ import grafioschtrader.types.HistoryquoteCreateType;
 public class HistoryquoteQualityService {
 
   @Autowired
-  SecurityJpaRepository securityJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
-  HistoryquoteJpaRepository historyquoteJpaRepository;
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
   private MessageSource messages;

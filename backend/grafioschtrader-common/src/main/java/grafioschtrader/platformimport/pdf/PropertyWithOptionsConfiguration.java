@@ -42,6 +42,8 @@ public class PropertyWithOptionsConfiguration {
    */
   public String startNL;
 
+  public boolean startLineSingleCount;
+  
   private static Pattern startLineOptionsPattern = Pattern.compile("^\\[(.*)\\]");
 
   /**
@@ -147,14 +149,14 @@ public class PropertyWithOptionsConfiguration {
       String[] rowSplitSpace) throws Exception {
 
     if (rowSplitSpace.length > 0 && startString.equalsIgnoreCase(target)) {
-      if (hasRegexSelectorOtherThanLineBeginning()) {
+      if (hasRegexSelectorOtherThanLineBeginning() || !startLineSingleCount) {
         return matchRegexAndSetValue(formInputLines[startRow], importProperties, valueFormatConverter);
       } else {
         // The property has no other selector than PL|SL|NL. In this case the position
         // of FIELD value
         // is estimated by the templates word count.
         rowSplitSpace = formInputLines[startRow].split("\\s+");
-        return rowSplitSpace.length > propteryColumn
+        return (rowSplitSpace.length > propteryColumn)
             ? matchRegexAndSetValue(rowSplitSpace[propteryColumn], importProperties, valueFormatConverter)
             : false;
       }

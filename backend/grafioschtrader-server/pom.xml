@@ -318,7 +318,7 @@
     		 <optional>true</optional>
 		</dependency>
 
-       
+      
 
 	</dependencies>
 
@@ -350,6 +350,23 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <plugin>
+  				<groupId>org.springdoc</groupId>
+  				<artifactId>springdoc-openapi-maven-plugin</artifactId>
+  				<version>1.4</version>
+  				<executions>
+    				<execution>
+    				  	<id>generate-openapi-spec</id>
+      				  	<goals>
+        					<goal>generate</goal>
+      					</goals>
+      					<configuration>
+        					<outputFileName>openapi.json</outputFileName>
+        					<outputDir>${project.build.directory}/generated-docs</outputDir>
+      					</configuration>
+    				</execution>
+  				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

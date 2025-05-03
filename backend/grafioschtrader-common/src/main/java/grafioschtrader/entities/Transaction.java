@@ -56,8 +56,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   private Integer idTransaction;
 
   @Schema(description = """
-          Quantity when buying and selling securities or the number of days when financing costs
-          The value is always positive when selling or buying a position.""")
+      Quantity when buying and selling securities or the number of days when financing costs
+      The value is always positive when selling or buying a position.""")
   @Basic(optional = true)
   @Column(name = "units")
   @NotNull(groups = { SecurityTransaction.class })
@@ -72,7 +72,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Null(groups = { CashTransaction.class })
   private Double quotation;
 
-  @Schema(description = "The transaction type")
+  @Schema(description = "Transaction type such as buy, sell, etc.")
   @Basic(optional = false)
   @Column(name = "transaction_type")
   @NotNull
@@ -93,8 +93,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   private Double taxCost;
 
   @Schema(description = """
-          Transaction costs may be incurred for certain types of transactions.
-          This is the case when selling and buying instruments or when withdrawing money from an account.""")
+      Transaction costs may be incurred for certain types of transactions.
+      This is the case when selling and buying instruments or when withdrawing money from an account.""")
   @Column(name = "transaction_cost")
   private Double transactionCost;
 
@@ -108,6 +108,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @NotNull
   private Double cashaccountAmount;
 
+  @Schema(description = """
+      The transaction time is the date and time when the transaction took place. The exact time is not so important, 
+      but it should be noted that the transaction time determines the sequence of transactions.""")
   @Basic(optional = false)
   @Column(name = "transaction_time")
   @Temporal(TemporalType.TIMESTAMP)
@@ -115,13 +118,16 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   private Date transactionTime;
 
-  @Schema(description = "Transaction Date is set when an entity is saved. It was introduced for SQL performance reasons.")
+  @Schema(description = """
+      The transaction date is defined when an entity is saved, whereby only the date without the time is taken from 'transactionTime'.
+      It was introduced for reasons of SQL performance.""")
   @JsonIgnore
   @Column(name = "tt_date")
   private LocalDate transactionDate;
 
-  @Schema(description = "Sometimes the dividend is paid after a security has been sold, "
-      + "in which case the dividend date must be given.")
+  @Schema(description = """
+      Sometimes the dividend is paid after a security has been sold, in which case the
+      dividend date must be given.""")
   @Column(name = "ex_date")
   @Temporal(TemporalType.DATE)
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
@@ -151,8 +157,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   Integer idCurrencypair;
 
   @Schema(description = """
-          Every transaction relating to a security has security account.
-          A cash transaction may also have a security account in case of security account costs""")
+      Every transaction relating to a security has security account.
+      A cash transaction may also have a security account in case of security account costs""")
   @Column(name = "id_security_account")
   @NotNull(groups = { SecurityTransaction.class })
   private Integer idSecurityaccount;
@@ -446,8 +452,6 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return this.cashaccountAmount * exchangeRateToMC * -1.0;
   }
 
-
-
   @JsonIgnore
   public Double getTaxCostExRate(String mainCurency, double exchangeRateToMC) {
     return calcMCValue(mainCurency, this.taxCost, exchangeRateToMC);
@@ -634,7 +638,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     case FINANCE_COST:
       checkNegativeQuoataion();
       if (this.security.isMarginInstrument()) {
-        if(openPositionMarginTransaction != null) {
+        if (openPositionMarginTransaction != null) {
           buyQuotation = openPositionMarginTransaction.getQuotation();
         }
         calcCashaccountAmount = validateSecurityMarginCashaccountAmount(openPositionMarginTransaction);
@@ -651,7 +655,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     if (roundCashaccountAmount == calcCashaccountAmount) {
       if (quotation != null && GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {
         if (calcCashaccountAmount != DataHelper.round(cashaccountAmount,
-            Math.min(BaseConstants.FID_MAX_FRACTION_DIGITS, currencyFraction + (currencyExRate == null? 3: 5)))) {
+            Math.min(BaseConstants.FID_MAX_FRACTION_DIGITS, currencyFraction + (currencyExRate == null ? 3 : 5)))) {
           correctSecurityTransactionToAmount(roundCashaccountAmount - cashaccountAmount, buyQuotation);
         }
       }
@@ -719,8 +723,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   // It is public for test
   public double validateSecurityGeneralCashaccountAmount(double buyQuotation) {
-    return DataBusinessHelper.divideMultiplyExchangeRate(calculateSecurityTransactionAmountWithoutExchangeRate(buyQuotation),
-        currencyExRate, security.getCurrency(), cashaccount.getCurrency());
+    return DataBusinessHelper.divideMultiplyExchangeRate(
+        calculateSecurityTransactionAmountWithoutExchangeRate(buyQuotation), currencyExRate, security.getCurrency(),
+        cashaccount.getCurrency());
   }
 
   private double calculateSecurityTransactionAmountWithoutExchangeRate(double buyQuotation) {

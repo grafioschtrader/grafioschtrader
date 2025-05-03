@@ -34,11 +34,13 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Size;
 
-/**
- * Transactions from csv or pdf file are imported in this table. Normally a csv
- * will creates many and a pdf may create only one.
- *
- */
+@Schema(description = """
+    This is the item data of a transaction import that is carried out using import templates.
+    There is one item per PDF file and an import of a CSV file can determine several items.
+    An item is usually mapped directly to a transaction. Certain properties are read directly
+    from the import, others must be derived from those read directly. For example, the cash
+    account is determined using the currency of the transaction document. Some properties are
+    also calculated and are used to make a comparison with the imported values, for example the total amount.""")
 @Entity
 @Table(name = ImportTransactionPos.TABNAME)
 public class ImportTransactionPos extends TenantBaseID implements Comparable<ImportTransactionPos> {
@@ -62,9 +64,13 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "id_trans_head")
   private Integer idTransactionHead;
 
+  @Schema(description = "Transaction type such as buy, sell, etc.")
   @Column(name = "transaction_type")
   private Byte transactionType;
 
+  @Schema(description = """
+      -- NOT USED YET AND EMPTY --
+      Type of transaction as text as specified in the importing document.""")
   @Basic(optional = false)
   @Column(name = "transaction_type_imp")
   private String transactionTypeImp;
@@ -74,22 +80,32 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Temporal(TemporalType.TIMESTAMP)
   private Date transactionTime;
 
+  @Schema(description = "Transferred after transactions, if set.")
   @Column(name = "ex_date")
   @Temporal(TemporalType.DATE)
   private Date exDate;
 
+  @Schema(description = "The cash account is determined from the currency of the transaction receipt.")
   @JoinColumn(name = "id_cash_account", referencedColumnName = "id_securitycash_account")
   @ManyToOne
   private Cashaccount cashaccount;
 
+  @Schema(description = "Is transferred from the import and is used to determine the bank account for the corresponding portfolio.")
   @Size(max = 3)
   @Column(name = "currency_account")
   private String currencyAccount;
 
+  @Schema(description = """
+      -- NOT USED YET AND EMPTY --
+      Account as text and number as specified in the importing document.""")
   @Size(min = 1, max = 32)
   @Column(name = "cash_account_imp")
   private String cashAccountImp;
 
+  @Schema(description = """
+      Corresponds to the transaction property of the same name. Is normally imported
+      but can also be set by the system. If the dividend/interest is not paid in the
+      currency of the security.""")
   @Column(name = "currency_ex_rate")
   private Double currencyExRate;
 
@@ -97,6 +113,9 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "currency_security")
   private String currencySecurity;
 
+  @Schema(description = """
+      The ISIN can be used to determine the instrument fairly precisely.
+      Is imported or additionally set by the user.""")
   @ValidISIN
   @Column(name = "isin")
   private String isin;
@@ -111,33 +130,46 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @JoinColumn(name = "id_securitycurrency")
   private Security security;
 
+  @Schema(description = "The number of units in the transaction and, in the case of bonds, the nominal value, see also property 'per'.")
   @Column(name = "units")
   private Double units;
 
+  @Schema(description = "This is the price, dividend per unit or the interest rate in percent for bonds.")
   @Column(name = "quotation")
   private Double quotation;
 
+  @Schema(description = "All transaction costs")
   @Column(name = "tax_cost")
   private Double taxCost;
 
+  @Schema(description = "The currency for taxes and transaction costs, if these are not in the currency of the instrument.")
   @Column(name = "transaction_cost")
   private Double transactionCost;
 
+  @Schema(description = "The currency for taxes and transaction costs, if these are not in the currency of the instrument.")
   @Column(name = "currency_cost")
   private String currencyCost;
 
+  @Schema(description = "The total sum, which is used to check whether the other details lead to this sum.")
   @Column(name = "cashaccount_amount")
   private Double cashaccountAmount;
 
   @Column(name = "accepted_total_diff")
   private Double acceptedTotalDiff;
 
+  @Schema(description = "Accrued interest may be incurred when buying or selling a bond.")
   @Column(name = "accrued_interest")
   private Double accruedInterest;
 
+  @Schema(description = """
+      This field is reserved for special transaction import implementations.
+      This is used to read a value from the document and feed it to a special implementation.""")
   @Column(name = "field1_string_imp")
   private String field1StringImp;
 
+  @Schema(description = """
+      Based on the imported data and any manual changes made by the user,
+      the system checks whether this item can be made into a transaction when it is saved.""")
   @Column(name = "ready_for_transaction")
   private boolean readyForTransaction;
 
@@ -149,9 +181,13 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "id_transaction_maybe")
   private Integer idTransactionMaybe;
 
+  @Schema(description = "With the successful import, there is a reference to the template that made this possible.")
   @Column(name = "id_trans_imp_template")
   private Integer idTransactionImportTemplate;
 
+  @Schema(description = """
+      This number is the line reference in a CSV file or as a reference in a TXT
+      file created by GT-PDF-Transform.""")
   @Column(name = "id_file_part")
   private Integer idFilePart;
 
@@ -166,15 +202,21 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "con_id_trans_pos")
   private Integer connectedIdTransactionPos;
 
+  @Schema(description = "Contains several binary properties that are set by the system or that are predefined by the import template.")
   @Column(name = "known_other_flags")
   private Long knownOtherFlags;
 
+  @Schema(description = """
+      Before the transaction is saved, a validation of the transaction is carried out. A transaction-capable import item
+      can cause such an error. For example, when selling a security if the specified number is not available.""")
   @Column(name = "transaction_error")
   private String transactionError;
 
+  @Schema(description = "The total amount is calculated and should match the imported amount.")
   @Transient
   private double calcCashaccountAmount;
 
+  @Schema(description = "It is the difference between the imported and calculated total. At best, this should be 0.")
   @Transient
   private double diffCashaccountAmount;
 
@@ -346,8 +388,8 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         Double df = security.getSecurityTransImportDistributionFrequency();
         distributionFrequency = df == null ? distributionFrequency : df;
       }
-      double factor = cashaccountAmount < 0? -1.0: 1.0;
-      quotation = quotation - (diffCashaccountAmount  * factor) * distributionFrequency / units;
+      double factor = cashaccountAmount < 0 ? -1.0 : 1.0;
+      quotation = quotation - (diffCashaccountAmount * factor) * distributionFrequency / units;
     }
   }
 
@@ -542,16 +584,40 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     return null;
   }
 
-  private double getTaxCostEx() {
-    return taxCost != null && currencyExRate != null && currencyCost != null && currencyAccount != null
-        && currencySecurity != null && !currencyAccount.equals(currencySecurity) ? taxCost * currencyExRate
-            : (taxCost != null) ? taxCost : 0;
+  /**
+   * Calculates the cost amount after applying the exchange rate, if the required
+   * conditions are met.
+   *
+   * @param cost The original cost amount (can be null).
+   * @return The cost after applying the exchange rate, or the original cost, if
+   *         the exchange rate cannot be applied, or 0 if the original cost amount
+   *         is null.
+   */
+  private double calculateCostAfterExchange(Double cost) {
+    if (cost == null) {
+      return 0.0;
+    }
+    // Check the conditions under which the exchange rate should be applied.
+    boolean applyExchangeRate = currencyExRate != null && currencyCost != null && currencyAccount != null
+        && currencySecurity != null && !currencyAccount.equals(currencySecurity);
+    return applyExchangeRate ? cost * currencyExRate : cost;
+
   }
 
+  /**
+   * Returns the tax cost after applying the exchange rate. Uses the common logic
+   * in calculateCostAfterExchange.
+   */
+  private double getTaxCostEx() {
+    return calculateCostAfterExchange(this.taxCost);
+  }
+
+  /**
+   * Returns the transaction cost after applying the exchange rate. Uses the
+   * common logic in calculateCostAfterExchange.
+   */
   private double getTransactionCostEx() {
-    return transactionCost != null && currencyExRate != null && currencyCost != null && currencyAccount != null
-        && currencySecurity != null && !currencyAccount.equals(currencySecurity) ? transactionCost * currencyExRate
-            : (transactionCost != null) ? transactionCost : 0;
+    return calculateCostAfterExchange(this.transactionCost);
   }
 
   public String getFileType() {
@@ -648,7 +714,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     case ACCUMULATE:
     case REDUCE:
     case DIVIDEND:
-      // TODO should not happended
+      // TODO should not happened
       if (units != null && quotation != null) {
         correctQuotationForDividend();
         calcCashaccountAmount = DataBusinessHelper.round(units * quotation);

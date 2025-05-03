@@ -8,7 +8,7 @@ import {BaseAuthService} from './base.auth.service';
  */
 export abstract class AuthServiceWithLogout<T> extends BaseAuthService<T> {
 
-  constructor(protected loginService: LoginService,
+  protected constructor(protected loginService: LoginService,
               httpClient: HttpClient,
               messageToastService: MessageToastService) {
     super(httpClient, messageToastService);
