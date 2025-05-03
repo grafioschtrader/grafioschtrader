@@ -82,7 +82,7 @@ jobs:
 
       # 5. Upload the docs folder as a Pages artifact
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
@@ -91,5 +91,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # 6. Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+        - name: Deploy to GitHub Pages
+          uses: actions/deploy-pages@v4
