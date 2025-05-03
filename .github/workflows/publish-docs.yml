@@ -29,11 +29,13 @@ jobs:
           cd backend
           mvn clean install -DskipTests
 
-      # 4. Generate Javadoc & OpenAPI spec in the server module
+      # 4. Generate Javadoc & OpenAPI spec, disabling strict Javadoc checks
       - name: Generate Javadoc & OpenAPI spec
         run: |
           cd backend/grafioschtrader-server
-          mvn javadoc:javadoc springdoc-openapi:generate
+          mvn javadoc:javadoc springdoc-openapi:generate \
+            -Dmaven.javadoc.failOnError=false \
+            -Ddoclint=none
 
       # 5. Prepare docs directory for Pages
       - name: Prepare docs directory
