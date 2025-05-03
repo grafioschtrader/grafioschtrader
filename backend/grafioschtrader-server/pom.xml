@@ -356,6 +356,7 @@
         					<goal>generate</goal>
       					</goals>
       					<configuration>
+      					    <apiDocsUrl>http://localhost:8080/api-docs</apiDocsUrl>
         					<outputFileName>openapi.json</outputFileName>
         					<outputDir>${project.build.directory}/generated-docs</outputDir>
       					</configuration>
