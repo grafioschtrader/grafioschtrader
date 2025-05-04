@@ -20,8 +20,8 @@ public interface SecurityaccountJpaRepository extends JpaRepository<Securityacco
 
   List<Securityaccount> findByIdTenant(Integer idTenant);
 
-  @Query("SELECT s FROM Securityaccount s, Portfolio p WHERE p.name = ?1 AND s.name = ?2")
-  Securityaccount findByPortfolioNameAndName(String portfolioName, String name);
+//  @Query("SELECT s FROM Securityaccount s, Portfolio p WHERE p.name = ?1 AND s.name = ?2")
+//  Securityaccount findByPortfolioNameAndName(String portfolioName, String name);
 
   @Transactional
   @Modifying
