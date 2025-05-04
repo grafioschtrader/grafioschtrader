@@ -345,39 +345,33 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-           <plugin>
-			    <groupId>org.springdoc</groupId>
-			    <artifactId>springdoc-openapi-maven-plugin</artifactId>
-			    <version>1.4</version> <executions>
-			        <execution>
-			            <id>generate-openapi-spec</id>
-			            <goals>
-			                <goal>generate</goal>
-			            </goals>
-			            <phase>package</phase>
-			        </execution>
-			    </executions>
-			    <configuration>
-			        <outputDir>${project.build.directory}/generated-docs</outputDir>
-			        <outputFileName>openapi.json</outputFileName>
-			    </configuration>
-    		</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<failOnError>false</failOnError>
-					<doclint>none</doclint>
-				</configuration>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+          <plugin>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-maven-plugin</artifactId>
+            <version>1.4</version> <configuration>
+                <apiDocsUrl>http://localhost:8080/api-docs</apiDocsUrl>
+
+                <outputDir>${project.build.directory}/generated-docs</outputDir>
+                <outputFileName>openapi.json</outputFileName>
+                 </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+                  <failOnError>false</failOnError>
+                  <doclint>none</doclint>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>attach-javadocs</id>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                </execution>
+                </executions>
+        </plugin>
+
 		</plugins>
 	</build>
 
