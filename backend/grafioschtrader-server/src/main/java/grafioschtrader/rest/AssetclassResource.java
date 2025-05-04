@@ -51,7 +51,7 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
     return new ResponseEntity<>(assetclassJpaRepository.findById(idAssetClass).get(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns id of asset class and 1 (has a security) or 0 (no security) ", description = "", tags = {
+  @Operation(summary = "Returns id of asset class and 1 (has a security) or 0 (no security)", description = "", tags = {
       Assetclass.TABNAME })
   @GetMapping(value = "/hassecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Object[]>> assetclassesHasSecurity() {

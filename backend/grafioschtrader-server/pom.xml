@@ -345,7 +345,7 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-            <plugin>
+           <plugin>
 			    <groupId>org.springdoc</groupId>
 			    <artifactId>springdoc-openapi-maven-plugin</artifactId>
 			    <version>1.4</version> <executions>
@@ -360,24 +360,24 @@
 			    <configuration>
 			        <outputDir>${project.build.directory}/generated-docs</outputDir>
 			        <outputFileName>openapi.json</outputFileName>
-			        </configuration>
-			</plugin>
+			    </configuration>
+    		</plugin>
 			<plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <configuration>
-                          <failOnError>false</failOnError>
-                          <doclint>none</doclint>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>attach-javadocs</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<failOnError>false</failOnError>
+					<doclint>none</doclint>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
