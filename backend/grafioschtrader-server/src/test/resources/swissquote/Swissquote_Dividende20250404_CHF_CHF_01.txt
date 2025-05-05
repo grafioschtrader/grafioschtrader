@@ -3,13 +3,13 @@ Dividende Unsere Referenz: 999988887
 Im Hinblick auf folgenden Titel:
 Titel
 Bezeichnung Anzahl
-iSh SMIM CH CHF D ISIN: CH0019852802 70
+iSh SMIM CH CHF D ISIN: CH0019852802 100
 NKN: 1985280
 haben wir Ihrem Konto den folgenden Betrag gutgeschrieben: 
 Kontonummer 6666666
 Ausführungsdatum 02.04.2025
 Valutadatum 04.04.2025
-Anzahl 70
+Anzahl 100
 Dividende pro Aktie CHF 0.66 
 Bezeichnung Währung
 Betrag CHF 66.00

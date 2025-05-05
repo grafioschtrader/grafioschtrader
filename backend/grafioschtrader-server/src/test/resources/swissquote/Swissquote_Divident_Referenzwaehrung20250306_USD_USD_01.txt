@@ -1,0 +1,18 @@
+Gland, 26.03.2025
+Dividende Unsere Referenz: 66666666
+Im Hinblick auf folgenden Titel:
+Titel
+Bezeichnung Anzahl
+iSh USD CrpBnd USD D ISIN: IE0032895942 200
+NKN: 1613957
+haben wir Ihrem Konto den folgenden Betrag gutgeschrieben: 
+Kontonummer 88888888
+Ausführungsdatum 13.03.2025
+Valutadatum 26.03.2025
+Anzahl 200
+Dividende pro Aktie USD 1.278 
+Bezeichnung Währung Referenzwährung
+Betrag USD 255.60 CHF 225.86
+Total USD 255.60 CHF 225.86
+Wechselkurs USD / CHF : 0.88366
+Dieser Transaktionsbeleg sowie die aufgeführte Transaktion unterliegen unseren Allgemeinen Geschäftsbedingungen und Depotreglement.

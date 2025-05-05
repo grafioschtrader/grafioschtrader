@@ -74,10 +74,6 @@ public class FormInputTemplateMatchState {
 
   /**
    * Maybe there are more then only one property on a single line
-   *
-   * @param formInputLines
-   * @param row
-   * @throws Exception
    */
   private int matchSingleRequiredProperty(String[] formInputLines, int row) throws Exception {
     int templateLineNo = actProperty.getLineNo();
