@@ -82,6 +82,25 @@
 		<java.version>21</java.version>
     </properties>
 
+<reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.11.2</version>
+        <configuration>
+          <!-- alle Module aggregieren -->
+          <aggregate>true</aggregate>
+          <!-- Ziel-Ordner im Workspace-Root -->
+          <reportOutputDirectory>${project.basedir}/javadoc</reportOutputDirectory>
+          <!-- keine Fehler/Warnungen als Exit-Code -->
+          <failOnError>false</failOnError>
+          <doclint>all,-missing</doclint>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+
     <!-- define the sub-modules - Maven will work out the build order based on their inter-dependencies -->
 	<modules>
 	    <module>grafiosch-base</module>
