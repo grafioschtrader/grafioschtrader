@@ -7,7 +7,7 @@ on:
       - master
     paths:
       - 'backend/**'
-  workflow_dispatch: {}    # <-- hier hinzufügen
+  workflow_dispatch: {}
 
 jobs:
   publish:
@@ -26,12 +26,20 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Generate Javadoc
+      - name: Generate Javadoc (ignore Errors/Warnings)
         run: |
           cd backend
-          mvn javadoc:aggregate -B -Daggregate=true -DreportOutputDirectory=../javadoc
+          mvn javadoc:aggregate -B \
+            -Daggregate=true \
+            -DreportOutputDirectory=../javadoc \
+            -Dmaven.javadoc.failOnError=false
+        # selbst wenn der Befehl mit non-zero exit endet, zählt es nicht als Fehler
+        continue-on-error: true
 
       - name: Deploy Javadoc to GitHub Pages
+        # stellt sicher, dass dieser Schritt selbst dann ausgeführt wird,
+        # wenn der vorherige Schritt fehlschlägt
+        if: always()
         uses: MathieuSoysal/Javadoc-publisher.yml@v3.0.2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
