@@ -35,6 +35,7 @@ jobs:
           cache: maven
 
       - name: Generate Javadoc for all modules
+        working-directory: backend
         run: |
           mvn -B javadoc:aggregate \
             -Daggregate=true \
@@ -47,7 +48,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.7.2
         with:
           branch: gh-pages
-          folder: javadoc
+          folder: backend/target/reports/apidocs
           token: ${{ secrets.GITHUB_TOKEN }}
 
 
