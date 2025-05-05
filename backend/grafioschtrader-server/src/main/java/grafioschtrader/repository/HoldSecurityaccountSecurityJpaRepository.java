@@ -404,9 +404,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
      * When transaction: Units or with margin instrument units multiply by value per
      * point.</br>
      * When split: Spit factor
-     *
-     * @return
-     */
+       */
     private Double factorUnits;
 
     private Integer idTransactionMargin;

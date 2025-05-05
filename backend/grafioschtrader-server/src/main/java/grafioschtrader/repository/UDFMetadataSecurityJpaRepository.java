@@ -23,11 +23,6 @@ public interface UDFMetadataSecurityJpaRepository
 
   /**
    * Checks if uiOrder and description are unique. Otherwise, the entry must not be written.
-   * 
-   * @param users
-   * @param uiOrder
-   * @param description
-   * @return
    */
   @Query(nativeQuery = true)
   UiOrderDescriptionCount countUiOrderAndDescription(int[] users, int uiOrder, String description);

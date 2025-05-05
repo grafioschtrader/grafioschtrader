@@ -2,18 +2,14 @@ name: Deploy Javadoc
 
 on:
   push:
-    branches:
-      - main
-      - master
-    paths:
-      - 'backend/**'
+    branches: [ main, master ]
+    paths: [ 'backend/**' ]
   workflow_dispatch: {}
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      # wir brauchen write für Pages
       contents: read
       pages: write
       id-token: write
@@ -30,23 +26,16 @@ jobs:
           cache: maven
 
       - name: Generate Javadoc (ignore Errors/Warnings)
-        # run mvn javadoc im backend-Ordner
-        working-directory: backend
         run: |
-          mvn javadoc:aggregate -B \
+          mvn -B -f backend/pom.xml javadoc:aggregate \
             -Daggregate=true \
-            -DreportOutputDirectory=../javadoc \
-            -Dmaven.javadoc.failOnError=false
-        # selbst bei Exit-Code ? 0 weiterfahren
-        continue-on-error: true
+            -DreportOutputDirectory=javadoc \
+            -Dmaven.javadoc.failOnError=false || true
 
       - name: Deploy Javadoc to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4.7.2
         with:
-          # deploy-Zweig
           branch: gh-pages
-          # Ordner mit den gebauten Docs (relativ zum Repo-Root)
           folder: javadoc
-          # Token für Schreibrechte
           token: ${{ secrets.GITHUB_TOKEN }}
 

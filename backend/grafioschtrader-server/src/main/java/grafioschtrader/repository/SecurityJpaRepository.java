@@ -439,7 +439,6 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    * @param percentageFailed The result set contains the connector if this
    *                         percentage value of non-functioning connectors
    *                         exceeds this value.
-   * @return
    */
   @Query(nativeQuery = true)
   List<MonitorFailedConnector> getFailedIntradayConnector(LocalDate dateBackOrRetry, int retry, int percentageFailed);
