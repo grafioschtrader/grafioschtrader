@@ -11,8 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Group summary of cash accounts which also incudes the value of securities.
  *
- * @author Hugo Graf
- *
  */
 public class AccountPositionGroupSummary {
 
