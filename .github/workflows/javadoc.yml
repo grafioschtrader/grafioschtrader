@@ -13,7 +13,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      # wir brauchen write für Pages
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -27,23 +30,23 @@ jobs:
           cache: maven
 
       - name: Generate Javadoc (ignore Errors/Warnings)
+        # run mvn javadoc im backend-Ordner
+        working-directory: backend
         run: |
-          cd backend
           mvn javadoc:aggregate -B \
             -Daggregate=true \
             -DreportOutputDirectory=../javadoc \
             -Dmaven.javadoc.failOnError=false
-        # selbst wenn der Befehl mit non-zero exit endet, zählt es nicht als Fehler
+        # selbst bei Exit-Code ? 0 weiterfahren
         continue-on-error: true
 
       - name: Deploy Javadoc to GitHub Pages
-        # stellt sicher, dass dieser Schritt selbst dann ausgeführt wird,
-        # wenn der vorherige Schritt fehlschlägt
-        if: always()
-        uses: MathieuSoysal/Javadoc-publisher.yml@v3.0.2
+        uses: JamesIves/github-pages-deploy-action@v4.7.2
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          javadoc-branch: gh-pages
-          java-version: '21'
-          source-folder: javadoc
-          project: maven
+          # deploy-Zweig
+          branch: gh-pages
+          # Ordner mit den gebauten Docs (relativ zum Repo-Root)
+          folder: javadoc
+          # Token für Schreibrechte
+          token: ${{ secrets.GITHUB_TOKEN }}
+
