@@ -78,9 +78,6 @@ public class DateHelper {
   /**
    * Return true when date is today or after today or a last weekend day (only
    * true when today is Monday after last weekend)
-   *
-   * @param date
-   * @return
    */
   public static boolean isUntilDateEqualNowOrAfterOrInActualWeekend(Date date) {
     Calendar untilCalendar = Calendar.getInstance();

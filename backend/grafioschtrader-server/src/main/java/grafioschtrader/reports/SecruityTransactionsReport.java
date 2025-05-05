@@ -99,12 +99,6 @@ public class SecruityTransactionsReport {
 
   /**
    * Get transactions for a security over all portfolios until a certain date.
-   *
-   * @param idTenant
-   * @param idSecuritycurrency
-   * @param untilDate
-   * @param secruityTransactionsReportOptions
-   * @return
    */
   public SecurityTransactionSummary getTransactionsByIdTenantAndIdSecurityAndClearSecurity(final Integer idTenant,
       final Integer idSecuritycurrency, final Date untilDate,
@@ -116,12 +110,6 @@ public class SecruityTransactionsReport {
 
   /**
    * Get transactions for a security over a single portfolio until a certain date.
-   *
-   * @param idPortfolio
-   * @param idSecuritycurrency
-   * @param untilDate
-   * @param secruityTransactionsReportOptions
-   * @return
    */
   public SecurityTransactionSummary getTransactionsByIdPortfolioAndIdSecurityAndClearSecurity(final Integer idPortfolio,
       final Integer idSecuritycurrency, final Date untilDate,
@@ -134,13 +122,7 @@ public class SecruityTransactionsReport {
   /**
    * Get transactions for a security over single security account until a certain
    * date.
-   *
-   * @param data.idSecuritycashAccount
-   * @param idSecuritycurrency
-   * @param untilDate
-   * @param secruityTransactionsReportOptions
-   * @return
-   */
+    */
   public SecurityTransactionSummary getTransactionsByIdSecurityaccountsAndIdSecurityAndClearSecurity(
       final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final Date untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
@@ -158,14 +140,6 @@ public class SecruityTransactionsReport {
   /**
    * Returns security accounts with open positions for the required security. Not
    * usable for margin products!
-   *
-   * @param idTenant
-   * @param idSecuritycurrency
-   * @param dateString
-   * @param before
-   * @param excludeIdTransaction
-   * @return
-   * @throws ParseException
    */
   public SecurityOpenPositionPerSecurityaccount getOpenPositionByIdTenantAndIdSecuritycurrency(final Integer idTenant,
       final Integer idSecuritycurrency, final String dateString, final boolean before,

@@ -96,24 +96,17 @@ public interface IFeedConnector {
   /**
    * Returns true if this connector supports currency data regardless of
    * historical or last price.
-   *
-   * @return
    */
   boolean supportsCurrency();
 
   /**
    * Returns true if this connector supports security data regardless of
    * historical or last price.
-   *
-   * @return
-   */
+    */
   boolean supportsSecurity();
 
   /**
    * Get the historical download link for a security
-   *
-   * @param security
-   * @return
    */
   String getSecurityHistoricalDownloadLink(Security security);
 
@@ -128,110 +121,66 @@ public interface IFeedConnector {
    * corresponding data. The content of the return body must also be evaluated for
    * this. This must be specially implemented for each supplier. An unsuccessful
    * check must throw an error, which appears on the user interface.
-   *
-   * @param <S>
-   * @param securitycurrency
-   * @param feedSupport
    */
   <S extends Securitycurrency<S>> void checkAndClearSecuritycurrencyUrlExtend(Securitycurrency<S> securitycurrency,
       FeedSupport feedSupport);
 
   /**
    * Get the intraday download link for a security.
-   *
-   * @param security
-   * @return
    */
   String getSecurityIntradayDownloadLink(Security security);
 
   /**
    * Return the url as string for access the historical currency price data. It
    * may also be used in the front end to check the settings.
-   *
-   * @param currencypair
-   * @return
    */
   String getCurrencypairHistoricalDownloadLink(Currencypair currencypair);
 
   /**
    * Return the url as string for access the historical security price data. It
    * may also be used in the frontend to check the settings.
-   *
-   * @param currencypair
-   * @return
    */
   String getCurrencypairIntradayDownloadLink(Currencypair currencypair);
 
   /**
    * Returns the Ticker, ISIN or WKN when one of this support the load of the
    * data.
-   *
-   * @param feedSupport
-   * @return
    */
   FeedIdentifier[] getSecuritycurrencyFeedSupport(final FeedSupport feedSupport);
 
   /**
    * Certain connectors only provide end-of-day prices for certain securities if
    * trading has also taken place on that day.
-   *
-   * @param security
-   * @return
-   */
+    */
   boolean needHistoricalGapFiller(final Security security);
 
   /**
    * Return the security quotes for a specified period
-   *
-   * @param identifier
-   * @param from
-   * @param to
-   * @param timeSpan
-   * @return
-   * @throws Exception
    */
   List<Historyquote> getEodSecurityHistory(Security security, Date from, Date to) throws Exception;
 
   /**
    * Update the security with last price, volume and so on
-   *
-   * @param security
-   * @throws Exception
-   * @throws HttpException
    */
   void updateSecurityLastPrice(Security security) throws Exception;
 
   /**
    * Delays in seconds of data provider for intraday data
-   *
-   * @return
    */
   int getIntradayDelayedSeconds();
 
   /**
    * Return the currency pair quotes for a specified period
-   *
-   * @param currency
-   * @param from
-   * @param to
-   * @throws IOException
-   * @throws ParseException
    */
   List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, Date from, Date to) throws Exception;
 
   /**
    * Updates the last price of a currency pair
-   *
-   * @param currencyPair
-   * @throws IOException
-   * @throws ParseException
    */
   void updateCurrencyPairLastPrice(Currencypair currencyPair) throws Exception;
 
   /**
    * Returns true if dividends are split adjusted
-   *
-   * @return
    */
   @JsonIgnore
   boolean isDividendSplitAdjusted();
@@ -255,9 +204,6 @@ public interface IFeedConnector {
 
   /**
    * The link to get Split data for a security
-   *
-   * @param security
-   * @return
    */
   String getSplitHistoricalDownloadLink(Security security);
 
@@ -266,9 +212,6 @@ public interface IFeedConnector {
    * price data. This gives you the number of days to wait before the next attempt
    * to check the historical quotes should be made. If the split is too far in the
    * past, no check should take place.
-   *
-   * @param splitDate
-   * @return
    */
   Integer getNextAttemptInDaysForSplitHistorical(Date splitDate);
 
@@ -278,8 +221,6 @@ public interface IFeedConnector {
    * opened directly in the browser. This is not possible for data providers with
    * API keys, so the data content is prepared in the backend. There are other
    * cases where the data content must be created in the backend.
-   *
-   * @return
    */
   EnumSet<DownloadLink> isDownloadLinkCreatedLazy();
 
@@ -288,19 +229,11 @@ public interface IFeedConnector {
    * security. If an API key is required, only the backend can evaluate this link
    * and return the corresponding content. The content of the provider may also be
    * determined in the backend for other reasons.
-   *
-   * @param httpPageUrl
-   * @return
    */
   String getContentOfPageRequest(String httpPageUrl);
 
   /**
    * Get split data for a security from a specified day until now.
-   *
-   * @param security
-   * @param fromDate
-   * @return
-   * @throws Exception
    */
   List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate, LocalDate toDate) throws Exception;
 

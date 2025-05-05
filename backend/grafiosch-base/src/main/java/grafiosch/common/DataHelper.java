@@ -52,7 +52,7 @@ public class DataHelper {
    */
   public static void setEmptyStringToNullOrRemoveTraillingSpaces(Object object)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-  
+
     PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(object);
     for (PropertyDescriptor property : propertyDescriptors) {
       if (property.getPropertyType() == String.class && property.getWriteMethod() != null) {
@@ -73,33 +73,22 @@ public class DataHelper {
     return UUID.randomUUID().toString().replace("-", "");
   }
 
-  
-  
- 
   /**
    * Compare the value of field of two objects of the same class. It is not a deep
    * comparison and only certain fields are compared.
-   *
-   * @param newEntity
-   * @param existingEntity
-   * @param updatePropertyLevelClasses
-   * @return
-   * @throws IllegalAccessException
-   * @throws InvocationTargetException
-   * @throws NoSuchMethodException
    */
   public static List<ProposeChangeField> getDiffPropertiesOfEntity(Object newEntity, Object existingEntity,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     List<ProposeChangeField> proposeChangeFieldList = new ArrayList<>();
-  
+
     List<Field> fields = FieldUtils.getAllFieldsList(newEntity.getClass());
     for (Field field : fields) {
       if (fieldContainsAnnotation(field, updatePropertyLevelClasses)) {
         String name = field.getName();
         Object valueNew = PropertyUtils.getProperty(newEntity, name);
         Object valueExisting = PropertyUtils.getProperty(existingEntity, name);
-  
+
         if (!Objects.equals(valueNew, valueExisting)) {
           proposeChangeFieldList
               .add(new ProposeChangeField(name, SerializationUtils.serialize((Serializable) valueNew)));
@@ -123,22 +112,16 @@ public class DataHelper {
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return FieldUtils.getAllFieldsList(clazz).stream()
         .filter(field -> fieldContainsAnnotation(field, updatePropertyLevelClasses)).collect(Collectors.toList());
-  
+
   }
 
   /**
    * Copy properties from the source to the target object.
-   *
-   * @param source
-   * @param target
-   * @throws IllegalAccessException
-   * @throws InvocationTargetException
-   * @throws NoSuchMethodException
    */
   public static void updateEntityWithUpdatable(Object source, Object target,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-      updateEntityWithUpdatable(source, new Object[] { target }, updatePropertyLevelClasses);
+    updateEntityWithUpdatable(source, new Object[] { target }, updatePropertyLevelClasses);
   }
 
   public static <T extends Annotation> void updateEntityWithUpdatable(Object source, Object targets[],
@@ -160,5 +143,4 @@ public class DataHelper {
     }
   }
 
-  
 }

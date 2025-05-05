@@ -9,17 +9,11 @@ public interface PortfolioJpaRepositoryCustom extends BaseRepositoryCustom<Portf
 
   /**
    * Remove all cash accounts of this Portfolio
-   *
-   * @param idPortfolio
-   * @return
    */
   Portfolio removeCashaccounts(Integer idPortfolio);
 
   /**
    * Remove all security accounts of this portfolio
-   *
-   * @param idPortfolio
-   * @return
    */
   Portfolio removeSecurityaccounts(Integer idPortfolio);
 

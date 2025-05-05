@@ -38,13 +38,7 @@ public class YahooSymbolSearch {
   /**
    * The first step is to search using the ISIN, which is unique. If this is not
    * successful, the symbol is used.
-   * 
-   * @param micProviderMapRepository
-   * @param mic
-   * @param isin
-   * @param symbol
    * @param name                     The name is not currently being searched for.
-   * @return
    */
   public String getSymbolByISINOrSymbolOrName(MicProviderMapRepository micProviderMapRepository, String mic,
       String isin, String symbol, String name) {

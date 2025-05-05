@@ -68,9 +68,6 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   /**
    * Gel all used currency pairs in transactions. That means currency pairs
    * between security cash accounts.
-   *
-   * @param idTenant
-   * @return
    */
   @Query(nativeQuery = true)
   List<Currencypair> getCurrencypairInTransactionByTenant(Integer idTenant);

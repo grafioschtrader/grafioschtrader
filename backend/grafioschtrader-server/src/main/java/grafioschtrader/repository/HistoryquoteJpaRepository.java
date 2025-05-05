@@ -47,10 +47,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   /**
    * For user interface, do not show history quotes which fills day holes.
-   *
-   * @param idSecuritycurrency
-   * @return
-   */
+    */
   @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.createType <> 1 ORDER BY h.date ASC", nativeQuery = false)
   List<Historyquote> findByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(Integer idSecuritycurrency);
 
@@ -131,10 +128,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * the active date or the current date minus 1 day are taken into account.
    * Prices are taken into account up to the trading calendar tracking date at the
    * latest.
-   *
-   * @param idSecuritycurrency
-   * @return
-   */
+    */
   @Query(nativeQuery = true)
   List<IDateAndClose> getClosedAndMissingHistoryquoteByIdSecurity(Integer idSecuritycurrency);
 
@@ -154,10 +148,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Determines all historical year-end exchange rates for the foreign currencies
    * used by the customer. In addition, the historical year-end rates of the
    * securities held are also determined.
-   *
-   * @param idTenant
-   * @return
-   */
+    */
   @Query(nativeQuery = true)
   List<Historyquote> getSecuritycurrencyHistoryEndOfYearsByIdTenant(Integer idTenant);
 
@@ -168,11 +159,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Return exchange rate for dividend transactions depending on tenant and main
    * currency. This include all exchange rates from history quotes with
    * transactions on foreign cash account.
-   *
-   * @param idTenant
-   * @param mainCurrency
-   * @return
-   */
+    */
   @Query(nativeQuery = true)
   List<Object[]> getHistoryquoteCurrenciesForDividendsByIdTenantAndMainCurrency(Integer idTenant, String mainCurrency);
 
@@ -180,10 +167,6 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Return exchange rate for buy/sell transactions depending on tenant and main
    * currency. This include all exchange rates from history quotes with
    * transactions on foreign cash account.
-   *
-   * @param idTenant
-   * @param mainCurrency
-   * @return
    */
   @Query(nativeQuery = true)
   List<Object[]> getHistoryquoteCurrenciesForBuyAndSellByIdTenantAndMainCurrency(Integer idTenant, String mainCurrency);
@@ -192,10 +175,6 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Returns the end-of-day exchange rate to the main currency for all
    * transactions of a tenant in foreign currencies. This include all exchange
    * rates from history quotes with transactions on foreign cash account.
-   *
-   * @param idTenant
-   * @param mainCurrency
-   * @return
    */
   @Query(nativeQuery = true)
   List<Object[]> getHistoryquoteCurrenciesForIntrFeeBuySellDivByIdTenantAndMainCurrency(Integer idTenant,
@@ -205,9 +184,6 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * For every transaction of a tenant gets the corresponding exchange rate to the
    * main currency. It includes all transactions, that means transaction with
    * security or no security involved.
-   *
-   * @param idTenant
-   * @return
    */
   @Query(nativeQuery = true)
   List<Object[]> getHistoryquotesForAllForeignTransactionsByIdTenant(Integer idTenant);
@@ -242,10 +218,6 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   /**
    * For every transaction of a certain Tenant and Security combination gets the
    * corresponding exchange rate to the main currency.
-   *
-   * @param idTenant
-   * @param idSecuritycurrency
-   * @return
    */
   @Query(nativeQuery = true)
   List<Object[]> findByIdTenantAndIdSecurityFoCuHistoryquotes(Integer idTenant, Integer idSecuritycurrency);
@@ -279,10 +251,6 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   /**
    * Return of all missing dates of the EOD for a security. The missing dates are
    * determined via the index referenced by the stock exchange.
-   *
-   * @param idSecuritycurrencyIndex
-   * @param idSecuritycurrency
-   * @return
    */
   @Query(nativeQuery = true)
   List<Date> getMissingEODForSecurityByUpdCalendarIndex(Integer idSecuritycurrencyIndex, Integer idSecuritycurrency);

@@ -67,13 +67,6 @@ public class RestTestHelper {
    * Compare the value of field of two objects of the same class. It is not a deep
    * comparison and only fields of the main object where there value is not null
    * are compared.
-   *
-   * @param mainEntity
-   * @param entity
-   * @return
-   * @throws IllegalAccessException
-   * @throws InvocationTargetException
-   * @throws NoSuchMethodException
    */
   public static List<ProposeChangeField> getDiffPropertiesOfTwoObjects(Object mainEntity, Object entity)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {

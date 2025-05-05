@@ -19,10 +19,6 @@ public abstract class ImportTransactionHelperPdf {
 
   /**
    * Transform a input stream of PDF to text string.
-   *
-   * @param is
-   * @return
-   * @throws IOException
    */
   public static String transFormPDFToTxt(InputStream is) throws IOException {
     String text = null;
@@ -39,10 +35,7 @@ public abstract class ImportTransactionHelperPdf {
 
   /**
    * Parse the existing Templates. The result can be used to scan forms.
-   *
-   * @return
-   * @throws DataViolationException
-   */
+    */
   public static Map<TemplateConfigurationPDFasTXT, ImportTransactionTemplate> readTemplates(
       List<ImportTransactionTemplate> importTransactionTemplateList, Locale userLocale) {
 

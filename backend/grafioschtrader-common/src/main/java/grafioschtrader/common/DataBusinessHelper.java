@@ -21,7 +21,6 @@ import grafioschtrader.types.TransactionType;
 
 public abstract class DataBusinessHelper {
 
-
   public static double roundStandard(double valueToRound) {
     return DataHelper.round(valueToRound, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
@@ -53,10 +52,6 @@ public abstract class DataBusinessHelper {
   /**
    * Gets the exchange rate for a transaction, which depends on the transaction
    * time or the the transactions exchange rate.
-   *
-   * @param transaction
-   * @param dateCurrencyMap
-   * @return
    */
   public static Double getCurrencyExchangeRateToMainCurreny(Transaction transaction,
       DateTransactionCurrencypairMap dateCurrencyMap) {
@@ -111,7 +106,6 @@ public abstract class DataBusinessHelper {
    *                                            this map,
    * @param currencypairFromToCurrencyMap       May be used for transactions of
    *                                            today or in the future
-   * @return
    */
   public static CashaccountTransfer calcDepositOnTransactionsOfCashaccount(Transaction transaction,
       Map<FromToCurrencyWithDate, Double> fromToCurrencyWithDateMap, String mainCurrency,
@@ -179,10 +173,6 @@ public abstract class DataBusinessHelper {
   /**
    * Gets the currency pair depending on the main currency and source and target
    * currency.
-   *
-   * @param sourceCurrency Normally the currency of the cash account
-   * @param targetCurrency Normally the currency of the security
-   * @return
    */
   public static Currencypair getCurrencypairWithSetOfFromAndTo(String sourceCurrency, String targetCurrency) {
     Currencypair currencypair = null;

@@ -26,11 +26,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Get close or finance cost of a margin position
-   *
-   * @param idTenant
-   * @param connectedIdTransaction
-   * @return
-   */
+  */
   List<Transaction> findByIdTenantAndConnectedIdTransactionAndUnitsIsNotNull(Integer idTenant,
       Integer connectedIdTransaction);
 
@@ -65,9 +61,6 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Return all margin transactions for a certain security account
-   *
-   * @param idSecurityaccount
-   * @return
    */
   @Query(value = """
       SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a WHERE t.idSecurityaccount = ?1
@@ -76,9 +69,6 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Return all margin transactions for a certain security account and security
-   *
-   * @param idSecurityaccount
-   * @return
    */
   @Query(value = """
       SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a WHERE s.idSecuritycurrency = :idSecurity AND
@@ -87,10 +77,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Return all margin transactions for a certain security
-   *
-   * @param idSecurityaccount
-   * @return
-   */
+    */
   @Query(value = """
       SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a
       WHERE s.idSecuritycurrency = :idSecurity AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)""")
@@ -134,11 +121,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * It works only for security transactions.
-   *
-   * @param idTenant
-   * @param transactonMaxType
-   * @return
-   */
+    */
   @Query(value = """
       SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.securityTransactionList t
       JOIN Fetch t.security s JOIN Fetch t.cashaccount WHERE p.idTenant = ?1 AND s.idSecuritycurrency = t.security.idSecuritycurrency

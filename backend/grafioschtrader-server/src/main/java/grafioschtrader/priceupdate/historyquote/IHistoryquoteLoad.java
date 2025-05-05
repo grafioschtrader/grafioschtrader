@@ -28,9 +28,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   /**
    * Complete the history for all security or currency pairs until yesterday's
    * date.
-   *
-   * @return
-   */
+    */
   List<S> catchAllUpSecuritycurrencyHistoryquote(List<Integer> idsStockexchange);
 
   /**
@@ -52,10 +50,6 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   /**
    * Update history quotes from the list of currency pairs and securities. There
    * is no check for retry, that means it is ignored.
-   *
-   * @param historySecurityCurrencyList
-   * @param currentCalendar
-   * @return
    */
   List<S> fillHistoryquoteForSecuritiesCurrencies(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar);
@@ -63,8 +57,6 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   /**
    * Some cases the historical prices must be reloaded completely. For example
    * when a split is added.
-   *
-   * @param securitycurrency
    */
   <U extends SecuritycurrencyPositionSummary<S>> void reloadAsyncFullHistoryquote(
       final SecurityServiceAsyncExectuion<S, U> securityServiceAsyncExectuion,
@@ -72,10 +64,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
 
   /**
    * Gets the download link for historical data string.
-   *
-   * @param securitycurrency
-   * @return
-   */
+    */
   String getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(S securitycurrency);
 
   String createDownloadLink(S securitycurrency, IFeedConnector feedConnector);

@@ -14,14 +14,11 @@ public interface GlobalparametersJpaRepositoryCustom {
  
   /**
    * How many days of background task history are kept
-   * @return
    */
   int getTaskDataDaysPreserve();
 
   /**
    * There is a maximum number of data records for certain entities, which can be queried.
-   * @param key
-   * @return
    */
   int getMaxValueByKey(String key);
 
@@ -41,7 +38,6 @@ public interface GlobalparametersJpaRepositoryCustom {
 
   /**
    * Maximum number of violations against request limit before blocking the user
-   * @return
    */
   int getMaxLimitExceededCount();
 

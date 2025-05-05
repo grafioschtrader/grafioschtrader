@@ -292,7 +292,6 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    *                                transaction date and the official dividend
    *                                payment date. This indicates the number of
    *                                days for this tolerance.
-   * @return
    */
   @Query(nativeQuery = true)
   List<CheckSecurityTransIntegrity> getPossibleMissingDividentsByDividendTable(int daysLookBack,

@@ -9,10 +9,6 @@ public abstract class UDFDataHelper {
    * digits before and after the decimal point. For example, the value 99.9999 is
    * returned with the parameters for 2 digits before and 4 digits after the
    * decimal point.
-   * 
-   * @param toalLength
-   * @param suffix
-   * @return
    */
   public static double getMaxDecimalValue(int toalLength, int suffix) {
     int integerPartLength = toalLength - suffix;

@@ -31,17 +31,11 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   /**
    * Update last price of a certain currency pair
-   *
-   * @param currencypair
-   * @return
    */
   Currencypair updateLastPrice(Currencypair currencypair);
 
   /**
    * Update last price of specified currency pairs.
-   *
-   * @param currencypairs
-   * @return
    */
   List<Currencypair> updateLastPriceByList(List<Currencypair> currencypairs);
 
@@ -53,11 +47,6 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
 
   /**
    * Find a currency by the currency pair, if not then it will be created
-   *
-   * @param fromCurrency
-   * @param toCurrency
-   * @param loadAsync    TODO
-   * @return
    */
   Currencypair findOrCreateCurrencypairByFromAndToCurrency(String fromCurrency, String toCurrency, boolean loadAsync);
 
@@ -80,9 +69,6 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
    * cross currency can contain a maximum of three nodes. For example,
    * USD(requested currency)-CHF(main currency)-EUR(currency security). This
    * results in two currency pairs CHF/USD or USD/CHF and CHF/EUR or EUR/CHF.
-   *
-   * @param crossRateRequest
-   * @return
    */
   CrossRateResponse getCurrencypairForCrossRate(CrossRateRequest crossRateRequest);
 

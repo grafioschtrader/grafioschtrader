@@ -388,12 +388,6 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
     /**
      * Calculate gain or loss over a single open position
-     *
-     * @param price
-     * @param transactionCost
-     * @param unitsSplited      A positiv number is expected
-     * @param splitFactorToOpen
-     * @return
      */
     public double calcGainLossOnClosePosition(double price, double transactionCost, double unitsSplited,
         double splitFactorToOpen) {

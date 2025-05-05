@@ -61,9 +61,6 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
    * watchlist or a transaction. The watchlist in of the parameter is excluded. It
    * checks if a Security could removed from the watchlist and aftewards delete
    * without constraints violations.
-   *
-   * @param idWatchlist
-   * @return
    */
   @Query(nativeQuery = true)
   int[] watchlistSecuritiesHasTransactionOrOtherWatchlist(Integer idWatchlist);

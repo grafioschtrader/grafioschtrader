@@ -53,8 +53,6 @@ public class GlobalparametersService {
   /**
    * Return the maximum attempts. This value is determined by the global
    * parameters.
-   *
-   * @return
    */
   public short getMaxIntraRetry() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_INTRA_RETRY)
@@ -164,9 +162,7 @@ public class GlobalparametersService {
   /**
    * Return the maximum attempts. This value is determined by the global
    * parameters.
-   *
-   * @return
-   */
+    */
   public short getMaxHistoryRetry() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_RETRY)
         .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_RETRY);
