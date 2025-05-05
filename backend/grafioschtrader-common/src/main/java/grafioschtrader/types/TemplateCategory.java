@@ -32,8 +32,12 @@ public enum TemplateCategory {
   PAID_DIVIDEND_TAX_FREE((byte) 15),
   // Paid interest
   PAID_INTEREST((byte) 16),
-
-  CSV_BASE((byte) 20), CSV_ADDITION((byte) 21);
+  // Dividend with reference currency
+  PAID_DIVIDEND_REFERENCE_CURRENCY((byte) 17),
+  // CSV Base
+  CSV_BASE((byte) 20), 
+  // CSV Addition
+  CSV_ADDITION((byte) 21);
 
   private final Byte value;
 

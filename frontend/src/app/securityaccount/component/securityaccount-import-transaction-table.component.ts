@@ -195,7 +195,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     });
     this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'idTransaction', 'IMPORT_HAS_TRANSACTION', true, true,
       {fieldValueFN: SecurityaccountImportTransactionTableComponent.hasTransaction, templateName: 'icon'});
-    this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'idTransactionMaybe',
+    this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'idTransactionMaybe',
       'IMPORT_HAS_MAYBE_TRANSACTION', true, true,
       {fieldValueFN: this.getMayBeHasTransactionIcon, templateName: 'icon'});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'templatePurpose', 'TEMPLATE_PURPOSE', false, true,
@@ -408,7 +408,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   getMayBeHasTransactionIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
                              valueField: any): string {
     return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.importTransactionPos.idTransactionMaybe == null
-      ? null : entity.importTransactionPos.idTransactionMaybe > 0 ? SecurityaccountImportTransactionTableComponent.CHECK_OK : 'B'];
+      ? "" : entity.importTransactionPos.idTransactionMaybe > 0 ? SecurityaccountImportTransactionTableComponent.CHECK_OK : 'B'];
   }
 
   ngOnDestroy(): void {

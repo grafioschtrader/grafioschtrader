@@ -14,9 +14,6 @@ import grafioschtrader.platformimport.csv.TemplateIdPurposeCsv;
 public interface ImportTransactionTemplateJpaRepository extends JpaRepository<ImportTransactionTemplate, Integer>,
     ImportTransactionTemplateJpaRepositoryCustom, UpdateCreateJpaRepository<ImportTransactionTemplate> {
 
-  @Query(nativeQuery = true)
-  List<TemplateIdPurposeCsv> getTemplateIdPurposeCsv(Integer idTransactionImportPlatform);
-
   Optional<ImportTransactionTemplate> findByIdTransactionImportPlatformAndTemplateCategoryAndTemplateFormatTypeAndValidSinceAndTemplateLanguage(
       Integer idTransactionImportPlatform, byte templateCategory, byte templateFormatType, Date validSince,
       String templateLanguage);
@@ -27,6 +24,24 @@ public interface ImportTransactionTemplateJpaRepository extends JpaRepository<Im
   List<ImportTransactionTemplate> findByIdTransactionImportPlatformAndTemplateFormatTypeOrderByTemplatePurpose(
       Integer idTransactionImportPlatform, byte templateFormatType);
 
+  /**
+   * Fetches template import metadata (template ID, purpose and parsed templateId)
+   * for all CSV-format templates of the specified import platform.
+   *
+   * @param idTransactionImportPlatform the ID of the import‐transaction platform
+   * @return a list of {@link TemplateIdPurposeCsv} projections
+   */
+  @Query(nativeQuery = true)
+  List<TemplateIdPurposeCsv> getTemplateIdPurposeCsv(Integer idTransactionImportPlatform);
+  
+  /**
+   * Retrieves all distinct import templates linked to the given import transaction header
+   * and its positions. ID of Tenant is for security reason.
+   *
+   * @param idTransactionHead the ID of the transaction‐position header
+   * @param idTenant the tenant ID
+   * @return a list of matching {@link ImportTransactionTemplate} entities
+   */
   @Query(nativeQuery = true)
   List<ImportTransactionTemplate> getImportTemplateByImportTransPos(Integer idTransactionHead, Integer idTenant);
 }

@@ -15,42 +15,47 @@ import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.platformimport.TemplateConfiguration;
 
-/*-
-Prepares a single template, which can later be used for scanning a form.
-A property consists of the FIELD name and one or more selectors.
-Do not add any parameters which depends on parsing data, because it may be used for many form.
-An instance should only contain the configuration of a template.
-
-
-Compare on the same line to anchor the FIELD
---------------------------------------------
-P   = compare previous word, also the beginning of line
-Pc = a character or word is prefixed with the FIELD
-N   = compare next word, also the end of the line
-Nc = a character or word is suffixed with the FIELD
-SL = compare first word start of the same line
-
-Use previous and next line to anchor the FIELD
-If no other selector is available for this FIELD, the number of words or numbers is counted.
-----------------------------------------------
-PL = compare first word of previous line
-NL = compare first word of next line
-
-Table: First column property of a table must contain a R.
-It counts the word which are separated by a space
-A table may contain one optional property per row
------------------------------------------------------
-R = First column of a table (repeated property)
-
-Optional
---------
-O = This attribute is optional, may be used for currency
-
-[AAA | BBB]
-(?:Börsengeschäft:|Börsentransaktion:)
-
-
+//@formatter:off
+/**
+* Prepares a single template, which can later be used for scanning a form.
+* A property consists of the FIELD name and one or more selectors.
+* Do not add any parameters which depends on parsing data, because it may be used for many form.
+* An instance should only contain the configuration of a template.
+*
+*
+* Compare on the same line to anchor the FIELD
+* --------------------------------------------
+* P   = compare previous word, also the beginning of line
+* Pc = a character or word is prefixed with the FIELD
+* N   = compare next word, also the end of the line
+* Nc = a character or word is suffixed with the FIELD
+*SL = compare first word start of the same line
+*
+* Use previous and next line to anchor the FIELD
+* If no other selector is available for this FIELD, the number of words or numbers is counted.
+*----------------------------------------------
+* PL = compare first word of previous line
+* NL = compare first word of next line
+*
+* Table: First column property of a table must contain a R.
+* It counts the word which are separated by a space
+* A table may contain one optional property per row
+* -----------------------------------------------------
+* R = First column of a table (repeated property)
+*
+* Optional
+* --------
+* O = This attribute is optional, may be used for currency
+* 
+* [AAA | BBB]
+* (?:Börsengeschäft:|Börsentransaktion:)
+*
+* TODO: The number of words and numbers in the anchor point line must match if SL, PL and NL are set as the only 
+* anchor point. This can be avoided with SLI, PLI and NLI. However, this leads to other problems, so this 
+* feature is not commented on further.
+*
 */
+//@formatter:on
 public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -129,21 +134,21 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
               propertyWithOptionsAndBraces);
           break;
         case "PL":
-        case "PLI":  
+        case "PLI":
           if (startRow > 0) {
             String[] rowSplitSpacePL = templateLines[startRow - 1].split("\\s+", 2);
             propertyWithOptions.startPL = setFirstWord(rowSplitSpacePL, propertyWithOptionsAndBraces,
                 dataViolationException, propertyOptionsSplit[i], 1);
-            propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("PLI")? false: true;
+            propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("PLI") ? false : true;
           } else {
             dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.pl.row", null, false);
           }
           break;
         case "SL":
-        case "SLI":  
+        case "SLI":
           propertyWithOptions.startSL = setFirstWord(rowSplitSpace, propertyWithOptionsAndBraces,
               dataViolationException, propertyOptionsSplit[i], 2);
-          propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("SLI")? false: true;
+          propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("SLI") ? false : true;
           break;
         case "NL":
         case "NLI":
@@ -151,7 +156,7 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
             String[] rowSplitSpaceNL = templateLines[startRow + 1].split("\\s+", 2);
             propertyWithOptions.startNL = setFirstWord(rowSplitSpaceNL, propertyWithOptionsAndBraces,
                 dataViolationException, propertyOptionsSplit[i], 1);
-            propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("NLI")? false: true;
+            propertyWithOptions.startLineSingleCount = propertyOptionsSplit[i].equals("NLI") ? false : true;
           } else {
             dataViolationException.addDataViolation(propertyWithOptionsAndBraces, "gt.imptemplate.nl.row", null, false);
           }

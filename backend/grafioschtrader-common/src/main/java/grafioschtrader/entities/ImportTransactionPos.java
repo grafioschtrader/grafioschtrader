@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.common.DataHelper;
@@ -14,6 +17,7 @@ import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.platformimport.ImportTransactionHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
+import grafioschtrader.validation.ValidCurrencyCodeValidator;
 import grafioschtrader.validation.ValidISIN;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -45,6 +49,8 @@ import jakarta.validation.constraints.Size;
 @Table(name = ImportTransactionPos.TABNAME)
 public class ImportTransactionPos extends TenantBaseID implements Comparable<ImportTransactionPos> {
 
+  private final static Logger log = LoggerFactory.getLogger(ImportTransactionPos.class);
+  
   public static final String TABNAME = "imp_trans_pos";
 
   private static final String CSV_FILE = "C";
@@ -177,7 +183,10 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "id_transaction")
   private Integer idTransaction;
 
-  @Schema(description = "The import position is maybe reflectin an existing transaction. It is the id of this transaction")
+  @Schema(description = """
+     The import position is maybe reflectin an existing transaction. It is the id of this transaction.
+     If 0, then a possible transaction has been detected. However, it has been skipped by the user and the
+     position can therefore become a transaction.""")
   @Column(name = "id_transaction_maybe")
   private Integer idTransactionMaybe;
 
@@ -191,6 +200,9 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "id_file_part")
   private Integer idFilePart;
 
+  @Schema(description = """
+      File name of the file that was loaded via the file dialog or drag and drop. 
+      The file name can also contain the entire path.""")
   @Column(name = "file_name_original")
   private String fileNameOriginal;
 
@@ -660,14 +672,15 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         createFromImportPropertiesForEveryKindOfTransaction(importTransactionPos, ip);
         importTransactionPos.setTaxCost(ip.getTt1(), ip.getTt2(), false);
         importTransactionPos.setExDate(ip.getExdiv());
-        importTransactionPos.setCurrencySecurity(ip.getCin());
+        if(checkCurrencyCodes(ip.getCin(), importTransactionPos, ip)) {
+          importTransactionPos.setCurrencySecurity(ip.getCin());  
+        }
         importTransactionPos.setIsin(ip.getIsin());
         importTransactionPos.setSymbolImp(ip.getSymbol());
         importTransactionPos.setAccruedInterest(ip.getAc(), false);
         importTransactionPos.setCurrencyCost(ip.getCct());
         importTransactionPos.setSecurityNameImp(ip.getSn());
         percentage = ip.isPercentage();
-
       }
       // Repeatable Properties
       if (ip.getUnits() != null && ip.getQuotation() != null) {
@@ -693,11 +706,28 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     return importTransactionPos;
   }
 
+  private static boolean checkCurrencyCodes(String currencyCode, ImportTransactionPos importTransactionPos, ImportProperties ip) {
+    if(currencyCode != null) {
+      ValidCurrencyCodeValidator validator = new ValidCurrencyCodeValidator();
+      if(validator.isValid(currencyCode, null)) {
+        return true; 
+      } else {
+        log.warn("Wrong currency code '{}' in file {} and part {}", currencyCode, importTransactionPos.getFileNameOriginal(),
+            ip.getFileOrLineNumber());
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  
   private static ImportTransactionPos createFromImportPropertiesForEveryKindOfTransaction(
       ImportTransactionPos importTransactionPos, ImportProperties ip) {
     importTransactionPos.setTransactionType(ip.getTransactionType().getValue());
     importTransactionPos.setTransactionTime(ip.getDatetime());
-    importTransactionPos.setCurrencyAccount(ip.getCac());
+    if(checkCurrencyCodes(ip.getCac(), importTransactionPos, ip)) {
+      importTransactionPos.setCurrencyAccount(ip.getCac());
+    }
     importTransactionPos.setCashaccountAmount(ip.getTa());
     importTransactionPos.setField1StringImp(ip.getSf1());
     importTransactionPos.setIdFilePart(ip.getFileOrLineNumber());
