@@ -24,8 +24,6 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   /**
    * Complete the history for all security or currency pairs until yesterday's
    * date.
-   *
-   * @return
    */
   List<Security> catchAllUpSecurityHistoryquote(List<Integer> idsStockexchange);
 
@@ -79,10 +77,6 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * security. If an API key is required, only the backend can evaluate this link
    * and return the corresponding content. The content of the provider may also be
    * determined in the backend for other reasons.
-   *
-   * @param idSecuritycurrency
-   * @param isIntraday
-   * @return
    */
   String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
 
@@ -104,20 +98,12 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   /**
    * Some cases the historical prices must be reloaded completely. For example
    * when a split is added.
-   *
-   * @param security
-   * @return
    */
   Security rebuildSecurityCurrencypairHisotry(Security security);
 
   /**
    * It tries to detect if the historical price data after the latest split has
    * been adjusted.
-   *
-   * @param security
-   * @param securitysplits
-   * @return
-   * @throws Exception
    */
   @Deprecated
   SplitAdjustedHistoryquotes isYoungestSplitHistoryquotePossibleAdjusted(Security security,
@@ -126,11 +112,6 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   /**
    * Tries to determine if the supplier's historical price data already reflects
    * the split.
-   *
-   * @param security
-   * @param securitysplits
-   * @return
-   * @throws Exception
    */
   SplitAdjustedHistoryquotesResult isLatestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits) throws Exception;

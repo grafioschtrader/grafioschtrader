@@ -19,7 +19,6 @@ public class BondAccruedInterest {
    * @param startDate The date of the last interest payment of the bond
    * @param endDate The date for which the accrued interest should be calculated
    * @param calcMethod The interest calculation method that was agreed for the bond
-   * @return
    */
   public static double calculateAccruedInterest(double faceValue, double interestRate, LocalDate startDate,
       LocalDate endDate, InterestCalculationMethod calcMethod) {

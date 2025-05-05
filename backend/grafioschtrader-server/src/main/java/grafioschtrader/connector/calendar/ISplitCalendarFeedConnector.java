@@ -9,19 +9,12 @@ public interface ISplitCalendarFeedConnector {
 
   /**
    * Get split data for a certain day with all securities
-   *
-   * @param forDate
-   * @param countyCodes
-   * @return
-   * @throws Exception
    */
   Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countyCodes)
       throws Exception;
 
   /**
    * Priority of the data provider, first means lower number
-   *
-   * @return
    */
   int getPriority();
 

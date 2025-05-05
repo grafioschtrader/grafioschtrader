@@ -112,10 +112,6 @@ public class DateTransactionCurrencypairMap {
   /**
    * Search a target currency to the main currency for a certain date and returns
    * the exchange rate.
-   *
-   * @param date
-   * @param fromCurrency
-   * @return
    */
   public Double getPriceByDateAndFromCurrency(Date date, String fromCurrency, boolean requried) {
 

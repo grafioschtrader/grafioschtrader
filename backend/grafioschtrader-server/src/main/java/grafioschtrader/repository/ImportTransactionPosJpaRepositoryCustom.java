@@ -33,8 +33,6 @@ public interface ImportTransactionPosJpaRepositoryCustom {
   /**
    * Creates and saves transactions from the "ImportTransactionPos" data, while
    * still making possible corrections automatically.
-   *
-   * @return
    */
   List<SavedImpPosAndTransaction> createAndSaveTransactionsFromImpPos(
       List<ImportTransactionPos> importTransactionPosList, Map<Integer, ImportTransactionPos> idItpMap);

@@ -105,12 +105,7 @@ public class WatchlistReport {
   /**
    * Returns the watchlist with the youngest date of history quote. This should
    * help to detect non working historical data feeds.
-   *
-   * @param idWatchlist
-   * @return
-   * @throws InterruptedException
-   * @throws ExecutionException
-   */
+    */
   public SecuritycurrencyGroup getWatchlistWithoutUpdateAndMaxHistoryquote(final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -159,12 +154,7 @@ public class WatchlistReport {
    * Return of the split and dividend watchlist, whereby the splits and dividends
    * are not included in the return. The return only includes whether splits or
    * dividends exist.
-   * 
-   * @param idWatchlist
-   * @return
-   * @throws InterruptedException
-   * @throws ExecutionException
-   */
+    */
   public SecuritycurrencyGroup getWatchlistForSplitAndDividend(final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
 

@@ -68,9 +68,6 @@ public abstract class TokenAuthentication {
 
   /**
    * Get the token from header with every request.
-   *
-   * @param request
-   * @return
    */
   public Authentication generateAuthenticationFromRequest(final HttpServletRequest request) {
     final String token = request.getHeader(AUTH_HEADER_NAME);
@@ -82,8 +79,6 @@ public abstract class TokenAuthentication {
 
   /**
    * The frontend must know certain values for input fields.
-   *
-   * @return
    */
   protected Map<String, Integer> getGlobalConstantsFieldsByFieldPrefix(Class<?> currentClass, String fieldPrefix) {
     final Map<String, Integer> globalConstantsMap = new HashMap<>();
@@ -106,8 +101,6 @@ public abstract class TokenAuthentication {
 
   /**
    * The frontend may need the field name of the key field of an entity.
-   * 
-   * @return
    */
   protected List<EntityNameWithKeyName> getAllEntitiyNamesWithTheirKeys() {
     List<EntityNameWithKeyName> entityNameWithKeyNameList = new ArrayList<>();

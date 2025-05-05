@@ -74,9 +74,6 @@ public class RestErrorHandler {
 
   /**
    * A database produced exception.
-   *
-   * @param ex
-   * @return
    */
   @ExceptionHandler(value = { DataIntegrityViolationException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -117,9 +114,6 @@ public class RestErrorHandler {
 
   /**
    * Optimistic locking error.
-   *
-   * @param ex
-   * @return
    */
   @ExceptionHandler(value = { StaleObjectStateException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -141,9 +135,6 @@ public class RestErrorHandler {
 
   /**
    * Spring Rest @valid
-   *
-   * @param ex
-   * @return
    */
   @ExceptionHandler(value = { MethodArgumentNotValidException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -183,9 +174,6 @@ public class RestErrorHandler {
 
   /**
    * From the application produced errors
-   *
-   * @param ex
-   * @return
    */
   @ExceptionHandler(value = { DataViolationException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -206,11 +194,6 @@ public class RestErrorHandler {
   /**
    * Sometimes the argument should also be translated. This can be done by
    * defining it as ":{0}:T" instead of "{0}" in the message.
-   *
-   * @param messageKey
-   * @param args
-   * @param locale
-   * @return
    */
   private String translateArguments(String messageKey, Object[] args, Locale locale) {
     String msg = messageSource.getMessage(messageKey, args, locale);

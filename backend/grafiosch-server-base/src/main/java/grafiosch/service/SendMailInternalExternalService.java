@@ -176,13 +176,6 @@ public class SendMailInternalExternalService {
 
   /**
    * Sending an internal or external message to the main administrator.
-   *
-   * @param idUserFrom If 0, it is a message from the system.
-   * @param subjectKey
-   * @param message
-   * @param messageComType
-   * @return
-   * @throws MessagingException
    */
   public Integer sendMailToMainAdminInternalOrExternal(Integer idUserFrom, String subjectKey, Object[] subjectValues,
       String message, MessageComType messageComType) throws MessagingException {
@@ -196,14 +189,6 @@ public class SendMailInternalExternalService {
 
   /**
    * Sending an internal or external message to any user.
-   *
-   * @param idUserFrom
-   * @param idUserTo
-   * @param subject
-   * @param message
-   * @param messageComType
-   * @return
-   * @throws MessagingException
    */
   public Integer sendMailInternAndOrExternal(Integer idUserFrom, Integer idUserTo, String subject, String message,
       IMessageComType messageComType) throws MessagingException {

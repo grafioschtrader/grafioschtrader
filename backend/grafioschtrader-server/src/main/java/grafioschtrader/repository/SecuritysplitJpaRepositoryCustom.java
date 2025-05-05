@@ -29,23 +29,12 @@ public interface SecuritysplitJpaRepositoryCustom {
    * It is possible that the split from the calendar was internally assigned to a
    * wrong security, therefore the repetitive query is terminated after a certain
    * time.
-   *
-   *
-   * @param security
-   * @param requestedSplitdate
-   * @return
-   */
+    */
   List<String> loadAllSplitDataFromConnectorForSecurity(Security security, Date requestedSplitdate);
 
   /**
    * Loads the historical price data of a security if it reflects the split,
    * otherwise another task is created for the future which repeats this process.
-   *
-   * @param security
-   * @param securitysplits
-   * @param youngestSplitDate
-   * @param requireHoldingBuild
-   * @throws Exception
    */
   public void historicalDataUpdateWhenAdjusted(Security security, List<Securitysplit> securitysplits,
       Optional<Date> youngestSplitDate, boolean requireHoldingBuild, boolean originSplitCalendar) throws Exception;

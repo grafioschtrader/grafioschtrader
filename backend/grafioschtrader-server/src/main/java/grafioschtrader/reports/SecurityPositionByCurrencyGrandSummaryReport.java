@@ -35,9 +35,6 @@ public class SecurityPositionByCurrencyGrandSummaryReport extends SecurityPositi
 
   /**
    * Create totals for every single currency
-   *
-   * @param securityPositionSummary
-   * @return
    */
 
   @Override

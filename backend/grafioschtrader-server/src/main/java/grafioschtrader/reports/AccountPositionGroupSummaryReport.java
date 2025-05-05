@@ -78,10 +78,6 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Creates a total for all portfolios for a certain group like currencies.
-   *
-   * @param idTenant
-   * @param grouping
-   * @return
    */
   public AccountPositionGrandSummary getAccountGrandSummaryIdTenant(final Integer idTenant,
       final AccountGroupMap<?> grouping, final Date untilDate) {
@@ -104,9 +100,6 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Calculates the cash- and security account for a single portfolio.
-   *
-   * @param idPortfolio
-   * @return
    */
   public AccountPositionGroupSummary getAccountGrandSummaryPortfolio(Integer idTenant, final Integer idPortfolio,
       final Date untilDate) {
@@ -143,12 +136,6 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Collects the transaction data for every asked cash account.
-   *
-   * @param cashaccountList
-   * @param accountGroupMap
-   * @param mainCurrency
-   * @param idTenant
-   * @param excludeDivTaxcost
    */
   private void getAccountSummaryPositionSummary(final List<Portfolio> portfolioList,
       final AccountGroupMap<?> accountGroupMap, final String mainCurrency, final Integer idTenant,
