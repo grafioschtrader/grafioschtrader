@@ -135,12 +135,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    * Returns the number of coupons payable between the settlement date and
    * maturity date, rounded up to the nearest whole coupon.
    * 
-   * @param settlementDate
-   * @param maturityDate
-   * @param frequency
-   * @param basis
-   * @return
-   * @see https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1414
+    * https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1414
    */
   private double getCoupnum(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {
     LocalDate aMat = LocalDate.from(maturityDate);
