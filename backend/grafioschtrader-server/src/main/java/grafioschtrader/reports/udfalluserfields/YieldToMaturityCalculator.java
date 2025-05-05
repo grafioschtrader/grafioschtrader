@@ -112,16 +112,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   }
 
   /**
-   *
-   * @param settlementDate
-   * @param maturityDate
-   * @param annualCouponRate
-   * @param annualYield
-   * @param redemption
-   * @param frequency
-   * @param basis
-   * @return
-   * @see https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1137
+   * https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1137
    */
   private double price(LocalDate settlementDate, LocalDate maturityDate, double annualCouponRate, double annualYield,
       double redemption, int frequency, int basis) {

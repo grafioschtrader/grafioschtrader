@@ -2,12 +2,21 @@ name: Deploy Javadoc
 
 on:
   push:
-    branches: [ main, master ]
-    paths: [ 'backend/**' ]
+    branches:
+      - main
+      - master
+    # löst nur aus, wenn sich in einem Modul etwas ändert
+    paths:
+      - 'backend/**'
+      - 'grafiosch-base/**'
+      - 'grafiosch-server-base/**'
+      - 'grafioschtrader-common/**'
+      - 'Grafioschtrader/**'
   workflow_dispatch: {}
 
 jobs:
   publish:
+    name: Generate & Deploy Javadoc
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -15,27 +24,30 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
+          distribution: adopt
           java-version: '21'
           cache: maven
 
-      - name: Generate Javadoc (ignore Errors/Warnings)
+      - name: Generate Javadoc for all modules
         run: |
-          mvn -B -f backend/pom.xml javadoc:aggregate \
+          mvn -B javadoc:aggregate \
             -Daggregate=true \
             -DreportOutputDirectory=javadoc \
-            -Dmaven.javadoc.failOnError=false || true
+            -Dmaven.javadoc.failOnError=false \
+            -Ddoclint=all,-missing
+        continue-on-error: true
 
-      - name: Deploy Javadoc to GitHub Pages
+      - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4.7.2
         with:
           branch: gh-pages
           folder: javadoc
           token: ${{ secrets.GITHUB_TOKEN }}
+
 
