@@ -31,25 +31,55 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
   @Query(value = "SELECT DISTINCT s.country_code FROM stockexchange s", nativeQuery = true)
   String[] findDistinctCountryCodes();
 
-  @Query(nativeQuery = true)
-  int stockexchangeHasSecurity(Integer idStockexchange);
-
-  @Query(nativeQuery = true)
-  List<StockexchangeHasSecurity> stockexchangesHasSecurity();
-
-  @Query(nativeQuery = true)
-  List<IdStockexchangeIndexName> getIdStockexchangeAndIndexNameForCalendarUpd();
-
   @UpdateQuery(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE no_market_value = 0", nativeQuery = true)
   void updateHistoricalUpdateWithNowForAll();
-
 
   @UpdateQuery(value = "UPDATE stockexchange SET last_direct_price_update = UTC_TIMESTAMP() WHERE id_stockexchange IN (?1)", nativeQuery = true)
   void updateHistoricalUpdateWithNowByIdsStockexchange(List<Integer> ids);
 
-  public interface IdStockexchangeIndexName {
-    public Integer getIdStockexchange();
+  /**
+   * Fetches stock exchange IDs along with the names of their calendar‐update index securities.
+   *
+   * @return a list of {@link IdStockexchangeIndexName} projections
+   */
+  @Query(nativeQuery = true)
+  List<IdStockexchangeIndexName> getIdStockexchangeAndIndexNameForCalendarUpd();
 
-    public String getNameIndexSecurity();
+  /**
+   * Checks whether a specific stock exchange has any associated securities.
+   *
+   * @param idStockexchange the ID of the stock exchange to check
+   * @return {@code 1} if at least one security exists; {@code 0} otherwise
+   */
+  @Query(nativeQuery = true)
+  int stockexchangeHasSecurity(Integer idStockexchange);
+
+  /**
+   * Retrieves all stock exchanges with a flag indicating whether they have any securities.
+   *
+   * @return a list of {@link StockexchangeHasSecurity} projections
+   */
+  @Query(nativeQuery = true)
+  List<StockexchangeHasSecurity> stockexchangesHasSecurity();
+
+  
+  /**
+   * Projection interface for retrieving a stock exchange’s ID and the name of its calendar‐update index security.
+   */
+  public interface IdStockexchangeIndexName {
+
+    /**
+     * Gets the unique identifier of the stock exchange.
+     *
+     * @return the stock exchange ID as an {@link Integer}
+     */
+    Integer getIdStockexchange();
+
+    /**
+     * Gets the name of the index security used for calendar updates.
+     *
+     * @return the index security’s name as a {@link String}
+     */
+    String getNameIndexSecurity();
   }
 }

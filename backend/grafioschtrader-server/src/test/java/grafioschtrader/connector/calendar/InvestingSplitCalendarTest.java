@@ -17,12 +17,13 @@ class InvestingSplitCalendarTest {
     InvestingSplitCalendar investingCalendar = new InvestingSplitCalendar();
     // String [] countryCodes = {"CH", "US", "DE", "FR", "ES", "IT", "GB", "AT", "JP", "CN", "SE", "NO", "DK", "NL", "BR", "CA"};
     String [] countryCodes = {"CH", "US", "CA"};
-    Map<String, TickerSecuritysplit> tickersMap = null;
+    Map<String, TickerSecuritysplit> securitySplitMap = null;
     try {
-      tickersMap = investingCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2021-02-16"), countryCodes);
+      securitySplitMap = investingCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2025-05-07"), countryCodes);
     } catch (Exception e) {
       e.printStackTrace();
     }
-    assertThat(tickersMap).hasSize(4);
+    securitySplitMap.entrySet().forEach(System.out::println);
+    assertThat(securitySplitMap).hasSize(3);
   }
 }

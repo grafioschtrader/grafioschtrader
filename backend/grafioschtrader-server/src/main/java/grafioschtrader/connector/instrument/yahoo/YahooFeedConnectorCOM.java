@@ -19,13 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,11 +63,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
   private static final String URL_FOREX_REGEX = "^([A-Za-z]{6}=X)|([A-Za-z]{3}\\-[A-Za-z]{3})$";
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
-
-  private static final String DOMAIN_NAME_WITH_7_VERSION_Q2 = "https://query2.finance.yahoo.com/v7/finance/";
-  private static final String DOMAIN_NAME_WITH_8_VERSION_Q2 = "https://query2.finance.yahoo.com/v8/finance/";
-  private static final String DOMAIN_NAME_WITH_10_VERSION = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/";
-  private static final boolean USE_V10_LASTPRICE = false;
+  private static final String DOMAIN_NAME_WITH_8_VERSION_Q2 = "https://query2.finance.yahoo.com/v8/finance/chart/";
 
   private final HttpClient httpClient;
 
@@ -92,8 +85,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     String symbol = URLEncoder.encode(security.getUrlIntraExtend(), StandardCharsets.UTF_8);
-    return USE_V10_LASTPRICE ? DOMAIN_NAME_WITH_10_VERSION + symbol + "?modules=price"
-        : DOMAIN_NAME_WITH_7_VERSION_Q2 + "quote?symbols=" + symbol;
+    return DOMAIN_NAME_WITH_8_VERSION_Q2 + symbol;
   }
 
   @Override
@@ -103,46 +95,43 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
+    getLastPrice(getSecurityIntradayDownloadLink(security), security);
+  }
+
+  private <S extends Securitycurrency<S>> void getLastPrice(String urlStr, S securitycurrency) throws Exception {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    readLastPriceWithCrumb(getSecurityIntradayDownloadLink(security), security);
+    HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(urlStr, true);
+    if (response.statusCode() == 200) {
+      final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.TimestampIndicatorsView.class)
+          .forType(TopLevelChart.class).readValue(response.body());
+      if (topLevelChart != null && topLevelChart.chart != null && topLevelChart.chart.result != null
+          && !topLevelChart.chart.result.isEmpty()) {
+        ResultData resultData = topLevelChart.chart.result.get(0);
+        Meta m = resultData.meta;
+        securitycurrency.setSLast(m.regularMarketPrice);
+        securitycurrency.setSHigh(m.regularMarketDayHigh);
+        securitycurrency.setSLow(m.regularMarketDayLow);
+        if(securitycurrency instanceof Security security ) {
+          security.setSVolume(m.regularMarketVolume);
+        }  
+        securitycurrency.setSChangePercentage((m.regularMarketPrice - m.chartPreviousClose) / m.chartPreviousClose * 100);
+        securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds()));
+      }
+
+    } else {
+      throw new IOException("Failed to fetch historical data. Status code: " + response.statusCode());
+    }
   }
 
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
-    return USE_V10_LASTPRICE ? DOMAIN_NAME_WITH_10_VERSION + getCurrencyPairSymbol(currencypair) + "?modules=price"
-        : DOMAIN_NAME_WITH_7_VERSION_Q2 + "quote?symbols=" + getCurrencyPairSymbol(currencypair);
+    return DOMAIN_NAME_WITH_8_VERSION_Q2 + getCurrencyPairSymbol(currencypair);
   }
 
-  @Override
-  public String getContentOfPageRequest(String httpPageUrl) {
-    String contentPage = null;
-    InputStream is = null;
-    try {
-      HttpResponse<InputStream> response = loadContentWithCrump(httpPageUrl);
-      if (response.statusCode() == 200) {
-        is = response.body();
-        contentPage = IOUtils.toString(is, StandardCharsets.UTF_8);
-      } else {
-        contentPage = "Failure! Status code: " + response.statusCode();
-      }
-    } catch (Exception e) {
-      contentPage = "Failure! " + e.getMessage();
-    } finally {
-      if (is != null) {
-        try {
-          is.close();
-        } catch (IOException e) {
-          contentPage = "Failure! " + e.getMessage();
-        }
-      }
-    }
-    return contentPage;
-  }
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    readLastPriceWithCrumb(getCurrencypairIntradayDownloadLink(currencypair), currencypair);
+    getLastPrice(getCurrencypairIntradayDownloadLink(currencypair), currencypair);
   }
 
   @Override
@@ -168,92 +157,12 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     return YahooHelper.YAHOO_FINANCE_QUOTE + symbol + "/history?p=" + symbol;
   }
 
-  private <T extends Securitycurrency<T>> void readLastPriceWithCrumb(String urlStr, final T securitycurrency)
-      throws IOException, InterruptedException {
-    boolean success = false;
-    for (int i = 0; i <= 2 && !success; i++) {
-      i++;
-      HttpResponse<InputStream> response = loadContentWithCrump(urlStr);
-      if (response.statusCode() == 200) {
-        InputStream is = response.body();
-        if (urlStr.startsWith(DOMAIN_NAME_WITH_10_VERSION)) {
-          success = processV10LastPrice(is, securitycurrency);
-        } else {
-          success = processV7LastPrice(is, securitycurrency);
-        }
-      }
-      if (!success) {
-        CrumbManager.resetCookieCrumb();
-      }
-    }
-  }
-
   private HttpResponse<InputStream> loadContentWithCrump(String urlStr) throws IOException, InterruptedException {
     String crumb = CrumbManager.getCrumb();
     String cookie = CrumbManager.getCookie();
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(urlStr + "&crumb=" + crumb)).header("Cookie", cookie)
-        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).build();
+        .header("User-Agent", FeedConnectorHelper.getHttpAgentAsString(true)).build();
     return httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-  }
-
-  @Override
-  public EnumSet<DownloadLink> isDownloadLinkCreatedLazy() {
-    return EnumSet.of(DownloadLink.DL_INTRA_FORCE_BACKEND, DownloadLink.DL_LAZY_INTRA);
-  }
-
-  private <T extends Securitycurrency<T>> boolean processV7LastPrice(InputStream is, final T securitycurrency)
-      throws StreamReadException, DatabindException, IOException {
-    Quote quote = objectMapper.readValue(is, Quote.class);
-    if (quote.quoteResponse != null && quote.quoteResponse.result != null && quote.quoteResponse.result.length > 0) {
-      setQuoteResult(quote, securitycurrency);
-      return true;
-    }
-    return false;
-  }
-
-  private <T extends Securitycurrency<T>> boolean processV10LastPrice(InputStream is, final T securitycurrency)
-      throws StreamReadException, DatabindException, IOException {
-    final QuoteSummaryV10 quoteSummary = objectMapper.readValue(is, QuoteSummaryV10.class);
-    if (quoteSummary.quoteSummary != null && quoteSummary.quoteSummary.result != null
-        && quoteSummary.quoteSummary.result.length == 1) {
-      setQuoteSummary(quoteSummary, securitycurrency);
-      return true;
-    }
-    return false;
-  }
-
-  private <T extends Securitycurrency<T>> void setQuoteSummary(final QuoteSummaryV10 quoteSummary,
-      final T securitycurrency) {
-    if (quoteSummary.quoteSummary.result.length == 1) {
-      double divider = FeedConnectorHelper.getGBXLondonDivider(securitycurrency);
-      Price price = quoteSummary.quoteSummary.result[0].price;
-      securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
-      securitycurrency.setSLast(price.regularMarketPrice.raw / divider);
-      securitycurrency.setSHigh(price.regularMarketDayHigh.raw / divider);
-      securitycurrency.setSLow(price.regularMarketDayLow.raw / divider);
-      securitycurrency.setSOpen(price.regularMarketOpen.raw / divider);
-      securitycurrency.setSChangePercentage(price.regularMarketChangePercent.raw * 100);
-      if (securitycurrency instanceof Security s) {
-        s.setSVolume(price.regularMarketVolume.raw);
-      }
-    }
-  }
-
-  private <T extends Securitycurrency<T>> void setQuoteResult(final Quote quote, final T securitycurrency) {
-    if (quote.quoteResponse.result.length == 1) {
-      double divider = FeedConnectorHelper.getGBXLondonDivider(securitycurrency);
-      final Result result = quote.quoteResponse.result[0];
-      securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - result.sourceInterval * 60 * 1000));
-      securitycurrency.setSLast(result.regularMarketPrice / divider);
-      securitycurrency.setSHigh(result.regularMarketDayHigh / divider);
-      securitycurrency.setSLow(result.regularMarketDayLow / divider);
-      securitycurrency.setSOpen(result.regularMarketOpen / divider);
-      securitycurrency.setSChangePercentage(result.regularMarketChangePercent);
-      securitycurrency.setSPrevClose(result.regularMarketPreviousClose / divider);
-      if (securitycurrency instanceof Security) {
-        ((Security) securitycurrency).setSVolume(result.regularMarketVolume);
-      }
-    }
   }
 
   @Override
@@ -310,11 +219,10 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
     List<Historyquote> historyquotes = new ArrayList<>();
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    String urlStr = String.format(
-        DOMAIN_NAME_WITH_8_VERSION_Q2 + "chart/%s?period1=%s&period2=%s&interval=1d&events=history", symbol,
-        startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60);
+    String urlStr = String.format(DOMAIN_NAME_WITH_8_VERSION_Q2 + "%s?period1=%s&period2=%s&interval=1d&events=history",
+        symbol, startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60);
 
-    HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(urlStr);
+    HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(urlStr, true);
     if (response.statusCode() == 200) {
       final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.TimestampIndicatorsView.class)
           .forType(TopLevelChart.class).readValue(response.body());
@@ -399,7 +307,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private String getSplitHistoricalDownloadLink(String symbol, LocalDate fromDate, LocalDate toDate, String event) {
     return String.format(
-        DOMAIN_NAME_WITH_8_VERSION_Q2 + "chart/%s?period1=%s&period2=%s&interval=1d&events=" + event
+        DOMAIN_NAME_WITH_8_VERSION_Q2 + "%s?period1=%s&period2=%s&interval=1d&events=" + event
             + "&includeAdjustedClose=true",
         symbol, DateHelper.LocalDateToEpocheSeconds(fromDate),
         DateHelper.LocalDateToEpocheSeconds(toDate) + (24 * 60 * 60) - 1);
@@ -415,7 +323,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
       throws Exception {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     HttpResponse<String> response = FeedConnectorHelper
-        .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event));
+        .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event), true);
     if (response.statusCode() == 200) {
       final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.EventsView.class)
           .forType(TopLevelChart.class).readValue(response.body());
@@ -443,75 +351,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     return new ArrayList<>();
   }
 
-  static class Quote {
-    public QuoteResponse quoteResponse;
-  }
 
-  static class QuoteResponse {
-    public Result result[];
-    public String error;
-  }
-
-  static class Result {
-    public double regularMarketPrice;
-    public double regularMarketChangePercent;
-    public double regularMarketPreviousClose;
-    public double regularMarketOpen;
-    public double regularMarketDayHigh;
-    public double regularMarketDayLow;
-    public int sourceInterval;
-    public String exchangeTimezoneName;
-    public String exchangeTimezoneShortName;
-    public Long regularMarketVolume;
-  }
-
-  static class QuoteSummaryV10 {
-    public QuoteSummary quoteSummary;
-  }
-
-  static class QuoteSummary {
-    public PriceV10 result[];
-  }
-
-  static class PriceV10 {
-    public Price price;
-  }
-
-  static class Price {
-    public RegularMarketChangePercent regularMarketChangePercent;
-    public RegularMarketPrice regularMarketPrice;
-    public RegularMarketDayHigh regularMarketDayHigh;
-    public RegularMarketDayLow regularMarketDayLow;
-    public RegularMarketOpen regularMarketOpen;
-    public RegularMarketVolume regularMarketVolume;
-  }
-
-  static class RegularMarketChangePercent {
-    public double raw;
-  }
-
-  static class RegularMarketPrice {
-    public double raw;
-  }
-
-  static class RegularMarketDayHigh {
-    public double raw;
-  }
-
-  static class RegularMarketDayLow {
-    public double raw;
-  }
-
-  static class RegularMarketOpen {
-    public double raw;
-  }
-
-  static class RegularMarketVolume {
-    public Long raw;
-  }
-
-  /// EOD Historical
-  ////////////////////////////////////
+  
   static class Views {
     static class EventsView {
     }

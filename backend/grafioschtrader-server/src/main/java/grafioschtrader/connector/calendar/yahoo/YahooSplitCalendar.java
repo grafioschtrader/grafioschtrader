@@ -1,5 +1,6 @@
 package grafioschtrader.connector.calendar.yahoo;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
 import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
@@ -36,16 +38,19 @@ public class YahooSplitCalendar implements ISplitCalendarFeedConnector {
   public Map<String, TickerSecuritysplit> getCalendarSplitForSingleDay(LocalDate forDate, String[] countryCodes)
       throws Exception {
     LocalDate fromDate = forDate.minusDays(1);
-
+    String url = YahooHelper.YAHOO_CALENDAR + "splits?from=" + fromDate + "&to=" + forDate + "&day=" + forDate;
     HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(
-            YahooHelper.YAHOO_CALENDAR + "splits?from=" + fromDate + "&to=" + forDate + "&day=" + forDate))
+        .uri(URI.create(url))
         .headers("Content-Type", "application/x-www-form-urlencoded", "X-Requested-With", "XMLHttpRequest",
-            "User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
+            "User-Agent", FeedConnectorHelper.getHttpAgentAsString(true))
         .GET().build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return parseSplitCalendar(Jsoup.parse(response.body()), forDate);
+    if (response.statusCode() == 200) {
+       return parseSplitCalendar(Jsoup.parse(response.body()), forDate);
+    } else {
+      throw new IOException("Failed to fetch split calendar data. Status code: " + response.statusCode());
+    }
   }
 
   @Override
@@ -55,7 +60,7 @@ public class YahooSplitCalendar implements ISplitCalendarFeedConnector {
 
   private Map<String, TickerSecuritysplit> parseSplitCalendar(Document doc, LocalDate forDate) {
     Map<String, TickerSecuritysplit> splitTickerMap = new HashMap<>();
-    Elements rows = doc.select("#cal-res-table table tbody tr");
+    Elements rows = doc.select("div.table-container.altShading table tbody tr");
     FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
     for (Element row : rows) {
       Elements cols = row.select("td");
