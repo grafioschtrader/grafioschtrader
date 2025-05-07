@@ -13,6 +13,7 @@ import grafioschtrader.connector.yahoo.YahooSymbolSearch;
 import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.test.start.GTforTest;
 
+
 @SpringBootTest(classes = GTforTest.class)
 public class YahooSymbolSearchTest {
 

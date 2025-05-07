@@ -67,7 +67,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    *                         <li>4 => European 30 / 360</li>
    *                         </ul>
    *
-   * @see <a href="https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/
+   * see <a href="https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/
    *            main/scaddins/source/analysis/analysishelper.cxx#L1085">
    *       analysishelper.cxx line 1085
    *     </a>
@@ -180,7 +180,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   /**
    * Returns get day count: settlement <-> coupon date after settlement
    * 
-   * @see https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1375
+   * see https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1375
    *
    */
   private double getCoupdaysnc(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {

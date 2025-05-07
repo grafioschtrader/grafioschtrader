@@ -21,7 +21,6 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import grafiosch.common.DateHelper;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.connector.yahoo.YahooHelper;
