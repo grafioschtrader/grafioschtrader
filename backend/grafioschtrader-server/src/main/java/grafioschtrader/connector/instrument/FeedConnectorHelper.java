@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -40,12 +41,12 @@ public class FeedConnectorHelper {
     final String text = item.replace(",", "");
     return text.trim().length() > 0 ? Double.parseDouble(text) : null;
   }
-  
+
   public static Double parseDoubleCH(String item) {
     final String text = item.replace("’", "");
     return text.trim().length() > 0 ? Double.parseDouble(text) : null;
   }
-  
+
   public static Long parseLongCH(String item) {
     final String text = item.replace("’", "");
     return text.trim().length() > 0 ? Long.parseLong(text) : null;
@@ -57,16 +58,33 @@ public class FeedConnectorHelper {
   }
 
   public static HttpResponse<String> getByHttpClient(String urlStr) throws IOException, InterruptedException {
-     return getByHttpClient(urlStr, null);
+    return getByHttpClient(urlStr, null, false);
   }
-  
-  public static HttpResponse<String> getByHttpClient(String urlStr, Integer seconds) throws IOException, InterruptedException {
-    HttpClient client = (seconds != null)? HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(seconds))
-        .build(): HttpClient.newHttpClient();
-    HttpRequest request = HttpRequest.newBuilder().GET().header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
+
+  public static HttpResponse<String> getByHttpClient(String urlStr, boolean useRandomAgent)
+      throws IOException, InterruptedException {
+    return getByHttpClient(urlStr, null, useRandomAgent);
+  }
+
+  public static HttpResponse<String> getByHttpClient(String urlStr, Integer seconds)
+      throws IOException, InterruptedException {
+    return getByHttpClient(urlStr, seconds, false);
+  }
+
+  public static HttpResponse<String> getByHttpClient(String urlStr, Integer seconds, boolean useRadomAgent)
+      throws IOException, InterruptedException {
+    HttpClient client = (seconds != null) ? HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(seconds)).build()
+        : HttpClient.newHttpClient();
+
+    HttpRequest request = HttpRequest.newBuilder().GET().header("User-Agent", getHttpAgentAsString(useRadomAgent))
         .uri(URI.create(urlStr)).build();
     return client.send(request, HttpResponse.BodyHandlers.ofString());
+  }
+
+  public static String getHttpAgentAsString(boolean useRadomAgent) {
+    return (useRadomAgent)
+        ? GlobalConstants.USER_AGENT_HTTPCLIENT_SHORT + "(" + ThreadLocalRandom.current().nextInt(100000, 999999) + ")"
+        : GlobalConstants.USER_AGENT_HTTPCLIENT;
   }
 
   public static Historyquote parseResponseLineGE(final String inputLine, final Date from, final Date to,

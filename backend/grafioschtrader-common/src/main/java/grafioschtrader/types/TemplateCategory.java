@@ -23,7 +23,7 @@ public enum TemplateCategory {
   // Paid for dividend or interest
   PAID_DIVIDEND_INTEREST((byte) 11),
   // Paid for dividend or interest with withholding tax
-  PAID_DIVIDEND_INTEREST_INTEREST_WITHOLDING_TAX((byte) 12),
+  PAID_DIVIDEND_INTEREST_INTEREST_WITHHOLDING_TAX((byte) 12),
   // Paid dividend
   PAID_DIVIDEND((byte) 13),
   // Some times dividend docuemnts need other variant for import
