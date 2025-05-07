@@ -1,6 +1,8 @@
 package grafioschtrader.connector.instrument.warsawgpw;
 
-import java.net.URL;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -18,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -99,7 +100,7 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  public String getSecurityHistoricalDownloadLink(final Security security) {
+  public String getSecurityHistoricalDownloadLink(final Security security)  {
     Date toDate = new Date();
     final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
@@ -112,8 +113,8 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
       throws Exception {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
-    Response[] response = objectMapper.readValue(
-        new URL(getSecurityHistoricalDownloadLink(security.getIsin(), from, to, dateFormat)), Response[].class);
+    String urlStr = getSecurityHistoricalDownloadLink(security.getIsin(), from, to, dateFormat);
+    Response[] response = objectMapper.readValue(new URI(urlStr).toURL(), Response[].class);
 
     for (SingleDay sd : response[0].data) {
       Historyquote historyquote = new Historyquote();
@@ -133,8 +134,9 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
     var rq = new RequestParam("RANGE", isin, dateFormat.format(from), dateFormat.format(to));
     String url = null;
     try {
-      url = DOMAIN_NAME_CHART + "[" + objectMapper.writeValueAsString(rq) + "]&t=" + System.currentTimeMillis();
-    } catch (JsonProcessingException e) {
+      String encoded = URLEncoder.encode("[" + objectMapper.writeValueAsString(rq) + "]", StandardCharsets.UTF_8.name());
+      url = DOMAIN_NAME_CHART + encoded + "&t=" + System.currentTimeMillis();
+    } catch (Exception e) {
       log.error("Could not create JSON for ISIN {}", isin);
     }
 

@@ -48,7 +48,7 @@ import jakarta.validation.constraints.Size;
 @Table(name = Stockexchange.TABNAME)
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-  public class Stockexchange extends Auditable implements Serializable {
+public class Stockexchange extends Auditable implements Serializable {
 
   public static final String TABNAME = "stockexchange";
 
@@ -286,12 +286,23 @@ import jakarta.validation.constraints.Size;
     return false;
   }
 
+//@formatter:off
   /**
-   * Return of minutes since the exchange is closed. If stock exchange is open,
-   * then negative number of minutes until the next closing.
+   * Returns the number of minutes since the exchange last closed in the configured time zone.
+   * If the exchange is currently open, returns a negative value indicating the minutes
+   * remaining until the next closing time.
+   * <p>
+   * The calculation accounts for:
+   * <ul>
+   *   <li>Overnight closures (wrapping negative intervals into the next trading day).</li>
+   *   <li>Sunday closures (adds 24 hours to represent the weekend gap).</li>
+   *   <li>Monday pre-market period (adds 24 hours if the current time is before opening).</li>
+   * </ul>
+   * </p>
    *
-   * @return
+   * @return the number of minutes since market close (positive), or negative minutes until next close if market is open
    */
+//@formatter:on
   @JsonIgnore
   public int getClosedMinuntes() {
     LocalDateTime nowTimeZone = LocalDateTime.now(ZoneId.of(timeZone));

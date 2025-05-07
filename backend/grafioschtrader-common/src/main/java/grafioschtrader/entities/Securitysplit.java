@@ -52,7 +52,6 @@ public class Securitysplit extends DividendSplit implements Serializable {
   @Temporal(TemporalType.DATE)
   private Date splitDate;
 
-  
   @Schema(description = "From factor")
   @Basic(optional = false)
   @Column(name = "from_factor")
@@ -133,10 +132,10 @@ public class Securitysplit extends DividendSplit implements Serializable {
   /**
    * Returns the factor for a security split, that happened after toDate.
    *
-   * @param security         The security
-   * @param toDate           The transaction time
-   * @param securitysplitMap This map may contain the a list of splits for
-   *                         different securities.
+   * @param idSecuritycurrency The security
+   * @param toDate             The transaction time
+   * @param securitysplitMap   This map may contain the a list of splits for
+   *                           different securities.
    *
    * @return In a case of a split it returns a value greater > 1, for example a
    *         split of 2 returns 2. Normally the transaction units must be

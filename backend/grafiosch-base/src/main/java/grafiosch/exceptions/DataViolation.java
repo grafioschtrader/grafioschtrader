@@ -16,13 +16,7 @@ public class DataViolation {
     this.translateFieldName = translateFieldName;
   }
 
-  /**
-   *
-   * @param field
-   * @param messageKey
-   * @param id         Meaningful identification which helps the user by selecting
-   *                   the wrong data record.
-   */
+  
   public DataViolation(final String field, final String messageKey, final Object singleData,
       boolean translateFieldName) {
     this(field, messageKey, new Object[] { singleData }, translateFieldName);

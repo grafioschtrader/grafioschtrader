@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.MicProviderMap.IdProviderMic;
 import grafioschtrader.repository.MicProviderMapRepository;
@@ -36,9 +36,34 @@ public class YahooSymbolSearch {
   private static final Logger log = LoggerFactory.getLogger(YahooSymbolSearch.class);
 
   /**
-   * The first step is to search using the ISIN, which is unique. If this is not
-   * successful, the symbol is used.
-   * @param name                     The name is not currently being searched for.
+   * Retrieves the Yahoo Finance symbol for a given security by first attempting a
+   * lookup using its ISIN (International Securities Identification Number), then
+   * falling back to the provided ticker symbol if the ISIN lookup fails.
+   * <p>
+   * Uses the {@code MicProviderMapRepository} to fetch the Yahoo-specific
+   * exchange code and symbol suffix for the given MIC (Market Identifier Code).
+   * If the repository contains a mapping for the MIC, the method calls
+   * {@link #serachSymbol(String, String, String, String)} with the ISIN first,
+   * then with the symbol if no result is found. The {@code name} parameter is
+   * accepted but not currently used in the lookup process.
+   * </p>
+   *
+   * @param micProviderMapRepository repository used to retrieve the Yahoo
+   *                                 exchange code and symbol suffix for the
+   *                                 specified MIC
+   * @param mic                      the standard Market Identifier Code (MIC)
+   *                                 representing the exchange
+   * @param isin                     the unique ISIN identifier for the security;
+   *                                 used as the primary lookup key
+   * @param symbol                   the ticker symbol for the security; used as a
+   *                                 fallback if ISIN lookup fails
+   * @param name                     A DESCRIPTIVE NAME FOR THE SECURITY; THE NAME
+   *                                 DOES NOT SEEM PRECISE ENOUGH, SO THERE IS NO
+   *                                 IMPLEMENTATION YET. CURRENTLY NOT USED IN THE
+   *                                 lookup
+   * @return the resolved Yahoo Finance symbol matching the ISIN or ticker symbol,
+   *         or {@code null} if no match is found or the MIC mapping is
+   *         unavailable
    */
   public String getSymbolByISINOrSymbolOrName(MicProviderMapRepository micProviderMapRepository, String mic,
       String isin, String symbol, String name) {
@@ -67,54 +92,51 @@ public class YahooSymbolSearch {
    * NOVN.SW when selecting the correct entry.</br>
    * https://de.hilfe.yahoo.com/kb/B%C3%B6rsen-und-Datenanbieter-auf-Yahoo-Finanzen-sln2310.html
    * 
-   * @param query
+   * @param query             the search query string to send to Yahoo Finance
+   *                          (typically the company name or partial symbol)
    * @param yahooExchangeCode Yahoo does not use the MIC for an exchange. It uses
    *                          a different code. This code is used to determine the
    *                          correct entry from the return of the request.
-   * @param symbol
-   * @param suffix
-   * @return
+   * @param symbol            the base symbol to match in the returned results;
+   *                          may be {@code null} if not applicable
+   * @param suffix            a marketplace suffix (e.g. “.SW”); appended to
+   *                          {@code symbol} as a fallback match when direct
+   *                          matches fail
+   * @returnthe resolved Yahoo symbol that best matches the exchange code or
+   *            symbol criteria, or {@code null} if no suitable symbol is found or
+   *            an error occurs during the lookup
    */
   private String serachSymbol(String query, String yahooExchangeCode, String symbol, String suffix) {
     String completeUrl = DOMAIN_NAME_WITH_SEARCH + "?" + createParams(query);
     HttpClient client = HttpClient.newHttpClient();
-    HttpRequest request = HttpRequest.newBuilder()
-        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .GET()
-        .uri(URI.create(completeUrl))
-        .build();
+    HttpRequest request = HttpRequest.newBuilder().header("User-Agent", FeedConnectorHelper.getHttpAgentAsString(true))
+        .GET().uri(URI.create(completeUrl)).build();
     HttpResponse<String> response;
     try {
       response = client.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() == HttpURLConnection.HTTP_OK) {
         List<Quote> quotes = mapToObject(response.body());
         String foundSymbol = null;
-        
+
         // First, try matching by Yahoo exchange code.
-        Optional<Quote> quoteOpt = quotes.stream()
-            .filter(q -> q.exchange.equals(yahooExchangeCode))
-            .findFirst();
+        Optional<Quote> quoteOpt = quotes.stream().filter(q -> q.exchange.equals(yahooExchangeCode)).findFirst();
         if (quoteOpt.isPresent()) {
           foundSymbol = quoteOpt.get().symbol;
         } else if (symbol != null) {
           // Next, try matching by symbol directly.
-          quoteOpt = quotes.stream()
-              .filter(q -> symbol.equals(q.symbol))
-              .findFirst();
+          quoteOpt = quotes.stream().filter(q -> symbol.equals(q.symbol)).findFirst();
           if (quoteOpt.isPresent()) {
             foundSymbol = quoteOpt.get().symbol;
           } else {
             // Finally, try matching by symbol with the suffix appended.
             String symbolSuffix = symbol + suffix;
-            quoteOpt = quotes.stream()
-                .filter(q -> symbolSuffix.equals(q.symbol))
-                .findFirst();
+            quoteOpt = quotes.stream().filter(q -> symbolSuffix.equals(q.symbol)).findFirst();
             if (quoteOpt.isPresent()) {
               foundSymbol = quoteOpt.get().symbol;
             }
           }
         }
-       if (foundSymbol != null) {
+        if (foundSymbol != null) {
           log.info("Got Yahoo Symbol {} for query {} and symbol {}", foundSymbol, query, symbol);
           return foundSymbol;
         }

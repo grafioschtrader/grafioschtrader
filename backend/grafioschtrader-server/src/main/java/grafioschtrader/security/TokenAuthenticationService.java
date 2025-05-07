@@ -29,10 +29,6 @@ public class TokenAuthenticationService extends TokenAuthentication {
 
   /**
    * Used to connect with Websocket.
-   *
-   * @param message
-   * @param accessor
-   * @return
    */
   public Authentication generateAuthenticationFromStompHeader(org.springframework.messaging.Message<?> message,
       StompHeaderAccessor accessor) {
