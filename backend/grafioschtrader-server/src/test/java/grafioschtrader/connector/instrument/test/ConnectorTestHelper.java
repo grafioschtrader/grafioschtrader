@@ -2,6 +2,7 @@ package grafioschtrader.connector.instrument.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -29,10 +30,12 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public class ConnectorTestHelper {
 
-  final static String ISIN_Nestle = "CH0038863350";
+  public final static String ISIN_TLT = "IE00BSKRJZ44";
+  public final static String ISIN_Nestle = "CH0038863350";
   final static String ISIN_Apple = "US0378331005";
-  final static String ISIN_TLT = "IE00BSKRJZ44";
   final static String ISIN_Walmart = "US9311421039";
+
+  final static SecureRandom rnd = new SecureRandom();
 
   final static SimpleDateFormat sdf = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
 
@@ -95,6 +98,16 @@ public class ConnectorTestHelper {
     }
     security.setAssetClass(assetclass);
 
+    security.setStockexchange(stockexchange);
+    return security;
+  }
+
+  public static Security createSecurityAndStockexchange(String name, String isin, String tickerSymbol,
+      String mic) {
+    Security security = createIntraSecurityWithIsin(name, isin, null);
+    security.setTickerSymbol(tickerSymbol);
+    final Stockexchange stockexchange = new Stockexchange();
+    stockexchange.setMic(mic);
     security.setStockexchange(stockexchange);
     return security;
   }
@@ -219,9 +232,9 @@ public class ConnectorTestHelper {
     dividendCount.add(new DividendCount("iShares 20+ Year Treasury Bond ETF", ISIN_TLT,
         getSymbolMapping("TLT", symbolMappingMap), getExpectedRowsMapping(ISIN_TLT, 258, overrideExpectedRowsMap),
         "2000-01-03", "2024-03-31", "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.ETF));
-    dividendCount.add(new DividendCount("Walmart Inc", ISIN_Walmart,
-        getSymbolMapping("WMT", symbolMappingMap), getExpectedRowsMapping(ISIN_Walmart, 97, overrideExpectedRowsMap),
-        "2000-01-03", "2024-03-31", "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    dividendCount.add(new DividendCount("Walmart Inc", ISIN_Walmart, getSymbolMapping("WMT", symbolMappingMap),
+        getExpectedRowsMapping(ISIN_Walmart, 97, overrideExpectedRowsMap), "2000-01-03", "2024-03-31",
+        "America/New_York", GlobalConstants.MC_USD, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
 
     dividendCount.parallelStream().forEach(dc -> {
       List<Dividend> dividends = new ArrayList<>();
@@ -297,9 +310,9 @@ public class ConnectorTestHelper {
 
   }
 
-    public static class SecurityHistoricalDate extends HistoricalDate {
-  
-      public Security security;
+  public static class SecurityHistoricalDate extends HistoricalDate {
+
+    public Security security;
 
     public SecurityHistoricalDate(final String name, int expectedRows, String fromStr, String toStr)
         throws ParseException {

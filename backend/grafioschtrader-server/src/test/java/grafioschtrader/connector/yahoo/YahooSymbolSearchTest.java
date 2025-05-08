@@ -1,4 +1,4 @@
-package grafioschtrader.connector.instrument.test;
+package grafioschtrader.connector.yahoo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import grafioschtrader.connector.yahoo.YahooSymbolSearch;
 import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.test.start.GTforTest;
 

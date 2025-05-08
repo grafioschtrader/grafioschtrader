@@ -1,11 +1,8 @@
 package grafioschtrader.connector.instrument.yahoo;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -156,15 +153,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private String getHistoricalDownloadLink(final String symbol) {
     return YahooHelper.YAHOO_FINANCE_QUOTE + symbol + "/history?p=" + symbol;
   }
-
-  private HttpResponse<InputStream> loadContentWithCrump(String urlStr) throws IOException, InterruptedException {
-    String crumb = CrumbManager.getCrumb();
-    String cookie = CrumbManager.getCookie();
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(urlStr + "&crumb=" + crumb)).header("Cookie", cookie)
-        .header("User-Agent", FeedConnectorHelper.getHttpAgentAsString(true)).build();
-    return httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-  }
-
+  
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
