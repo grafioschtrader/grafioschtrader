@@ -1,8 +1,11 @@
 package grafioschtrader.connector.instrument.comdirect;
 
 import java.io.IOException;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -81,9 +84,9 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
 
     final Element div = doc.select("#keyelement_kurs_update").first();
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "")).split(" ");
-    securitycurrency.setSLast(endsWithDotNumbersButNoComma(numbers[0])
-        ? Double.parseDouble(numbers[0].replaceAll("[A-Z]*$", ""))
-        : FeedConnectorHelper.parseDoubleGE(numbers[0].replaceAll("[A-Z]*$", "")));
+    securitycurrency
+        .setSLast(endsWithDotNumbersButNoComma(numbers[0]) ? Double.parseDouble(numbers[0].replaceAll("[A-Z]*$", ""))
+            : FeedConnectorHelper.parseDoubleGE(numbers[0].replaceAll("[A-Z]*$", "")));
     var offset = FeedConnectorHelper.isCreatableGE(numbers[1]) ? 0 : 1;
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleGE(numbers[1 + offset]));
     securitycurrency.setSOpen(
@@ -99,9 +102,11 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
   }
 
   private String getResponseByHttpClient(String url) throws IOException, InterruptedException {
-    HttpClient client = HttpClient.newHttpClient();
+    CookieManager cookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+    HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(Redirect.ALWAYS)
+        .cookieHandler(cookieManager).build();
     HttpRequest request = HttpRequest.newBuilder().timeout(Duration.ofSeconds(2))
-        .setHeader("User-Agent", GlobalConstants.USER_AGENT).uri(URI.create(url)).GET().build();
+        .header("User-Agent", GlobalConstants.USER_AGENT).uri(URI.create(url)).GET().build();
     HttpResponse<String> response = null;
     try {
       response = client.send(request, HttpResponse.BodyHandlers.ofString());

@@ -40,6 +40,8 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 @Component
 public class BoursoramaFeedConnector extends BaseFeedConnector {
 
+  private static String BOURSORAMA_ID = "boursorama";
+  
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static List<BoursoramaPeriodEOD> boursoramaPeriods;
   private static String BASE_URL = "https://www.boursorama.com/bourse/action/graph/ws/";
@@ -65,7 +67,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   public BoursoramaFeedConnector() {
-    super(supportedFeed, "boursorama", "Boursorama", null, EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
+    super(supportedFeed, BOURSORAMA_ID, "Boursorama", null, EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
   }
 
   private String getSecurityCurrecnypairHistoricalDownloadLink(final Securitycurrency<?> securitycurrency, Date from,
