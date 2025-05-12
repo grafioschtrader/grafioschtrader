@@ -3,9 +3,14 @@ package grafioschtrader.connector.instrument;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -341,26 +346,23 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
+    CookieManager cookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+    HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).cookieHandler(cookieManager)
+        .build();
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).header("Accept-Language", "en").GET().build();
     try {
-      URL u = new URI(url).toURL();
-      HttpURLConnection.setFollowRedirects(true);
-      HttpURLConnection huc = (HttpURLConnection) u.openConnection();
-      huc.setRequestProperty("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
-      huc.setRequestProperty("Accept-Language", "en");
-      huc.setRequestMethod("GET");
-      huc.connect();
-      int code = huc.getResponseCode();
-      if (code != HttpURLConnection.HTTP_OK) {
+      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+      int statusCode = response.statusCode();
+
+      if (statusCode != 200) {
         throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { hideApiKeyForError(url) });
-      } else {
-        if (!isConnectionOk(huc)) {
-          throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { hideApiKeyForError(url) });
-        }
       }
+
     } catch (GeneralNotTranslatedWithArgumentsException ge) {
       throw ge;
-    } catch (Exception e) {
-      log.error("URL: {}", url);
+    } catch (IOException | InterruptedException e) {
+      log.error("URL: {}", url, e);
     }
   }
 

@@ -5,7 +5,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
@@ -115,11 +118,12 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
     final List<Historyquote> historyquotes = new ArrayList<>();
     String urlStr = getSecurityHistoricalDownloadLink(security.getIsin(), from, to, dateFormat);
     Response[] response = objectMapper.readValue(new URI(urlStr).toURL(), Response[].class);
-
+    int diffUTCSeconds = security.getStockexchange().getTimeDifferenceFromUTCInSeconds();
     for (SingleDay sd : response[0].data) {
       Historyquote historyquote = new Historyquote();
-      var ts = new Timestamp(sd.t * 1000);
-      historyquote.setDate(new Date(ts.getTime()));
+      Date quoteDate = DateHelper.setTimeToZeroAndAddDay(new Date((sd.t + diffUTCSeconds) * 1000),
+          0);
+      historyquote.setDate(quoteDate);
       historyquote.setOpen(sd.o);
       historyquote.setHigh(sd.h);
       historyquote.setLow(sd.l);

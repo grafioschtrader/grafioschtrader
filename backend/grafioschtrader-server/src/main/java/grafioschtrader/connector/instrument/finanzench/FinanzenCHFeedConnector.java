@@ -95,7 +95,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   private static final String domain = "https://www.finanzen.ch/";
   private static final String currencyIntraPrefix = "devisen/";
   private static final String HIST_DEVISEN_CONTROLLER = "ExchangeRateController";
-  private static final String URL_SECURITY_HISTORICAL_REGEX = "^[^/]+(/[A-Za-z]+)?$";
+  private static final String URL_SECURITY_HISTORICAL_REGEX = "^[\\p{L}0-9_-]+(/[A-Za-z]+)?$";
   private static final Locale FC_LOCALE = Locale.of("de", "CH");
 
   static {

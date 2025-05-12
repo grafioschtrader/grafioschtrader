@@ -66,6 +66,8 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
    * @param retryIntraCounter minimum retry count threshold for intraday loads
    */
   @Query(nativeQuery = true)
+  @Modifying(clearAutomatically = true)
+  @Transactional
   void addInstrumentsWithIntradayPriceDataTrouble(Integer idWatchlist, Integer daysSinceLastWork,
       Short retryIntraCounter);
 
@@ -80,6 +82,8 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
    *                               loads
    */
   @Query(nativeQuery = true)
+  @Modifying(clearAutomatically = true)
+  @Transactional
   void addInstrumentsWithHistoricalPriceDataTrouble(Integer idWatchlist, Integer daysSinceLastWork,
       Short retryHistoricalCounter);
 

@@ -21,7 +21,7 @@ class FinanzenCHFeedConnectorTest extends BaseFeedConnectorCheck {
   // =======================================
   @Test
   void updateSecurityLastPriceTest() {
-    updateSecurityLastPrice();
+    updateSecurityLastPriceByHistoricalData();
   }
 
   @Test

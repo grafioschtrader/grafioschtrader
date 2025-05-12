@@ -18,7 +18,7 @@ public class ViennaStockExchangeFeedConnectorTest extends BaseFeedConnectorCheck
 
   @Test
   void updateSecurityLastPriceTest() {
-    updateSecurityLastPrice();
+    updateSecurityLastPriceByHistoricalData();
   }
 
   @Test

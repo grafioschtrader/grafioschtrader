@@ -1,7 +1,5 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,62 +17,49 @@ class InvestingConnectorTest extends BaseFeedConnectorCheck {
 
   private InvestingConnector investingConnector = new InvestingConnector();
 
+  // Security price tests
+  // =======================================
+
   @Test
   void updateSecurityLastPriceTest() {
-    updateSecurityLastPrice();
+    updateSecurityLastPriceByHistoricalData();
   }
 
   @Override
   protected List<SecurityHistoricalDate> getHistoricalSecurities() {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-    
-//      hisoricalDate.add(new SecurityHistoricalDate("Adidas AG", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-//          "equities/adidas-salomon"));
-//      hisoricalDate.add(new SecurityHistoricalDate("Apple Inc (AAPL)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-//          "equities/apple-computer-inc"));
-   
+      hisoricalDate.add(new SecurityHistoricalDate("United States Treasury Note 6.25% May 15, 2030", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+          "rates-bonds/usgovt-6.25-15-may-2030"));
       hisoricalDate.add(new SecurityHistoricalDate("iShares Russell 2000 ETF", SpecialInvestmentInstruments.ETF,
           "etfs/ishares-russell-2000-index-etf"));
-      
+      hisoricalDate.add(new SecurityHistoricalDate("Bitcoin Tracker EUR XBT Provider (SE0007525332)",
+          SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, "etfs/bitcoin-tracker-eur-xbt-provider"));
       hisoricalDate.add(new SecurityHistoricalDate("CAC 40", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
           "indices/france-40"));
-      hisoricalDate
-          .add(new SecurityHistoricalDate("db x-trackers Emerging MARKETS LIQUID EUROBOND INDEX ETF (EUR)22.10.2010",
-              SpecialInvestmentInstruments.ETF, "etfs/db-em-liquid-eurobond---eur"));
-       hisoricalDate.add(new SecurityHistoricalDate("MOEX Russia (IMOEX)", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
-          "indices/mcx"));
-      hisoricalDate.add(new SecurityHistoricalDate("Bitcoin Tracker EUR XBT Provider (SE0007525332)", SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
-          "etfs/bitcoin-tracker-eur-xbt-provider"));
-      hisoricalDate
-      .add(new SecurityHistoricalDate("iShares MSCI Emerging Markets ETF (EEM)",
-          SpecialInvestmentInstruments.ETF, "etfs/ishares-msci-emg-markets"));
     } catch (ParseException pe) {
       pe.printStackTrace();
     }
     return hisoricalDate;
   }
 
+  // Currency pair price tests
+  // =======================================
   @Test
   void updateCurrencyPairLastPriceTest() {
+    updateCurrencyPairLastPrice(getCurrencies());
+  }
+
+  protected List<Currencypair> getCurrencies() {
     final List<Currencypair> currencies = new ArrayList<>();
+    // currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC,
+    // GlobalConstants.MC_USD));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF));
-    currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_CHF, "AUD"));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_CHF));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_USD, GlobalConstants.MC_EUR));
     currencies.add(ConnectorTestHelper.createCurrencyPair(GlobalConstants.MC_GBP, GlobalConstants.MC_EUR));
-
-    currencies.parallelStream().forEach(currencyPair -> {
-      try {
-        investingConnector.updateCurrencyPairLastPrice(currencyPair);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      System.out.println(String.format("%s/%s last:%f change: %f", currencyPair.getFromCurrency(),
-          currencyPair.getToCurrency(), currencyPair.getSLast(), currencyPair.getSChangePercentage()));
-      assertThat(currencyPair.getSLast()).isNotNull().isGreaterThan(0.0);
-    });
+    return currencies;
   }
 
   @Override

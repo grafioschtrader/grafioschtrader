@@ -26,7 +26,7 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
 
   @Test
   void updateSecurityLastPriceTest() {
-    updateSecurityLastPrice();
+    updateSecurityLastPriceByHistoricalData();
   }
 
   @Override

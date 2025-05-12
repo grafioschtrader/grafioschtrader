@@ -27,7 +27,7 @@ public class BoursoramaFeedConnectorTest extends BaseFeedConnectorCheck {
 
   @Test
   void updateSecurityLastPriceTest() {
-    updateSecurityLastPrice();
+    updateSecurityLastPriceByHistoricalData();
   }
 
   @Override
