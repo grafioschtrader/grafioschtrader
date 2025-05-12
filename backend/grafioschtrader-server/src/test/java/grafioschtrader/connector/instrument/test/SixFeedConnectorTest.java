@@ -17,7 +17,7 @@ class SixFeedConnectorTest extends BaseFeedConnectorCheck {
 
   @Test
   void updateSecurityLastPriceTest() {
-    updateSecurityLastPrice();
+    updateSecurityLastPriceByHistoricalData();
   }
 
   @Test

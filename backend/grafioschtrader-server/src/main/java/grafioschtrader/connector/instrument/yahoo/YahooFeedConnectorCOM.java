@@ -62,8 +62,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
   private static final String DOMAIN_NAME_WITH_8_VERSION_Q2 = "https://query2.finance.yahoo.com/v8/finance/chart/";
 
-  private final HttpClient httpClient;
-
+  
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
@@ -76,7 +75,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   public YahooFeedConnectorCOM() {
     super(supportedFeed, YahooHelper.YAHOO, "Yahoo USA Finance", null, EnumSet.noneOf(UrlCheck.class));
-    this.httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
   }
 
   @Override

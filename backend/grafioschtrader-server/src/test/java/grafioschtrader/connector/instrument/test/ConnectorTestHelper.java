@@ -89,6 +89,10 @@ public class ConnectorTestHelper {
       SpecialInvestmentInstruments specialInvestmentInstrument, AssetclassType assetclassType, String mic) {
     final Stockexchange stockexchange = new Stockexchange();
     stockexchange.setMic(mic);
+    if(mic != null) {
+      stockexchange.setCountryCode(BaseFeedConnectorCheck.MIC_TO_COUNTRY_CODE.get(mic));
+    }
+    
     Assetclass assetclass = new Assetclass();
     if (specialInvestmentInstrument != null) {
       assetclass.setSpecialInvestmentInstrument(specialInvestmentInstrument);
@@ -143,9 +147,9 @@ public class ConnectorTestHelper {
     return setAssetclassAndStockexchange(security, specialInvestmentInstrument, mic);
   }
 
-  public static Security createIntraSecurity(final String name, final String urlIntraExtend) {
-    return createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA);
-  }
+//  public static Security createIntraSecurity(final String name, final String urlIntraExtend) {
+//    return createIntraHistoricalSecurity(name, urlIntraExtend, ExtendKind.INTRA);
+//  }
 
   public static Security createHistoricalSecurity(final String name, final String urlHistoryExtend,
       SpecialInvestmentInstruments specialInvestmentInstrument, String mic, String currency) {
@@ -356,6 +360,7 @@ public class ConnectorTestHelper {
       security.setIsin(isin);
       security.setUrlHistoryExtend(urlExtend);
       security.setCurrency(currency);
+      security.setActiveToDate(DateHelper.setTimeToZeroAndAddDay(new Date(), 365));
 
       setAssetclassAndStockexchange(security, specialInvestmentInstrument, assetclassType, mic);
     }
@@ -368,6 +373,7 @@ public class ConnectorTestHelper {
       security.setName(name);
       security.setUrlHistoryExtend(urlExtend);
       security.setCurrency(currency);
+      security.setActiveToDate(DateHelper.setTimeToZeroAndAddDay(new Date(), 365));
 
       setAssetclassAndStockexchange(security, specialInvestmentInstrument, mic);
     }

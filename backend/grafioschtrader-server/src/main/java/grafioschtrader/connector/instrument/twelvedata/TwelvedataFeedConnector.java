@@ -73,7 +73,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   public TwelvedataFeedConnector() {
     super(supportedFeed, "twelvedata", "Twelve Data", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
-    Bandwidth limit = Bandwidth.classic(8, Refill.intervally(8, Duration.ofMinutes(1)));
+    Bandwidth limit = Bandwidth.classic(4, Refill.intervally(4, Duration.ofMinutes(1)));
     this.bucket = Bucket.builder().addLimit(limit).build();
   }
 

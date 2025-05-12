@@ -345,16 +345,18 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+<!--
           <plugin>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-maven-plugin</artifactId>
-            <version>1.4</version> <configuration>
-                <apiDocsUrl>http://localhost:8080/api-docs</apiDocsUrl>
-
-                <outputDir>${project.build.directory}/generated-docs</outputDir>
-                <outputFileName>openapi.json</outputFileName>
-                 </configuration>
+            <version>1.4</version> 
+               <configuration>
+                  <apiDocsUrl>http://localhost:8080/api-docs</apiDocsUrl>
+                  <outputDir>${project.build.directory}/generated-docs</outputDir>
+                  <outputFileName>openapi.json</outputFileName>
+               </configuration>
           </plugin>
+-->          
 <!--          
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
