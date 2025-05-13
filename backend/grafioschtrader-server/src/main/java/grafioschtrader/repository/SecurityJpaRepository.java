@@ -128,7 +128,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Query(value = """
       SELECT s FROM Watchlist w JOIN w.securitycurrencyList s
       WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND s.retryIntraLoad > 0
-      AND s.activeToDate >= CURDATE()AND s.idLinkSecuritycurrency IS NOT NULL""")
+      AND s.activeToDate >= CURDATE() AND s.idLinkSecuritycurrency IS NOT NULL""")
   List<Security> findDerivedByIdTenantAndIdWatchlistWhenRetryIntraGreaterThan0(Integer idTenant, Integer idWatchlist);
 
   //@formatter:off
@@ -174,7 +174,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Query(value = """
       SELECT s as securityCurrency, MAX(h.date) AS date FROM Watchlist w JOIN w.securitycurrencyList s JOIN s.historyquoteList h
       WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND s.retryHistoryLoad > 0 AND s.activeToDate >= h.date
-      AND s.idConnectorHistory IS NOT NULL GROUP BY s.idSecuritycurrency HAVING s.activeToDate >= MAX(h.date)""")
+      AND s.idConnectorHistory IS NOT NULL GROUP BY s.idSecuritycurrency HAVING s.activeToDate > MAX(h.date)""")
   List<SecurityCurrencyMaxHistoryquoteData<Security>> findByIdTenantAndIdWatchlistWhenRetryHistroyGreaterThan0(
       Integer idTenant, Integer idWatchlist);
 
@@ -220,7 +220,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Query(value = """
       SELECT s as securityCurrency, MAX(h.date) AS date FROM Security s JOIN s.historyquoteList h
       WHERE s.retryHistoryLoad < ?1 AND s.idConnectorHistory IS NOT NULL GROUP BY h.idSecuritycurrency
-      HAVING s.activeToDate >= MAX(h.date) ORDER BY s.idSecuritycurrency""")
+      HAVING s.activeToDate > MAX(h.date) ORDER BY s.idSecuritycurrency""")
   List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithConnector(short maxHistoryRetry);
 
   /**
@@ -235,7 +235,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Query(value = """
       SELECT s as securityCurrency, MAX(h.date) AS date FROM Security s JOIN s.historyquoteList h
       WHERE s.retryHistoryLoad < ?1 AND s.idLinkSecuritycurrency IS NOT NULL GROUP BY h.idSecuritycurrency
-      HAVING s.activeToDate >= MAX(h.date) ORDER BY s.idSecuritycurrency""")
+      HAVING s.activeToDate > MAX(h.date) ORDER BY s.idSecuritycurrency""")
   List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithCalculation(short maxHistoryRetry);
 
   /**

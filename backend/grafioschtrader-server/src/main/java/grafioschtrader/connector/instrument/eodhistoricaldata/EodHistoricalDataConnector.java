@@ -172,11 +172,6 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
    * Date,Open,High,Low,Close,Adjusted_close,Volume
    * 2021-02-01,300.95,301.5,299,300.65,300.65,8813
    * 2021-02-02,302.15,306.55,302.15,305.85,305.85,4859
-   *
-   * @param inputLine
-   * @param dateFormat
-   * @return
-   * @throws ParseException
    */
   private Historyquote parseResponseLineItems(final String[] items, SimpleDateFormat dateFormat, double divider)
       throws ParseException {
