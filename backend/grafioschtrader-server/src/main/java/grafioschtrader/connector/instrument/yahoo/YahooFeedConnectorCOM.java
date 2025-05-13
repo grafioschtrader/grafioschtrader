@@ -2,7 +2,6 @@ package grafioschtrader.connector.instrument.yahoo;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
