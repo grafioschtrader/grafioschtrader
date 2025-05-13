@@ -18,8 +18,8 @@
 'UTF-8'
 -Xdoclint:all,-missing
 -doctitle
-'grafioschtrader 0.33.5 API'
+'grafioschtrader 0.33.6 API'
 -use
 -version
 -windowtitle
-'grafioschtrader 0.33.5 API'
+'grafioschtrader 0.33.6 API'
