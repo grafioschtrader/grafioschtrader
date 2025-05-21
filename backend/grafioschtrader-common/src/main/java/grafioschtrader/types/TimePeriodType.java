@@ -1,5 +1,10 @@
 package grafioschtrader.types;
 
+/**
+ * Enum for a period.
+ * 
+ * Must have the same values like TimePeriodType
+ */
 public enum TimePeriodType {
   // Must have the same values like SamplingPeriodType
   DAILY((byte) 0), MONTHLY((byte) 1), ANNUAL((byte) 2);

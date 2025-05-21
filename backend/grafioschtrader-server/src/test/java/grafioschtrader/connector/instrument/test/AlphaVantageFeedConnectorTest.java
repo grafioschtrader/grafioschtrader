@@ -1,29 +1,23 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.alphavantage.AlphaVantageFeedConnector;
-import grafioschtrader.entities.Historyquote;
-import grafioschtrader.entities.Security;
+import grafioschtrader.connector.instrument.test.ConnectorTestHelper.SecurityHistoricalDate;
 import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SubscriptionType;
 
 @SpringBootTest(classes = GTforTest.class)
-class AlphaVantageFeedConnectorTest {
+class AlphaVantageFeedConnectorTest extends BaseFeedConnectorCheck {
 
   private final AlphaVantageFeedConnector alphaVantageConnector;
 
@@ -33,70 +27,40 @@ class AlphaVantageFeedConnectorTest {
     assumeTrue(alphaVantageConnector.isActivated());
   }
 
-  /**
-   * NEEDS Premium Membership!
-   */
   @Test
   void getEodSecurityHistoryTest() {
     if (alphaVantageConnector.getSubscriptionType() != SubscriptionType.ALPHA_VANTAGE_FREE) {
-      final List<Security> securities = new ArrayList<>();
-
-      final DateTimeFormatter germanFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-          .withLocale(Locale.GERMAN);
-      final LocalDate from = LocalDate.parse("02.09.2019", germanFormatter);
-      final LocalDate to = LocalDate.parse("25.10.2019", germanFormatter);
-
-      final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-      final Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-      securities.add(createSecurity("AAPL"));
-      securities.add(createSecurity("MSFT"));
-      // securities.add(createSecurity("NESN.SW"));
-      securities.parallelStream().forEach(security -> {
-
-        List<Historyquote> historyquote = new ArrayList<>();
-        try {
-          historyquote = alphaVantageConnector.getEodSecurityHistory(security, fromDate, toDate);
-        } catch (final Exception e) {
-          e.printStackTrace();
-        }
-        assertThat(historyquote.size()).isEqualTo(39);
-      });
+      getEodSecurityHistory(false);
+    }  
+  }
+  
+  @Test
+  void updateSecurityLastPriceTest() {
+    if (alphaVantageConnector.getSubscriptionType() != SubscriptionType.ALPHA_VANTAGE_FREE) {
+      updateSecurityLastPriceByHistoricalData();  
     }
   }
 
-  @Test
-  void updateSecurityLastPriceTest() {
-    final List<Security> securities = new ArrayList<>();
-
-    securities.add(createSecurity("AAPL"));
-    securities.add(createSecurity("MSFT"));
-    securities.add(createSecurity("DAI.FRK"));
-    // securities.add(createSecurity("NESN.SW"));
-    securities.add(createSecurity("^DJI"));
-    securities.parallelStream().forEach(security -> {
-      try {
-        alphaVantageConnector.updateSecurityLastPrice(security);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-
-      if (security.getSTimestamp() != null) {
-        if (security.getSLow() != null && security.getSHigh() != null) {
-          assertThat(security.getSLast()).isGreaterThanOrEqualTo(security.getSLow())
-              .isLessThanOrEqualTo(security.getSHigh());
-        } else {
-          assertThat(security.getSLast()).isNotNull().isGreaterThan(0.0);
-        }
-      }
-    });
+  
+  
+  @Override
+  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+    List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
+    try {
+      hisoricalDate.add(new SecurityHistoricalDate("Apple", "AAPL", 1000, "2010-01-03", "2025-05-16"));
+      hisoricalDate.add(new SecurityHistoricalDate("Microsoft", "MSFT", 1000, "2010-01-03", "2025-05-16"));
+      hisoricalDate.add(new SecurityHistoricalDate("Dow Jones Industrial Average", "^DJI", 1000, "2010-01-03", "2025-05-16"));
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+    }
+    return hisoricalDate;
   }
-
-  Security createSecurity(final String ticker) {
-    final Security security = new Security();
-    security.setUrlIntraExtend(ticker);
-    security.setUrlHistoryExtend(ticker);
-    return security;
+  
+ 
+ 
+  @Override
+  protected IFeedConnector getIFeedConnector() {
+    return alphaVantageConnector;
   }
 
 }

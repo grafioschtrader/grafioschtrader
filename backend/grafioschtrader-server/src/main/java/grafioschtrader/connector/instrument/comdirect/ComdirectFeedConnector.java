@@ -106,7 +106,7 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
     HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(Redirect.ALWAYS)
         .cookieHandler(cookieManager).build();
     HttpRequest request = HttpRequest.newBuilder().timeout(Duration.ofSeconds(2))
-        .header("User-Agent", GlobalConstants.USER_AGENT).uri(URI.create(url)).GET().build();
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).uri(URI.create(url)).GET().build();
     HttpResponse<String> response = null;
     try {
       response = client.send(request, HttpResponse.BodyHandlers.ofString());

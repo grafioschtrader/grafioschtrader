@@ -8,10 +8,16 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.common.DataBusinessHelper;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class AnnualisedPerformance {
+  @Schema(description = "Currency of the security")
   public final String securityCurrency;
+  @Schema(description = "The tenant currency")
   public final String mainCurrency;
+  @Schema(description = """
+          The start date from which the performance is calculated. Will be the last trading day of the 
+          year where historical price data is available for the security in question.""")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate dateFrom;
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)

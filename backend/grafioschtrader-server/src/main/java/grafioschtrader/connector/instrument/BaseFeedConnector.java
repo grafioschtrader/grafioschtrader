@@ -346,11 +346,9 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
-    CookieManager cookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
-    HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).cookieHandler(cookieManager)
-        .build();
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
-        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).header("Accept-Language", "en").GET().build();
+ 
+    HttpClient client = getHttpClient();
+    HttpRequest request = getRequest(url);
     try {
       HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
       int statusCode = response.statusCode();
@@ -364,6 +362,17 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     } catch (IOException | InterruptedException e) {
       log.error("URL: {}", url, e);
     }
+  }
+  
+  protected HttpClient getHttpClient() {
+    CookieManager cookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+    return HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).cookieHandler(cookieManager)
+        .build();
+  }
+
+  protected HttpRequest getRequest(String url) {
+    return HttpRequest.newBuilder().uri(URI.create(url)).header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
+        .header("Accept-Language", "en").GET().build();
   }
 
   @Override

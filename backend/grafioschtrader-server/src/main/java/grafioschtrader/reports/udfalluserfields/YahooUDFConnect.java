@@ -1,6 +1,7 @@
 package grafioschtrader.reports.udfalluserfields;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -20,6 +21,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.UDFData;
@@ -40,6 +43,8 @@ import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Refill;
 
 public class YahooUDFConnect {
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   private YahooSymbolSearch yahooSymbolSearch = new YahooSymbolSearch();
 
@@ -66,7 +71,7 @@ public class YahooUDFConnect {
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h a z", Locale.ENGLISH);
 
   private final SimpleDateFormat dateFormatEarnings = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
-  
+
   public YahooUDFConnect() {
     Bandwidth limit = Bandwidth.classic(2, Refill.intervally(1, Duration.ofSeconds(2)));
     this.bucket = Bucket.builder().addLimit(limit).build();
@@ -104,7 +109,7 @@ public class YahooUDFConnect {
     }
     return yahooSymbol == null || yahooSymbol.startsWith("^") ? null : yahooSymbol;
   }
-  
+
   String getYahooSymbolThruSymbolSearch(Security security, MicProviderMapRepository micProviderMapRepository) {
     String yahooSymbol = null;
     String mic = security.getStockexchange().getMic();
@@ -113,8 +118,7 @@ public class YahooUDFConnect {
     } else {
       waitForTokenOrGo();
       yahooSymbol = yahooSymbolSearch.getSymbolByISINOrSymbolOrName(micProviderMapRepository,
-          security.getStockexchange().getMic(), security.getIsin(), security.getTickerSymbol(),
-          security.getName());
+          security.getStockexchange().getMic(), security.getIsin(), security.getTickerSymbol(), security.getName());
     }
     return yahooSymbol;
   }
@@ -134,32 +138,38 @@ public class YahooUDFConnect {
    * @throws IOException If an I/O error occurs while connecting to the URL or
    *                     parsing the document.
    */
-  public LocalDateTime extractNextEarningDate(String url) throws IOException {
+  LocalDateTime extractNextEarningDate(String url) throws IOException {
     waitForTokenOrGo();
     LocalDateTime now = LocalDateTime.now();
     LocalDateTime nextEarningDate = null;
 
-    final Connection conn = Jsoup.connect(url)
-        .userAgent(FeedConnectorHelper.getHttpAgentAsString(true));
-    final Document doc = conn.get();
-    Elements tables = doc.select("table.bd");
-    if (tables.size() > 0) {
-      Elements rows = tables.get(0).select("tr");
-      for (Element row : rows) {
-        Elements cols = row.select("td");
-        if (cols.size() >= 6) {
-          LocalDateTime localDateTime = LocalDateTime.parse(cols.get(2).text(), formatter);
-          if (now.isAfter(localDateTime)) {
-            break;
+    final Connection conn = Jsoup.connect(url).userAgent(FeedConnectorHelper.getHttpAgentAsString(true));
+
+    Connection.Response response = conn.execute();
+
+    if (response.statusCode() == HttpURLConnection.HTTP_OK) {
+      final Document doc = response.parse();
+      Elements tables = doc.select("table.bd");
+      if (!tables.isEmpty()) {
+        Elements rows = tables.get(0).select("tr");
+        for (Element row : rows) {
+          Elements cols = row.select("td");
+          if (cols.size() >= 6) {
+            LocalDateTime localDateTime = LocalDateTime.parse(cols.get(2).text(), formatter);
+            if (now.isAfter(localDateTime)) {
+              break;
+            }
+            nextEarningDate = localDateTime;
           }
-          nextEarningDate = localDateTime;
         }
       }
+    } else {
+      log.warn("Could not fetch URL: {} (Status: {})", url, response.statusCode());
     }
     return nextEarningDate;
   }
-  
-  public String getEarningURL(String yahooSymbol) {
+
+  String getEarningURL(String yahooSymbol) {
     return YahooHelper.YAHOO_CALENDAR + "earnings?day=" + dateFormatEarnings.format(new Date()) + "&symbol="
         + yahooSymbol;
   }

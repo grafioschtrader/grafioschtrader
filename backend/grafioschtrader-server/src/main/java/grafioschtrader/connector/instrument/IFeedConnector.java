@@ -34,9 +34,9 @@ public interface IFeedConnector {
     CURRENCY,
     // Supports currency only with using extended url
     CURRENCY_URL,
-    // Supports currency without using extended url
+    // Supports security without using extended url
     SECURITY,
-    // Supports currency only with using extended url
+    // Supports security only with using extended url
     SECURITY_URL,
     // Supports dividend without using extended url
     DIVIDEND,

@@ -144,11 +144,16 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<ISecuritycurrencyIdDateClose> getIdDateCloseByIdsAndDate(@Param("ids") List<Integer> idSecuritycurrencies,
       @Param("date") Date date);
 
+
   /**
    * Determines all historical year-end exchange rates for the foreign currencies
    * used by the customer. In addition, the historical year-end rates of the
    * securities held are also determined.
-    */
+   * 
+   * 
+   * @param idTenant ID of tenant
+   * @return history quotes at end of year
+   */
   @Query(nativeQuery = true)
   List<Historyquote> getSecuritycurrencyHistoryEndOfYearsByIdTenant(Integer idTenant);
 

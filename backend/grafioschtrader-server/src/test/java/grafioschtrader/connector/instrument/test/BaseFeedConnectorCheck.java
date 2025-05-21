@@ -29,14 +29,16 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 
 public abstract class BaseFeedConnectorCheck {
-  private static final Map<String, String> micToTimeZoneMap = new HashMap<>();
+  public static final Map<String, String> micToTimeZoneMap = new HashMap<>();
 
   static {
+
     micToTimeZoneMap.put(GlobalConstants.STOCK_EX_MIC_AUSTRALIA, "Australia/Sydney");
     micToTimeZoneMap.put(GlobalConstants.STOCK_EX_MIC_NASDAQ, "America/New_York");
     micToTimeZoneMap.put(GlobalConstants.STOCK_EX_MIC_SIX, "Europe/Zurich");
     micToTimeZoneMap.put(GlobalConstants.STOCK_EX_MIC_UK, "Europe/London");
     micToTimeZoneMap.put(GlobalConstants.STOCK_EX_MIC_FRANCE, "Europe/Paris");
+    micToTimeZoneMap.put(GlobalConstants.STOCK_EX_MIC_WARSAW, "Europe/Warsaw");
     // Add more if needed
   }
 
@@ -82,7 +84,6 @@ public abstract class BaseFeedConnectorCheck {
       if (security.getActiveToDate() == null) {
         security.setActiveToDate(DateHelper.setTimeToZeroAndAddDay(new Date(), 365));
       }
-
       checkRegularPattern(security, FeedSupport.FS_INTRA);
       try {
         getIFeedConnector().updateSecurityLastPrice(security);

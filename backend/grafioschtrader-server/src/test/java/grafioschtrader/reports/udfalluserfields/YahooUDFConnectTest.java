@@ -56,7 +56,7 @@ public class YahooUDFConnectTest {
     try {
       // CrumbManager.setCookie();
 
-      List<String> symbols = Arrays.asList("ADSK", "NVDA", "GOOG");
+      List<String> symbols = Arrays.asList("ADSK", "NVDA", "GOOG", "BIDU");
       LocalDateTime now = LocalDateTime.now();
 
       for (String symbol : symbols) {

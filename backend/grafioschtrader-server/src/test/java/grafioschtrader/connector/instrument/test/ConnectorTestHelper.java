@@ -91,6 +91,7 @@ public class ConnectorTestHelper {
     stockexchange.setMic(mic);
     if(mic != null) {
       stockexchange.setCountryCode(BaseFeedConnectorCheck.MIC_TO_COUNTRY_CODE.get(mic));
+      stockexchange.setTimeZone(BaseFeedConnectorCheck.micToTimeZoneMap.get(mic));
     }
     
     Assetclass assetclass = new Assetclass();
@@ -318,9 +319,16 @@ public class ConnectorTestHelper {
 
     public Security security;
 
+    public SecurityHistoricalDate(final String name, String urlExtend,
+        int expectedRows, String fromStr, String toStr) throws ParseException {
+      this(name, "", null, null, urlExtend, null, expectedRows, fromStr, toStr);
+     
+    }
+
+    
     public SecurityHistoricalDate(final String name, int expectedRows, String fromStr, String toStr)
         throws ParseException {
-      this(name, "", null, expectedRows, fromStr, toStr);
+      this(name, "", null, null, expectedRows, fromStr, toStr);
     }
 
     public SecurityHistoricalDate(final String name, SpecialInvestmentInstruments specialInvestmentInstrument,
@@ -334,9 +342,9 @@ public class ConnectorTestHelper {
     }
 
     public SecurityHistoricalDate(final String name, String isin,
-        SpecialInvestmentInstruments specialInvestmentInstrument, int expectedRows, String fromStr, String toStr)
+        SpecialInvestmentInstruments specialInvestmentInstrument, String mic, int expectedRows, String fromStr, String toStr)
         throws ParseException {
-      this(name, isin, specialInvestmentInstrument, null, null, expectedRows, fromStr, toStr);
+      this(name, isin, specialInvestmentInstrument, null, mic, expectedRows, fromStr, toStr);
     }
 
     public SecurityHistoricalDate(final String name, String isin,

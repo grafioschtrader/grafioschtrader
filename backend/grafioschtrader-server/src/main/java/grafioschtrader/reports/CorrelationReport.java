@@ -141,12 +141,6 @@ public class CorrelationReport {
 
   private Double[] rollingCovCorrBeta(double[] x, double[] y, RollingWindow rollingWindow) {
 
-//    if (a.pop) {
-//      check_xy1(x, y, a.rolling);
-//    } else {
-//      check_xy(x, y, a.rolling);
-//    }
-
     byte windowSize = rollingWindow.rolling;
     int n_xy = x.length;
     int w = 0;

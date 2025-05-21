@@ -111,16 +111,25 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     for (Map.Entry<Integer, UnitsCounter> entry : unitsCounterBySecurityMap.entrySet()) {
       SecurityDividendsPosition securityDividendsPosition = groupMap.get(entry.getKey());
       if (securityDividendsPosition == null && entry.getValue().units != 0) {
-        SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(entry.getKey(),
-            fromDate, untilDate, securitysplitMap);
-        entry.getValue().units = entry.getValue().units * splitFactorAfterBefore.fromToDateFactor;
+        updateUnitsEndOfYear(fromDate, untilDate, entry, securitysplitMap);
         securityDividendsPosition = this.getOrCreateSecurityDividendsPosition(entry.getValue().security,
             securitysplitMap.get(entry.getValue().security.getIdSecuritycurrency()));
       }
       if (securityDividendsPosition != null) {
+        if (!securityDividendsPosition.hasAccumulateReduce) {
+          updateUnitsEndOfYear(fromDate, untilDate, entry, securitysplitMap);
+        }
+
         securityDividendsPosition.unitsAtEndOfYear = entry.getValue().units;
       }
     }
+  }
+
+  private void updateUnitsEndOfYear(Date fromDate, Date untilDate, Map.Entry<Integer, UnitsCounter> entry,
+      Map<Integer, List<Securitysplit>> securitysplitMap) {
+    SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(entry.getKey(),
+        fromDate, untilDate, securitysplitMap);
+    entry.getValue().units = entry.getValue().units * splitFactorAfterBefore.fromToDateFactor;
   }
 
   public void addInterest(Double interestMC) {

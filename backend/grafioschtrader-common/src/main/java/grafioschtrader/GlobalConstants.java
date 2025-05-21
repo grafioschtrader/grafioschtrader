@@ -71,8 +71,6 @@ public class GlobalConstants extends BaseConstants {
    */
   public static boolean AUTO_CORRECT_TO_AMOUNT = true;
 
-  public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
-
   public static final int DIVIDEND_CHECK_DAYS_LOOK_BACK = 360;
 
   public static final int DIVIDEND_CHECK_PAY_DATE_TOLERANCE_IN_DAYS = 4;
@@ -138,7 +136,7 @@ public class GlobalConstants extends BaseConstants {
   public static final int PERFORMANCE_MAX_WEEK_LIMIT = 53;
   public static final int PERFORMANCE_MIN_INCLUDE_MONTH_LIMIT = 2;
   public static final String USER_AGENT_HTTPCLIENT_SHORT = "Mozilla/5.0";
-  public static final String USER_AGENT_HTTPCLIENT = USER_AGENT_HTTPCLIENT_SHORT + " (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36";
+  public static final String USER_AGENT_HTTPCLIENT = USER_AGENT_HTTPCLIENT_SHORT + " (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36";
 
   public static final String UNITS = "units";
 

@@ -22,7 +22,7 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
       <div class="datatable nestedtable">
         <p-treeTable [value]="rootNode.children" [columns]="fields" dataKey="idGtNetMessage"
                      selectionMode="single" [(selection)]="selectedNode"
-                     styleClass="p-treetable-gridlines">
+                     showGridlines="true">
           <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [style.width.px]="field.width">

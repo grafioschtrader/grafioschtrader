@@ -144,7 +144,7 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
   private Connection getPreparedURL(final Currencypair currencyPair, final Calendar startDate, final Calendar toDate) {
 
     final Connection csvTableURL = Jsoup.connect("https://fx.sauder.ubc.ca/cgi/fxdata")
-        .userAgent(GlobalConstants.USER_AGENT).ignoreContentType(true).timeout(CONNECTION_TIMEOUT);
+        .userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT).ignoreContentType(true).timeout(CONNECTION_TIMEOUT);
 
     csvTableURL.data("c", currencyPair.getFromCurrency());
     csvTableURL.data("b", currencyPair.getToCurrency());

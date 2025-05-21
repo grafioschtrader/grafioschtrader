@@ -129,7 +129,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
       @PathVariable final Integer idTransaction) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
-        SecurityMarginUnitsCheck.getEstimatedFinanceCost(transactionJpaRepository, user, idTransaction), HttpStatus.OK);
+        SecurityMarginUnitsCheck.getEstimatedFinanceCost(transactionJpaRepository, user.getIdTenant(), idTransaction), HttpStatus.OK);
   }
 
   ///////////////////////////////////////////////////////////
