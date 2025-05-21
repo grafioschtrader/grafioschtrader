@@ -164,10 +164,17 @@ public class Securitysplit extends DividendSplit implements Serializable {
   /**
    * Returns the factor for a security split between a from data an to date.
    *
-   * @param idSecuritycurrency
-   * @param fromDate
-   * @param toDate
-   * @param securitysplitMap
+   * @param idSecuritycurrency the security‐currency ID whose split events to look
+   *                           up; should match a key in {@code securitysplitMap}
+   * @param fromDate           the lower bound (exclusive) for considering split
+   *                           events; must not be null
+   * @param toDate             the upper bound (exclusive) for the first factor
+   *                           calculation; if null, all splits after
+   *                           {@code fromDate} are included in
+   *                           {@code fromToDateFactor}
+   * @param securitysplitMap   a map from security IDs to lists of
+   *                           {@link Securitysplit} records; may be null or
+   *                           contain no entry for the given ID
    * @return In a case of a split it returns a value greater > 1, for example a
    *         split of 2 returns 2. Normally the transaction units must be
    *         multiplied by this factor when the transaction time happened before

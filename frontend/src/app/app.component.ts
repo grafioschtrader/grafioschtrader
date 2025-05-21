@@ -32,7 +32,6 @@ const MyPreset = definePreset(Aura, {
       row: {
         selectedBackground: "{blue.600}",
         selectedColor: "#ffffff",
-
       }
     },
     menubar: {
@@ -57,6 +56,9 @@ const MyPreset = definePreset(Aura, {
       },
     },
     treetable: {
+      headerCell: {
+        padding: "0rem 0rem",
+      },
       bodyCell: {
         padding: "0rem 0rem",
         gap: "0rem"

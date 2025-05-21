@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.types.OperationType;
 import grafioschtrader.GlobalConstants;
@@ -83,14 +82,25 @@ public class SecurityMarginUnitsCheck {
     }
   }
 
+  /**
+   * Based on the opening margin position and the daily financing costs specified
+   * at that time, a proposal for the costs is suggested to the user. Financing
+   * costs already paid and partial sales are taken into account.
+   * 
+   * @param transactionJpaRepository Repository for transactions
+   * @param idTenant                 The tenant's ID for security reasons.
+   * @param idTransaction            The ID of the opening margining position
+   *                                 transaction.
+   * @return The proposed financing costs resulting from this calculation.
+   */
   public static ProposedMarginFinanceCost getEstimatedFinanceCost(TransactionJpaRepository transactionJpaRepository,
-      final User user, Integer idTransaction) {
+      final Integer idTenant, Integer idTransaction) {
 
     TreeMap<LocalDate, Double> dayUnitsMap = new TreeMap<>();
     List<Transaction> transactions = transactionJpaRepository
-        .getMarginForIdTenantAndIdTransactionOrderByTransactionTime(user.getIdTenant(), idTransaction);
+        .getMarginForIdTenantAndIdTransactionOrderByTransactionTime(idTenant, idTransaction);
     if (!transactions.isEmpty()) {
-      Transaction openTransaction = transactions.get(0);
+      Transaction openTransaction = transactions.getFirst();
       Double dailyFinanceCost = openTransaction.getAssetInvestmentValue1();
       if (dailyFinanceCost != null) {
         double openUnits = openTransaction.getUnits();

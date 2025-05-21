@@ -30,7 +30,7 @@ import {MessageToastService} from '../../../shared/message/message.toast.service
 
           <p-treeTable [value]="sendRecvRootNode" [columns]="fields" dataKey="idMailSendRecv"
                        selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)"
-                       sortField="sendRecvTime" [sortOrder]="sortOrder" styleClass="p-treetable-gridlines">
+                       sortField="sendRecvTime" [sortOrder]="sortOrder" showGridlines="true">
               <ng-template #caption>
                   <div style="text-align:left">
                       <h5>{{"MAIL_TO_FROM" | translate}} {{gps.getIdUser()}}, {{"MOST_PRIVILEGED_ROLE" | translate}}

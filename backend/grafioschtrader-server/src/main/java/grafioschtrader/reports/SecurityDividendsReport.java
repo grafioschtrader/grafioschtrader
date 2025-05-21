@@ -13,6 +13,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +64,8 @@ public class SecurityDividendsReport {
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   public SecurityDividendsGrandTotal getSecurityDividendsGrandTotalByTenant(final Integer idTenant,
       final List<Integer> idsSecurityaccount, final List<Integer> idsCashaccount) {
@@ -123,6 +127,17 @@ public class SecurityDividendsReport {
     return cashAccountMap;
   }
 
+  /**
+   * Collects all transactions from the given cash accounts that either have no
+   * security-account ID or whose security-account ID is in the provided list, and
+   * whose type is at most FINANCE_COST. The results are sorted in ascending order
+   * by transaction date.
+   *
+   * @param cashAccounts       the cash accounts to scan (must not be null)
+   * @param idsSecurityaccount the security-account IDs to include (if empty, all
+   *                           IDs are allowed)
+   * @return a list of matching transactions, sorted by date (oldest first)
+   */
   private List<Transaction> getTransactions(Collection<Cashaccount> cashAccounts,
       final List<Integer> idsSecurityaccount) {
     List<Transaction> transactions = new ArrayList<>();
@@ -155,7 +170,6 @@ public class SecurityDividendsReport {
 
     SecurityDividendsYearGroup securityDividendsYearGroup = null;
     for (final Transaction transaction : transactions) {
-
       calendar.setTime(transaction.getTransactionTime());
       year = calendar.get(Calendar.YEAR);
       if (yearChangeWatcher != year) {
@@ -170,7 +184,6 @@ public class SecurityDividendsReport {
           }
           transferCashaccountAmountToNewYear(securityDividendsYearGroup, cashAccountsAmountMap, cashAccountsMap);
         }
-
         yearChangeWatcher = year;
         securityDividendsYearGroup = securityDividendsGrandTotal.getOrCreateGroup(year);
       }
@@ -231,11 +244,14 @@ public class SecurityDividendsReport {
       security = transaction.getSecurity();
     }
     final SecurityDividendsPosition securityDividendsPosition = securityDividendsYearGroup
-        .getOrCreateSecurityDividendsPosition(transaction.getSecurity(), securitysplitMap.get(security.getIdSecuritycurrency()));
+        .getOrCreateSecurityDividendsPosition(transaction.getSecurity(),
+            securitysplitMap.get(security.getIdSecuritycurrency()));
 
     final SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
         security.getIdSecuritycurrency(), transaction.getTransactionTime(), dateCurrencyMap.getUntilDate(),
         securitysplitMap);
+    // Calculates the split factor until the end of the year for this transaction.
+    // This allows the units to be calculated at the end of the year.
     final double unitsSplited = transaction.getUnits() * splitFactorAfterBefore.fromToDateFactor;
 
     switch (transaction.getTransactionType()) {
@@ -249,7 +265,9 @@ public class SecurityDividendsReport {
       break;
     case DIVIDEND:
       if (unitsCounterBySecurityMap.get(transaction.getSecurity().getIdSecuritycurrency()) == null) {
-        System.err.println(transaction.getSecurity());
+        log.error(
+            "It is not possible to have dividends/interest in the year {} for security {} ISIN {} as no units are available.",
+            securityDividendsYearGroup.year, transaction.getSecurity().getName(), transaction.getSecurity().getIsin());
       }
       securityDividendsPosition.updateDividendPosition(transaction, dateCurrencyMap);
       break;
@@ -272,10 +290,6 @@ public class SecurityDividendsReport {
   /**
    * Calculate grand totals
    *
-   * @param idTenant
-   * @param securityDividendsGrandTotal
-   * @param historyquoteYearIdMap
-   * @param dateCurrencyMap
    */
   private void createGrandTotal(final Integer idTenant, final SecurityDividendsGrandTotal securityDividendsGrandTotal,
       final Map<Integer, Map<Integer, Historyquote>> historyquoteYearIdMap,
@@ -288,10 +302,7 @@ public class SecurityDividendsReport {
    * There may be no transaction for a given year, or there may be no transaction
    * on an open position in a given year. Nevertheless, this year must contain all
    * open positions.
-   *
-   * @param securityDividendsGrandTotal
-   * @param year
-   * @param unitsCounterBySecurityMap
+   * 
    */
   private void createFillYearWithOpenPositions(final SecurityDividendsGrandTotal securityDividendsGrandTotal,
       final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
@@ -311,6 +322,14 @@ public class SecurityDividendsReport {
     }
   }
 
+  /**
+   * Retrieves end-of-year history quotes for foreign currencies and securities
+   * for a tenant, grouped first by year and then by security-currency ID.
+   *
+   * @param idTenant the tenant ID
+   * @return a map where each key is a year and each value is a map of
+   *         security-currency ID to its year-end history close price
+   */
   private Map<Integer, Map<Integer, Historyquote>> getSecuritycurrencyHistoryEndOfYearsByIdTenant(
       final Integer idTenant) {
     final Calendar calendar = new GregorianCalendar();

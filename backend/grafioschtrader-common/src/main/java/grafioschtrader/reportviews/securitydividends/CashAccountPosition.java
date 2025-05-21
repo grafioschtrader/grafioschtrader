@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
     This contains some account-relevant data that is useful for completing a tax return, for example.""")
 public class CashAccountPosition extends AccountDividendPosition {
 
+  @Schema(description = "The cash account to which this instance refers.")
   public Cashaccount cashaccount;
   @Schema(description = "Account balance at the end of the year in the account currency.")
   public double cashBalance = 0.0;
@@ -21,6 +22,7 @@ public class CashAccountPosition extends AccountDividendPosition {
   public double cashBalanceMC = 0.0;
 
   public double feeCashAccount = 0.0;
+  @Schema(description = "Account costs in the currency of the tenant.")
   public double feeCashAccountMC = 0.0;
 
   public double feeSecurityAccount = 0.0;

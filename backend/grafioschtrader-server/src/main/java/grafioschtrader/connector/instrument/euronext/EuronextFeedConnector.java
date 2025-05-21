@@ -157,7 +157,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   private Document getIntraDoc(String url) throws IOException {
-    return Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT).header("Accept-Language", "en")
+    return Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT).header("Accept-Language", "en")
         .header("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
         .requestBody("theme_name=euronext_live").post();
   }

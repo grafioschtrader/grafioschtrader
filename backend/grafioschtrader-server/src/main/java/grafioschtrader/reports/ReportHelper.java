@@ -53,6 +53,25 @@ public abstract class ReportHelper {
     dateCurrencyMap.untilDateDataIsLoaded();
   }
 
+  /**
+   * Loads closing price data for a list of securities, optionally adjusted into a
+   * single target currency, over a given date range and sampling period. This
+   * ensures that the prices of all transferred securities are always available
+   * for each date.
+   *
+   * @param jdbcTemplate              the Spring JDBC template to execute queries
+   * @param currencypairJpaRepository repository to fetch currency‐pair conversion
+   *                                  info
+   * @param securitycurrencyList      list of security‐currency entities to load
+   * @param samplingPeriod            daily, monthly, or annual sampling
+   * @param dateFrom                  inclusive lower bound for dates
+   * @param dateTo                    exclusive upper bound for dates
+   * @param adjustToSingleCurrency    If true, the currency pairs that allow
+   *                                  normalization to a currency are also added
+   *                                  to the query
+   * @return a ClosePricesCurrencyClose wrapping a date→prices map and any
+   *         currency‐conversion info
+   */
   public static ClosePricesCurrencyClose loadCloseData(JdbcTemplate jdbcTemplate,
       CurrencypairJpaRepository currencypairJpaRepository, List<Securitycurrency<?>> securitycurrencyList,
       SamplingPeriodType samplingPeriod, LocalDate dateFrom, LocalDate dateTo, boolean adjustToSingleCurrency) {
@@ -89,7 +108,6 @@ public abstract class ReportHelper {
 
     String query = qSelect.append(qFrom).append(WHERE_WORD.endsWith(qWhere.toString()) ? "" : qWhere).append(qGroup)
         .append(" ORDER BY h0.date").toString();
-   // System.out.println(query);
     return new ClosePricesCurrencyClose(getQueryDateCloseAsTreeMap(jdbcTemplate, query, securityCurrencyIds.size()),
         cr);
   }
@@ -207,10 +225,11 @@ public abstract class ReportHelper {
     }
   }
 
-
-  private static void createMissingCurrencypair(CurrencypairJpaRepository currencypairJpaRepository, CurrencyRequired cr) {
-    for(CurrencyAvailableRequired car: cr.getMissingCurrencypair()) {
-      Currencypair cp = currencypairJpaRepository.createNonExistingCurrencypair(car.formCurrency, car.toCurrency, false);
+  private static void createMissingCurrencypair(CurrencypairJpaRepository currencypairJpaRepository,
+      CurrencyRequired cr) {
+    for (CurrencyAvailableRequired car : cr.getMissingCurrencypair()) {
+      Currencypair cp = currencypairJpaRepository.createNonExistingCurrencypair(car.formCurrency, car.toCurrency,
+          false);
       car.adjust(cp.getIdSecuritycurrency(), cp.getFromCurrency(), cp.getToCurrency());
     }
   }

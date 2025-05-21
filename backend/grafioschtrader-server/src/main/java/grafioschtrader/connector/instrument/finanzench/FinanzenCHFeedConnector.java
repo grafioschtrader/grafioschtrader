@@ -3,14 +3,12 @@ package grafioschtrader.connector.instrument.finanzench;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
@@ -28,7 +26,7 @@ import org.springframework.stereotype.Component;
 
 import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.finanzen.FinanzenConnetorBase;
 import grafioschtrader.connector.instrument.finanzen.FinanzenHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -89,8 +87,8 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  *
  */
 @Component
-public class FinanzenCHFeedConnector extends BaseFeedConnector {
-
+public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
+  
   protected static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final String domain = "https://www.finanzen.ch/";
   private static final String currencyIntraPrefix = "devisen/";
@@ -98,6 +96,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   private static final String URL_SECURITY_HISTORICAL_REGEX = "^[\\p{L}0-9_-]+(/[A-Za-z]+)?$";
   private static final Locale FC_LOCALE = Locale.of("de", "CH");
 
+  
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
@@ -111,6 +110,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   public FinanzenCHFeedConnector() {
     super(supportedFeed, "finanzench", "Finanzen CH", null, EnumSet.of(UrlCheck.INTRADAY));
     numberFormat = NumberFormat.getNumberInstance(FC_LOCALE);
+    initalizeHttpClient(domain);
   }
 
   @Override
@@ -163,7 +163,8 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
       updateLastPrice(security, url, useStockSelector);
     }
   }
-
+  
+  
   /**
    * Reading the data from a sidebar, which is displayed in the form of a table.
    */
@@ -200,12 +201,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     setLastPrice(security, lastPrice, dailyChange, changePercentage);
   }
 
-  private Document getDoc(String url) throws IOException, InterruptedException {
-    HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL).build();
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
-    HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-    return Jsoup.parse(response.body());
-  }
+  
 
   private <S extends Securitycurrency<S>> void setLastPrice(Securitycurrency<S> securitycurrency, double lastPrice,
       double dailyChange, double changePercentage) {
@@ -244,15 +240,14 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
   }
 
   private List<Historyquote> readHistoricalQuotes(String url) throws Exception {
-    // System.out.println("URL: " + url);
-    HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).followRedirects(Redirect.NORMAL)
-        .build();
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
         .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-        .header("Accept-Language", "en-US,en;q=0.5").version(HttpClient.Version.HTTP_1_1) // Explicitly set HTTP version
-        .POST(HttpRequest.BodyPublishers.noBody()).build();
-    HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        .header("Accept-Encoding", "deflate, br")
+        .header("Accept", "*/*")
+        .header("Accept-Language", "en")
+        .version(HttpClient.Version.HTTP_1_1) // Explicitly set HTTP version
+        .POST(HttpRequest.BodyPublishers.ofString("")).build();
+    HttpResponse<String> response = getHttpClient().send(request, BodyHandlers.ofString());
 
     if (response.statusCode() != 200) {
       throw new IOException("Failed to fetch data: " + response.statusCode());
@@ -405,4 +400,7 @@ public class FinanzenCHFeedConnector extends BaseFeedConnector {
     String url = getHistoricaCurrencypairlDownloadLinkByDate(currencypair, from, to);
     return readHistoricalQuotes(url);
   }
+  
+  
+
 }

@@ -28,7 +28,7 @@ public enum AlertGTType implements IAlertType {
 
   @Override
   public String getName() {
-    return this.getName();
+    return name();
   }
 
 }

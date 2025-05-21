@@ -12,6 +12,11 @@ html {
   background: #2563eb !important;
 }
 
+.word-break-header {
+  hyphens: auto;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
 
 body {
   line-height: 1.3;

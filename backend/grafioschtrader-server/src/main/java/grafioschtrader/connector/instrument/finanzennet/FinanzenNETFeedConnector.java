@@ -9,15 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.instrument.finanzen.FinanzenConnetorBase;
 import grafioschtrader.connector.instrument.finanzen.FinanzenHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -44,12 +42,13 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * A regex pattern check is not active. However, the accessibility of the instrument is checked.
  */
 @Component
-public class FinanzenNETFeedConnector extends BaseFeedConnector {
+public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
 
   public static String domain = "https://www.finanzen.net/";
 //	private static String dateTimeFormatStr = "dd.MM.yyyy HH:mm:ss";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
+  
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
@@ -57,6 +56,8 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
 
   public FinanzenNETFeedConnector() {
     super(supportedFeed, "finanzennet", "Finanzen NET", null, EnumSet.of(UrlCheck.INTRADAY));
+    initalizeHttpClient(domain);
+    
   }
 
   @Override
@@ -68,8 +69,6 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
-
-    
     return null;
   }
 
@@ -81,7 +80,6 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   @Override
   public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
       throws Exception {
-   
     return null;
   }
 
@@ -95,9 +93,9 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  public void updateSecurityLastPrice(final Security security) throws IOException, ParseException {
-    final Connection finanzenConnection = Jsoup.connect(getSecurityIntradayDownloadLink(security));
-    final Document doc = finanzenConnection.timeout(20000).get();
+  public void updateSecurityLastPrice(final Security security) throws Exception {
+    final Document doc = getDoc(getSecurityIntradayDownloadLink(security));
+    
     var sii = security.getAssetClass().getSpecialInvestmentInstrument();
     String select = "div.pricebox table tr";
     var assetClassType = security.getAssetClass().getCategoryType();
@@ -123,9 +121,10 @@ public class FinanzenNETFeedConnector extends BaseFeedConnector {
       // Do nothing
     }
     updateSecuritycurrency(doc.select(select), security);
-
   }
 
+  
+  
   @Override
   public int getIntradayDelayedSeconds() {
     return 900;

@@ -38,7 +38,7 @@ public class CrumbManager {
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
       // Set the cookie
       connection.setRequestProperty("Cookie", cookie);
-      connection.addRequestProperty("User-Agent", GlobalConstants.USER_AGENT);
+      connection.addRequestProperty("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT);
 
       // Make the HTTP request
       connection.setRequestMethod("GET");

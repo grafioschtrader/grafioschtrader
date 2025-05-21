@@ -35,11 +35,11 @@ import {HelpIds} from '../../shared/help/help.ids';
         <p-treeTable [value]="transactionNodes" [columns]="fields" [(selection)]="selectedNode"
                      selectionMode="single" [scrollable]="false" dataKey="transaction.idTransaction"
                      (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
-                     [paginator]="true" [rows]="20" styleClass="p-treetable-gridlines">
+                     [paginator]="true" [rows]="20" showGridlines="true">
           <ng-template #header let-fields>
             <tr>
               <th *ngFor="let field of fields" [style.width.px]="field.width"
-                  [pTooltip]="field.headerTooltipTranslated">
+                  [pTooltip]="field.headerTooltipTranslated" class="word-break-header" [attr.lang]="lang">
                 {{field.headerTranslated}}
               </th>
             </tr>
@@ -95,6 +95,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   // Data to be shown
   securityTransactionSummary: SecurityTransactionSummary = new SecurityTransactionSummary(null, null);
   transactionPositionList: SecurityTransactionPosition[] = [];
+  lang: string;
 
   constructor(private securityService: SecurityService,
               parentChildRegisterService: ParentChildRegisterService,
@@ -108,6 +109,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
               usersettingsService: UserSettingsService) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
       filterService, translateService, gps, usersettingsService);
+    this.lang = this.gps.getUserLang();
   }
 
   ngOnInit(): void {
@@ -166,7 +168,6 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
       });
       localContextMenu.push({separator: true});
     }
-
     TranslateHelper.translateMenuItems(localContextMenu, this.translateService);
     return localContextMenu.concat(super.getMenuItemsOnTransaction(transaction));
   }
@@ -176,7 +177,6 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   }
 
   protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
-
   }
 
   private addTreeNodes(): void {

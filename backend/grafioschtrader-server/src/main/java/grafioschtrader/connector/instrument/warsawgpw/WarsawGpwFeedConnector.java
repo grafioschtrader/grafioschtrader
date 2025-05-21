@@ -85,7 +85,7 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     String url = getSecurityIntradayDownloadLink(security);
-    Document doc = Jsoup.connect(url).timeout(60_000).userAgent(GlobalConstants.USER_AGENT)
+    Document doc = Jsoup.connect(url).timeout(60_000).userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT)
         .header("Accept-Language", "en").get();
     final Element div = doc.select("div.PaL.header.text-right.text-left-xs").first();
     String[] maxMinValues = div.selectFirst(".max_min").text().split("max");

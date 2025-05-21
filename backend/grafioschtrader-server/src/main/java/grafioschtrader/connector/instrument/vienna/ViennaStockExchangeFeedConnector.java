@@ -249,7 +249,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     String url = "https://www.wienerborse.at/en/" + urlPrefix + "/historical-data/?ISIN=" + security.getIsin()
         + "&ID_NOTATION=" + security.getUrlHistoryExtend();
 
-    Document doc = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT).get();
+    Document doc = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT).get();
     Element link = doc.select("a:contains(csv)").first();
     String linkHref = UriUtils.decode(link.attr("href"), "UTF-8");
     linkHref = linkHref.replaceFirst("(.*\\[DATETIME_TZ_START_RANGE\\]=)([0-9/])*(.*)", "$1" + sdf.format(from) + "$3");
