@@ -14,6 +14,7 @@ grafiosch.task
 grafiosch.task.exec
 grafiosch.repository
 grafiosch.config
+grafiosch.exportdelete
 grafiosch.service
 grafiosch.rest
 grafiosch.rest.helper

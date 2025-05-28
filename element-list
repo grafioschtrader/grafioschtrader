@@ -9,6 +9,7 @@ grafiosch.entities
 grafiosch.entities.projection
 grafiosch.error
 grafiosch.exceptions
+grafiosch.exportdelete
 grafiosch.repository
 grafiosch.rest
 grafiosch.rest.helper
