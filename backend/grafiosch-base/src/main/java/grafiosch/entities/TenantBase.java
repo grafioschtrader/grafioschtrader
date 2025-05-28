@@ -19,13 +19,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * TenantBase is the shared base for Tenant entities. Contains common attributes
- * for Tenant entities. This class must be expanded. A special implementation
- * for a specific application will always extend Tenant with
- * application-specific attributes.
+ * TenantBase is the shared base for Tenant entities. Contains common attributes for Tenant entities. This class must be
+ * expanded. A special implementation for a specific application will always extend Tenant with application-specific
+ * attributes.
  * 
- * TODO The user can currently only have one tenant. This should possibly be
- * extended to a many to many relationship.
+ * TODO The user can currently only have one tenant. This should possibly be extended to a many to many relationship.
  */
 @MappedSuperclass
 public abstract class TenantBase extends TenantBaseID implements Serializable {
@@ -56,6 +54,8 @@ public abstract class TenantBase extends TenantBaseID implements Serializable {
   @JoinColumn(name = "id_tenant")
   @OneToMany()
   private List<User> userList;
+
+  public static final String TABNAME = "tenant";
 
   public TenantBase() {
   }

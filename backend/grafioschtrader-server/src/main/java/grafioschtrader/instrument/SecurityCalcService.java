@@ -19,6 +19,12 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
+/**
+ * It is a service that enables the calculation of returns for a security based on transactions. The calculation
+ * distinguishes between margin instruments and other securities. The calculation is based on the Average Cost Method
+ * and a specific position is closed for margin instruments. The calculation here is based on existing transactions,
+ * users of this service may have to perform further calculations for transactions that have not yet been closed.
+ */
 @Service
 public class SecurityCalcService {
 
@@ -41,13 +47,15 @@ public class SecurityCalcService {
 
   /**
    * Calculate all transactions of a security. An open position is not closed.
-   *
-   * @param excludeDivTaxcost
-   * @param securityTransactionSummary
-   * @param securitySplitMap
-   * @param transactions
-   * @param untilDate
-   * @param dateCurrencyMap
+   * 
+   * @param security                   The security concerned
+   * @param excludeDivTaxcost          If true, tax withholdings are not taken into account.
+   * @param securityTransactionSummary The hypothetical transaction(s) are added here.
+   * @param securitySplitMap           Contains the splits. ID of the security and the list of splits.
+   * @param transactions               Transaction for this security
+   * @param untilDate                  The most recent date up to which the transactions are evaluated.
+   * @param dateCurrencyMap            Contains the necessary information for the calculation to work with different
+   *                                   currencies.
    */
   public void calcTransactions(Security security, final boolean excludeDivTaxcost,
       final SecurityTransactionSummary securityTransactionSummary,
@@ -69,8 +77,8 @@ public class SecurityCalcService {
         securityGeneralCalc.createAccruedInterestPostion(security, TransactionType.REDUCE, transaction,
             securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
       }
-      getSecurityCalc(security).calcTransactionAndAddToPosition(transaction,
-          securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
+      getSecurityCalc(security).calcTransactionAndAddToPosition(transaction, securityTransactionSummary,
+          excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
       if (!isMarginInstrument) {
         securityGeneralCalc.createAccruedInterestPostion(security, TransactionType.ACCUMULATE, transaction,
             securityTransactionSummary, excludeDivTaxcost, securitySplitMap, dateCurrencyMap, negativeIdNumberCreater);
@@ -80,6 +88,17 @@ public class SecurityCalcService {
 
   }
 
+  /**
+   * Processing of a securities transaction. The return is calculated in the process. It does not matter whether the
+   * position is closed or open. The transactions should be transferred in ascending order of execution. This means
+   * sorting by cash account or custody account and then by transaction time.
+   * 
+   * @param transaction        The transaction
+   * @param summarySecurityMap Contains the calculations for each individual security.
+   * @param securitysplitMap   Contains the splits. ID of the security and the list of splits.
+   * @param excludeDivTaxcost  If true, tax withholdings are not taken into account.
+   * @param dateCurrencyMap    Contains the necessary information for the calculation to work with different currencies.
+   */
   public void calcSingleSecurityTransaction(final Transaction transaction,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
@@ -90,14 +109,17 @@ public class SecurityCalcService {
   }
 
   /**
-   * One or more open position of security are closed. Margin product may have
-   * more than one open position.
+   * It may be useful for the user to be able to see the hypothetical closing of the position. A hypothetical
+   * translation is therefore created for this purpose. In the case of a margin instrument, these can be several closing
+   * positions, otherwise only one.
    *
-   * @param securityPositionSummary
-   * @param lastPrice
-   * @param securitysplitMap
-   * @param dateCurrencyMap
-   * @param securityTransactionSummary
+   * @param securityPositionSummary    The corresponding summary of the security is updated with the hypothetical
+   *                                   transaction.
+   * @param lastPrice                  The price on which the hypothetical transaction is based.
+   * @param securitysplitMap           Contains the splits. ID of the security and the list of splits.
+   * @param dateCurrencyMap            Contains the necessary information for the calculation to work with different
+   *                                   currencies.
+   * @param securityTransactionSummary The hypothetical transaction(s) are added here.
    */
   public void createHypotheticalSellTransaction(final SecurityPositionSummary securityPositionSummary,
       final double lastPrice, final Map<Integer, List<Securitysplit>> securitysplitMap,

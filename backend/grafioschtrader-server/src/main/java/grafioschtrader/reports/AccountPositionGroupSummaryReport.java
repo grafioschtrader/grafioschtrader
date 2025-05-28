@@ -43,12 +43,7 @@ import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Creates a report that combines the summary of cash account and security
- * account.
- *
- *
- * @author Hugo Graf
- *
+ * Creates a report that combines the summary of cash account and security account.
  */
 @Component
 public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupByCurrencyBaseReport {
@@ -243,8 +238,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   }
 
   /**
-   * Processes transaction which has a different currency than main currency.
-   * Mainly it prepares the calculation for the gain/loss on currencies.
+   * Processes transaction which has a different currency than main currency. Mainly it prepares the calculation for the
+   * gain/loss on currencies.
    *
    *
    * A dividend
@@ -314,8 +309,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   }
 
   /**
-   * Transaction that happened between two different currencies but none of them
-   * is the main currency.
+   * Transaction that happened between two different currencies but none of them is the main currency.
    *
    * @param currencypair
    * @param acps
@@ -466,9 +460,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 class AccessCashaccountPositionSummary {
 
   /**
-   * Only used for a cash transfer that happened in a connected transaction
-   * without the main currency. It contains the id of transaction as key and
-   * exchange rate as value.
+   * Only used for a cash transfer that happened in a connected transaction without the main currency. It contains the
+   * id of transaction as key and exchange rate as value.
    */
   public Map<Integer, Double> exchangeRateConnectedTransactionMap = new HashMap<>();
 
@@ -502,9 +495,8 @@ class AccessCashaccountPositionSummary {
   }
 
   /**
-   * Create and initialize CashaccountPositionSummary. It gets the currency
-   * exchange rate in case when main currency differs from the cash account
-   * currency.
+   * Create and initialize CashaccountPositionSummary. It gets the currency exchange rate in case when main currency
+   * differs from the cash account currency.
    *
    * @param mainCurrency
    * @param cashaccount

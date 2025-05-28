@@ -135,7 +135,7 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
       this.transactionService.getTransactionsWithBalanceForCashaccount(this.idSecuritycashAccount,
         this.cashAccountTableInputFilter ?? new CashAccountTableInputFilter());
     const currencypairObservable: Observable<Currencypair[]> = this.currencypairService
-      .getCurrencypairByPortfolioId(this.portfolio.idPortfolio);
+      .getTransactionCurrencypairsByPortfolioId(this.portfolio.idPortfolio);
 
     combineLatest([transactionsObservable, currencypairObservable]).subscribe(result => {
       this.cashaccountTransactionPositions = this.addCurrencypairToCashaccountTransactionPosition(result[0], result[1]);

@@ -71,7 +71,7 @@ import {MessageToastService} from '../../../shared/message/message.toast.service
                   </tr>
               </ng-template>
           </p-treeTable>
-          <textarea [rows]="15" pInputTextarea
+          <textarea [rows]="15" pTextarea
                     readonly="true">{{selectedNode ? selectedNode.data.message : ""}}</textarea>
           <p-contextMenu [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
       </div>

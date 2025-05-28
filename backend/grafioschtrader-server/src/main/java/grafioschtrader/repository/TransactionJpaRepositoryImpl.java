@@ -217,7 +217,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     transaction.clearCurrencypairExRate();
 
     if (transaction.getIdCurrencypair() != null) {
-      Currencypair currencypairRequried = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency, targetCurrency);
+      Currencypair currencypairRequried = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(sourceCurrency,
+          targetCurrency);
       Currencypair currencypairFound = currencypairJpaRepository.findByFromCurrencyAndToCurrency(
           currencypairRequried.getFromCurrency(), currencypairRequried.getToCurrency());
       if (!transaction.getIdCurrencypair().equals(currencypairFound.getIdSecuritycurrency())) {
@@ -342,6 +343,14 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return transactioinNew;
   }
 
+  /**
+   * A margin transaction may only contain those transactions that belong to the
+   * opening transaction. All other transactions are filtered out.
+   * 
+   * @param targetTransaction The current transaction.
+   * @param transactions The transactions of a specific security in a specific securities account.
+   * @return The transactions relevant to a particular margin position.
+   */
   private List<Transaction> filterMarginTransaction(final Transaction targetTransaction,
       List<Transaction> transactions) {
     List<Transaction> transactionsMargin = transactions;

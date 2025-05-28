@@ -10,17 +10,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 /**
- * Represents a daily snapshot of cash account balances and aggregated
- * transactions for a tenant.
+ * It is a snapshot for the cash account. When a relevant transaction takes place on it, a period is opened and the
+ * previously opened period is closed with it.
  * <p>
- * Each record corresponds to a period in which one or more cash-account
- * transactions occurred, categorizing the net effect of deposits/withdrawals,
- * interest, fees, security buys/sells, and dividends. The balance reflects the
- * end-of-period cash balance, with currency conversion factors applied via
- * embedded currency pair references for tenant and portfolio.
+ * Each record corresponds to a period in which one or more cash-account transactions occurred, categorizing the net
+ * effect of deposits/withdrawals, interest, fees, security buys/sells, and dividends. The balance reflects the
+ * end-of-period cash balance, with currency conversion factors applied via embedded currency pair references for tenant
+ * and portfolio.
  * <p>
- * This entity maps to the <code>hold_cashaccount_balance</code> table and is
- * not exposed via the public REST API.
+ * This entity maps to the <code>hold_cashaccount_balance</code> table and is not exposed via the public REST API.
  */
 @Entity
 @Table(name = "hold_cashaccount_balance")
@@ -45,8 +43,7 @@ public class HoldCashaccountBalance extends HoldBase {
   private Integer idCurrencypairPortoflio;
 
   /**
-   * Net amount of withdrawals (negative) and deposits (positive) during the
-   * period.
+   * Net amount of withdrawals (negative) and deposits (positive) during the period.
    */
   @Column(name = "withdrawl_deposit")
   private Double withdrawlDeposit;
@@ -64,8 +61,8 @@ public class HoldCashaccountBalance extends HoldBase {
   private Double fee;
 
   /**
-   * Net effect of security buy (accumulate) or sell (reduce) transactions,
-   * converted to cash and varying daily with exchange rates.
+   * Net effect of security buy (accumulate) or sell (reduce) transactions, converted to cash and varying daily with
+   * exchange rates.
    */
   @Column(name = "accumulate_reduce")
   private Double accumulateReduce;
@@ -89,8 +86,7 @@ public class HoldCashaccountBalance extends HoldBase {
   }
 
   /**
-   * Constructs a HoldCashaccountBalance with full transaction aggregates and
-   * conversion IDs.
+   * Constructs a HoldCashaccountBalance with full transaction aggregates and conversion IDs.
    *
    * @param idTenant                the tenant ID
    * @param idPortfolio             the portfolio ID

@@ -11,12 +11,16 @@ import java.util.concurrent.TimeUnit;
 
 public class DateHelper {
 
-  ///////////////////////////////////////////////////////////////////////////////
-  // taken from
-  /////////////////////////////////////////////////////////////////////////////// http://www.java2s.com/Code/Java/Data-Type/Checksifacalendardateistoday.htm
-  ///////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////
-
+  
+  /**
+   * Returns the maximum or minimum of two dates. If one date is null, the other date is returned. If both are null,
+   * null is returned.
+   *
+   * @param d1  The first date.
+   * @param d2  The second date.
+   * @param max If true, returns the maximum of the two dates; otherwise, returns the minimum.
+   * @return The maximum or minimum date, or one of the dates if the other is null, or null if both are null.
+   */
   public static Date getMaxMinDate(Date d1, Date d2, boolean max) {
     if (d1 == null && d2 != null) {
       return d2;
@@ -29,11 +33,27 @@ public class DateHelper {
     }
   }
 
+  /**
+   * Calculates the difference between two dates in the specified time unit.
+   *
+   * @param from     The start date.
+   * @param to       The end date.
+   * @param timeUnit The unit of time for the difference (e.g., TimeUnit.DAYS).
+   * @return The difference between the two dates in the specified time unit.
+   */
   public static long getDateDiff(Date from, Date to, TimeUnit timeUnit) {
     long diffInMillies = to.getTime() - from.getTime();
     return timeUnit.convert(diffInMillies, TimeUnit.MILLISECONDS);
   }
 
+  /**
+   * Sets the time fields (hour, minute, second, millisecond) of a given date to zero and optionally adds a specified
+   * number of days.
+   *
+   * @param date   The date to modify.
+   * @param addDay The number of days to add to the date.
+   * @return A new Date object with time set to zero and days added.
+   */
   public static Date setTimeToZeroAndAddDay(Date date, int addDay) {
     Calendar day = Calendar.getInstance();
     day.setTime(date);
@@ -43,6 +63,13 @@ public class DateHelper {
     return day.getTime();
   }
 
+  /**
+   * Converts a {@link Date} to a {@link Calendar} instance with time fields (hour, minute, second, millisecond) set to
+   * zero.
+   *
+   * @param date The date to convert.
+   * @return A Calendar instance representing the given date with time set to zero.
+   */
   public static Calendar getCalendar(final Date date) {
     final Calendar currentCalendar = Calendar.getInstance();
     currentCalendar.setTime(date);
@@ -50,6 +77,11 @@ public class DateHelper {
     return currentCalendar;
   }
 
+  /**
+   * Sets the time fields (hour, minute, second, millisecond) of a given {@link Calendar} instance to zero.
+   *
+   * @param day The Calendar instance to modify.
+   */
   public static void setTimeToZero(Calendar day) {
     day.set(Calendar.HOUR_OF_DAY, 0);
     day.set(Calendar.MINUTE, 0);
@@ -58,9 +90,7 @@ public class DateHelper {
   }
 
   /**
-   * <p>
    * Checks if a date is today.
-   * </p>
    *
    * @param date the date, not altered, not null.
    * @return true if the date is today.
@@ -70,14 +100,23 @@ public class DateHelper {
     return DateHelper.isSameDay(date, Calendar.getInstance().getTime());
   }
 
+  /**
+   * Checks if a given date is today or any day after today.
+   *
+   * @param date The date to check.
+   * @return {@code true} if the date is today or in the future, {@code false} otherwise.
+   */
   public static boolean isTodayOrAfter(Date date) {
     Date today = Calendar.getInstance().getTime();
     return DateHelper.isSameDay(date, today) || date.after(today);
   }
 
   /**
-   * Return true when date is today or after today or a last weekend day (only
-   * true when today is Monday after last weekend)
+   * Checks if a given date is today, or after today, or was part of the most recent weekend (Saturday or Sunday) but
+   * only if today is Monday.
+   *
+   * @param date The date to check.
+   * @return {@code true} if the condition is met, {@code false} otherwise.
    */
   public static boolean isUntilDateEqualNowOrAfterOrInActualWeekend(Date date) {
     Calendar untilCalendar = Calendar.getInstance();
@@ -90,9 +129,7 @@ public class DateHelper {
   }
 
   /**
-   * <p>
    * Checks if two calendars represent the same day ignoring time.
-   * </p>
    *
    * @param cal1 the first calendar, not altered, not null
    * @param cal2 the second calendar, not altered, not null
@@ -108,9 +145,7 @@ public class DateHelper {
   }
 
   /**
-   * <p>
    * Checks if two dates are on the same day ignoring time.
-   * </p>
    *
    * @param date1 the first date, not altered, not null
    * @param date2 the second date, not altered, not null
@@ -128,21 +163,47 @@ public class DateHelper {
     return isSameDay(cal1, cal2);
   }
 
+  /**
+   * Converts a {@link Date} object to a {@link LocalDate} object using the system's default time zone.
+   *
+   * @param date The Date object to convert.
+   * @return The corresponding LocalDate object.
+   */
   public static LocalDate getLocalDate(Date date) {
     Instant instant = date.toInstant();
     ZonedDateTime zdt = instant.atZone(ZoneId.systemDefault());
     return zdt.toLocalDate();
   }
 
+  /**
+   * Converts a {@link LocalDate} object to a {@link Date} object. The time is set to the start of the day in the
+   * system's default time zone.
+   *
+   * @param localDate The LocalDate object to convert. Can be null.
+   * @return The corresponding Date object, or null if localDate is null.
+   */
   public static Date getDateFromLocalDate(LocalDate localDate) {
     return localDate == null ? null : Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
+  /**
+   * Converts a {@link LocalDate} object to the number of seconds since the epoch (January 1, 1970, 00:00:00 GMT). The
+   * conversion uses the start of the day in the system's default time zone.
+   *
+   * @param localDate The LocalDate object to convert.
+   * @return The number of seconds since the epoch.
+   */
   public static long LocalDateToEpocheSeconds(LocalDate localDate) {
     ZoneId zoneId = ZoneId.systemDefault();
     return localDate.atStartOfDay(zoneId).toEpochSecond();
   }
 
+  /**
+   * Converts a {@link LocalDateTime} object to a {@link Date} object using the system's default time zone.
+   *
+   * @param dateToConvert The LocalDateTime object to convert.
+   * @return The corresponding Date object.
+   */
   public static Date convertToDateViaInstant(LocalDateTime dateToConvert) {
     return java.util.Date.from(dateToConvert.atZone(ZoneId.systemDefault()).toInstant());
   }

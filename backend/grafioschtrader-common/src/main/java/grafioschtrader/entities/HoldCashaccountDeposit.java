@@ -10,9 +10,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 /**
- * Contains how much was paid into or out of a particular account. The relevant
- * transactions are represented as time frames with from/to and the
- * corresponding balance of the deposit or withdrawal.<br>
+ * Contains how much was paid into or out of a particular account. The relevant transactions are represented as time
+ * frames with from/to and the corresponding balance of the deposit or withdrawal.<br>
  *
  * This table is not offered via a rest API.
  *

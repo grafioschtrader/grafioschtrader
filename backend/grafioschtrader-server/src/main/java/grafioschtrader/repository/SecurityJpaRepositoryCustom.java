@@ -57,7 +57,10 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * Process open positions. Calculate gain/loss when this position would be
    * closed.
    *
-   * @param summarySecurityMap
+   * @param untilDate
+   * @param summarySecurityMap Contains the calculations for each individual
+   *                           security.
+   * @return The updated securities summaries as a list.
    */
   List<SecurityPositionSummary> processOpenPositionsWithActualPrice(Date untilDate,
       Map<Security, SecurityPositionSummary> summarySecurityMap);

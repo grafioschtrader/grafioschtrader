@@ -48,15 +48,18 @@ public class UserAdminResource extends UpdateCreateResource<User> {
   @Autowired
   private MailExternalService mailExternalService;
 
+  @Operation(summary = "Get all users with limited proposal information", description = """
+      Returns a list of all users. For each user, it also connects information about their proposals,
+      limited for performance.""")
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<User>> getAllUsers() {
     return new ResponseEntity<>(userJpaRepository.connectUserWithUserAndLimitProposals(), HttpStatus.OK);
   }
 
-  @GetMapping(value = "{idUser}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<User> getUserByIdUser(@PathVariable final Integer idUser) {
-    return new ResponseEntity<>(userJpaRepository.findById(idUser).get(), HttpStatus.OK);
-  }
+//  @GetMapping(value = "{idUser}", produces = APPLICATION_JSON_VALUE)
+//  public ResponseEntity<User> getUserByIdUser(@PathVariable final Integer idUser) {
+//    return new ResponseEntity<>(userJpaRepository.findById(idUser).get(), HttpStatus.OK);
+//  }
 
   @Override
   @PutMapping(produces = APPLICATION_JSON_VALUE)
@@ -73,12 +76,13 @@ public class UserAdminResource extends UpdateCreateResource<User> {
     return new ResponseEntity<>(userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser), HttpStatus.OK);
   }
 
-
+  @Operation(summary = "Get user ID and nickname, excluding the current user", description = """
+      Returns a list of value-key pairs representing user IDs and nicknames,
+       excluding the currently authenticated user. Useful for selection lists.""")
   @GetMapping(value = "/idnicknameexcludeme", produces = APPLICATION_JSON_VALUE)
   public List<ValueKeyHtmlSelectOptions> getIdUserAndNicknameExcludeMe() {
     return userJpaRepository.getIdUserAndNicknameExcludeMe();
   }
-
 
   @Override
   protected UpdateCreateJpaRepository<User> getUpdateCreateJpaRepository() {

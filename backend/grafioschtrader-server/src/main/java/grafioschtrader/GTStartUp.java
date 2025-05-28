@@ -9,7 +9,9 @@ import grafiosch.entities.ConnectorApiKey;
 import grafiosch.entities.MailEntity;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.UDFMetadata;
+import grafiosch.exportdelete.ExportDeleteHelper;
 import grafioschtrader.config.TenantConfig;
+import grafioschtrader.exportdelete.MyDataExportDeleteDefinition;
 import grafioschtrader.types.MailSendForwardDefault;
 import grafioschtrader.types.MessageGTComType;
 import grafioschtrader.types.SubscriptionType;
@@ -19,7 +21,7 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 public class GTStartUp {
-
+  
   @PostConstruct
   void started() {
     TimeZone.setDefault(TimeZone.getTimeZone(BaseConstants.TIME_ZONE));
@@ -30,6 +32,7 @@ public class GTStartUp {
     UDFMetadata.UDF_SPECIAL_TYPE_REGISTRY.addTypes(UDFSpecialGTType.values());
     ConnectorApiKey.SUBSCRIPTION_REGISTRY.addTypes(SubscriptionType.values());
     MailEntity.MESSAGE_COM_TYPES_REGISTRY.addTypes(MessageGTComType.values());
+    ExportDeleteHelper.addExportDefinitions(MyDataExportDeleteDefinition.exportDefinitions);
   }
 
 }

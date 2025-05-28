@@ -117,28 +117,28 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     holdCashaccountBalanceJpaRepository.saveAll(holdCashaccountBalanceList);
   }
 
-  private HoldCashaccountBalance getHoldCashaccountBalance(Tenant tenant, CashaccountBalanceChangeTransaction csct,
+  private HoldCashaccountBalance getHoldCashaccountBalance(Tenant tenant, CashaccountBalanceChangeTransaction cbct,
       CashaccountSum cashaccountSum, Map<FromToCurrency, Currencypair> currencypairFromToCurrencyMap) {
     Integer idCurrencyTenant = null;
     Integer idCurrencyPortfolio = null;
-    if (!tenant.getCurrency().equals(csct.getAccountCurrency())) {
-      idCurrencyTenant = getCurrencypair(currencypairFromToCurrencyMap, csct.getAccountCurrency(),
+    if (!tenant.getCurrency().equals(cbct.getAccountCurrency())) {
+      idCurrencyTenant = getCurrencypair(currencypairFromToCurrencyMap, cbct.getAccountCurrency(),
           tenant.getCurrency());
     }
-    if (!csct.getPortfolioCurrency().equals(csct.getAccountCurrency())) {
-      idCurrencyPortfolio = getCurrencypair(currencypairFromToCurrencyMap, csct.getAccountCurrency(),
-          csct.getPortfolioCurrency());
+    if (!cbct.getPortfolioCurrency().equals(cbct.getAccountCurrency())) {
+      idCurrencyPortfolio = getCurrencypair(currencypairFromToCurrencyMap, cbct.getAccountCurrency(),
+          cbct.getPortfolioCurrency());
     }
-    cashaccountSum.cashBalance += csct.getTotal();
-    cashaccountSum.accumulateReduce += csct.getAccumulateReduce();
-    cashaccountSum.dividend += csct.getDividend();
-    cashaccountSum.withdrawlDeposit += csct.getWithdrawlDeposit();
-    cashaccountSum.interestCashaccount += csct.getInterestCashaccount();
-    cashaccountSum.fee += csct.getFee();
+    cashaccountSum.cashBalance += cbct.getTotal();
+    cashaccountSum.accumulateReduce += cbct.getAccumulateReduce();
+    cashaccountSum.dividend += cbct.getDividend();
+    cashaccountSum.withdrawlDeposit += cbct.getWithdrawlDeposit();
+    cashaccountSum.interestCashaccount += cbct.getInterestCashaccount();
+    cashaccountSum.fee += cbct.getFee();
     
-    int precision = globalparametersService.getPrecisionForCurrency(csct.getAccountCurrency());
-    return new HoldCashaccountBalance(tenant.getIdTenant(), csct.getIdPortfolio(), csct.getIdCashaccount(),
-        csct.getFromDate(), cashaccountSum.withdrawlDeposit, cashaccountSum.interestCashaccount, cashaccountSum.fee,
+    int precision = globalparametersService.getPrecisionForCurrency(cbct.getAccountCurrency());
+    return new HoldCashaccountBalance(tenant.getIdTenant(), cbct.getIdPortfolio(), cbct.getIdCashaccount(),
+        cbct.getFromDate(), cashaccountSum.withdrawlDeposit, cashaccountSum.interestCashaccount, cashaccountSum.fee,
         cashaccountSum.accumulateReduce, cashaccountSum.dividend,
         DataHelper.round(cashaccountSum.cashBalance, precision), idCurrencyTenant,
         idCurrencyPortfolio);

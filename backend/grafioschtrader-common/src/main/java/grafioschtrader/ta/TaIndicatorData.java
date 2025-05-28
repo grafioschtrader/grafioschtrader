@@ -8,9 +8,6 @@ import grafiosch.BaseConstants;
 
 /**
  * Single data point for the chart
- *
- * @author Hugo Graf
- *
  */
 public class TaIndicatorData {
 

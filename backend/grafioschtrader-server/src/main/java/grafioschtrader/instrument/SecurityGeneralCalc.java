@@ -21,7 +21,7 @@ import grafioschtrader.types.TransactionType;
 public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   @Override
-  public void calcSingleSecurityTransaction(final Transaction transaction,
+  void calcSingleSecurityTransaction(final Transaction transaction,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
       final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
@@ -35,7 +35,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   }
 
   @Override
-  public void createHypotheticalSellTransaction(SecurityPositionSummary securityPositionSummary, double lastPrice,
+  void createHypotheticalSellTransaction(SecurityPositionSummary securityPositionSummary, double lastPrice,
       Map<Integer, List<Securitysplit>> securitysplitMap, DateTransactionCurrencypairMap dateCurrencyMap,
       SecurityTransactionSummary securityTransactionSummary, NegativeIdNumberCreater negativeIdNumberCreater) {
 
@@ -54,7 +54,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   }
 
   @Override
-  public void calcTransactionAndAddToPosition(final Transaction transaction,
+  void calcTransactionAndAddToPosition(final Transaction transaction,
       final SecurityTransactionSummary securityTransactionSummary, final boolean excludeDivTaxcost,
       final Map<Integer, List<Securitysplit>> securitySplitMap, final DateTransactionCurrencypairMap dateCurrencyMap,
       NegativeIdNumberCreater negativeIdNumberCreater) {

@@ -95,7 +95,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @JoinTable(name = TABNAME_USER_ROLE, joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_role", referencedColumnName = "id_role"))
   private Collection<Role> roles;
 
-  @Schema(description = "The time-limited exception limits for CUD operations of certain information classes. ")
+  @Schema(description = "The time-limited exception limits for CUD operations of certain information classes.")
   @JoinColumn(name = "id_user")
   @OneToMany(fetch = FetchType.LAZY)
   private List<UserEntityChangeLimit> userEntityChangeLimitList;
@@ -108,7 +108,10 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Column(name = "enabled")
   @PropertyAlwaysUpdatable
   private boolean enabled;
-
+  
+  @Schema(description = """
+          Basically, the locale of the user interface is determined by this specification. This should override the language 
+          settings of the web browser or the language settings of other UIs.""")
   @Column(name = "locale")
   @NotNull
   @Size(min = 2, max = 5)
@@ -150,10 +153,10 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   private Map<String, Role> roleMap;
 
   @Schema(description = """
-Not used yet. Designed for the future: 
-- A portfolio is simulated and would have to be linked to another tenant ID. 
+  Not used yet. Designed for the future: 
+  - A portfolio is simulated and would have to be linked to another tenant ID. 
   Only then could the result of this simulation be viewed in full.
-- An additional table would be created containing the permission to view a tenant.""")
+  - An additional table would be created containing the permission to view a tenant.""")
   @Transient
   private Integer actualIdTenant;
 
@@ -163,9 +166,17 @@ Not used yet. Designed for the future:
     return email;
   }
 
+  @Schema(description = """
+     The admin can remove the user lock if the user has violated third-party 
+     data and the request limit. In such a case, an entry will be made here.""")
   @Transient
   public ProposeUserTask userChangePropose;
 
+  @Schema(description = """
+      If the user of the “User with limits” role exceeds the limit with CUD operations on an information class. 
+      He can simultaneously request an increase in this limit for this information class. 
+      The desired request is added here and should be displayed accordingly in the user interface so 
+      that this proposal is accepted or rejected. This would create or change a 'UserEntityChangeLimit'.""")
   @Transient
   private List<ProposeUserTask> userChangeLimitProposeList = new ArrayList<>();
 

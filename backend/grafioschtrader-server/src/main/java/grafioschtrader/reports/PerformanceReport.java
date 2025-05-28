@@ -229,8 +229,8 @@ public class PerformanceReport {
     PeriodHoldingAndDiff firstDayTotals = new PeriodHoldingAndDiff();
     PeriodHoldingAndDiff lastDayTotals = new PeriodHoldingAndDiff();
     if (!periodHoldings.isEmpty()) {
-      BeanUtils.copyProperties(periodHoldings.get(0), firstDayTotals);
-      BeanUtils.copyProperties(periodHoldings.get(periodHoldings.size() - 1), lastDayTotals);
+      BeanUtils.copyProperties(periodHoldings.getFirst(), firstDayTotals);
+      BeanUtils.copyProperties(periodHoldings.getLast(), lastDayTotals);
     }
     PerformancePeriod periodPerformance = new PerformancePeriod(periodSplit, firstDayTotals, lastDayTotals,
         lastDayTotals.calculateDiff(firstDayTotals));

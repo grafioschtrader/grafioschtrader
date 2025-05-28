@@ -39,7 +39,7 @@ export interface ColumnConfig extends BaseFieldDefinition {
   maxFractionDigits?: number;
   /**
    * Some columns may have a row group, for example the total of values of this cholumn.
-   * The format are the same but the field property is different.
+   * The format is the same but the field property is different.
    */
   columnGroupConfigs?: ColumnGroupConfig[];
 

@@ -7,11 +7,7 @@ import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.platform.GenericTransactionImportPDF;
 
 /**
- *
  * The is no special implementation, i is intended as an example.
- *
- * @author Hugo Graf
- *
  */
 public class CornerTraderTransactionImportPDF extends GenericTransactionImportPDF {
 

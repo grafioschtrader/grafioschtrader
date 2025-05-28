@@ -15,9 +15,8 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
   List<Currencypair> catchAllUpCurrencypairHistoryquote();
 
   /**
-   * For currency pairs, historical end-of-day rates must be available for each
-   * day. Otherwise GT cannot calculate the transactions on weekends and holidays.
-   * This method, which fills these gaps should be performed daily.
+   * For currency pairs, historical end-of-day rates must be available for each day. Otherwise GT cannot calculate the
+   * transactions on weekends and holidays. This method, which fills these gaps should be performed daily.
    */
   void allCurrenciesFillEmptyDaysInHistoryquote();
 
@@ -65,10 +64,18 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
   List<Currencypair> searchByCriteria(final SecuritycurrencySearch securitycurrencySearch);
 
   /**
-   * We always start from the client's main currency. Therefore, the path for the
-   * cross currency can contain a maximum of three nodes. For example,
-   * USD(requested currency)-CHF(main currency)-EUR(currency security). This
-   * results in two currency pairs CHF/USD or USD/CHF and CHF/EUR or EUR/CHF.
+   * Determines the necessary currency pairs required to calculate cross rates for a list of security currencies
+   * relative to the tenant’s main currency.
+   *
+   * The path to each cross currency can include up to three nodes. For example: if the requested currency is USD, the
+   * tenant's main currency is CHF, and the security currency is EUR, then the system will look for currency pairs like:
+   * CHF/USD (or USD/CHF) and CHF/EUR (or EUR/CHF).
+   *
+   * If required currency pairs do not already exist in the repository or request, they are looked up and potentially
+   * created. The method returns both the currency pairs and their most recent close prices.
+   *
+   * @param crossRateRequest the request containing the security currencies and existing currency pairs
+   * @return a {@code CrossRateResponse} with all necessary currency pairs and their close prices
    */
   CrossRateResponse getCurrencypairForCrossRate(CrossRateRequest crossRateRequest);
 

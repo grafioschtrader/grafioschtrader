@@ -47,6 +47,10 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
 
+  @Operation(summary = "Get currency pair by security currency ID", description = """
+      Retrieves a currency pair associated with the given currency ID. Returns null if no matching currency pair is found.
+      """, tags = {
+      Currencypair.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Currencypair> getCurrencypairByIdSecuritycurrency(
       @PathVariable final Integer idSecuritycurrency) {
@@ -59,7 +63,6 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairJpaRepository.findAll(), HttpStatus.OK);
   }
 
-
   @Operation(summary = "Return of an existing or newly created currency pair.", description = "If the currency pair does not exist yet, it will be created. Possibly helpful for transactions.", tags = {
       Currencypair.TABNAME })
   @GetMapping(value = "/{baseCurrency}/{quoteCurrency}", produces = APPLICATION_JSON_VALUE)
@@ -71,6 +74,12 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Get currency pair with the most recent historical quote up to a given date", description = """
+      Retrieves a currency pair based on the provided base and quote currency codes, along with the most
+      recent available closing price on or before the specified date.
+      The historical quote is determined using the latest available date (MAX(date)) less than or equal
+      to the given date from historical quote data. If no matching currency pair is found, only null
+      quote data is returned.""", tags = { Currencypair.TABNAME })
   @GetMapping(value = "/{baseCurrency}/{quoteCurrency}/{dateString}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CurrencypairWithHistoryquote> getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(
       @PathVariable final String baseCurrency, @PathVariable final String quoteCurrency,
@@ -95,12 +104,12 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   }
 
   /*
- // NOT USED 
-  @GetMapping(value = "/usedCurrencypairs", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Currencypair>> getUsedCurrencypairs() {
-    return new ResponseEntity<>(currencypairJpaRepository.getAllUsedCurrencypairs(), HttpStatus.OK);
-  }
-  */
+   * // NOT USED
+   * 
+   * @GetMapping(value = "/usedCurrencypairs", produces = APPLICATION_JSON_VALUE) public
+   * ResponseEntity<List<Currencypair>> getUsedCurrencypairs() { return new
+   * ResponseEntity<>(currencypairJpaRepository.getAllUsedCurrencypairs(), HttpStatus.OK); }
+   */
 
   @Override
   protected UpdateCreateJpaRepository<Currencypair> getUpdateCreateJpaRepository() {
@@ -113,6 +122,11 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairJpaRepository.searchByCriteria(securitycurrencySearch), HttpStatus.OK);
   }
 
+  @Operation(summary = "Get required currency pairs for cross rate calculation",
+      description = """
+          Returns all necessary currency pairs and their latest close prices for converting 
+          security currencies via the tenant’s main currency. Supports indirect paths with 
+          up to three currencies.""", tags = { Currencypair.TABNAME })
   @GetMapping(value = "/crossrate", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CrossRateResponse> getCurrencypairForCrossRate(final CrossRateRequest crossRateRequest) {
     return new ResponseEntity<>(currencypairJpaRepository.getCurrencypairForCrossRate(crossRateRequest), HttpStatus.OK);
@@ -142,8 +156,15 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Get currency pairs used in transactions of a portfolio", description = """
+      Returns all currency pairs that have been involved in transactions within the specified portfolio,
+      filtered by the tenant associated with the current authenticated user.
+      The response includes only those currency pairs that are actually used in transactions and
+      belong to the portfolio identified by the provided ID.
+      """, tags = { Currencypair.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfolio", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Currencypair>> findCurrencypairByPortfolioId(@PathVariable final Integer idPortfolio) {
+  public ResponseEntity<List<Currencypair>> getTransactionCurrencypairsByPortfolioId(
+      @PathVariable final Integer idPortfolio) {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
     return new ResponseEntity<>(
         currencypairJpaRepository.getCurrencypairInTransactionByPortfolioId(idPortfolio, idTenant), HttpStatus.OK);

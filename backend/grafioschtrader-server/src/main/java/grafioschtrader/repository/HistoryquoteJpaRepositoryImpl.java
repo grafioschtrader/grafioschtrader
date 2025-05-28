@@ -103,7 +103,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     final List<ISecuritycurrencyIdDateClose> securitycurrencyIdDateCloseList = historyquoteJpaRepository
         .getIdDateCloseByIdsAndDate(securitycurrencies, date);
     if (securitycurrencyIdDateCloseList.size() == 1) {
-      ISecuritycurrencyIdDateClose securitycurrencyIdDateClose = securitycurrencyIdDateCloseList.get(0);
+      ISecuritycurrencyIdDateClose securitycurrencyIdDateClose = securitycurrencyIdDateCloseList.getFirst();
       if (asTraded) {
         final Double factor = securitysplitJpaRepository.getSplitFactorAfterThanEqualDate(idSecuritycurrency,
             securitycurrencyIdDateClose.getDate());

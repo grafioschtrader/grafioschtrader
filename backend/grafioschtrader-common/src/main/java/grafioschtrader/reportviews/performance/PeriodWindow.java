@@ -12,9 +12,6 @@ import grafiosch.BaseConstants;
 
 /**
  * Normally used for period of single year or week.
- *
- * @author Hugo Graf
- *
  */
 public class PeriodWindow {
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)

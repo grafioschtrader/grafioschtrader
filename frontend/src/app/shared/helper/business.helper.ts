@@ -80,7 +80,7 @@ export class BusinessHelper {
   }
 
   /**
-   * Sets the quotation depending of a certain date for a currency pair to a FormControl.
+   * Sets the quotation to a FormControl depending on a specific date for a currency pair.
    */
   public static getAndSetQuotationCurrencypair(currencypairService: CurrencypairService, currencypair: Currencypair,
                                                transactionTime: number, currencyExRateFormControl: AbstractControl) {

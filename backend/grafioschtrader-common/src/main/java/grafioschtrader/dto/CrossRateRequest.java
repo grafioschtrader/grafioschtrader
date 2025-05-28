@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import grafioschtrader.entities.Currencypair;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Request for calculating cross currency rates, including a list of security currencies and any already known currency pairs.")
 public class CrossRateRequest {
   @Schema(description = "Contains the required currencies of the security like 'CHF'")
   public List<String> securityCurrencyList;

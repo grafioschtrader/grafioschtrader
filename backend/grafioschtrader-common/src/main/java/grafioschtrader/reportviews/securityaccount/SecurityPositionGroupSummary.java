@@ -6,11 +6,7 @@ import java.util.List;
 import grafiosch.common.DataHelper;
 
 /**
- * Base class for a group of securities. For example they may be grouped by
- * currency or asset class.
- *
- * @author Hugo Graf
- *
+ * Base class for a group of securities. For example they may be grouped by currency or asset class.
  */
 public abstract class SecurityPositionGroupSummary {
 

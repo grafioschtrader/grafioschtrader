@@ -8,9 +8,6 @@ import grafiosch.BaseConstants;
 
 /**
  * Normally used for a single month or day
- *
- * @author Hugo Graf
- *
  */
 public class PeriodStep extends PeriodStepMissingHoliday {
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)

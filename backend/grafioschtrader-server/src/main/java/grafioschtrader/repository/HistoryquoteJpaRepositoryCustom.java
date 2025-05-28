@@ -22,9 +22,36 @@ import grafioschtrader.ta.indicator.model.ShortMediumLongInputPeriod;
 
 public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Historyquote> {
 
+  /**
+   * Retrieves the closing price (either raw or adjusted) for a specific security on or before a given date string.
+   *
+   * This is a convenience method that parses the date from a string and delegates to the main method that accepts a
+   * Date object.
+   *
+   * @param idSecuritycurrency the ID of the security or currency pair
+   * @param dateString         the target date as a string (formatted according to SHORT_STANDARD_DATE_FORMAT)
+   * @param asTraded           if true, returns the close price adjusted for splits (as-traded), otherwise returns the
+   *                           raw close
+   * @return an object containing the security or currency ID, applicable date, and (optionally adjusted) close price, or
+   *         null if no historical quote is found
+   * @throws ParseException if the dateString cannot be parsed
+   */
   ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(Integer idSecuritycurrency,
       String dateString, boolean asTraded) throws ParseException;
 
+  /**
+   * Retrieves the closing price (either raw or adjusted) for a specific security on or before a given date.
+   *
+   * If a matching historical quote is found, and the `asTraded` flag is true, the method applies the appropriate split
+   * factor to the close price.
+   *
+   * @param idSecuritycurrency the ID of the security or currency
+   * @param date               the target date
+   * @param asTraded           if true, returns the close price adjusted for splits (as-traded), otherwise returns the
+   *                           raw close
+   * @return an object containing the security currency ID, applicable date, and (optionally adjusted) close price, or
+   *         null if no historical quote is found
+   */
   ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(final Integer idSecuritycurrency,
       final Date date, final boolean asTraded);
 

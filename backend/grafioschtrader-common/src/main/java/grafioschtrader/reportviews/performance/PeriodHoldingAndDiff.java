@@ -10,39 +10,41 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.common.DataBusinessHelper;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class PeriodHoldingAndDiff {
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  public LocalDate date;
-  public double dividendRealMC;
-  public double feeRealMC;
-  public double interestCashaccountRealMC;
-  public double accumulateReduceMC;
-  public double cashBalanceMC;
-  public double externalCashTransferMC;
-  public double securitiesMC;
-  public double marginCloseGainMC;
-  public double securityRiskMC;
-  public double gainMC;
+  private LocalDate date;
+  private double dividendRealMC;
+  @Schema(description = "Total security account costs and account costs in tenant currency")
+  private double feeRealMC;
+  private double interestCashaccountRealMC;
+  private double accumulateReduceMC;
+  private double cashBalanceMC;
+  private double externalCashTransferMC;
+  private double securitiesMC;
+  private double marginCloseGainMC;
+  private double securityRiskMC;
+  private double gainMC;
 
   public PeriodHoldingAndDiff() {
   }
 
-  public PeriodHoldingAndDiff(LocalDate date, double dividendRealMC, double feeRealMC, double interestCashaccountRealMC,
-      double accumulateReduceMC, double cashBalanceMC, double externalCashTransferMC, double securitiesMC,
-      double securityRiskMC, double gainMC, double marginCloseGainMC) {
-    this.date = date;
-    this.dividendRealMC = dividendRealMC;
-    this.feeRealMC = feeRealMC;
-    this.interestCashaccountRealMC = interestCashaccountRealMC;
-    this.accumulateReduceMC = accumulateReduceMC;
-    this.cashBalanceMC = cashBalanceMC;
-    this.externalCashTransferMC = externalCashTransferMC;
-    this.securitiesMC = securitiesMC;
-    this.marginCloseGainMC = marginCloseGainMC;
-    this.securityRiskMC = securityRiskMC;
-    this.gainMC = gainMC;
-  }
+//  public PeriodHoldingAndDiff(LocalDate date, double dividendRealMC, double feeRealMC, double interestCashaccountRealMC,
+//      double accumulateReduceMC, double cashBalanceMC, double externalCashTransferMC, double securitiesMC,
+//      double securityRiskMC, double gainMC, double marginCloseGainMC) {
+//    this.date = date;
+//    this.dividendRealMC = dividendRealMC;
+//    this.feeRealMC = feeRealMC;
+//    this.interestCashaccountRealMC = interestCashaccountRealMC;
+//    this.accumulateReduceMC = accumulateReduceMC;
+//    this.cashBalanceMC = cashBalanceMC;
+//    this.externalCashTransferMC = externalCashTransferMC;
+//    this.securitiesMC = securitiesMC;
+//    this.marginCloseGainMC = marginCloseGainMC;
+//    this.securityRiskMC = securityRiskMC;
+//    this.gainMC = gainMC;
+//  }
 
   public LocalDate getDate() {
     return date;

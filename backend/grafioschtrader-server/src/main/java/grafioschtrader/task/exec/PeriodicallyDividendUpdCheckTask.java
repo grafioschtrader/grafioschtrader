@@ -24,7 +24,6 @@ import grafiosch.service.SendMailInternalExternalService;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Security;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.types.MessageGTComType;
@@ -116,7 +115,7 @@ public class PeriodicallyDividendUpdCheckTask implements ITask {
     String subject = messageSource.getMessage("gt.dividend.calenar.security.subject",
         new Object[] { NetworkHelper.getIpAddressToOutside() }, locale);
     try {
-      sendMailInternalExternalService.sendMailInternAndOrExternal(GlobalConstants.SYSTEM_ID_USER, idUser, subject,
+      sendMailInternalExternalService.sendMailInternAndOrExternal(BaseConstants.SYSTEM_ID_USER, idUser, subject,
           message, MessageGTComType.USER_SECURITY_MISSING_CONNECTOR);
     } catch (MessagingException e) {
       msgException.add(e.getLocalizedMessage());

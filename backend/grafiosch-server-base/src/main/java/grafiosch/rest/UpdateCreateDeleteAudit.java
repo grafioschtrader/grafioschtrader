@@ -17,10 +17,12 @@ import grafiosch.entities.User;
 import grafiosch.types.OperationType;
 
 /**
- * Delete for shared resources, depends on the rights of the user for removing
- * an entity.
+ * Abstract REST controller that extends {@link UpdateCreateResource} to include functionality for deleting entities
+ * with auditing and rights checking. It is designed for shared resources where delete operations depend on the
+ * authenticated user's permissions.
  *
- * @param <T>
+ * @param <T> The type of the entity to be managed, which must extend {@link BaseID} and typically should be an instance
+ *            of {@link Auditable} for rights checking.
  */
 public abstract class UpdateCreateDeleteAudit<T extends BaseID<Integer>> extends UpdateCreateResource<T> {
 
@@ -29,6 +31,16 @@ public abstract class UpdateCreateDeleteAudit<T extends BaseID<Integer>> extends
   @Autowired
   private MessageSource messageSource;
 
+  /**
+   * Deletes an entity by its ID after verifying the current user's rights. If the entity is found and the user has
+   * deletion rights, it is deleted from the repository and the operation is logged.
+   *
+   * @param id The ID of the entity to delete.
+   * @return An {@link Optional} containing the deleted entity if found and deleted, otherwise an empty Optional (though
+   *         exceptions are thrown for not found or no rights).
+   * @throws SecurityException      If the authenticated user does not have sufficient rights to delete the entity.
+   * @throws NoSuchElementException If no entity with the given ID is found.
+   */
   protected Optional<T> deleteById(final Integer id) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Optional<T> entityOpt = getUpdateCreateJpaRepository().findById(id);
@@ -49,6 +61,15 @@ public abstract class UpdateCreateDeleteAudit<T extends BaseID<Integer>> extends
 
   }
 
+  /**
+   * Checks if the given user has the necessary rights to delete the specified entity. This typically involves checking
+   * if the user is the owner or has administrative privileges.
+   *
+   * @param user   The user whose rights are to be checked.
+   * @param entity The entity to be deleted.
+   * @return {@code true} if the user has rights to delete the entity, {@code false} otherwise. The default
+   *         implementation casts the entity to {@link Auditable} for rights checking.
+   */
   protected boolean hasRightsForDeleteEntity(User user, T entity) {
     return UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, (Auditable) entity);
   }
