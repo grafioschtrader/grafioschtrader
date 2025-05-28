@@ -69,7 +69,7 @@ import {TranslateHelper} from '../helper/translate.helper';
                 <ng-template #expandedrow let-gp let-columns="fields">
                     <tr>
                         <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-              <textarea [rows]="10" pInputTextarea style="width: 100%;"
+              <textarea [rows]="10" pTextarea style="width: 100%;"
                         readonly="true">{{gp.propertyBlobAsText}}</textarea>
                         </td>
                     </tr>

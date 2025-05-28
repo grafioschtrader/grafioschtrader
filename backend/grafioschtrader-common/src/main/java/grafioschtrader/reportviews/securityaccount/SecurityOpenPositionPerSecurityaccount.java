@@ -5,9 +5,6 @@ import java.util.List;
 
 /**
  * Contains all Securityaccounts with the open positions.
- *
- * @author Hugo Graf
- *
  */
 public class SecurityOpenPositionPerSecurityaccount {
   public SecurityPositionSummary securityPositionSummary;

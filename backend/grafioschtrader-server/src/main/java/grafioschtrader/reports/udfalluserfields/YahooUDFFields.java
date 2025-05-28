@@ -105,7 +105,7 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
         putValueToJsonValue(securitycurrencyUDFGroup, udfMetaDataSecurity, security.getIdSecuritycurrency(),
             nextEarningDate, true);
       } catch (Exception e) {
-        log.error("Can not extract data from url for " + security.getName(), e);
+        log.error("Can not extract data from url {} for {} ", url, security.getName(), e);
       }
     }
   }

@@ -7,10 +7,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import grafiosch.BaseConstants;
 
 /**
- * Group by connector, stock exchange, asset class (equities, bond, ...),
- * special investment like (ETF, Direct investment, ...)
- *
- * @author Hugo Graf
+ * Group by connector, stock exchange, asset class (equities, bond, ...), special investment like (ETF, Direct
+ * investment, ...)
  */
 public class HistoryquoteQualityHead extends HistoryquoteQualityGroup {
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)

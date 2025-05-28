@@ -25,7 +25,7 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Override
-  public void calcSingleSecurityTransaction(Transaction transaction,
+  void calcSingleSecurityTransaction(Transaction transaction,
       Map<Security, SecurityPositionSummary> summarySecurityMap, Map<Integer, List<Securitysplit>> securitysplitMap,
       boolean excludeDivTaxcost, DateTransactionCurrencypairMap dateCurrencyMap,
       NegativeIdNumberCreater negativeIdNumberCreater, Map<String, Integer> currencyPrecisionMap) {
@@ -39,7 +39,7 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
   }
 
   @Override
-  public void createHypotheticalSellTransaction(SecurityPositionSummary securityPositionSummary, double lastPrice,
+  void createHypotheticalSellTransaction(SecurityPositionSummary securityPositionSummary, double lastPrice,
       Map<Integer, List<Securitysplit>> securitysplitMap, DateTransactionCurrencypairMap dateCurrencyMap,
       SecurityTransactionSummary securityTransactionSummary, NegativeIdNumberCreater negativeIdNumberCreater) {
 
@@ -79,7 +79,7 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
   }
 
   @Override
-  public void calcTransactionAndAddToPosition(Transaction transaction,
+  void calcTransactionAndAddToPosition(Transaction transaction,
       SecurityTransactionSummary securityTransactionSummary, boolean excludeDivTaxcost,
       Map<Integer, List<Securitysplit>> securitySplitMap, DateTransactionCurrencypairMap dateCurrencyMap,
       NegativeIdNumberCreater negativeIdNumberCreater) {

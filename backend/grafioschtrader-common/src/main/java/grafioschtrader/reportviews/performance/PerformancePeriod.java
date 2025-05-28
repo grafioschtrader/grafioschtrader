@@ -53,12 +53,13 @@ public class PerformancePeriod {
         performanceChartDayDiff.add(new PerformanceChartDayDiff(periodHolding.getDate()));
       } else {
         performanceChartDayDiff.add(new PerformanceChartDayDiff(periodHolding.getDate(),
-            DataBusinessHelper.roundStandard(periodHolding.getExternalCashTransferMC() - firstDayTotals.externalCashTransferMC),
-            DataBusinessHelper.roundStandard(periodHolding.getGainMC() - firstDayTotals.gainMC),
-            DataBusinessHelper.roundStandard(periodHolding.getCashBalanceMC() - firstDayTotals.cashBalanceMC),
-            DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - firstDayTotals.securitiesMC),
-            DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - firstDayTotals.securitiesMC
-                + periodHolding.getCashBalanceMC() - firstDayTotals.cashBalanceMC)));
+            DataBusinessHelper
+                .roundStandard(periodHolding.getExternalCashTransferMC() - firstDayTotals.getExternalCashTransferMC()),
+            DataBusinessHelper.roundStandard(periodHolding.getGainMC() - firstDayTotals.getGainMC()),
+            DataBusinessHelper.roundStandard(periodHolding.getCashBalanceMC() - firstDayTotals.getCashBalanceMC()),
+            DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - firstDayTotals.getSecuritiesMC()),
+            DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - firstDayTotals.getSecuritiesMC()
+                + periodHolding.getCashBalanceMC() - firstDayTotals.getCashBalanceMC())));
       }
     }
   }
@@ -74,7 +75,8 @@ public class PerformancePeriod {
 
   private void createPeriodWindowsYear(WeekYear weekYear, FirstAndMissingTradingDays firstAndMissingTradingDays,
       List<IPeriodHolding> periodHoldings, IFilterPeriodDay filter) {
-    List<LocalDate> weekDays = LongStream.range(firstDayTotals.date.toEpochDay(), lastDayTotals.date.toEpochDay() + 1)
+    List<LocalDate> weekDays = LongStream
+        .range(firstDayTotals.getDate().toEpochDay(), lastDayTotals.getDate().toEpochDay() + 1)
         .mapToObj(LocalDate::ofEpochDay)
         .filter(
             localDate -> localDate.getDayOfWeek() != DayOfWeek.SATURDAY && localDate.getDayOfWeek() != DayOfWeek.SUNDAY)
@@ -128,7 +130,8 @@ public class PerformancePeriod {
                   DataBusinessHelper.roundStandard(
                       periodHolding.getExternalCashTransferMC() - pHDayBefore.getExternalCashTransferMC()),
                   DataBusinessHelper.roundStandard(periodHolding.getGainMC() - pHDayBefore.getGainMC()),
-                  DataBusinessHelper.roundStandard(periodHolding.getMarginCloseGainMC() - pHDayBefore.getMarginCloseGainMC()),
+                  DataBusinessHelper
+                      .roundStandard(periodHolding.getMarginCloseGainMC() - pHDayBefore.getMarginCloseGainMC()),
                   DataBusinessHelper.roundStandard(periodHolding.getCashBalanceMC() - pHDayBefore.getCashBalanceMC()),
                   DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - pHDayBefore.getSecuritiesMC()),
                   DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - pHDayBefore.getSecuritiesMC()

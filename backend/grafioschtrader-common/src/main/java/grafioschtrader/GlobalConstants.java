@@ -33,11 +33,6 @@ public class GlobalConstants extends BaseConstants {
   public static final String CC_BTC = "BTC";
 
   /**
-   * If a record is created by the system id gets this id
-   */
-  public static final int SYSTEM_ID_USER = 0;
-
-  /**
    * Admin user id will be set to this value, he will be the owner of the shared
    * records.
    */

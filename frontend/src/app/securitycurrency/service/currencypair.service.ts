@@ -38,7 +38,7 @@ export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
       + `${AppSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getCurrencypairByPortfolioId(idPortfolio: number): Observable<Currencypair[]> {
+  getTransactionCurrencypairsByPortfolioId(idPortfolio: number): Observable<Currencypair[]> {
     return <Observable<Currencypair[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/`
       + `${idPortfolio}/${AppSettings.PORTFOLIO_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

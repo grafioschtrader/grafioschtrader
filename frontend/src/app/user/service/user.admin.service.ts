@@ -23,10 +23,10 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  public getUserByIdUser(idUser: number): Observable<User> {
-    return <Observable<User>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/${idUser}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
-  }
+  // public getUserByIdUser(idUser: number): Observable<User> {
+  //   return <Observable<User>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/${idUser}`,
+  //     this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  // }
 
   public getIdUserAndNicknameExcludeMe(): Observable<ValueKeyHtmlSelectOptions[]> {
     return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(

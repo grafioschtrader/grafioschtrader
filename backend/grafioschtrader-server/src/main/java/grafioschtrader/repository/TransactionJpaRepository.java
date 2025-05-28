@@ -112,12 +112,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       SELECT t FROM Transaction t JOIN t.cashaccount c
       WHERE c.idSecuritycashAccount= ?1 AND t.idTenant=?2 AND t.transactionDate>=?3 AND t.transactionDate<=?4 AND t.transactionType IN ?5""")
   List <Transaction> findByTenantAndCashaccountAndYearAndTransactionType(Integer idSecuritycashAccount, Integer idTenant, LocalDate transactionDateFrom, LocalDate transactionDateTo, int[] transactionTypes);
-
-  @Query
-  List<Transaction> findByIdWatchlist(Integer idWatchlist);
-
-  @Query(nativeQuery = true)
-  List<Transaction> getTransactionWhyHistoryquoteYounger();
+  
 
   /**
    * It works only for security transactions.
@@ -132,4 +127,44 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t JOIN Fetch t.cashaccount
       LEFT JOIN Fetch t.security WHERE p.idTenant=?1 AND t.idCurrencypair=?2 ORDER BY t.transactionTime""")
   List<Transaction> findByCurrencypair(Integer idTenant, Integer idCurrencypair);
+  
+  //@formatter:off
+  /**
+   * Retrieves a list of Transaction objects associated with the specified watchlist ID.
+   * 
+   * This query joins Watchlist, Securitycurrency, Portfolio, Securitycashaccount, and Transaction entities.
+   * It returns all transactions that match the following criteria:
+   * - The portfolio belongs to the same tenant as the watchlist.
+   * - The transaction's security is part of the watchlist's associated security list.
+   * 
+   * This method is useful for displaying or analyzing transactions tied to a specific investment watchlist.
+   * Results are ordered chronologically by transaction time.
+   *
+   * @param idWatchlist the ID of the watchlist whose related transactions should be retrieved
+   * @return a list of matching Transaction records
+   */
+  //@formatter:on
+  @Query
+  List<Transaction> findByIdWatchlist(Integer idWatchlist);
+  //@formatter:off
+  /**
+   * Retrieves all Transaction records where the associated historical exchange rate (history quote)
+   * used for conversion may have been modified after the transaction was created.
+   * 
+   * This native query detects potential inconsistencies or data integrity issues in currency conversion logic by:
+   * - Selecting transactions of type WITHDRAWAL or DEPOSIT (i.e., TransactionType 0 or 1)
+   * - Filtering for cases where the currency of the cash account differs from the tenant or portfolio currency
+   * - Comparing the `create_modify_time` of the associated history quote with the deposit’s `valid_timestamp`
+   * 
+   * These transactions may require reevaluation due to updated history quotes that were not yet valid at the
+   * time of the transaction. This helps ensure accurate portfolio valuations over time, especially in multi-currency environments.
+   * 
+   * Results are ordered by tenant ID, cash account ID, and transaction time.
+   *
+   * @return a list of Transaction records potentially affected by newer history quote data after the deposit occurred
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Transaction> getTransactionWhyHistoryquoteYounger();
+  
 }

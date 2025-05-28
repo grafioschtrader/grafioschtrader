@@ -246,7 +246,7 @@ import {TreeTableModule} from 'primeng/treetable';
 import {CheckboxModule} from 'primeng/checkbox';
 import {ConfirmDialogModule} from 'primeng/confirmdialog';
 import {InputMaskModule} from 'primeng/inputmask';
-import {InputTextarea} from 'primeng/inputtextarea';
+import {Textarea, TextareaModule} from 'primeng/textarea';
 import {TabViewModule} from 'primeng/tabview';
 import {StepsModule} from 'primeng/steps';
 import {TooltipModule} from 'primeng/tooltip';
@@ -435,7 +435,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     FullyearcalendarLibModule,
     HttpClientModule,
     InputMaskModule,
-    InputTextarea,
+    Textarea,
     InputTextModule,
     MenubarModule,
     MenuModule,
@@ -468,7 +468,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     }),
     TreeModule,
     CommonModule,
-    NgxCurrencyDirective
+    NgxCurrencyDirective,
   ],
   providers: [ActivePanelService, ActuatorService, AlarmSetupService, AlgoAssetclassService, AlgoSecurityService, AlgoStrategyService,
     AlgoTopService, AssetclassService, CashaccountService, ChartDataService, ConfirmationService, ConnectorApiKeyService,

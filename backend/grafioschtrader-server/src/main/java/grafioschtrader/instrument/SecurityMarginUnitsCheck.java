@@ -20,6 +20,18 @@ import grafioschtrader.types.TransactionType;
 
 public class SecurityMarginUnitsCheck {
 
+  /**
+   * The system checks whether the margin transaction is valid based on the number
+   * of units. The system also checks whether a possible deletion command for an
+   * opening margin position could be executed. Possible splits are also included
+   * in the calculation.
+   * 
+   * @param securitysplitJpaRepository Repository of splits
+   * @param operationyType             What kind of operation
+   * @param transactions               The other transactions.
+   * @param targetTransaction          The transaction under review.
+   * @param security                   The margin instrument.
+   */
   public static void checkUnitsIntegrity(final SecuritysplitJpaRepository securitysplitJpaRepository,
       final OperationType operationyType, final List<Transaction> transactions, final Transaction targetTransaction,
       final Security security) {
@@ -39,6 +51,17 @@ public class SecurityMarginUnitsCheck {
 
   }
 
+  /**
+   * The system checks whether the margin transaction is valid based on the number
+   * of units. Possible splits are also included in the calculation.
+   * 
+   * @param securitysplitJpaRepository Repository of splits
+   * @param transactions               The other transactions.
+   * @param targetTransaction          The transaction under review.
+   * @param dataViolationException     Contains the possible error if the
+   *                                   validation of the number of units in this
+   *                                   transaction exceeds the limit.
+   */
   private static void addUpdateTransaction(final SecuritysplitJpaRepository securitysplitJpaRepository,
       final List<Transaction> transactions, final Transaction targetTransaction,
       final DataViolationException dataViolationException) {

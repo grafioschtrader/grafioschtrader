@@ -22,7 +22,7 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
  * Shows the asset class as a table.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -76,22 +76,22 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
                      (closeDialog)="handleCloseDialog($event)">
     </assetclass-edit>
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> implements OnDestroy {
   callParam: AssetclassCallParam = new AssetclassCallParam();
 
   constructor(private assetclassService: AssetclassService,
-              private productIconService: ProductIconService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private productIconService: ProductIconService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(AppSettings.ASSETCLASS, assetclassService, confirmationService, messageToastService,
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
 
@@ -128,7 +128,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
   }
 
   getAssetclassIcon(assetclass: Assetclass, field: ColumnConfig,
-                    valueField: any): string {
+    valueField: any): string {
     return this.productIconService.getIconForAssetclass(assetclass, null);
   }
 

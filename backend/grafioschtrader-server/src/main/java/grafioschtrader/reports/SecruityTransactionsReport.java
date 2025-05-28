@@ -129,7 +129,7 @@ public class SecruityTransactionsReport {
     secruityTransactionsReportOptions.add(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY);
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     if (idsSecurityaccount.size() == 1) {
-      return getTransactionsByIdSecurityaccountAndIdSecurity(user.getIdTenant(), idsSecurityaccount.get(0),
+      return getTransactionsByIdSecurityaccountAndIdSecurity(user.getIdTenant(), idsSecurityaccount.getFirst(),
           idSecuritycurrency, untilDate, secruityTransactionsReportOptions);
     } else {
       return getTransactionsByIdTenantAndIdSecurity(user.getIdTenant(), idsSecurityaccount, idSecuritycurrency,

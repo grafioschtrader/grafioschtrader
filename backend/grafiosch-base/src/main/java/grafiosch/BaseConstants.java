@@ -141,4 +141,9 @@ public abstract class BaseConstants {
 
   public static final int BANDWITH_HOUR_REFILL = 300;
 
+  /**
+   * If a record is created by the system id gets this id
+   */
+  public static final int SYSTEM_ID_USER = 0;
+
 }

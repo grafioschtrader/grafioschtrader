@@ -50,9 +50,31 @@ public interface UserJpaRepository
   Integer moveCreatedByUserToOtherUser(@Param("fromIdUser") Integer fromIdUser, @Param("toIdUser") Integer toIdUser,
       @Param("schemaName") String schemaName);
 
+  /**
+   * Fetches all users’ IDs and nicknames in the given role—except for one user.
+   *
+   * This projection is used when you want to list everyone in a role (e.g. to populate a UI dropdown)
+   * but exclude a specific user (typically the current user).
+   *
+   * @param roleName        the name of the role whose members should be returned
+   * @param excludeUserId   the user ID to omit from the result set
+   * @return a list of projections ({@link IdUserAndNickname}), each containing
+   *         an enabled user’s ID and nickname
+   */
   @Query(nativeQuery = true)
   List<IdUserAndNickname> getIdUserAndNicknameByRoleExcludeUser(String roleName, Integer exludeIdUser);
 
+  /**
+   * Retrieves users’ email addresses and locales *only* if they have no forwarding rule
+   * for the specified communication and target types.
+   *
+   * This prevents sending a direct email when a mail‐forwarding setting already applies.
+   *
+   * @param messageComType    the communication type to check (e.g. system vs. user messages)
+   * @param messageTargetType the target type to check (e.g. email vs. internal messaging)
+   * @return a list of {@link EMailLocale} projections (email + locale);
+   *         empty if every user has a matching forwarding rule
+   */
   @Query(nativeQuery = true)
   List<EMailLocale> getEmailExcludeWhenMsgComTypeAndTargetTypeExists(Byte messageComType, Byte messageTargetType);
 

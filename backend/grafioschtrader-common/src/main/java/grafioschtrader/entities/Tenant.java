@@ -29,11 +29,10 @@ import jakarta.validation.constraints.NotNull;
   Tenant is the main access point", description = "GT defines a tenant from the aggregation of all portfolios and watchlists.
   Additionally, it contains the information regarding the evaluation over all portfolios.""")
 @Entity
-@Table(name = Tenant.TABNAME)
+@Table(name = TenantBase.TABNAME)
 @NamedEntityGraph(name = "graph.tenant.portfolios", attributeNodes = @NamedAttributeNode("portfolioList"))
 public class Tenant extends TenantBase implements Serializable {
   
-  public static final String TABNAME = "tenant";
   private static final long serialVersionUID = 1L;
   
   @Basic(optional = false)

@@ -1,6 +1,7 @@
 package grafioschtrader.rest;
 
 import grafiosch.entities.Globalparameters;
+import grafiosch.entities.TenantBase;
 import grafiosch.rest.RequestMappings;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
@@ -12,7 +13,6 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Watchlist;
 
@@ -113,7 +113,7 @@ public interface RequestGTMappings {
   public static final String UDFMETADATASECURITY = "udfmetadatasecurity";
   public static final String UDF_METADATA_SECURITY_MAP = RequestMappings.API + UDFMETADATASECURITY;
 
-  public static final String TENANT_MAP = RequestMappings.API + Tenant.TABNAME;
+  public static final String TENANT_MAP = RequestMappings.API + TenantBase.TABNAME;
 
   // Used for path part
   public static final String SECURITY_DATAPROVIDER_INTRA_HISTORICAL_RESPONSE = "/dataproviderresponse/";

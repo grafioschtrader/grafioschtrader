@@ -1,45 +1,33 @@
 package grafioschtrader.repository;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.TenantBase;
 import grafiosch.entities.User;
-import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.repository.TenantBaseImpl;
 import grafiosch.repository.UserJpaRepository;
-import grafiosch.rest.helper.RestHelper;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TenantKindType;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.exportdelete.MySqlDeleteMyData;
-import grafioschtrader.exportdelete.MySqlExportMyData;
 import grafioschtrader.types.TaskTypeExtended;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.servlet.http.HttpServletResponse;
 
-public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implements TenantJpaRepositoryCustom {
+public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements TenantJpaRepositoryCustom {
 
   @PersistenceContext
   private EntityManager em;
@@ -56,18 +44,8 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
 
-  @Autowired
-  private ResourceLoader resourceLoader;
-
-  @Autowired
-  private JdbcTemplate jdbcTemplate;
-
-  @Value("${gt.demo.account.pattern.de}")
-  private String demoAccountPatternDE;
-
-  @Value("${gt.demo.account.pattern.en}")
-  private String demoAccountPatternEN;
-
+ 
+  
   @Override
   @Transactional
   @Modifying
@@ -123,7 +101,6 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO,
           TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), teantNew.getIdTenant(), Tenant.class.getSimpleName()));
     }
-
     return teantNew;
   }
 
@@ -134,15 +111,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     return (tenant.isExcludeDivTax());
   }
 
-  @Override
-  public void deleteMyDataAndUserAccount() throws Exception {
-    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
-    RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
-
-    MySqlDeleteMyData mySqlDeleteMyData = new MySqlDeleteMyData(jdbcTemplate);
-    mySqlDeleteMyData.deleteMyData();
-  }
+ 
 
   @Override
   @Transactional
@@ -173,7 +142,7 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     tenant.getPortfolioList().forEach(p -> p.setCurrency(currency));
     tenantJpaRepository.save(tenant);
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_AND_PORTFOLIO,
-        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), tenant.getIdTenant(), Tenant.TABNAME));
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), tenant.getIdTenant(), TenantBase.TABNAME));
     return tenant;
   }
 
@@ -186,34 +155,9 @@ public class TenantJpaRepositoryImpl extends BaseRepositoryImpl<Tenant> implemen
     return tenant;
   }
 
-  @Override
-  public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
-    String ddlFileName = "gt_ddl.sql";
-    Resource resourceDdl = resourceLoader.getResource("classpath:db/migration/" + ddlFileName);
+ 
+  
 
-    StringBuilder sqlStatement = new MySqlExportMyData(jdbcTemplate).exportDataMyData();
-
-    // setting headers
-    response.setStatus(HttpServletResponse.SC_OK);
-    response.addHeader("Content-Disposition", "attachment; filename=\"gt.zip\"");
-
-    ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
-    addZipEntry(zipOutputStream, resourceDdl.getInputStream(), ddlFileName);
-    InputStream dmlInputStream = new ByteArrayInputStream(sqlStatement.toString().getBytes());
-    addZipEntry(zipOutputStream, dmlInputStream, "gt_data.sql");
-    zipOutputStream.close();
-
-  }
-
-  private void addZipEntry(ZipOutputStream zos, InputStream in, String entryName) throws IOException {
-    byte buffer[] = new byte[16384];
-    zos.putNextEntry(new ZipEntry(entryName));
-    int length;
-    while ((length = in.read(buffer)) >= 0) {
-      zos.write(buffer, 0, length);
-    }
-    in.close();
-    zos.closeEntry();
-  }
+  
 
 }

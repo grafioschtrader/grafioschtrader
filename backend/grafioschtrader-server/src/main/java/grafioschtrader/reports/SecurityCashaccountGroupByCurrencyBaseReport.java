@@ -23,13 +23,8 @@ import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 
 /**
- * It groups the calculated securities. This class supports two different
- * groupings, one groups the securities by currencies. The other groups them by
- * security account and currencies.
- *
- *
- * @author Hugo Graf
- *
+ * It groups the calculated securities. This class supports two different groupings, one groups the securities by
+ * currencies. The other groups them by security account and currencies.
  */
 public class SecurityCashaccountGroupByCurrencyBaseReport {
 
@@ -145,11 +140,8 @@ class CurrencySecurityaccountCurrenyResult {
 }
 
 /**
- * A portfolio may contain more than only one security account. It is possible
- * to connect a cash account to a certain security account.
- *
- * @author Hugo Graf
- *
+ * A portfolio may contain more than only one security account. It is possible to connect a cash account to a certain
+ * security account.
  */
 class SeperateSecurityaccountCurrency {
   public String currency;

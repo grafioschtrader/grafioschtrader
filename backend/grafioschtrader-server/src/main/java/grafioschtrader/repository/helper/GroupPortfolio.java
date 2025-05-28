@@ -6,9 +6,6 @@ import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 
 /**
  * Create a group per Portfolio.
- *
- * @author Hugo Graf
- *
  */
 public class GroupPortfolio extends AccountGroupMap<Portfolio> {
 

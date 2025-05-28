@@ -6,9 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Summary of securities grouped by currency. A single security account may
  * produce one or more instance of this class.
- *
- * @author Hugo Graf
- *
  */
 public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSummary {
 

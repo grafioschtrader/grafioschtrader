@@ -19,23 +19,23 @@ import grafioschtrader.types.TransactionType;
 
 public abstract class SecurityBaseCalc {
 
-  public abstract void calcSingleSecurityTransaction(final Transaction transaction,
+  abstract void calcSingleSecurityTransaction(final Transaction transaction,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
       final DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
       Map<String, Integer> currencyPrecisionMap);
 
-  public abstract void createHypotheticalSellTransaction(final SecurityPositionSummary securityPositionSummary,
+  abstract void createHypotheticalSellTransaction(final SecurityPositionSummary securityPositionSummary,
       final double lastPrice, final Map<Integer, List<Securitysplit>> securitysplitMap,
       final DateTransactionCurrencypairMap dateCurrencyMap, final SecurityTransactionSummary securityTransactionSummary,
       NegativeIdNumberCreater negativeIdNumberCreater);
 
-  public abstract void calcTransactionAndAddToPosition(final Transaction transaction,
+  abstract void calcTransactionAndAddToPosition(final Transaction transaction,
       final SecurityTransactionSummary securityTransactionSummary, final boolean excludeDivTaxcost,
       final Map<Integer, List<Securitysplit>> securitySplitMap, final DateTransactionCurrencypairMap dateCurrencyMap,
       NegativeIdNumberCreater negativeIdNumberCreater);
 
-  protected SecurityPositionSummary getSecurityPositionSummary(final Transaction transaction,
+  SecurityPositionSummary getSecurityPositionSummary(final Transaction transaction,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final DateTransactionCurrencypairMap dateCurrencyMap, Map<String, Integer> currencyPrecisionMap) {
     return summarySecurityMap.computeIfAbsent(transaction.getSecurity(),

@@ -25,10 +25,8 @@ import grafioschtrader.repository.helper.HoldingsHelper;
 import grafioschtrader.types.TransactionType;
 
 /**
- * It can be affected by changes of transaction (Deposit, Withdrawal) and
- * changed close price of history quotes of currency pairs. It changes also when
- * currency of the tenant or a portfolio changes.
- *
+ * It can be affected by changes of transaction (Deposit, Withdrawal) and changed close price of history quotes of
+ * currency pairs. It changes also when currency of the tenant or a portfolio changes.
  */
 public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountDepositJpaRepositoryCustom {
 
@@ -59,7 +57,7 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
     createCashaccountDepositTimeFrameByTenant(tenantJpaRepository.getReferenceById(idTenant));
   }
 
-  public void createCashaccountDepositTimeFrameByTenant(Tenant tenant) {
+  private void createCashaccountDepositTimeFrameByTenant(Tenant tenant) {
     holdCashaccountDepositJpaRepository.removeByIdTenant(tenant.getIdTenant());
     HoldDepositForTenant holdDepositForTenant = new HoldDepositForTenant();
     holdDepositForTenant.setTenant(tenant);
@@ -78,7 +76,6 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
     }
   }
 
-  
   @Override
   public void adjustBecauseOfHistoryquotePriceChanges() {
     List<Transaction> transactions = transactionJpaRepository.getTransactionWhyHistoryquoteYounger();
@@ -113,7 +110,6 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
       }
     }
     holdCashaccountDepositJpaRepository.saveAll(holdCashaccountList);
-
   }
 
   private void adjustCashaccountDepositOrWithdrawal(Transaction transaction,
@@ -166,8 +162,7 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
    * Creates HoldCashaccountDeposit from transactions for a single cash account.
    *
    *
-   * @param transactionCaAcList         All deposit and withdrawal transaction of
-   *                                    a portfolios cash accounts sorted by
+   * @param transactionCaAcList         All deposit and withdrawal transaction of a portfolios cash accounts sorted by
    *                                    transaction time (ASC)
    * @param idPortfolio
    * @param portfolioCurrency
@@ -187,8 +182,8 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
 
     for (Transaction transaction : transactionCaAcList) {
       holdDepositForTenant.depositCashaccoutCurrency += transaction.getCashaccountAmount();
-      holdDepositForTenant.depositTenantCurrency += DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(transaction,
-          holdDepositForTenant.fromToCurrencyWithDateMap, holdDepositForTenant.tenant.getCurrency(),
+      holdDepositForTenant.depositTenantCurrency += DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(
+          transaction, holdDepositForTenant.fromToCurrencyWithDateMap, holdDepositForTenant.tenant.getCurrency(),
           holdDepositForTenant.exchangeRateConnectedTransactionMap,
           holdDepositForTenant.currencypairFromToCurrencyMap).amountMC;
       HoldCashaccountDeposit holdCashaccount = new HoldCashaccountDeposit(transaction.getIdTenant(), idPortfolio,
@@ -196,14 +191,15 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
           DataBusinessHelper.round(holdDepositForTenant.depositCashaccoutCurrency),
           DataBusinessHelper.round(holdDepositForTenant.depositTenantCurrency));
       if (!holdDepositForTenant.tenant.getCurrency().equals(portfolioCurrency)) {
-        holdDepositForTenant.depositPortfolioCurrency += DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(transaction,
-            holdDepositForTenant.fromToCurrencyWithDateMap, portfolioCurrency,
+        holdDepositForTenant.depositPortfolioCurrency += DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(
+            transaction, holdDepositForTenant.fromToCurrencyWithDateMap, portfolioCurrency,
             holdDepositForTenant.exchangeRateConnectedTransactionMap,
             holdDepositForTenant.currencypairFromToCurrencyMap).amountMC;
       } else {
         holdDepositForTenant.depositPortfolioCurrency = holdDepositForTenant.depositTenantCurrency;
       }
-      holdCashaccount.setDepositPortfolioCurrency(DataBusinessHelper.round(holdDepositForTenant.depositPortfolioCurrency));
+      holdCashaccount
+          .setDepositPortfolioCurrency(DataBusinessHelper.round(holdDepositForTenant.depositPortfolioCurrency));
       holdCashaccount.setToHoldDate(toHoldDate);
       if (!holdCashaccountList.isEmpty()) {
         holdCashaccountList.getLast().setToHoldDate(transaction.getTransactionDate().minusDays(1));
@@ -223,9 +219,8 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
     public Map<FromToCurrency, Currencypair> currencypairFromToCurrencyMap;
 
     /**
-     * Only used for a cash transfer that happened in a connected transaction
-     * without the main currency. It contains the id of transaction as key and
-     * exchange rate as value.
+     * Only used for a cash transfer that happened in a connected transaction without the main currency. It contains the
+     * id of transaction as key and exchange rate as value.
      */
 
     public Map<Integer, Double> exchangeRateConnectedTransactionMap;
