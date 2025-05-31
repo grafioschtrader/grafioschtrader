@@ -104,8 +104,7 @@ public class ParseFormInputPDFasTXT {
   }
 
   /**
-   * Return the matching properties. The valid date of template is used if there
-   * are more than one matching template.
+   * Return the matching properties. The valid date of template is used if there are more than one matching template.
    *
    * @param matchingTemplateMap
    * @return

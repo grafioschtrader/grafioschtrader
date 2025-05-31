@@ -17,8 +17,7 @@ public class UserAccessHelper {
   }
 
   /**
-   * Return true when user has ROLE_ADMIN, ROLE_ALL_EDIT or is the owner of the
-   * entity.
+   * Return true when user has ROLE_ADMIN, ROLE_ALL_EDIT or is the owner of the entity.
    */
   public static boolean hasRightsOrPrivilegesForEditingOrDelete(User user, Auditable entity) {
     return hasHigherPrivileges(user) || hasRightsForEditingOrDeleteOnEntity(user, entity);
@@ -30,7 +29,7 @@ public class UserAccessHelper {
   public static boolean hasRightsForEditingOrDeleteOnEntity(User user, Auditable entity) {
     boolean isOwner = entity.getCreatedBy().equals(user.getIdUser());
     if (entity instanceof AdditionalRights) {
-        return isOwner || ((AdditionalRights) entity).hasAdditionalRights(user);
+      return isOwner || ((AdditionalRights) entity).hasAdditionalRights(user);
     }
     return isOwner;
   }

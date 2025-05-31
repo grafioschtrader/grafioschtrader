@@ -33,9 +33,8 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   public double cashTransferMC;
 
   /**
-   * It counts the inflow and outflow to this cash account from other accounts
-   * from other portfolios. It assumes that inflow and outflow happened always in
-   * the currency of this cash account. This way cash transfer between cash
+   * It counts the inflow and outflow to this cash account from other accounts from other portfolios. It assumes that
+   * inflow and outflow happened always in the currency of this cash account. This way cash transfer between cash
    * accounts with different currencies are not taken in account.
    */
   public double externalCashTransferMC;
@@ -51,9 +50,8 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   public double balanceCurrencyTransaction;
 
   /**
-   * Amount of currency in the target Currency (main currency of portfolio or
-   * tenant currency). It is the balance of this cash account but in the target
-   * currency.
+   * Amount of currency in the target Currency (main currency of portfolio or tenant currency). It is the balance of
+   * this cash account but in the target currency.
    */
   public double balanceCurrencyTransactionMC;
 

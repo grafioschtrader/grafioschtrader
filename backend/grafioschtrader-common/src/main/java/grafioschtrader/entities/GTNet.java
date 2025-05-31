@@ -92,7 +92,6 @@ public class GTNet extends BaseID<Integer> {
   @Column(name = "lastprice_consumer_usage")
   private byte lastpriceConsumerUsage;
 
-
   @Schema(description = "Shall be used the last price detail log. It records which client changed last prices")
   @Column(name = "lastprice_use_detail_log")
   private boolean lastpriceUseDetailLog;
@@ -200,7 +199,6 @@ public class GTNet extends BaseID<Integer> {
   public void setLastpriceServerState(GTNetServerStateTypes lastpriceServerState) {
     this.lastpriceServerState = lastpriceServerState.getValue();
   }
-
 
   public boolean isAcceptLastpriceRequest() {
     return acceptLastpriceRequest;

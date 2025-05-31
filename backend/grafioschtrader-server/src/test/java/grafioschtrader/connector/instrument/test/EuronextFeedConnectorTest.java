@@ -35,10 +35,12 @@ public class EuronextFeedConnectorTest extends BaseFeedConnectorCheck {
       hisoricalDate.add(new SecurityHistoricalDate("Portuguese Stock Index 20", "PTING0200002",
           SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, null, EuronextFeedConnector.STOCK_EX_MIC_LISBON, 6108,
           "2000-01-03", "2023-12-08"));
-      hisoricalDate.add(new SecurityHistoricalDate("CAC40", "FR0003500008", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
-         null, EuronextFeedConnector.STOCK_EX_MIC_PARIS, 1524, "2018-01-02", "2023-12-08"));
+      hisoricalDate
+          .add(new SecurityHistoricalDate("CAC40", "FR0003500008", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
+              null, EuronextFeedConnector.STOCK_EX_MIC_PARIS, 1524, "2018-01-02", "2023-12-08"));
       hisoricalDate.add(new SecurityHistoricalDate("AMUNDI MSCI EM ASIA UCITS ETF - EUR", "LU1681044480",
-          SpecialInvestmentInstruments.ETF, null, EuronextFeedConnector.STOCK_EX_MIC_PARIS, 270, "2022-11-22", "2023-12-08"));
+          SpecialInvestmentInstruments.ETF, null, EuronextFeedConnector.STOCK_EX_MIC_PARIS, 270, "2022-11-22",
+          "2023-12-08"));
     } catch (ParseException pe) {
       pe.printStackTrace();
     }
@@ -49,8 +51,5 @@ public class EuronextFeedConnectorTest extends BaseFeedConnectorCheck {
   protected IFeedConnector getIFeedConnector() {
     return euronextFeedConnector;
   }
-
-
-
 
 }

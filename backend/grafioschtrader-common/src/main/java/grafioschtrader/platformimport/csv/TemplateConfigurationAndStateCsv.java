@@ -15,8 +15,7 @@ import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.platformimport.TemplateConfiguration;
 
 /**
- * Read the template configuration. It many also be used to hold the state of
- * parsing a csv file.
+ * Read the template configuration. It many also be used to hold the state of parsing a csv file.
  *
  */
 public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
@@ -31,8 +30,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
    */
   private static final String CONF_DELIMITER_FIELD = "delimiterField";
   /**
-   * The quotation of a bond may differ from the stock quotation. It may have a
-   * percentage sign.
+   * The quotation of a bond may differ from the stock quotation. It may have a percentage sign.
    */
   private static final String CONF_BOND_FIELD_INDICATOR = "bond";
 

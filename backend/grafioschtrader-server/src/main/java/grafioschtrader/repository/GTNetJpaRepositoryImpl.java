@@ -105,9 +105,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // gtNetMsgRequest.model);
     // TODO check model integrity
     List<GTNet> gtNetList = getTargetDomains(msgRequest);
-    sendAndSaveMsg(gtNetJpaRepository
-        .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService)).orElseThrow(), gtNetList,
-        gtNetMsgRequest, msgRequest);
+    sendAndSaveMsg(
+        gtNetJpaRepository.findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService)).orElseThrow(),
+        gtNetList, gtNetMsgRequest, msgRequest);
     return this.getAllGTNetsWithMessages();
   }
 

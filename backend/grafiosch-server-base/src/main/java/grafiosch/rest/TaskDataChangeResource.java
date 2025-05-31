@@ -35,11 +35,11 @@ public class TaskDataChangeResource extends UpdateCreateDeleteAuditResource<Task
 
   @Operation(summary = "Return all existing background tasks", description = "", tags = {
       RequestMappings.TASK_DATA_CHANGE })
-  @GetMapping(produces = APPLICATION_JSON_VALUE) 
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TaskDataChange>> getAllTaskDataChange() {
     return new ResponseEntity<>(taskDataChangeJpaRepository.findAll(), HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Return the constraints for the user interface, these relate to specific editing options..", description = "", tags = {
       RequestMappings.TASK_DATA_CHANGE })
   @GetMapping(value = "/taskdatachangeconstraints", produces = APPLICATION_JSON_VALUE)

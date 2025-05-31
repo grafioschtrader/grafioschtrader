@@ -16,8 +16,8 @@ public class AnnualisedPerformance {
   @Schema(description = "The tenant currency")
   public final String mainCurrency;
   @Schema(description = """
-          The start date from which the performance is calculated. Will be the last trading day of the 
-          year where historical price data is available for the security in question.""")
+      The start date from which the performance is calculated. Will be the last trading day of the
+      year where historical price data is available for the security in question.""")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate dateFrom;
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)

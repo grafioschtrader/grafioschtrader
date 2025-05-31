@@ -86,7 +86,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
 
   private prepareSecurityaccountOption() {
     if (this.portfolio.securityaccountList.length >= 2) {
-      AppHelper.enableAndVisibleInput(this.configObject.connectIdSecurityaccoun);
+      AppHelper.enableAndVisibleInput(this.configObject.connectIdSecurityaccount);
       this.configObject.connectIdSecurityaccount.valueKeyHtmlOptions =
         SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycashAccount', 'name',
           this.portfolio.securityaccountList, true);

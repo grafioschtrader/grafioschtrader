@@ -17,10 +17,10 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(description="""
-This allows API keys to be saved for each provider. Most providers offer different access and performance levels. 
-Of course, the application must know the corresponding API and therefore also have an implementation to use it.        
-""")
+@Schema(description = """
+    This allows API keys to be saved for each provider. Most providers offer different access and performance levels.
+    Of course, the application must know the corresponding API and therefore also have an implementation to use it.
+    """)
 @Entity
 @Table(name = ConnectorApiKey.TABNAME)
 public class ConnectorApiKey extends BaseID<String> {
@@ -89,7 +89,6 @@ public class ConnectorApiKey extends BaseID<String> {
     this.subscriptionType = subscriptionType.getValue();
   }
 
-  
   @Override
   public String toString() {
     return "ConnectorApiKey [idProvider=" + idProvider + ", apiKey=" + this.getApiKey() + ", subscriptionType="

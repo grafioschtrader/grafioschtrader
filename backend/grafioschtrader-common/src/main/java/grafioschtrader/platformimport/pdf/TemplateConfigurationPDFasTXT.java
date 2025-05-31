@@ -46,12 +46,12 @@ import grafioschtrader.platformimport.TemplateConfiguration;
 * Optional
 * --------
 * O = This attribute is optional, may be used for currency
-* 
+*
 * [AAA | BBB]
 * (?:Börsengeschäft:|Börsentransaktion:)
 *
-* TODO: The number of words and numbers in the anchor point line must match if SL, PL and NL are set as the only 
-* anchor point. This can be avoided with SLI, PLI and NLI. However, this leads to other problems, so this 
+* TODO: The number of words and numbers in the anchor point line must match if SL, PL and NL are set as the only
+* anchor point. This can be avoided with SLI, PLI and NLI. However, this leads to other problems, so this
 * feature is not commented on further.
 *
 */

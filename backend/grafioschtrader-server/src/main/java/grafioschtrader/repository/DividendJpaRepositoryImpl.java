@@ -177,8 +177,8 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   }
 
   /**
-   * Dividends are only ever added using this method. Existing dividends in the
-   * persistence are deleted and then newly created.
+   * Dividends are only ever added using this method. Existing dividends in the persistence are deleted and then newly
+   * created.
    *
    * @param security                  The security concerned
    * @param userCreatedDividends      Dividends created by the user
@@ -254,8 +254,8 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
   }
 
   /**
-   * Securities can have a split. This must be reflected accordingly in the
-   * dividends. Otherwise the dividend yield per share would no longer be correct.
+   * Securities can have a split. This must be reflected accordingly in the dividends. Otherwise the dividend yield per
+   * share would no longer be correct.
    *
    * @param idSecurity
    * @param dividendsRead

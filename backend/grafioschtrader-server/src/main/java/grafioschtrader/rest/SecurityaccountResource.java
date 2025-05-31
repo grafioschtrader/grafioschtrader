@@ -51,18 +51,17 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   }
 
   /*
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
-
-
-  @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> deleteSecurityaccount(@PathVariable final Integer idSecuritycashaccount) {
-    log.debug("Delete by id Securityaccount : {}", idSecuritycashaccount);
-    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    securityaccountJpaRepository.deleteSecurityaccount(idSecuritycashaccount, user.getIdTenant());
-
-    return ResponseEntity.ok().build();
-  }
-*/
+   * private final Logger log = LoggerFactory.getLogger(this.getClass());
+   * 
+   * 
+   * @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE) public ResponseEntity<Void>
+   * deleteSecurityaccount(@PathVariable final Integer idSecuritycashaccount) {
+   * log.debug("Delete by id Securityaccount : {}", idSecuritycashaccount); final User user = (User)
+   * SecurityContextHolder.getContext().getAuthentication().getDetails();
+   * securityaccountJpaRepository.deleteSecurityaccount(idSecuritycashaccount, user.getIdTenant());
+   * 
+   * return ResponseEntity.ok().build(); }
+   */
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<Securityaccount> getUpdateCreateJpaRepository() {
     return securityaccountJpaRepository;

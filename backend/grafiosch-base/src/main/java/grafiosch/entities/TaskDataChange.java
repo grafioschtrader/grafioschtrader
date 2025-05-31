@@ -30,8 +30,7 @@ public class TaskDataChange extends BaseID<Integer> {
   public static final int MAX_SIZE_FAILED_STRACK_TRACE = 4096;
 
   /**
-   * Contains the background work tasks. More of these tasks can be added by a
-   * dependent module.
+   * Contains the background work tasks. More of these tasks can be added by a dependent module.
    */
   public static final EnumRegistry<Byte, ITaskType> TASK_TYPES_REGISTRY = new EnumRegistry<>(TaskTypeBase.values());
 
@@ -136,7 +135,7 @@ public class TaskDataChange extends BaseID<Integer> {
     this.idTask = idTask.getValue();
   }
 
-  //Change the setter to accept a String from the JSON payload.
+  // Change the setter to accept a String from the JSON payload.
   @JsonSetter("idTask")
   public void setIdTask(String idTaskName) {
     ITaskType taskType = TASK_TYPES_REGISTRY.getTypeByName(idTaskName);

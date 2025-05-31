@@ -27,13 +27,13 @@ public class ProposeChangeEntityJpaRepositoryImpl extends ProposeRequestService<
 
   @PersistenceContext
   private EntityManager entityManager;
-  
+
   @Autowired
   private EntityManagerFactory entityManagerFactory;
 
   @Autowired
   private ProposeChangeEntityJpaRepository proposeChangeEntityJpaRepository;
-  
+
   @Override
   @Transactional
   @Modifying
@@ -44,42 +44,42 @@ public class ProposeChangeEntityJpaRepositoryImpl extends ProposeRequestService<
 
   @Override
   public List<ProposeChangeEntityWithEntity> getProposeChangeEntityWithEntity() throws Exception {
-      final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-      List<ProposeChangeEntityWithEntity> proposeChangeEntityWithEntityList = new ArrayList<>();
-      List<ProposeChangeEntity> proposeChangeEntityList;
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    List<ProposeChangeEntityWithEntity> proposeChangeEntityWithEntityList = new ArrayList<>();
+    List<ProposeChangeEntity> proposeChangeEntityList;
 
-      if (UserAccessHelper.hasHigherPrivileges(user)) {
-          proposeChangeEntityList = proposeChangeEntityJpaRepository
-              .findByDataChangeState(ProposeDataChangeState.OPEN.getValue());
+    if (UserAccessHelper.hasHigherPrivileges(user)) {
+      proposeChangeEntityList = proposeChangeEntityJpaRepository
+          .findByDataChangeState(ProposeDataChangeState.OPEN.getValue());
+    } else {
+      proposeChangeEntityList = proposeChangeEntityJpaRepository.findByIdOwnerEntityAndDataChangeState(user.getIdUser(),
+          ProposeDataChangeState.OPEN.getValue());
+    }
+
+    for (ProposeChangeEntity proposeChangeEntity : proposeChangeEntityList) {
+      Class<?> entityClass = getEntityClass(proposeChangeEntity.getEntity());
+      Object entityExisting = entityManager.find(entityClass, proposeChangeEntity.getIdEntity());
+      if (entityExisting != null) {
+        entityManager.detach(entityExisting);
+        Object entityProposed = SerializationUtils.clone((Serializable) entityExisting);
+        copyProposeChangeFieldToBusinessClass(proposeChangeEntity.getProposeChangeFieldList(), entityProposed);
+        proposeChangeEntityWithEntityList
+            .add(new ProposeChangeEntityWithEntity(proposeChangeEntity, entityExisting, entityProposed));
       } else {
-          proposeChangeEntityList = proposeChangeEntityJpaRepository
-              .findByIdOwnerEntityAndDataChangeState(user.getIdUser(), ProposeDataChangeState.OPEN.getValue());
+        proposeChangeEntityJpaRepository.deleteById(proposeChangeEntity.getIdProposeRequest());
       }
-
-      for (ProposeChangeEntity proposeChangeEntity : proposeChangeEntityList) {
-          Class<?> entityClass = getEntityClass(proposeChangeEntity.getEntity());
-          Object entityExisting = entityManager.find(entityClass, proposeChangeEntity.getIdEntity());
-          if (entityExisting != null) {
-              entityManager.detach(entityExisting);
-              Object entityProposed = SerializationUtils.clone((Serializable) entityExisting);
-              copyProposeChangeFieldToBusinessClass(proposeChangeEntity.getProposeChangeFieldList(), entityProposed);
-              proposeChangeEntityWithEntityList
-                  .add(new ProposeChangeEntityWithEntity(proposeChangeEntity, entityExisting, entityProposed));
-          } else {
-              proposeChangeEntityJpaRepository.deleteById(proposeChangeEntity.getIdProposeRequest());
-          }
-      }
-      return proposeChangeEntityWithEntityList;
+    }
+    return proposeChangeEntityWithEntityList;
   }
 
   private Class<?> getEntityClass(String entityName) {
-      Set<EntityType<?>> entities = entityManagerFactory.getMetamodel().getEntities();
-      for (EntityType<?> entityType : entities) {
-          if (entityType.getJavaType().getSimpleName().equals(entityName)) {
-              return entityType.getJavaType();
-          }
+    Set<EntityType<?>> entities = entityManagerFactory.getMetamodel().getEntities();
+    for (EntityType<?> entityType : entities) {
+      if (entityType.getJavaType().getSimpleName().equals(entityName)) {
+        return entityType.getJavaType();
       }
-      throw new IllegalArgumentException("No entity found with name: " + entityName);
+    }
+    throw new IllegalArgumentException("No entity found with name: " + entityName);
   }
 
   @Schema(description = "Contains a change request for a shared entity")

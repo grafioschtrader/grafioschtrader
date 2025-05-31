@@ -28,10 +28,9 @@ import grafioschtrader.entities.Historyquote;
 /**
  * It has a max row limit
  *
- * A regex check of the URL extension is not necessary. The connector for
- * checking the instrument apparently always returns an HTTP OK. However, the
- * body of the return contains a text that indicates an unsupported currency
- * pair. This is evaluated here.
+ * A regex check of the URL extension is not necessary. The connector for checking the instrument apparently always
+ * returns an HTTP OK. However, the body of the return contains a text that indicates an unsupported currency pair. This
+ * is evaluated here.
  */
 @Component
 public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {

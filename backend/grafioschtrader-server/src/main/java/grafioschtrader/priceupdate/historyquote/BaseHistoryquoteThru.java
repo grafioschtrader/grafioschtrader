@@ -58,13 +58,11 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
 
     Hibernate.initialize(securitycurrency.getHistoryquoteList());
     securityServiceAsyncExectuion.asyncLoadHistoryIntraData(securitycurrencyService, securitycurrency, true,
-        globalparametersService.getMaxIntraRetry(),
-        globalparametersService.getSecurityCurrencyIntradayUpdateTimeout());
+        globalparametersService.getMaxIntraRetry(), globalparametersService.getSecurityCurrencyIntradayUpdateTimeout());
   }
 
   /**
-   * For all securities and currencies it fills their history quote from the
-   * youngest entry date until now.
+   * For all securities and currencies it fills their history quote from the youngest entry date until now.
    *
    * @return
    */
@@ -81,8 +79,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
   /**
    * For current Sunday or Monday only determine EOD until previous Friday.
    *
-   * @param adjustForDayAfterUpd If the dates are determined according to the
-   *                             closing times of the trading exchange, the
+   * @param adjustForDayAfterUpd If the dates are determined according to the closing times of the trading exchange, the
    *                             to-date is determined differently.
    * @return
    */

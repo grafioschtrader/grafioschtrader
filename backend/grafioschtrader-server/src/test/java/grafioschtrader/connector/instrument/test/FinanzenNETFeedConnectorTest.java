@@ -36,12 +36,12 @@ class FinanzenNETFeedConnectorTest extends BaseFeedConnectorCheck {
           SpecialInvestmentInstruments.ETF, AssetclassType.EQUITIES,
           "etf/xtrackers-ftse-100-short-daily-swap-etf-1c-lu0328473581", GlobalConstants.STOCK_EX_MIC_XETRA, 6023,
           "2000-01-04", "2023-12-08"));
-      hisoricalDate.add(new SecurityHistoricalDate("Lufthansa Aktie", "DE0008232125",
-          SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.EQUITIES,
-          "aktien/lufthansa-aktie@stBoerse_XETRA", GlobalConstants.STOCK_EX_MIC_XETRA, 6023,
-          "2000-01-04", "2023-12-08"));
-      hisoricalDate.add(new SecurityHistoricalDate("Deutschland, Bundesrepublik-Anleihe: 2,900% bis 15.08.2056", "DE000BU2D012",
-          SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME,
+      hisoricalDate.add(
+          new SecurityHistoricalDate("Lufthansa Aktie", "DE0008232125", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+              AssetclassType.EQUITIES, "aktien/lufthansa-aktie@stBoerse_XETRA", GlobalConstants.STOCK_EX_MIC_XETRA,
+              6023, "2000-01-04", "2023-12-08"));
+      hisoricalDate.add(new SecurityHistoricalDate("Deutschland, Bundesrepublik-Anleihe: 2,900% bis 15.08.2056",
+          "DE000BU2D012", SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME,
           "anleihen/bu2d01-deutschland-bundesrepublik-anleihe", GlobalConstants.STOCK_EX_MIC_FRANKFURT, 6023,
           "2000-01-04", "2023-12-08"));
 //    hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", "US6311011026",
@@ -54,8 +54,6 @@ class FinanzenNETFeedConnectorTest extends BaseFeedConnectorCheck {
     }
     return hisoricalDate;
   }
-
-
 
   @Override
   protected IFeedConnector getIFeedConnector() {

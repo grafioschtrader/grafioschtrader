@@ -8,18 +8,9 @@ import java.time.LocalDateTime;
  *
  */
 public enum DataTypeJava {
-  Boolean(boolean.class),
-  BooleanC(Boolean.class),
-  Byte(byte.class),
-  ByteC(Byte.class),
-  Double(double.class),
-  DoubleC(Double.class),
-  Integer(Integer.class),
-  IntegerC(Integer.class),
-  StringC(String.class),
-  LocalDate(LocalDate.class),
-  LocalDateTime(LocalDateTime.class),
-  UNKNOWN(null);
+  Boolean(boolean.class), BooleanC(Boolean.class), Byte(byte.class), ByteC(Byte.class), Double(double.class),
+  DoubleC(Double.class), Integer(Integer.class), IntegerC(Integer.class), StringC(String.class),
+  LocalDate(LocalDate.class), LocalDateTime(LocalDateTime.class), UNKNOWN(null);
 
   private final Class<?> targetClass;
 

@@ -26,13 +26,12 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
 /**
- * No regex check of the URL extension is performed. This is usually the ISIN,
- * but a URL such as "ARIVA:US631101102" is also possible. The connector has not
- * yet been checked for functioning URL extensions. The check of the connector
- * with the URL extension provides the expected response and is therefore used.
- * 
- * A maximum of 10 years with historical daily rates can be read in. However, a
- * longer period can be divided into several chunks.
+ * No regex check of the URL extension is performed. This is usually the ISIN, but a URL such as "ARIVA:US631101102" is
+ * also possible. The connector has not yet been checked for functioning URL extensions. The check of the connector with
+ * the URL extension provides the expected response and is therefore used.
+ *
+ * A maximum of 10 years with historical daily rates can be read in. However, a longer period can be divided into
+ * several chunks.
  */
 @Component
 public class XetraFeedConnector extends BaseFeedConnector {

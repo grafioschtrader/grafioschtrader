@@ -4,14 +4,12 @@ import grafiosch.common.DataHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Summary of securities grouped by currency. A single security account may
- * produce one or more instance of this class.
+ * Summary of securities grouped by currency. A single security account may produce one or more instance of this class.
  */
 public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSummary {
 
   /**
-   * The newest exchange rate form this currency to the main currency. It is not
-   * used for calculations.
+   * The newest exchange rate form this currency to the main currency. It is not used for calculations.
    */
   public double currencyExchangeRate;
 

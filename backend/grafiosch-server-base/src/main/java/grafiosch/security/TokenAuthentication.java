@@ -46,10 +46,9 @@ public abstract class TokenAuthentication {
       boolean passwordRegexOk);
 
   /**
-   * Adds the JWT to the HTTP header, this method is performed once after
-   * successful login. Configuration data is also returned. The data contains
-   * basic settings for the frontend.
-   * 
+   * Adds the JWT to the HTTP header, this method is performed once after successful login. Configuration data is also
+   * returned. The data contains basic settings for the frontend.
+   *
    * @param response
    * @param authentication
    * @param passwordRegexOk

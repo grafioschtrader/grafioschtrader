@@ -42,9 +42,8 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 
 /**
- * There is no regex pattern check for the URL. The URL check with connection
- * establishment can only be used for historical course data. For intraday,
- * response body is equal to an existing security with the value "NA".
+ * There is no regex pattern check for the URL. The URL check with connection establishment can only be used for
+ * historical course data. For intraday, response body is equal to an existing security with the value "NA".
  *
  */
 @Component
@@ -169,8 +168,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   }
 
   /**
-   * Date,Open,High,Low,Close,Adjusted_close,Volume
-   * 2021-02-01,300.95,301.5,299,300.65,300.65,8813
+   * Date,Open,High,Low,Close,Adjusted_close,Volume 2021-02-01,300.95,301.5,299,300.65,300.65,8813
    * 2021-02-02,302.15,306.55,302.15,305.85,305.85,4859
    */
   private Historyquote parseResponseLineItems(final String[] items, SimpleDateFormat dateFormat, double divider)

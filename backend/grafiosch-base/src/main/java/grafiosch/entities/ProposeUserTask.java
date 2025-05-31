@@ -13,12 +13,12 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
-@Schema(description="""
-These data change requests always affect the limits of a user. 
-Perhaps the user has reached a limit on the CUD operations of an information class or has 
-violated the number of requests per time unit too often, for example. 
-A corresponding user role can resolve this problem for this user.
-""")
+@Schema(description = """
+    These data change requests always affect the limits of a user.
+    Perhaps the user has reached a limit on the CUD operations of an information class or has
+    violated the number of requests per time unit too often, for example.
+    A corresponding user role can resolve this problem for this user.
+    """)
 @Entity
 @Table(name = ProposeUserTask.TABNAME)
 @DiscriminatorValue("U")
@@ -44,14 +44,14 @@ public class ProposeUserTask extends ProposeRequest {
   private Integer idTargetUser;
 
   @Schema(description = """
-          To which user role is the data change request addressed? 
-          Normally, this will be the role with the strongest user rights.""")
+      To which user role is the data change request addressed?
+      Normally, this will be the role with the strongest user rights.""")
   @Column(name = "id_role_to")
   private Integer idRoleTo;
 
-  @Schema(description="""
-  Enum constants for marking violations of a user against the limit for request
-  to client or the number of CUD operations on an information class.""")
+  @Schema(description = """
+      Enum constants for marking violations of a user against the limit for request
+      to client or the number of CUD operations on an information class.""")
   @Basic(optional = false)
   @Column(name = "user_task_type ")
   private byte userTaskType;

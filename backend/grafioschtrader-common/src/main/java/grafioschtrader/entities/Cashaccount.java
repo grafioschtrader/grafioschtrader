@@ -27,15 +27,21 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "A cash account needs a currency, hence ISO 4217 for currency designation.")
   @Basic(optional = false)
   @NotNull
   @ValidCurrencyCode
   private String currency;
 
+  @Schema(description = "In some cases, it is helpful to have direct access to the transactions.")
   @JsonIgnore
   @OneToMany(mappedBy = "cashaccount", fetch = FetchType.LAZY)
   private List<Transaction> transactionList;
 
+  @Schema(description = """
+      This 'Deposit' input field should only contain a value if there are multiple deposits within a tenant.
+      This prevents ambiguities in portfolio evaluations. Therefore, this assignment should be made if there
+      are multiple deposits and bank accounts with the same currency.""")
   @Column(name = "connect_id_securityaccount")
   private Integer connectIdSecurityaccount;
 

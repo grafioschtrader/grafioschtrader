@@ -1,6 +1,5 @@
 package grafiosch.dynamic.model;
 
-
 public enum DynamicFormPropertyHelps {
   // Input as percentage
   PERCENTAGE,

@@ -10,9 +10,8 @@ import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.Operation;
 
 /**
- * Delete a shared entity, that means the owner of the entity or an user with
- * the required privileges can delete it.
-
+ * Delete a shared entity, that means the owner of the entity or an user with the required privileges can delete it.
+ *
  * @param <T>
  */
 public abstract class UpdateCreateDeleteAuditResource<T extends BaseID<Integer>> extends UpdateCreateDeleteAudit<T> {

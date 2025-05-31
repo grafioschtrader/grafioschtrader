@@ -25,10 +25,9 @@ import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /**
- * This connector offers the Euro foreign exchange reference rates. This
- * connector differs from the others in that the historical price data is read
- * directly from the repository. Cross rates are calculated, e.g. for the
- * USD/CHF currency pair, the EUR/USD and EUR/CHF currency rates are used.
+ * This connector offers the Euro foreign exchange reference rates. This connector differs from the others in that the
+ * historical price data is read directly from the repository. Cross rates are calculated, e.g. for the USD/CHF currency
+ * pair, the EUR/USD and EUR/CHF currency rates are used.
  *
  * The check for an existing currency pair can be checked via the repository.
  */

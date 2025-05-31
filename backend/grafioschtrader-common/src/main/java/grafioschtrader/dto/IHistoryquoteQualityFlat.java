@@ -81,8 +81,7 @@ public interface IHistoryquoteQualityFlat {
   int getManualImported();
 
   /**
-   * Count of quotes filled via linear interpolation (create_type =
-   * FILLED_LINEAR).
+   * Count of quotes filled via linear interpolation (create_type = FILLED_LINEAR).
    *
    * @return number of linearly interpolated quotes
    */

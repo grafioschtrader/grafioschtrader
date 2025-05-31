@@ -146,8 +146,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.removeSecurityFromWatchlistAndDelete(idWatchlist, idSecuritycurrency));
   }
 
-  @Operation(summary = "Adding active instruments with price data problems. Both intraday and historical price data.",
-      description = "The watchlist must not yet contain any instruments.", tags = { Watchlist.TABNAME })
+  @Operation(summary = "Adding active instruments with price data problems. Both intraday and historical price data.", description = "The watchlist must not yet contain any instruments.", tags = {
+      Watchlist.TABNAME })
   @PatchMapping(value = "{idWatchlist}/pricedataproblems", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Watchlist> addInstrumentsWithPriceDataProblems(@PathVariable final Integer idWatchlist,
       @Valid @RequestBody final IntraHistoricalWatchlistProblem ihwp) {
@@ -223,12 +223,11 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
 
   @Operation(summary = "Return of a watchlist with the user-defined data.", tags = { Watchlist.TABNAME })
   @GetMapping(value = "/{idWatchlist}/udf", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<SecuritycurrencyUDFGroup> getWatchlistWithUDFData(
-      @PathVariable final Integer idWatchlist) throws InterruptedException, ExecutionException {
-    return new ResponseEntity<>(watchlistReport.getWatchlistWithUDFData(idWatchlist),
-        HttpStatus.OK);
+  public ResponseEntity<SecuritycurrencyUDFGroup> getWatchlistWithUDFData(@PathVariable final Integer idWatchlist)
+      throws InterruptedException, ExecutionException {
+    return new ResponseEntity<>(watchlistReport.getWatchlistWithUDFData(idWatchlist), HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Returns the content of a watchlist which includes if the security has ever have splits or dividends", description = "", tags = {
       Watchlist.TABNAME })
   @GetMapping(value = "/{idWatchlist}/dividendsplit", produces = APPLICATION_JSON_VALUE)
@@ -239,7 +238,7 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
 
   @Operation(summary = """
       The data sources with API keys are only delivered to the frontend for administrators.
-      All other users must use the following functionality. The content is created in the backend and returned to the user in the frontend. 
+      All other users must use the following functionality. The content is created in the backend and returned to the user in the frontend.
       In this case, either historical or intraday price data.""", tags = {
       Watchlist.TABNAME })
   @GetMapping(value = RequestGTMappings.SECURITY_DATAPROVIDER_INTRA_HISTORICAL_RESPONSE + "{idSecuritycurrency}")
@@ -248,23 +247,23 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
       @Parameter(description = "True when whenn security, false for currency", required = true) @RequestParam() final boolean isSecurity) {
     return watchlistJpaRepository.getDataProviderResponseForUser(idSecuritycurrency, isIntraday, isSecurity);
   }
-  
+
   @Operation(summary = """
-     The creation of a download link for historical or intraday data can take a long time,
-     as the data source is contacted during the creation process.
-     In this case, the download link is only created if the user requests it in the frontend.""", tags = {
+      The creation of a download link for historical or intraday data can take a long time,
+      as the data source is contacted during the creation process.
+      In this case, the download link is only created if the user requests it in the frontend.""", tags = {
       Watchlist.TABNAME })
   @GetMapping(value = "/dataproviderlink/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<String> getDataProviderLinkForUser(@PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "True when for intraday otherwise false", required = true) @RequestParam() final boolean isIntraday,
       @Parameter(description = "True when whenn security, false for currency", required = true) @RequestParam() final boolean isSecurity) {
-    return new ResponseEntity<>(watchlistJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday, isSecurity),
-        HttpStatus.OK);
+    return new ResponseEntity<>(
+        watchlistJpaRepository.getDataProviderLinkForUser(idSecuritycurrency, isIntraday, isSecurity), HttpStatus.OK);
   }
-  
+
   @Operation(summary = """
       The data sources with API keys are only delivered to the frontend for administrators.
-      All other users must use the following functionality. The content is created in the backend and returned to the user in the frontend. 
+      All other users must use the following functionality. The content is created in the backend and returned to the user in the frontend.
       In this case, either splits or dividends.""", tags = {
       Watchlist.TABNAME })
   @GetMapping(value = RequestGTMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE + "{idSecuritycurrency}")

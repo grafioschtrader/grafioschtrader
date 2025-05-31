@@ -98,12 +98,10 @@ public class ImportProperties {
    */
   private Double tc2;
 
-
   /**
    * This amount is deducted from the transaction costs
    */
   private Double reduce;
-
 
   /**
    * Transaction Tax 1

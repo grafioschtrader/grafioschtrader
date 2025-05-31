@@ -21,8 +21,8 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
   public GTNetMessage getMessageAnswerBy(GTNet myGTNet, GTNet remoteGTNet, MessageEnvelope meRequest) {
     GTNetMessage gtNetMessageAnw = new GTNetMessage();
     Optional<GTNetMessageAnswer> messageAnswerOpt = gtNetMessageAnswerJpaRepository.findById(meRequest.messageCode);
-    if(messageAnswerOpt.isEmpty()) {
-      if(meRequest.messageCode == GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S.getValue()) {
+    if (messageAnswerOpt.isEmpty()) {
+      if (meRequest.messageCode == GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S.getValue()) {
 
       }
     }

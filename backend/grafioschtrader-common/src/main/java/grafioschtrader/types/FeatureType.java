@@ -1,8 +1,8 @@
 package grafioschtrader.types;
 
 /**
- * Certain functionality is only partially implemented. Therefore, this should
- * not be visible in the frontend. This can be switched on or off.
+ * Certain functionality is only partially implemented. Therefore, this should not be visible in the frontend. This can
+ * be switched on or off.
  */
 public enum FeatureType {
   // Real-time data transmission. For example, the transmission of stock prices

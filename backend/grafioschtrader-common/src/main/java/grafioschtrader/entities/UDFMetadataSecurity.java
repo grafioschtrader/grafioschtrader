@@ -38,9 +38,9 @@ public class UDFMetadataSecurity extends UDFMetadata {
 
   public UDFMetadataSecurity() {
   }
-  
-  public UDFMetadataSecurity(long categoryTypes, long specialInvestmentInstruments, Integer idUser, Byte udfSpecialType, String description,
-      String descriptionHelp, UDFDataType udfDataType, String fieldSize, byte uiOrder) {
+
+  public UDFMetadataSecurity(long categoryTypes, long specialInvestmentInstruments, Integer idUser, Byte udfSpecialType,
+      String description, String descriptionHelp, UDFDataType udfDataType, String fieldSize, byte uiOrder) {
     super(idUser, udfSpecialType, description, descriptionHelp, udfDataType.getValue(), fieldSize, uiOrder);
     this.categoryTypes = categoryTypes;
     this.specialInvestmentInstruments = specialInvestmentInstruments;
@@ -82,9 +82,9 @@ public class UDFMetadataSecurity extends UDFMetadata {
   @Override
   public String toString() {
     return "UDFMetadataSecurity [categoryTypes=" + categoryTypes + ", specialInvestmentInstruments="
-        + specialInvestmentInstruments + ", idUser=" + idUser + ", udfSpecialType=" + udfSpecialType
-        + ", description=" + description + ", descriptionHelp=" + descriptionHelp + ", udfDataType=" + udfDataType
-        + ", fieldSize=" + fieldSize + ", uiOrder=" + uiOrder + "]";
+        + specialInvestmentInstruments + ", idUser=" + idUser + ", udfSpecialType=" + udfSpecialType + ", description="
+        + description + ", descriptionHelp=" + descriptionHelp + ", udfDataType=" + udfDataType + ", fieldSize="
+        + fieldSize + ", uiOrder=" + uiOrder + "]";
   }
 
 }

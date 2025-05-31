@@ -14,15 +14,14 @@ import grafioschtrader.types.CreateType;
 public abstract class DividendSplitsHelper {
 
   /**
-   * Splits or dividends are only added if they are not already present in the
-   * database. The distinction is made by the date of the event, e.g. split date
-   * or ex-date for dividends.
+   * Splits or dividends are only added if they are not already present in the database. The distinction is made by the
+   * date of the event, e.g. split date or ex-date for dividends.
    *
    * @param <S>
-   * @param security The security concerned
-   * @param dividendSplitsRead Splits or dividends that may be added.
+   * @param security                The security concerned
+   * @param dividendSplitsRead      Splits or dividends that may be added.
    * @param existingDividendsSplits Split or dividend of persistence
-   * @param jpaRepository Repository for saving to the persistence.
+   * @param jpaRepository           Repository for saving to the persistence.
    * @return The new dividends or splits saved on the persistency.
    */
   public static <S extends DividendSplit> List<S> updateDividendSplitData(Security security, List<S> dividendSplitsRead,

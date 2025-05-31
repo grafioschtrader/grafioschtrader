@@ -15,8 +15,8 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Currencypair;
 
 /**
- * Die instance is filled with the currency data. Reports which calculate in the
- * main currency use this class to access the history of currency conversion.
+ * Die instance is filled with the currency data. Reports which calculate in the main currency use this class to access
+ * the history of currency conversion.
  *
  */
 public class DateTransactionCurrencypairMap {
@@ -45,18 +45,12 @@ public class DateTransactionCurrencypairMap {
 
   /**
    *
-   * @param mainCurrency                               Main currency of the tenant
-   *                                                   or porfolio
-   * @param untilDate                                  Latest day which is
-   *                                                   included in the report
-   * @param dateTransactionCurrency                    Expect close price with
-   *                                                   date for each day where a
-   *                                                   transaction with the no
-   *                                                   main currency is happened
-   * @param currencypairs                              Used currency pairs by the
-   *                                                   tenant or portfolio, get
-   *                                                   the the last price but
-   *                                                   history quote.
+   * @param mainCurrency                               Main currency of the tenant or porfolio
+   * @param untilDate                                  Latest day which is included in the report
+   * @param dateTransactionCurrency                    Expect close price with date for each day where a transaction
+   *                                                   with the no main currency is happened
+   * @param currencypairs                              Used currency pairs by the tenant or portfolio, get the the last
+   *                                                   price but history quote.
    * @param hasTradingDaysBetweenUntilDateAndYesterday
    * @param useUntilDateForFeeAndInterest
    */
@@ -110,8 +104,7 @@ public class DateTransactionCurrencypairMap {
   }
 
   /**
-   * Search a target currency to the main currency for a certain date and returns
-   * the exchange rate.
+   * Search a target currency to the main currency for a certain date and returns the exchange rate.
    */
   public Double getPriceByDateAndFromCurrency(Date date, String fromCurrency, boolean requried) {
 
@@ -133,9 +126,9 @@ public class DateTransactionCurrencypairMap {
     searchDateCurrency.date = date;
     searchDateCurrency.fromCurrency = fromCurrency;
     Double closePrice = dateFromCurrencyMap.get(searchDateCurrency);
-    if (closePrice == null && (!hasTradingDaysBetweenUntilDateAndYesterday
-        && DateHelper.getDateDiff(date, untilDate, TimeUnit.DAYS) <= 1
-        || untilDate.after(new Date()))) {
+    if (closePrice == null
+        && (!hasTradingDaysBetweenUntilDateAndYesterday && DateHelper.getDateDiff(date, untilDate, TimeUnit.DAYS) <= 1
+            || untilDate.after(new Date()))) {
       closePrice = getClosePriceFromLastPrice(date, fromCurrency);
     }
 
@@ -143,8 +136,8 @@ public class DateTransactionCurrencypairMap {
   }
 
   /**
-   * Sometimes prices near the actual date are missing, because there were no
-   * recently updates. In this case take the actual price from currency pair.
+   * Sometimes prices near the actual date are missing, because there were no recently updates. In this case take the
+   * actual price from currency pair.
    *
    * @param fromCurrency
    * @return

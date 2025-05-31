@@ -74,8 +74,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   /**
-   * Probably this method will never be called because it will always return HTTP
-   * status code 200
+   * Probably this method will never be called because it will always return HTTP status code 200
    */
   @Override
   public String hideApiKeyForError(String url) {

@@ -22,18 +22,16 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
   public double unitsAtEndOfYear = 0.0;
 
   /**
-   * For the correct calculation of units at the end of the year, there must have
-   * been at least one purchase or sale transaction. Otherwise, the split factor
-   * must be calculated over the given year. This is then multiplied by the units
-   * at the end of the previous year.
+   * For the correct calculation of units at the end of the year, there must have been at least one purchase or sale
+   * transaction. Otherwise, the split factor must be calculated over the given year. This is then multiplied by the
+   * units at the end of the previous year.
    */
   @JsonIgnore
   public boolean hasAccumulateReduce = false;
 
   /**
-   * The year-end price from the historical price data of a security in the past
-   * is changed by subsequent splits. To get the original price, the split factor
-   * must be entered from this date.
+   * The year-end price from the historical price data of a security in the past is changed by subsequent splits. To get
+   * the original price, the split factor must be entered from this date.
    */
   @JsonIgnore
   public Double splitFactorAfter;

@@ -131,7 +131,7 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
     final Quotes quotes = objectMapper.readValue(new URI(url).toURL(), Quotes.class);
     for (int i = 0; i < quotes.datetimeLast.length; i++) {
       Date date = DateHelper.setTimeToZeroAndAddDay(new Date(quotes.datetimeLast[i] * 1000), 0);
-      if(!to.before(date)) {
+      if (!to.before(date)) {
         final Historyquote historyquote = new Historyquote();
         historyquotes.add(historyquote);
         historyquote.setDate(date);

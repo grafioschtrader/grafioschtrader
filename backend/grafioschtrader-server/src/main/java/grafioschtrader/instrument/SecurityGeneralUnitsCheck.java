@@ -16,9 +16,8 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.types.TransactionType;
 
 /**
- * For stocks, bond, ETF a check for units is executed. In this way it is not
- * possible does units gets less than zero or dividend is paid for non existing
- * units.
+ * For stocks, bond, ETF a check for units is executed. In this way it is not possible does units gets less than zero or
+ * dividend is paid for non existing units.
  *
  */
 public class SecurityGeneralUnitsCheck {

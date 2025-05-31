@@ -42,7 +42,7 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
     for (final SecurityPositionSummary securityPositionSummary : securityPositionSummaryList) {
       Security security = securityPositionSummary.getSecurity();
 
-      if(security.getIdSecuritycurrency() < 0 && securityPositionSummary.valueSecurity == 0) {
+      if (security.getIdSecuritycurrency() < 0 && securityPositionSummary.valueSecurity == 0) {
         continue;
       }
       double currencyExchangeRate = (security.getCurrency().equals(dateCurrencyMap.getMainCurrency())) ? 1.0

@@ -30,10 +30,9 @@ import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.ProgressStateType;
 
 /**
- * One thread is started, which sequentially starts another thread per task. For
- * a task a timeout can be set, this preferably with threads with the
- * possibility of an endless run exists. This continues to run and becomes a
- * zombie but does not hinder the start of new tasks.
+ * One thread is started, which sequentially starts another thread per task. For a task a timeout can be set, this
+ * preferably with threads with the possibility of an endless run exists. This continues to run and becomes a zombie but
+ * does not hinder the start of new tasks.
  *
  */
 @Component
@@ -110,8 +109,8 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
         Thread.sleep(WAIT_MILISECONDS_AFTER_TIMEOUT);
         if (workerThread.isAlive()) {
           finishedJob(taskDataChange, startTime, ProgressStateType.PROG_ZOMBIE);
-          applicationEventPublisher.publishEvent(
-              new AlertEvent(this, AlertBaseType.ALERT_GET_ZOMBIE_BACKGROUND_JOB, taskDataChange.getIdTaskDataChange()));
+          applicationEventPublisher.publishEvent(new AlertEvent(this, AlertBaseType.ALERT_GET_ZOMBIE_BACKGROUND_JOB,
+              taskDataChange.getIdTaskDataChange()));
         }
       }
     }
@@ -131,9 +130,8 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
       if (tbe.getErrorMsgOfSystem() != null) {
         StringBuilder failure = new StringBuilder("");
         tbe.getErrorMsgOfSystem().forEach(m -> failure.append(m.toString() + BaseConstants.NEW_LINE));
-        taskDataChange
-            .setFailedStackTrace(failure.toString().substring(0, Math.min(failure.length(), 
-                TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE)));
+        taskDataChange.setFailedStackTrace(
+            failure.toString().substring(0, Math.min(failure.length(), TaskDataChange.MAX_SIZE_FAILED_STRACK_TRACE)));
       }
       taskDataChange.setFailedMessageCode(tbe.getErrorMessagesKey());
       if (tbe.isRollback()) {
@@ -170,15 +168,13 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     taskDataChangeRepository.save(taskDataChange);
   }
 
-  
   public void removeOtherSameJobs(final ITask task) {
     if (task.removeAllOtherJobsOfSameTask()) {
       taskDataChangeRepository.removeByIdTaskAndProgressStateType(task.getTaskType().getValue(),
           ProgressStateType.PROG_WAITING.getValue());
     }
   }
-  
-  
+
   @Override
   public void destroy() {
     runningLoop = false;

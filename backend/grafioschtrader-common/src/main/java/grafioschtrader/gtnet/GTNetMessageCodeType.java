@@ -1,11 +1,11 @@
 package grafioschtrader.gtnet;
 
 /**
- * Enums ending with C are intended for communication triggering by the client.
- * Enums ending with S are intended as a response from the server.
+ * Enums ending with C are intended for communication triggering by the client. Enums ending with S are intended as a
+ * response from the server.
  *
- * Enums containing a _SEL_ are applied to the remote server.
- * Enums that have an _ALL_ will be applied to all remote servers that are affected.
+ * Enums containing a _SEL_ are applied to the remote server. Enums that have an _ALL_ will be applied to all remote
+ * servers that are affected.
  *
  */
 public enum GTNetMessageCodeType {
@@ -14,9 +14,9 @@ public enum GTNetMessageCodeType {
 
   // Remote server wants to exchange data with this server, permission must be granted to do so
   GT_NET_FIRST_HANDSHAKE_S((byte) 1),
-  //The requested server accepts the connection
+  // The requested server accepts the connection
   GT_NET_FIRST_HANDSHAKE_ACCEPT_S((byte) 2),
-    // The requested server refuses connection
+  // The requested server refuses connection
   GT_NET_FIRST_HANDSHAKE_REJECT_S((byte) 3),
 
   // Update server list
@@ -26,7 +26,7 @@ public enum GTNetMessageCodeType {
   // Request for server list is rejected
   GT_NET_UPDATE_SERVERLIST_REJECTED_S((byte) 12),
   // My server list may no longer be queried (revoke)
-  GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C ((byte) 13),
+  GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C((byte) 13),
 
   // Request for intraday data
   GT_NET_LASTPRICE_REQUEST_SEL_C((byte) 20),
@@ -37,7 +37,7 @@ public enum GTNetMessageCodeType {
   // Request for intraday data is rejected
   GT_NET_LASTPRICE_REQUEST_REJECTED_S((byte) 23),
   // =Exchange intraday data is canceled
-  GT_NET_LASTPRICE_REVOKE_SEL_C ((byte) 24),
+  GT_NET_LASTPRICE_REVOKE_SEL_C((byte) 24),
 
   // Request for entity data
   GT_NET_ENTITY_REQUEST_SEL_C((byte) 30),
@@ -65,7 +65,6 @@ public enum GTNetMessageCodeType {
   GT_NET_MAINTENANCE_ALL_C((byte) 50),
   // Server operation will be discontinued as of this date.
   GT_NET_OPERATION_DISCONTINUED_ALL_C((byte) 51);
-
 
   private final byte value;
 

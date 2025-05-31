@@ -46,8 +46,8 @@ import jakarta.validation.constraints.NotNull;
     }
 )
 @NamedNativeQuery(name="UDFData.getUdfDataResult", query="""
-        SELECT ud.id_entity idSecurity, ud.json_values jsonValues FROM udf_data ud JOIN security s ON 
-        ud.id_entity = s.id_securitycurrency JOIN watchlist_sec_cur w ON s.id_securitycurrency = w.id_securitycurrency 
+        SELECT ud.id_entity idSecurity, ud.json_values jsonValues FROM udf_data ud JOIN security s ON
+        ud.id_entity = s.id_securitycurrency JOIN watchlist_sec_cur w ON s.id_securitycurrency = w.id_securitycurrency
         WHERE w.id_watchlist = ?1 AND ud.id_user = ?2 AND ud.entity = ?3 ORDER BY s.id_securitycurrency""", resultSetMapping="udfDataResult")
 */
 @Schema(description = "The data for the user defined fields are persisted into this entity. The JSON support of MaraDB provides the necessary flexibility.")
@@ -62,14 +62,14 @@ public class UDFData {
 
   @Schema(description = "Storage of a map in JSON. This gives us great flexibility. The idUDFMetadata with the prefix 'F' is used as the key.")
   @Type(JsonType.class)
-  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   private Map<String, Object> jsonValues;
 
   public static List<Class<?>> UDF_GENERAl_AND_SPECIAL_ENTITIES = new ArrayList<>();
 
   /**
-   * Which entities can be extended with user-defined fields? Some entities has a
-   * specific implementation and is not listed here.
+   * Which entities can be extended with user-defined fields? Some entities has a specific implementation and is not
+   * listed here.
    */
   public static final List<Class<?>> UDF_GENERAL_ENTITIES = new ArrayList<>();
 
@@ -108,7 +108,7 @@ public class UDFData {
         it.remove();
       } else {
         if (udfMetadata.getUdfDataType() != UDFDataType.UDF_Boolean) {
-          if(UDFDataHelper.isFieldSizeForDataType(udfMetadata.getUdfDataType())) {
+          if (UDFDataHelper.isFieldSizeForDataType(udfMetadata.getUdfDataType())) {
             checkDataWithFiledSizeTypes(udfMetadata, (String) entry.getValue());
           } else {
             checkDataWithoutFieldSize(udfMetadata, (String) entry.getValue());

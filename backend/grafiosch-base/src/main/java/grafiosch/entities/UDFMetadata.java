@@ -24,17 +24,17 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = """
-An instance corresponds to an input or output field.  A meta description is required for the user defined fields.
-This is the general description of this metadata.""")
+    An instance corresponds to an input or output field.  A meta description is required for the user defined fields.
+    This is the general description of this metadata.""")
 @Entity
 @Table(name = UDFMetadata.TABNAME)
 @Inheritance(strategy = JOINED)
 public abstract class UDFMetadata extends UserBaseID {
 
   public static final String TABNAME = "udf_metadata";
-  
+
   public static final EnumRegistry<Byte, IUDFSpecialType> UDF_SPECIAL_TYPE_REGISTRY = new EnumRegistry<>();
-  
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_udf_metadata")
@@ -90,7 +90,7 @@ public abstract class UDFMetadata extends UserBaseID {
 
   public UDFMetadata() {
   }
-    
+
   public UDFMetadata(@NotNull Integer idUser, Byte udfSpecialType, @NotNull String description, String descriptionHelp,
       @NotNull byte udfDataType, @Pattern(regexp = "-?[0-9]+,-?[0-9]+") @Size(min = 3, max = 20) String fieldSize,
       @NotNull byte uiOrder) {
@@ -103,7 +103,6 @@ public abstract class UDFMetadata extends UserBaseID {
     this.fieldSize = fieldSize;
     this.uiOrder = uiOrder;
   }
-
 
   @Override
   public Integer getIdUser() {
@@ -119,7 +118,7 @@ public abstract class UDFMetadata extends UserBaseID {
   public Byte getUdfSpecialTypeAsByte() {
     return udfSpecialType;
   }
-  
+
   public IUDFSpecialType getUdfSpecialType() {
     return udfSpecialType == null ? null : UDF_SPECIAL_TYPE_REGISTRY.getTypeByValue(udfSpecialType);
   }
@@ -189,8 +188,7 @@ public abstract class UDFMetadata extends UserBaseID {
   }
 
   /**
-   * Return of the format (P,S) in real values. A calculation is only required for
-   * the format of a decimal number.
+   * Return of the format (P,S) in real values. A calculation is only required for the format of a decimal number.
    */
   @JsonIgnore
   public Double[] getFieldLength() {
@@ -211,7 +209,7 @@ public abstract class UDFMetadata extends UserBaseID {
     }
     return minMaxValue;
   }
- 
+
   public void checkFieldSize() {
     if (UDFDataHelper.isFieldSizeForDataType(getUdfDataType())) {
       int[] prefixSuffix = getPrefixAndSuffix(getFieldSize());
@@ -226,9 +224,9 @@ public abstract class UDFMetadata extends UserBaseID {
   }
 
   /**
-   * Checks the format of a decimal number against a default. The digits before
-   * and after the decimal point and the total length are checked.
-   * 
+   * Checks the format of a decimal number against a default. The digits before and after the decimal point and the
+   * total length are checked.
+   *
    * @param prefixSuffix
    */
   private void checkDoublePrecision(int[] prefixSuffix) {

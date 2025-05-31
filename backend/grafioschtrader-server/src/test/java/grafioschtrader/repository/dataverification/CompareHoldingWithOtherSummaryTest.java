@@ -24,10 +24,9 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.helper.GroupPortfolio;
 
 /**
- * In GT there are two different ways to calculate the long term performance.
- * One calculates it from first day until a certain day. The second method uses
- * holding tables, this way it may be faster. But the holding tables have a
- * small risk to get outdated.
+ * In GT there are two different ways to calculate the long term performance. One calculates it from first day until a
+ * certain day. The second method uses holding tables, this way it may be faster. But the holding tables have a small
+ * risk to get outdated.
  */
 
 @Transactional
@@ -44,7 +43,6 @@ class CompareHoldingWithOtherSummaryTest {
 
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
-
 
   @Test
   @Disabled
@@ -105,12 +103,12 @@ class CompareHoldingWithOtherSummaryTest {
       error++;
     }
     if (Math.abs(accountPositionGrandSummary.grandCashBalanceMC - top.getCashBalanceMC()) > 0.04) {
-      System.err.println("Date: " + date + " Value of Cash balance A:"
-          + accountPositionGrandSummary.grandCashBalanceMC + " H:" + top.getCashBalanceMC() + " Differenz:"
+      System.err.println("Date: " + date + " Value of Cash balance A:" + accountPositionGrandSummary.grandCashBalanceMC
+          + " H:" + top.getCashBalanceMC() + " Differenz:"
           + (accountPositionGrandSummary.grandCashBalanceMC - top.getCashBalanceMC()));
       error++;
     }
-    
+
     if (error == 0) {
       System.out.println("Date: " + date);
     }

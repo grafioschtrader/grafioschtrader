@@ -19,10 +19,10 @@ import grafiosch.entities.User;
 
 public class UDFMetadataGeneralJpaRepositoryImpl extends UDFMetadataBase<UDFMetadataGeneral>
     implements UDFMetadataGeneralJpaRepositoryCustom {
- 
+
   @Autowired
   private UDFMetadataGeneralJpaRepository uMetaRepository;
-  
+
   @Override
   public UDFMetadataGeneral saveOnlyAttributes(final UDFMetadataGeneral uDFMetadataGeneral,
       final UDFMetadataGeneral existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)

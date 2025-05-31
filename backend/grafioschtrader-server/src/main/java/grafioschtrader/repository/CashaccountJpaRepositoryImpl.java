@@ -47,7 +47,6 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
     return cashaccountJpaRepository.save(createEditCashaccount);
   }
 
-
   @Override
   public int delEntityWithTenant(Integer id, Integer idTenant) {
     return cashaccountJpaRepository.deleteCashaccount(id, idTenant);

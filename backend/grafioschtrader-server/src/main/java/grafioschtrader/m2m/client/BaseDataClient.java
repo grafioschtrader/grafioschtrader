@@ -16,9 +16,9 @@ import reactor.netty.http.client.HttpClient;
 public class BaseDataClient {
 
   public ApplicationInfo getActuatorInfo(String domainName) {
-    return getWebClientForDomain(domainName).get().uri(uriBuilder -> uriBuilder
-    .path(RequestGTMappings.ACTUATOR_MAP + "/info").build())
-    .retrieve().bodyToMono(ApplicationInfo.class).block();
+    return getWebClientForDomain(domainName).get()
+        .uri(uriBuilder -> uriBuilder.path(RequestGTMappings.ACTUATOR_MAP + "/info").build()).retrieve()
+        .bodyToMono(ApplicationInfo.class).block();
   }
 
   public MessageEnvelope sendToMsg(String tokenRemote, String targetDomain, MessageEnvelope messageEnvelope) {
@@ -34,10 +34,7 @@ public class BaseDataClient {
       spec.disableRecursionDesired(false);
     });
 
-    return WebClient.builder()
-    .clientConnector(new ReactorClientHttpConnector(httpClient))
-    .baseUrl(domainName)
-    .build();
+    return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient)).baseUrl(domainName).build();
   }
 
 }

@@ -54,23 +54,19 @@ public abstract class ReportHelper {
   }
 
   /**
-   * Loads closing price data for a list of securities, optionally adjusted into a
-   * single target currency, over a given date range and sampling period. This
-   * ensures that the prices of all transferred securities are always available
-   * for each date.
+   * Loads closing price data for a list of securities, optionally adjusted into a single target currency, over a given
+   * date range and sampling period. This ensures that the prices of all transferred securities are always available for
+   * each date.
    *
    * @param jdbcTemplate              the Spring JDBC template to execute queries
-   * @param currencypairJpaRepository repository to fetch currency‐pair conversion
-   *                                  info
+   * @param currencypairJpaRepository repository to fetch currency‐pair conversion info
    * @param securitycurrencyList      list of security‐currency entities to load
    * @param samplingPeriod            daily, monthly, or annual sampling
    * @param dateFrom                  inclusive lower bound for dates
    * @param dateTo                    exclusive upper bound for dates
-   * @param adjustToSingleCurrency    If true, the currency pairs that allow
-   *                                  normalization to a currency are also added
+   * @param adjustToSingleCurrency    If true, the currency pairs that allow normalization to a currency are also added
    *                                  to the query
-   * @return a ClosePricesCurrencyClose wrapping a date→prices map and any
-   *         currency‐conversion info
+   * @return a ClosePricesCurrencyClose wrapping a date→prices map and any currency‐conversion info
    */
   public static ClosePricesCurrencyClose loadCloseData(JdbcTemplate jdbcTemplate,
       CurrencypairJpaRepository currencypairJpaRepository, List<Securitycurrency<?>> securitycurrencyList,

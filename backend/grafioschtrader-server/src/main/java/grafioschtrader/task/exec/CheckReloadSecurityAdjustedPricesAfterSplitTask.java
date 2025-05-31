@@ -21,9 +21,8 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * If a split is added for a security, it may take a few days for the adjusted
- * historical price data to be available from the data provider. This task is
- * therefore repeated until the historical price data for the security has been
+ * If a split is added for a security, it may take a few days for the adjusted historical price data to be available
+ * from the data provider. This task is therefore repeated until the historical price data for the security has been
  * successfully imported.
  */
 @Component
@@ -61,7 +60,8 @@ public class CheckReloadSecurityAdjustedPricesAfterSplitTask implements ITask {
       List<Securitysplit> securitysplits = securitysplitJpaRepository
           .findByIdSecuritycurrencyOrderBySplitDateAsc(security.getIdSecuritycurrency());
       if (!securitysplits.isEmpty()) {
-        securitysplitJpaRepository.historicalDataUpdateWhenAdjusted(security, securitysplits, Optional.empty(), true, true);
+        securitysplitJpaRepository.historicalDataUpdateWhenAdjusted(security, securitysplits, Optional.empty(), true,
+            true);
       }
     } catch (final Exception ex) {
       log.error(ex.getMessage() + " " + security, ex);

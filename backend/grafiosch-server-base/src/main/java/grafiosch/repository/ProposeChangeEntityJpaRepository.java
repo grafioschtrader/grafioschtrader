@@ -18,8 +18,7 @@ public interface ProposeChangeEntityJpaRepository extends JpaRepository<ProposeC
   List<ProposeChangeEntity> findByIdOwnerEntityAndDataChangeState(Integer idOwnerEntity, byte dateChangeState);
 
   /**
-   * Usage of this delete statement because of cascade delete in database and only
-   * unidirectional mapping
+   * Usage of this delete statement because of cascade delete in database and only unidirectional mapping
    */
   @Override
   @UpdateQuery(value = "DELETE FROM propose_request WHERE id_propose_request = ?1", nativeQuery = true)

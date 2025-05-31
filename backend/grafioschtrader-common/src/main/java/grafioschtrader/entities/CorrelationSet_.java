@@ -20,7 +20,7 @@ public abstract class CorrelationSet_ {
   public static volatile SingularAttribute<CorrelationSet, LocalDate> dateFrom;
   public static volatile SingularAttribute<CorrelationSet, LocalDate> dateTo;
   public static volatile ListAttribute<CorrelationSet, Securitycurrency<?>> securitycurrencyList;
-  public static volatile SingularAttribute<CorrelationSet, Boolean>adjustCurrency;
+  public static volatile SingularAttribute<CorrelationSet, Boolean> adjustCurrency;
 
   public static final String ID_TENANT = "idTenant";
   public static final String NOTE = "note";

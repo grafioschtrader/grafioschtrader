@@ -15,8 +15,7 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Calculate a the security risk and gain/loss of standard investing products
- * like bond, stock, etc.
+ * Calculate a the security risk and gain/loss of standard investing products like bond, stock, etc.
  */
 public class SecurityGeneralCalc extends SecurityBaseCalc {
 
@@ -64,9 +63,8 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   }
 
   /**
-   * If a bond or convertible bond, the accrued interest can be recognized on the
-   * purchase or sale transaction. This method maps this amount to a separate
-   * transaction.
+   * If a bond or convertible bond, the accrued interest can be recognized on the purchase or sale transaction. This
+   * method maps this amount to a separate transaction.
    */
   void createAccruedInterestPostion(final Security security, final TransactionType requiredTransactionTypeTransaction,
       final Transaction transaction, final SecurityTransactionSummary securityTransactionSummary,
@@ -175,7 +173,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
         / (ctp.unitsSplited / securityPositionSummary.units * securityPositionSummary.adjustedCostBase) * 100.0;
 
     securityPositionSummary.adjustedCostBase -= acb;
-    
+
     securityPositionSummary.units -= ctp.unitsSplited;
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
 

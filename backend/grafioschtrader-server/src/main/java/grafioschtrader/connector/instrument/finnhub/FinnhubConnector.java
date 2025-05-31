@@ -42,7 +42,6 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private final static String TOKEN_PARAM_NAME = "token";
-  
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -81,7 +80,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   private String getTokenParam() {
     return "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
   }
-  
+
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
@@ -131,8 +130,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   public String hideApiKeyForError(String url) {
     return standardApiKeyReplacementForErrors(url, TOKEN_PARAM_NAME);
   }
-  
-  
+
   @Override
   public <S extends Securitycurrency<S>> void hasAPISubscriptionSupport(Securitycurrency<S> securitycurrency,
       FeedSupport feedSupport) {

@@ -57,8 +57,6 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
     return hisoricalDate;
   }
 
-  
-
   // Currency pair price tests
   // =======================================
   @Test

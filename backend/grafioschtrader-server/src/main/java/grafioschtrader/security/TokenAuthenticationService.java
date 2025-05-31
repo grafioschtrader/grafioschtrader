@@ -58,9 +58,9 @@ public class TokenAuthenticationService extends TokenAuthentication {
 
   static class ConfigurationWithLoginGT extends ConfigurationWithLogin {
     /**
-     * Certain functionality is only partially implemented. Therefore, this should
-     * not be visible in the frontend. This can be switched on or off
-     * 
+     * Certain functionality is only partially implemented. Therefore, this should not be visible in the frontend. This
+     * can be switched on or off
+     *
      */
     public Set<FeatureType> useFeatures;
     public static final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;

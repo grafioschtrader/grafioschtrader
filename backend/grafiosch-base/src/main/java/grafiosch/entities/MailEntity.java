@@ -22,10 +22,10 @@ import jakarta.validation.constraints.NotNull;
 
 /**
  */
-@Schema(description="""
- Certain messages are created by the system. For example, if a client still
- has an open position on an inactive instrument. It must be excluded that such
- a message is sent more than once.""")
+@Schema(description = """
+    Certain messages are created by the system. For example, if a client still
+    has an open position on an inactive instrument. It must be excluded that such
+    a message is sent more than once.""")
 @Entity
 @Table(name = MailEntity.TABNAME)
 @EntityListeners(AuditingEntityListener.class)
@@ -97,7 +97,7 @@ public class MailEntity extends BaseID<Integer> {
     this.messageComType = messageComType.getValue();
   }
 
-  //Change the setter to accept a String from the JSON payload.
+  // Change the setter to accept a String from the JSON payload.
   @JsonSetter("messageComType")
   public void setMessageComType(String messageComTypeName) {
     IMessageComType messageComType = MESSAGE_COM_TYPES_REGISTRY.getTypeByName(messageComTypeName);

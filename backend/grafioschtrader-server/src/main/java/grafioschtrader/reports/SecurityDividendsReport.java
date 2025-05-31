@@ -40,11 +40,10 @@ import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Creates the objects for a "report" which is grouped by year. It includes all
- * transaction. The main purpose is the sum off dividends and interest by year.
+ * Creates the objects for a "report" which is grouped by year. It includes all transaction. The main purpose is the sum
+ * off dividends and interest by year.
  *
- * Attention: This class should not have a member variable, because there exist
- * only one instance.
+ * Attention: This class should not have a member variable, because there exist only one instance.
  *
  */
 @Component
@@ -128,14 +127,12 @@ public class SecurityDividendsReport {
   }
 
   /**
-   * Collects all transactions from the given cash accounts that either have no
-   * security-account ID or whose security-account ID is in the provided list, and
-   * whose type is at most FINANCE_COST. The results are sorted in ascending order
-   * by transaction date.
+   * Collects all transactions from the given cash accounts that either have no security-account ID or whose
+   * security-account ID is in the provided list, and whose type is at most FINANCE_COST. The results are sorted in
+   * ascending order by transaction date.
    *
    * @param cashAccounts       the cash accounts to scan (must not be null)
-   * @param idsSecurityaccount the security-account IDs to include (if empty, all
-   *                           IDs are allowed)
+   * @param idsSecurityaccount the security-account IDs to include (if empty, all IDs are allowed)
    * @return a list of matching transactions, sorted by date (oldest first)
    */
   private List<Transaction> getTransactions(Collection<Cashaccount> cashAccounts,
@@ -210,8 +207,7 @@ public class SecurityDividendsReport {
   }
 
   /**
-   * This is necessary if no transaction has been carried out in a year. The cash
-   * accounts must always appear annually.
+   * This is necessary if no transaction has been carried out in a year. The cash accounts must always appear annually.
    */
   private void fillEmptyAccountYears(Map<Integer, Cashaccount> cashAccountsMap,
       final SecurityDividendsGrandTotal securityDividendsGrandTotal, int yearChangeWatcher, int year,
@@ -299,10 +295,9 @@ public class SecurityDividendsReport {
   }
 
   /**
-   * There may be no transaction for a given year, or there may be no transaction
-   * on an open position in a given year. Nevertheless, this year must contain all
-   * open positions.
-   * 
+   * There may be no transaction for a given year, or there may be no transaction on an open position in a given year.
+   * Nevertheless, this year must contain all open positions.
+   *
    */
   private void createFillYearWithOpenPositions(final SecurityDividendsGrandTotal securityDividendsGrandTotal,
       final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
@@ -323,12 +318,12 @@ public class SecurityDividendsReport {
   }
 
   /**
-   * Retrieves end-of-year history quotes for foreign currencies and securities
-   * for a tenant, grouped first by year and then by security-currency ID.
+   * Retrieves end-of-year history quotes for foreign currencies and securities for a tenant, grouped first by year and
+   * then by security-currency ID.
    *
    * @param idTenant the tenant ID
-   * @return a map where each key is a year and each value is a map of
-   *         security-currency ID to its year-end history close price
+   * @return a map where each key is a year and each value is a map of security-currency ID to its year-end history
+   *         close price
    */
   private Map<Integer, Map<Integer, Historyquote>> getSecuritycurrencyHistoryEndOfYearsByIdTenant(
       final Integer idTenant) {

@@ -19,8 +19,7 @@ import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * Changed currency of tenant and portfolio it needs a creation of currencies
- * and possible recreation of holing tables.
+ * Changed currency of tenant and portfolio it needs a creation of currencies and possible recreation of holing tables.
  */
 
 @Component

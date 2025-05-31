@@ -28,19 +28,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = Globalparameters.TABNAME, description = "Controller for global parameters")
 public class GlobalparametersGTResource {
 
-
   @Autowired
   private GlobalparametersService globalparametersService;
-  
+
   @Operation(summary = "Return waiting time in seconds before the next intraday price query of the watch list", description = "", tags = {
       Globalparameters.TABNAME })
   @GetMapping(value = "/updatetimeout", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Integer> getIntraUpdateQuotesTimeoutSeconds() {
     return new ResponseEntity<>(globalparametersService.getWatchlistIntradayUpdateTimeout(), HttpStatus.OK);
   }
-    
-  @Operation(summary = "Return start date of historical data", description = "", tags = {
-      Globalparameters.TABNAME })
+
+  @Operation(summary = "Return start date of historical data", description = "", tags = { Globalparameters.TABNAME })
   @GetMapping(value = "/startfeeddate", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Date> getStartFeedDate() throws ParseException {
     return new ResponseEntity<>(globalparametersService.getStartFeedDate(), HttpStatus.OK);
@@ -52,7 +50,7 @@ public class GlobalparametersGTResource {
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCurrencies() {
     return new ResponseEntity<>(globalparametersService.getCurrencies(), HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Return of the possible combination of asset class to financial instrument.", description = "", tags = {
       Globalparameters.TABNAME })
   @GetMapping(value = "/possibleassetclassspezinstrument", produces = APPLICATION_JSON_VALUE)

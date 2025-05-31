@@ -86,8 +86,8 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
         updatePropertyLevelClasses);
 
     if (currencyChanged) {
-      taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO, TaskDataExecPriority.PRIO_NORMAL,
+      taskDataChangeJpaRepository.save(
+          new TaskDataChange(TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now(), portfolioNew.getIdPortfolio(), Portfolio.class.getSimpleName()));
     }
 

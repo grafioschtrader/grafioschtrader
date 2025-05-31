@@ -7,5 +7,4 @@ public interface GTNetMessageJpaRepositoryCustom extends BaseRepositoryCustom<GT
 
   GTNetMessage saveMsg(GTNetMessage gtNetMessage);
 
-
 }

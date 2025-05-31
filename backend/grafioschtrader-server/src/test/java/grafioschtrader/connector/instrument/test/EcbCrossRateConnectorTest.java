@@ -24,7 +24,7 @@ public class EcbCrossRateConnectorTest extends BaseFeedConnectorCheck {
   void getEodCurrencyHistoryTest() throws ParseException {
     getEodCurrencyHistory();
   }
-  
+
   @Override
   protected List<CurrencyPairHistoricalDate> getHistoricalCurrencies() {
     String oldestDate = "2000-01-04";
@@ -33,18 +33,18 @@ public class EcbCrossRateConnectorTest extends BaseFeedConnectorCheck {
 
     final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
     try {
-    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 7, youngFromDate, toDate));
-    currencies
-        .add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 7, youngFromDate, toDate));
-    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 6406, oldestDate, toDate));
-    currencies.add(
-        new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6400, oldestDate, youngFromDate));
-    currencies.add(
-        new CurrencyPairHistoricalDate(GlobalConstants.MC_CHF, GlobalConstants.MC_USD, 6400, oldestDate, youngFromDate));
-    currencies.add(
-        new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6400, oldestDate, youngFromDate));
-    currencies.add(
-        new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 6400, oldestDate, youngFromDate));
+      currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 7, youngFromDate, toDate));
+      currencies.add(
+          new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 7, youngFromDate, toDate));
+      currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 6406, oldestDate, toDate));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6400, oldestDate,
+          youngFromDate));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_CHF, GlobalConstants.MC_USD, 6400, oldestDate,
+          youngFromDate));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6400, oldestDate,
+          youngFromDate));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 6400, oldestDate,
+          youngFromDate));
 
     } catch (ParseException pe) {
       pe.printStackTrace();

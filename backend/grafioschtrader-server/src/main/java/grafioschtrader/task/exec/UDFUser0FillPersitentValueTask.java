@@ -18,9 +18,8 @@ import grafioschtrader.repository.UDFMetadataSecurityJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * Some global user-defined fields have a longer validity period. This can make
- * the content persistent. In addition, the effort required to create their
- * content is sometimes time-consuming, e.g. because data suppliers have to be
+ * Some global user-defined fields have a longer validity period. This can make the content persistent. In addition, the
+ * effort required to create their content is sometimes time-consuming, e.g. because data suppliers have to be
  * contacted. It therefore makes sense to update them daily.
  */
 @Service

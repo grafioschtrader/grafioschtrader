@@ -8,9 +8,8 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 
 /**
- * One can be addressed according to a role. This means that they cannot be
- * physically deleted by a user of this role. The corresponding message is
- * marked as deleted and thus hidden from the user. It is also marked as read.
+ * One can be addressed according to a role. This means that they cannot be physically deleted by a user of this role.
+ * The corresponding message is marked as deleted and thus hidden from the user. It is also marked as read.
  */
 @Entity
 public class MailSendRecvReadDel {

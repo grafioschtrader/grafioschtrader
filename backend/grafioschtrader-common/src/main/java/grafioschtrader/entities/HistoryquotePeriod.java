@@ -19,10 +19,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Schema(description = """
-There is no price data for certain securities. GT needs prices for all
-securities to calculate performance. These prices can therefore be entered
-manually. Initial prices are entered by the system, for example for a
-fixed-term deposit that does not change its price.""")
+    There is no price data for certain securities. GT needs prices for all
+    securities to calculate performance. These prices can therefore be entered
+    manually. Initial prices are entered by the system, for example for a
+    fixed-term deposit that does not change its price.""")
 @Entity
 @Table(name = HistoryquotePeriod.TABNAME)
 public class HistoryquotePeriod extends BaseID<Integer> implements Serializable {

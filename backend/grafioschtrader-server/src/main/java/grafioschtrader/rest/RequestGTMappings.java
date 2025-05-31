@@ -47,14 +47,12 @@ public interface RequestGTMappings {
   public static final String DIVIDEND_MAP = RequestMappings.API + Dividend.TABNAME;
 
   public static final String GLOBALPARAMETERS_GT_MAP = RequestMappings.API + GT + Globalparameters.TABNAME;
-  
-  
+
   public static final String GTNET = "gtnet";
   public static final String GTNET_MAP = RequestMappings.API + GTNET;
 
   public static final String GTNET_M2M = GTNET + M2M;
   public static final String GTNET_M2M_MAP = M2M_API + GTNET;
-
 
   public static final String GTNET_MESSAGE = "gtnetmessage";
   public static final String GTNET_MESSAGE_MAP = RequestMappings.API + GTNET_MESSAGE;
@@ -117,8 +115,8 @@ public interface RequestGTMappings {
 
   // Used for path part
   public static final String SECURITY_DATAPROVIDER_INTRA_HISTORICAL_RESPONSE = "/dataproviderresponse/";
-  
+
 //Used for path part
- public static final String SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE = "/dataproviderdivsplitresponse/";
+  public static final String SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE = "/dataproviderdivsplitresponse/";
 
 }

@@ -22,21 +22,19 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
    * Retrieves dividend details for all security holdings of the given tenant.
    *
    * @param idTenant the tenant ID whose security holdings’ dividends are fetched
-   * @return a list of {@link DivdendForHoldings} projections containing
-   *         portfolio, account, security, holding, and dividend info
+   * @return a list of {@link DivdendForHoldings} projections containing portfolio, account, security, holding, and
+   *         dividend info
    */
   @Query(nativeQuery = true)
   List<DivdendForHoldings> getDivdendForSecurityHoldingByIdTenant(Integer idTenant);
 
   /**
-   * Possible missing dividend income in the entity Dividend for securities. This
-   * is based on the date of the last dividend payment and the periodicity of the
-   * expected payments. In addition, the dividend payments of the transactions are
-   * also taken into account if the dividend payment is more recent than the date
-   * in the dividend entity.
-   * 
-   * @param daysAdded        additional days to account for in the dividend
-   *                         frequency interval
+   * Possible missing dividend income in the entity Dividend for securities. This is based on the date of the last
+   * dividend payment and the periodicity of the expected payments. In addition, the dividend payments of the
+   * transactions are also taken into account if the dividend payment is more recent than the date in the dividend
+   * entity.
+   *
+   * @param daysAdded        additional days to account for in the dividend frequency interval
    * @param maxRetryDividend maximum allowed retry count for dividend loading
    * @return a list of security IDs requiring a periodic dividend update
    */
@@ -44,14 +42,11 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
   List<Integer> getIdSecurityForPeriodicallyUpdate(Integer daysAdded, Short maxRetryDividend);
 
   /**
-   * Identifies securities where a split occurred on or after the latest dividend
-   * ex‐date, indicating an adjustment is needed. In GT, dividends should also be
-   * adjusted for splits like the price data. The last split may be more recent
-   * than the most recent dividend. This query provides the IDs of the securities
-   * for which this is the case.
-   * 
-   * @param idsConnectorDividend list of connector‐dividend identifiers to filter
-   *                             by
+   * Identifies securities where a split occurred on or after the latest dividend ex‐date, indicating an adjustment is
+   * needed. In GT, dividends should also be adjusted for splits like the price data. The last split may be more recent
+   * than the most recent dividend. This query provides the IDs of the securities for which this is the case.
+   *
+   * @param idsConnectorDividend list of connector‐dividend identifiers to filter by
    * @param idsSecurity          list of security IDs to consider
    * @return a list of security IDs whose recent splits affect dividend history
    */

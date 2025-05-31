@@ -22,7 +22,6 @@ public enum ProgressStateType {
   // At startup changed the state of Zombie to a cleaned state
   PROG_ZOMBIE_CLEANED((byte) 8);
 
-
   private final Byte value;
 
   private ProgressStateType(final Byte value) {

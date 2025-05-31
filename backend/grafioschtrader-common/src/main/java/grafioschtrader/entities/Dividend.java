@@ -19,10 +19,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Schema(description = """
- Contains the dividends as they are paid for the individual shares. These are
- mainly used for evaluations or messages to the user. They are filled by
- providers and are not edited manually. They also do not lead to transactions
- for tenants, as tax deductions vary greatly from country to country.""")
+    Contains the dividends as they are paid for the individual shares. These are
+    mainly used for evaluations or messages to the user. They are filled by
+    providers and are not edited manually. They also do not lead to transactions
+    for tenants, as tax deductions vary greatly from country to country.""")
 @Entity
 @Table(name = Dividend.TABNAME)
 public class Dividend extends DividendSplit implements Serializable {

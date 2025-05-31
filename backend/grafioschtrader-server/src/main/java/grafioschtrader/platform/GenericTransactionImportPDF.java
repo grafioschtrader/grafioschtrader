@@ -29,8 +29,7 @@ import grafioschtrader.repository.ImportTransactionPosJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
- * It is a generic importer CSV and PDF importer. It can be used for the most
- * online broker.
+ * It is a generic importer CSV and PDF importer. It can be used for the most online broker.
  *
  */
 public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfBase {
@@ -90,7 +89,6 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
     }
   }
 
-
   @Override
   protected void setCashaccountAndCheckReadyState(List<Cashaccount> cashaccountList,
       ImportTransactionPos importTransactionPos, ImportTransactionPosJpaRepository importTransactionPosJpaRepository) {
@@ -100,8 +98,7 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
   }
 
   /**
-   * Override this if the PDF as text needs some cleaning after reading as text
-   * before it is processed
+   * Override this if the PDF as text needs some cleaning after reading as text before it is processed
    *
    * @param readPDFAsText
    * @return

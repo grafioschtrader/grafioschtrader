@@ -1,6 +1,5 @@
 package grafioschtrader.connector.instrument.test;
 
-
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -215,7 +214,8 @@ public abstract class BaseFeedConnectorCheck {
   }
 
   protected void updateCurrencyPairLastPrice() {
-    List<Currencypair> currencypairs = getHistoricalCurrencies().stream().map(hd -> hd.currencypair).collect(Collectors.toList());
+    List<Currencypair> currencypairs = getHistoricalCurrencies().stream().map(hd -> hd.currencypair)
+        .collect(Collectors.toList());
     updateCurrencyPairLastPrice(currencypairs);
   }
 
@@ -226,18 +226,17 @@ public abstract class BaseFeedConnectorCheck {
           currencypair.setUrlIntraExtend(currencypair.getUrlHistoryExtend());
         }
         getIFeedConnector().updateCurrencyPairLastPrice(currencypair);
-        System.out.println(String.format("%s/%s last:%f change: %f high: %f low: %f",
-            currencypair.getFromCurrency(), currencypair.getToCurrency(), currencypair.getSLast(),
-            currencypair.getSChangePercentage(), currencypair.getSHigh(), currencypair.getSLow()));
+        System.out.println(String.format("%s/%s last:%f change: %f high: %f low: %f", currencypair.getFromCurrency(),
+            currencypair.getToCurrency(), currencypair.getSLast(), currencypair.getSChangePercentage(),
+            currencypair.getSHigh(), currencypair.getSLow()));
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      Assertions.assertThat(currencypair.getSLast()).as("Last price for " + currencypair.getName())
-          .isNotNull().isGreaterThan(0.0);
+      Assertions.assertThat(currencypair.getSLast()).as("Last price for " + currencypair.getName()).isNotNull()
+          .isGreaterThan(0.0);
     });
   }
-  
-  
+
   private void applyTimeZonesToSecurities(List<SecurityHistoricalDate> historicalDates) {
     for (SecurityHistoricalDate shd : historicalDates) {
       Security security = shd.security;

@@ -26,7 +26,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Get close or finance cost of a margin position
-  */
+   */
   List<Transaction> findByIdTenantAndConnectedIdTransactionAndUnitsIsNotNull(Integer idTenant,
       Integer connectedIdTransaction);
 
@@ -50,8 +50,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> getMarginForIdTenantAndIdTransactionOrderByTransactionTime(Integer idTenant, Integer idTransaction);
 
   /**
-   * This native query for removing all transaction exists because deleteAll() is
-   * not working. Maybe because of the two references to
+   * This native query for removing all transaction exists because deleteAll() is not working. Maybe because of the two
+   * references to
    */
   @UpdateQuery(value = "DELETE FROM transaction", nativeQuery = true)
   void removeAllTransaction();
@@ -77,7 +77,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Return all margin transactions for a certain security
-    */
+   */
   @Query(value = """
       SELECT t FROM Transaction t JOIN t.security s JOIN s.assetClass a
       WHERE s.idSecuritycurrency = :idSecurity AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)""")
@@ -106,17 +106,18 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdSecurityaccountAndIdSecurity(Integer idSecuritycashAccount, Integer idSecuritycurrency);
 
   /**
-   * Returns the transactions of a specific cash account over a definable period of time according to specified transaction types.
+   * Returns the transactions of a specific cash account over a definable period of time according to specified
+   * transaction types.
    */
-  @Query(value="""
+  @Query(value = """
       SELECT t FROM Transaction t JOIN t.cashaccount c
       WHERE c.idSecuritycashAccount= ?1 AND t.idTenant=?2 AND t.transactionDate>=?3 AND t.transactionDate<=?4 AND t.transactionType IN ?5""")
-  List <Transaction> findByTenantAndCashaccountAndYearAndTransactionType(Integer idSecuritycashAccount, Integer idTenant, LocalDate transactionDateFrom, LocalDate transactionDateTo, int[] transactionTypes);
-  
+  List<Transaction> findByTenantAndCashaccountAndYearAndTransactionType(Integer idSecuritycashAccount, Integer idTenant,
+      LocalDate transactionDateFrom, LocalDate transactionDateTo, int[] transactionTypes);
 
   /**
    * It works only for security transactions.
-    */
+   */
   @Query(value = """
       SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.securityTransactionList t
       JOIN Fetch t.security s JOIN Fetch t.cashaccount WHERE p.idTenant = ?1 AND s.idSecuritycurrency = t.security.idSecuritycurrency
@@ -127,16 +128,16 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t JOIN Fetch t.cashaccount
       LEFT JOIN Fetch t.security WHERE p.idTenant=?1 AND t.idCurrencypair=?2 ORDER BY t.transactionTime""")
   List<Transaction> findByCurrencypair(Integer idTenant, Integer idCurrencypair);
-  
+
   //@formatter:off
   /**
    * Retrieves a list of Transaction objects associated with the specified watchlist ID.
-   * 
+   *
    * This query joins Watchlist, Securitycurrency, Portfolio, Securitycashaccount, and Transaction entities.
    * It returns all transactions that match the following criteria:
    * - The portfolio belongs to the same tenant as the watchlist.
    * - The transaction's security is part of the watchlist's associated security list.
-   * 
+   *
    * This method is useful for displaying or analyzing transactions tied to a specific investment watchlist.
    * Results are ordered chronologically by transaction time.
    *
@@ -146,19 +147,20 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   //@formatter:on
   @Query
   List<Transaction> findByIdWatchlist(Integer idWatchlist);
+
   //@formatter:off
   /**
    * Retrieves all Transaction records where the associated historical exchange rate (history quote)
    * used for conversion may have been modified after the transaction was created.
-   * 
+   *
    * This native query detects potential inconsistencies or data integrity issues in currency conversion logic by:
    * - Selecting transactions of type WITHDRAWAL or DEPOSIT (i.e., TransactionType 0 or 1)
    * - Filtering for cases where the currency of the cash account differs from the tenant or portfolio currency
    * - Comparing the `create_modify_time` of the associated history quote with the deposit’s `valid_timestamp`
-   * 
+   *
    * These transactions may require reevaluation due to updated history quotes that were not yet valid at the
    * time of the transaction. This helps ensure accurate portfolio valuations over time, especially in multi-currency environments.
-   * 
+   *
    * Results are ordered by tenant ID, cash account ID, and transaction time.
    *
    * @return a list of Transaction records potentially affected by newer history quote data after the deposit occurred
@@ -166,5 +168,5 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   //@formatter:on
   @Query(nativeQuery = true)
   List<Transaction> getTransactionWhyHistoryquoteYounger();
-  
+
 }

@@ -8,8 +8,8 @@ import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Group by connector, stock exchange, asset class (equities, bond, ...),
- * special investment like (ETF, Direct investment, ...)
+ * Group by connector, stock exchange, asset class (equities, bond, ...), special investment like (ETF, Direct
+ * investment, ...)
  */
 public class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
 
@@ -62,7 +62,8 @@ public class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
   }
 
   public double getQualityPercentage() {
-    return DataBusinessHelper.roundStandard(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
+    return DataBusinessHelper
+        .roundStandard(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
   }
 
 }

@@ -24,8 +24,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 /**
- * Entity which is the base class for all levels assignment (tenant portfolio,
- * asset class, security)
+ * Entity which is the base class for all levels assignment (tenant portfolio, asset class, security)
  *
  */
 @Entity

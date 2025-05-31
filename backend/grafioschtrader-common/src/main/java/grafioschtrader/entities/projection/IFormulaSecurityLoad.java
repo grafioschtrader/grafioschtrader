@@ -1,8 +1,7 @@
 package grafioschtrader.entities.projection;
 
 /**
- * IFormulaInSecurity can not be used directly for a spring data projection. But
- * with this interface it works.
+ * IFormulaInSecurity can not be used directly for a spring data projection. But with this interface it works.
  */
 public interface IFormulaSecurityLoad extends IFormulaInSecurity {
 

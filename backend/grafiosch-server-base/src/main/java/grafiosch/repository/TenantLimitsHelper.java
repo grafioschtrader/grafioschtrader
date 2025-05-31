@@ -20,7 +20,6 @@ import jakarta.persistence.TypedQuery;
 public abstract class TenantLimitsHelper {
 
   public static final Map<String, Class<?>> globalLimitKeyToEntityMap = new HashMap<>();
-  
 
   public static <T extends BaseID<Integer>> boolean canAddWhenCheckedAgainstMayBeExistingTenantLimit(
       final EntityManager entityManager, final T entityClass) {
@@ -28,26 +27,23 @@ public abstract class TenantLimitsHelper {
     Optional<String> keyOptional = globalLimitKeyToEntityMap.entrySet().stream()
         .filter(map -> map.getValue() == entityClass.getClass()).map(map -> map.getKey()).findFirst();
     if (keyOptional.isPresent()) {
-      return (countUsersEntityLimit(entityManager, keyOptional.get(),
-          user) < getMaxValueByKey(entityManager, keyOptional.get()));
+      return (countUsersEntityLimit(entityManager, keyOptional.get(), user) < getMaxValueByKey(entityManager,
+          keyOptional.get()));
     } else {
       return true;
     }
 
   }
 
-  public static TenantLimit getMaxTenantLimitsByKey(EntityManager entityManager,
-      String key) {
+  public static TenantLimit getMaxTenantLimitsByKey(EntityManager entityManager, String key) {
 
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Class<?> entityClass = globalLimitKeyToEntityMap.get(key);
-    return new TenantLimit(getMaxValueByKey(entityManager, key),
-        countUsersEntityLimit(entityManager, key, user), key,
+    return new TenantLimit(getMaxValueByKey(entityManager, key), countUsersEntityLimit(entityManager, key, user), key,
         entityClass != null ? entityClass.getSimpleName() : null);
   }
 
-  public static List<TenantLimit> getMaxTenantLimitsByKeys(EntityManager entityManager,
-      List<String> keys) {
+  public static List<TenantLimit> getMaxTenantLimitsByKeys(EntityManager entityManager, List<String> keys) {
     List<TenantLimit> tenantLimits = new ArrayList<>();
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     keys.forEach(key -> {
@@ -58,8 +54,7 @@ public abstract class TenantLimitsHelper {
     return tenantLimits;
   }
 
-  public static List<TenantLimit> getMaxTenantLimitsByMsgKeys(
-      EntityManager entityManager, List<String> msgKeys) {
+  public static List<TenantLimit> getMaxTenantLimitsByMsgKeys(EntityManager entityManager, List<String> msgKeys) {
     List<TenantLimit> tenantLimits = new ArrayList<>();
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     msgKeys.forEach(msgKey -> {
@@ -81,16 +76,14 @@ public abstract class TenantLimitsHelper {
   }
 
   public static int getMaxValueByKey(EntityManager entityManager, String key) {
-    return getMaxValueByMaxDefaultDBValueWithKey(entityManager,
-        Globalparameters.getMaxDefaultDBValueByKey(key));
+    return getMaxValueByMaxDefaultDBValueWithKey(entityManager, Globalparameters.getMaxDefaultDBValueByKey(key));
   }
 
   private static int getMaxValueByMaxDefaultDBValueWithKey(EntityManager entityManager,
       MaxDefaultDBValueWithKey maxDefaultDBValueWithKey) {
     if (maxDefaultDBValueWithKey.maxDefaultDBValue.getDbValue() == null) {
       Globalparameters globalParameter = entityManager.find(Globalparameters.class, maxDefaultDBValueWithKey.key);
-      int value = (globalParameter != null)
-          ? globalParameter.getPropertyInt()
+      int value = (globalParameter != null) ? globalParameter.getPropertyInt()
           : maxDefaultDBValueWithKey.maxDefaultDBValue.getDefaultValue();
       maxDefaultDBValueWithKey.maxDefaultDBValue.setDbValue(value);
     }

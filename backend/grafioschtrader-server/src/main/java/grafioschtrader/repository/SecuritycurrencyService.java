@@ -57,7 +57,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   @Autowired
   protected GlobalparametersService globalparametersService;
-  
+
   @Autowired
   protected HistoryquoteJpaRepository historyquoteJpaRepository;
 
@@ -74,8 +74,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   // public abstract JpaRepository<S, Integer> getJpaRepository();
 
   /**
-   * Checks if the data provider was changed by the user and the EOD must be
-   * reloaded.
+   * Checks if the data provider was changed by the user and the EOD must be reloaded.
    *
    * @param securityCurrencyChanged
    * @param securitycurreny2
@@ -175,7 +174,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     return feedConnectorbeans;
   }
 
-
   @Override
   public List<IFeedConnector> getFeedConnectors(final boolean isCurrency) {
     return feedConnectorbeans.stream()
@@ -234,8 +232,6 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
     }
   }
-
-
 
   protected S beforeSave(S securitycurrency, S existingEntity, User user) throws Exception {
     return null;

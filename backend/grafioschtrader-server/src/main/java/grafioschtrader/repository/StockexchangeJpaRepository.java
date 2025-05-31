@@ -62,7 +62,6 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
   @Query(nativeQuery = true)
   List<StockexchangeHasSecurity> stockexchangesHasSecurity();
 
-  
   /**
    * Projection interface for retrieving a stock exchange’s ID and the name of its calendar‐update index security.
    */

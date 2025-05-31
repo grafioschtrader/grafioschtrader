@@ -37,7 +37,6 @@ public class CashaccountResource extends UpdateCreateDeleteWithTenantResource<Ca
   @Autowired
   private AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
 
-
   public CashaccountResource() {
     super(Cashaccount.class);
   }
@@ -52,17 +51,18 @@ public class CashaccountResource extends UpdateCreateDeleteWithTenantResource<Ca
         accountPositionGroupSummaryReport.getAccountGrandSummaryPortfolio(user.getIdTenant(), idPortfolio, untilDate),
         HttpStatus.OK);
   }
-  /*
 
-  @Operation(summary = "Delete a cash account when possible", description = "A used cash account will not be deleted", tags = {
-      Cashaccount.TABNAME })
-  @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> deleteCashaccount(@PathVariable final Integer idSecuritycashaccount) {
-    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    cashaccountJpaRepository.deleteCashaccount(idSecuritycashaccount, user.getIdTenant());
-    return ResponseEntity.noContent().build();
-  }
-*/
+  /*
+   * 
+   * @Operation(summary = "Delete a cash account when possible", description =
+   * "A used cash account will not be deleted", tags = { Cashaccount.TABNAME })
+   * 
+   * @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE) public ResponseEntity<Void>
+   * deleteCashaccount(@PathVariable final Integer idSecuritycashaccount) { final User user = (User)
+   * SecurityContextHolder.getContext().getAuthentication().getDetails();
+   * cashaccountJpaRepository.deleteCashaccount(idSecuritycashaccount, user.getIdTenant()); return
+   * ResponseEntity.noContent().build(); }
+   */
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<Cashaccount> getUpdateCreateJpaRepository() {
     return cashaccountJpaRepository;

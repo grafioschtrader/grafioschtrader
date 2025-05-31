@@ -169,6 +169,4 @@ public abstract class ThruCalculationHelper {
     }
   }
 
-
-
 }

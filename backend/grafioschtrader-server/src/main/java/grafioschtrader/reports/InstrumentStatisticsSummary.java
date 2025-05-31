@@ -36,10 +36,9 @@ import grafioschtrader.types.SamplingPeriodType;
 import grafioschtrader.types.TimePeriodType;
 
 /**
- * Calculates the yield and statistical data for a specific security. This
- * includes the annualized return over certain periods as well as the standard
- * deviation based on year, daily and monthly. The calculations are made in the
- * currency of the security as well as in the main currency of the tenant.
+ * Calculates the yield and statistical data for a specific security. This includes the annualized return over certain
+ * periods as well as the standard deviation based on year, daily and monthly. The calculations are made in the currency
+ * of the security as well as in the main currency of the tenant.
  */
 public class InstrumentStatisticsSummary {
 

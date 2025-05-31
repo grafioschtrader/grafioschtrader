@@ -93,10 +93,9 @@ public class SendMailInternalExternalService {
   }
 
   /**
-   * This test cannot be performed. Because it must be possible that a user sends
-   * an initial message to a user if it is related to entity. For example, a
-   * message to the creator of a security. Maybe the information class and entity
-   * ID should also be transferred and checked in such a scenario?
+   * This test cannot be performed. Because it must be possible that a user sends an initial message to a user if it is
+   * related to entity. For example, a message to the creator of a security. Maybe the information class and entity ID
+   * should also be transferred and checked in such a scenario?
    */
   private void initialMsgUserToUserSecurityCheck(MailSendRecv mailSendRecv, User fromUser, boolean isAdmin) {
     if (!isAdmin && mailSendRecv.getIdUserTo() != null) {

@@ -39,8 +39,10 @@ public class UDFSpecialTypeDisableUserResource {
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<IUDFSpecialType>> getDisabledSpecialTypes() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(uDFSpecialTypeDisUserRep.findByIdIdUser(user.getIdUser()).stream()
-        .map(s -> UDFMetadata.UDF_SPECIAL_TYPE_REGISTRY.getTypeByValue(s)).collect(Collectors.toSet()), HttpStatus.OK);
+    return new ResponseEntity<>(
+        uDFSpecialTypeDisUserRep.findByIdIdUser(user.getIdUser()).stream()
+            .map(s -> UDFMetadata.UDF_SPECIAL_TYPE_REGISTRY.getTypeByValue(s)).collect(Collectors.toSet()),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "", description = "With this entity we have a composite key, so there is a special implementation for creating it.", tags = {
@@ -49,9 +51,8 @@ public class UDFSpecialTypeDisableUserResource {
   public ResponseEntity<UDFSpecialTypeDisableUser> create(@RequestBody Byte udfSpecialTypeValue) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
-        uDFSpecialTypeDisUserRep
-            .save(new UDFSpecialTypeDisableUser(new UDFSpecialTypeDisableUserId(user.getIdUser(), 
-                udfSpecialTypeValue))),
+        uDFSpecialTypeDisUserRep.save(
+            new UDFSpecialTypeDisableUser(new UDFSpecialTypeDisableUserId(user.getIdUser(), udfSpecialTypeValue))),
         HttpStatus.OK);
   }
 

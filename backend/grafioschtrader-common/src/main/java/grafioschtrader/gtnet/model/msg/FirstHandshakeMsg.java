@@ -10,5 +10,4 @@ public class FirstHandshakeMsg {
     this.tokenThis = tokenThis;
   }
 
-
 }

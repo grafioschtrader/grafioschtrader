@@ -68,7 +68,7 @@ public interface IPeriodHolding {
 
   /**
    * Net gain of the day:
-   * 
+   *
    * <pre>
    * gainMC = cashBalanceMC + securitiesMC - externalCashTransferMC
    * </pre>

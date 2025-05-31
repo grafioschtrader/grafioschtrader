@@ -197,14 +197,12 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
   }
 
   /**
-   * Reads the splits through the connector and deletes the previous automatically
-   * created splits.
-   * 
+   * Reads the splits through the connector and deletes the previous automatically created splits.
+   *
    * @param security
    * @param securitysplitsRead The splits read from the persistence.
-   * @param requestedSplitdate The date of this split is the most recent and comes
-   *                           from the split calendar. It can be Null if it does
-   *                           not come from a split calendar.
+   * @param requestedSplitdate The date of this split is the most recent and comes from the split calendar. It can be
+   *                           Null if it does not come from a split calendar.
    * @throws Exception
    */
   private void updateSplitData(Security security, List<Securitysplit> securitysplitsRead, Date requestedSplitdate)

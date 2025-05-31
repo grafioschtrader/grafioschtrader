@@ -8,7 +8,6 @@ public class AlertEvent extends ApplicationEvent {
   private final IAlertType alertType;
   private final Object msgParam;
 
-
   public AlertEvent(Object source, IAlertType alertType, Object msgParam) {
     super(source);
     this.alertType = alertType;
@@ -22,6 +21,5 @@ public class AlertEvent extends ApplicationEvent {
   public Object getMsgParam() {
     return msgParam;
   }
-
 
 }

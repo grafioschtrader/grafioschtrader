@@ -36,7 +36,7 @@ public class StockexchangeJpaRepositoryImpl extends BaseRepositoryImpl<Stockexch
     if (stockexchange.getMic() != null) {
       Optional<StockexchangeMic> stockexchangeMic = stockexchangeMicJpaRepository
           .findByMicAndCountryCode(stockexchange.getMic(), stockexchange.getCountryCode());
-      if(!stockexchangeMic.isPresent()) {
+      if (!stockexchangeMic.isPresent()) {
         throw new IllegalArgumentException("The combination of MIC and Country does not exists!");
       }
     }

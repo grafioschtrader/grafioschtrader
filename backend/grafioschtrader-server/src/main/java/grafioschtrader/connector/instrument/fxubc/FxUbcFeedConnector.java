@@ -37,17 +37,15 @@ import grafioschtrader.entities.Historyquote;
 
 /**
  *
- * This provider can only deliver historical rates for 4 years in one request.
- * Therefore 4 requests are needed for the period from 2000 to 2023. It is also
- * possible that the provider does not supply any data for one or all of these
+ * This provider can only deliver historical rates for 4 years in one request. Therefore 4 requests are needed for the
+ * period from 2000 to 2023. It is also possible that the provider does not supply any data for one or all of these
  * requests due to its load.
  *
- * This provider only wants to answer a few requests in a certain time period.
- * Unfortunately, the attempt with Bucket did not bring any improvement, so
- * these are commented out.
+ * This provider only wants to answer a few requests in a certain time period. Unfortunately, the attempt with Bucket
+ * did not bring any improvement, so these are commented out.
  *
- * No regex pattern is used, as the user cannot make an entry regarding the URL
- * extension. However, the presence of the currency pair is checked.
+ * No regex pattern is used, as the user cannot make an entry regarding the URL extension. However, the presence of the
+ * currency pair is checked.
  */
 
 @Component
@@ -63,7 +61,7 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
     supportedFeed.put(FeedSupport.FS_HISTORY, new FeedIdentifier[] { FeedIdentifier.CURRENCY });
   }
 
- // private final Bucket bucket;
+  // private final Bucket bucket;
 
   public FxUbcFeedConnector() {
     super(supportedFeed, "fxubc", "Pacific Exchange Rate Service", null, EnumSet.of(UrlCheck.HISTORY));

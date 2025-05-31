@@ -40,8 +40,7 @@ public class MailSendRecvResource extends UpdateCreateResource<MailSendRecv> {
     return new ResponseEntity<>(mailSendRecvJpaRepository.markForRead(idMailSendRecv), HttpStatus.OK);
   }
 
-  @Operation(summary = "Delete or mark as deleted a single message or a message topic.",
-      description = "The message topic or message will no longer appear to the user.", tags = {
+  @Operation(summary = "Delete or mark as deleted a single message or a message topic.", description = "The message topic or message will no longer appear to the user.", tags = {
       RequestMappings.MAIL_SEMD_RECV })
   @DeleteMapping(value = "/{idMailSendRecv}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> hideDeleteResource(@PathVariable final Integer idMailSendRecv) {

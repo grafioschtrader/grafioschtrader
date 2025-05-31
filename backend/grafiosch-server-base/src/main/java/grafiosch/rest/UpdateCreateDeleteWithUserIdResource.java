@@ -26,17 +26,17 @@ public abstract class UpdateCreateDeleteWithUserIdResource<T extends UserBaseID>
   public UpdateCreateDeleteWithUserIdResource(Class<T> type) {
     this.type = type;
   }
-  
+
   @Operation(summary = "Delete an information object by its ID and the user ID.", description = "")
   @DeleteMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteResource(@PathVariable final Integer id) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     log.debug("Delete by id : {}", id);
-    int countDel =  getUpdateCreateJpaRepository().delEntityWithUserId(id, user.getIdUser());
-    if(countDel != 1) {
+    int countDel = getUpdateCreateJpaRepository().delEntityWithUserId(id, user.getIdUser());
+    if (countDel != 1) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     } else {
-      this.logAddUpdDel(user.getIdUser(), type.getSimpleName(), OperationType.DELETE);  
+      this.logAddUpdDel(user.getIdUser(), type.getSimpleName(), OperationType.DELETE);
     }
     return ResponseEntity.noContent().build();
   }

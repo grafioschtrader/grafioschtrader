@@ -38,8 +38,8 @@ public class AlgoTop extends AlgoTopAssetSecurity {
   private Byte ruleStrategy;
 
   @Schema(description = """
-          For the simulation, a watchlist must be linked to the top level. 
-          The corresponding securities can then be selected from this list.""")
+      For the simulation, a watchlist must be linked to the top level.
+      The corresponding securities can then be selected from this list.""")
   @Basic(optional = false)
   @Column(name = "id_watchlist")
   private Integer idWatchlist;

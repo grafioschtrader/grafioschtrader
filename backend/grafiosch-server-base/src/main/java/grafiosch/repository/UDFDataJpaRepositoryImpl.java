@@ -30,16 +30,16 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
   @Autowired
   private List<IUDFRepository<? extends UDFMetadata>> udfRepositories = new ArrayList<>();
 
+  @Override
   public UDFData createUpdate(UDFData udfData) throws Exception {
     final User user = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails());
     UpdateCreate.checkAndSetUserBaseIDWithUser(udfData.getuDFDataKey(), user);
-  
+
     @SuppressWarnings("unchecked")
     IUDFRepository<UDFMetadata> udfRepository = (IUDFRepository<UDFMetadata>) udfRepositories.stream()
         .filter(c -> c.getSupportedEntities().contains(udfData.getuDFDataKey().getEntity())).findFirst().get();
-    List<UDFMetadata> udfMetadata = udfRepository
-        .getMetadataByUserAndEntityAndIdEntity(user.getIdUser(), udfData.getuDFDataKey().getEntity(),
-            udfData.getuDFDataKey().getIdEntity());
+    List<UDFMetadata> udfMetadata = udfRepository.getMetadataByUserAndEntityAndIdEntity(user.getIdUser(),
+        udfData.getuDFDataKey().getEntity(), udfData.getuDFDataKey().getIdEntity());
 
     checkEntityAndObject(udfData, user);
     udfData.checkDataAgainstMetadata(udfMetadata);
@@ -47,9 +47,9 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
   }
 
   /**
-   * Checks whether this information class supports user-defined fields. It also
-   * checks whether additional fields do not refer to a private object.
-   * 
+   * Checks whether this information class supports user-defined fields. It also checks whether additional fields do not
+   * refer to a private object.
+   *
    * @param udfData
    * @param user
    */

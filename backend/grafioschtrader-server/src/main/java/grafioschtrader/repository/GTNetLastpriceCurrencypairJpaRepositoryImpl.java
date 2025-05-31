@@ -12,5 +12,4 @@ public class GTNetLastpriceCurrencypairJpaRepositoryImpl
   @Autowired
   private GTNetLastpriceCurrencypairJpaRepository gTNetLastpriceCurrencypairRepository;
 
-
 }

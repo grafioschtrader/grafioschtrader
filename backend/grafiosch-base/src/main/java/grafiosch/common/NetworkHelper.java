@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class NetworkHelper {
-  
+
   public static String getIpAddressToOutside() {
     try (Socket socket = new Socket()) {
       socket.connect(new InetSocketAddress("google.com", 80));

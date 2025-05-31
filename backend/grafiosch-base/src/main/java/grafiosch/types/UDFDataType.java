@@ -1,9 +1,8 @@
 package grafiosch.types;
 
 /**
- * This is the selection of data type for user defined fields. These are offered
- * to the user and then mapped to the internal data types. The values must
- * correspond to the DataType of {@link grafiosch.dynamic.model.DataType}
+ * This is the selection of data type for user defined fields. These are offered to the user and then mapped to the
+ * internal data types. The values must correspond to the DataType of {@link grafiosch.dynamic.model.DataType}
  */
 public enum UDFDataType {
 

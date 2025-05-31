@@ -25,9 +25,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = """
-Used for currency pairs, including cryptocurrencies. No transactions can be carried out on currencies. 
-Currency pairs can be created by the user. 
-In addition, the system also creates currency pairs, which is necessary for the performance calculations to work.""")
+    Used for currency pairs, including cryptocurrencies. No transactions can be carried out on currencies.
+    Currency pairs can be created by the user.
+    In addition, the system also creates currency pairs, which is necessary for the performance calculations to work.""")
 @Entity
 @Table(name = Currencypair.TABNAME)
 @DiscriminatorValue("C")
@@ -105,7 +105,7 @@ public class Currencypair extends Securitycurrency<Currencypair> implements Seri
   public boolean expectVolume() {
     return GlobalConstants.CRYPTO_CURRENCY_SUPPORTED.contains(fromCurrency);
   }
-  
+
   @Override
   public boolean tenantHasAccess(Integer idTenant) {
     return true;

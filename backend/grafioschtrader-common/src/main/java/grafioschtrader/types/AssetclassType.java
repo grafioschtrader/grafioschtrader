@@ -8,8 +8,8 @@ package grafioschtrader.types;
 import grafiosch.types.StableEnum;
 
 /**
- * GT distinguishes between different asset classes of instruments. This may
- * result in different functionality per asset class.
+ * GT distinguishes between different asset classes of instruments. This may result in different functionality per asset
+ * class.
  */
 public enum AssetclassType implements StableEnum {
 
@@ -47,13 +47,13 @@ public enum AssetclassType implements StableEnum {
   // grouping
   CURRENCY_FOREIGN((byte) 12);
 
- 
   private final Byte value;
 
   private AssetclassType(final Byte value) {
     this.value = value;
   }
 
+  @Override
   public Byte getValue() {
     return this.value;
   }

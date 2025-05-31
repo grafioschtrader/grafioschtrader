@@ -89,11 +89,11 @@ public class ConnectorTestHelper {
       SpecialInvestmentInstruments specialInvestmentInstrument, AssetclassType assetclassType, String mic) {
     final Stockexchange stockexchange = new Stockexchange();
     stockexchange.setMic(mic);
-    if(mic != null) {
+    if (mic != null) {
       stockexchange.setCountryCode(BaseFeedConnectorCheck.MIC_TO_COUNTRY_CODE.get(mic));
       stockexchange.setTimeZone(BaseFeedConnectorCheck.micToTimeZoneMap.get(mic));
     }
-    
+
     Assetclass assetclass = new Assetclass();
     if (specialInvestmentInstrument != null) {
       assetclass.setSpecialInvestmentInstrument(specialInvestmentInstrument);
@@ -107,8 +107,7 @@ public class ConnectorTestHelper {
     return security;
   }
 
-  public static Security createSecurityAndStockexchange(String name, String isin, String tickerSymbol,
-      String mic) {
+  public static Security createSecurityAndStockexchange(String name, String isin, String tickerSymbol, String mic) {
     Security security = createIntraSecurityWithIsin(name, isin, null);
     security.setTickerSymbol(tickerSymbol);
     final Stockexchange stockexchange = new Stockexchange();
@@ -319,13 +318,12 @@ public class ConnectorTestHelper {
 
     public Security security;
 
-    public SecurityHistoricalDate(final String name, String urlExtend,
-        int expectedRows, String fromStr, String toStr) throws ParseException {
+    public SecurityHistoricalDate(final String name, String urlExtend, int expectedRows, String fromStr, String toStr)
+        throws ParseException {
       this(name, "", null, null, urlExtend, null, expectedRows, fromStr, toStr);
-     
+
     }
 
-    
     public SecurityHistoricalDate(final String name, int expectedRows, String fromStr, String toStr)
         throws ParseException {
       this(name, "", null, null, expectedRows, fromStr, toStr);
@@ -342,8 +340,8 @@ public class ConnectorTestHelper {
     }
 
     public SecurityHistoricalDate(final String name, String isin,
-        SpecialInvestmentInstruments specialInvestmentInstrument, String mic, int expectedRows, String fromStr, String toStr)
-        throws ParseException {
+        SpecialInvestmentInstruments specialInvestmentInstrument, String mic, int expectedRows, String fromStr,
+        String toStr) throws ParseException {
       this(name, isin, specialInvestmentInstrument, null, mic, expectedRows, fromStr, toStr);
     }
 

@@ -346,7 +346,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
- 
+
     HttpClient client = getHttpClient();
     HttpRequest request = getRequest(url);
     try {
@@ -363,11 +363,10 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       log.error("URL: {}", url, e);
     }
   }
-  
+
   protected HttpClient getHttpClient() {
     CookieManager cookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
-    return HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).cookieHandler(cookieManager)
-        .build();
+    return HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).cookieHandler(cookieManager).build();
   }
 
   protected HttpRequest getRequest(String url) {
@@ -391,9 +390,9 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   /**
-   * Some providers only work correctly if the number of requests is limited to
-   * one time unit. This method can therefore be used for wait cycles.
-   * 
+   * Some providers only work correctly if the number of requests is limited to one time unit. This method can therefore
+   * be used for wait cycles.
+   *
    * @param bucket
    */
   protected void waitForTokenOrGo(Bucket bucket) {
@@ -413,9 +412,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   /**
-   * During a URL check, HTTP status 200 may be returned even though the
-   * corresponding instrument was not found. Therefore, the body of the response
-   * should also be evaluated according to the data provider.
+   * During a URL check, HTTP status 200 may be returned even though the corresponding instrument was not found.
+   * Therefore, the body of the response should also be evaluated according to the data provider.
    *
    * @param huc
    * @return

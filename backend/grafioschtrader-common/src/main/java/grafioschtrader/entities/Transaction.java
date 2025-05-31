@@ -109,7 +109,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   private Double cashaccountAmount;
 
   @Schema(description = """
-      The transaction time is the date and time when the transaction took place. The exact time is not so important, 
+      The transaction time is the date and time when the transaction took place. The exact time is not so important,
       but it should be noted that the transaction time determines the sequence of transactions.""")
   @Basic(optional = false)
   @Column(name = "transaction_time")
@@ -539,8 +539,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   }
 
   /**
-   * We do not throw an error if we get data which should not be set because of
-   * the transaction. Clear the fields may be better.
+   * We do not throw an error if we get data which should not be set because of the transaction. Clear the fields may be
+   * better.
    */
   public void clearAccountTransaction() {
     switch (this.getTransactionType()) {
@@ -593,10 +593,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * When Cashaccount -> CHF (MC), Security -> CHF(MC) then nothing</br>
    * When Cashaccount -> GBP, Security -> CHF (MC) then nothing</br>
    * When Cashaccount -> CHF (MC), Security -> GBP then * exchange Rate (T)</br>
-   * When Cashaccount -> GBP, Security -> GBP, MC = CHF then * exchange Rate
-   * (GBPCHF(MC)</br>
-   * When Cashaccount -> GBP, Security -> USD, MC = CHF then / exchange Rate (T) *
-   * exchange Rate (GBPCHF(MC))</br>
+   * When Cashaccount -> GBP, Security -> GBP, MC = CHF then * exchange Rate (GBPCHF(MC)</br>
+   * When Cashaccount -> GBP, Security -> USD, MC = CHF then / exchange Rate (T) * exchange Rate (GBPCHF(MC))</br>
    *
    * @param mainCurency
    * @param value

@@ -41,8 +41,8 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
   }
 
   @Override
-  public Security createHistoryQuotesAndSave(ISecuritycurrencyService<Security> securitycurrencyService, Security security,
-      Date fromDate, Date toDate) {
+  public Security createHistoryQuotesAndSave(ISecuritycurrencyService<Security> securitycurrencyService,
+      Security security, Date fromDate, Date toDate) {
     short restryHistoryLoad = security.getRetryHistoryLoad();
     try {
       final Date correctedFromDate = getCorrectedFromDate(security, fromDate);
@@ -80,7 +80,5 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
   public String createDownloadLink(Security securitycurrency, IFeedConnector feedConnector) {
     return null;
   }
-
-
 
 }

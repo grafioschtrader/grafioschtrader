@@ -38,15 +38,14 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 
-
 @Entity
 @Table(name = Assetclass.TABNAME)
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Schema(description = """
-Each security must have an asset class. The selection of an asset class has a significant impact on the characteristics
-of an instrument when it is recorded. It also influences the reporting and the type of transaction that can be applied to an instrument.
-""")
+    Each security must have an asset class. The selection of an asset class has a significant impact on the characteristics
+    of an instrument when it is recorded. It also influences the reporting and the type of transaction that can be applied to an instrument.
+    """)
 public class Assetclass extends Auditable implements Serializable {
 
   public static final String TABNAME = "assetclass";
@@ -95,9 +94,9 @@ public class Assetclass extends Auditable implements Serializable {
         new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ETF, SpecialInvestmentInstruments.MUTUAL_FUND,
             SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES });
 
-    possibleInstrumentsMap.put(AssetclassType.CURRENCY_PAIR, new SpecialInvestmentInstruments[] {
-        SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT, SpecialInvestmentInstruments.FOREX,
-        SpecialInvestmentInstruments.ETF });
+    possibleInstrumentsMap.put(AssetclassType.CURRENCY_PAIR,
+        new SpecialInvestmentInstruments[] { SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT,
+            SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ETF });
   }
 
   private static final long serialVersionUID = 1L;
@@ -123,8 +122,8 @@ public class Assetclass extends Auditable implements Serializable {
   private byte specialInvestmentInstrument;
 
   @Schema(description = """
-      The asset class can also have an additional non-specified grouping. This grouping is probably 
-      best suited for a geographical breakdown. As GT is multilingual, 
+      The asset class can also have an additional non-specified grouping. This grouping is probably
+      best suited for a geographical breakdown. As GT is multilingual,
       the grouping must also be recorded in multiple languages.""")
   @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)

@@ -99,10 +99,10 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   @GetMapping(value = "/{idSecuritycashAccount}/cashaccount", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CashaccountTransactionPosition[]> getTransactionsWithBalanceForCashaccount(
       @Parameter(description = "Id of cash account", required = true) @PathVariable final Integer idSecuritycashAccount,
-      @RequestParam(value="transactionTypes[]", required = false) final int[] transactionTypesNum,
+      @RequestParam(value = "transactionTypes[]", required = false) final int[] transactionTypesNum,
       @RequestParam(required = true) final int year) {
-    return new ResponseEntity<>(transactionJpaRepository.getTransactionsWithBalanceForCashaccount(idSecuritycashAccount, year, transactionTypesNum),
-        HttpStatus.OK);
+    return new ResponseEntity<>(transactionJpaRepository.getTransactionsWithBalanceForCashaccount(idSecuritycashAccount,
+        year, transactionTypesNum), HttpStatus.OK);
   }
 
   ///////////////////////////////////////////////////////////
@@ -129,7 +129,8 @@ public class TransactionResource extends UpdateCreate<Transaction> {
       @PathVariable final Integer idTransaction) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
-        SecurityMarginUnitsCheck.getEstimatedFinanceCost(transactionJpaRepository, user.getIdTenant(), idTransaction), HttpStatus.OK);
+        SecurityMarginUnitsCheck.getEstimatedFinanceCost(transactionJpaRepository, user.getIdTenant(), idTransaction),
+        HttpStatus.OK);
   }
 
   ///////////////////////////////////////////////////////////

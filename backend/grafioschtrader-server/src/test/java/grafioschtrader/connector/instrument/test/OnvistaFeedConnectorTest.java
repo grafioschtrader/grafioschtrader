@@ -26,7 +26,7 @@ class OnvistaFeedConnectorTest extends BaseFeedConnectorCheck {
 
   private OnvistaFeedConnector onvistafeedConnector = new OnvistaFeedConnector();
 
-  //Security price tests
+  // Security price tests
   // =======================================
   @Test
   void getEodSecurityHistoryTest() {

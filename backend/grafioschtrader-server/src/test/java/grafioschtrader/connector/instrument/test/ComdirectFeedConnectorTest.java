@@ -19,7 +19,7 @@ public class ComdirectFeedConnectorTest extends BaseFeedConnectorCheck {
   private ComdirectFeedConnector comdirectConnector = new ComdirectFeedConnector();
 
   // Security price tests
-  //=======================================
+  // =======================================
   @Test
   void updateSecurityLastPriceTest() {
     updateSecurityLastPrice(getSecurityLastPrice());
@@ -40,8 +40,8 @@ public class ComdirectFeedConnectorTest extends BaseFeedConnectorCheck {
     return securities;
   }
 
- //Currency pair price tests
- // =======================================
+  // Currency pair price tests
+  // =======================================
   @Test
   void updateCurrencyPairLastPriceTest() {
     final List<Currencypair> currencies = new ArrayList<>();

@@ -186,27 +186,25 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
   }
 
   /**
-   * /**
-   * Placeholder for special entity update logic. Subclasses can override this
-   * to implement custom update behavior for specific entity types not covered
-   * by the general logic.
+   * /** Placeholder for special entity update logic. Subclasses can override this to implement custom update behavior
+   * for specific entity types not covered by the general logic.
    *
-   * @param user The user performing the update.
+   * @param user   The user performing the update.
    * @param entity The entity to be updated.
    * @return ResponseEntity containing the updated entity or an error status.
-   * @throws Exception If any error occurs during the special update.
+   * @throws Exception                     If any error occurs during the special update.
    * @throws UnsupportedOperationException By default, if not overridden.
-
+   * 
    */
   protected ResponseEntity<T> updateSpecialEntity(User user, T entity) throws Exception {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   /**
-   * Saves the entity (either new or existing) to the repository.
-   * Only attributes marked with specified update property levels are saved.
+   * Saves the entity (either new or existing) to the repository. Only attributes marked with specified update property
+   * levels are saved.
    *
-   * @param entity The entity with new values.
+   * @param entity         The entity with new values.
    * @param existingEntity The existing entity from the database (can be null for new entities).
    * @return ResponseEntity containing the saved entity.
    * @throws Exception If any error occurs during saving.
@@ -218,12 +216,12 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
   }
 
   /**
-   * Checks if a proposal change is required or if the user has direct editing rights,
-   * then proceeds to save or propose the changes.
+   * Checks if a proposal change is required or if the user has direct editing rights, then proceeds to save or propose
+   * the changes.
    *
-   * @param user The user performing the operation.
-   * @param entity The entity with new values.
-   * @param parentEntity The auditable parent entity.
+   * @param user                The user performing the operation.
+   * @param entity              The entity with new values.
+   * @param parentEntity        The auditable parent entity.
    * @param hasHigherPrivileges Flag indicating if the user has administrative or higher privileges.
    * @return ResponseEntity containing the updated entity or the existing entity if a proposal was created.
    * @throws Exception If any error occurs.
@@ -250,8 +248,8 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
   /**
    * Handles changes to an entity, including accepting existing proposals if applicable.
    *
-   * @param userAtWork The user performing the change.
-   * @param entity The entity with new values.
+   * @param userAtWork     The user performing the change.
+   * @param entity         The entity with new values.
    * @param existingEntity The existing entity from the database.
    * @return ResponseEntity containing the updated entity.
    * @throws Exception If any error occurs.
@@ -296,12 +294,12 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
   }
 
   /**
-   * Creates and saves a {@link ProposeChangeEntity} and its associated {@link ProposeChangeField}s
-   * based on the differences between the proposed entity and the existing entity.
+   * Creates and saves a {@link ProposeChangeEntity} and its associated {@link ProposeChangeField}s based on the
+   * differences between the proposed entity and the existing entity.
    *
-   * @param entity The entity with the proposed changes.
+   * @param entity         The entity with the proposed changes.
    * @param existingEntity The current state of the entity in the database.
-   * @param parentEntity The parent auditable entity, used to determine the owner of the original entity.
+   * @param parentEntity   The parent auditable entity, used to determine the owner of the original entity.
    * @return The existing entity, as no direct changes are made to it in this step.
    */
   protected T createProposaleChange(T entity, T existingEntity, Auditable parentEntity)

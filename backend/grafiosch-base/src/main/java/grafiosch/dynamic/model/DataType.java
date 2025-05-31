@@ -6,15 +6,15 @@ package grafiosch.dynamic.model;
  */
 public enum DataType {
 
-  None((byte) 0), 
-  //Decimal numbers
-  Numeric((byte) 1), 
-  //Only Integer
-  NumericInteger((byte) 4), 
+  None((byte) 0),
+  // Decimal numbers
+  Numeric((byte) 1),
+  // Only Integer
+  NumericInteger((byte) 4),
   // Only String
   String((byte) 7),
   // Date with time
-  DateTimeNumeric((byte) 8), 
+  DateTimeNumeric((byte) 8),
   // Only Date
   DateString((byte) 10),
   // True or false

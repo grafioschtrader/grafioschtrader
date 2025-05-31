@@ -11,7 +11,7 @@ import jakarta.persistence.EntityManager;
 public interface GlobalparametersJpaRepositoryCustom {
 
   EntityManager getEntityManager();
- 
+
   /**
    * How many days of background task history are kept
    */
@@ -25,8 +25,6 @@ public interface GlobalparametersJpaRepositoryCustom {
   List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys);
 
   PasswordRegexProperties getPasswordRegexProperties() throws Exception;
-
- 
 
   int getJWTExpirationMinutes();
 

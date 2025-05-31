@@ -22,12 +22,12 @@ public class SecurityM2MResource {
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
-  @Operation(summary = "Returns a security ISIN and currency", description = "", tags = {RequestGTMappings.SECURITY_M2M })
+  @Operation(summary = "Returns a security ISIN and currency", description = "", tags = {
+      RequestGTMappings.SECURITY_M2M })
   @GetMapping(value = "/{isin}/{currency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Security> getSecurityByIdSecuritycurrency(@PathVariable final String isin,
       @PathVariable final String currency) {
-    Security security = securityJpaRepository
-        .findByIsinAndCurrency(isin, currency);
+    Security security = securityJpaRepository.findByIsinAndCurrency(isin, currency);
     return new ResponseEntity<>(security, HttpStatus.OK);
   }
 

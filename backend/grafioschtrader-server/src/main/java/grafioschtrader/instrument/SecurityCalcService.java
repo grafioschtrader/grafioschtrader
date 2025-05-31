@@ -47,7 +47,7 @@ public class SecurityCalcService {
 
   /**
    * Calculate all transactions of a security. An open position is not closed.
-   * 
+   *
    * @param security                   The security concerned
    * @param excludeDivTaxcost          If true, tax withholdings are not taken into account.
    * @param securityTransactionSummary The hypothetical transaction(s) are added here.
@@ -92,7 +92,7 @@ public class SecurityCalcService {
    * Processing of a securities transaction. The return is calculated in the process. It does not matter whether the
    * position is closed or open. The transactions should be transferred in ascending order of execution. This means
    * sorting by cash account or custody account and then by transaction time.
-   * 
+   *
    * @param transaction        The transaction
    * @param summarySecurityMap Contains the calculations for each individual security.
    * @param securitysplitMap   Contains the splits. ID of the security and the list of splits.

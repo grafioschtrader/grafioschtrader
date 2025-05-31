@@ -13,7 +13,7 @@ public class YahooEarningNextDate extends YahooUDFFields implements IUDFForEvery
 
   @Autowired
   private MicProviderMapRepository micProviderMapRepository;
-  
+
   @Override
   public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, boolean recreate) {
     createYahooFieldValue(securitycurrencyUDFGroup, getUDFSpecialType(), micProviderMapRepository, recreate);

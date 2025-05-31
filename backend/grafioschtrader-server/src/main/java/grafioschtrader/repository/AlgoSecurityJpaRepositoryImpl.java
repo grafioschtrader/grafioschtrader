@@ -25,7 +25,7 @@ public class AlgoSecurityJpaRepositoryImpl extends BaseRepositoryImpl<AlgoSecuri
 
   @Autowired
   private AlgoStrategyJpaRepository algoStrategyJpaRepository;
-  
+
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 

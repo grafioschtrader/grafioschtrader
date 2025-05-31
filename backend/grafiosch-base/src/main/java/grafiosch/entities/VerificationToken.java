@@ -18,9 +18,9 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Schema(description = """
-1. a verification token is created with the registration. 
-2. this verification token is sent to the user by e-mail as a link.
-3. this token must be verified with this link within a certain period of time.""")
+    1. a verification token is created with the registration.
+    2. this verification token is sent to the user by e-mail as a link.
+    3. this token must be verified with this link within a certain period of time.""")
 @Entity
 @Table(name = "verificationtoken")
 public class VerificationToken extends BaseID<Integer> {

@@ -95,7 +95,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   }
 
   /**
-   *  Every pdf import is ready for transaction
+   * Every pdf import is ready for transaction
    */
   private SuccessFailedDirectImportTransaction createRealTransactions(ImportTransactionHead importTransactionHead,
       List<ImportTransactionPos> importTransactionPosList) {

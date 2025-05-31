@@ -43,8 +43,8 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
   private final UserService userService;
   private final boolean limitRequest;
 
-  public StatelessAuthenticationFilter(final TokenAuthentication tokenAuthentication,
-      final MessageSource messages, final UserService userService, final boolean limitRequest) {
+  public StatelessAuthenticationFilter(final TokenAuthentication tokenAuthentication, final MessageSource messages,
+      final UserService userService, final boolean limitRequest) {
     this.tokenAuthentication = tokenAuthentication;
     this.messages = messages;
     this.userService = userService;
@@ -52,9 +52,9 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
   }
 
   /**
-   * The number of requests that the client can make to the server per time unit
-   * is limited. There is a limit per minute and per hour.
-   * 
+   * The number of requests that the client can make to the server per time unit is limited. There is a limit per minute
+   * and per hour.
+   *
    * @return
    */
   private Bucket createNewBucket() {
@@ -103,9 +103,8 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
   }
 
   /**
-   * Monitoring the number of requests per time unit from a client to the server.
-   * If the number of requests is exceeded, a warning is sent to the user and this
-   * violation is registered.
+   * Monitoring the number of requests per time unit from a client to the server. If the number of requests is exceeded,
+   * a warning is sent to the user and this violation is registered.
    */
   private void doFilterWithlimitWatcher(final ServletRequest servletRequest, final ServletResponse servletResponse,
       final FilterChain chain, final Authentication authentication) throws IOException, ServletException {

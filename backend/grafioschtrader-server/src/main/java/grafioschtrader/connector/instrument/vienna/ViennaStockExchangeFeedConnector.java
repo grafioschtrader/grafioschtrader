@@ -42,16 +42,13 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /**
- * The Vienna Stock Exchange provides for different asset classes the download
- * of a CSV file of the historical price data. Unfortunately, for some asset
- * classes a rounding to integers is performed for the CSV export. Another
- * access to more precise figures is available via the "Profi Chart". The
- * disadvantage there is that only figures for the trading days are delivered if
- * they were traded on this day.
+ * The Vienna Stock Exchange provides for different asset classes the download of a CSV file of the historical price
+ * data. Unfortunately, for some asset classes a rounding to integers is performed for the CSV export. Another access to
+ * more precise figures is available via the "Profi Chart". The disadvantage there is that only figures for the trading
+ * days are delivered if they were traded on this day.
  *
- * The URL extension consists of a number and is therefore subjected to a regex
- * check. The check via the connector obviously always results in an HTTP OK.
- * However, the body of the return contains an error code, which is checked
+ * The URL extension consists of a number and is therefore subjected to a regex check. The check via the connector
+ * obviously always results in an HTTP OK. However, the body of the return contains an error code, which is checked
  * here.
  *
  */
@@ -159,8 +156,8 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Currently, the CSV download should be used only for stocks and indices. For
-   * other asset classes the price data is too inaccurately rounded.
+   * Currently, the CSV download should be used only for stocks and indices. For other asset classes the price data is
+   * too inaccurately rounded.
    */
   private List<Historyquote> getEodSecurityHistoryFromHistoricalCSV(final Security security, final Date from,
       final Date to) throws Exception {
@@ -197,10 +194,8 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
 
   /**
    * Index: Date;Open;High;Low;Last Close;Chg.%;</br>
-   * Bond: Date;Open;High;Low;LastClose;Chg.%;Total Value<sup>1</sup>;Total
-   * Volume<sup>1</sup>;</br>
-   * Stock: Date;Open;High;Low;Last Close;Chg.%;Total Value<sup>1</sup>;Total
-   * Volume<sup>1</sup>;</br>
+   * Bond: Date;Open;High;Low;LastClose;Chg.%;Total Value<sup>1</sup>;Total Volume<sup>1</sup>;</br>
+   * Stock: Date;Open;High;Low;Last Close;Chg.%;Total Value<sup>1</sup>;Total Volume<sup>1</sup>;</br>
    */
   private Historyquote parseResponseLineItems(final String[] items, SimpleDateFormat sdf) throws ParseException {
     Historyquote historyquote = new Historyquote();

@@ -39,14 +39,13 @@ public class YahooSplitCalendar implements ISplitCalendarFeedConnector {
     LocalDate fromDate = forDate.minusDays(1);
     String url = YahooHelper.YAHOO_CALENDAR + "splits?from=" + fromDate + "&to=" + forDate + "&day=" + forDate;
     HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(url))
-        .headers("Content-Type", "application/x-www-form-urlencoded", "X-Requested-With", "XMLHttpRequest",
-            "User-Agent", FeedConnectorHelper.getHttpAgentAsString(true))
+    HttpRequest request = HttpRequest
+        .newBuilder().uri(URI.create(url)).headers("Content-Type", "application/x-www-form-urlencoded",
+            "X-Requested-With", "XMLHttpRequest", "User-Agent", FeedConnectorHelper.getHttpAgentAsString(true))
         .GET().build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() == 200) {
-       return parseSplitCalendar(Jsoup.parse(response.body()), forDate);
+      return parseSplitCalendar(Jsoup.parse(response.body()), forDate);
     } else {
       throw new IOException("Failed to fetch split calendar data. Status code: " + response.statusCode());
     }

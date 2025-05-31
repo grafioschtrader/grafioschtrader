@@ -148,8 +148,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   @Override
   public Auditable getParentSecurityCurrency(final User user, Integer idSecuritycurrency) {
-    return securityJpaRepository.findById(idSecuritycurrency)
-        .map(security -> (Auditable) security)
+    return securityJpaRepository.findById(idSecuritycurrency).map(security -> (Auditable) security)
         .orElseGet(() -> currencypairJpaRepository.getReferenceById(idSecuritycurrency));
   }
 
@@ -225,7 +224,8 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * @throws com.ezylang.evalex.parser.ParseException
    * @throws EvaluationException
    */
-  private void updateCalculationByChangedHistoryquote(Historyquote savedHistoryquote) throws EvaluationException, com.ezylang.evalex.parser.ParseException {
+  private void updateCalculationByChangedHistoryquote(Historyquote savedHistoryquote)
+      throws EvaluationException, com.ezylang.evalex.parser.ParseException {
     List<IFormulaSecurityLoad> dependingSecurities = securityJpaRepository
         .getBySecurityDerivedLinkByIdSecurityLink(savedHistoryquote.getIdSecuritycurrency());
 
@@ -248,8 +248,8 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   }
 
   /**
-   * Some no trading days are filled with history quote, especially currencies
-   * quotes. Those days must be adjusted when a history quote is edited manually.
+   * Some no trading days are filled with history quote, especially currencies quotes. Those days must be adjusted when
+   * a history quote is edited manually.
    *
    * @param historyquoteBefore
    */
@@ -266,7 +266,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       if (historyquote.getCreateType() != HistoryquoteCreateType.FILLED_NON_TRADE_DAY) {
         break;
       }
-      if (DateHelper.getDateDiff(historyquoteBefore.getDate(), historyquote.getDate(), TimeUnit.DAYS) == i+1) {
+      if (DateHelper.getDateDiff(historyquoteBefore.getDate(), historyquote.getDate(), TimeUnit.DAYS) == i + 1) {
         historyquote.updateThis(historyquoteBefore);
         toSaveHistoryquotes.add(historyquote);
       }
@@ -393,10 +393,8 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       // Issue: 53: TODO Check if someone is using GT to get historical data. The
       // following way will certainly not work.
       /*
-       * if
-       * (historyquoteJpaRepository.countSecuritycurrencyForHistoryquoteAccess(user.
-       * getIdTenant(), idSecuritycurrency) == 0) { throw new
-       * SecurityException(GlobalConstants.STEAL_DATA_SECURITY_BREACH); }
+       * if (historyquoteJpaRepository.countSecuritycurrencyForHistoryquoteAccess(user. getIdTenant(),
+       * idSecuritycurrency) == 0) { throw new SecurityException(GlobalConstants.STEAL_DATA_SECURITY_BREACH); }
        */
       return new UserAccess(false, securityJpaRepository
           .findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(idSecuritycurrency, user.getIdTenant()));
@@ -447,58 +445,42 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   /*
    * @Override
    *
-   * @Transactional // TODO not yet used. public
-   * HistoryQuoteForChartWithEmptyTrace
-   * getHistoryQuoteForChartWithEmptyTrace(final Integer idSecuritycurrency) {
-   * HistoryQuoteForChartWithEmptyTrace historyQuoteForChartWithEmptyTrace = new
-   * HistoryQuoteForChartWithEmptyTrace();
+   * @Transactional // TODO not yet used. public HistoryQuoteForChartWithEmptyTrace
+   * getHistoryQuoteForChartWithEmptyTrace(final Integer idSecuritycurrency) { HistoryQuoteForChartWithEmptyTrace
+   * historyQuoteForChartWithEmptyTrace = new HistoryQuoteForChartWithEmptyTrace();
    *
-   * List<IDateAndClose> dateAndClose =
-   * historyquoteJpaRepository.getClosedAndMissingHistoryquoteByIdSecurity(
-   * idSecuritycurrency); dateAndClose.forEach(dac ->
-   * historyQuoteForChartWithEmptyTrace.add(dac.getDate(), dac.getClose()));
-   * historyQuoteForChartWithEmptyTrace.completeFirstAndLastMisssing();
+   * List<IDateAndClose> dateAndClose = historyquoteJpaRepository.getClosedAndMissingHistoryquoteByIdSecurity(
+   * idSecuritycurrency); dateAndClose.forEach(dac -> historyQuoteForChartWithEmptyTrace.add(dac.getDate(),
+   * dac.getClose())); historyQuoteForChartWithEmptyTrace.completeFirstAndLastMisssing();
    *
    * return historyQuoteForChartWithEmptyTrace; }
    *
    *
-   * public static class HistoryQuoteForChartWithEmptyTrace { public final
-   * List<HistoryquoteDateClose> minimalChartDataWithData = new ArrayList<>();
-   * public final List<HistoryquoteDateClose> minimalChartDataMissingData = new
-   * ArrayList<>(); private HistoryquoteDateClose lastExistingMinimalChartData =
-   * null; private HistoryquoteDateClose lastMissingStartMinimalChartData = null;
-   * private boolean lastIsEmpty; private LocalDate lastEmptyDate;
+   * public static class HistoryQuoteForChartWithEmptyTrace { public final List<HistoryquoteDateClose>
+   * minimalChartDataWithData = new ArrayList<>(); public final List<HistoryquoteDateClose> minimalChartDataMissingData
+   * = new ArrayList<>(); private HistoryquoteDateClose lastExistingMinimalChartData = null; private
+   * HistoryquoteDateClose lastMissingStartMinimalChartData = null; private boolean lastIsEmpty; private LocalDate
+   * lastEmptyDate;
    *
-   * public void add(LocalDate date, Double close) { if (close == null) { if
-   * (!lastIsEmpty) { // Open missing scope lastMissingStartMinimalChartData = new
-   * HistoryquoteDateClose(date, lastExistingMinimalChartData != null ?
-   * lastExistingMinimalChartData.close : null);
-   * minimalChartDataMissingData.add(lastMissingStartMinimalChartData); }
-   * lastEmptyDate = date; lastIsEmpty = true; } else { if (lastIsEmpty &&
-   * !minimalChartDataMissingData.isEmpty()) { // Close missing scope if
-   * (lastMissingStartMinimalChartData != null &&
-   * lastMissingStartMinimalChartData.date.isEqual(lastEmptyDate)) { // Only
-   * single Day is missing - > take average price of day before and after
-   * lastMissingStartMinimalChartData.close =
-   * (lastMissingStartMinimalChartData.close + close) / 2; } else {
-   * minimalChartDataMissingData.add(new HistoryquoteDateClose(lastEmptyDate,
-   * close)); } } lastIsEmpty = false; lastExistingMinimalChartData = new
-   * HistoryquoteDateClose(date, close);
+   * public void add(LocalDate date, Double close) { if (close == null) { if (!lastIsEmpty) { // Open missing scope
+   * lastMissingStartMinimalChartData = new HistoryquoteDateClose(date, lastExistingMinimalChartData != null ?
+   * lastExistingMinimalChartData.close : null); minimalChartDataMissingData.add(lastMissingStartMinimalChartData); }
+   * lastEmptyDate = date; lastIsEmpty = true; } else { if (lastIsEmpty && !minimalChartDataMissingData.isEmpty()) { //
+   * Close missing scope if (lastMissingStartMinimalChartData != null &&
+   * lastMissingStartMinimalChartData.date.isEqual(lastEmptyDate)) { // Only single Day is missing - > take average
+   * price of day before and after lastMissingStartMinimalChartData.close = (lastMissingStartMinimalChartData.close +
+   * close) / 2; } else { minimalChartDataMissingData.add(new HistoryquoteDateClose(lastEmptyDate, close)); } }
+   * lastIsEmpty = false; lastExistingMinimalChartData = new HistoryquoteDateClose(date, close);
    *
    * } minimalChartDataWithData.add(new HistoryquoteDateClose(date, close)); }
    *
-   * public void completeFirstAndLastMisssing() { if
-   * (!minimalChartDataMissingData.isEmpty() &&
+   * public void completeFirstAndLastMisssing() { if (!minimalChartDataMissingData.isEmpty() &&
    * !minimalChartDataWithData.isEmpty()) { if
-   * (minimalChartDataMissingData.get(0).date.isBefore(minimalChartDataWithData.
-   * get(0).date)) { minimalChartDataMissingData.get(0).close =
-   * minimalChartDataWithData.get(0).close; } int mIndex =
-   * minimalChartDataMissingData.size() - 1; int dIndex =
-   * minimalChartDataWithData.size() - 1; if
-   * (minimalChartDataMissingData.get(mIndex).date.isAfter(
-   * minimalChartDataWithData.get(dIndex).date)) {
-   * minimalChartDataMissingData.get(mIndex).close =
-   * minimalChartDataWithData.get(dIndex).close; } } } }
+   * (minimalChartDataMissingData.get(0).date.isBefore(minimalChartDataWithData. get(0).date)) {
+   * minimalChartDataMissingData.get(0).close = minimalChartDataWithData.get(0).close; } int mIndex =
+   * minimalChartDataMissingData.size() - 1; int dIndex = minimalChartDataWithData.size() - 1; if
+   * (minimalChartDataMissingData.get(mIndex).date.isAfter( minimalChartDataWithData.get(dIndex).date)) {
+   * minimalChartDataMissingData.get(mIndex).close = minimalChartDataWithData.get(dIndex).close; } } } }
    *
    */
 

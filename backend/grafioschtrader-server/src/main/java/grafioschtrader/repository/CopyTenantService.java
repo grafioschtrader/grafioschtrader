@@ -71,7 +71,7 @@ public class CopyTenantService {
     for (DelTab delTab : tables) {
       String deleteSQL = "DELETE FROM " + delTab.tabName + " WHERE " + (delTab.useIdTenant ? "id_tenant" : "id_user")
           + "=?";
-      jdbcTemplate.update(deleteSQL, delTab.useIdTenant ?  targetIdTenant: targetIdUser);
+      jdbcTemplate.update(deleteSQL, delTab.useIdTenant ? targetIdTenant : targetIdUser);
     }
   }
 
@@ -171,11 +171,12 @@ public class CopyTenantService {
     Map<Integer, Integer> fieldMap = new HashMap<>();
     TypedQuery<UDFMetadataGeneral> q = em.createQuery("SELECT u FROM UDFMetadataGeneral u WHERE u.idUser = ?1",
         UDFMetadataGeneral.class);
-    
+
     List<UDFMetadataGeneral> udfMgList = q.setParameter(1, sourceIdUser).getResultList();
     for (UDFMetadataGeneral u : udfMgList) {
-      UDFMetadataGeneral uDFMetadataGeneral = new UDFMetadataGeneral(u.getEntity(), targetIdUser, u.getUdfSpecialTypeAsByte(),
-          u.getDescription(), u.getDescriptionHelp(), u.getUdfDataType(), u.getFieldSize(), u.getUiOrder());
+      UDFMetadataGeneral uDFMetadataGeneral = new UDFMetadataGeneral(u.getEntity(), targetIdUser,
+          u.getUdfSpecialTypeAsByte(), u.getDescription(), u.getDescriptionHelp(), u.getUdfDataType(), u.getFieldSize(),
+          u.getUiOrder());
       em.persist(uDFMetadataGeneral);
       fieldMap.put(u.getIdUDFMetadata(), uDFMetadataGeneral.getIdUDFMetadata());
     }
@@ -201,17 +202,16 @@ public class CopyTenantService {
     TypedQuery<UDFData> q = em.createQuery("SELECT u FROM UDFData u WHERE u.uDFDataKey.idUser = ?1", UDFData.class);
     List<UDFData> udfDataList = q.setParameter(1, sourceIdUser).getResultList();
     for (UDFData u : udfDataList) {
-      Map<String, Object> jvNew = u.getJsonValues().entrySet().stream().collect(Collectors.toMap(e -> 
-      BaseConstants.UDF_FIELD_PREFIX + fieldMap.get(Integer.parseInt(e.getKey().substring(1))), e-> e.getValue()));
+      Map<String, Object> jvNew = u.getJsonValues().entrySet().stream()
+          .collect(Collectors.toMap(
+              e -> BaseConstants.UDF_FIELD_PREFIX + fieldMap.get(Integer.parseInt(e.getKey().substring(1))),
+              e -> e.getValue()));
       UDFData uDFData = new UDFData(
-          new UDFDataKey(targetIdUser, u.getuDFDataKey().getEntity(), u.getuDFDataKey().getIdEntity()),
-          jvNew);
+          new UDFDataKey(targetIdUser, u.getuDFDataKey().getEntity(), u.getuDFDataKey().getIdEntity()), jvNew);
       em.persist(uDFData);
     }
     em.flush();
   }
-  
-
 
   private void copyTransaction(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityaccountMap, Map<Integer, Cashaccount> cashaccoutMap) {

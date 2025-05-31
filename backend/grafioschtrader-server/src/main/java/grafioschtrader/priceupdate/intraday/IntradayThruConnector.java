@@ -28,9 +28,8 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   private final JpaRepository<S, Integer> jpaRepository;
   private final IIntradayEntityAccess<S> intraEntityAccess;
 
-  public IntradayThruConnector(JpaRepository<S, Integer> jpaRepository,
-      GlobalparametersService globalparametersService, List<IFeedConnector> feedConnectorbeans,
-      IIntradayEntityAccess<S> intraEntityAccess) {
+  public IntradayThruConnector(JpaRepository<S, Integer> jpaRepository, GlobalparametersService globalparametersService,
+      List<IFeedConnector> feedConnectorbeans, IIntradayEntityAccess<S> intraEntityAccess) {
     super(globalparametersService);
     this.jpaRepository = jpaRepository;
     this.feedConnectorbeans = feedConnectorbeans;

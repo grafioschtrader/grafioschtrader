@@ -18,8 +18,8 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.Version;
 
 /**
- * The entities of most shared information classes should additionally contain
- * the creator the last editor and the associated timestamps. Supported by the Spring Framework via auditing.
+ * The entities of most shared information classes should additionally contain the creator the last editor and the
+ * associated timestamps. Supported by the Spring Framework via auditing.
  */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
@@ -38,8 +38,7 @@ public abstract class Auditable extends ProposeTransientTransfer implements Seri
   @Column(name = "creation_time")
   protected Date creationTime;
 
-  @Schema(description = "The timestamp when the entity was last modified.", 
-      example = "2025-03-29T14:20:45Z", nullable = true)
+  @Schema(description = "The timestamp when the entity was last modified.", example = "2025-03-29T14:20:45Z", nullable = true)
   @LastModifiedBy
   @Column(name = "last_modified_by")
   protected Integer lastModifiedBy;

@@ -78,7 +78,6 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return new ResponseEntity<>(security, HttpStatus.OK);
   }
 
-
   @GetMapping(value = "/algounused/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Security>> getSecuritiesByIdAssetclass(
       @PathVariable final Integer idAlgoAssetclassSecurity) {
@@ -116,12 +115,11 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   }
 
   /*
-   * @GetMapping(value = "/active/{dateString}", produces =
-   * APPLICATION_JSON_VALUE) public ResponseEntity<List<Security>>
-   * findActiveSecurityOrderByName(@PathVariable final String dateString) throws
+   * @GetMapping(value = "/active/{dateString}", produces = APPLICATION_JSON_VALUE) public
+   * ResponseEntity<List<Security>> findActiveSecurityOrderByName(@PathVariable final String dateString) throws
    * ParseException { final List<Security> securities =
-   * securityJpaRepository.findByActiveToDateGreaterThanEqualOrderByName(
-   * dateString); return new ResponseEntity<>(securities, HttpStatus.OK); }
+   * securityJpaRepository.findByActiveToDateGreaterThanEqualOrderByName( dateString); return new
+   * ResponseEntity<>(securities, HttpStatus.OK); }
    */
 
   @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = "", tags = {
@@ -251,11 +249,11 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   }
 
   @Operation(summary = """
-      Returns a name if the task works at the level of an entity. This allows a name for the ID to be displayed 
-      in the user interface as a tooltip, for example.""", description = "", tags = {Security.TABNAME})
-  @GetMapping(value="/tooltip", produces = APPLICATION_JSON_VALUE)
+      Returns a name if the task works at the level of an entity. This allows a name for the ID to be displayed
+      in the user interface as a tooltip, for example.""", description = "", tags = { Security.TABNAME })
+  @GetMapping(value = "/tooltip", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Map<Integer, String>> getSecurityCurrencyPairInfo() {
     return new ResponseEntity<>(securityJpaRepository.getSecurityCurrencyPairInfo(), HttpStatus.OK);
   }
-  
+
 }

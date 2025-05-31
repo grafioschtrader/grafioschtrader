@@ -30,11 +30,12 @@ public abstract class BaseIntradayThru<S extends Securitycurrency<S>> extends Ba
   }
 
   @Override
-  public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry, boolean singleThread) {
+  public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, final short maxIntraRetry,
+      boolean singleThread) {
     final int scIntradayUpdateTimeout = globalparametersService.getSecurityCurrencyIntradayUpdateTimeout();
     final List<S> securtycurrenciesUpd = new ArrayList<>();
     if (securtycurrencies.size() > 1) {
-      if(singleThread) {
+      if (singleThread) {
         securtycurrencies.forEach(securitycurrency -> {
           securtycurrenciesUpd
               .add(updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout));

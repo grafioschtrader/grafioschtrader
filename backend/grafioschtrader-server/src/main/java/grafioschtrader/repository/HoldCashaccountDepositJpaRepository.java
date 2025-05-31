@@ -45,22 +45,22 @@ public interface HoldCashaccountDepositJpaRepository extends
   List<CashaccountForeignExChangeRate> getCashaccountForeignExChangeRateByIdTenant(Integer idTenant);
 
   /**
-   * Retrieves distinct foreign exchange rates for all cash‐account deposit and withdrawal transactions
-   * across all tenants and accounts.
+   * Retrieves distinct foreign exchange rates for all cash‐account deposit and withdrawal transactions across all
+   * tenants and accounts.
    * <p>
-   * Filters for transactions of type WITHDRAWAL or DEPOSIT (transaction_type ≤ 1),
-   * and uses hold_cashaccount_deposit timing to align with historyquote records.
+   * Filters for transactions of type WITHDRAWAL or DEPOSIT (transaction_type ≤ 1), and uses hold_cashaccount_deposit
+   * timing to align with historyquote records.
    *
    * @return a list of CashaccountForeignExChangeRate projections
-   */   
+   */
   @Query(nativeQuery = true)
   List<CashaccountForeignExChangeRate> getCashaccountForeignExChangeRate();
 
   /**
    * Finds the most recent cash‐account deposit record before the given date.
    * <p>
-   * Selects the hold_cashaccount_deposit entry with the largest from_hold_date
-   * that is strictly less than the specified date for the given account.
+   * Selects the hold_cashaccount_deposit entry with the largest from_hold_date that is strictly less than the specified
+   * date for the given account.
    *
    * @param idSecuritycashAccount the cash‐account ID
    * @param date                  the cutoff date (exclusive)
@@ -70,26 +70,23 @@ public interface HoldCashaccountDepositJpaRepository extends
   HoldCashaccountDeposit getLastBeforeDateByCashaccount(Integer idSecuritycashAccount, LocalDate date);
 
   /**
-   * Retrieves the previous deposit-hold record for each cash account relative to
-   * its next deposit or withdrawal transaction.
+   * Retrieves the previous deposit-hold record for each cash account relative to its next deposit or withdrawal
+   * transaction.
    * <p>
-   * For every cash account, finds the hold_cashaccount_deposit entry whose
-   * from_hold_date is the greatest date before the next transaction date
-   * (t.tt_date). Returns one record per account.
+   * For every cash account, finds the hold_cashaccount_deposit entry whose from_hold_date is the greatest date before
+   * the next transaction date (t.tt_date). Returns one record per account.
    *
-   * @return a list of HoldCashaccountDeposit entities representing the prior hold
-   *         period
+   * @return a list of HoldCashaccountDeposit entities representing the prior hold period
    */
   @Query(nativeQuery = true)
   List<HoldCashaccountDeposit> getPrevHoldingRecords();
 
   /**
-   * Projection interface representing foreign exchange rates applicable to cash
-   * account deposit and withdrawal transactions.
+   * Projection interface representing foreign exchange rates applicable to cash account deposit and withdrawal
+   * transactions.
    * <p>
-   * Instances are populated by native SQL queries that join transaction, currency
-   * pair, and historyquote tables, aligning each transaction date with the
-   * corresponding end-of-day FX rate.
+   * Instances are populated by native SQL queries that join transaction, currency pair, and historyquote tables,
+   * aligning each transaction date with the corresponding end-of-day FX rate.
    */
   public static interface CashaccountForeignExChangeRate {
 

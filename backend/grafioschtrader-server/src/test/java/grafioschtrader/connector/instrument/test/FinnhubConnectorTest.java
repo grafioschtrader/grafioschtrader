@@ -71,8 +71,6 @@ class FinnhubConnectorTest extends BaseFeedConnectorCheck {
     }
   }
 
-  
-
   @Override
   protected IFeedConnector getIFeedConnector() {
     return finnhubConnector;

@@ -16,8 +16,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Schema(description = """
-  More fields can be affected by a data change request. 
-  The field name and the corresponding value are therefore saved here.""")
+    More fields can be affected by a data change request.
+    The field name and the corresponding value are therefore saved here.""")
 @Entity
 @Table(name = ProposeChangeField.TABNAME)
 public class ProposeChangeField {
@@ -38,8 +38,8 @@ public class ProposeChangeField {
   private String field;
 
   @Schema(description = """
-    The data type for the proposed data can of course be different. Therefore, 
-    byte is used here and the corresponding value is serialized.""")
+      The data type for the proposed data can of course be different. Therefore,
+      byte is used here and the corresponding value is serialized.""")
   @Column(name = "value")
   private byte[] value;
 

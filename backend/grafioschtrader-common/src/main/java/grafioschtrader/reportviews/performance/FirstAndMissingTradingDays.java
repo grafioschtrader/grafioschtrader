@@ -28,7 +28,7 @@ public class FirstAndMissingTradingDays {
   public final LocalDate secondLatestTradingDay;
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate latestTradingDay;
-  
+
   @Schema(description = "Most recent date for which the data is complete")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate leatestPossibleTradingDay;

@@ -28,8 +28,8 @@ import grafioschtrader.entities.EcbExchangeRates;
 import grafioschtrader.repository.EcbExchangeRatesRepository;
 
 /**
- * Loading historical exchange rates from the European Central Bank (ECB).
- * Should be executed preferably daily but not necessarily on weekends.
+ * Loading historical exchange rates from the European Central Bank (ECB). Should be executed preferably daily but not
+ * necessarily on weekends.
  */
 public class EcbLoader {
 

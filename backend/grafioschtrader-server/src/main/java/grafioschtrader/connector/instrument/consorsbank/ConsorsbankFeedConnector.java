@@ -27,9 +27,8 @@ import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Security;
 
 /**
- * A regex check of the URL extension is active. The connector for checking the
- * instrument apparently always returns an HTTP OK. However, the body of the
- * return contains the text "ERROR_CODE", which is checked for.
+ * A regex check of the URL extension is active. The connector for checking the instrument apparently always returns an
+ * HTTP OK. However, the body of the return contains the text "ERROR_CODE", which is checked for.
  */
 @Component
 public class ConsorsbankFeedConnector extends BaseFeedConnector {

@@ -21,23 +21,22 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   Currencypair findByFromCurrencyAndToCurrency(String fromCurrency, String toCurrency);
 
   List<Currencypair> findByRetryIntraLoadLessThan(short retryLoad);
-  
+
   @Override
   @EntityGraph(value = "graph.currency.historyquote", type = EntityGraphType.FETCH)
   Currencypair findByIdSecuritycurrency(Integer idSecuritycurrency);
 
-  
   @Query(value = "SELECT c.from_currency FROM currencypair c WHERE c.to_currency = ?1", nativeQuery = true)
   Set<String> getFromCurrencyByToCurrency(String toCurrency);
- 
+
   /**
-  * Fetches currency pairs in the specified tenant’s watchlist that need an intraday reload
-  * (retryIntraLoad > 0) and have a configured intraday connector.
-  *
-  * @param idTenant    the tenant ID
-  * @param idWatchlist the watchlist ID
-  * @return list of currency pairs pending intraday update
-  */
+   * Fetches currency pairs in the specified tenant’s watchlist that need an intraday reload (retryIntraLoad > 0) and
+   * have a configured intraday connector.
+   *
+   * @param idTenant    the tenant ID
+   * @param idWatchlist the watchlist ID
+   * @return list of currency pairs pending intraday update
+   */
   @Query(value = """
       SELECT c FROM Watchlist w JOIN w.securitycurrencyList c
       WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND c.retryIntraLoad > 0
@@ -66,43 +65,38 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
       Integer idTenant, Integer idWatchlist);
 
   /**
-   * Gel all used currency pairs in transactions. That means currency pairs
-   * between security cash accounts.
+   * Gel all used currency pairs in transactions. That means currency pairs between security cash accounts.
    */
   @Query(nativeQuery = true)
   List<Currencypair> getCurrencypairInTransactionByTenant(Integer idTenant);
 
   /**
-   * Retrieves distinct security currencies that have been transacted by the
-   * specified tenant, excluding the given currency.
+   * Retrieves distinct security currencies that have been transacted by the specified tenant, excluding the given
+   * currency.
    *
    * @param idTenant        the tenant ID whose transaction currencies are fetched
    * @param excludeCurrency the currency code to exclude from the results
-   * @return a set of security currency codes transacted by the tenant, excluding
-   *         excludeCurrency
+   * @return a set of security currency codes transacted by the tenant, excluding excludeCurrency
    */
   @Query(nativeQuery = true)
   Set<String> getSecurityTransactionCurrenciesForTenantExclude(Integer idTenant, String excludeCurrency);
 
   /**
-   * Retrieves distinct security currencies that have been transacted in the
-   * specified portfolio, excluding the given currency.
+   * Retrieves distinct security currencies that have been transacted in the specified portfolio, excluding the given
+   * currency.
    *
-   * @param idPortfolio     the portfolio ID whose transaction currencies are
-   *                        fetched
+   * @param idPortfolio     the portfolio ID whose transaction currencies are fetched
    * @param excludeCurrency the currency code to exclude from the results
-   * @return a set of security currency codes transacted in the portfolio,
-   *         excluding excludeCurrency
+   * @return a set of security currency codes transacted in the portfolio, excluding excludeCurrency
    */
   @Query(nativeQuery = true)
   Set<String> getSecurityTransactionCurrenciesForPortfolioExclude(Integer idPortfolio, String excludCurrency);
 
   /**
-   * Retrieves all currency pairs that have been used in transactions for the
-   * specified portfolio (and scoped by tenant).
+   * Retrieves all currency pairs that have been used in transactions for the specified portfolio (and scoped by
+   * tenant).
    *
-   * @param idPortfolio the portfolio ID whose transaction currency pairs are
-   *                    fetched
+   * @param idPortfolio the portfolio ID whose transaction currency pairs are fetched
    * @param idTenant    the tenant ID to which the portfolio belongs
    * @return a list of Currencypair entities used in the portfolio’s transactions
    */
@@ -110,11 +104,10 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   List<Currencypair> getCurrencypairInTransactionByPortfolioId(Integer idPortfolio, Integer idTenant);
 
   /**
-   * Retrieves the IDs of all currency pairs that have no historyquote records and
-   * have retry count below the global retry threshold.
+   * Retrieves the IDs of all currency pairs that have no historyquote records and have retry count below the global
+   * retry threshold.
    *
-   * @return a list of Currencypair IDs with empty historyquote and eligible for
-   *         retry
+   * @return a list of Currencypair IDs with empty historyquote and eligible for retry
    */
   @Query(nativeQuery = true)
   List<Integer> getAllIdOfEmptyHistorqute();
@@ -159,32 +152,27 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   List<Currencypair> getAllCurrencypairsForPortfolioByPortfolio(Integer idPortfolio);
 
   /**
-   * Finds all currency pairs matching any concatenated "from+to" currency codes
-   * in the provided list.
+   * Finds all currency pairs matching any concatenated "from+to" currency codes in the provided list.
    *
-   * @param currencyPairConcat a list of concatenated currency codes (e.g.,
-   *                           "USDCHF")
+   * @param currencyPairConcat a list of concatenated currency codes (e.g., "USDCHF")
    * @return a list of matching Currencypair entities
    */
   @Query(nativeQuery = true)
   List<Currencypair> getPairsByFromAndToCurrency(List<String> currencyPairConcat);
 
   /**
-   * Finds the currency pair entity for the given two currencies, in either
-   * direction.
+   * Finds the currency pair entity for the given two currencies, in either direction.
    *
    * @param c1 the first currency code
    * @param c2 the second currency code
-   * @return a list of matching Currencypair entities where (from=c1, to=c2) or
-   *         (from=c2, to=c1)
+   * @return a list of matching Currencypair entities where (from=c1, to=c2) or (from=c2, to=c1)
    */
   @Query(nativeQuery = true)
   List<Currencypair> findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency(String c1, String c2);
 
   /**
-   * For a tenant it gets all used currency pairs of all accounts and securities,
-   * without the currency pairs used in transactions. The main currency is taken
-   * from the tenant.
+   * For a tenant it gets all used currency pairs of all accounts and securities, without the currency pairs used in
+   * transactions. The main currency is taken from the tenant.
    *
    * TODO it does not work correctly for HoldCashaccountBalanceJpaRepositoryImpl
    *
@@ -195,8 +183,8 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   List<Currencypair> getAllCurrencypairsByTenantInPortfolioAndAccounts(Integer idTenant);
 
   /**
-   * Counts how many times each currency appears in the 'from' or 'to' side of
-   * currency pairs, limited to the given set of currency codes.
+   * Counts how many times each currency appears in the 'from' or 'to' side of currency pairs, limited to the given set
+   * of currency codes.
    *
    * @param currencies a set of currency codes to count usage for
    * @return a list of CurrencyCount projections with currency and usage count
@@ -226,13 +214,12 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   List<Currencypair> getAllCurrencypairsByPortfolioInPortfolioAndAccounts(Integer idPortfolio);
 
   /**
-   * Retrieves the maximum historyquote date for each currency pair that has
-   * retryHistoryLoad below the given threshold and a non-null connector history
-   * setting.
+   * Retrieves the maximum historyquote date for each currency pair that has retryHistoryLoad below the given threshold
+   * and a non-null connector history setting.
    *
    * @param maxHistoryRetry the maximum retryHistoryLoad value to consider
-   * @return a list of SecurityCurrencyMaxHistoryquoteData projections containing
-   *         the currency pair and its latest quote date
+   * @return a list of SecurityCurrencyMaxHistoryquoteData projections containing the currency pair and its latest quote
+   *         date
    */
   @Query(nativeQuery = false)
   List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> getMaxHistoryquote(short maxHistoryRetry);

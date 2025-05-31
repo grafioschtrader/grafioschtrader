@@ -36,9 +36,9 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
   }
 
   @Operation(summary = """
-  Return the field properties so that they can be used as an input form.
-  There is one definition each for the corresponding level like security, asset class etc.""",
-  description = "", tags = { RequestGTMappings.ALGOSTRATEGY })
+      Return the field properties so that they can be used as an input form.
+      There is one definition each for the corresponding level like security, asset class etc.""", description = "", tags = {
+      RequestGTMappings.ALGOSTRATEGY })
   @GetMapping(value = "/form/{algoStrategyImplementations}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<InputAndShowDefinitionStrategy> getFormDefinitionsByAlgoStrategy(
       @PathVariable final byte algoStrategyImplementations) {
@@ -47,18 +47,16 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
   }
 
   // DOTO Maybe not used
-  @Operation(summary = "Return of the possible strategies that can be applied to a non-existent level of an investment hierarchy.", 
-      description = "", tags = { RequestGTMappings.ALGOSTRATEGY })
+  @Operation(summary = "Return of the possible strategies that can be applied to a non-existent level of an investment hierarchy.", description = "", tags = {
+      RequestGTMappings.ALGOSTRATEGY })
   @GetMapping(value = "/level/{algoLevelType}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<AlgoStrategyImplementationType>> getStrategiesForLevel(
       @PathVariable() final AlgoLevelType algoLevelType) {
-    return new ResponseEntity<>(algoStrategyJpaRepository.getStrategiesForLevel(algoLevelType),
-        HttpStatus.OK);
+    return new ResponseEntity<>(algoStrategyJpaRepository.getStrategiesForLevel(algoLevelType), HttpStatus.OK);
   }
-  
-  
-  @Operation(summary = "Return of the possible strategies that can be applied to an existing level of this investment hierarchy.", 
-      description = "", tags = { RequestGTMappings.ALGOSTRATEGY })
+
+  @Operation(summary = "Return of the possible strategies that can be applied to an existing level of this investment hierarchy.", description = "", tags = {
+      RequestGTMappings.ALGOSTRATEGY })
   @GetMapping(value = "/unusedsrategies/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<AlgoStrategyImplementationType>> getUnusedStrategiesForManualAdding(
       @PathVariable() final Integer idAlgoAssetclassSecurity) {

@@ -2,7 +2,7 @@ package grafioschtrader.types;
 
 /**
  * Enum for a period.
- * 
+ *
  * Must have the same values like TimePeriodType
  */
 public enum TimePeriodType {

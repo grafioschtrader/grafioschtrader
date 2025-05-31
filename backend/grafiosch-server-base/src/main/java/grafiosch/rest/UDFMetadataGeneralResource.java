@@ -24,9 +24,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping(RequestMappings.UDF_METADATA_GENERAL_MAP)
 @Tag(name = RequestMappings.UDFMETADATAGENERAL, description = "Controller for the general metadata of the user-defined fields")
 public class UDFMetadataGeneralResource extends UpdateCreateDeleteWithUserIdResource<UDFMetadataGeneral> {
-  
+
   private final UDFMetadataGeneralJpaRepository uDFMetadataGeneralJpaRepository;
-  
+
   public UDFMetadataGeneralResource(UDFMetadataGeneralJpaRepository uDFMetadataGeneralJpaRepository) {
     super(UDFMetadataGeneral.class);
     this.uDFMetadataGeneralJpaRepository = uDFMetadataGeneralJpaRepository;

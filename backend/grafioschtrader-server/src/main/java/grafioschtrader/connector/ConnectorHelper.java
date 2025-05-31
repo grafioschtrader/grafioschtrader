@@ -18,13 +18,10 @@ import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 public class ConnectorHelper {
 
   /*
-   * public static IFeedConnector getConnectorByConnectorId(final
-   * List<IFeedConnector> feedConnectors, final Securitycurrency<?>
-   * securitycurrency, FeedSupport feedSupport) { for (final IFeedConnector
-   * feedConnector : feedConnectors) { if
-   * (feedConnector.getID().equals(securitycurrency.getIdConnectorIntra()) &&
-   * feedConnector.getSecuritycurrencyFeedSupport(feedSupport) != null) { return
-   * feedConnector; } } return null; }
+   * public static IFeedConnector getConnectorByConnectorId(final List<IFeedConnector> feedConnectors, final
+   * Securitycurrency<?> securitycurrency, FeedSupport feedSupport) { for (final IFeedConnector feedConnector :
+   * feedConnectors) { if (feedConnector.getID().equals(securitycurrency.getIdConnectorIntra()) &&
+   * feedConnector.getSecuritycurrencyFeedSupport(feedSupport) != null) { return feedConnector; } } return null; }
    *
    */
   public static IFeedConnector getConnectorByConnectorId(final List<IFeedConnector> feedConnectors,
@@ -37,7 +34,6 @@ public class ConnectorHelper {
     }
     return null;
   }
-
 
   public static boolean canAccessConnectorApiKey(final IFeedConnector feedConnector) {
     // it is not possible to get the security context in other thread!
@@ -56,7 +52,7 @@ public class ConnectorHelper {
       StringBuilder responseContent = new StringBuilder();
       while ((line = reader.readLine()) != null) {
         responseContent.append(line);
-        if(addHttpNewlines) {
+        if (addHttpNewlines) {
           responseContent.append("<br />");
         }
       }

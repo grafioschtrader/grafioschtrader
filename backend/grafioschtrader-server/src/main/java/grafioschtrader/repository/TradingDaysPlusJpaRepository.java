@@ -25,8 +25,7 @@ public interface TradingDaysPlusJpaRepository
   List<TradingDaysPlus> findByTradingDateBetweenOrderByTradingDateDesc(LocalDate fromDate, LocalDate toDate);
 
   /**
-   * Get global holidays from 2001-01-01 until now. Normally first of first of
-   * January and December 25 for each year.
+   * Get global holidays from 2001-01-01 until now. Normally first of first of January and December 25 for each year.
    */
   @Query(nativeQuery = true)
   Set<Date> getGlobalHolidays();

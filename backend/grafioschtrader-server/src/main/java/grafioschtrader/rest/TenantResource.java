@@ -28,8 +28,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = TenantBase.TABNAME, description = "Controller for tenant")
 public class TenantResource extends TenantBaseResource<Tenant> {
 
-
-
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
@@ -60,9 +58,9 @@ public class TenantResource extends TenantBaseResource<Tenant> {
     return new ResponseEntity<>(tenantJpaRepository.changeCurrencyTenantAndPortfolios(currency), HttpStatus.OK);
   }
 
- 
+  @Override
   protected TenantBaseCustom getTenantRepository() {
     return tenantJpaRepository;
   }
-  
+
 }

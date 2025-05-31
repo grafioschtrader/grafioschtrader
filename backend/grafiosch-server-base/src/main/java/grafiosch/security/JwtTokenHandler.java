@@ -40,8 +40,7 @@ public final class JwtTokenHandler {
 
   public Optional<UserDetails> parseUserFromToken(final String token) {
     try {
-      final Claims jwsClaims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token)
-          .getPayload();
+      final Claims jwsClaims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
       Integer userId = (Integer) jwsClaims.get(ID_USER);
       return Optional.ofNullable(userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject()));
     } catch (ExpiredJwtException e) {
@@ -50,8 +49,7 @@ public final class JwtTokenHandler {
   }
 
   public Integer getUserId(final String token) {
-    final Claims jwsClaims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token)
-        .getPayload();
+    final Claims jwsClaims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
     return (Integer) jwsClaims.get(ID_USER);
   }
 
@@ -63,8 +61,7 @@ public final class JwtTokenHandler {
 
     return Jwts.builder().subject(user.getUsername()).claim(ID_USER, ((User) user).getIdUser())
         .claim("idTenant", ((User) user).getIdTenant()).claim("localeStr", ((User) user).getLocaleStr())
-        .claim("roles", roles).signWith(secretKey)
-        .expiration(Date.from(afterSomeMinutes.toInstant())).compact();
+        .claim("roles", roles).signWith(secretKey).expiration(Date.from(afterSomeMinutes.toInstant())).compact();
   }
 
 }

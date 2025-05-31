@@ -21,7 +21,7 @@ public class TradingDaysPlus {
 
   public static final String TABNAME = "trading_days_plus";
 
-  @Schema(description = "Date on which trading can take place.")  
+  @Schema(description = "Date on which trading can take place.")
   @Id
   @Column(name = "trading_date")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)

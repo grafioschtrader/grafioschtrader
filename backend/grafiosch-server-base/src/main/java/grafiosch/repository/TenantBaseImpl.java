@@ -32,8 +32,8 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
 
   @Autowired
   private ResourceLoader resourceLoader;
- 
 
+  @Override
   public void deleteMyDataAndUserAccount() throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
@@ -51,8 +51,8 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
    * statements.</li>
    * </ol>
    * The method retrieves the user from the security context, generates the DML data using
-   * MySqlExportMyData#exportDataMyData(), and then streams the DDL file and the generated DML data into a ZIP
-   * file directly to the {@link HttpServletResponse}.
+   * MySqlExportMyData#exportDataMyData(), and then streams the DDL file and the generated DML data into a ZIP file
+   * directly to the {@link HttpServletResponse}.
    *
    * @param response The {@link HttpServletResponse} to which the ZIP file will be written. The response headers will be
    *                 set for a file attachment named "gt.zip".
@@ -60,6 +60,7 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
    *                   response stream. This can include {@link java.io.IOException} during stream operations or
    *                   exceptions from {@link MySqlExportMyData#exportDataMyData()}.
    */
+  @Override
   public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     String ddlFileName = "gt_ddl.sql";
