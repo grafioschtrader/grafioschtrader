@@ -18,7 +18,7 @@
 	<packaging>jar</packaging>
 
 	<properties>
-		
+
 	</properties>
 
 
@@ -39,13 +39,14 @@
 					<release>21</release>
 				</configuration>
 			</plugin>
-  		</plugins>
+		</plugins>
 	</build>
 
 
 	<dependencies>
 		<!-- It generate entities with underscore -->
-		<!-- <dependency> <groupId>org.hibernate</groupId> <artifactId>hibernate-jpamodelgen</artifactId> 
+		<!-- <dependency> <groupId>org.hibernate</groupId>
+		<artifactId>hibernate-jpamodelgen</artifactId> 
 			</dependency> -->
 
 		<dependency>
@@ -63,7 +64,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -75,7 +76,8 @@
 			<artifactId>jackson-datatype-jsr310</artifactId>
 		</dependency>
 
-		<!-- <dependency> <groupId>com.fasterxml.jackson.core</groupId> <artifactId>jackson-databind</artifactId> 
+		<!-- <dependency> <groupId>com.fasterxml.jackson.core</groupId>
+		<artifactId>jackson-databind</artifactId> 
 			</dependency> -->
 
 		<dependency>
@@ -83,7 +85,8 @@
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 
-		<!-- <dependency> <groupId>net.andreinc.jbvext</groupId> <artifactId>jbvext</artifactId> 
+		<!-- <dependency> <groupId>net.andreinc.jbvext</groupId>
+		<artifactId>jbvext</artifactId> 
 			<version>0.0.11</version> </dependency> -->
 
 		<dependency>
@@ -103,17 +106,17 @@
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
 		</dependency>
-		
+
 		<dependency>
-    		<groupId>io.hypersistence</groupId>
-    		<artifactId>hypersistence-utils-hibernate-63</artifactId>
+			<groupId>io.hypersistence</groupId>
+			<artifactId>hypersistence-utils-hibernate-63</artifactId>
 		</dependency>
-		
+
 		<dependency>
-      		<groupId>org.springdoc</groupId>
-      		<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-   		</dependency>
-		
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+		</dependency>
+
 		<!-- Jasypt (Java Simplified Encryption) -->
 		<dependency>
 			<groupId>com.github.ulisesbocchio</groupId>
@@ -121,9 +124,9 @@
 			<!--  adjust maven plugin as well -->
 			<version>3.0.5</version>
 		</dependency>
-		
-		
-<!-- 		
+
+
+		<!-- 		
 		<dependency>
     		<groupId>org.hibernate</groupId>
     		<artifactId>hibernate-jpamodelgen</artifactId>

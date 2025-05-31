@@ -275,7 +275,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
   /**
    * Method to adjust the date if it's a weekend (Saturday or Sunday)
-   * 
+   *
    * @param date Date to be checked
    * @return for Saturday remove one day and for Sunday add one day
    */
@@ -396,9 +396,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   /**
-   * If a security with the same ISIN exists with more than one currency, the
-   * correct security is determined according to the ISIN/currency combination
-   * based on the position held.
+   * If a security with the same ISIN exists with more than one currency, the correct security is determined according
+   * to the ISIN/currency combination based on the position held.
    *
    */
   private void correctSecurityCurrencyMissmatch(ImportTransactionHead importTransactionHead, ImportTransactionPos itp) {
@@ -424,9 +423,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   /**
-   * For ETF and possibly on for funds, sometimes the dividend is not paid in the
-   * currency of the ETF's purchase currency, in which case a currency conversion
-   * must take place.
+   * For ETF and possibly on for funds, sometimes the dividend is not paid in the currency of the ETF's purchase
+   * currency, in which case a currency conversion must take place.
    */
   private Integer setPossibleMissingCurrencyExRate(ImportTransactionPos itp) {
     if (itp.getCurrencyExRate() == null

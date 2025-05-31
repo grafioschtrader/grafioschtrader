@@ -28,11 +28,9 @@ public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChang
 
   long removeByExecEndTimeBefore(LocalDateTime dateTime);
 
-
   @Modifying
   @Transactional
   @Query("UPDATE TaskDataChange t SET t.progressStateType = ?2 WHERE t.progressStateType = ?1")
   int changeFromToProgressState(byte fromState, byte toState);
 
- 
 }

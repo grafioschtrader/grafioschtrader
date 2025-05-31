@@ -13,5 +13,5 @@ public interface UDFSpecialTypeDisableUserRepository
 
   @Query("SELECT u.ID.udfSpecialType FROM UDFSpecialTypeDisableUser u WHERE u.id.idUser = ?1")
   Set<Byte> findByIdIdUser(Integer idUser);
-  
+
 }

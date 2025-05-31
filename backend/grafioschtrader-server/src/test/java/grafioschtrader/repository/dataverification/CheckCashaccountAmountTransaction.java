@@ -22,8 +22,7 @@ import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.TransactionType;
 
 /**
- * It checks the total amount of a transaction. TODO It should be integrated in
- * future test.
+ * It checks the total amount of a transaction. TODO It should be integrated in future test.
  *
  */
 @SpringBootTest(classes = GTforTest.class)
@@ -43,8 +42,8 @@ class CheckCashaccountAmountTransaction {
           transaction.validateCashaccountAmount(null, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
         } else if (!transaction.isMarginClosePosition()) {
           if (transaction.isMarginOpenPosition()) {
-            transaction
-                .setSecurityRisk(DataBusinessHelper.round(Math.abs(transaction.validateSecurityGeneralCashaccountAmount(0))
+            transaction.setSecurityRisk(
+                DataBusinessHelper.round(Math.abs(transaction.validateSecurityGeneralCashaccountAmount(0))
                     * (transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1.0 : -1.0)));
             openPositionMap.put(transaction.getIdTransaction(), transaction);
           }

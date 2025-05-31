@@ -23,10 +23,8 @@ public interface SecuritysplitJpaRepository
   /**
    * Retrieves all split events for securities in the specified watchlist.
    *
-   * @param idWatchlist the ID of the watchlist whose securities’ split events are
-   *                    fetched
-   * @return a {@link List} of {@link Securitysplit} entities for the given
-   *         watchlist
+   * @param idWatchlist the ID of the watchlist whose securities’ split events are fetched
+   * @return a {@link List} of {@link Securitysplit} entities for the given watchlist
    */
   @Query(nativeQuery = true)
   List<Securitysplit> getByIdWatchlist(Integer idWatchlist);

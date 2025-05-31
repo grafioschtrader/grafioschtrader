@@ -9,8 +9,8 @@ import grafiosch.common.ValueFormatConverter;
 import grafioschtrader.platformimport.ImportProperties;
 
 /**
- * Contains the state of a single form/template parsing. First the non optional
- * properties are parsed. Afterwards the optional properties are parsed.
+ * Contains the state of a single form/template parsing. First the non optional properties are parsed. Afterwards the
+ * optional properties are parsed.
  */
 public class FormInputTemplateMatchState {
   private TemplateConfigurationPDFasTXT templateConfigurationPDFasTXT;

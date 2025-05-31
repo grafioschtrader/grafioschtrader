@@ -3,8 +3,8 @@ package grafiosch.types;
 import grafiosch.entities.MailSettingForward;
 
 /**
- * Messages can be forwarded to the e-mail account specified by the user. This
- * means that the messages can be marked with this type.
+ * Messages can be forwarded to the e-mail account specified by the user. This means that the messages can be marked
+ * with this type.
  */
 public enum MessageComType implements IMessageComType {
 
@@ -20,8 +20,7 @@ public enum MessageComType implements IMessageComType {
   // request for unlocking does not generate a message, but only a request to
   // change the corresponding settings of this user.
   MAIN_ADMIN_RELEASE_LOGOUT((byte) (MailSettingForward.MAIN_ADMIN_BASE_VALUE + 1));
-  
-  
+
   private final Byte value;
 
   private MessageComType(final Byte value) {

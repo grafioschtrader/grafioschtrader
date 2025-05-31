@@ -59,7 +59,8 @@ import jakarta.validation.constraints.Size;
 @NamedStoredProcedureQuery(name = "Security.deleteUpdateHistoryQuality", procedureName = "deleteUpdateHistoryQuality ")
 @NamedEntityGraph(name = "graph.security.historyquote", attributeNodes = { @NamedAttributeNode("historyquoteList"),
     @NamedAttributeNode("assetClass"), @NamedAttributeNode("stockexchange") })
-public class Security extends Securitycurrency<Security> implements Serializable, IFormulaInSecurity, IUDFSupport, AdditionalRights  {
+public class Security extends Securitycurrency<Security>
+    implements Serializable, IFormulaInSecurity, IUDFSupport, AdditionalRights {
 
   public static final String TABNAME = "security";
 
@@ -103,9 +104,9 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private Assetclass assetClass;
 
   @Schema(description = """
-          For bonds it is the smallest tradable unit and for fixed-term deposits it is the price.
-          Is currently not validated for purchases and sales.
-          As an insolvent creditor may choose other denominations for partial or full repayment.""")
+      For bonds it is the smallest tradable unit and for fixed-term deposits it is the price.
+      Is currently not validated for purchases and sales.
+      As an insolvent creditor may choose other denominations for partial or full repayment.""")
   @Column(name = "denomination")
   @PropertyAlwaysUpdatable
   private Integer denomination;
@@ -143,15 +144,15 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private Date activeToDate;
 
   @Schema(description = """
-    Some security pays dividend or interest in a certain frequency.
-    It is used for transaction import of bonds to check interest amount against coupon rate""")
+      Some security pays dividend or interest in a certain frequency.
+      It is used for transaction import of bonds to check interest amount against coupon rate""")
   @Column(name = "dist_frequency")
   @PropertyAlwaysUpdatable
   private byte distributionFrequency;
 
   @Schema(description = """
-    Certain instruments are short and may still be leveraged, this is mapped with this.
-    Used, for example, to correctly calculate the equity ratio for the portfolio.""")
+      Certain instruments are short and may still be leveraged, this is mapped with this.
+      Used, for example, to correctly calculate the equity ratio for the portfolio.""")
   @Column(name = "leverage_factor")
   @PropertyAlwaysUpdatable
   @DecimalMin("-9.99")
@@ -171,8 +172,8 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private String formulaPrices;
 
   @Schema(description = """
-   A derived instrument refers in minimum to another instrument.
-   The ID of this instrument is held here.""")
+      A derived instrument refers in minimum to another instrument.
+      The ID of this instrument is held here.""")
   @Column(name = "id_link_securitycurrency")
   @PropertyAlwaysUpdatable
   private Integer idLinkSecuritycurrency;
@@ -183,7 +184,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   protected String idConnectorDividend;
 
   @Schema(title = """
-      The URL with access to the dividend data differs for each security. 
+      The URL with access to the dividend data differs for each security.
       Therefore, depending on the data source, additional information must be provided for the creation of the URL.""")
   @Column(name = "url_dividend_extend")
   @Size(min = 1, max = 254)
@@ -207,7 +208,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
   protected String idConnectorSplit;
 
   @Schema(title = """
-      The URL with access to the split data differs for each security. 
+      The URL with access to the split data differs for each security.
       Therefore, depending on the data source, additional information must be provided for the creation of the URL.""")
   @Column(name = "url_split_extend ")
   @Size(min = 1, max = 254)
@@ -220,20 +221,19 @@ public class Security extends Securitycurrency<Security> implements Serializable
   private Short retrySplitLoad = 0;
 
   @Schema(description = """
-    If new dividends are contacted using the PULL procedure, this should be suspended until this date. 
-    This prevents the data provider from being contacted too frequently.""")
+      If new dividends are contacted using the PULL procedure, this should be suspended until this date.
+      This prevents the data provider from being contacted too frequently.""")
   @Column(name = "div_earliest_next_check")
   @Temporal(TemporalType.TIMESTAMP)
   private Date dividendEarliestNextCheck;
 
   @Schema(description = """
-     A derived instrument can refer to more than one instrument. 
-     These others will be included here.""")
+      A derived instrument can refer to more than one instrument.
+      These others will be included here.""")
   @Transient
   @PropertyAlwaysUpdatable
   private SecurityDerivedLink securityDerivedLinks[];
 
- 
   @Schema(description = "User proposal change for splits")
   @Transient
   private Securitysplit[] splitPropose;
@@ -631,8 +631,7 @@ public class Security extends Securitycurrency<Security> implements Serializable
 
   @Override
   public boolean hasAdditionalRights(User user) {
-    return this.getIdTenantPrivate() != null && 
-        this.getIdTenantPrivate().equals(user.getIdTenant());
+    return this.getIdTenantPrivate() != null && this.getIdTenantPrivate().equals(user.getIdTenant());
   }
 
 }

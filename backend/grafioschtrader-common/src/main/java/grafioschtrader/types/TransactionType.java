@@ -1,9 +1,8 @@
 package grafioschtrader.types;
 
 /**
- * There are different types of transactions, for example, the sale of an
- * instrument or the deposit into a cash account. This can be distinguished with
- * the following types.
+ * There are different types of transactions, for example, the sale of an instrument or the deposit into a cash account.
+ * This can be distinguished with the following types.
  */
 public enum TransactionType {
   /** Withdrawal cash */
@@ -26,8 +25,7 @@ public enum TransactionType {
   // ---- the following are not written to the database ----///
   HYPOTHETICAL_BUY((byte) 9),
   /**
-   * Not used for a real Transaction, it may be used for a simulated position
-   * sell. It is not save in the database
+   * Not used for a real Transaction, it may be used for a simulated position sell. It is not save in the database
    */
   HYPOTHETICAL_SELL((byte) 10),
   /** accrued interest */

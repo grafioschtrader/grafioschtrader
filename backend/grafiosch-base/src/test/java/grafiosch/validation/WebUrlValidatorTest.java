@@ -11,7 +11,7 @@ import jakarta.validation.ConstraintValidatorContext;
 public class WebUrlValidatorTest {
 
   private WebUrlValidator validator;
-  
+
   // A dummy ConstraintValidatorContext can be null since it is not used in the implementation.
   private ConstraintValidatorContext context = null;
 
@@ -38,7 +38,7 @@ public class WebUrlValidatorTest {
     String url = "http://www.example.com";
     assertTrue(validator.isValid(url, context));
   }
-  
+
   @Test
   public void testValidHttpsUrlWithPort() {
     // HTTPS with a port number.
@@ -52,7 +52,7 @@ public class WebUrlValidatorTest {
     String url = "https://www.example.com/path/resource";
     assertTrue(validator.isValid(url, context));
   }
-  
+
   @Test
   public void testValidFtpUrl() {
     // FTP URL.
@@ -66,14 +66,14 @@ public class WebUrlValidatorTest {
     String url = "www.example.com";
     assertFalse(validator.isValid(url, context));
   }
-  
+
   @Test
   public void testInvalidUrlMalformed() {
     // Malformed protocol (only one slash instead of two)
     String url = "http:/example.com";
     assertFalse(validator.isValid(url, context));
   }
-  
+
   @Test
   public void testInvalidUrlPrivateIp() {
     // Private IP addresses (e.g., 192.168.x.x) are excluded by the regex.

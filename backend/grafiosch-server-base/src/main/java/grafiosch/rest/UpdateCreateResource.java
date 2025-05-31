@@ -11,18 +11,16 @@ import grafiosch.entities.BaseID;
 import jakarta.validation.Valid;
 
 /**
- * A REST API that supports the creation and editing of an entity. In addition,
- * these edits are summed and stored per information class on a daily basis.
- * Attention. If the deletion is additionally implemented specifically, there is
- * no summation deletion.
+ * A REST API that supports the creation and editing of an entity. In addition, these edits are summed and stored per
+ * information class on a daily basis. Attention. If the deletion is additionally implemented specifically, there is no
+ * summation deletion.
  *
  * @param <T>
  */
 public abstract class UpdateCreateResource<T extends BaseID<Integer>> extends UpdateCreate<T> {
 
   /**
-   * Request for a new entity. The new URI-location of the created record is not
-   * returned.
+   * Request for a new entity. The new URI-location of the created record is not returned.
    */
   @Override
   @PostMapping(produces = APPLICATION_JSON_VALUE)

@@ -31,12 +31,11 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 
 /**
- * The historical price data should be subscribed to "Standard", as otherwise
- * the period of the price data offered is far too short.
+ * The historical price data should be subscribed to "Standard", as otherwise the period of the price data offered is
+ * far too short.
  *
- * Regex pattern recognition for checking the URL extension is not implemented.
- * In addition, the check of an incorrect URL extension by the connector does
- * not return a usable response.
+ * Regex pattern recognition for checking the URL extension is not implemented. In addition, the check of an incorrect
+ * URL extension by the connector does not return a usable response.
  */
 @Component
 public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
@@ -51,7 +50,8 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
-    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_INTRA,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
   }
 
   public StockDataFeedConnector() {
@@ -157,7 +157,6 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
       data.setValues(currencypair);
     }
   }
-
 
   private String getCurrencyPairSymbol(final Currencypair currencypair) {
     return currencypair.getFromCurrency() + currencypair.getToCurrency();

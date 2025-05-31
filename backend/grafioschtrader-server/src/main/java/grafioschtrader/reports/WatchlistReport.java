@@ -95,7 +95,6 @@ public class WatchlistReport {
   @Autowired
   private GTNetLastpriceService gTNetLastpriceService;
 
-
   @Autowired(required = false)
   private List<IUDFForEveryUser> uDFForEveryUser;
 
@@ -103,9 +102,9 @@ public class WatchlistReport {
   private UDFSpecialTypeDisableUserRepository uDFSpecialTypeDisUserRep;
 
   /**
-   * Returns the watchlist with the youngest date of history quote. This should
-   * help to detect non working historical data feeds.
-    */
+   * Returns the watchlist with the youngest date of history quote. This should help to detect non working historical
+   * data feeds.
+   */
   public SecuritycurrencyGroup getWatchlistWithoutUpdateAndMaxHistoryquote(final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -151,10 +150,9 @@ public class WatchlistReport {
   }
 
   /**
-   * Return of the split and dividend watchlist, whereby the splits and dividends
-   * are not included in the return. The return only includes whether splits or
-   * dividends exist.
-    */
+   * Return of the split and dividend watchlist, whereby the splits and dividends are not included in the return. The
+   * return only includes whether splits or dividends exist.
+   */
   public SecuritycurrencyGroup getWatchlistForSplitAndDividend(final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
 

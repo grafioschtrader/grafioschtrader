@@ -33,7 +33,7 @@ public class AssetclassJpaRepositoryImpl extends BaseRepositoryImpl<Assetclass>
     if (idSecuritycurrency != null) {
       assetklassList = assetclassJpaRepository.getPossibleAssetclassForExistingSecurity(idSecuritycurrency);
     }
-    return assetklassList.isEmpty()? assetclassJpaRepository.findAll(): assetklassList;
+    return assetklassList.isEmpty() ? assetclassJpaRepository.findAll() : assetklassList;
   }
 
   @Override

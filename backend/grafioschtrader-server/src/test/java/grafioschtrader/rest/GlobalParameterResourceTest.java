@@ -36,7 +36,7 @@ class GlobalParameterResourceTest {
     System.out.println("Hugo");
   }
 
- @Test
+  @Test
   void testRequest() {
     ResponseEntity<List<ValueKeyHtmlSelectOptions>> vkhso = this.restTemplate.exchange(
         createURLWithPort("/api/globalparameters/locales"), HttpMethod.GET, null,

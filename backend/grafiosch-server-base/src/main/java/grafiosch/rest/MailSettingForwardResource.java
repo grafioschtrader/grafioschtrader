@@ -22,9 +22,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping(RequestMappings.MAIL_SETTING_FORWARD_MAP)
 @Tag(name = RequestMappings.MAIL_SETTING_FORWARD, description = "Controller for  mail forward setting")
 public class MailSettingForwardResource extends UpdateCreateDeleteWithUserIdResource<MailSettingForward> {
-  
+
   private final MailSettingForwardJpaRepository mailSettingForwardJpaRepository;
-  
+
   public MailSettingForwardResource(MailSettingForwardJpaRepository mailSettingForwardJpaRepository) {
     super(MailSettingForward.class);
     this.mailSettingForwardJpaRepository = mailSettingForwardJpaRepository;

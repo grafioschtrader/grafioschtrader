@@ -40,7 +40,7 @@ public interface WatchlistJpaRepositoryCustom extends BaseRepositoryCustom<Watch
   Boolean moveSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget, Integer idSecuritycurrency);
 
   String getDataProviderResponseForUser(Integer idSecuritycurrency, boolean isIntraday, boolean isSecurity);
-  
+
   String getDataProviderDivSplitResponseForUser(Integer idSecuritycurrency, boolean isDiv);
 
   String getDataProviderLinkForUser(Integer idSecuritycurrency, boolean isIntraday, boolean isSecurity);

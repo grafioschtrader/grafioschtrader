@@ -17,14 +17,12 @@ public interface AssetclassJpaRepository
     extends JpaRepository<Assetclass, Integer>, AssetclassJpaRepositoryCustom, UpdateCreateJpaRepository<Assetclass> {
 
   /**
-   * Retrieves all asset classes in the specified watchlist that are investable,
-   * excluding CFDs and non-investable indices. CFD may not support algorithmic
-   * trading.
+   * Retrieves all asset classes in the specified watchlist that are investable, excluding CFDs and non-investable
+   * indices. CFD may not support algorithmic trading.
    *
    * @param idTenant    the tenant ID owning the watchlist
    * @param idWatchlist the watchlist ID
-   * @return a list of Assetclass entities with specialInvestmentInstrument not in
-   *         (4, 10)
+   * @return a list of Assetclass entities with specialInvestmentInstrument not in (4, 10)
    */
   @Query("""
       SELECT DISTINCT(a) FROM Watchlist w JOIN w.securitycurrencyList s JOIN s.assetClass a WHERE w.idTenant = ?1 AND w.idWatchlist = ?2
@@ -32,8 +30,7 @@ public interface AssetclassJpaRepository
   List<Assetclass> getInvestableAssetclassesByWatchlist(Integer idTenant, Integer idWatchlist);
 
   /**
-   * Finds an asset class by category type, special investment instrument, and
-   * localized sub-category.
+   * Finds an asset class by category type, special investment instrument, and localized sub-category.
    *
    * @param categoryType   the asset class category type code
    * @param specInvestment the special investment instrument code
@@ -59,12 +56,11 @@ public interface AssetclassJpaRepository
   int assetclassHasSecurity(Integer idAssetClass);
 
   /**
-   * Determines for each asset class whether it has any associated Security
-   * records. Used to decide whether an asset class can still be deleted.
+   * Determines for each asset class whether it has any associated Security records. Used to decide whether an asset
+   * class can still be deleted.
    *
-   * @return a list of Object arrays, where each array contains: [0] = asset class
-   *         ID (Integer), [1] = has_security flag (Integer, 1 if true, 0 if
-   *         false)
+   * @return a list of Object arrays, where each array contains: [0] = asset class ID (Integer), [1] = has_security flag
+   *         (Integer, 1 if true, 0 if false)
    */
   @Query(value = """
       SELECT a.id_asset_class, (CASE WHEN EXISTS(SELECT NULL FROM security s WHERE s.id_asset_class = a.id_asset_class)
@@ -72,11 +68,10 @@ public interface AssetclassJpaRepository
   List<Object[]> assetclassesHasSecurity();
 
   /**
-   * Retrieves all asset classes not yet assigned to the specified algorithmic
-   * asset‐class, excluding margin instruments (CFD, spec_invest_instrument = 4).
+   * Retrieves all asset classes not yet assigned to the specified algorithmic asset‐class, excluding margin instruments
+   * (CFD, spec_invest_instrument = 4).
    *
-   * @param idTenant                 the tenant ID owning the algorithmic
-   *                                 asset‐class
+   * @param idTenant                 the tenant ID owning the algorithmic asset‐class
    * @param idAlgoAssetclassSecurity the algorithmic asset‐class security ID
    * @return a list of Assetclass entities available for assignment
    */

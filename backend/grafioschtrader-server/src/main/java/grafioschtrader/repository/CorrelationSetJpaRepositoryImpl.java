@@ -118,10 +118,10 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   @Override
   public CorrelationLimits getCorrelationSetLimit() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new CorrelationLimits(
-        new TenantLimit(globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET),
-            correlationSetJpaRepository.countByIdTenant(user.getIdTenant()).intValue(),
-            GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class.getSimpleName()));
+    return new CorrelationLimits(new TenantLimit(
+        globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET),
+        correlationSetJpaRepository.countByIdTenant(user.getIdTenant()).intValue(),
+        GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class.getSimpleName()));
   }
 
   @Override

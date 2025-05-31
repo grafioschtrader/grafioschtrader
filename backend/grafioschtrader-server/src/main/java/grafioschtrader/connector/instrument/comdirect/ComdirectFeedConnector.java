@@ -34,8 +34,8 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 
 /**
- * A regex check of the URL extension is not active. The connector for checking
- * the instrument works partially and returns an unequal HTTP-OK.
+ * A regex check of the URL extension is not active. The connector for checking the instrument works partially and
+ * returns an unequal HTTP-OK.
  */
 @Component
 public class ComdirectFeedConnector extends BaseFeedConnector {

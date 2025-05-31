@@ -5,6 +5,6 @@ package grafiosch.types;
  */
 public interface IBaseEnum<T> {
   public T getValue();
-  
+
   public Enum<?>[] getValues();
 }

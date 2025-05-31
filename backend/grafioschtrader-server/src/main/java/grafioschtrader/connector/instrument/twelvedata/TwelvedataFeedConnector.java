@@ -43,13 +43,11 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
 
 /**
- * Twelvedata's pricing model regulates both the number of accesses per minute
- * and the availability of the functionality. A maximum number of accesses per
- * minute or even per day is not implemented. The "Basic Free" price model also
- * only provides US data.
+ * Twelvedata's pricing model regulates both the number of accesses per minute and the availability of the
+ * functionality. A maximum number of accesses per minute or even per day is not implemented. The "Basic Free" price
+ * model also only provides US data.
  *
- * A regex check of the URL ending is not implemented. However, a check via the
- * connector is available.
+ * A regex check of the URL ending is not implemented. However, a check via the connector is available.
  */
 @Component
 public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
@@ -68,7 +66,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
         new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
-    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_INTRA,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
   }
 
   public TwelvedataFeedConnector() {
@@ -85,8 +84,6 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   private String getApiKeyString() {
     return "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
   }
-
-  
 
   @Override
   protected boolean isConnectionOk(HttpURLConnection huc) {
@@ -132,9 +129,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
     final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
-    return DOMAIN_NAME
-        +  "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
-                + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + "+23:59:59" + getApiKeyString();
+    return DOMAIN_NAME + "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
+        + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + "+23:59:59" + getApiKeyString();
   }
 
   @Override
@@ -202,8 +198,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   /**
-   * datetime;open;high;low;close;volume
-   * 2019-01-30;40.81250;41.53750;40.05750;41.31250;244439200
+   * datetime;open;high;low;close;volume 2019-01-30;40.81250;41.53750;40.05750;41.31250;244439200
    * 2019-01-29;39.06250;39.53250;38.52750;38.67000;166348800
    *
    * @param inputLine

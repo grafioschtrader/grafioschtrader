@@ -14,8 +14,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Schema(description = """
-Counts the CUD (create, update, delete) operations of the individual users on the individual information classes. 
-Is used to evaluate whether the limits of the CUD operations have been exceeded.""")
+    Counts the CUD (create, update, delete) operations of the individual users on the individual information classes.
+    Is used to evaluate whether the limits of the CUD operations have been exceeded.""")
 @Entity
 @Table(name = UserEntityChangeCount.TABNAME)
 public class UserEntityChangeCount {
@@ -29,11 +29,11 @@ public class UserEntityChangeCount {
   @Column(name = "count_insert")
   private int countInsert;
 
-  @Schema(description = "Number of update operations")  
+  @Schema(description = "Number of update operations")
   @Column(name = "count_update")
   private int countUpdate;
 
-  @Schema(description = "Number of delete operations")  
+  @Schema(description = "Number of delete operations")
   @Column(name = "count_delete")
   private int countDelete;
 

@@ -35,7 +35,6 @@ public class CorrelationResult {
     public final Integer idSecuritycurrency;
     public final double correlations[];
 
-
     public CorrelationInstrument(Integer idSecuritycurrency, double[] correlations) {
       this.idSecuritycurrency = idSecuritycurrency;
       this.correlations = new double[correlations.length];
@@ -47,6 +46,7 @@ public class CorrelationResult {
 
   @Schema(description = "Contains the most recent and oldest closing prices of the instruments.")
   public static class MinMaxDateHistoryquote {
+    @Schema(description = "ID of security or currency pair")
     public final Integer idSecuritycurrency;
 
     @Schema(description = "The oldest date of the closing price.")

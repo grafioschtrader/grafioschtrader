@@ -90,14 +90,9 @@ public class MailSendRecvJpaRepositoryImpl implements MailSendRecvJpaRepositoryC
     return sendMailInternalExternalService.sendFromRESTApiMultiOrSingle(mailSendRecv);
   }
 
-
   @Override
   public Set<Class<? extends Annotation>> getUpdatePropertyLevels(MailSendRecv existingEntity) {
     return null;
   }
-
-
-
-
 
 }

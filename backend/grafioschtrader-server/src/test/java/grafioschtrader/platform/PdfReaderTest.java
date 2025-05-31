@@ -43,7 +43,7 @@ public abstract class PdfReaderTest {
         formTemplateCheck.setPdfAsTxt(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
         FormTemplateCheck formTemplateCheckRc = importTransactionTemplateJpaRepository
             .checkFormAgainstTemplate(formTemplateCheck, LocaleUtils.toLocale("de_CH"));
-        System.out.println("File: "+ file.getName());
+        System.out.println("File: " + file.getName());
         assertNull(formTemplateCheckRc.getFailedParsedTemplateStateList());
       }
     } catch (Exception e) {

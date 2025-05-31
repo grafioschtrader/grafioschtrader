@@ -29,8 +29,8 @@ class InvestingConnectorTest extends BaseFeedConnectorCheck {
   protected List<SecurityHistoricalDate> getHistoricalSecurities() {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(new SecurityHistoricalDate("United States Treasury Note 6.25% May 15, 2030", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-          "rates-bonds/usgovt-6.25-15-may-2030"));
+      hisoricalDate.add(new SecurityHistoricalDate("United States Treasury Note 6.25% May 15, 2030",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, "rates-bonds/usgovt-6.25-15-may-2030"));
       hisoricalDate.add(new SecurityHistoricalDate("iShares Russell 2000 ETF", SpecialInvestmentInstruments.ETF,
           "etfs/ishares-russell-2000-index-etf"));
       hisoricalDate.add(new SecurityHistoricalDate("Bitcoin Tracker EUR XBT Provider (SE0007525332)",

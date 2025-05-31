@@ -3,9 +3,8 @@ package grafioschtrader.types;
 import grafiosch.types.StableEnum;
 
 /**
- * An asset class can be offered in different instruments. Shares can be
- * invested in directly or through an ETF or fund, etc. GT must be able to
- * distinguish whether, for example, a share is traded directly or CFT.
+ * An asset class can be offered in different instruments. Shares can be invested in directly or through an ETF or fund,
+ * etc. GT must be able to distinguish whether, for example, a share is traded directly or CFT.
  */
 public enum SpecialInvestmentInstruments implements StableEnum {
 
@@ -25,7 +24,6 @@ public enum SpecialInvestmentInstruments implements StableEnum {
   ISSUER_RISK_PRODUCT((byte) 6),
   // Can never have dividends
   NON_INVESTABLE_INDICES((byte) 10);
-  
 
   private final Byte value;
 
@@ -33,6 +31,7 @@ public enum SpecialInvestmentInstruments implements StableEnum {
     this.value = value;
   }
 
+  @Override
   public Byte getValue() {
     return this.value;
   }

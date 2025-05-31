@@ -176,8 +176,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * Checks a transaction uses the cash and/or security accounts which belongs to
-   * the right tenant.
+   * Checks a transaction uses the cash and/or security accounts which belongs to the right tenant.
    *
    * @param transaction
    * @return
@@ -288,8 +287,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * If the opening margin transaction changes, the account posting may need to be
-   * recalculated. This amount depends on the opening and closing transaction.
+   * If the opening margin transaction changes, the account posting may need to be recalculated. This amount depends on
+   * the opening and closing transaction.
    */
   private void adjustMarginClosePosition(Transaction openPositionMarginTransaction,
       List<Transaction> existingTransactions, Integer currencyFraction) {
@@ -344,11 +343,11 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * A margin transaction may only contain those transactions that belong to the
-   * opening transaction. All other transactions are filtered out.
-   * 
+   * A margin transaction may only contain those transactions that belong to the opening transaction. All other
+   * transactions are filtered out.
+   *
    * @param targetTransaction The current transaction.
-   * @param transactions The transactions of a specific security in a specific securities account.
+   * @param transactions      The transactions of a specific security in a specific securities account.
    * @return The transactions relevant to a particular margin position.
    */
   private List<Transaction> filterMarginTransaction(final Transaction targetTransaction,

@@ -8,8 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 /**
- * A tenant portfolios, asset class or security may have none or more strategy,
- * this class contains a single strategy.
+ * A tenant portfolios, asset class or security may have none or more strategy, this class contains a single strategy.
  *
  */
 @Entity

@@ -57,8 +57,7 @@ public class Globalparameters implements Serializable {
   private static final Logger log = LoggerFactory.getLogger(Globalparameters.class);
 
   public static final Map<String, MaxDefaultDBValue> defaultLimitMap = new HashMap<>();
-  
-  
+
   private static final long serialVersionUID = 1L;
 
   @Id
@@ -298,7 +297,5 @@ public class Globalparameters implements Serializable {
     }
     return true;
   }
-
- 
 
 }

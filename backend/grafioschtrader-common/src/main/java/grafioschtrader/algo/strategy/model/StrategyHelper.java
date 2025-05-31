@@ -18,7 +18,7 @@ public abstract class StrategyHelper {
   public static final String TOP_LEVEL_LETTER = "T";
   public static final String ASSET_CLASS_LEVEL_LETTER = "A";
   public static final String SECURITY_LEVEL_LETTER = "S";
-  
+
   private static Map<AlgoStrategyImplementationType, StrategyClassBindingDefinition> strategyBindingMap;
 
   static {

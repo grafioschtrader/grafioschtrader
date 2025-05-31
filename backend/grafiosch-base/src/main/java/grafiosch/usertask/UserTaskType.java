@@ -3,8 +3,8 @@ package grafiosch.usertask;
 import java.util.Arrays;
 
 /**
- * Enum constants for marking violations of a user against the limit for request
- * to client or the number of CUD operations on an information class.
+ * Enum constants for marking violations of a user against the limit for request to client or the number of CUD
+ * operations on an information class.
  */
 public enum UserTaskType {
   /**
@@ -12,8 +12,7 @@ public enum UserTaskType {
    */
   RELEASE_LOGOUT((byte) 0),
   /**
-   * Used for user entity change limit, for example number of CUD on stock
-   * exchange
+   * Used for user entity change limit, for example number of CUD on stock exchange
    */
   LIMIT_CUD_CHANGE((byte) 1);
 

@@ -16,10 +16,10 @@ import grafioschtrader.types.SubscriptionType;
 
 @Service
 public class FeedConnectorApiKeyService implements IConnectorApiKeyReset {
-  
+
   @Autowired(required = false)
   private List<IFeedConnector> feedConnectorbeans = new ArrayList<>();
-  
+
   @Override
   public void resetConnectorApiKey(String idProvider) {
     feedConnectorbeans.stream().filter(fc -> fc.getShortID().equals(idProvider)).findFirst()

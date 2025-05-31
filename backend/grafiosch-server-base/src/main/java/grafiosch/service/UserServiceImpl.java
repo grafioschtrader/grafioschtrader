@@ -231,7 +231,7 @@ public class UserServiceImpl implements UserService {
   private void checkPasswordAgainstRegex(String password) throws Exception {
     String regex = globalparametersJpaRepository.getPasswordRegexProperties().regex;
     if (!password.matches(regex)) {
-        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }
 
@@ -254,6 +254,5 @@ public class UserServiceImpl implements UserService {
     }
     return userJpaRepository.save(user);
   }
-
 
 }

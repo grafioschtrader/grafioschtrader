@@ -9,8 +9,7 @@ import grafioschtrader.repository.ImportTransactionHeadJpaRepositoryImpl.Success
 public interface ImportTransactionHeadJpaRepositoryCustom extends BaseRepositoryCustom<ImportTransactionHead> {
 
   /**
-   * Upload of different kind of transaction files with a existing transaction
-   * head record.
+   * Upload of different kind of transaction files with a existing transaction head record.
    */
   void uploadCsvPdfTxtFileSecurityAccountTransactions(Integer idTransactionHead, MultipartFile[] uploadFiles,
       Integer idTransactionImportTemplate) throws Exception;

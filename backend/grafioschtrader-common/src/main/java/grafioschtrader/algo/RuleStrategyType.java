@@ -1,8 +1,8 @@
 package grafioschtrader.algo;
 
 public enum RuleStrategyType {
-  RS_RULE((byte) 1), 
-  
+  RS_RULE((byte) 1),
+
   RS_STRATEGY((byte) 2);
 
   private final Byte value;

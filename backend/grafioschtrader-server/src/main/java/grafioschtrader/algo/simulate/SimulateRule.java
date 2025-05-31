@@ -10,8 +10,8 @@ import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
 
 /**
- * Simulate a rule strategy with existing accounts over a certain period. All
- * existing transactions are not taken into account.
+ * Simulate a rule strategy with existing accounts over a certain period. All existing transactions are not taken into
+ * account.
  *
  */
 public class SimulateRule {

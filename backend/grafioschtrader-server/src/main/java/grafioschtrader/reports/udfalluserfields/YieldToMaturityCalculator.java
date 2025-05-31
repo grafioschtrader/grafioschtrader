@@ -16,7 +16,7 @@ import grafioschtrader.types.UDFSpecialGTType;
 
 @Service
 public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements IUDFForEveryUser {
-  
+
   @Override
   public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, boolean recreate) {
     UDFMetadataSecurity udfYTM = getMetadataSecurity(getUDFSpecialType());
@@ -31,7 +31,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
           calcAndSetYTM(securitycurrencyUDFGroup, udfYTM, s.securitycurrency, numberStartTextRegex, now);
         });
   }
-  
+
   @Override
   public IUDFSpecialType getUDFSpecialType() {
     return UDFSpecialGTType.UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY;
@@ -41,23 +41,19 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   public boolean mayRunInBackground() {
     return false;
   }
-  
+
   /**
-   * Returns the yield on a security that pays periodic interest. Use YIELD to
-   * calculate bond yield.
+   * Returns the yield on a security that pays periodic interest. Use YIELD to calculate bond yield.
    *
-   * @param settlementDate   The settlement date of the security, i.e. the date on
-   *                         which the bond financing arrangement begins.
-   * @param maturityDate     The maturity date of the security is the date on
-   *                         which the agreement between the borrower and lender
-   *                         is expected to end.
+   * @param settlementDate   The settlement date of the security, i.e. the date on which the bond financing arrangement
+   *                         begins.
+   * @param maturityDate     The maturity date of the security is the date on which the agreement between the borrower
+   *                         and lender is expected to end.
    * @param annualCouponRate Annual Coupon Rate (%)
    * @param price            Bond Quote (% of Par)
-   * @param redemption       The redemption value, i.e. assuming either prepayment
-   *                         or payment at the originally stated maturity, of the
-   *                         security per the par value (”100”).
-   * @param frequency        The number of coupon payments issued per year. e.g.
-   *                         annual, semi-annual, or quarterly.
+   * @param redemption       The redemption value, i.e. assuming either prepayment or payment at the originally stated
+   *                         maturity, of the security per the par value (”100”).
+   * @param frequency        The number of coupon payments issued per year. e.g. annual, semi-annual, or quarterly.
    * @param basisThe         day count basis as stated in the lending agreement.
    *                         <ul>
    *                         <li>0 => 30 / 360 (Omitted)</li>
@@ -67,10 +63,9 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    *                         <li>4 => European 30 / 360</li>
    *                         </ul>
    *
-   * see <a href="https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/
-   *            main/scaddins/source/analysis/analysishelper.cxx#L1085">
-   *       analysishelper.cxx line 1085
-   *     </a>
+   *                         see <a href=
+   *                         "https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/
+   *                         main/scaddins/source/analysis/analysishelper.cxx#L1085"> analysishelper.cxx line 1085 </a>
    */
   private double yieldToMaturity(LocalDate settlementDate, LocalDate maturityDate, double annualCouponRate,
       double price, double redemption, int frequency, int basis) {
@@ -132,10 +127,10 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   }
 
   /**
-   * Returns the number of coupons payable between the settlement date and
-   * maturity date, rounded up to the nearest whole coupon.
+   * Returns the number of coupons payable between the settlement date and maturity date, rounded up to the nearest
+   * whole coupon.
    * 
-    * https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1414
+   * https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1414
    */
   private double getCoupnum(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {
     LocalDate aMat = LocalDate.from(maturityDate);
@@ -179,8 +174,9 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
 
   /**
    * Returns get day count: settlement <-> coupon date after settlement
-   * 
-   * see https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1375
+   *
+   * see
+   * https://github.com/apache/openoffice/blob/c014b5f2b55cff8d4b0c952d5c16d62ecde09ca1/main/scaddins/source/analysis/analysishelper.cxx#L1375
    *
    */
   private double getCoupdaysnc(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {
@@ -194,8 +190,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   }
 
   /**
-   * Returns the number of days from the beginning of a coupon period until its
-   * settlement date.
+   * Returns the number of days from the beginning of a coupon period until its settlement date.
    */
   private long getCoupdaybs(LocalDate settlementDate, LocalDate maturityDate, int frequency, int basis) {
     LocalDate aDate = getPreviousCouponDate(settlementDate, maturityDate, frequency);
@@ -244,5 +239,5 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
       putValueToJsonValue(securitycurrencyUDFGroup, udfYTM, security.getIdSecuritycurrency(), ytm, false);
     }
   }
- 
+
 }

@@ -26,7 +26,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 
 /**
- * 
+ *
  */
 @Entity
 @Table(name = ProposeRequest.TABNAME)
@@ -47,7 +47,7 @@ public abstract class ProposeRequest extends Auditable {
   @Schema(description = "Name of the entity whose fields are affected by the change")
   @Column(name = "entity")
   protected String entity;
-  
+
   @Schema(description = "The state of a propose data change.")
   @Basic(optional = false)
   @Column(name = "data_change_state")
@@ -90,7 +90,7 @@ public abstract class ProposeRequest extends Auditable {
   public void setEntity(String entity) {
     this.entity = entity;
   }
-  
+
   public ProposeDataChangeState getDataChangeState() {
     return ProposeDataChangeState.getProposeDataChangeStateByValue(dataChangeState);
   }

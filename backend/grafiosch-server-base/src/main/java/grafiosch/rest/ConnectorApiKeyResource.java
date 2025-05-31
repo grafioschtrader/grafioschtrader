@@ -27,8 +27,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping(RequestMappings.CONNECTOR_API_KEY_MAP)
 @Tag(name = RequestMappings.CONNECTOR_API_KEY, description = """
-        The controller for the connectors API. The API keys of the connectors can be managed via this.
-        Editing and visibility is intended for the administrator only.""")
+    The controller for the connectors API. The API keys of the connectors can be managed via this.
+    Editing and visibility is intended for the administrator only.""")
 public class ConnectorApiKeyResource {
 
   @Autowired

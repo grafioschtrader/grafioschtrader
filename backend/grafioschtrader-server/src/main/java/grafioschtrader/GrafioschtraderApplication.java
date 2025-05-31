@@ -21,7 +21,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import grafioschtrader.test.start.GTforTest;
 
-
 //Spring ehcache is not working,
 //@EnableCaching
 @EnableScheduling
@@ -63,5 +62,4 @@ public class GrafioschtraderApplication {
     return ajpConnector;
   }
 
-  
 }

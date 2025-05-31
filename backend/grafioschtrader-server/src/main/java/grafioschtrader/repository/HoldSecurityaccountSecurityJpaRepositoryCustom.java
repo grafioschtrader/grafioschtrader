@@ -23,7 +23,8 @@ public interface HoldSecurityaccountSecurityJpaRepositoryCustom {
    * @param securityaccount
    * @param transaction
    */
-  void adjustSecurityHoldingForSecurityaccountAndSecurity(Securityaccount securityaccount, Transaction transaction, boolean isAdded);
+  void adjustSecurityHoldingForSecurityaccountAndSecurity(Securityaccount securityaccount, Transaction transaction,
+      boolean isAdded);
 
   void rebuildHoldingsForSecurity(Integer idSecuritycurrency);
 

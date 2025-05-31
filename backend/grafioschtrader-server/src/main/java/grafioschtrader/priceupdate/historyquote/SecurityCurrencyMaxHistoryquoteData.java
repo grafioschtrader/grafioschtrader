@@ -23,5 +23,3 @@ public interface SecurityCurrencyMaxHistoryquoteData<S> {
    */
   Date getDate();
 }
-
-

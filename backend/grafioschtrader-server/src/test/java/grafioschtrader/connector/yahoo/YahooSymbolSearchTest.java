@@ -12,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.test.start.GTforTest;
 
-
 @SpringBootTest(classes = GTforTest.class)
 public class YahooSymbolSearchTest {
 
@@ -32,7 +31,7 @@ public class YahooSymbolSearchTest {
     for (SymbolSearchTestCase testCase : testCases) {
       String result = yahooSymbolSearch.getSymbolByISINOrSymbolOrName(micProviderMapRepository, testCase.mic,
           testCase.isin, testCase.symbol, testCase.name);
-      assertEquals(testCase.expectedTicker, result, 
+      assertEquals(testCase.expectedTicker, result,
           "For " + testCase.name + " expected ticker " + testCase.expectedTicker + " but got " + result);
     }
   }

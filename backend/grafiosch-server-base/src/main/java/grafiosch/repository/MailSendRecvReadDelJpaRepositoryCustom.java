@@ -1,6 +1,6 @@
 package grafiosch.repository;
 
-public interface MailSendRecvReadDelJpaRepositoryCustom  {
+public interface MailSendRecvReadDelJpaRepositoryCustom {
 
   void markForRead(Integer idMailSendRecv, Integer idUser);
 

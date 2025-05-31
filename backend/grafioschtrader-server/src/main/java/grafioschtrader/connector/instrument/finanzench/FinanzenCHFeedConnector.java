@@ -48,10 +48,10 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * Gberit (CH0030170408)
  * https://www.finanzen.ch/aktien/geberit-aktie/swx
  * https://www.finanzen.ch/Ajax/SharesController_HistoricPriceList/geberit/SWX/18.3.2023_18.4.2025
- * 
+ *
  *
  * Bond:
- * Crédit Agricole S.A.SF-Preferred MTN 2021(29) (CH1118460984) 
+ * Crédit Agricole S.A.SF-Preferred MTN 2021(29) (CH1118460984)
  * https://www.finanzen.ch/obligationen/cr%C3%A9dit_agricole_sasf-preferred_mtn_202129-obligation-2029-ch1118460984
  * https://www.finanzen.ch/Ajax/BondController_HistoricPriceList/cr%C3%A9dit_agricole_sasf-preferred_mtn_202129-obligation-2029-ch1118460984/DUS/19.3.2025_19.4.2025
  * https://www.finanzen.ch/Ajax/BondController_HistoricPriceList/cr%C3%A9dit_agricole_sasf-preferred_mtn_202129-obligation-2029-ch1118460984/SWX/19.3.2025_19.4.2025
@@ -88,7 +88,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  */
 @Component
 public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
-  
+
   protected static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final String domain = "https://www.finanzen.ch/";
   private static final String currencyIntraPrefix = "devisen/";
@@ -96,7 +96,6 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
   private static final String URL_SECURITY_HISTORICAL_REGEX = "^[\\p{L}0-9_-]+(/[A-Za-z]+)?$";
   private static final Locale FC_LOCALE = Locale.of("de", "CH");
 
-  
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
@@ -163,8 +162,7 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
       updateLastPrice(security, url, useStockSelector);
     }
   }
-  
-  
+
   /**
    * Reading the data from a sidebar, which is displayed in the form of a table.
    */
@@ -200,8 +198,6 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
         .doubleValue();
     setLastPrice(security, lastPrice, dailyChange, changePercentage);
   }
-
-  
 
   private <S extends Securitycurrency<S>> void setLastPrice(Securitycurrency<S> securitycurrency, double lastPrice,
       double dailyChange, double changePercentage) {
@@ -241,11 +237,9 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
 
   private List<Historyquote> readHistoricalQuotes(String url) throws Exception {
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
-        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .header("Accept-Encoding", "deflate, br")
-        .header("Accept", "*/*")
-        .header("Accept-Language", "en")
-        .version(HttpClient.Version.HTTP_1_1) // Explicitly set HTTP version
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).header("Accept-Encoding", "deflate, br")
+        .header("Accept", "*/*").header("Accept-Language", "en").version(HttpClient.Version.HTTP_1_1) // Explicitly set
+                                                                                                      // HTTP version
         .POST(HttpRequest.BodyPublishers.ofString("")).build();
     HttpResponse<String> response = getHttpClient().send(request, BodyHandlers.ofString());
 
@@ -341,9 +335,9 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
   }
 
   /**
-   * The order and number of columns may vary. Therefore, the mapping to the
-   * desired columns takes place with the evaluation of the table header.
-   * 
+   * The order and number of columns may vary. Therefore, the mapping to the desired columns takes place with the
+   * evaluation of the table header.
+   *
    * @param headerCols
    * @return
    */
@@ -400,7 +394,5 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
     String url = getHistoricaCurrencypairlDownloadLinkByDate(currencypair, from, to);
     return readHistoricalQuotes(url);
   }
-  
-  
 
 }

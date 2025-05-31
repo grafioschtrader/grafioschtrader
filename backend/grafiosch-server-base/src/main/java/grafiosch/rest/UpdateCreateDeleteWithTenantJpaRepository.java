@@ -1,8 +1,7 @@
 package grafiosch.rest;
 
 /**
- * The deletion of the entity will only happened when the entity belongs to a
- * certain tenant.
+ * The deletion of the entity will only happened when the entity belongs to a certain tenant.
  *
  * @param <T>
  */

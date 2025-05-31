@@ -10,9 +10,9 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = GTNetMessageAnswer.TABNAME)
 @Schema(description = """
-Certain incoming messages require a response. This can be an affirmative, a negative or a manual response.
-The automatic reply can be made according to specified conditions. The corresponding answer is determined by conditions,
-using the EvalEx framework.""")
+    Certain incoming messages require a response. This can be an affirmative, a negative or a manual response.
+    The automatic reply can be made according to specified conditions. The corresponding answer is determined by conditions,
+    using the EvalEx framework.""")
 
 public class GTNetMessageAnswer {
   public static final String TABNAME = "gt_net_message_answer";
@@ -143,6 +143,5 @@ public class GTNetMessageAnswer {
   public void setWaitDaysAplly(String waitDaysAplly) {
     this.waitDaysAplly = waitDaysAplly;
   }
-
 
 }

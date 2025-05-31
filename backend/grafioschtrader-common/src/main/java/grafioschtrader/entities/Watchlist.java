@@ -30,7 +30,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-
 @Schema(description = "A watchlist is a personal compilation of instruments with price performance and other details.")
 @Entity
 @Table(name = Watchlist.TABNAME)
@@ -54,13 +53,13 @@ public class Watchlist extends TenantBaseID implements Serializable {
   private String name;
 
   @Schema(description = """
-      Contains the instruments on this watchlist as a list. This must have a lazy loading, 
+      Contains the instruments on this watchlist as a list. This must have a lazy loading,
       otherwise it would be loaded too much unused. In addition, the payload of this list can become quite large.""")
   @JsonIgnore
   @JoinTable(name = TABNAME_SEC_CUR, joinColumns = {
       @JoinColumn(name = "id_watchlist", referencedColumnName = "id_watchlist") }, inverseJoinColumns = {
           @JoinColumn(name = "id_securitycurrency", referencedColumnName = "id_securitycurrency") })
-  @OrderBy(value="id_securitycurrency")
+  @OrderBy(value = "id_securitycurrency")
   @ManyToMany(fetch = FetchType.LAZY)
   private List<Securitycurrency<?>> securitycurrencyList;
 

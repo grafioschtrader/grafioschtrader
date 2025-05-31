@@ -18,8 +18,7 @@ import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * Execute Job PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU when it was not executed
- * the day before or there is no existing
+ * Execute Job PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU when it was not executed the day before or there is no existing
  * {@link grafiosch.entities.TaskDataChange}.
  *
  */

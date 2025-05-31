@@ -39,7 +39,7 @@ public class SecurityDerivedLink implements Serializable {
   public static final int ALLOWED_NUMBER_OF_VAR_NAMES = 5;
 
   /**
-   * The variables are referenced by individual letters, starting with this letter in ascending order.    
+   * The variables are referenced by individual letters, starting with this letter in ascending order.
    */
   public static final String FIRST_VAR_NAME_LETTER = "o";
 
@@ -124,8 +124,7 @@ public class SecurityDerivedLink implements Serializable {
   }
 
   /**
-   * Generate a list of allowed variable names starting from a defined initial
-   * letter
+   * Generate a list of allowed variable names starting from a defined initial letter
    */
   public static List<String> getAllowedVarNameLinks() {
     return IntStream.range(0, SecurityDerivedLink.ALLOWED_NUMBER_OF_VAR_NAMES)

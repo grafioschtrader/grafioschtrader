@@ -18,9 +18,8 @@ import grafioschtrader.types.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * One for every single security. It contain also data of a single transaction,
- * those data are probably transfered to other instance, for example when used
- * for security transaction report.
+ * One for every single security. It contain also data of a single transaction, those data are probably transfered to
+ * other instance, for example when used for security transaction report.
  *
  */
 public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Security> {
@@ -28,8 +27,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public final String mainCurrency;
 
   /**
-   * Historical rates in the past must be adjusted according to the intervening
-   * splits.
+   * Historical rates in the past must be adjusted according to the intervening splits.
    */
   public double closePriceFactor = 1.0;
 
@@ -41,8 +39,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public double splitFactorFromBaseTransaction = 1.0;
 
   /**
-   * Some portfolios may contain more than only one security account. In this case
-   * a cash account can be connected to a certain security account.
+   * Some portfolios may contain more than only one security account. In this case a cash account can be connected to a
+   * certain security account.
    */
   public Integer usedIdSecurityaccount;
 
@@ -72,8 +70,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public double valueSecurityMC;
 
   /**
-   * The same as valueSecurity when not a margin product. It is relevant for
-   * account.
+   * The same as valueSecurity when not a margin product. It is relevant for account.
    */
   public double accountValueSecurity;
   public double accountValueSecurityMC;
@@ -122,8 +119,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public Double transactionExchangeRate;
 
   /**
-   * Contains open margin position with transaction id as key
-   * TransactionsMarginOpenUnits.
+   * Contains open margin position with transaction id as key TransactionsMarginOpenUnits.
    */
   @JsonIgnore
   private Map<Integer, TransactionsMarginOpenUnits> transactionsMarginOpenUnitsMap;
@@ -209,7 +205,6 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     return DataHelper.round(valueSecurityMC, precisionMC);
   }
 
-
   public double getSecurityRiskMC() {
     return DataHelper.round(securityRiskMC, precisionMC);
   }
@@ -249,8 +244,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
   /**
    *
-   * @param currencyExchangeRate Normally the latest currency exchange rate to
-   *                             calculate some fields to the main currency
+   * @param currencyExchangeRate Normally the latest currency exchange rate to calculate some fields to the main
+   *                             currency
    */
   public void calcMainCurrency(double currencyExchangeRate) {
     gainLossSecurityMC = gainLossSecurity * currencyExchangeRate;
@@ -320,9 +315,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   }
 
   /**
-   * It holds the calculation for a single open margin transaction with its close
-   * transactions for a single security. Since a close position has a relation
-   * with open position, this construct is needed.
+   * It holds the calculation for a single open margin transaction with its close transactions for a single security.
+   * Since a close position has a relation with open position, this construct is needed.
    *
    */
   public static class TransactionsMarginOpenUnits implements Comparable<TransactionsMarginOpenUnits> {

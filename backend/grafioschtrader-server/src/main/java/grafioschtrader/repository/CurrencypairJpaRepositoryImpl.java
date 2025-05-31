@@ -301,12 +301,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   public void createTaskDataChangeOfEmptyHistoryqoute() {
     List<Integer> ids = currencypairJpaRepository.getAllIdOfEmptyHistorqute();
     for (int i = 0; i < ids.size(); i++) {
-      taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskTypeExtended.LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES, TaskDataExecPriority.PRIO_VERY_LOW,
+      taskDataChangeJpaRepository.save(
+          new TaskDataChange(TaskTypeExtended.LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES, TaskDataExecPriority.PRIO_VERY_LOW,
               LocalDateTime.now().plusMinutes(i), ids.get(i), Currencypair.class.getSimpleName()));
     }
   }
-
 
   @Override
   public void updateIntraSecurityCurrency(final Currencypair securitycurrency, final IFeedConnector feedConnector)
@@ -327,9 +326,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
-   public void updateAllLastPrices() {
-    updateLastPriceByList(currencypairJpaRepository
-        .findByRetryIntraLoadLessThan(globalparametersService.getMaxIntraRetry()), true);
+  public void updateAllLastPrices() {
+    updateLastPriceByList(
+        currencypairJpaRepository.findByRetryIntraLoadLessThan(globalparametersService.getMaxIntraRetry()), true);
 
   }
 
@@ -345,11 +344,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     return updateLastPriceByList(currencypairs, false);
   }
 
-
   private List<Currencypair> updateLastPriceByList(final List<Currencypair> currencypairs, boolean singleThread) {
     return intradayThruConnector.updateLastPriceOfSecuritycurrency(currencypairs, singleThread);
   }
-
 
   @Override
   public void calcGainLossBasedOnDateOrNewestPrice(
@@ -361,7 +358,8 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
   public List<Currencypair> tryUpToDateIntraDataWhenRetryIntraLoadGreaterThan0(Integer idTenant, Integer idWatchlist) {
     return intradayThruConnector.updateLastPriceOfSecuritycurrency(
-        currencypairJpaRepository.findByIdTenantAndIdWatchlistWhenRetryIntraThan0(idTenant, idWatchlist), (short) -1, false);
+        currencypairJpaRepository.findByIdTenantAndIdWatchlistWhenRetryIntraThan0(idTenant, idWatchlist), (short) -1,
+        false);
   }
 
   @Override

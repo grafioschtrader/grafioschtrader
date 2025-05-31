@@ -8,9 +8,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Transient;
 
 /**
- * Only surrogate key with Integer type is supported, since some public data
- * changes may be only a proposal. It would be complicated to save composite key
- * in the {@link ProposeChangeEntity}.
+ * Only surrogate key with Integer type is supported, since some public data changes may be only a proposal. It would be
+ * complicated to save composite key in the {@link ProposeChangeEntity}.
  */
 public abstract class BaseID<T> {
 
@@ -22,29 +21,29 @@ public abstract class BaseID<T> {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-          return false;
-      }
-      BaseID<?> that = (BaseID<?>) o;
-      return Objects.equals(this.getNotNullId(), that.getNotNullId());
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    BaseID<?> that = (BaseID<?>) o;
+    return Objects.equals(this.getNotNullId(), that.getNotNullId());
   }
 
   @Override
   public int hashCode() {
-      return Objects.hash(this.getNotNullId());
+    return Objects.hash(this.getNotNullId());
   }
 
   private Object getNotNullId() {
-      if (this.getId() != null) {
-          return this.getId();
-      } else {
-          if (uuid == null) {
-              uuid = UUID.randomUUID();
-          }
-          return uuid;
+    if (this.getId() != null) {
+      return this.getId();
+    } else {
+      if (uuid == null) {
+        uuid = UUID.randomUUID();
       }
+      return uuid;
+    }
   }
 }

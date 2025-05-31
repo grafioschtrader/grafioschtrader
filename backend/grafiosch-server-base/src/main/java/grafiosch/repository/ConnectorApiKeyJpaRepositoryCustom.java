@@ -8,7 +8,7 @@ import grafiosch.repository.ConnectorApiKeyJpaRepositoryImpl.SubscriptionTypeRea
 public interface ConnectorApiKeyJpaRepositoryCustom {
 
   ConnectorApiKey saveOnlyAttributes(ConnectorApiKey connectorApiKey);
-  
+
   Map<String, SubscriptionTypeReadableName> getFeedSubscriptionType();
 
   void deleteConnectorApiKeyByIdProvider(String idProvider);

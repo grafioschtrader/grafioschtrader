@@ -14,11 +14,11 @@ public class BondAccruedInterest {
 
   /**
    *
-   * @param faceValue The face value of the bond
+   * @param faceValue    The face value of the bond
    * @param interestRate The annual interest rate of the bond in percent
-   * @param startDate The date of the last interest payment of the bond
-   * @param endDate The date for which the accrued interest should be calculated
-   * @param calcMethod The interest calculation method that was agreed for the bond
+   * @param startDate    The date of the last interest payment of the bond
+   * @param endDate      The date for which the accrued interest should be calculated
+   * @param calcMethod   The interest calculation method that was agreed for the bond
    */
   public static double calculateAccruedInterest(double faceValue, double interestRate, LocalDate startDate,
       LocalDate endDate, InterestCalculationMethod calcMethod) {
@@ -32,7 +32,7 @@ public class BondAccruedInterest {
 
     switch (calcMethod) {
     case GERMAN_30_360:
-      yearFraction = getDaycount30E_360(startDate,  endDate, false) / 360.0;
+      yearFraction = getDaycount30E_360(startDate, endDate, false) / 360.0;
       break;
     case ENGLISH_ACT_365:
       interestDays = (int) ChronoUnit.DAYS.between(startDate, endDate);
@@ -53,8 +53,7 @@ public class BondAccruedInterest {
           + (endDate.getMonthValue() - startDate.getMonthValue())) * 30
           + (endDate.getDayOfMonth() - startDate.getDayOfMonth());
       // If the last interest date is the last day in February, it is set to 30
-      if (startDate.getMonth() == Month.FEBRUARY
-          && startDate.getDayOfMonth() == startDate.lengthOfMonth()) {
+      if (startDate.getMonth() == Month.FEBRUARY && startDate.getDayOfMonth() == startDate.lengthOfMonth()) {
         interestDays += 30 - startDate.getDayOfMonth();
       }
       // If the target date is the last day in February, it is set to 30
@@ -105,8 +104,5 @@ public class BondAccruedInterest {
     return (endDateYear - startDateYear) * 360.0 + (endDateMonth - startDateMonth) * 30.0
         + (endDateDay - Math.min(startDateDay, 30.0));
   }
-
-
-
 
 }

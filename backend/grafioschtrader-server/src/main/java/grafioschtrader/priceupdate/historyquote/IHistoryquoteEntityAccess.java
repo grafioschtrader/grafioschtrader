@@ -11,9 +11,8 @@ import grafioschtrader.repository.HistoryquoteJpaRepository;
 public interface IHistoryquoteEntityAccess<S extends Securitycurrency<S>> extends IHistoryqouteEntityBaseAccess<S> {
 
   /**
-   * Gets the new prices and creates history quotes for adding to the security or
-   * currency pair.
-    */
+   * Gets the new prices and creates history quotes for adding to the security or currency pair.
+   */
   List<Historyquote> getHistoryQuote(S securitycurrency, Date fromDate, Date toDate, IFeedConnector feedConector)
       throws Exception;
 

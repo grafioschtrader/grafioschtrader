@@ -57,9 +57,8 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   List<Object[]> watchlistsOfTenantHasSecurity(Integer idTenant);
 
   /**
-   * Adds to the watchlist all securities and currency pairs whose intraday data
-   * has not been refreshed within the specified interval and have remaining retry
-   * quota.
+   * Adds to the watchlist all securities and currency pairs whose intraday data has not been refreshed within the
+   * specified interval and have remaining retry quota.
    *
    * @param idWatchlist       the watchlist ID to insert into
    * @param daysSinceLastWork maximum days since last successful intraday load
@@ -72,14 +71,12 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
       Short retryIntraCounter);
 
   /**
-   * Adds to the watchlist all securities and currency pairs whose historical data
-   * has not been refreshed within the specified interval and have remaining retry
-   * quota.
+   * Adds to the watchlist all securities and currency pairs whose historical data has not been refreshed within the
+   * specified interval and have remaining retry quota.
    *
    * @param idWatchlist            the watchlist ID to insert into
    * @param daysSinceLastWork      maximum days since last historical load
-   * @param retryHistoricalCounter minimum retry count threshold for historical
-   *                               loads
+   * @param retryHistoricalCounter minimum retry count threshold for historical loads
    */
   @Query(nativeQuery = true)
   @Modifying(clearAutomatically = true)
@@ -88,24 +85,21 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
       Short retryHistoricalCounter);
 
   /**
-   * Retrieves user-defined data (UDF) JSON values for the given watchlist, user,
-   * and entity types.
+   * Retrieves user-defined data (UDF) JSON values for the given watchlist, user, and entity types.
    *
    * @param idWatchlist the watchlist ID to query
    * @param idUser      the user ID who owns the UDF entries
    * @param entities    array of entity names to filter by (e.g., security)
-   * @return a list of {@link IUDFEntityValues} projections containing entity ID
-   *         and JSON values
+   * @return a list of {@link IUDFEntityValues} projections containing entity ID and JSON values
    */
   @Query(nativeQuery = true)
   List<IUDFEntityValues> getUDFByIdWatchlistAndIdUserAndEntity(Integer idWatchlist, Integer idUser, String[] entities);
 
   /**
-   * Returns the Security ids from used Securities. They can be referenced by a
-   * watchlist or a transaction. The watchlist in of the parameter is excluded. It
-   * checks if a Security could removed from the watchlist and aftewards delete
-   * without constraints violations.
-   * 
+   * Returns the Security ids from used Securities. They can be referenced by a watchlist or a transaction. The
+   * watchlist in of the parameter is excluded. It checks if a Security could removed from the watchlist and aftewards
+   * delete without constraints violations.
+   *
    * @param idWatchlist the watchlist ID to inspect
    * @return an array of security-currency IDs matching the criteria
    */
@@ -126,9 +120,8 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   int deleteByIdTenantAndWatchlistAndIds(Integer idTenant, Integer idWatchlist, List<Integer> ids);
 
   /**
-   * Retrieves currency-pair security IDs that are referenced by portfolios, cash
-   * accounts, transactions, or other watchlists—but not by this watchlist. Such
-   * instruments can no longer be permanently deleted. As they are already
+   * Retrieves currency-pair security IDs that are referenced by portfolios, cash accounts, transactions, or other
+   * watchlists—but not by this watchlist. Such instruments can no longer be permanently deleted. As they are already
    * referenced.
    *
    * @param idWatchlist the watchlist ID to exclude
@@ -147,8 +140,7 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   Set<Integer> hasSplitOrDividendByWatchlist(Integer idWatchlist);
 
   /**
-   * Retrieves security IDs in the watchlist that have open or closed transactions
-   * under the specified tenant.
+   * Retrieves security IDs in the watchlist that have open or closed transactions under the specified tenant.
    *
    * @param idWatchlist the watchlist ID to inspect
    * @param idTenant    the tenant ID to filter transactions

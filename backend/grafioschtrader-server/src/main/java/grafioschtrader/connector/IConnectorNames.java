@@ -1,8 +1,7 @@
 package grafioschtrader.connector;
 
 /**
- * This domain names may be used in different connectors, like for instrument
- * and calendar.
+ * This domain names may be used in different connectors, like for instrument and calendar.
  *
  */
 public interface IConnectorNames {

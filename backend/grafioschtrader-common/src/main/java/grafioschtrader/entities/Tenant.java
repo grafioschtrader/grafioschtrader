@@ -26,26 +26,25 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = """
-  Tenant is the main access point", description = "GT defines a tenant from the aggregation of all portfolios and watchlists.
-  Additionally, it contains the information regarding the evaluation over all portfolios.""")
+    Tenant is the main access point", description = "GT defines a tenant from the aggregation of all portfolios and watchlists.
+    Additionally, it contains the information regarding the evaluation over all portfolios.""")
 @Entity
 @Table(name = TenantBase.TABNAME)
 @NamedEntityGraph(name = "graph.tenant.portfolios", attributeNodes = @NamedAttributeNode("portfolioList"))
 public class Tenant extends TenantBase implements Serializable {
-  
+
   private static final long serialVersionUID = 1L;
-  
+
   @Basic(optional = false)
   @ValidCurrencyCode
   private String currency;
- 
 
-@Schema(description = """
-   Interest/dividend tax: In some countries, such as Switzerland, a tax amount of 35%, for example, is automatically 
-   deducted from certain shares and bonds when the dividend or interest is paid. This amount is refunded on the basis 
-   of the tax information and the income is taxed as ordinary income. If you select the skip interest/dividend tax option,
-   the tax for the “Interest/dividend” transaction type is skipped when calculating the profit.
-   This makes it easier to compare the profits from different securities.""")
+  @Schema(description = """
+      Interest/dividend tax: In some countries, such as Switzerland, a tax amount of 35%, for example, is automatically
+      deducted from certain shares and bonds when the dividend or interest is paid. This amount is refunded on the basis
+      of the tax information and the income is taxed as ordinary income. If you select the skip interest/dividend tax option,
+      the tax for the “Interest/dividend” transaction type is skipped when calculating the profit.
+      This makes it easier to compare the profits from different securities.""")
   @Basic(optional = false)
   @NotNull
   @Column(name = "exclude_div_tax")
@@ -59,7 +58,7 @@ public class Tenant extends TenantBase implements Serializable {
   @JoinColumn(name = "id_tenant")
   @OneToMany()
   private List<Watchlist> watchlistList;
-  
+
   @Schema(description = "The id of the watchlist which caused a update of the tenant depend currencies")
   @Column(name = "id_watchlist_performance")
   private Integer idWatchlistPerformance;
@@ -73,7 +72,7 @@ public class Tenant extends TenantBase implements Serializable {
     this.currency = currency;
     this.excludeDivTax = excludeDivTax;
   }
- 
+
   public boolean isExcludeDivTax() {
     return excludeDivTax;
   }
@@ -90,7 +89,7 @@ public class Tenant extends TenantBase implements Serializable {
   public void setPortfolioList(List<Portfolio> portfolioList) {
     this.portfolioList = portfolioList;
   }
- 
+
   @JsonIgnore
   public List<Watchlist> getWatchlistList() {
     return watchlistList;

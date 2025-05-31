@@ -32,8 +32,8 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
    * @param dateString         the target date as a string (formatted according to SHORT_STANDARD_DATE_FORMAT)
    * @param asTraded           if true, returns the close price adjusted for splits (as-traded), otherwise returns the
    *                           raw close
-   * @return an object containing the security or currency ID, applicable date, and (optionally adjusted) close price, or
-   *         null if no historical quote is found
+   * @return an object containing the security or currency ID, applicable date, and (optionally adjusted) close price,
+   *         or null if no historical quote is found
    * @throws ParseException if the dateString cannot be parsed
    */
   ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(Integer idSecuritycurrency,
@@ -71,6 +71,33 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
 
   List<IDateAndClose> getHistoryquoteDateClose(Integer idSecuritycurrency);
 
+  /**
+   * Calculates and returns technical analysis (TA) indicator data for a given security or currency pair, based on
+   * specified short, medium, and/or long calculation periods.
+   * <p>
+   * The method fetches historical closing prices for the instrument, excluding any quotes that were specifically
+   * generated to fill non-trading days (i.e., where createType is 1, corresponding to
+   * HistoryquoteCreateType.FILLED_NON_TRADE_DAY).
+   * </p>
+   * <p>
+   * It then computes the selected TA indicator (e.g., Simple Moving Average - SMA, Exponential Moving Average - EMA)
+   * for each of the period lengths (short, medium, long) that are provided (not null) in the shortMediumLongInputPeriod
+   * object and for which sufficient historical data exists.
+   * </p>
+   * <p>
+   * Each successfully calculated indicator series is returned as a TaTraceIndicatorData object within the resulting
+   * list.
+   * </p>
+   *
+   * @param idSecuritycurrency         The unique identifier for the security or currency pair.
+   * @param taIndicator                The technical indicator to calculate (e.g., SMA, EMA).
+   * @param shortMediumLongInputPeriod An object specifying the short, medium, and long periods for the TA calculation.
+   *                                   A calculation is performed for a period only if it's not null and enough
+   *                                   historical data is available.
+   * @return A list of TaTraceIndicatorData objects, each representing a trace for a calculated indicator over one of
+   *         the specified periods. The list can contain up to three entries, or fewer if some periods are invalid or
+   *         lack sufficient data. An empty list is returned if no calculations can be performed.
+   */
   List<TaTraceIndicatorData> getTaWithShortMediumLongInputPeriod(Integer idSecuritycurrency, TaIndicators taIndicator,
       ShortMediumLongInputPeriod shortMediumLongInputPeriod);
 

@@ -45,17 +45,16 @@ import grafioschtrader.repository.helper.HoldingsHelper;
 import grafioschtrader.types.TransactionType;
 
 /**
- * HoldSecurityaccountSecurity is affected:<br/> When a tenant buys or sells a
- * security.<br/> When a tenants global main currency or a portfolio currency
- * changes. For every tenant when security splits changes.<br/>
+ * HoldSecurityaccountSecurity is affected:<br/>
+ * When a tenant buys or sells a security.<br/>
+ * When a tenants global main currency or a portfolio currency changes. For every tenant when security splits
+ * changes.<br/>
  *
- * Margin transaction are handled differently, every single transaction is
- * processed, while for other transactions the database query delivers a
- * combined result of all transaction for a single day, in respect of security
- * and security account.
+ * Margin transaction are handled differently, every single transaction is processed, while for other transactions the
+ * database query delivers a combined result of all transaction for a single day, in respect of security and security
+ * account.
  *
- * Open and close a position in a day will not produce a record in holdings of
- * securities.
+ * Open and close a position in a day will not produce a record in holdings of securities.
  *
  */
 public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurityaccountSecurityJpaRepositoryCustom {
@@ -165,8 +164,6 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       TransactionSecuritySplit transactionSecuritySplit = new TransactionSecuritySplit(null,
           security.getIdSecuritycurrency(), hstbs.getTsDate(), hstbs.getFactorUnits(), hstbs.getIdTransactionMargin(),
           hstbs.getIdPortfolio() == null ? null : security.getCurrency());
-
-
 
       boolean isNextMarginSameDate = security.isMarginInstrument() && (i + 1) < hstbsList.size()
           ? isNextMarginSameDate(hstbs, hstbsList.get(i + 1), marginTransactionMap)
@@ -492,9 +489,9 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
             tss.getTsDate().toLocalDate(), css.securitysplitMap);
 
         HoldSecurityaccountSecurity holdSecurityaccountSecurity = new HoldSecurityaccountSecurity(idTenant, idPortfolio,
-            idSecuritycashAccount, tss.getIdSecuritycurrency(), tss.getTsDate().toLocalDate(), DataBusinessHelper.round(units),
-            marginRealHoldings != 0 ? marginRealHoldings : null, marginAveragePrice, splitPriceFactor,
-            idCurrencypairTenant, idCurrencypairPortfolio);
+            idSecuritycashAccount, tss.getIdSecuritycurrency(), tss.getTsDate().toLocalDate(),
+            DataBusinessHelper.round(units), marginRealHoldings != 0 ? marginRealHoldings : null, marginAveragePrice,
+            splitPriceFactor, idCurrencypairTenant, idCurrencypairPortfolio);
         toSaveHoldForSecurityList.add(holdSecurityaccountSecurity);
       }
     }

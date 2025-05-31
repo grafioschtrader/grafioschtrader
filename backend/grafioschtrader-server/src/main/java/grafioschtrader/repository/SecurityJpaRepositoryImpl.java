@@ -105,8 +105,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Autowired
   protected JdbcTemplate jdbcTemplate;
-  
- 
+
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
@@ -257,11 +256,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   /**
-   * The URL for accessing data providers with an API key cannot be returned to
-   * unauthorized users. Therefore, this method returns a link to this backend.
-   * The backend can then use this link to execute the request with the provider
-   * itself and return the result to the frontend. This is used to handle links
-   * for dividend and split data.
+   * The URL for accessing data providers with an API key cannot be returned to unauthorized users. Therefore, this
+   * method returns a link to this backend. The backend can then use this link to execute the request with the provider
+   * itself and return the result to the frontend. This is used to handle links for dividend and split data.
    */
   public String getDownlinkDivSplitWithApiKey(Security security, boolean isDiv) {
     return GlobalConstants.PREFIX_FOR_DOWNLOAD_REDIRECT_TO_BACKEND + RequestGTMappings.WATCHLIST_MAP
@@ -309,8 +306,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     Date now = new Date();
     intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
         .filter(s -> !s.isDerivedInstrument() && !now.after(s.getActiveToDate()) && !now.before(s.getActiveFromDate())
-            && s.getRetryIntraLoad() < globalparametersService.getMaxIntraRetry()
-            && s.getIdConnectorIntra() != null)
+            && s.getRetryIntraLoad() < globalparametersService.getMaxIntraRetry() && s.getIdConnectorIntra() != null)
         .collect(Collectors.toList()), true);
     intradayThruCalculation.updateLastPriceOfSecuritycurrency(
         securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()), true);
@@ -510,7 +506,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
           if (hqPersistent.getClose() != hqConnector.getClose()) {
             differentCloseCount++;
           } else {
-            theSameCloseCount++;            
+            theSameCloseCount++;
           }
         }
       }
@@ -591,9 +587,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {
     if (historyAccessHasChanged) {
-      taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskTypeExtended.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA, TaskDataExecPriority.PRIO_NORMAL,
-              LocalDateTime.now(), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA,
+          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), security.getIdSecuritycurrency(),
+          Security.class.getSimpleName()));
     }
 
     if ((securityBefore != null
@@ -601,8 +597,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
             && StringUtils.equals(security.getUrlSplitExtend(), securityBefore.getUrlSplitExtend())))
         || (securityBefore == null && security.getIdConnectorSplit() != null)) {
       // Split connector has changed
-      taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
+      taskDataChangeJpaRepository.save(
+          new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
 
@@ -611,8 +607,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
             && StringUtils.equals(security.getUrlDividendExtend(), securityBefore.getUrlDividendExtend())))
         || (securityBefore == null && security.getIdConnectorDividend() != null)) {
       // Dividend connector has changed
-      taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskTypeExtended.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
+      taskDataChangeJpaRepository.save(
+          new TaskDataChange(TaskTypeExtended.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
     }
   }
@@ -726,7 +722,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Transactional
   public Map<Integer, String> getSecurityCurrencyPairInfo() {
     return securityJpaRepository.getAllTaskDataChangeSecurityCurrencyPairInfoWithId()
-            .collect(Collectors.toMap(isi -> isi.getIdSecuritycurrency(), isi -> isi.getTooltip()));
+        .collect(Collectors.toMap(isi -> isi.getIdSecuritycurrency(), isi -> isi.getTooltip()));
   }
-  
+
 }

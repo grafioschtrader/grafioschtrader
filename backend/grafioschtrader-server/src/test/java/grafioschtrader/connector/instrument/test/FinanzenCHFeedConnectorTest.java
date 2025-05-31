@@ -33,9 +33,9 @@ class FinanzenCHFeedConnectorTest extends BaseFeedConnectorCheck {
   protected List<SecurityHistoricalDate> getHistoricalSecurities() {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(
-          new SecurityHistoricalDate("iShares II PLC FTSE DEV MAR PROP ETF (USD)", "IE00B1FZS350", SpecialInvestmentInstruments.ETF,
-              AssetclassType.EQUITIES, "ishares-developed-markets-property-yield-etf-ie00b1fzs350/swu", null, 6023, "2000-01-04", "2025-05-16"));
+      hisoricalDate.add(new SecurityHistoricalDate("iShares II PLC FTSE DEV MAR PROP ETF (USD)", "IE00B1FZS350",
+          SpecialInvestmentInstruments.ETF, AssetclassType.EQUITIES,
+          "ishares-developed-markets-property-yield-etf-ie00b1fzs350/swu", null, 6023, "2000-01-04", "2025-05-16"));
       hisoricalDate.add(
           new SecurityHistoricalDate("Geberit Aktie", "CH0030170408", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
               AssetclassType.EQUITIES, "geberit-aktie/swx", null, 6023, "2000-01-04", "2023-12-08"));
@@ -59,9 +59,9 @@ class FinanzenCHFeedConnectorTest extends BaseFeedConnectorCheck {
     return hisoricalDate;
   }
 
-  //Currency pair price tests
+  // Currency pair price tests
   // =======================================
- // @Test
+  // @Test
   void getEodCurrencyHistoryTest() throws ParseException {
     getEodCurrencyHistory(true);
   }

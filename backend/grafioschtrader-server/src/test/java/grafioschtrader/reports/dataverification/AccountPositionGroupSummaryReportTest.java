@@ -17,10 +17,9 @@ import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 import grafioschtrader.repository.helper.GroupPortfolio;
 import grafioschtrader.test.start.GTforTest;
 
-
 /**
- * TODO The following checks are very helpfull for checking the summaries of cash account and security accounts.
- * It should be integrated in integration test.
+ * TODO The following checks are very helpfull for checking the summaries of cash account and security accounts. It
+ * should be integrated in integration test.
  *
  */
 @SpringBootTest(classes = GTforTest.class)
@@ -39,19 +38,18 @@ class AccountPositionGroupSummaryReportTest {
 
     do {
       startDate = DateHelper.setTimeToZeroAndAddDay(startDate, 1);
-      final AccountPositionGroupSummary apgs = accountPositionGroupSummaryReport.getAccountGrandSummaryPortfolio(7,
-          8, startDate);
+      final AccountPositionGroupSummary apgs = accountPositionGroupSummaryReport.getAccountGrandSummaryPortfolio(7, 8,
+          startDate);
       final double calculated = apgs.groupExternalCashTransferMC + apgs.groupAccountFeesMC * -1
           + apgs.groupCashAccountTransactionFeeMC * -1 + apgs.groupAccountInterestMC + apgs.groupGainLossCurrencyMC
           + apgs.groupGainLossSecuritiesMC;
-      if(Math.abs(apgs.groupValueMC - calculated) > 5.00) {
+      if (Math.abs(apgs.groupValueMC - calculated) > 5.00) {
         System.out.println(apgs);
         System.err.println(dateFormat.format(startDate) + " " + (apgs.groupValueMC - calculated));
       }
 
     } while (startDate.before(finishDate));
   }
-
 
   @Test
   @Disabled

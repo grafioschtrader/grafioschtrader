@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 public class DateHelper {
 
-  
   /**
    * Returns the maximum or minimum of two dates. If one date is null, the other date is returned. If both are null,
    * null is returned.

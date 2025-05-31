@@ -48,7 +48,6 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
 //	private static String dateTimeFormatStr = "dd.MM.yyyy HH:mm:ss";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
-  
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
@@ -57,7 +56,7 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
   public FinanzenNETFeedConnector() {
     super(supportedFeed, "finanzennet", "Finanzen NET", null, EnumSet.of(UrlCheck.INTRADAY));
     initalizeHttpClient(domain);
-    
+
   }
 
   @Override
@@ -95,7 +94,7 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     final Document doc = getDoc(getSecurityIntradayDownloadLink(security));
-    
+
     var sii = security.getAssetClass().getSpecialInvestmentInstrument();
     String select = "div.pricebox table tr";
     var assetClassType = security.getAssetClass().getCategoryType();
@@ -123,8 +122,6 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
     updateSecuritycurrency(doc.select(select), security);
   }
 
-  
-  
   @Override
   public int getIntradayDelayedSeconds() {
     return 900;
@@ -160,7 +157,7 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
       case "Eröffnung/Vortag":
       case "Eröffnung / Vortag":
         String[] openDayBefore = value.split(" / ");
-        if(openDayBefore.length == 1) {
+        if (openDayBefore.length == 1) {
           openDayBefore = value.split(" ");
         }
         security.setSOpen(FeedConnectorHelper.parseDoubleGE(openDayBefore[0]));
@@ -188,8 +185,8 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
         security.setSPrevClose(FeedConnectorHelper.parseDoubleGE(value));
         break;
       /*
-       * case "Kurszeit": dateTimeValue = value.replace("[a-zA-Z]", "").strip();
-       * break; case "Kursdatum": dateTimeValue = value + " " + dateTimeValue; break;
+       * case "Kurszeit": dateTimeValue = value.replace("[a-zA-Z]", "").strip(); break; case "Kursdatum": dateTimeValue
+       * = value + " " + dateTimeValue; break;
        */
 
       }

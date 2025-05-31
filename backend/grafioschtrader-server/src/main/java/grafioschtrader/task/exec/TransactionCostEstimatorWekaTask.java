@@ -26,8 +26,8 @@ import weka.core.Instances;
 import weka.core.Utils;
 
 /**
- * Train a model to forecast the transaction cost for the for the different
- * trading platform, it does not include other cost like taxes.
+ * Train a model to forecast the transaction cost for the for the different trading platform, it does not include other
+ * cost like taxes.
  *
  * TODO Integrate it for the estimation of transaction costs
  */

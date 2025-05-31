@@ -3,9 +3,8 @@ package grafioschtrader.entities.projection;
 import java.time.LocalDate;
 
 /**
- * Projection interface representing annual summary data for a security,
- * including the year-end close price, total dividends for the year, and an
- * optional currency pair close for conversion.
+ * Projection interface representing annual summary data for a security, including the year-end close price, total
+ * dividends for the year, and an optional currency pair close for conversion.
  */
 public interface SecurityYearClose {
 
@@ -31,8 +30,8 @@ public interface SecurityYearClose {
   double getYearDiv();
 
   /**
-   * The closing price of the associated currency pair on the year-end date, used
-   * for currency conversion of the security close and dividends.
+   * The closing price of the associated currency pair on the year-end date, used for currency conversion of the
+   * security close and dividends.
    *
    * @return the currency pair’s close price
    */

@@ -39,9 +39,8 @@ public abstract class DynamicModelHelper {
   }
 
   /**
-   * Creates from a model class the corresponding input and display description.
-   * Certain annotations are also supported.
-    */
+   * Creates from a model class the corresponding input and display description. Certain annotations are also supported.
+   */
   public static List<FieldDescriptorInputAndShow> getFormDefinitionOfModelClassMembers(Class<?> modelClass,
       Set<Class<? extends Annotation>> possibleAnnotationSet) {
     List<FieldDescriptorInputAndShow> fieldDescriptorInputAndShowList = new ArrayList<>();

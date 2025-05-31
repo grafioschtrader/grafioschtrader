@@ -29,7 +29,8 @@ public class GTNetM2MResource {
 
   @Operation(summary = "", description = "", tags = { RequestGTMappings.GTNET_M2M })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<MessageEnvelope> receiveMessage(@Valid @RequestBody MessageEnvelope messageEnvelope) throws Exception {
+  public ResponseEntity<MessageEnvelope> receiveMessage(@Valid @RequestBody MessageEnvelope messageEnvelope)
+      throws Exception {
     return new ResponseEntity<>(gtNetJpaRepository.getMsgResponse(messageEnvelope), HttpStatus.OK);
   }
 }

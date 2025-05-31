@@ -41,12 +41,10 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /**
- * Historical data could also be downloaded from Investing.com. Since 2022-10-18
- * this no longer works, as access is secured via Cloudflare. However, the
- * methods for historical data are still available in the source code.
+ * Historical data could also be downloaded from Investing.com. Since 2022-10-18 this no longer works, as access is
+ * secured via Cloudflare. However, the methods for historical data are still available in the source code.
  *
- * There is both a regex pattern check and a connector check for the URL
- * extension of the corresponding instrument.
+ * There is both a regex pattern check and a connector check for the URL extension of the corresponding instrument.
  */
 @Component
 public class InvestingConnector extends BaseFeedConnector {
@@ -65,7 +63,8 @@ public class InvestingConnector extends BaseFeedConnector {
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
+    supportedFeed.put(FeedSupport.FS_INTRA,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY });
   }
 
   public InvestingConnector() {
@@ -134,10 +133,9 @@ public class InvestingConnector extends BaseFeedConnector {
     do {
       i++;
       final Document doc = investingConnection.timeout(10000).get();
-      div = securitycurrency instanceof Security
-          || securitycurrency instanceof Currencypair
-              ? doc.getElementsByClass("md:text-[42px]").first().parent()
-              : doc.select("div[class^=instrument-price_instrument-price]").first();
+      div = securitycurrency instanceof Security || securitycurrency instanceof Currencypair
+          ? doc.getElementsByClass("md:text-[42px]").first().parent()
+          : doc.select("div[class^=instrument-price_instrument-price]").first();
       try {
         Thread.sleep(800);
       } catch (InterruptedException e) {
@@ -167,7 +165,6 @@ public class InvestingConnector extends BaseFeedConnector {
         + (new Timestamp(to.getTime()).getTime() / 1000);
   }
 
-  
   @Override
   public String getCurrencypairHistoricalDownloadLink(Currencypair currencypair) {
     return getSecurityCurrencyHistoricalDownloadLink(currencypair);

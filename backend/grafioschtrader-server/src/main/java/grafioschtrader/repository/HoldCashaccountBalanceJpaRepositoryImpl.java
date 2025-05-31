@@ -26,7 +26,6 @@ import grafioschtrader.service.GlobalparametersService;
  */
 public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountBalanceJpaRepositoryCustom {
 
-
   @Autowired
   private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
@@ -35,7 +34,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
-  
+
   @Autowired
   private GlobalparametersService globalparametersService;
 
@@ -135,13 +134,12 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     cashaccountSum.withdrawlDeposit += cbct.getWithdrawlDeposit();
     cashaccountSum.interestCashaccount += cbct.getInterestCashaccount();
     cashaccountSum.fee += cbct.getFee();
-    
+
     int precision = globalparametersService.getPrecisionForCurrency(cbct.getAccountCurrency());
     return new HoldCashaccountBalance(tenant.getIdTenant(), cbct.getIdPortfolio(), cbct.getIdCashaccount(),
         cbct.getFromDate(), cashaccountSum.withdrawlDeposit, cashaccountSum.interestCashaccount, cashaccountSum.fee,
         cashaccountSum.accumulateReduce, cashaccountSum.dividend,
-        DataHelper.round(cashaccountSum.cashBalance, precision), idCurrencyTenant,
-        idCurrencyPortfolio);
+        DataHelper.round(cashaccountSum.cashBalance, precision), idCurrencyTenant, idCurrencyPortfolio);
   }
 
   private Integer getCurrencypair(Map<FromToCurrency, Currencypair> currencypairFromToCurrencyMap, String fromCurrency,

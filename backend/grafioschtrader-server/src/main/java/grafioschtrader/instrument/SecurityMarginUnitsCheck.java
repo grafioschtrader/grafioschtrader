@@ -21,11 +21,10 @@ import grafioschtrader.types.TransactionType;
 public class SecurityMarginUnitsCheck {
 
   /**
-   * The system checks whether the margin transaction is valid based on the number
-   * of units. The system also checks whether a possible deletion command for an
-   * opening margin position could be executed. Possible splits are also included
-   * in the calculation.
-   * 
+   * The system checks whether the margin transaction is valid based on the number of units. The system also checks
+   * whether a possible deletion command for an opening margin position could be executed. Possible splits are also
+   * included in the calculation.
+   *
    * @param securitysplitJpaRepository Repository of splits
    * @param operationyType             What kind of operation
    * @param transactions               The other transactions.
@@ -52,14 +51,13 @@ public class SecurityMarginUnitsCheck {
   }
 
   /**
-   * The system checks whether the margin transaction is valid based on the number
-   * of units. Possible splits are also included in the calculation.
-   * 
+   * The system checks whether the margin transaction is valid based on the number of units. Possible splits are also
+   * included in the calculation.
+   *
    * @param securitysplitJpaRepository Repository of splits
    * @param transactions               The other transactions.
    * @param targetTransaction          The transaction under review.
-   * @param dataViolationException     Contains the possible error if the
-   *                                   validation of the number of units in this
+   * @param dataViolationException     Contains the possible error if the validation of the number of units in this
    *                                   transaction exceeds the limit.
    */
   private static void addUpdateTransaction(final SecuritysplitJpaRepository securitysplitJpaRepository,
@@ -106,14 +104,12 @@ public class SecurityMarginUnitsCheck {
   }
 
   /**
-   * Based on the opening margin position and the daily financing costs specified
-   * at that time, a proposal for the costs is suggested to the user. Financing
-   * costs already paid and partial sales are taken into account.
-   * 
+   * Based on the opening margin position and the daily financing costs specified at that time, a proposal for the costs
+   * is suggested to the user. Financing costs already paid and partial sales are taken into account.
+   *
    * @param transactionJpaRepository Repository for transactions
    * @param idTenant                 The tenant's ID for security reasons.
-   * @param idTransaction            The ID of the opening margining position
-   *                                 transaction.
+   * @param idTransaction            The ID of the opening margining position transaction.
    * @return The proposed financing costs resulting from this calculation.
    */
   public static ProposedMarginFinanceCost getEstimatedFinanceCost(TransactionJpaRepository transactionJpaRepository,

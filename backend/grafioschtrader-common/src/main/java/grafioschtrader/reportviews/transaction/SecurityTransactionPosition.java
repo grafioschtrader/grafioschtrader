@@ -7,8 +7,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Contains the gain/loss of a single transaction. For every Transaction one
- * instance of this class.
+ * Contains the gain/loss of a single transaction. For every Transaction one instance of this class.
  *
  */
 public class SecurityTransactionPosition {

@@ -43,7 +43,7 @@ public class PropertyWithOptionsConfiguration {
   public String startNL;
 
   public boolean startLineSingleCount;
-  
+
   private static Pattern startLineOptionsPattern = Pattern.compile("^\\[(.*)\\]");
 
   /**

@@ -16,9 +16,8 @@ import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * The inventory tables are only updated if the transactions are processed in
- * the usual way. This may not be the case when importing data or copying demo
- * user accounts. Therefore, the holding tables can be updated for one or all
+ * The inventory tables are only updated if the transactions are processed in the usual way. This may not be the case
+ * when importing data or copying demo user accounts. Therefore, the holding tables can be updated for one or all
  * tenants with this task.
  */
 @Component

@@ -15,9 +15,9 @@ public abstract class FieldDescriptorInputAndShowExtended extends FieldDescripto
   private final byte uiOrder;
 
   protected final Byte udfSpecialType;
-  
+
   private final int idUser;
-  
+
   public FieldDescriptorInputAndShowExtended(String fieldName, String description, String descriptionHelp, byte uiOrder,
       DataType dataType, Double min, Double max, Byte udfSpecialType, int idUser) {
     super(fieldName, dataType, min, max);
@@ -48,5 +48,4 @@ public abstract class FieldDescriptorInputAndShowExtended extends FieldDescripto
     return idUser;
   }
 
-  
 }

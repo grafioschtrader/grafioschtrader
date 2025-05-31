@@ -24,11 +24,11 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = MailSettingForward.TABNAME)
 public class MailSettingForward extends UserBaseID {
-  
+
   public static final String TABNAME = "mail_setting_forward";
 
   public static final byte MAIN_ADMIN_BASE_VALUE = 50;
-  
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
@@ -48,7 +48,6 @@ public class MailSettingForward extends UserBaseID {
   @PropertyOnlyCreation
   private byte messageComType;
 
-
   @Schema(description = "Which mail system is used. Internal, external or both")
   @Basic(optional = false)
   @Column(name = "message_target_type")
@@ -56,12 +55,10 @@ public class MailSettingForward extends UserBaseID {
   @PropertyAlwaysUpdatable
   private byte messageTargetType;
 
-
   @Schema(description = "Perhaps a message of a certain type to the main administrator should be forwarded to another admin")
   @Column(name = "id_user_redirect")
   @PropertyAlwaysUpdatable
   private Integer idUserRedirect;
-
 
   public MailSettingForward() {
     super();
@@ -93,7 +90,7 @@ public class MailSettingForward extends UserBaseID {
     this.messageComType = messageComType.getValue();
   }
 
-  //Change the setter to accept a String from the JSON payload.
+  // Change the setter to accept a String from the JSON payload.
   @JsonSetter("messageComType")
   public void setMessageComType(String messageComTypeName) {
     IMessageComType messageComType = MailEntity.MESSAGE_COM_TYPES_REGISTRY.getTypeByName(messageComTypeName);

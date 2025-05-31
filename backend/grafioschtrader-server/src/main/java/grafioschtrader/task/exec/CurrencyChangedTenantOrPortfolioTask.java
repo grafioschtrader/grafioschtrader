@@ -20,9 +20,8 @@ import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * If the main currency of a tenant or one of their portfolios changes, any
- * missing currency pairs must be created for this main currency. The position
- * tables must also be reconstructed.
+ * If the main currency of a tenant or one of their portfolios changes, any missing currency pairs must be created for
+ * this main currency. The position tables must also be reconstructed.
  */
 @Component
 public class CurrencyChangedTenantOrPortfolioTask implements ITask {

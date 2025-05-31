@@ -34,7 +34,7 @@ public abstract class ImportTransactionHelperPdf {
 
   /**
    * Parse the existing Templates. The result can be used to scan forms.
-    */
+   */
   public static Map<TemplateConfigurationPDFasTXT, ImportTransactionTemplate> readTemplates(
       List<ImportTransactionTemplate> importTransactionTemplateList, Locale userLocale) {
 

@@ -16,8 +16,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.types.AssetclassType;
 
 /**
- * Report which is grouped by asset class type. It also includes every single
- * cash account.
+ * Report which is grouped by asset class type. It also includes every single cash account.
  */
 @Component
 public class SecurityGroupByAssetclassWithCashReport extends SecurityGroupByBaseReport<AssetclassType> {

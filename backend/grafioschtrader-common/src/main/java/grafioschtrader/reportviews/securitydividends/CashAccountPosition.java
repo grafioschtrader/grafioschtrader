@@ -64,7 +64,7 @@ public class CashAccountPosition extends AccountDividendPosition {
   public void updateFeePosition(Transaction transaction, SecurityDividendsYearGroup securityDividendsYearGroup,
       DateTransactionCurrencypairMap dateCurrencyMap) {
     double exchangeRate = transaction.getExchangeRateOnCurrency(dateCurrencyMap.getMainCurrency(), dateCurrencyMap);
-    if(transaction.getIdSecurityaccount() == null) {
+    if (transaction.getIdSecurityaccount() == null) {
       feeCashAccount += transaction.getCashaccountAmount() * -1;
       feeCashAccountMC += transaction.getCashaccountAmount() * exchangeRate * -1;
     } else {
@@ -72,7 +72,6 @@ public class CashAccountPosition extends AccountDividendPosition {
       feeSecurityAccountMC += transaction.getCashaccountAmount() * exchangeRate * -1;
     }
   }
-
 
   public void attachHistoryquoteAndCalcPositionTotal(Map<Integer, Historyquote> historyquoteIdMap,
       DateTransactionCurrencypairMap dateCurrencyMap) {

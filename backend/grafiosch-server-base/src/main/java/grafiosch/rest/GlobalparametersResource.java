@@ -31,7 +31,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-
 @RestController
 @RequestMapping(RequestMappings.GLOBALPARAMETERS_MAP)
 @Tag(name = Globalparameters.TABNAME, description = "Controller for global parameters")
@@ -39,7 +38,7 @@ public class GlobalparametersResource {
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
-  
+
   @Operation(summary = "Returns the password requirements.", description = "", tags = { Globalparameters.TABNAME })
   @GetMapping(value = "/passwordrequirements", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<PasswordRegexProperties> getPasswordRegexProperties() throws Exception {
@@ -53,17 +52,18 @@ public class GlobalparametersResource {
   }
 
   @Operation(summary = """
-          Some information classes have limits for the tenant. The current number of entities and their limit can be queried here. 
-          This allows the frontend to check this limit before creating an entity.""", description = "", tags = { Globalparameters.TABNAME })  
+      Some information classes have limits for the tenant. The current number of entities and their limit can be queried here.
+      This allows the frontend to check this limit before creating an entity.""", description = "", tags = {
+      Globalparameters.TABNAME })
   @GetMapping(value = "/tenantlimits", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TenantLimit>> getMaxTenantLimitsByMsgKey(@RequestParam() final List<String> msgKeys) {
     return new ResponseEntity<>(globalparametersJpaRepository.getMaxTenantLimitsByMsgKeys(msgKeys), HttpStatus.OK);
   }
 
   @Operation(summary = """
-      Provides the metadata of the User information class. 
-      This gives the frontend the possible definition of the input fields. This is useful for the registration and password dialog.""", 
-      description = "", tags = { Globalparameters.TABNAME })  
+      Provides the metadata of the User information class.
+      This gives the frontend the possible definition of the input fields. This is useful for the registration and password dialog.""", description = "", tags = {
+      Globalparameters.TABNAME })
   @GetMapping(value = "/userformdefinition", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<FieldDescriptorInputAndShow>> getUserFormDefinitions() {
     return new ResponseEntity<>(
@@ -71,7 +71,7 @@ public class GlobalparametersResource {
             Set.of(PropertyAlwaysUpdatable.class, PropertyChangePassword.class, PropertyOnlyCreation.class)),
         HttpStatus.OK);
   }
-  
+
   @Operation(summary = "Returns the possible countries as it can be used in html option", description = "", tags = {
       Globalparameters.TABNAME })
   @GetMapping(value = "/countries", produces = APPLICATION_JSON_VALUE)
@@ -107,6 +107,5 @@ public class GlobalparametersResource {
       @Valid @RequestBody final Globalparameters globalparameters) throws Exception {
     return new ResponseEntity<>(globalparametersJpaRepository.saveOnlyAttributes(globalparameters), HttpStatus.OK);
   }
-  
 
 }

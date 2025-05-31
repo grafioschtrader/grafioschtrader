@@ -22,8 +22,7 @@ import grafioschtrader.search.SecuritycurrencySearch;
 public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Security> {
 
   /**
-   * Complete the history for all security or currency pairs until yesterday's
-   * date.
+   * Complete the history for all security or currency pairs until yesterday's date.
    */
   List<Security> catchAllUpSecurityHistoryquote(List<Integer> idsStockexchange);
 
@@ -54,20 +53,18 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
       SecuritycurrencySearch securitycurrencySearch, Integer idTenant);
 
   /**
-   * Process open positions. Calculate gain/loss when this position would be
-   * closed.
+   * Process open positions. Calculate gain/loss when this position would be closed.
    *
    * @param untilDate
-   * @param summarySecurityMap Contains the calculations for each individual
-   *                           security.
+   * @param summarySecurityMap Contains the calculations for each individual security.
    * @return The updated securities summaries as a list.
    */
   List<SecurityPositionSummary> processOpenPositionsWithActualPrice(Date untilDate,
       Map<Security, SecurityPositionSummary> summarySecurityMap);
 
   /**
-   * Some cases the historical prices must be reloaded completely. For example
-   * when a split is added. It is an asynchronous loading.
+   * Some cases the historical prices must be reloaded completely. For example when a split is added. It is an
+   * asynchronous loading.
    *
    * @param securitycurrency
    */
@@ -76,15 +73,14 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   void reloadAsyncFullHistoryquoteExternal(Integer idSecuritycurrency);
 
   /**
-   * The user interface receives a link to check the price data provider of a
-   * security. If an API key is required, only the backend can evaluate this link
-   * and return the corresponding content. The content of the provider may also be
+   * The user interface receives a link to check the price data provider of a security. If an API key is required, only
+   * the backend can evaluate this link and return the corresponding content. The content of the provider may also be
    * determined in the backend for other reasons.
    */
   String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
 
   String getDataProviderLinkForUser(final Integer idSecuritycurrency, final boolean isIntraday);
-  
+
   String getDivSplitProviderResponseForUser(final Integer idSecuritycurrency, final boolean isDiv);
 
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy);
@@ -92,39 +88,37 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   boolean checkUserCanChangeDerivedFields(User user, Security security, Security existingSecurity);
 
   void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
-  
+
   void setSplitDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
 
   InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom,
       LocalDate dateTo) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException;
 
   /**
-   * Some cases the historical prices must be reloaded completely. For example
-   * when a split is added.
+   * Some cases the historical prices must be reloaded completely. For example when a split is added.
    */
   Security rebuildSecurityCurrencypairHisotry(Security security);
 
   /**
-   * It tries to detect if the historical price data after the latest split has
-   * been adjusted.
+   * It tries to detect if the historical price data after the latest split has been adjusted.
    */
   @Deprecated
   SplitAdjustedHistoryquotes isYoungestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits, boolean useConnector) throws Exception;
 
   /**
-   * Tries to determine if the supplier's historical price data already reflects
-   * the split.
+   * Tries to determine if the supplier's historical price data already reflects the split.
    */
   SplitAdjustedHistoryquotesResult isLatestSplitHistoryquotePossibleAdjusted(Security security,
       List<Securitysplit> securitysplits) throws Exception;
 
   /**
-   * Returns the name or text of the currency pair for the ID of the entity for securities and currency pairs.   
+   * Returns the name or text of the currency pair for the ID of the entity for securities and currency pairs.
+   *
    * @return Map with the ID of the entity and the name or text as value.
    */
   Map<Integer, String> getSecurityCurrencyPairInfo();
-  
+
   // TODO remove it
   void checkAndClearSecuritycurrencyConnectors(final Security security);
 

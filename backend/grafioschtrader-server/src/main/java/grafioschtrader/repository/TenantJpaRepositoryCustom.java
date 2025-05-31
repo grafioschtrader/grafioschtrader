@@ -7,7 +7,7 @@ import grafiosch.repository.TenantBaseCustom;
 import grafioschtrader.entities.Tenant;
 
 public interface TenantJpaRepositoryCustom extends BaseRepositoryCustom<Tenant>, TenantBaseCustom {
-  
+
   Tenant removeAllWatchlistByIdTenant(Integer idTenant);
 
   Tenant removeAllPortfolios(Integer idTenant);
@@ -21,5 +21,5 @@ public interface TenantJpaRepositoryCustom extends BaseRepositoryCustom<Tenant>,
   Tenant changeCurrencyTenantAndPortfolios(String currency);
 
   Tenant setWatchlistForPerformance(Integer idWatchlist);
- 
+
 }

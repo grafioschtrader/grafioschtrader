@@ -154,7 +154,8 @@ public class PeriodHoldingAndDiff {
       if (property.getWriteMethod() != null && property.getPropertyType() == double.class) {
         double minuedValue = (double) PropertyUtils.getProperty(this, property.getName());
         double subtrahends = (double) PropertyUtils.getProperty(subtrahendsHolding, property.getName());
-        PropertyUtils.setProperty(diff, property.getName(), DataBusinessHelper.roundStandard(minuedValue - subtrahends));
+        PropertyUtils.setProperty(diff, property.getName(),
+            DataBusinessHelper.roundStandard(minuedValue - subtrahends));
       }
     }
     return diff;

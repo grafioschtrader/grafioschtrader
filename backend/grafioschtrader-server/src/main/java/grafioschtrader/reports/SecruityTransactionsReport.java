@@ -85,14 +85,12 @@ public class SecruityTransactionsReport {
 
   public enum SecruityTransactionsReportOptions {
     /**
-     * Set security of Transaction to null. It is for the reduction the json
-     * footprint
+     * Set security of Transaction to null. It is for the reduction the json footprint
      */
     CLEAR_TRANSACTION_SECURITY,
     /**
-     * Some charts of historical security data includes transaction (sell, buy,
-     * dividend) data. Normally all history quote data are adjusted to splits. In
-     * such case the transaction quotation must be corrected as well.
+     * Some charts of historical security data includes transaction (sell, buy, dividend) data. Normally all history
+     * quote data are adjusted to splits. In such case the transaction quotation must be corrected as well.
      */
     QUTATION_SPLIT_CORRECTION
   }
@@ -120,9 +118,8 @@ public class SecruityTransactionsReport {
   }
 
   /**
-   * Get transactions for a security over single security account until a certain
-   * date.
-    */
+   * Get transactions for a security over single security account until a certain date.
+   */
   public SecurityTransactionSummary getTransactionsByIdSecurityaccountsAndIdSecurityAndClearSecurity(
       final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final Date untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
@@ -138,8 +135,7 @@ public class SecruityTransactionsReport {
   }
 
   /**
-   * Returns security accounts with open positions for the required security. Not
-   * usable for margin products!
+   * Returns security accounts with open positions for the required security. Not usable for margin products!
    */
   public SecurityOpenPositionPerSecurityaccount getOpenPositionByIdTenantAndIdSecuritycurrency(final Integer idTenant,
       final Integer idSecuritycurrency, final String dateString, final boolean before,
@@ -289,7 +285,7 @@ public class SecruityTransactionsReport {
     final SecurityTransactionSummary securityTransactionSummary = new SecurityTransactionSummary(
         securityJpaRepository.findById(security.getIdSecuritycurrency()).get(),
         (dateCurrencyMap != null) ? dateCurrencyMap.getMainCurrency() : null,
-            globalparametersService.getCurrencyPrecision());
+        globalparametersService.getCurrencyPrecision());
     final boolean excludeDivTaxcost = tenantJpaRepository.isExcludeDividendTaxcost();
 
     final Map<Integer, List<Securitysplit>> securitySplitMap = this.securitysplitJpaRepository
@@ -305,7 +301,8 @@ public class SecruityTransactionsReport {
     securityCalcService.calcTransactions(security, excludeDivTaxcost, securityTransactionSummary, securitySplitMap,
         transactions, untilDate, dateCurrencyMap);
 
-    if ((securityTransactionSummary.securityPositionSummary.units != 0.0 || !securityTransactionSummary.transactionPositionList.isEmpty()) 
+    if ((securityTransactionSummary.securityPositionSummary.units != 0.0
+        || !securityTransactionSummary.transactionPositionList.isEmpty())
         && secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
 
       securityJpaRepository.calcGainLossBasedOnDateOrNewestPrice(securityTransactionSummary.securityPositionSummary,
@@ -326,8 +323,9 @@ public class SecruityTransactionsReport {
 
     if (secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)) {
       quotationSplitCorrection(security.getIdSecuritycurrency(), securityTransactionSummary, securitySplitMap);
-      if(security.isMarginInstrument()) {
-        Collections.sort(securityTransactionSummary.transactionPositionList, Comparator.comparing(tp -> tp.transaction.getTransactionTime()));
+      if (security.isMarginInstrument()) {
+        Collections.sort(securityTransactionSummary.transactionPositionList,
+            Comparator.comparing(tp -> tp.transaction.getTransactionTime()));
 
       }
     }

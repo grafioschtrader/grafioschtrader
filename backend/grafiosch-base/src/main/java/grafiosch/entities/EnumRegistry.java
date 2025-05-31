@@ -7,8 +7,8 @@ import java.util.List;
 import grafiosch.types.IBaseEnum;
 
 /**
- * A generic registry for enum types implementing IBaseEnum. This registry works
- * for any enum that implements IBaseEnum, such as ITaskType or IUDFSpecialType.
+ * A generic registry for enum types implementing IBaseEnum. This registry works for any enum that implements IBaseEnum,
+ * such as ITaskType or IUDFSpecialType.
  *
  * @param <T> the enum type which must implement IBaseEnum
  */

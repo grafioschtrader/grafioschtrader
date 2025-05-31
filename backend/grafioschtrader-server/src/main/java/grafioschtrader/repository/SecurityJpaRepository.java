@@ -23,18 +23,18 @@ import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithS
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 
 /**
- * Spring Data JPA repository for managing Security entities 
+ * Spring Data JPA repository for managing Security entities
  */
 public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository<Security>,
     JpaSpecificationExecutor<Security>, SecurityJpaRepositoryCustom, UpdateCreateJpaRepository<Security> {
 
   /**
-   * Executes the `deleteUpdateHistoryQuality` stored procedure to refresh the
-   * historyquote_quality metrics for all securities.
+   * Executes the `deleteUpdateHistoryQuality` stored procedure to refresh the historyquote_quality metrics for all
+   * securities.
    * <p>
-   * This procedure clears existing quality records and regenerates completeness
-   * and creation‐type statistics (missing days, connectorCreated, manualImported, etc.)
-   * along with quality percentages based on current historyquote data. :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+   * This procedure clears existing quality records and regenerates completeness and creation‐type statistics (missing
+   * days, connectorCreated, manualImported, etc.) along with quality percentages based on current historyquote data.
+   * :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
    */
   @Procedure(procedureName = "deleteUpdateHistoryQuality")
   void deleteUpdateHistoryQuality();
@@ -59,7 +59,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<Security> findByAssetClass_CategoryTypeInAndAssetClass_SpecialInvestmentInstrumentInAndActiveToDateAfterAndIdTenantPrivateIsNull(
       Set<Byte> categoryTypes, Set<Byte> specialInvestmentInstruments, Date date);
 
-  //Catch history quotes as well for this Security
+  // Catch history quotes as well for this Security
   @Override
   @EntityGraph(value = "graph.security.historyquote", type = EntityGraphType.FETCH)
   Security findByIdSecuritycurrency(Integer idSecuritycurrency);
@@ -82,7 +82,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Query(value = "SELECT s FROM Security s WHERE s.idSecuritycurrency = ?1 AND (s.idTenantPrivate IS NULL OR s.idTenantPrivate = ?2)")
   Security findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(Integer idSecuritycurrency,
       Integer idTenantPrivate);
-  
+
   //@formatter:off
   /**
    * Finds active securities in the given watchlist that have experienced failed intraday price loads
@@ -199,20 +199,18 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
       WHERE w.idTenant = ?1 AND w.idWatchlist = ?2 AND s.assetClass.specialInvestmentInstrument <> 10 ORDER BY s.name""")
   List<Security> getTradableSecuritiesByTenantAndIdWatschlist(Integer idTenant, Integer idWatchlist);
 
-  
-
   //@formatter:off
   /**
    * Retrieves the most recent history-quote date for each active Security that has a configured history connector
    * and remaining retry attempts below the specified threshold.
    * <p>
-   * - Filters for Security entities where retryHistoryLoad &lt; maxHistoryRetry and idConnectorHistory is not null.  
-   * - Joins to historyquoteList to find the maximum quote date per security.  
-   * - Includes only securities still active at their latest quote date (activeToDate ≥ MAX(h.date)).  
+   * - Filters for Security entities where retryHistoryLoad &lt; maxHistoryRetry and idConnectorHistory is not null.
+   * - Joins to historyquoteList to find the maximum quote date per security.
+   * - Includes only securities still active at their latest quote date (activeToDate ≥ MAX(h.date)).
    * - Orders results by security ID.
-   * 
-   * With or without this clause "ORDER BY s.idSecuritycurrency" we get more rows than without it. Why? 
-   * 
+   *
+   * With or without this clause "ORDER BY s.idSecuritycurrency" we get more rows than without it. Why?
+   *
    * @param maxHistoryRetry the upper limit for retryHistoryLoad; securities with lower values are included
    * @return a list of SecurityCurrencyMaxHistoryquoteData projections, each containing a Security and its latest quote date
    */
@@ -224,13 +222,11 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithConnector(short maxHistoryRetry);
 
   /**
-   * Retrieves the latest history-quote date for each formula-derived security
-   * (where idLinkSecuritycurrency is not null) that still has retry attempts
-   * remaining.
+   * Retrieves the latest history-quote date for each formula-derived security (where idLinkSecuritycurrency is not
+   * null) that still has retry attempts remaining.
    *
    * @param maxHistoryRetry maximum retryHistoryLoad value allowed
-   * @return list of projections pairing each derived security with its most
-   *         recent quote date
+   * @return list of projections pairing each derived security with its most recent quote date
    */
   @Query(value = """
       SELECT s as securityCurrency, MAX(h.date) AS date FROM Security s JOIN s.historyquoteList h
@@ -241,65 +237,54 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   /**
    * Checks whether any transactions exist for the specified security.
    * <p>
-   * Executes a native SQL EXISTS query to determine if at least one transaction
-   * references the given security ID.
+   * Executes a native SQL EXISTS query to determine if at least one transaction references the given security ID.
    *
    * @param idSecuritycurrency the ID of the security to check
-   * @return true if one or more transactions exist for the security; false
-   *         otherwise
+   * @return true if one or more transactions exist for the security; false otherwise
    */
   @Query(value = "SELECT IF(EXISTS(SELECT * FROM transaction t WHERE t.id_securitycurrency=?1) = 1, 'true', 'false' ); ", nativeQuery = true)
   boolean hasSecurityTransaction(Integer idSecuritycurency);
 
   /**
-   * Finds the latest history quote date for each active Security in the given
-   * exchanges that has a configured history connector and whose retryHistoryLoad
-   * is below the threshold.
+   * Finds the latest history quote date for each active Security in the given exchanges that has a configured history
+   * connector and whose retryHistoryLoad is below the threshold.
    * <p>
-   * Uses JPQL to select Security entities with retryHistoryLoad <
-   * maxHistoryRetry, idConnectorHistory not null, and stockexchange ID in
-   * idsStockexchange, grouping by security.
+   * Uses JPQL to select Security entities with retryHistoryLoad < maxHistoryRetry, idConnectorHistory not null, and
+   * stockexchange ID in idsStockexchange, grouping by security.
    *
    * @param maxHistoryRetry  maximum allowed retryHistoryLoad before exclusion
    * @param idsStockexchange list of stock exchange IDs to include
-   * @return a list of projections containing each Security and its most recent
-   *         quote date
+   * @return a list of projections containing each Security and its most recent quote date
    */
   @Query(nativeQuery = false)
   List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithConnectorForExchange(short maxHistoryRetry,
       List<Integer> idsStockexchange);
 
   /**
-   * A new payment of interest or dividend is expected: - Last payment with this
-   * client plus the addition of days determined based on the frequency of
-   * payments. Instruments with entries in the Dividend entity that have a payment
+   * A new payment of interest or dividend is expected: - Last payment with this client plus the addition of days
+   * determined based on the frequency of payments. Instruments with entries in the Dividend entity that have a payment
    * date are ignored.</br>
-   * TODO First interest of a bond determined on the basis of the trading date
-   * plus addition of the frequency.</br>
+   * TODO First interest of a bond determined on the basis of the trading date plus addition of the frequency.</br>
    */
   @Query(nativeQuery = true)
   List<CheckSecurityTransIntegrity> getPossibleMissingDivInterestByFrequency();
 
   /**
-   * If an instrument was held during the period of a dividend payment, the
-   * dividend entity is used to determine whether there is a corresponding
-   * dividend transaction. The payment date of the dividend is used.
+   * If an instrument was held during the period of a dividend payment, the dividend entity is used to determine whether
+   * there is a corresponding dividend transaction. The payment date of the dividend is used.
    *
    *
-   * @param daysLookBack            Number of days in the past that are checked
-   *                                from the current date.
-   * @param acceptDaysAroundPayDate There may be certain differences between the
-   *                                transaction date and the official dividend
-   *                                payment date. This indicates the number of
-   *                                days for this tolerance.
+   * @param daysLookBack            Number of days in the past that are checked from the current date.
+   * @param acceptDaysAroundPayDate There may be certain differences between the transaction date and the official
+   *                                dividend payment date. This indicates the number of days for this tolerance.
    */
   @Query(nativeQuery = true)
   List<CheckSecurityTransIntegrity> getPossibleMissingDividentsByDividendTable(int daysLookBack,
       int acceptDaysAroundPayDate);
 
   /**
-   * Retrieves securities that are still held by tenants but have become inactive
-   * (active_to_date before today) and have not yet triggered a notification.
+   * Retrieves securities that are still held by tenants but have become inactive (active_to_date before today) and have
+   * not yet triggered a notification.
    *
    * @return a list of CheckSecurityTransIntegrity projection
    */
@@ -307,9 +292,8 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<CheckSecurityTransIntegrity> getHoldingsOfInactiveSecurties();
 
   /**
-   * Lists securities eligible for assignment to an algorithmic asset‐class that
-   * are not yet part of the specified algo_assetclass_security and match the
-   * tenant’s private flag.
+   * Lists securities eligible for assignment to an algorithmic asset‐class that are not yet part of the specified
+   * algo_assetclass_security and match the tenant’s private flag.
    *
    * @param idTenantPrivate          tenant-private ID filter (nullable)
    * @param idAlgoAssetclassSecurity the algorithmic asset‐class ID
@@ -319,61 +303,50 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<Security> getUnusedSecurityForAlgo(Integer idTenantPrivate, Integer idAlgoAssetclassSecurity);
 
   /**
-   * Streams flat projections of historyquote quality metrics grouped by
-   * connector. Each projection includes connector ID, stockexchange name and ID,
-   * category type, special investment instrument, counts of securities, active
-   * securities, and aggregated create_type counts, plus average
-   * qualityPercentage.
+   * Streams flat projections of historyquote quality metrics grouped by connector. Each projection includes connector
+   * ID, stockexchange name and ID, category type, special investment instrument, counts of securities, active
+   * securities, and aggregated create_type counts, plus average qualityPercentage.
    *
-   * @return a stream of IHistoryquoteQualityFlat projections for connector-level
-   *         quality
+   * @return a stream of IHistoryquoteQualityFlat projections for connector-level quality
    */
   @Query(nativeQuery = true)
   Stream<IHistoryquoteQualityFlat> getHistoryquoteQualityConnectorFlat();
 
   /**
-   * Streams flat projections of historyquote quality metrics grouped by
-   * stockexchange. Each projection includes stockexchange ID and name, connector
-   * ID, category type, special investment instrument, counts of securities,
-   * active securities, aggregated create_type counts, plus average
-   * qualityPercentage.
+   * Streams flat projections of historyquote quality metrics grouped by stockexchange. Each projection includes
+   * stockexchange ID and name, connector ID, category type, special investment instrument, counts of securities, active
+   * securities, aggregated create_type counts, plus average qualityPercentage.
    *
-   * @return a stream of IHistoryquoteQualityFlat projections for exchange-level
-   *         quality
+   * @return a stream of IHistoryquoteQualityFlat projections for exchange-level quality
    */
   @Query(nativeQuery = true)
   Stream<IHistoryquoteQualityFlat> getHistoryquoteQualityStockexchangeFlat();
 
   /**
-   * Streams security‐currency tooltip data for pending task_data_change entries.
-   * Each projection contains the securitycurrency ID and a display tooltip (name,
-   * ticker, ISIN or from/to pair).
+   * Streams security‐currency tooltip data for pending task_data_change entries. Each projection contains the
+   * securitycurrency ID and a display tooltip (name, ticker, ISIN or from/to pair).
    *
-   * @return a stream of IdSecurityCurrencyPairInfo projections for task
-   *         notifications
+   * @return a stream of IdSecurityCurrencyPairInfo projections for task notifications
    */
   @Query(nativeQuery = true)
   Stream<IdSecurityCurrencyPairInfo> getAllTaskDataChangeSecurityCurrencyPairInfoWithId();
 
   /**
-   * Retrieves detailed historyquote quality entries for securities matching the
-   * given connector, exchange, assetclass category, and special investment
-   * instrument.
+   * Retrieves detailed historyquote quality entries for securities matching the given connector, exchange, assetclass
+   * category, and special investment instrument.
    *
    * @param idConnectorHistory          connector identifier
    * @param idStockexchange             stock exchange ID
    * @param categoryType                asset class category type
    * @param specialInvestmentInstrument special investment instrument code
-   * @return a list of IHistoryquoteQualityWithSecurityProp projections with
-   *         security properties
+   * @return a list of IHistoryquoteQualityWithSecurityProp projections with security properties
    */
   @Query(nativeQuery = true)
   List<IHistoryquoteQualityWithSecurityProp> getHistoryquoteQualityByIds(String idConnectorHistory,
       Integer idStockexchange, Byte categoryType, Byte specialInvestmentInstrument);
 
   /**
-   * Retrieves load formulas and link IDs for derived securities based on a parent
-   * security link.
+   * Retrieves load formulas and link IDs for derived securities based on a parent security link.
    *
    * @param idLinkSecuritycurrency the parent securitycurrency ID
    * @return a list of IFormulaSecurityLoad projections with split/formula data
@@ -382,63 +355,52 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<IFormulaSecurityLoad> getBySecurityDerivedLinkByIdSecurityLink(Integer idLinkSecuritycurrency);
 
   /**
-   * Retrieves year-end close price and annual dividend sum per year for the given
-   * security.
+   * Retrieves year-end close price and annual dividend sum per year for the given security.
    *
    * @param idSecurity the securitycurrency ID
-   * @return a list of SecurityYearClose projections with date (year-end),
-   *         securityClose, and yearDiv
+   * @return a list of SecurityYearClose projections with date (year-end), securityClose, and yearDiv
    */
   @Query(nativeQuery = true)
   List<SecurityYearClose> getSecurityYearCloseDivSum(Integer idSecurity);
 
   /**
-   * Retrieves year-end close price, annual dividend sum, and corresponding
-   * currency-pair close for the given security and currency pair.
+   * Retrieves year-end close price, annual dividend sum, and corresponding currency-pair close for the given security
+   * and currency pair.
    *
    * @param idSecurity     the securitycurrency ID for dividends
    * @param idCurrencypair the currency-pair ID for currencyClose
-   * @return a list of SecurityYearClose projections with date, securityClose,
-   *         yearDiv, and currencyClose
+   * @return a list of SecurityYearClose projections with date, securityClose, yearDiv, and currencyClose
    */
   @Query(nativeQuery = true)
   List<SecurityYearClose> getSecurityYearDivSumCurrencyClose(Integer idSecurity, Integer idCurrencypair);
 
   /**
-   * Counts all working and non-functioning historical price data connectors,
-   * grouped by connector. Security and currency pair connectors are taken into
-   * account. Only securities after a certain date are taken into account when
+   * Counts all working and non-functioning historical price data connectors, grouped by connector. Security and
+   * currency pair connectors are taken into account. Only securities after a certain date are taken into account when
    * counting non-functioning ones.
    *
-   * @param dateBackAfter    Securities are taken into account for the count of
-   *                         non-functioning ones if their most recent historical
-   *                         price data is younger than this date.
-   * @param retry            Instruments are included in the count of
-   *                         non-functioning instruments if the repetition counter
-   *                         is equal to or greater than this value.
-   * @param percentageFailed The result set contains the connector if this
-   *                         percentage value of non-functioning connectors
-   *                         exceeds this value.
+   * @param dateBackAfter    Securities are taken into account for the count of non-functioning ones if their most
+   *                         recent historical price data is younger than this date.
+   * @param retry            Instruments are included in the count of non-functioning instruments if the repetition
+   *                         counter is equal to or greater than this value.
+   * @param percentageFailed The result set contains the connector if this percentage value of non-functioning
+   *                         connectors exceeds this value.
    * @return a list of MonitorFailedConnector
    */
   @Query(nativeQuery = true)
   List<MonitorFailedConnector> getFailedHistoryConnector(LocalDate dateBackAfter, int retry, int percentageFailed);
 
   /**
-   * Counts all working and non-functioning intraday connectors. Both securities
-   * and currency pairs are taken into account.
+   * Counts all working and non-functioning intraday connectors. Both securities and currency pairs are taken into
+   * account.
    *
-   * @param dateBackOrRetry  In addition to checking the repeat counter overrun,
-   *                         the date of the most recent update can also be
-   *                         checked. The date given here must be older than that
-   *                         of the instrument, otherwise it will be evaluated as
-   *                         non-functioning.
-   * @param retry            Instruments are included in the count of
-   *                         non-functioning instruments if the repetition counter
-   *                         is equal to or greater than this value.
-   * @param percentageFailed The result set contains the connector if this
-   *                         percentage value of non-functioning connectors
-   *                         exceeds this value.
+   * @param dateBackOrRetry  In addition to checking the repeat counter overrun, the date of the most recent update can
+   *                         also be checked. The date given here must be older than that of the instrument, otherwise
+   *                         it will be evaluated as non-functioning.
+   * @param retry            Instruments are included in the count of non-functioning instruments if the repetition
+   *                         counter is equal to or greater than this value.
+   * @param percentageFailed The result set contains the connector if this percentage value of non-functioning
+   *                         connectors exceeds this value.
    */
   @Query(nativeQuery = true)
   List<MonitorFailedConnector> getFailedIntradayConnector(LocalDate dateBackOrRetry, int retry, int percentageFailed);
@@ -529,11 +491,10 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   }
 
   /**
-   * Projection interface for monitoring the performance of historical data
-   * connectors.
+   * Projection interface for monitoring the performance of historical data connectors.
    * <p>
-   * Instances represent aggregated statistics per connector, including total
-   * requests, failures, and computed failure percentage.
+   * Instances represent aggregated statistics per connector, including total requests, failures, and computed failure
+   * percentage.
    */
   public static interface MonitorFailedConnector {
 

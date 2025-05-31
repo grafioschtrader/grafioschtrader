@@ -89,13 +89,14 @@ public class UserResource {
   @Operation(summary = "Change the current password to a new one", description = "", tags = { User.TABNAME })
   @PutMapping(value = "/password", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessfullyChanged> changePassword(
-      @Validated(PropertyChangePassword.class) @RequestBody final ChangePasswordDTO changePasswordDTO) throws Exception {
+      @Validated(PropertyChangePassword.class) @RequestBody final ChangePasswordDTO changePasswordDTO)
+      throws Exception {
     return ResponseEntity.ok().body(userService.changePassword(changePasswordDTO));
   }
 
   @Operation(summary = """
-  The user receives an email with a token to his email address.
-  This token is included as a link in this email and must be confirmed for the further in the GT registration process.""", description = "", tags = {
+      The user receives an email with a token to his email address.
+      This token is included as a link in this email and must be confirmed for the further in the GT registration process.""", description = "", tags = {
       User.TABNAME })
   @GetMapping(value = "/tokenverify/{token}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<String> tokenverify(@PathVariable final String token) {

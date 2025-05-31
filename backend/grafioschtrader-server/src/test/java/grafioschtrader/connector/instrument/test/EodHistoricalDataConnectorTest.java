@@ -30,7 +30,6 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
     assumeTrue(eodHistoricalDataConnector.isActivated());
   }
 
-
   // Security price tests
   // =======================================
   @Test
@@ -83,18 +82,16 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
     updateCurrencyPairLastPrice();
   }
 
-
-
   @Override
   protected List<CurrencyPairHistoricalDate> getHistoricalCurrencies() {
     String oldestDate = "2000-01-03";
     final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
     try {
       currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 7231, oldestDate, "2025-05-09"));
-      currencies.add(
-          new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6687, oldestDate, "2025-05-09"));
-      currencies.add(
-          new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6690, oldestDate, "2025-05-09"));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6687, oldestDate,
+          "2025-05-09"));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6690, oldestDate,
+          "2025-05-09"));
       currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3888, "2014-09-17",
           "2025-05-09"));
     } catch (ParseException pe) {
@@ -102,7 +99,6 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
     }
     return currencies;
   }
-
 
   // Split and dividend tests
   // =======================================

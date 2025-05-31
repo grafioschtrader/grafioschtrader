@@ -40,8 +40,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 
 /**
- * Update or load historical prices thru the connector for securities or
- * currency pair.
+ * Update or load historical prices thru the connector for securities or currency pair.
  *
  *
  * @param <S>
@@ -56,9 +55,9 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   private final IHistoryquoteEntityAccess<S> historyquoteEntityAccess;
   private final Class<S> entityType;
 
-  public HistoryquoteThruConnector(EntityManager entityManager,
-      GlobalparametersService globalparametersService, List<IFeedConnector> feedConnectorbeans,
-      IHistoryquoteEntityAccess<S> historyquoteEntityAccess, Class<S> entityType) {
+  public HistoryquoteThruConnector(EntityManager entityManager, GlobalparametersService globalparametersService,
+      List<IFeedConnector> feedConnectorbeans, IHistoryquoteEntityAccess<S> historyquoteEntityAccess,
+      Class<S> entityType) {
     super(globalparametersService, historyquoteEntityAccess);
     this.entityManager = entityManager;
     this.feedConnectorbeans = feedConnectorbeans;
@@ -117,8 +116,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   public String getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = getConnectorHistoricalForSecuritycurrency(securitycurrency);
     if (feedConnector != null) {
-      return feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_LAZY_HISTORY)?
-        LINK_DOWNLOAD_LAZY: createDownloadLink(securitycurrency, feedConnector);
+      return feedConnector.isDownloadLinkCreatedLazy().contains(DownloadLink.DL_LAZY_HISTORY) ? LINK_DOWNLOAD_LAZY
+          : createDownloadLink(securitycurrency, feedConnector);
     }
     return null;
   }
@@ -144,9 +143,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Try to fill prices with all security or currencies without any history quote
-   * until now. Security or currency pair must have a connector. Data is also
-   * persisted.
+   * Try to fill prices with all security or currencies without any history quote until now. Security or currency pair
+   * must have a connector. Data is also persisted.
    *
    * @param type
    * @return
@@ -196,9 +194,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * For the area of the recent EOD gap previously felt by the system, there could
-   * now be one or more real EODs. Therefore, the data back to the most recent
-   * real EOD is requested again by the connector.
+   * For the area of the recent EOD gap previously felt by the system, there could now be one or more real EODs.
+   * Therefore, the data back to the most recent real EOD is requested again by the connector.
    *
    * @param security
    * @param needGapFiller
@@ -220,8 +217,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Some data provider cause an error, if there is not minimum of days between
-   * the two dates. For this reason, some days are subtract form the older date.
+   * Some data provider cause an error, if there is not minimum of days between the two dates. For this reason, some
+   * days are subtract form the older date.
    *
    * @param fromDate
    * @param toDate
@@ -245,8 +242,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   public HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy,
       SecurityJpaRepository securityJpaRepository, MessageSource messages) {
 
-    Optional<Globalparameters> globalparameters = globalparametersService.getGlobalparametersByProperty(
-        GlobalParamKeyDefault.GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE);
+    Optional<Globalparameters> globalparameters = globalparametersService
+        .getGlobalparametersByProperty(GlobalParamKeyDefault.GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE);
 
     HistoryquoteQualityHead historyquoteQualityHead = new HistoryquoteQualityHead("head",
         globalparameters.isPresent() ? globalparameters.get().getPropertyDate() : null);

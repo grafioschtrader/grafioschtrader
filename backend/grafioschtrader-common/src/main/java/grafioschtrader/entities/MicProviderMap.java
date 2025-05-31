@@ -10,9 +10,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * The exchange has a unique MIC (Market Identifier Code). Some data providers may have
- * other exchange codes, such as Yahoo Finance. These can therefore be mapped
- * here. Is only used internally and cannot yet be edited via a user interface.
+ * The exchange has a unique MIC (Market Identifier Code). Some data providers may have other exchange codes, such as
+ * Yahoo Finance. These can therefore be mapped here. Is only used internally and cannot yet be edited via a user
+ * interface.
  */
 @Entity
 @Table(name = MicProviderMap.TABNAME)
@@ -88,10 +88,7 @@ public class MicProviderMap {
       if (this == obj) {
         return true;
       }
-      if (obj == null) {
-        return false;
-      }
-      if (getClass() != obj.getClass()) {
+      if ((obj == null) || (getClass() != obj.getClass())) {
         return false;
       }
       IdProviderMic other = (IdProviderMic) obj;

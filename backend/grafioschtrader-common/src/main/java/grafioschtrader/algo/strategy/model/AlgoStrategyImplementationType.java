@@ -7,7 +7,7 @@ public enum AlgoStrategyImplementationType {
   AS_REBALANCING((byte) 1),
   // Can be used with other strategies
   // ---------------------------------
-  
+
   AS_ABSOLUTE_PRICE_ALERT((byte) 65),
   // If the portfolio, asset class or security held loses a certain percentage.
   AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT((byte) 66),

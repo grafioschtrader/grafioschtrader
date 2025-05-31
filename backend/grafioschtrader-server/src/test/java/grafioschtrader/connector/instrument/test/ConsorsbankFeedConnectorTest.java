@@ -24,7 +24,7 @@ class ConsorsbankFeedConnectorTest {
         SpecialInvestmentInstruments.DIRECT_INVESTMENT, "SGP20"));
     securities.add(ConnectorTestHelper.createIntraSecurity("SPDR S&P U.S. Energy Select Sector (USD)", "_139582518,SWX",
         SpecialInvestmentInstruments.ETF, "SXLE"));
-     securities.parallelStream().forEach(security -> {
+    securities.parallelStream().forEach(security -> {
       try {
         consorsbankFeedConnector.updateSecurityLastPrice(security);
       } catch (final Exception e) {

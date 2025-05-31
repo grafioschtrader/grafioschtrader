@@ -38,11 +38,9 @@ import grafioschtrader.types.TaskTypeExtended;
 
 /**
  *
- * Checks the split calendar daily and creates a TaskDataChange for the
- * corresponding securities. A direct insertion into the split table is not
- * performed, because the security may have been identified incorrectly. For the
- * identification the security symbol is used and also the name is checked for
- * similarity.
+ * Checks the split calendar daily and creates a TaskDataChange for the corresponding securities. A direct insertion
+ * into the split table is not performed, because the security may have been identified incorrectly. For the
+ * identification the security symbol is used and also the name is checked for similarity.
  *
  */
 @Component
@@ -88,20 +86,19 @@ public class SplitCalendarAppender {
     SimilarityScore<Double> similarityAlgo = new JaroWinklerSimilarity();
     splitCalendarFeedConnectors.sort(Comparator.comparingInt(ISplitCalendarFeedConnector::getPriority));
     stepThruEveryCalendarDay(tradingDaysPlusList, countryCodes, similarityAlgo);
-    Globalparameters globalparameters = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE, now,
-        true);
+    Globalparameters globalparameters = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE,
+        now, true);
     globalparametersJpaRepository.save(globalparameters);
   }
 
   /**
-   * The individual days are processed according to the trading calendar. The
-   * connectors for split calendars are contacted for each day.
+   * The individual days are processed according to the trading calendar. The connectors for split calendars are
+   * contacted for each day.
    *
    * @param tradingDaysPlusList
    * @param countryCodes
-   * @param similarityAlgo      As the company name in the split calendar can be
-   *                            different from the name entered here, an algorithm
-   *                            is used which allows certain deviations.
+   * @param similarityAlgo      As the company name in the split calendar can be different from the name entered here,
+   *                            an algorithm is used which allows certain deviations.
    */
   private void stepThruEveryCalendarDay(List<TradingDaysPlus> tradingDaysPlusList, String[] countryCodes,
       SimilarityScore<Double> similarityAlgo) {

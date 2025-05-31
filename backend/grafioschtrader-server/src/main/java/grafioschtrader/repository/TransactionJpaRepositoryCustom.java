@@ -13,14 +13,14 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
 
   List<Transaction> getSecurityAccountWithFeesAndIntrerestTransactionsByTenant(Integer idTenant);
 
-  CashaccountTransactionPosition[] getTransactionsWithBalanceForCashaccount(final Integer idSecuritycashAccount, int year, int[] transactionTypes);
+  CashaccountTransactionPosition[] getTransactionsWithBalanceForCashaccount(final Integer idSecuritycashAccount,
+      int year, int[] transactionTypes);
 
   void deleteSingleDoubleTransaction(Integer idTransaction);
 
   /**
-   * This may be used when a lot of transaction must be processed, e.g import
-   * transactions.
-    */
+   * This may be used when a lot of transaction must be processed, e.g import transactions.
+   */
   Transaction saveOnlyAttributesFormImport(final Transaction transaction, Transaction existingEntity);
 
   CashAccountTransfer updateCreateCashaccountTransfer(CashAccountTransfer cashAccountTransfer,

@@ -41,8 +41,7 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
 
 /**
- * It is not mapped to transaction, because the right way goes from
- * security account -> Transaction -> Security.
+ * It is not mapped to transaction, because the right way goes from security account -> Transaction -> Security.
  */
 @Entity
 @Table(name = Securitycurrency.TABNAME)
@@ -92,7 +91,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   protected Short retryIntraLoad = 0;
 
   @Schema(title = """
-      The URL with access to the historical data differs for each security. 
+      The URL with access to the historical data differs for each security.
       Therefore, depending on the data source, additional information must be provided for the creation of the URL.""")
   @Column(name = "url_history_extend")
   @Size(min = 1, max = 254)
@@ -122,8 +121,8 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   protected Double sPrevClose;
 
   @Schema(title = """
-      The percentage daily change in shares is usually calculated on the basis 
-      of the last closing price of the previous trading day. However, it can also 
+      The percentage daily change in shares is usually calculated on the basis
+      of the last closing price of the previous trading day. However, it can also
       be based on the after-hours price or the opening price.""")
   @Column(name = "s_change_percentage")
   protected Double sChangePercentage;
@@ -158,9 +157,9 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   protected List<Historyquote> historyquoteList;
 
   public abstract String getName();
+
   @JsonIgnore
   public abstract boolean expectVolume();
-
 
   public Securitycurrency() {
   }
@@ -313,8 +312,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   /*
    * public Integer getCreateUserId() { return createUserId; }
    *
-   * public void setCreateUserId(Integer createUserId) { this.createUserId =
-   * createUserId; }
+   * public void setCreateUserId(Integer createUserId) { this.createUserId = createUserId; }
    */
   public List<Historyquote> getHistoryquoteList() {
     return historyquoteList;
@@ -353,7 +351,5 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   public boolean isActiveForIntradayUpdate(Date now) {
     return true;
   }
-
-
 
 }

@@ -1,8 +1,7 @@
 package grafiosch.exceptions;
 
 /**
- * Sometime the language of the user is not accesible in a such case it will be
- * translated later.
+ * Sometime the language of the user is not accesible in a such case it will be translated later.
  *
  */
 public class GeneralNotTranslatedWithArgumentsException extends RuntimeException {

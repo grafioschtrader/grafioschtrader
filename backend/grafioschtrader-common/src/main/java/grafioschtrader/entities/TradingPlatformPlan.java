@@ -25,8 +25,8 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Schema(description = """
-It contains the information for the trading platform. It is the link between the template group and the depot. 
-This makes it possible to import transactions from external files.""")
+    It contains the information for the trading platform. It is the link between the template group and the depot.
+    This makes it possible to import transactions from external files.""")
 @Entity
 @Table(name = TradingPlatformPlan.TABNAME)
 public class TradingPlatformPlan extends Auditable implements Serializable {

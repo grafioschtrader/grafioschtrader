@@ -14,7 +14,6 @@ public class CrossRateResponse {
   @Schema(description = "List of currency pairs and their most recent closing prices.")
   public List<CurrenciesAndClosePrice> currenciesAndClosePrice = new ArrayList<>();
 
- 
   public CrossRateResponse(String mainCurrency) {
     this.mainCurrency = mainCurrency;
   }

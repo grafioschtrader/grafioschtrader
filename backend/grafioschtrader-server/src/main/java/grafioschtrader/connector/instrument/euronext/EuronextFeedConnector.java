@@ -46,12 +46,10 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import jakarta.xml.bind.DatatypeConverter;
 
 /**
- * The Euronext connector can obtain data from several different stock exchanges
- * in Europe.
+ * The Euronext connector can obtain data from several different stock exchanges in Europe.
  *
- * A regex check of the URL extension is not necessary as it is not edited by
- * the user. The connector for checking the instrument would obviously always
- * return an HTTP OK. Both checks are omitted.
+ * A regex check of the URL extension is not necessary as it is not edited by the user. The connector for checking the
+ * instrument would obviously always return an HTTP OK. Both checks are omitted.
  */
 @Component
 public class EuronextFeedConnector extends BaseFeedConnector {
@@ -230,7 +228,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     String maxOr1M = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) > 30 ? PERIOD_MAX : PERIOD_1M;
     String url = getSecurityHistoricalDownloadLink(security, maxOr1M);
     String content = FeedConnectorHelper.getByHttpClient(url).body();
-   // content = decrypt(content);
+    // content = decrypt(content);
 
     final DailyClose[] dailyCloseArr = objectMapper.readValue(content, DailyClose[].class);
     for (DailyClose dailyClose : dailyCloseArr) {

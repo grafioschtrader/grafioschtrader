@@ -50,7 +50,7 @@ import jakarta.validation.constraints.Size;
 public class ImportTransactionPos extends TenantBaseID implements Comparable<ImportTransactionPos> {
 
   private final static Logger log = LoggerFactory.getLogger(ImportTransactionPos.class);
-  
+
   public static final String TABNAME = "imp_trans_pos";
 
   private static final String CSV_FILE = "C";
@@ -184,9 +184,9 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   private Integer idTransaction;
 
   @Schema(description = """
-     The import position is maybe reflectin an existing transaction. It is the id of this transaction.
-     If 0, then a possible transaction has been detected. However, it has been skipped by the user and the
-     position can therefore become a transaction.""")
+      The import position is maybe reflectin an existing transaction. It is the id of this transaction.
+      If 0, then a possible transaction has been detected. However, it has been skipped by the user and the
+      position can therefore become a transaction.""")
   @Column(name = "id_transaction_maybe")
   private Integer idTransactionMaybe;
 
@@ -201,7 +201,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   private Integer idFilePart;
 
   @Schema(description = """
-      File name of the file that was loaded via the file dialog or drag and drop. 
+      File name of the file that was loaded via the file dialog or drag and drop.
       The file name can also contain the entire path.""")
   @Column(name = "file_name_original")
   private String fileNameOriginal;
@@ -597,13 +597,11 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   }
 
   /**
-   * Calculates the cost amount after applying the exchange rate, if the required
-   * conditions are met.
+   * Calculates the cost amount after applying the exchange rate, if the required conditions are met.
    *
    * @param cost The original cost amount (can be null).
-   * @return The cost after applying the exchange rate, or the original cost, if
-   *         the exchange rate cannot be applied, or 0 if the original cost amount
-   *         is null.
+   * @return The cost after applying the exchange rate, or the original cost, if the exchange rate cannot be applied, or
+   *         0 if the original cost amount is null.
    */
   private double calculateCostAfterExchange(Double cost) {
     if (cost == null) {
@@ -617,16 +615,14 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   }
 
   /**
-   * Returns the tax cost after applying the exchange rate. Uses the common logic
-   * in calculateCostAfterExchange.
+   * Returns the tax cost after applying the exchange rate. Uses the common logic in calculateCostAfterExchange.
    */
   private double getTaxCostEx() {
     return calculateCostAfterExchange(this.taxCost);
   }
 
   /**
-   * Returns the transaction cost after applying the exchange rate. Uses the
-   * common logic in calculateCostAfterExchange.
+   * Returns the transaction cost after applying the exchange rate. Uses the common logic in calculateCostAfterExchange.
    */
   private double getTransactionCostEx() {
     return calculateCostAfterExchange(this.transactionCost);
@@ -672,8 +668,8 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         createFromImportPropertiesForEveryKindOfTransaction(importTransactionPos, ip);
         importTransactionPos.setTaxCost(ip.getTt1(), ip.getTt2(), false);
         importTransactionPos.setExDate(ip.getExdiv());
-        if(checkCurrencyCodes(ip.getCin(), importTransactionPos, ip)) {
-          importTransactionPos.setCurrencySecurity(ip.getCin());  
+        if (checkCurrencyCodes(ip.getCin(), importTransactionPos, ip)) {
+          importTransactionPos.setCurrencySecurity(ip.getCin());
         }
         importTransactionPos.setIsin(ip.getIsin());
         importTransactionPos.setSymbolImp(ip.getSymbol());
@@ -706,26 +702,26 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     return importTransactionPos;
   }
 
-  private static boolean checkCurrencyCodes(String currencyCode, ImportTransactionPos importTransactionPos, ImportProperties ip) {
-    if(currencyCode != null) {
+  private static boolean checkCurrencyCodes(String currencyCode, ImportTransactionPos importTransactionPos,
+      ImportProperties ip) {
+    if (currencyCode != null) {
       ValidCurrencyCodeValidator validator = new ValidCurrencyCodeValidator();
-      if(validator.isValid(currencyCode, null)) {
-        return true; 
+      if (validator.isValid(currencyCode, null)) {
+        return true;
       } else {
-        log.warn("Wrong currency code '{}' in file {} and part {}", currencyCode, importTransactionPos.getFileNameOriginal(),
-            ip.getFileOrLineNumber());
+        log.warn("Wrong currency code '{}' in file {} and part {}", currencyCode,
+            importTransactionPos.getFileNameOriginal(), ip.getFileOrLineNumber());
         return false;
       }
     }
     return true;
   }
-  
-  
+
   private static ImportTransactionPos createFromImportPropertiesForEveryKindOfTransaction(
       ImportTransactionPos importTransactionPos, ImportProperties ip) {
     importTransactionPos.setTransactionType(ip.getTransactionType().getValue());
     importTransactionPos.setTransactionTime(ip.getDatetime());
-    if(checkCurrencyCodes(ip.getCac(), importTransactionPos, ip)) {
+    if (checkCurrencyCodes(ip.getCac(), importTransactionPos, ip)) {
       importTransactionPos.setCurrencyAccount(ip.getCac());
     }
     importTransactionPos.setCashaccountAmount(ip.getTa());

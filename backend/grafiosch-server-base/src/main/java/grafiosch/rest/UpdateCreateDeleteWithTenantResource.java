@@ -15,8 +15,7 @@ import grafiosch.types.OperationType;
 import io.swagger.v3.oas.annotations.Operation;
 
 /**
- * Delete entity which is connected to a tenant. It is checked if the user has
- * the right to delete the entity.
+ * Delete entity which is connected to a tenant. It is checked if the user has the right to delete the entity.
  *
  * @param <T>
  */

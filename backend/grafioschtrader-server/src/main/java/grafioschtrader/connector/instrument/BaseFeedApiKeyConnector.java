@@ -27,9 +27,8 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
 
   /**
    * <p>
-   * Before the URL is checked. It should be checked whether the data provider's
-   * subscription covers the corresponding service at all. In the event of an
-   * error, an error should be thrown.
+   * Before the URL is checked. It should be checked whether the data provider's subscription covers the corresponding
+   * service at all. In the event of an error, an error should be thrown.
    * </p>
    * {@inheritDoc}
    */
@@ -44,16 +43,15 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
       FeedSupport feedSupport) {
   }
 
-  
   protected String standardApiKeyReplacementForErrors(String url, String tokenParamName) {
-    return url.replaceFirst("(.*" + tokenParamName + "=)([^&\\n]*)(\\n|\\t|.*)*", "$1" + ERROR_API_KEY_REPLACEMENT + "$3");
+    return url.replaceFirst("(.*" + tokenParamName + "=)([^&\\n]*)(\\n|\\t|.*)*",
+        "$1" + ERROR_API_KEY_REPLACEMENT + "$3");
   }
-  
+
   @Override
   public String hideApiKeyForError(String url) {
     return url.replaceFirst("(^.*)(\\?.*$)", "$1");
   }
-
 
   @Override
   public boolean isActivated() {

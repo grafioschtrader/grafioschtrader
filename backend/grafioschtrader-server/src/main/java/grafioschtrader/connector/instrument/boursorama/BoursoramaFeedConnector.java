@@ -33,15 +33,14 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /**
- * A regex check of the URL extension is not active. The connector for checking
- * the instrument always returns an HTTP OK. In such a case, the body of the
- * response is "[]", so there is a special implementation here.
+ * A regex check of the URL extension is not active. The connector for checking the instrument always returns an HTTP
+ * OK. In such a case, the body of the response is "[]", so there is a special implementation here.
  */
 @Component
 public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   private static String BOURSORAMA_ID = "boursorama";
-  
+
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static List<BoursoramaPeriodEOD> boursoramaPeriods;
   private static String BASE_URL = "https://www.boursorama.com/bourse/action/graph/ws/";

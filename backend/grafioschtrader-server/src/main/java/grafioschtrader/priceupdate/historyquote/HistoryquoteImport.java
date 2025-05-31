@@ -40,9 +40,8 @@ import grafioschtrader.types.HistoryquoteCreateType;
 import jakarta.validation.Validator;
 
 /**
- * Import delimited EOD into history quote. First row must contain the delimited
- * column names. This column names correspondent to property names of history
- * quote.
+ * Import delimited EOD into history quote. First row must contain the delimited column names. This column names
+ * correspondent to property names of history quote.
  *
  */
 public class HistoryquoteImport {

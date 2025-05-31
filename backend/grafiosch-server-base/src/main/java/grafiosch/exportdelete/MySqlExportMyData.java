@@ -16,7 +16,7 @@ import grafiosch.entities.User;
 /**
  * Handles the export of a user's data into SQL INSERT statements. The user whose data is being exported will also be
  * granted roles with extensive permissions (ROLE_ADMIN, ROLE_ALLEDIT, ROLE_USER) in the exported statements.
- * 
+ *
  * This procedure allows you to say goodbye to a shared GT instance and start a new personal instance of GT. Please note
  * that the exported data may only be used on an initial GT database.
  */
@@ -119,6 +119,9 @@ public class MySqlExportMyData {
             value = ((String) value).replace("'", "\\'").replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r");
             sqlStatement.append("'").append(value).append("'");
             break;
+          case Types.BLOB:
+          case Types.BINARY:
+          case Types.VARBINARY:
           case Types.LONGVARBINARY:
             byte[] bytes = (byte[]) value;
             sqlStatement.append("0x").append(Hex.encodeHexString(bytes));

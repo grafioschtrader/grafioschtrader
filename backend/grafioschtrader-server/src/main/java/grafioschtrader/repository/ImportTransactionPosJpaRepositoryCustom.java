@@ -31,8 +31,8 @@ public interface ImportTransactionPosJpaRepositoryCustom {
   List<ImportTransactionPos> createAndSaveTransactionsByIds(List<Integer> idTransactionPosList);
 
   /**
-   * Creates and saves transactions from the "ImportTransactionPos" data, while
-   * still making possible corrections automatically.
+   * Creates and saves transactions from the "ImportTransactionPos" data, while still making possible corrections
+   * automatically.
    */
   List<SavedImpPosAndTransaction> createAndSaveTransactionsFromImpPos(
       List<ImportTransactionPos> importTransactionPosList, Map<Integer, ImportTransactionPos> idItpMap);

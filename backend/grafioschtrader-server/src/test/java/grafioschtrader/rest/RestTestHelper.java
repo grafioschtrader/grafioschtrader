@@ -43,7 +43,8 @@ public class RestTestHelper {
   public static final String[] ALL_USERS = new String[] { ADMIN, ALLEDIT, USER, LIMIT1, LIMIT2 };
   public static final String[] LIMIT_USERS = new String[] { LIMIT1, LIMIT2 };
 
-  public static UserRegister[] users = { new UserRegister("hg@hugograf.com", "a", ADMIN, "de-CH", -60, GlobalConstants.MC_CHF),
+  public static UserRegister[] users = {
+      new UserRegister("hg@hugograf.com", "a", ADMIN, "de-CH", -60, GlobalConstants.MC_CHF),
       new UserRegister("hugo.graf@grafiosch.com", "a", ALLEDIT, "de-CH", -60, GlobalConstants.MC_CHF),
       new UserRegister("hugo.graf@outlook.com", "a", USER, "de-CH", -60, GlobalConstants.MC_USD),
       new UserRegister("grafiosch@outlook.com", "a", LIMIT1, "de-CH", -60, GlobalConstants.MC_EUR),
@@ -64,9 +65,8 @@ public class RestTestHelper {
   }
 
   /**
-   * Compare the value of field of two objects of the same class. It is not a deep
-   * comparison and only fields of the main object where there value is not null
-   * are compared.
+   * Compare the value of field of two objects of the same class. It is not a deep comparison and only fields of the
+   * main object where there value is not null are compared.
    */
   public static List<ProposeChangeField> getDiffPropertiesOfTwoObjects(Object mainEntity, Object entity)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {

@@ -19,8 +19,8 @@ public interface ImportTransactionPosJpaRepository
 
   //@formatter:off
   /**
-   * Finds potential transaction matches for the specified import position IDs. 
-   * Is used to indicate to the user that the item to be imported may already exist as a transcation. 
+   * Finds potential transaction matches for the specified import position IDs.
+   * Is used to indicate to the user that the item to be imported may already exist as a transcation.
    * <p>
    * For each <code>imp_trans_pos</code> in <code>idTransactionPosList</code> where no transaction
    * has yet been confirmed (<code>ip.id_transaction IS NULL</code>) but a match is flagged

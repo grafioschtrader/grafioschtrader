@@ -10,15 +10,15 @@ import grafiosch.repository.UDFMetadataBase.UiOrderDescriptionCount;
 import grafiosch.rest.UpdateCreateDeleteWithUserIdJpaRepository;
 import grafioschtrader.entities.UDFMetadataSecurity;
 
-public interface UDFMetadataSecurityJpaRepository
-    extends JpaRepository<UDFMetadataSecurity, Integer>, UDFMetadataSecurityJpaRepositoryCustom,
-    UpdateCreateDeleteWithUserIdJpaRepository<UDFMetadataSecurity> {
+public interface UDFMetadataSecurityJpaRepository extends JpaRepository<UDFMetadataSecurity, Integer>,
+    UDFMetadataSecurityJpaRepositoryCustom, UpdateCreateDeleteWithUserIdJpaRepository<UDFMetadataSecurity> {
 
   UDFMetadataSecurity getByUdfSpecialTypeAndIdUser(byte udfSpecialType, int idUser);
+
   Set<UDFMetadataSecurity> getByUdfSpecialTypeInAndIdUser(Set<Byte> udfSpecialTypes, int idUser);
-  
+
   List<UDFMetadataSecurity> getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(int[] idUser, byte lessThanUiOrderNum);
-  
+
   int deleteByIdUDFMetadataAndIdUser(int idUDFMetadata, int idUser);
 
   /**

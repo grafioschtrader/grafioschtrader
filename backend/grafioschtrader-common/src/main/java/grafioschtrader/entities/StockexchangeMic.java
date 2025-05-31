@@ -79,6 +79,4 @@ public class StockexchangeMic {
     this.timeZone = timeZone;
   }
 
-
-
 }

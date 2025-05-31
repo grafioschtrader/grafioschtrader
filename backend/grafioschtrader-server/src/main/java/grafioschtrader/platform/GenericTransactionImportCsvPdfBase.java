@@ -95,7 +95,8 @@ public abstract class GenericTransactionImportCsvPdfBase {
     ImportProperties depositIp = importPropertiesList.get(lineNumberIndex);
     ImportProperties withdrawalIp = importPropertiesList.get((lineNumberIndex + 1) % 2);
 
-    Currencypair currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(withdrawalIp.getCac(), depositIp.getCac());
+    Currencypair currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(withdrawalIp.getCac(),
+        depositIp.getCac());
     Double exchangeRate = null;
     if (currencypair != null) {
       if (depositIp.getCac().equals(currencypair.getFromCurrency())) {

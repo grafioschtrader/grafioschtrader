@@ -21,7 +21,7 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 public class GTStartUp {
-  
+
   @PostConstruct
   void started() {
     TimeZone.setDefault(TimeZone.getTimeZone(BaseConstants.TIME_ZONE));

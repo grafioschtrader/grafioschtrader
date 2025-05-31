@@ -11,7 +11,8 @@ public abstract class BaseConstants {
 
   // TODO This should be in GT Artifacts
   public static final String GT_PREFIX = "gt.";
-  
+
+  // This format is indeed a standard, specifically an international one (ISO 8601).
   public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
   public static final String BLOB_PROPERTIES = ".properties";
   /**
@@ -19,9 +20,8 @@ public abstract class BaseConstants {
    */
   public static final String CLIENT_SECURITY_BREACH = "client.security.breach";
   /**
-   * User tries to write tenant data outside the defined limits. For example a
-   * watchlist may have a maximum of instruments, if it is exceeded then this
-   * exception thrown.
+   * User tries to write tenant data outside the defined limits. For example a watchlist may have a maximum of
+   * instruments, if it is exceeded then this exception thrown.
    */
   public static final String LIMIT_SECURITY_BREACH = "limit.security.breach";
   // The limits for the tenants rule violations
@@ -41,8 +41,8 @@ public abstract class BaseConstants {
   public static final int EMAIL_VERIFICATION_EXPIRATION_MINUTES = 180;
 
   /**
-   * Property names of user-defined properties are indicated by this prefix. This
-   * is then extended with the ID of the metadata for this property.
+   * Property names of user-defined properties are indicated by this prefix. This is then extended with the ID of the
+   * metadata for this property.
    */
   public static final String UDF_FIELD_PREFIX = "f";
 
@@ -52,11 +52,11 @@ public abstract class BaseConstants {
   public static final int FIELD_SIZE_MAX_G_WEB_URL = 254;
 
   /**
-   * Defines the maximum values for user-defined input fields. The validation of
-   * these values should also be carried out in the frontend.
+   * Defines the maximum values for user-defined input fields. The validation of these values should also be carried out
+   * in the frontend.
    */
   public static final Map<UDFDataType, UDFPrefixSuffix> uDFPrefixSuffixMap = new HashMap<>();
-  
+
   static {
     BaseConstants.uDFPrefixSuffixMap.put(UDFDataType.UDF_NumericInteger,
         new UDFPrefixSuffix(Integer.MIN_VALUE, Integer.MAX_VALUE, null));
@@ -116,14 +116,12 @@ public abstract class BaseConstants {
   public static final String TIME_ZONE = "UTC";
 
   /**
-   * Number of milliseconds an IP address is blocked from further user login
-   * attempts.
+   * Number of milliseconds an IP address is blocked from further user login attempts.
    */
   public static final int SUSPEND_IP_ADDRESS_TIME = 60 * 60 * 24 * 1000;
 
   /**
-   * With this number of failed attempts for a user login, the user will be
-   * blocked. The IP address is taken.
+   * With this number of failed attempts for a user login, the user will be blocked. The IP address is taken.
    */
   public static final int MAX_LOGIN_ATTEMPT = 5;
 

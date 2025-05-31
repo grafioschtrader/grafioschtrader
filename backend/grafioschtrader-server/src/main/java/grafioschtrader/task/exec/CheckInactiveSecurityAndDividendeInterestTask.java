@@ -31,11 +31,9 @@ import grafioschtrader.types.TaskTypeExtended;
 import jakarta.mail.MessagingException;
 
 /**
- * This involves checking whether dividends or interest for positions held are
- * recorded in the transactions. This background job should be carried out
- * daily. It also checks whether there are open positions for an instrument that
- * is no longer traded. There are two different procedures for determining any
- * missing dividend or interest payments.
+ * This involves checking whether dividends or interest for positions held are recorded in the transactions. This
+ * background job should be carried out daily. It also checks whether there are open positions for an instrument that is
+ * no longer traded. There are two different procedures for determining any missing dividend or interest payments.
  */
 @Component
 public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
@@ -123,8 +121,8 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
       List<String> msgException, Integer idUser, IMessageComType messageComType) {
     try {
       String subject = messageSource.getMessage(msgKey + ".subject", null, locale);
-      Integer idMailSendRecv = sendMailInternalExternalService.sendMailInternAndOrExternal(
-          BaseConstants.SYSTEM_ID_USER, idUser, subject, compoundMsg.toString(), messageComType);
+      Integer idMailSendRecv = sendMailInternalExternalService.sendMailInternAndOrExternal(BaseConstants.SYSTEM_ID_USER,
+          idUser, subject, compoundMsg.toString(), messageComType);
       if (idMailSendRecv != null) {
         mailEntityList.forEach(me -> me.setIdMailSendRecv(idMailSendRecv));
       }

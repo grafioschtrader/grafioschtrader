@@ -105,7 +105,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
 
   /*
    * // NOT USED
-   * 
+   *
    * @GetMapping(value = "/usedCurrencypairs", produces = APPLICATION_JSON_VALUE) public
    * ResponseEntity<List<Currencypair>> getUsedCurrencypairs() { return new
    * ResponseEntity<>(currencypairJpaRepository.getAllUsedCurrencypairs(), HttpStatus.OK); }
@@ -122,11 +122,10 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairJpaRepository.searchByCriteria(securitycurrencySearch), HttpStatus.OK);
   }
 
-  @Operation(summary = "Get required currency pairs for cross rate calculation",
-      description = """
-          Returns all necessary currency pairs and their latest close prices for converting 
-          security currencies via the tenant’s main currency. Supports indirect paths with 
-          up to three currencies.""", tags = { Currencypair.TABNAME })
+  @Operation(summary = "Get required currency pairs for cross rate calculation", description = """
+      Returns all necessary currency pairs and their latest close prices for converting
+      security currencies via the tenant’s main currency. Supports indirect paths with
+      up to three currencies.""", tags = { Currencypair.TABNAME })
   @GetMapping(value = "/crossrate", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CrossRateResponse> getCurrencypairForCrossRate(final CrossRateRequest crossRateRequest) {
     return new ResponseEntity<>(currencypairJpaRepository.getCurrencypairForCrossRate(crossRateRequest), HttpStatus.OK);

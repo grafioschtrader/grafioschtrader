@@ -1,5 +1,5 @@
 package grafiosch.types;
 
-public interface IMessageComType extends  IBaseEnum<Byte> {
+public interface IMessageComType extends IBaseEnum<Byte> {
 
 }

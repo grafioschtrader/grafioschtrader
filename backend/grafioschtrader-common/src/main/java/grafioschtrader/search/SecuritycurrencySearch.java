@@ -45,7 +45,6 @@ public class SecuritycurrencySearch implements Serializable {
   @JsonIgnore
   private Date minToDate;
 
-
   public String getIsin() {
     return isin;
   }
@@ -134,7 +133,6 @@ public class SecuritycurrencySearch implements Serializable {
     this.activeDate = activeDate;
   }
 
-
   public Float getLeverageFactor() {
     return leverageFactor;
   }
@@ -182,7 +180,6 @@ public class SecuritycurrencySearch implements Serializable {
   public void setNoMarketValue(boolean noMarketValue) {
     this.noMarketValue = noMarketValue;
   }
-
 
   public Date getMaxFromDate() {
     return maxFromDate;

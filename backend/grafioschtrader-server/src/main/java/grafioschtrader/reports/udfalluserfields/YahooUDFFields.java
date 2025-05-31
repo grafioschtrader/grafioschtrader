@@ -25,14 +25,11 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
 
   private YahooUDFConnect yahooUDFConnect = new YahooUDFConnect();
   /**
-   * We limit the parallel streams to the following value. Otherwise too many
-   * requests may be sent to Yahoo.
+   * We limit the parallel streams to the following value. Otherwise too many requests may be sent to Yahoo.
    */
   private static final ForkJoinPool forkJoinPool = new ForkJoinPool(5);
 
   private UDFMetadataSecurity udfMDSYahooSymbol;
-
-  
 
   protected void createYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
       IUDFSpecialType uDFSpecialType, MicProviderMapRepository micProviderMapRepository, boolean recreate) {
@@ -45,7 +42,7 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
             s -> matchAssetclassAndSpecialInvestmentInstruments(udfMetaDataSecurity, s.securitycurrency.getAssetClass())
                 && ((java.sql.Date) s.securitycurrency.getActiveToDate()).toLocalDate().isAfter(now))
         .collect(Collectors.toList());
-  
+
     forkJoinPool.submit(() -> filteredList.parallelStream().forEach(s -> {
       createWhenNotExistsYahooFieldValue(securitycurrencyUDFGroup, udfMetaDataSecurity, s.securitycurrency,
           micProviderMapRepository, recreate);
@@ -53,10 +50,9 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
   }
 
   /**
-   * Creates or updates the Yahoo earning link or next earning date if not already
-   * present. This method checks if the Yahoo earning link or next earning date is
-   * already present. If not, it creates the link or retrieves the next earning
-   * date.
+   * Creates or updates the Yahoo earning link or next earning date if not already present. This method checks if the
+   * Yahoo earning link or next earning date is already present. If not, it creates the link or retrieves the next
+   * earning date.
    **/
   private void createWhenNotExistsYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
       UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository,
@@ -75,9 +71,8 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
   }
 
   /**
-   * Creates the Yahoo earning link or retrieves the next earning date for a
-   * security. This method evaluates the Yahoo symbol for the security and creates
-   * the earning link or retrieves the next earning date from Yahoo Finance.
+   * Creates the Yahoo earning link or retrieves the next earning date for a security. This method evaluates the Yahoo
+   * symbol for the security and creates the earning link or retrieves the next earning date from Yahoo Finance.
    */
   private void writeYahooFieldValues(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
       UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository,

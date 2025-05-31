@@ -15,8 +15,7 @@ import grafioschtrader.GrafioschtraderApplication;
 import jakarta.annotation.PostConstruct;
 
 /**
- * With tests use a different application context without a tomcat
- * reconfiguration.
+ * With tests use a different application context without a tomcat reconfiguration.
  *
  */
 @SpringBootApplication()

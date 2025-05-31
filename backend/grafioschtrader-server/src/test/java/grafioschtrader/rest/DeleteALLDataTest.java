@@ -57,7 +57,6 @@ class DeleteALLDataTest {
   @Autowired
   private UserEntityChangeLimitJpaRepository userEntityChangeLimitJpaRepository;
 
-
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
@@ -98,7 +97,7 @@ class DeleteALLDataTest {
           ParameterizedTypeReference.forType(ResolvableType.forClassWithGenerics(List.class, clazz).getType()));
       // Delete every single entity
       for (T baseID : response.getBody()) {
-        String entityUrl = RestTestHelper.createURLWithPort(resourceMap + "/", port) + ((BaseID<Integer>) baseID).getId();
+        String entityUrl = RestTestHelper.createURLWithPort(resourceMap + "/", port) + baseID.getId();
         restTemplate.exchange(entityUrl, HttpMethod.DELETE, RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null),
             BaseID.class);
       }

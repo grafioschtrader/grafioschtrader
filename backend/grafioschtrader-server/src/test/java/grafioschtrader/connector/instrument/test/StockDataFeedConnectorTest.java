@@ -28,7 +28,6 @@ import grafioschtrader.types.SubscriptionType;
 public class StockDataFeedConnectorTest extends BaseFeedConnectorCheck {
 
   private final StockDataFeedConnector stockdataConnector;
-  
 
   @Autowired
   public StockDataFeedConnectorTest(StockDataFeedConnector stockdataConnector) {
@@ -48,7 +47,7 @@ public class StockDataFeedConnectorTest extends BaseFeedConnectorCheck {
 
   @Test
   void getEodSecurityHistoryTest() {
-      getEodSecurityHistory(true);
+    getEodSecurityHistory(true);
 
   }
 
@@ -58,7 +57,7 @@ public class StockDataFeedConnectorTest extends BaseFeedConnectorCheck {
     try {
       hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 86, "2025-01-03", "2025-05-08"));
-      if (stockdataConnector.getSubscriptionType() == SubscriptionType.STOCK_DATA_ORG_STANDARD_OR_PRO) { 
+      if (stockdataConnector.getSubscriptionType() == SubscriptionType.STOCK_DATA_ORG_STANDARD_OR_PRO) {
         hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
             GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5000, "2000-01-03", "2025-05-09"));
       }
@@ -68,39 +67,36 @@ public class StockDataFeedConnectorTest extends BaseFeedConnectorCheck {
     return hisoricalDate;
   }
 
-  
+  // Currency pair price tests
+  // =======================================
 
- //Currency pair price tests
- // =======================================
+  @Test
+  void getEodCurrencyHistoryTest() {
+    getEodCurrencyHistory(true);
+  }
 
- @Test
- void getEodCurrencyHistoryTest() {
-   getEodCurrencyHistory(true);
- }
+  @Test
+  void updateCurrencyPairLastPriceTest() {
+    updateCurrencyPairLastPrice();
+  }
 
- @Test
- void updateCurrencyPairLastPriceTest() {
-   updateCurrencyPairLastPrice();
- }
+  @Override
+  protected List<CurrencyPairHistoricalDate> getHistoricalCurrencies() {
 
-
- @Override
- protected List<CurrencyPairHistoricalDate> getHistoricalCurrencies() {
-
-   final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
-   try {
-     currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3653, "2015-05-10", "2025-05-09"));
-     currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 2609, "2015-05-11", "2025-05-07"));
-   } catch (ParseException pe) {
-     pe.printStackTrace();
-   }
-   return currencies;
- }
+    final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
+    try {
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3653, "2015-05-10",
+          "2025-05-09"));
+      currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 2609, "2015-05-11", "2025-05-07"));
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+    }
+    return currencies;
+  }
 
   @Override
   protected IFeedConnector getIFeedConnector() {
     return stockdataConnector;
   }
-
 
 }

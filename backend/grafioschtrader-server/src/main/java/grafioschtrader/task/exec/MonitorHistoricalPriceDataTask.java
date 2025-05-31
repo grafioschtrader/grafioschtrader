@@ -18,10 +18,9 @@ import grafioschtrader.repository.SecurityJpaRepository.MonitorFailedConnector;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * Checks whether a connector for historical price data may no longer be
- * working. Certain parameters of the check can be adjusted via the global
- * settings. In the event of a possible malfunction of a connector, the main
- * administrator receives a message. This job should be carried out daily.
+ * Checks whether a connector for historical price data may no longer be working. Certain parameters of the check can be
+ * adjusted via the global settings. In the event of a possible malfunction of a connector, the main administrator
+ * receives a message. This job should be carried out daily.
  */
 @Component
 public class MonitorHistoricalPriceDataTask extends MonitorPriceData implements ITask {
@@ -41,9 +40,8 @@ public class MonitorHistoricalPriceDataTask extends MonitorPriceData implements 
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     List<MonitorFailedConnector> monitorFaliedConnectors = securityJpaRepository.getFailedHistoryConnector(
         LocalDate.now().minusDays(globalparametersService.getHistoryObservationDaysBack()),
-        globalparametersService.getMaxHistoryRetry()
-            - globalparametersService.getHistoryObservationRetryMinus(),
-            globalparametersService.getHistoryObservationFallingPercentage());
+        globalparametersService.getMaxHistoryRetry() - globalparametersService.getHistoryObservationRetryMinus(),
+        globalparametersService.getHistoryObservationFallingPercentage());
     if (!monitorFaliedConnectors.isEmpty()) {
       generateMessageAndPublishAlert(AlertGTType.ALERT_CONNECTOR_EOD_MAY_NOT_WORK_ANYMORE, monitorFaliedConnectors,
           FeedSupport.FS_HISTORY);

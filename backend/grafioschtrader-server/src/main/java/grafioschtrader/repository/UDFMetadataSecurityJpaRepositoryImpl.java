@@ -44,7 +44,7 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
     this.uMetaSecurityRepository = uMetaSecurityRepository;
     this.securityJpaRepository = securityJpaRepository;
     this.globalparametersJpaRepository = globalparametersJpaRepository;
-    
+
     UDFData.UDF_GENERAL_ENTITIES.add(Currencypair.class);
     UDFData.UDF_GENERAl_AND_SPECIAL_ENTITIES.add(Security.class);
     UDFData.UDF_GENERAl_AND_SPECIAL_ENTITIES.addAll(UDFData.UDF_GENERAL_ENTITIES);
@@ -72,16 +72,17 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
     Set<UDFMetadataSecurity> udfMSSet = uMetaSecurityRepository.getByUdfSpecialTypeInAndIdUser(
         udfForEveryUserSet.stream().map(u -> u.getUDFSpecialType().getValue()).collect(Collectors.toSet()), 0);
     Date now = new Date();
-    // It is possible that two user-defined fields have the same selection criteria.  
-    // This means that the second query can be avoided and processing can be carried out on the securities that have already been selected.
+    // It is possible that two user-defined fields have the same selection criteria.
+    // This means that the second query can be avoided and processing can be carried out on the securities that have
+    // already been selected.
     Map<Integer, SecuritycurrencyUDFGroup> cacheSecurites = new HashMap<>();
-   
+
     Optional<Globalparameters> globalparamUDFOpt = globalparametersJpaRepository
         .findById(GlobalParamKeyDefault.GLOB_KEY_UDF_GENERAL_RECREATE);
     Globalparameters globalparameter = globalparamUDFOpt
         .orElseGet(() -> new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_UDF_GENERAL_RECREATE));
     boolean recreateUDF = globalparameter.getPropertyInt() != null && globalparameter.getPropertyInt() == 0;
-    
+
     for (IUDFForEveryUser udfEveryUser : udfForEveryUserSet) {
       UDFMetadataSecurity uDFMetadataSecurity = udfMSSet.stream()
           .filter(u -> u.getUdfSpecialType() == udfEveryUser.getUDFSpecialType()).findFirst().get();
@@ -104,20 +105,20 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
       udfEveryUser.addUDFForEveryUser(scUDFGroup, recreateUDF);
     }
     globalparameter.setPropertyInt(0);
-    globalparametersJpaRepository.save(globalparameter);   
+    globalparametersJpaRepository.save(globalparameter);
   }
-  
+
   private int calcHash(long value1, long value2) {
     long combinedValue = (value1 << 32) | (value2 & 0xFFFFFFFFL);
     return (int) (combinedValue ^ (combinedValue >>> 32));
   }
-  
-  
+
   @Override
   public List<FieldDescriptorInputAndShowExtendedSecurity> getFieldDescriptorByIdUserAndEveryUserExcludeDisabled(
       Integer idUser) {
     List<FieldDescriptorInputAndShowExtendedSecurity> fDiscriptor = new ArrayList<>();
-    List<UDFMetadataSecurity> udfMetaDataList = uMetaSecurityRepository.getAllByIdUserInOrderByUiOrderExcludeDisabled(idUser);
+    List<UDFMetadataSecurity> udfMetaDataList = uMetaSecurityRepository
+        .getAllByIdUserInOrderByUiOrderExcludeDisabled(idUser);
     udfMetaDataList.forEach(um -> {
       Double[] minMaxValue = um.getFieldLength();
       fDiscriptor.add(new FieldDescriptorInputAndShowExtendedSecurity(um.getCategoryTypeEnums(),
@@ -139,8 +140,8 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
       Integer idEntity) {
     Security security = securityJpaRepository.getReferenceById(idEntity);
     Assetclass assetclass = security.getAssetClass();
-    List<UDFMetadataSecurity> udfMetadata = uMetaSecurityRepository.getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(
-        new int[] { idUser }, BaseConstants.MAX_USER_UI_ORDER_VALUE);
+    List<UDFMetadataSecurity> udfMetadata = uMetaSecurityRepository
+        .getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(new int[] { idUser }, BaseConstants.MAX_USER_UI_ORDER_VALUE);
     return udfMetadata.stream()
         .filter(u -> u.getSpecialInvestmentInstrumentEnums().contains(assetclass.getSpecialInvestmentInstrument())
             && u.getCategoryTypeEnums().contains(assetclass.getCategoryType()))

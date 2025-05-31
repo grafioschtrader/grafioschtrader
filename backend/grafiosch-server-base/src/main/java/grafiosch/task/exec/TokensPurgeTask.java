@@ -15,9 +15,8 @@ import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
 
 /**
- * A verification token is created during user registration. In a further step,
- * this must be confirmed by the future user by e-mail. If this verification is
- * not successful, the user and the verification token will be deleted.
+ * A verification token is created during user registration. In a further step, this must be confirmed by the future
+ * user by e-mail. If this verification is not successful, the user and the verification token will be deleted.
  */
 @Component
 public class TokensPurgeTask implements ITask {

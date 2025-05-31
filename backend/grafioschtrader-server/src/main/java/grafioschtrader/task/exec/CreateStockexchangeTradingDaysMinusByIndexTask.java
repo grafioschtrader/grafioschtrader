@@ -17,9 +17,8 @@ import grafioschtrader.repository.TradingDaysMinusJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * An index can be used to track the free trading days on a trading venue. This
- * eliminates the need to update the trading days manually. If possible, this
- * task should be carried out on a Sunday to avoid temporary incorrect entries
+ * An index can be used to track the free trading days on a trading venue. This eliminates the need to update the
+ * trading days manually. If possible, this task should be carried out on a Sunday to avoid temporary incorrect entries
  * of public holidays.
  */
 @Component

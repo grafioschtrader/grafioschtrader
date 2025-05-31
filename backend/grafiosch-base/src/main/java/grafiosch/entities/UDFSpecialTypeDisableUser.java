@@ -20,7 +20,7 @@ public class UDFSpecialTypeDisableUser {
 
   @EmbeddedId
   private UDFSpecialTypeDisableUserId id;
-  
+
   public UDFSpecialTypeDisableUser() {
     super();
   }
@@ -75,16 +75,13 @@ public class UDFSpecialTypeDisableUser {
       if (this == obj) {
         return true;
       }
-      if (obj == null) {
-        return false;
-      }
-      if (getClass() != obj.getClass()) {
+      if ((obj == null) || (getClass() != obj.getClass())) {
         return false;
       }
       UDFSpecialTypeDisableUserId other = (UDFSpecialTypeDisableUserId) obj;
       return Objects.equals(idUser, other.idUser) && Objects.equals(udfSpecialType, other.udfSpecialType);
     }
-   
+
   }
 
 }

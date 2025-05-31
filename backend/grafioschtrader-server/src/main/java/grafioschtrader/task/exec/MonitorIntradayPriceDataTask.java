@@ -22,9 +22,8 @@ import grafioschtrader.repository.SecurityJpaRepository.MonitorFailedConnector;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * Checks whether a connector for intraday price data may no longer be working.
- * Certain parameters of the check can be adjusted via the global settings. In
- * the event of a possible malfunction of a connector, the main administrator
+ * Checks whether a connector for intraday price data may no longer be working. Certain parameters of the check can be
+ * adjusted via the global settings. In the event of a possible malfunction of a connector, the main administrator
  * receives a message. This job should be carried out daily.
  */
 @Component
@@ -54,9 +53,8 @@ public class MonitorIntradayPriceDataTask extends MonitorPriceData implements IT
     do {
       monitorFailedConnectors = securityJpaRepository.getFailedIntradayConnector(
           LocalDate.now().minusDays(globalparametersService.getIntradayObservationOrDaysBack()),
-          globalparametersService.getMaxIntraRetry()
-              - globalparametersService.getIntradayObservationRetryMinus(),
-              globalparametersService.getIntradayObservationFallingPercentage());
+          globalparametersService.getMaxIntraRetry() - globalparametersService.getIntradayObservationRetryMinus(),
+          globalparametersService.getIntradayObservationFallingPercentage());
       if (!monitorFailedConnectors.isEmpty()) {
         if (leave != 0) {
           generateMessageAndPublishAlert(AlertGTType.ALERT_CONNECTOR_INTRADAY_MAY_NOT_WORK_ANYMORE,

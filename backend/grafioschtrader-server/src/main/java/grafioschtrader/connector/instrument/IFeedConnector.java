@@ -53,11 +53,9 @@ public interface IFeedConnector {
   }
 
   /**
-   * The user can view the content that is downloaded via the data source.
-   * Normally a URL is returned, which is opened in the browser. However, the
-   * creation of this URL can take a long time, so lazy creation should be
-   * possible. On the other hand, the return of a URL may not be sufficient
-   * because it has to be expanded dynamically.
+   * The user can view the content that is downloaded via the data source. Normally a URL is returned, which is opened
+   * in the browser. However, the creation of this URL can take a long time, so lazy creation should be possible. On the
+   * other hand, the return of a URL may not be sufficient because it has to be expanded dynamically.
    */
   public enum DownloadLink {
     // The download link for historical price data must be requested in an
@@ -92,15 +90,13 @@ public interface IFeedConnector {
   Description getDescription();
 
   /**
-   * Returns true if this connector supports currency data regardless of
-   * historical or last price.
+   * Returns true if this connector supports currency data regardless of historical or last price.
    */
   boolean supportsCurrency();
 
   /**
-   * Returns true if this connector supports security data regardless of
-   * historical or last price.
-    */
+   * Returns true if this connector supports security data regardless of historical or last price.
+   */
   boolean supportsSecurity();
 
   /**
@@ -111,14 +107,12 @@ public interface IFeedConnector {
   boolean hasFeedIndentifier(FeedIdentifier feedIdentifier);
 
   /**
-   * A URL can be checked with a regex pattern. A valid regex pattern is no
-   * guarantee that the data provider will offer the corresponding instrument.
-   * Therefore, the check can be extended with a connection to the data provider
-   * with the corresponding instrument. The return code is checked for HTTP_OK.
-   * HTTP_OK does not guarantee that the data provider will also deliver the
-   * corresponding data. The content of the return body must also be evaluated for
-   * this. This must be specially implemented for each supplier. An unsuccessful
-   * check must throw an error, which appears on the user interface.
+   * A URL can be checked with a regex pattern. A valid regex pattern is no guarantee that the data provider will offer
+   * the corresponding instrument. Therefore, the check can be extended with a connection to the data provider with the
+   * corresponding instrument. The return code is checked for HTTP_OK. HTTP_OK does not guarantee that the data provider
+   * will also deliver the corresponding data. The content of the return body must also be evaluated for this. This must
+   * be specially implemented for each supplier. An unsuccessful check must throw an error, which appears on the user
+   * interface.
    */
   <S extends Securitycurrency<S>> void checkAndClearSecuritycurrencyUrlExtend(Securitycurrency<S> securitycurrency,
       FeedSupport feedSupport);
@@ -129,27 +123,26 @@ public interface IFeedConnector {
   String getSecurityIntradayDownloadLink(Security security);
 
   /**
-   * Return the url as string for access the historical currency price data. It
-   * may also be used in the front end to check the settings.
+   * Return the url as string for access the historical currency price data. It may also be used in the front end to
+   * check the settings.
    */
   String getCurrencypairHistoricalDownloadLink(Currencypair currencypair);
 
   /**
-   * Return the url as string for access the historical security price data. It
-   * may also be used in the frontend to check the settings.
+   * Return the url as string for access the historical security price data. It may also be used in the frontend to
+   * check the settings.
    */
   String getCurrencypairIntradayDownloadLink(Currencypair currencypair);
 
   /**
-   * Returns the Ticker, ISIN or WKN when one of this support the load of the
-   * data.
+   * Returns the Ticker, ISIN or WKN when one of this support the load of the data.
    */
   FeedIdentifier[] getSecuritycurrencyFeedSupport(final FeedSupport feedSupport);
 
   /**
-   * Certain connectors only provide end-of-day prices for certain securities if
-   * trading has also taken place on that day.
-    */
+   * Certain connectors only provide end-of-day prices for certain securities if trading has also taken place on that
+   * day.
+   */
   boolean needHistoricalGapFiller(final Security security);
 
   /**
@@ -184,14 +177,13 @@ public interface IFeedConnector {
   boolean isDividendSplitAdjusted();
 
   /*
-   * Return the url as string for access the historical dividend data. It may also
-   * be used in the front end to check the settings.
+   * Return the url as string for access the historical dividend data. It may also be used in the front end to check the
+   * settings.
    */
   String getDividendHistoricalDownloadLink(Security security);
 
   /**
-   * Get dividends for a security from a specified date until now. The list must
-   * be sorted in ascending order by date.
+   * Get dividends for a security from a specified date until now. The list must be sorted in ascending order by date.
    *
    * @param security
    * @param fromDate
@@ -206,26 +198,23 @@ public interface IFeedConnector {
   String getSplitHistoricalDownloadLink(Security security);
 
   /**
-   * Sometimes it takes a few days for a split to be reflected in the historical
-   * price data. This gives you the number of days to wait before the next attempt
-   * to check the historical quotes should be made. If the split is too far in the
-   * past, no check should take place.
+   * Sometimes it takes a few days for a split to be reflected in the historical price data. This gives you the number
+   * of days to wait before the next attempt to check the historical quotes should be made. If the split is too far in
+   * the past, no check should take place.
    */
   Integer getNextAttemptInDaysForSplitHistorical(Date splitDate);
 
   /**
-   * Returns which data provider the content of the links for the frontend must be
-   * created in the backend. Normally, the frontend receives a URL that can be
-   * opened directly in the browser. This is not possible for data providers with
-   * API keys, so the data content is prepared in the backend. There are other
-   * cases where the data content must be created in the backend.
+   * Returns which data provider the content of the links for the frontend must be created in the backend. Normally, the
+   * frontend receives a URL that can be opened directly in the browser. This is not possible for data providers with
+   * API keys, so the data content is prepared in the backend. There are other cases where the data content must be
+   * created in the backend.
    */
   EnumSet<DownloadLink> isDownloadLinkCreatedLazy();
 
   /**
-   * The user interface receives a link to check the price data provider of a
-   * security. If an API key is required, only the backend can evaluate this link
-   * and return the corresponding content. The content of the provider may also be
+   * The user interface receives a link to check the price data provider of a security. If an API key is required, only
+   * the backend can evaluate this link and return the corresponding content. The content of the provider may also be
    * determined in the backend for other reasons.
    */
   String getContentOfPageRequest(String httpPageUrl);

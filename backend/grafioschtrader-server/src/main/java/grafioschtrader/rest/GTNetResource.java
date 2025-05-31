@@ -35,7 +35,8 @@ public class GTNetResource extends UpdateCreateDeleteAudit<GTNet> {
     return new ResponseEntity<>(gtNetJpaRepository.getAllGTNetsWithMessages(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Client produces a message and wants to send it to other participants", description = "", tags = { RequestGTMappings.GTNET })
+  @Operation(summary = "Client produces a message and wants to send it to other participants", description = "", tags = {
+      RequestGTMappings.GTNET })
   @PostMapping(value = "/submitmsg", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTNetWithMessages> submitMsg(@Valid @RequestBody final MsgRequest msgRequest) {
     return new ResponseEntity<>(gtNetJpaRepository.submitMsg(msgRequest), HttpStatus.OK);

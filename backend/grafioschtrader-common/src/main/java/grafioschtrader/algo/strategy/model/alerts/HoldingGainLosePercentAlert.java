@@ -4,8 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 /**
- * Alert when a certain position in a portfolio gain or lose a certain
- * percentage.
+ * Alert when a certain position in a portfolio gain or lose a certain percentage.
  */
 public class HoldingGainLosePercentAlert {
   @Min(value = 1)

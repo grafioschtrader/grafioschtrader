@@ -69,6 +69,5 @@ public class EcbExchangeRates {
       return Objects.equals(currency, other.currency) && Objects.equals(date, other.date);
     }
 
-
   }
 }

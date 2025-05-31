@@ -41,7 +41,6 @@ public abstract class ExportDeleteHelper {
   private static String PROPOSE_CHANGE_FIELD_SELDEL = String.format(
       "f.* FROM %s f INNER JOIN %s r ON f.id_propose_request = r.id_propose_request WHERE r.created_by = ?",
       ProposeChangeField.TABNAME, ProposeRequest.TABNAME);
-
   private static String UDF_METADATA_GENERAL_SELDEL = String.format(
       " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
       UDFMetadataGeneral.TABNAME, UDFMetadata.TABNAME);
@@ -69,6 +68,9 @@ public abstract class ExportDeleteHelper {
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(UserEntityChangeLimit.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(UserEntityChangeCount.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      // UDF metadata and data
+      new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(UDFMetadataGeneral.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_GENERAL_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(UDFData.TABNAME, TENANT_USER.ID_USER, null,
@@ -128,13 +130,12 @@ public abstract class ExportDeleteHelper {
   }
 
   /**
-   * Counts the number of '?' placeholders in an SQL query string
-   * and creates an array of parameters (User ID or Tenant ID) to substitute them.
-   * This is typically used for prepared statements.
+   * Counts the number of '?' placeholders in an SQL query string and creates an array of parameters (User ID or Tenant
+   * ID) to substitute them. This is typically used for prepared statements.
    *
    * @param exportDefinition The {@link ExportDefinition} related to the query.
-   * @param query The SQL query string containing '?' placeholders.
-   * @param user The user context, used to get the appropriate ID (User or Tenant).
+   * @param query            The SQL query string containing '?' placeholders.
+   * @param user             The user context, used to get the appropriate ID (User or Tenant).
    * @return An array of Objects (Integers) containing the IDs to be used as parameters for the query.
    */
   static Object[] getParamArrayOfStatementForIdTenantOrIdUser(ExportDefinition exportDefinition, String query,

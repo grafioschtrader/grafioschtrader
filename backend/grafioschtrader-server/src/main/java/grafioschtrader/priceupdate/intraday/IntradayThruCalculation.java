@@ -20,9 +20,8 @@ import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Intraday update for calculated prices.</br>
- * Prices depend on other prices of securities or currency pairs, those are not
- * updated with this class. Because of that this calculation of prices should be
- * called after intraday update of securities and currencies.
+ * Prices depend on other prices of securities or currency pairs, those are not updated with this class. Because of that
+ * this calculation of prices should be called after intraday update of securities and currencies.
  *
  * @param <S>
  */

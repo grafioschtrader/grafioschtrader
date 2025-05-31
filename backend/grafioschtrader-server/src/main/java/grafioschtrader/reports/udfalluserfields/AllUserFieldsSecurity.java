@@ -21,7 +21,7 @@ public abstract class AllUserFieldsSecurity {
 
   @Autowired
   protected UDFDataJpaRepository uDFDataJpaRepository;
-  
+
   @Autowired
   private UDFMetadataSecurityJpaRepository uDFMetadataSecurityJpaRepository;
   private static final Logger log = LoggerFactory.getLogger(AllUserFieldsSecurity.class);

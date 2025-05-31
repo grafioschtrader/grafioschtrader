@@ -8,9 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 /**
- * It tracks the holdings of securities, which depends accumulation and
- * reduction transactions. This entity delivers information over the holding
- * periods for securities.<br>
+ * It tracks the holdings of securities, which depends accumulation and reduction transactions. This entity delivers
+ * information over the holding periods for securities.<br>
  *
  * This table is not offered via a rest API.
  */
@@ -34,15 +33,14 @@ public class HoldSecurityaccountSecurity extends HoldBase {
   private double splitPriceFactor;
 
   /**
-   * Margin positions can be leveraged. If not equal to 'NULL', this value must be
-   * used for the number of units
+   * Margin positions can be leveraged. If not equal to 'NULL', this value must be used for the number of units
    */
   @Column(name = "margin_real_holdings")
   private Double marginRealHoldings;
 
   /**
-   * If several margin positions are opened, the average price of the open positions must be calculated.
-   * This makes it possible to calculate the return.
+   * If several margin positions are opened, the average price of the open positions must be calculated. This makes it
+   * possible to calculate the return.
    */
   @Column(name = "margin_average_price")
   private Double marginAveragePrice;

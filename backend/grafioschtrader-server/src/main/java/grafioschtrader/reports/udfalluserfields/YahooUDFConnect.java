@@ -51,22 +51,20 @@ public class YahooUDFConnect {
   private Bucket bucket;
 
   /**
-   * We believe that the Yahoo Finance ticker symbol on the Nasdaq and NYSE
-   * corresponds to the general ticker symbol of the security.
+   * We believe that the Yahoo Finance ticker symbol on the Nasdaq and NYSE corresponds to the general ticker symbol of
+   * the security.
    */
   private static final List<String> US_STOCK_EXCHANGE = Collections
       .unmodifiableList(Arrays.asList(GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.STOCK_EX_MIC_NYSE));
 
   /**
-   * The class may be inherited several times, so the symbol search may be
-   * repeated several times for the same security if recreate is set to True. The
-   * symbol is read from the cache within 24 hours.
+   * The class may be inherited several times, so the symbol search may be repeated several times for the same security
+   * if recreate is set to True. The symbol is read from the cache within 24 hours.
    */
   private static final Map<Integer, String> CACHE_SYMBOL = new PassiveExpiringMap<>(TimeUnit.DAYS.toMillis(1));
 
   /**
-   * This is the date format that comes from Yahoo. The time may have to be
-   * adapted to the local user.
+   * This is the date format that comes from Yahoo. The time may have to be adapted to the local user.
    */
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h a z", Locale.ENGLISH);
 
@@ -78,9 +76,8 @@ public class YahooUDFConnect {
   }
 
   /**
-   * Evaluates the Yahoo symbol for the given security. It attempts to determine
-   * the symbol using the different connectors. If none is a Yahoo connector, the
-   * symbol is searched for in the JSON of user 0. If this fails, the
+   * Evaluates the Yahoo symbol for the given security. It attempts to determine the symbol using the different
+   * connectors. If none is a Yahoo connector, the symbol is searched for in the JSON of user 0. If this fails, the
    * time-consuming Yahoo search is used.
    */
   public String evaluateYahooSymbol(UDFDataJpaRepository uDFDataJpaRepository, UDFMetadataSecurity udfMDSYahooSymbol,
@@ -127,16 +124,13 @@ public class YahooUDFConnect {
    * Extracts the next earning date from the specified URL for a given security.
    *
    * <p>
-   * This method connects to the provided URL using Jsoup, parses the HTML content
-   * to find the earning dates table, and extracts the next earning date. The
-   * method ensures that the extracted date is in the future relative to the
-   * current date and time.
+   * This method connects to the provided URL using Jsoup, parses the HTML content to find the earning dates table, and
+   * extracts the next earning date. The method ensures that the extracted date is in the future relative to the current
+   * date and time.
    *
    * @param url The URL to connect to and extract the earning date from.
-   * @return The next earning date as a {@link LocalDateTime}, or {@code null} if
-   *         no future earning date is found.
-   * @throws IOException If an I/O error occurs while connecting to the URL or
-   *                     parsing the document.
+   * @return The next earning date as a {@link LocalDateTime}, or {@code null} if no future earning date is found.
+   * @throws IOException If an I/O error occurs while connecting to the URL or parsing the document.
    */
   LocalDateTime extractNextEarningDate(String url) throws IOException {
     waitForTokenOrGo();

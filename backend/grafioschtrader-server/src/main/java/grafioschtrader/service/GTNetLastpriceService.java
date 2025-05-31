@@ -36,8 +36,6 @@ public class GTNetLastpriceService {
   @Autowired
   private GTNetLastpriceCurrencypairJpaRepository gtTNetLastpriceCurrencypairJpaRepository;
 
-
-
   public GTNetLastpriceService.SecurityCurrency updateLastpriceIncludeSupplier(List<Security> securyties,
       List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
 
@@ -49,7 +47,6 @@ public class GTNetLastpriceService {
         currencypairJpaRepository.updateLastPriceByList(currencypairs));
   }
 
-
   private List<GTNetLastpriceCurrencypair> readUpdateGetLastpriceValues(List<Currencypair> currencypairs) {
     List<String> fromCurrencies = currencypairs.stream().map(Currencypair::getFromCurrency)
         .collect(Collectors.toList());
@@ -59,11 +56,8 @@ public class GTNetLastpriceService {
         .getLastpricesByListByFromAndToCurrencies(fromCurrencies, toCurrencies);
     MultiKeyMap<String, GTNetLastpriceCurrencypair> lastCurrencyPriceMap = new MultiKeyMap<>();
 
-
     return gtNetLastpriceList;
   }
-
-
 
   public static class SecurityCurrency {
     public List<Security> securities;

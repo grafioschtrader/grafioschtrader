@@ -5,7 +5,7 @@ package grafioschtrader.types;
  */
 public enum TemplateFormatType {
   // The template is intended for PDF import
-  PDF((byte) 0), 
+  PDF((byte) 0),
   // The template is intended for CSV import
   CSV((byte) 1);
 

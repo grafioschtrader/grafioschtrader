@@ -36,8 +36,8 @@ abstract class MonitorPriceData {
         BaseConstants.RETURN_AND_NEW_LINE + "%-30s %6s %6s %3s" + BaseConstants.RETURN_AND_NEW_LINE, "Connector",
         "Total", "Error", "%");
     for (MonitorFailedConnector mfc : monitorFaliedConnectors) {
-      IFeedConnector ifeedConnector = ConnectorHelper.getConnectorByConnectorId(
-          securityJpaRepository.getFeedConnectors(), mfc.getConnector(), feedSupport);
+      IFeedConnector ifeedConnector = ConnectorHelper
+          .getConnectorByConnectorId(securityJpaRepository.getFeedConnectors(), mfc.getConnector(), feedSupport);
       messageArg += String.format("%-30s %6d %6d %3d" + BaseConstants.RETURN_AND_NEW_LINE,
           ifeedConnector.getReadableName(), mfc.getTotal(), mfc.getFailed(), mfc.getPercentageFailed());
     }

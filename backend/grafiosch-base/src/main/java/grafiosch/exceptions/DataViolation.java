@@ -16,7 +16,6 @@ public class DataViolation {
     this.translateFieldName = translateFieldName;
   }
 
-  
   public DataViolation(final String field, final String messageKey, final Object singleData,
       boolean translateFieldName) {
     this(field, messageKey, new Object[] { singleData }, translateFieldName);

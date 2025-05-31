@@ -41,12 +41,11 @@ public interface HoldCashaccountBalanceJpaRepository extends
   List<CashaccountBalanceChangeTransaction> getCashaccountBalanceByTenant(Integer idTenant);
 
   /**
-   * Retrieves daily cash account balance change transactions for the specified cash account
-   * starting from the given date.
+   * Retrieves daily cash account balance change transactions for the specified cash account starting from the given
+   * date.
    * <p>
-   * Computes the same breakdown as {@link #getCashaccountBalanceByTenant(Integer)},
-   * but filters to a single cash account (?1) and transactions on or after ?2.
-   * Results are grouped by date and ordered by date.
+   * Computes the same breakdown as {@link #getCashaccountBalanceByTenant(Integer)}, but filters to a single cash
+   * account (?1) and transactions on or after ?2. Results are grouped by date and ordered by date.
    *
    * @param idCashaccount the ID of the cash account
    * @param fromDate      the start date (inclusive) for transactions
@@ -57,12 +56,11 @@ public interface HoldCashaccountBalanceJpaRepository extends
       LocalDate fromDate);
 
   /**
-   * Retrieves daily cash account balance change transactions for the specified cash account
-   * starting from the given date.
+   * Retrieves daily cash account balance change transactions for the specified cash account starting from the given
+   * date.
    * <p>
-   * Computes the same breakdown as {@link #getCashaccountBalanceByTenant(Integer)},
-   * but filters to a single cash account (?1) and transactions on or after ?2.
-   * Results are grouped by date and ordered by date.
+   * Computes the same breakdown as {@link #getCashaccountBalanceByTenant(Integer)}, but filters to a single cash
+   * account (?1) and transactions on or after ?2. Results are grouped by date and ordered by date.
    *
    * @param idCashaccount the ID of the cash account
    * @param fromDate      the start date (inclusive) for transactions
@@ -127,8 +125,7 @@ public interface HoldCashaccountBalanceJpaRepository extends
     LocalDate getFromDate();
 
     /**
-     * The net amount of withdrawals (negative) and deposits (positive) on this
-     * date.
+     * The net amount of withdrawals (negative) and deposits (positive) on this date.
      *
      * @return the withdrawal/deposit total
      */
@@ -163,8 +160,7 @@ public interface HoldCashaccountBalanceJpaRepository extends
     Double getDividend();
 
     /**
-     * The net total change in the cash account balance for this date, summing all
-     * transaction types.
+     * The net total change in the cash account balance for this date, summing all transaction types.
      *
      * @return the total net change
      */

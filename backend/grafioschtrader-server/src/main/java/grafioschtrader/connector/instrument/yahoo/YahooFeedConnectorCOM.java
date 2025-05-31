@@ -61,7 +61,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private static final String URL_COMMODITIES = "^[A-Za-z]+=F$";
   private static final String DOMAIN_NAME_WITH_8_VERSION_Q2 = "https://query2.finance.yahoo.com/v8/finance/chart/";
 
-  
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
@@ -105,10 +104,11 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         securitycurrency.setSLast(m.regularMarketPrice);
         securitycurrency.setSHigh(m.regularMarketDayHigh);
         securitycurrency.setSLow(m.regularMarketDayLow);
-        if(securitycurrency instanceof Security security ) {
+        if (securitycurrency instanceof Security security) {
           security.setSVolume(m.regularMarketVolume);
-        }  
-        securitycurrency.setSChangePercentage((m.regularMarketPrice - m.chartPreviousClose) / m.chartPreviousClose * 100);
+        }
+        securitycurrency
+            .setSChangePercentage((m.regularMarketPrice - m.chartPreviousClose) / m.chartPreviousClose * 100);
         securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds()));
       }
 
@@ -121,7 +121,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
     return DOMAIN_NAME_WITH_8_VERSION_Q2 + getCurrencyPairSymbol(currencypair);
   }
-
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
@@ -150,7 +149,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   private String getHistoricalDownloadLink(final String symbol) {
     return YahooHelper.YAHOO_FINANCE_QUOTE + symbol + "/history?p=" + symbol;
   }
-  
+
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
       throws Exception {
@@ -337,8 +336,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     return new ArrayList<>();
   }
 
-
-  
   static class Views {
     static class EventsView {
     }

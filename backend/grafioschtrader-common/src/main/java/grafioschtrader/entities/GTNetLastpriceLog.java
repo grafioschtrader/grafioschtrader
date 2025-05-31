@@ -17,9 +17,9 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = GTNetLastpriceLog.TABNAME)
 @Schema(description = """
-  Used to generate an evaluation of the read or written intraday price data.
-  Here it is not recorded which last prices were changed.
-  Each read and write operation regarding this price data is written to this log.""")
+    Used to generate an evaluation of the read or written intraday price data.
+    Here it is not recorded which last prices were changed.
+    Each read and write operation regarding this price data is written to this log.""")
 public class GTNetLastpriceLog {
   public static final String TABNAME = "gt_net_lastprice_log";
 
@@ -37,7 +37,6 @@ public class GTNetLastpriceLog {
   @Column(name = "log_as_supplier ")
   private Integer logAsSupplier;
 
-
   @Schema(description = "Time of the last instraday price update")
   @Column(name = "timestamp")
   @Temporal(TemporalType.TIMESTAMP)
@@ -47,7 +46,6 @@ public class GTNetLastpriceLog {
   @Column(name = "lastprice_payload")
   @NotNull
   private int lastpricePayload;
-
 
   @Schema(description = "How many prices were read as the supplier's prices were newer.")
   @Column(name = "read_count")

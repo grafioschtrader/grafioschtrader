@@ -55,9 +55,8 @@ public class AccountPositionGroupSummary {
             dateTransactionCurrencypairMap.getUntilDate(), accountPositionSummary.securitycurrency.getFromCurrency());
       }
 
-      double currencyExchangeRate = (accountPositionSummary.securitycurrency != null && accountPositionSummary.closePrice != null)
-          ? accountPositionSummary.closePrice
-          : 1.0;
+      double currencyExchangeRate = (accountPositionSummary.securitycurrency != null
+          && accountPositionSummary.closePrice != null) ? accountPositionSummary.closePrice : 1.0;
 
       accountPositionSummary.calcTotals(currencyExchangeRate);
 

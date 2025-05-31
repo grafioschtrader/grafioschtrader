@@ -192,8 +192,8 @@ public class RestErrorHandler {
   }
 
   /**
-   * Sometimes the argument should also be translated. This can be done by
-   * defining it as ":{0}:T" instead of "{0}" in the message.
+   * Sometimes the argument should also be translated. This can be done by defining it as ":{0}:T" instead of "{0}" in
+   * the message.
    */
   private String translateArguments(String messageKey, Object[] args, Locale locale) {
     String msg = messageSource.getMessage(messageKey, args, locale);

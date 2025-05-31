@@ -13,8 +13,7 @@ import grafioschtrader.platformimport.csv.TemplateConfigurationAndStateCsv;
 public class DegiroTransactionImportCSV extends GenericTransactionImportCSV {
 
   /**
-   * Degiro add 0.1 percentage for fx trades which are not included in the given
-   * currency exchange rate
+   * Degiro add 0.1 percentage for fx trades which are not included in the given currency exchange rate
    */
   public static double autoFXTranderCostFactorOnExchangeRate = 1.001;
 

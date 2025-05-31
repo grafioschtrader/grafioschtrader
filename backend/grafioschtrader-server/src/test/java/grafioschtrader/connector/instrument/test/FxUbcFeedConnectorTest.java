@@ -24,23 +24,21 @@ class FxUbcFeedConnectorTest {
 
   @Test
   void getEodCurrencyHistoryTest() throws ParseException {
-    String oldestDate= "2000-01-04";
+    String oldestDate = "2000-01-04";
     String youngFromDate = "2023-09-18";
     String toDate = "2023-09-29";
 
     final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
-    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 10, youngFromDate,
-        toDate));
-    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 10, youngFromDate,
-        toDate));
-    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 5945, oldestDate,
-        "2023-09-29"));
-    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 5946, oldestDate,
-        "2023-09-29"));
-    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 5946, oldestDate,
-        "2023-09-29"));
-    currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 5946, oldestDate,
-        "2023-09-29"));
+    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 10, youngFromDate, toDate));
+    currencies
+        .add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 10, youngFromDate, toDate));
+    currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 5945, oldestDate, "2023-09-29"));
+    currencies.add(
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 5946, oldestDate, "2023-09-29"));
+    currencies.add(
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 5946, oldestDate, "2023-09-29"));
+    currencies.add(
+        new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 5946, oldestDate, "2023-09-29"));
 
     currencies.parallelStream().forEach(cphd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
@@ -56,6 +54,5 @@ class FxUbcFeedConnectorTest {
       ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
     });
   }
-
 
 }

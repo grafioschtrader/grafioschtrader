@@ -13,8 +13,7 @@ import grafioschtrader.repository.ImportTransactionPosJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
- * Base class for import of transactions. For the different platform my exist a
- * specialized version.
+ * Base class for import of transactions. For the different platform my exist a specialized version.
  *
  */
 public class GenericTransactionImport extends BaseTransactionImport implements IPlatformTransactionImport {

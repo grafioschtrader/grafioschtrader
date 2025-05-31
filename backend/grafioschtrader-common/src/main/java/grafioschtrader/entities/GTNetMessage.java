@@ -45,8 +45,8 @@ public class GTNetMessage extends BaseID<Integer> {
   private Integer idGtNetMessage;
 
   @Schema(description = """
-     Connection to GTNet, for the sender it is the ID of the receiver
-     and for the receiver it is the ID of the sender.""")
+      Connection to GTNet, for the sender it is the ID of the receiver
+      and for the receiver it is the ID of the sender.""")
   @Column(name = "id_gt_net")
   private Integer idGtNet;
 
@@ -88,7 +88,6 @@ public class GTNetMessage extends BaseID<Integer> {
   @Column(name = "has_been_read")
   private boolean hasBeenRead;
 
-
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")
   @CollectionTable(name = GT_NET_MESSAGE_PARAM, joinColumns = @JoinColumn(name = "id_gt_net_message"))
@@ -97,8 +96,8 @@ public class GTNetMessage extends BaseID<Integer> {
   public GTNetMessage() {
   }
 
-  public GTNetMessage(Integer idGtNet, Date timestamp, byte sendRecv, Integer replyTo, byte messageCode,
-      String message, Map<String, GTNetMessageParam> gtNetMessageParamMap) {
+  public GTNetMessage(Integer idGtNet, Date timestamp, byte sendRecv, Integer replyTo, byte messageCode, String message,
+      Map<String, GTNetMessageParam> gtNetMessageParamMap) {
     super();
     this.idGtNet = idGtNet;
     this.timestamp = timestamp;
@@ -124,7 +123,6 @@ public class GTNetMessage extends BaseID<Integer> {
   public void setIdGtNet(Integer idGtNet) {
     this.idGtNet = idGtNet;
   }
-
 
   public Date getTimestamp() {
     return timestamp;
@@ -166,7 +164,6 @@ public class GTNetMessage extends BaseID<Integer> {
     this.message = message;
   }
 
-
   public String getErrorMsgCode() {
     return errorMsgCode;
   }
@@ -183,7 +180,6 @@ public class GTNetMessage extends BaseID<Integer> {
     this.gtNetMessageParamMap = gtNetMessageParamMap;
   }
 
-
   public boolean isHasBeenRead() {
     return hasBeenRead;
   }
@@ -198,7 +194,7 @@ public class GTNetMessage extends BaseID<Integer> {
   }
 
   @Embeddable
- // @MappedSuperclass
+  // @MappedSuperclass
   public static class GTNetMessageParam extends BaseParam {
     public GTNetMessageParam() {
     }

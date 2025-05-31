@@ -7,8 +7,7 @@ import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.platform.GenericTransactionImportPDF;
 
 /**
- * Some old PDF of Migros Bank contains in the total similar like this
- * 34.0E([0-9])EE</br>
+ * Some old PDF of Migros Bank contains in the total similar like this 34.0E([0-9])EE</br>
  *
  */
 public class MigrosTransactionImportPDF extends GenericTransactionImportPDF {

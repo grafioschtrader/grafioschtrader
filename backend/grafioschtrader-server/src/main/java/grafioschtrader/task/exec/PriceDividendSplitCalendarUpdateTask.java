@@ -20,8 +20,7 @@ import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * It reads the EOD day from external resources and the dividend, split
- * calendars.
+ * It reads the EOD day from external resources and the dividend, split calendars.
  *
  * Should run on every day but Sunday is not required.
  *

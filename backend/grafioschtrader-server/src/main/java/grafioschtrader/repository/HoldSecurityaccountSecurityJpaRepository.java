@@ -35,8 +35,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
       FROM HoldSecurityaccountSecurity hss WHERE hss.idPortfolio = ?1""")
   LocalDate findByIdPortfolioMinFromHoldDate(Integer idTenant);
 
-  
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves aggregated buy/sell transaction units and security split ratios for each security
    * within the specified security custody account.
@@ -57,9 +56,9 @@ public interface HoldSecurityaccountSecurityJpaRepository
   @Query(nativeQuery = true)
   List<ITransactionSecuritySplit> getBuySellTransWithSecuritySplitByIdSecurityaccount(Integer idSecurityaccount);
 
-  //@formatter:off 
+  //@formatter:off
   /**
-   * Retrieves aggregated buy/sell transaction units and security split factors 
+   * Retrieves aggregated buy/sell transaction units and security split factors
    * for the given security cash account and security.
    * <ul>
    *   <li>For ACCUMULATE (4) and REDUCE (5) transactions: sums units per date,
@@ -77,7 +76,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   List<ITransactionSecuritySplit> getBuySellTransWithSecuritySplitByIdSecurityaccountAndSecurity(
       Integer idSecurityaccount, Integer idSecuritycurrency);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves a combined list of buy/sell transactions and security splits for the given security account and security.
    * - Selects transactions of type ACCUMULATE (4) and REDUCE (5), calculating factorUnits as ±(units * assetInvestmentValue2).
@@ -85,7 +84,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * - Orders all entries by timestamp (transaction_time or split_date).
    *
    * @param idSecurityaccount    the ID of the security cash account
-   * @param idSecuritycurrency  the ID of the security 
+   * @param idSecuritycurrency  the ID of the security
    * @return a list of ITransactionSecuritySplit projections containing transaction or split details
    */
   //@formatter:on
@@ -93,7 +92,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   List<ITransactionSecuritySplit> getBuySellTransWithSecuritySplitByIdSecurityaccountAndSecurityMargin(
       Integer idSecurityaccount, Integer idSecuritycurrency);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves daily aggregated tenant holdings for the specified tenant and date range.
    * - Calculates aggregated values of security positions, margin gains, and market risk when all required quotes are available.
@@ -106,11 +105,11 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * @param dateTo   the end date of the period (inclusive)
    * @return a list of IPeriodHolding projections with daily performance metrics
    */
-  //@formatter:on 
+  //@formatter:on
   @Query(nativeQuery = true)
   List<IPeriodHolding> getPeriodHoldingsByTenant(Integer idTenant, LocalDate dateFrom, LocalDate dateTo);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves daily aggregated portfolio holdings for the specified portfolio and date range.
    * - Calculates security position values, margin gains, and market risk when all required quotes are available.
@@ -127,7 +126,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   @Query(nativeQuery = true)
   List<IPeriodHolding> getPeriodHoldingsByPortfolio(Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves all trading dates and security IDs for which no end-of-day quote exists
    * for securities held by the specified tenant within the given period.
@@ -148,7 +147,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   List<DateSecurityQuoteMissing> getMissingQuotesForSecurityByTenantAndPeriod(Integer idTenant, LocalDate dateFrom,
       LocalDate dateTo);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves all hold records for a security with the given ISIN in the specified security account
    * that are active on the provided transaction date.
@@ -166,7 +165,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   List<HoldSecurityaccountSecurity> getByISINAndSecurityAccountAndDate(String isin, Integer idSecurityaccount,
       Date transactinDate);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves all unique trading dates on which at least one security held by the specified tenant
    * has no end-of-day quote. Trading days which can't used for calculation of tenants portfolio
@@ -185,7 +184,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   @Query(nativeQuery = true)
   Set<Date> getMissingsQuoteDaysByTenant(Integer idTenant);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves all unique trading dates on which at least one security held in the specified portfolio
    * has no end-of-day quote.
@@ -212,7 +211,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * and results are limited to dates on or before today.
    *
    * @param idTenant the ID of the tenant whose held securities are checked
-   * @return a set of dates representing combined holiday adjustments (holdDate) 
+   * @return a set of dates representing combined holiday adjustments (holdDate)
    *         for the tenant’s active holdings
    */
   //@formatter:on
@@ -235,8 +234,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   @Query(nativeQuery = true)
   Set<Date> getCombinedHolidayOfHoldingsByPortfolio(Integer idPortfolio);
 
-  
-  //@formatter:off 
+  //@formatter:off
   /**
    * Retrieves the IDs of all securities currently held by the specified tenant.
    * <p>
@@ -253,7 +251,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   @Query(nativeQuery = true)
   List<Integer> getIdSecurityByIdTenantWithHoldings(Integer idTenant);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Executes the `holdSecuritySplitTransaction` stored procedure to produce a unified, chronological list
    * of buy/sell transactions and split events for the specified security—excluding any margin trades.
@@ -277,7 +275,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   List<IHoldSecuritySplitTransactionBySecurity> getHoldSecuritySplitTransactionBySecurity(
       @Param("idSecurity") Integer idSecurity);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Executes the `holdSecuritySplitMarginTransaction` stored procedure to produce a unified,
    * chronological sequence of margin transactions and split events for a given security.
@@ -301,7 +299,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   List<IHoldSecuritySplitTransactionBySecurity> getHoldSecuritySplitMarginTransactionBySecurity(
       @Param("idSecurity") Integer idSecurity);
 
-  //@formatter:off 
+  //@formatter:off
   /**
    * Projection interface for buy/sell transaction events and security split events
    * associated with a specific security cash account and security.
@@ -313,7 +311,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * </ul>
    * Results are ordered by the event timestamp (tsDate).
    */
-  //@formatter:off 
+  //@formatter:off
   public static interface ITransactionSecuritySplit {
 
       /**

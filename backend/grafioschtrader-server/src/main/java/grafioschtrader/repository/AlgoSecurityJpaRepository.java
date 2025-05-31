@@ -11,7 +11,7 @@ public interface AlgoSecurityJpaRepository extends JpaRepository<AlgoSecurity, I
     AlgoSecurityJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<AlgoSecurity> {
 
   AlgoSecurity findBySecurity_idSecuritycurrencyAndIdTenant(Integer idSecuritycurrency, Integer idTenant);
-  
+
   @Transactional
   @Modifying
   int deleteByIdAlgoAssetclassSecurityAndIdTenant(Integer idAlgoAssetclassSecurity, Integer idTenant);

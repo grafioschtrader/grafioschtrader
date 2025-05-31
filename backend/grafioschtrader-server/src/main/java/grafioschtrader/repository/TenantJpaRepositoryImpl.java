@@ -44,8 +44,6 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
 
- 
-  
   @Override
   @Transactional
   @Modifying
@@ -111,8 +109,6 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
     return (tenant.isExcludeDivTax());
   }
 
- 
-
   @Override
   @Transactional
   public Optional<Tenant> createNotExistingCurrencypairs(Integer idTenant) {
@@ -154,10 +150,5 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
     tenantJpaRepository.save(tenant);
     return tenant;
   }
-
- 
-  
-
-  
 
 }

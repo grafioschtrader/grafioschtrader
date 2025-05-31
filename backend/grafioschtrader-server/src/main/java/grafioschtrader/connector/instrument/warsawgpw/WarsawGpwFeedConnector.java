@@ -31,8 +31,8 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
 /**
- * It seems that all instruments on the Warsaw Stock Exchange have an ISIN. This
- * makes it unnecessary to enter a URL extension.
+ * It seems that all instruments on the Warsaw Stock Exchange have an ISIN. This makes it unnecessary to enter a URL
+ * extension.
  *
  * The existence of an instrument cannot be checked via the connector.
  */
@@ -99,7 +99,7 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  public String getSecurityHistoricalDownloadLink(final Security security)  {
+  public String getSecurityHistoricalDownloadLink(final Security security) {
     Date toDate = new Date();
     final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
@@ -117,8 +117,7 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
     int diffUTCSeconds = security.getStockexchange().getTimeDifferenceFromUTCInSeconds();
     for (SingleDay sd : response[0].data) {
       Historyquote historyquote = new Historyquote();
-      Date quoteDate = DateHelper.setTimeToZeroAndAddDay(new Date((sd.t + diffUTCSeconds) * 1000),
-          0);
+      Date quoteDate = DateHelper.setTimeToZeroAndAddDay(new Date((sd.t + diffUTCSeconds) * 1000), 0);
       historyquote.setDate(quoteDate);
       historyquote.setOpen(sd.o);
       historyquote.setHigh(sd.h);
@@ -134,7 +133,8 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
     var rq = new RequestParam("RANGE", isin, dateFormat.format(from), dateFormat.format(to));
     String url = null;
     try {
-      String encoded = URLEncoder.encode("[" + objectMapper.writeValueAsString(rq) + "]", StandardCharsets.UTF_8.name());
+      String encoded = URLEncoder.encode("[" + objectMapper.writeValueAsString(rq) + "]",
+          StandardCharsets.UTF_8.name());
       url = DOMAIN_NAME_CHART + encoded + "&t=" + System.currentTimeMillis();
     } catch (Exception e) {
       log.error("Could not create JSON for ISIN {}", isin);

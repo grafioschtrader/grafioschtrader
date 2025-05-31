@@ -25,12 +25,13 @@ public class DivvyDiaryDividendCalendar implements IDividendCalendarFeedConnecto
     objectMapper.registerModule(new JavaTimeModule());
     String urlStr = BASE_URL + "?prefDate=exDate&month=" + exDate.getMonthValue() + "&year=" + exDate.getYear()
         + "&day=" + exDate.getDayOfMonth();
-    DivvyDiaryDividendsHeader ddDividends = objectMapper.readValue(new URI(urlStr).toURL(), DivvyDiaryDividendsHeader.class);
-    for(DivvyDiaryDividends ddDividend: ddDividends.dividends) {
-     var cd = new CalendarDividends(ddDividend.name, ddDividend.exDate, ddDividend.payDate, ddDividend.amount);
-     cd.isin = ddDividend.isin;
-     cd.currency = ddDividend.currency;
-     calDividends.add(cd);
+    DivvyDiaryDividendsHeader ddDividends = objectMapper.readValue(new URI(urlStr).toURL(),
+        DivvyDiaryDividendsHeader.class);
+    for (DivvyDiaryDividends ddDividend : ddDividends.dividends) {
+      var cd = new CalendarDividends(ddDividend.name, ddDividend.exDate, ddDividend.payDate, ddDividend.amount);
+      cd.isin = ddDividend.isin;
+      cd.currency = ddDividend.currency;
+      calDividends.add(cd);
     }
     return calDividends;
   }
@@ -45,7 +46,6 @@ public class DivvyDiaryDividendCalendar implements IDividendCalendarFeedConnecto
     return true;
   }
 
-
   private static class DivvyDiaryDividendsHeader {
     public DivvyDiaryDividends[] dividends;
   }
@@ -58,6 +58,5 @@ public class DivvyDiaryDividendCalendar implements IDividendCalendarFeedConnecto
     public double amount;
     public String currency;
   }
-
 
 }

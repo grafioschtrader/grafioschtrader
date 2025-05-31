@@ -13,8 +13,8 @@ import grafiosch.types.ITaskType;
 import grafiosch.types.TaskTypeBase;
 
 /**
- * Moves shared data from one user to another. It is assumed that shared data
- * has a field 'created_by', whereby tables beginning with "user" are excluded.
+ * Moves shared data from one user to another. It is assumed that shared data has a field 'created_by', whereby tables
+ * beginning with "user" are excluded.
  */
 @Component
 public class MoveCreatedByUserToOtherUserTask implements ITask {

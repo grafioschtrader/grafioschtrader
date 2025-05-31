@@ -32,8 +32,8 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
   private static final long serialVersionUID = 1L;
 
   @Schema(description = """
-    Refers to membership of the top level. Can also be zero and then refer to a securities account. 
-    If both are zero, it applies to all securities accounts.""")
+      Refers to membership of the top level. Can also be zero and then refer to a securities account.
+      If both are zero, it applies to all securities accounts.""")
   @Column(name = "id_algo_assetclass_parent")
   private Integer idAlgoAssetclassParent;
 
@@ -94,9 +94,9 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
   public void setAssetclass(Assetclass assetclass) {
     this.assetclass = assetclass;
   }
-  
+
   public AssetclassType getCategoryType() {
-    return categoryType == null? null: AssetclassType.getAssetClassTypeByValue(categoryType);
+    return categoryType == null ? null : AssetclassType.getAssetClassTypeByValue(categoryType);
   }
 
   public void setCategoryType(AssetclassType assetClassType) {
@@ -104,13 +104,13 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
   }
 
   public SpecialInvestmentInstruments getSpecialInvestmentInstrument() {
-    return specialInvestmentInstrument == null? null: SpecialInvestmentInstruments.getSpecialInvestmentInstrumentsByValue(specialInvestmentInstrument);
+    return specialInvestmentInstrument == null ? null
+        : SpecialInvestmentInstruments.getSpecialInvestmentInstrumentsByValue(specialInvestmentInstrument);
   }
 
   public void setSpecialInvestmentInstrument(SpecialInvestmentInstruments specialInvestmentInstrument) {
     this.specialInvestmentInstrument = specialInvestmentInstrument.getValue();
   }
-
 
   public List<AlgoSecurity> getAlgoSecurityList() {
     return algoSecurityList;

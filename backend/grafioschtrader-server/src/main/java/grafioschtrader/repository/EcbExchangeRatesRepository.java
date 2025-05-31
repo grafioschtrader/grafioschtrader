@@ -9,12 +9,12 @@ import org.springframework.data.jpa.repository.Query;
 import grafioschtrader.entities.EcbExchangeRates;
 import grafioschtrader.entities.EcbExchangeRates.DateCurrencyKey;
 
-public interface EcbExchangeRatesRepository extends JpaRepository<EcbExchangeRates, DateCurrencyKey>{
+public interface EcbExchangeRatesRepository extends JpaRepository<EcbExchangeRates, DateCurrencyKey> {
 
-  @Query(value="SELECT MAX(date) FROM ecb_exchange_rates", nativeQuery = true)
+  @Query(value = "SELECT MAX(date) FROM ecb_exchange_rates", nativeQuery = true)
   Date getMaxDate();
 
-  @Query(value="SELECT date, IF(?4, rate, 1 / rate) AS rate FROM ecb_exchange_rates WHERE currency = ?1 AND date BETWEEN ?2 AND ?3", nativeQuery = true)
+  @Query(value = "SELECT date, IF(?4, rate, 1 / rate) AS rate FROM ecb_exchange_rates WHERE currency = ?1 AND date BETWEEN ?2 AND ?3", nativeQuery = true)
   List<CalcRates> getRatesByFromToDate(String currency, Date fromDate, Date toDate, boolean euroBase);
 
   @Query(nativeQuery = true)
@@ -25,6 +25,7 @@ public interface EcbExchangeRatesRepository extends JpaRepository<EcbExchangeRat
 
   public static interface CalcRates {
     Date getDate();
+
     double getRate();
   }
 }

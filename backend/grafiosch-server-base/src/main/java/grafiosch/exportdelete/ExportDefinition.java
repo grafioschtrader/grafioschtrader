@@ -16,10 +16,10 @@ public class ExportDefinition {
   /**
    * Constructs a new ExportDefinition.
    *
-   * @param table The name of the database table.
-   * @param tenantUser Specifies how the table relates to a tenant or user.
+   * @param table        The name of the database table.
+   * @param tenantUser   Specifies how the table relates to a tenant or user.
    * @param sqlStatement A specific SQL statement to use (can be null).
-   * @param usage A bitmask indicating the type of operations.
+   * @param usage        A bitmask indicating the type of operations.
    */
   public ExportDefinition(String table, TENANT_USER tenantUser, String sqlStatement, int usage) {
     this.table = table;
@@ -63,7 +63,7 @@ public class ExportDefinition {
   public boolean isChangeUserId() {
     return (usage & CHANGE_USER_ID) == CHANGE_USER_ID;
   }
-  
+
   public static enum TENANT_USER {
     // Use special SQL statement
     NONE,
@@ -77,5 +77,5 @@ public class ExportDefinition {
     // name
     ID_USER_DIFFERENT
   }
-  
+
 }

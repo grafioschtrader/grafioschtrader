@@ -189,14 +189,12 @@ public abstract class SecurityPositionSummaryReport {
   }
 
   /**
-   * Creates a SecurityPositionSummary for a certain security account. The same
-   * security in different security accounts will be merged to a single result.
+   * Creates a SecurityPositionSummary for a certain security account. The same security in different security accounts
+   * will be merged to a single result.
    *
    * @param securityaccount    Security account which transactions are processed
-   * @param summarySecurityMap Contains the calculations for each individual
-   *                           security.
-   * @param excludeDivTaxcost  If true, tax withholdings are not taken into
-   *                           account.
+   * @param summarySecurityMap Contains the calculations for each individual security.
+   * @param excludeDivTaxcost  If true, tax withholdings are not taken into account.
    * @param dateCurrencyMap    Contains the currency information
    */
   private void createPositionSummaryForSecurityaccount(final Securityaccount securityaccount,

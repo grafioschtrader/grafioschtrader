@@ -9,6 +9,6 @@ import grafioschtrader.entities.AlgoStrategy;
 
 public interface AlgoStrategyJpaRepositoryCustom extends BaseRepositoryCustom<AlgoStrategy> {
   Set<AlgoStrategyImplementationType> getStrategiesForLevel(AlgoLevelType algoLevelType);
-  
+
   Set<AlgoStrategyImplementationType> getUnusedStrategiesForManualAdding(Integer idAlgoAssetclassSecurity);
 }

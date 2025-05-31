@@ -44,8 +44,6 @@ class CryptoCompareFeedConnectorTest extends BaseFeedConnectorCheck {
     return currencies;
   }
 
-
-
   @Override
   protected IFeedConnector getIFeedConnector() {
     return cryptoCompareFeedConnector;

@@ -25,10 +25,10 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Override
-  void calcSingleSecurityTransaction(Transaction transaction,
-      Map<Security, SecurityPositionSummary> summarySecurityMap, Map<Integer, List<Securitysplit>> securitysplitMap,
-      boolean excludeDivTaxcost, DateTransactionCurrencypairMap dateCurrencyMap,
-      NegativeIdNumberCreater negativeIdNumberCreater, Map<String, Integer> currencyPrecisionMap) {
+  void calcSingleSecurityTransaction(Transaction transaction, Map<Security, SecurityPositionSummary> summarySecurityMap,
+      Map<Integer, List<Securitysplit>> securitysplitMap, boolean excludeDivTaxcost,
+      DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater,
+      Map<String, Integer> currencyPrecisionMap) {
 
     SecurityPositionSummary securityPositionSummary = getSecurityPositionSummary(transaction, summarySecurityMap,
         dateCurrencyMap, currencyPrecisionMap);
@@ -79,10 +79,9 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
   }
 
   @Override
-  void calcTransactionAndAddToPosition(Transaction transaction,
-      SecurityTransactionSummary securityTransactionSummary, boolean excludeDivTaxcost,
-      Map<Integer, List<Securitysplit>> securitySplitMap, DateTransactionCurrencypairMap dateCurrencyMap,
-      NegativeIdNumberCreater negativeIdNumberCreater) {
+  void calcTransactionAndAddToPosition(Transaction transaction, SecurityTransactionSummary securityTransactionSummary,
+      boolean excludeDivTaxcost, Map<Integer, List<Securitysplit>> securitySplitMap,
+      DateTransactionCurrencypairMap dateCurrencyMap, NegativeIdNumberCreater negativeIdNumberCreater) {
     calcTransactionPosition(transaction, securityTransactionSummary.securityPositionSummary, excludeDivTaxcost,
         securitySplitMap, false, dateCurrencyMap);
     securityTransactionSummary.createAndAddPositionGainLoss(transaction);
