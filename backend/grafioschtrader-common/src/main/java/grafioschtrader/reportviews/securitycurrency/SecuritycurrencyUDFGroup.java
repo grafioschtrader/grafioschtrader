@@ -6,12 +6,20 @@ import java.util.Map;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = """
+  Extends SecuritycurrencyGroup to include User Defined Fields (UDF) data for each instrument. This class is typically used in watchlist 
+  reports where custom user-specific information needs to be displayed alongside standard instrument data.""")
 public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
 
-  /**
-   * Map idSecurity and JSON values as String
-   */
+  
+  @Schema(description = """
+      A map containing User Defined Fields (UDF) data for the instruments in the group.
+      The key is the ID of the security or currencypair (idSecuritycurrency),
+      and the value is a JSON string representing the UDF key-value pairs for that instrument.
+      Example: {100: "{\\"customNote\\":\\"Watch closely\\", \\"rating\\":5}", 205: "{\\"targetPrice\\":150.00}"}
+      """)
   private Map<Integer, String> udfEntityValues;
 
   public SecuritycurrencyUDFGroup(List<SecuritycurrencyPosition<Security>> securityPositionList) {
@@ -35,19 +43,5 @@ public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
     String getJsonValues();
   }
 
-  /*
-   * public static class UDFEntityValues {
-   * 
-   * private final int idEntity; private String jsonValues;
-   * 
-   * public UDFEntityValues(int idEntity, String jsonValues) { this.idEntity = idEntity; this.jsonValues = jsonValues; }
-   * 
-   * public int getIdEntity() { return idEntity; }
-   * 
-   * public void setJsonValues(String jsonValues) { this.jsonValues = jsonValues; }
-   * 
-   * public String getJsonValues() { return jsonValues; }
-   * 
-   * }
-   */
+  
 }

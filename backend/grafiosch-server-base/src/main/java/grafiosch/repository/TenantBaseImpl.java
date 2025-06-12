@@ -19,6 +19,12 @@ import grafiosch.exportdelete.MySqlExportMyData;
 import grafiosch.rest.helper.RestHelper;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Abstract base implementation for tenant-specific data operations. Provides concrete implementations for data deletion
+ * and export functionality.
+ * 
+ * @param <T> the entity type handled by this repository
+ */
 public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements TenantBaseCustom {
 
   @Autowired
@@ -79,6 +85,15 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
     zipOutputStream.close();
   }
 
+  /**
+   * Adds a new entry to the ZIP output stream from an input stream. Reads data from the input stream and writes it to
+   * the ZIP entry using a buffer.
+   * 
+   * @param zos       the ZIP output stream to write to
+   * @param in        the input stream to read data from
+   * @param entryName the name of the ZIP entry
+   * @throws IOException if an I/O error occurs during reading or writing
+   */
   private void addZipEntry(ZipOutputStream zos, InputStream in, String entryName) throws IOException {
     byte buffer[] = new byte[16384];
     zos.putNextEntry(new ZipEntry(entryName));

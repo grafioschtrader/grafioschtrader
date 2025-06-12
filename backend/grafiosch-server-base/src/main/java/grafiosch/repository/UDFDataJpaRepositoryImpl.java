@@ -19,6 +19,14 @@ import grafiosch.rest.UpdateCreate;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+/**
+ * Implementation of custom repository operations for UDFData entities. This class provides specialized functionality
+ * for creating, updating, and retrieving user-defined field data with proper validation, security checks, and metadata
+ * verification.
+ * 
+ * The implementation ensures that UDF operations are performed only on supported entities and that users have
+ * appropriate access rights to the referenced entities.
+ */
 public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
 
   @PersistenceContext
@@ -35,23 +43,30 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
     final User user = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails());
     UpdateCreate.checkAndSetUserBaseIDWithUser(udfData.getuDFDataKey(), user);
 
-    @SuppressWarnings("unchecked")
-    IUDFRepository<UDFMetadata> udfRepository = (IUDFRepository<UDFMetadata>) udfRepositories.stream()
+    IUDFRepository<? extends UDFMetadata> udfRepository = udfRepositories.stream()
         .filter(c -> c.getSupportedEntities().contains(udfData.getuDFDataKey().getEntity())).findFirst().get();
-    List<UDFMetadata> udfMetadata = udfRepository.getMetadataByUserAndEntityAndIdEntity(user.getIdUser(),
+    List<? extends UDFMetadata> rawMetadata  = udfRepository.getMetadataByUserAndEntityAndIdEntity(user.getIdUser(),
         udfData.getuDFDataKey().getEntity(), udfData.getuDFDataKey().getIdEntity());
 
+    List<UDFMetadata> udfMetadata = new ArrayList<>(rawMetadata);
     checkEntityAndObject(udfData, user);
     udfData.checkDataAgainstMetadata(udfMetadata);
     return uDFDataJpaRepository.save(udfData);
   }
 
   /**
-   * Checks whether this information class supports user-defined fields. It also checks whether additional fields do not
-   * refer to a private object.
-   *
-   * @param udfData
-   * @param user
+   * Validates that the specified entity supports user-defined fields and verifies tenant access rights. This method
+   * performs two critical security checks:</br>
+   * 1. Ensures the entity class is registered as supporting UDF functionality</br>
+   * 2. Verifies the current user's tenant has access to the specific entity instance</br>
+   * 
+   * The method prevents unauthorized access to entities belonging to other tenants and ensures UDF operations are only
+   * performed on entities that have been configured to support them.
+   * 
+   * @param udfData the UDF data containing the entity reference to validate
+   * @param user    the current authenticated user whose tenant access will be verified
+   * @throws SecurityException if the entity class is not supported for UDF operations, or if the user's tenant does not
+   *                           have access to the specified entity instance
    */
   private void checkEntityAndObject(UDFData udfData, User user) {
     Optional<Class<?>> foundClass = UDFData.UDF_GENERAl_AND_SPECIAL_ENTITIES.stream()

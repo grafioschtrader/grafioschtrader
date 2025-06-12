@@ -121,6 +121,15 @@ public class WatchlistReport {
         securitiesIsUsedElsewhereCF.get(), currencypairIsUsedElsewhereCF.get());
   }
 
+  /**
+   * Combines a {@link SecuritycurrencyGroup} with a list of youngest history quotes and usage information.
+   *
+   * @param securitycurrencyGroup The base group of watchlist instruments.
+   * @param historyquotes A list of {@link Historyquote} objects representing the youngest quote for various instruments.
+   * @param securitiesIsUsedElsewhereIds An array of security IDs that are used elsewhere (transactions, other watchlists).
+   * @param currencypairIsUsedElsewhereIds An array of currencypair IDs that are used elsewhere.
+   * @return The enriched {@link SecuritycurrencyGroup}.
+   */
   private SecuritycurrencyGroup combineSecuritycurrencyGroupWithHistoryquote(
       final SecuritycurrencyGroup securitycurrencyGroup, final List<Historyquote> historyquotes,
       final int[] securitiesIsUsedElsewhereIds, final int[] currencypairIsUsedElsewhereIds) {
@@ -150,8 +159,13 @@ public class WatchlistReport {
   }
 
   /**
-   * Return of the split and dividend watchlist, whereby the splits and dividends are not included in the return. The
-   * return only includes whether splits or dividends exist.
+   * Return of the split and dividend watchlist. Retrieves a watchlist and marks securities within it if they have ever
+   * had a dividend or split event. This method does not fetch the actual dividend or split records, only an indication
+   * of their existence. It also marks instruments if they are referenced in transactions or other watchlists.
+   *
+   * @param idWatchlist The ID of the watchlist.
+   * @return A {@link SecuritycurrencyGroup} where securities are marked if they have dividend/split history and usage
+   *         flags.
    */
   public SecuritycurrencyGroup getWatchlistForSplitAndDividend(final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
@@ -176,6 +190,13 @@ public class WatchlistReport {
     return securitycurrencyGroup;
   }
 
+  /**
+   * Retrieves a watchlist and enriches its instruments with User Defined Fields (UDF) data relevant to the currently
+   * authenticated user.
+   *
+   * @param idWatchlist The ID of the watchlist.
+   * @return A {@link SecuritycurrencyUDFGroup} containing the watchlist instruments along with their UDF data.
+   */
   public SecuritycurrencyUDFGroup getWatchlistWithUDFData(final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -212,6 +233,18 @@ public class WatchlistReport {
         watchlistSecurtiesTransactionCF.join());
   }
 
+  /**
+   * Retrieves a watchlist and calculates period-specific performance metrics for its instruments, including daily
+   * change, year-to-date (YTD) change, and change over a specified time frame. This method may trigger an update of the
+   * last prices for the instruments if the cached prices are considered stale.
+   *
+   * @param idWatchlist   The ID of the watchlist.
+   * @param idTenant      The ID of the tenant to whom the watchlist belongs.
+   * @param daysTimeFrame The number of days for the custom time frame performance calculation (e.g., 30 for 30-day
+   *                      performance).
+   * @return A {@link SecuritycurrencyGroup} enriched with performance data for each instrument.
+   * @throws SecurityException if the watchlist does not belong to the specified tenant.
+   */
   @Transactional
   @Modifying
   public SecuritycurrencyGroup getWatchlistwithPeriodPerformance(final Integer idWatchlist, final Integer idTenant,
@@ -263,6 +296,14 @@ public class WatchlistReport {
     return securitycurrencyGroup;
   }
 
+  /**
+   * Creates a basic {@link SecuritycurrencyGroup} for a watchlist without updating prices or adding performance data.
+   *
+   * @param idWatchlist The ID of the watchlist.
+   * @param idTenant    The ID of the tenant.
+   * @return A new {@link SecuritycurrencyGroup}.
+   * @throws SecurityException if the watchlist does not belong to the tenant.
+   */
   private SecuritycurrencyGroup createWatchlistWithoutUpdate(final Integer idWatchlist, final Integer idTenant) {
     final Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
 
@@ -277,6 +318,15 @@ public class WatchlistReport {
         watchlist.getIdWatchlist());
   }
 
+  /**
+   * Updates the last prices for instruments in a watchlist if the last update is older than the configured timeout. For
+   * performance watchlists, it also updates dependent currency pairs not directly in the watchlist.
+   *
+   * @param tenant    The tenant owning the watchlist.
+   * @param watchlist The watchlist to process.
+   * @return A {@link GTNetLastpriceService.SecurityCurrency} object containing the lists of securities and
+   *         currencypairs (some potentially updated, others not, depending on the timestamp).
+   */
   private GTNetLastpriceService.SecurityCurrency updateLastPrice(Tenant tenant, Watchlist watchlist) {
     final List<Security> securities = watchlist.getSecuritycurrencyListByType(Security.class);
     final List<Currencypair> currencypairs = watchlist.getSecuritycurrencyListByType(Currencypair.class);
@@ -300,6 +350,15 @@ public class WatchlistReport {
     }
   }
 
+  /**
+   * For a performance watchlist, identifies and returns currency pairs required for calculations that are not already
+   * present in the watchlist's own list of currency pairs.
+   *
+   * @param tenant                   The tenant.
+   * @param watchlist                The performance watchlist.
+   * @param currencypairsInWatchlist List of currency pairs already in the watchlist.
+   * @return A list of additional {@link Currencypair}s needed for performance calculation, or an empty list.
+   */
   private List<Currencypair> updateDependingCurrencyWhenPerformanceWatchlist(final Tenant tenant, Watchlist watchlist,
       List<Currencypair> currencypairsInWatchlist) {
     if (watchlist.getIdWatchlist().equals(tenant.getIdWatchlistPerformance())) {
@@ -333,6 +392,25 @@ public class WatchlistReport {
         .collect(Collectors.toMap(ISecuritycurrencyIdDateClose::getIdSecuritycurrency, Function.identity()));
   }
 
+  /**
+   * Combines last price data and various historical price points to calculate performance metrics
+   * for instruments in a watchlist.
+   *
+   * @param <S> Type of the instrument.
+   * @param tenant The tenant.
+   * @param securityCurrency Contains lists of securities and currencypairs with their latest prices.
+   * @param historyquoteMaxDateMap Map of instrument ID to its most recent historical quote.
+   * @param historyquoteLastDayPrevYear Map of instrument ID to its historical quote from the end of the previous year.
+   * @param historyquoteTimeFrame Map of instrument ID to its historical quote for the specified time frame start.
+   * @param securitiesIsUsedElsewhereIds Array of security IDs used elsewhere.
+   * @param currencypairIsUsedElsewhereIds Array of currencypair IDs used elsewhere.
+   * @param watchlistSecuritesHasTransactionIds Array of security IDs in the watchlist that have transactions.
+   * @param watchlist The watchlist.
+   * @param daysTimeFrame The number of days for the custom time frame.
+   * @param securitysplitMap Map of security ID to its splits.
+   * @param dateCurrencyMap Map for currency conversion (currently unused for watchlist performance).
+   * @return An enriched {@link SecuritycurrencyGroup} with performance data.
+   */
   private <S extends Securitycurrency<?>> SecuritycurrencyGroup combineLastPriceHistoryquote(final Tenant tenant,
       final GTNetLastpriceService.SecurityCurrency securityCurrency,
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDateMap,
@@ -383,6 +461,17 @@ public class WatchlistReport {
             securitycurrencyPosition.securitycurrency.getIdSecuritycurrency().intValue()) >= 0);
   }
 
+  /**
+   * Calculates and sets daily, YTD, and custom time frame percentage changes for a list of instruments.
+   *
+   * @param <S>                         Type of instrument.
+   * @param securitycurrenyList         The list of instruments to process.
+   * @param historyquoteMaxDateMap      Map of most recent historical quotes.
+   * @param historyquoteLastDayPrevYear Map of end-of-previous-year historical quotes.
+   * @param historyquoteTimeFrame       Map of historical quotes for the start of the custom time frame.
+   * @param daysTimeFrame               Number of days for the custom time frame.
+   * @return A list of {@link SecuritycurrencyPosition} objects with calculated performance data.
+   */
   private <S extends Securitycurrency<S>> List<SecuritycurrencyPosition<S>> setDailyChangeAndTimeFrameChange(
       final List<S> securitycurrenyList, final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDateMap,
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayPrevYear,
@@ -415,6 +504,14 @@ public class WatchlistReport {
     return securitycurrencyPositions;
   }
 
+  /**
+   * Calculates the current value and gain/loss for open security positions based on their latest prices.
+   *
+   * @param securitycurrencyPositions List of security positions from the watchlist.
+   * @param summarySecurityMap Map containing summarized transaction data for securities.
+   * @param securitysplitMap Map of security splits.
+   * @param dateCurrencyMap Map for currency conversion (currently unused).
+   */
   private void calcOpenSecurityPositons(final List<SecuritycurrencyPosition<Security>> securitycurrencyPositions,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final DateTransactionCurrencypairMap dateCurrencyMap) {
@@ -477,13 +574,20 @@ public class WatchlistReport {
     return securityPositionList;
   }
 
+  /**
+   * Sets the daily percentage change for an instrument using its last price and the previous day's close from
+   * historical data.
+   *
+   * @param <S>                      Type of instrument.
+   * @param historyquoteMaxDateMap   Map of instrument ID to its most recent historical quote.
+   * @param securitycurrencyPosition The position to update.
+   */
   private <S extends Securitycurrency<S>> void setDailyChangeByUsingHistoryquote(
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDateMap,
       final SecuritycurrencyPosition<S> securitycurrencyPosition) {
     final ISecuritycurrencyIdDateClose historyquote = historyquoteMaxDateMap
         .get(securitycurrencyPosition.securitycurrency.getIdSecuritycurrency());
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
-
       securitycurrencyPosition.securitycurrency.setSPrevClose(historyquote.getClose());
       securitycurrencyPosition.securitycurrency
           .setSChangePercentage((securitycurrencyPosition.securitycurrency.getSLast() - historyquote.getClose())
@@ -491,6 +595,13 @@ public class WatchlistReport {
     }
   }
 
+  /**
+   * Calculates and sets the Year-to-Date (YTD) percentage change for an instrument.
+   *
+   * @param <S>                      Type of instrument.
+   * @param historyquoteTimeFrame    Map of instrument ID to its historical quote from the end of the previous year.
+   * @param securitycurrencyPosition The position to update.
+   */
   private <S extends Securitycurrency<S>> void setYtdGainLoss(
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame,
       final SecuritycurrencyPosition<S> securitycurrencyPosition) {
@@ -503,6 +614,14 @@ public class WatchlistReport {
     }
   }
 
+  /**
+   * Calculates and sets the percentage change over a custom time frame and its annualized equivalent.
+   *
+   * @param <S>                        Type of instrument.
+   * @param historyquoteTimeFrameStart Map of instrument ID to its historical quote from the start of the time frame.
+   * @param securitycurrencyPosition   The position to update.
+   * @param daysTimeFrame              The number of days in the custom time frame.
+   */
   private <S extends Securitycurrency<S>> void setTimeFrameGainLoss(
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayPrevYear,
       final SecuritycurrencyPosition<S> securitycurrencyPosition, final Integer daysTimeFrame) {

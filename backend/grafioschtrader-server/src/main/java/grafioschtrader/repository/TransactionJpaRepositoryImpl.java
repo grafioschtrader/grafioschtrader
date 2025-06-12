@@ -176,10 +176,11 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * Checks a transaction uses the cash and/or security accounts which belongs to the right tenant.
-   *
-   * @param transaction
-   * @return
+   * Validates that a transaction's cash and security accounts belong to the correct tenant.
+   * 
+   * @param transaction the transaction to validate
+   * @return the security account if one is associated with the transaction, null otherwise
+   * @throws SecurityException if accounts don't belong to the current tenant
    */
   private Securityaccount checkTransactionSecurityAndCashaccountBeforSave(Transaction transaction) {
     Securityaccount securityaccount = null;
@@ -200,6 +201,11 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return securityaccount;
   }
 
+  /**
+   * Validates currency pair for a transaction when security is involved.
+   * 
+   * @param transaction the transaction to validate
+   */
   private void checkCurrencypair(final Transaction transaction) {
     if (transaction.getSecurity() != null) {
       this.checkCurrencypair(transaction, transaction.getSecurity().getCurrency(),
@@ -207,6 +213,15 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
   }
 
+  /**
+   * Validates currency pair configuration and exchange rates for a transaction. Checks if the specified currency pair
+   * matches the source and target currencies, and validates that exchange rates are within acceptable limits.
+   * 
+   * @param transaction    the transaction to validate
+   * @param sourceCurrency the source currency (typically security currency)
+   * @param targetCurrency the target currency (typically cash account currency)
+   * @throws DataViolationException if currency pair is wrong or exchange rate exceeds limits
+   */
   private void checkCurrencypair(final Transaction transaction, final String sourceCurrency,
       final String targetCurrency) {
 
@@ -236,14 +251,16 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * Every create/update on transaction must call this method!
-   *
-   *
-   * @param transaction
-   * @param existingEntity
-   *
-   * @return
-   * @throws DataViolationException
+   * Core transaction processing method that handles all transaction types. Validates amounts, processes business logic,
+   * and saves the transaction with proper adjustments.
+   * 
+   * @param transaction           the transaction to process
+   * @param existingEntity        existing entity if updating, null if creating
+   * @param securityaccount       the security account associated with the transaction
+   * @param adjustHoldings        whether to adjust account holdings after saving
+   * @param isCashAccountTransfer whether this is part of a cash account transfer
+   * @return the processed and saved transaction
+   * @throws DataViolationException if validation fails
    */
   private Transaction processAndSaveTransaction(final Transaction transaction, Transaction existingEntity,
       Securityaccount securityaccount, boolean adjustHoldings, boolean isCashAccountTransfer) {
@@ -287,8 +304,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * If the opening margin transaction changes, the account posting may need to be recalculated. This amount depends on
-   * the opening and closing transaction.
+   * Adjusts margin close position amounts when the opening margin transaction changes. Recalculates cash account
+   * amounts for all connected closing transactions.
+   * 
+   * @param openPositionMarginTransaction the opening margin transaction
+   * @param existingTransactions          list of existing closing transactions to adjust
+   * @param currencyFraction              currency precision for amount calculations
    */
   private void adjustMarginClosePosition(Transaction openPositionMarginTransaction,
       List<Transaction> existingTransactions, Integer currencyFraction) {
@@ -300,6 +321,13 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
   }
 
+  /**
+   * Retrieves the opening margin position transaction for a closing margin transaction.
+   * 
+   * @param transaction the margin transaction (close or finance cost)
+   * @return the opening margin transaction, or null if not applicable
+   * @throws SecurityException if connected transaction doesn't belong to current tenant
+   */
   private Transaction getOpenPositionMarginPosition(Transaction transaction) {
     Transaction openPositionMarginTransaction = null;
     if (transaction.isMarginInstrument() && !transaction.isMarginOpenPosition()) {
@@ -314,6 +342,14 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return openPositionMarginTransaction;
   }
 
+  /**
+   * Validates trading day and units integrity for security transactions. Ensures transaction occurs on a valid trading
+   * day and units are consistent.
+   * 
+   * @param transaction the transaction to validate
+   * @return list of existing transactions for the same security and account
+   * @throws DataViolationException if transaction occurs on non-trading day or units are invalid
+   */
   private List<Transaction> checkTradingDayAndUnitsIntegrity(Transaction transaction) {
     final List<Transaction> transactions = filterMarginTransaction(transaction,
         transactionJpaRepository.findByIdSecurityaccountAndIdSecurity(transaction.getIdSecurityaccount(),
@@ -377,6 +413,13 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return transactionsMargin;
   }
 
+  /**
+   * Adjusts security account holdings for ACCUMULATE and REDUCE transactions.
+   * 
+   * @param transaction     the transaction that affects holdings
+   * @param securityaccount the security account (retrieved if null)
+   * @param isAdded         whether the transaction is being added (true) or removed (false)
+   */
   private void adjustSecurityaccountHoldings(Transaction transaction, Securityaccount securityaccount,
       boolean isAdded) {
     if (transaction.getTransactionType() == TransactionType.ACCUMULATE
@@ -430,6 +473,11 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
   }
 
+  /**
+   * Deletes a security transaction with proper validation and holdings adjustment.
+   * 
+   * @param transaction the security transaction to delete
+   */
   private void deleteSecurityTransaction(final Transaction transaction) {
     final List<Transaction> transactions = filterMarginTransaction(transaction,
         transactionJpaRepository.findByIdSecurityaccountAndIdSecurity(transaction.getIdSecurityaccount(),
@@ -440,6 +488,15 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     adjustSecurityaccountHoldings(transaction, null, false);
   }
 
+  /**
+   * Validates units integrity for security transactions using appropriate checker. Uses margin-specific or general
+   * units checker based on instrument type.
+   * 
+   * @param operationType     the type of operation (ADD, UPDATE, DELETE)
+   * @param transactions      existing transactions for the security
+   * @param targetTransaction the transaction being processed
+   * @param security          the security entity
+   */
   private void checkUnitsIntegrity(final OperationType operationyType, final List<Transaction> transactions,
       final Transaction targetTransaction, final Security security) {
     if (targetTransaction.isMarginInstrument()) {
@@ -455,6 +512,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   // Methods with Transaction which touches cash account
   //////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Removes a transaction and adjusts related data. Clears import references, deletes the transaction, and adjusts cash
+   * account balance in holdings.
+   * 
+   * @param transaction the transaction to remove
+   */
   private void removeTransaction(final Transaction transaction) {
     importTransactionPosJpaRepository.setTrasactionIdToNullWhenExists(transaction.getIdTransaction());
     transactionJpaRepository.delete(transaction);
@@ -486,6 +549,14 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return cwt;
   }
 
+  /**
+   * Adds transaction data to currency pair analysis for charting purposes. Calculates sum amounts and gain/loss based
+   * on transaction history and current rates.
+   * 
+   * @param idTenant     the tenant ID for filtering transactions
+   * @param currencypair the currency pair to analyze
+   * @param cwt          the currency pair transaction object to populate
+   */
   private void addTransactionsForChart(final Integer idTenant, final Currencypair currencypair,
       final CurrencypairWithTransaction cwt) {
     List<Transaction> transactionList = this.transactionJpaRepository.findByCurrencypair(idTenant,

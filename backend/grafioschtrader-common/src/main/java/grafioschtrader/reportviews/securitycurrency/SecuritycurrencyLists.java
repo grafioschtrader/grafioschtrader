@@ -5,12 +5,16 @@ import java.util.List;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Represents a container for lists of securities and currency pairs.")
 public class SecuritycurrencyLists implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "A list of security entities.")
   public List<Security> securityList;
+  @Schema(description = "A list of currency pair entities.")
   public List<Currencypair> currencypairList;
 
   public SecuritycurrencyLists() {

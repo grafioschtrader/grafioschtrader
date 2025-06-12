@@ -24,6 +24,11 @@ import grafioschtrader.entities.HistoryquotePeriod;
 import grafioschtrader.entities.Security;
 import grafioschtrader.types.HistoryquotePeriodCreateType;
 
+/**
+ * Implementation of custom repository methods for {@link HistoryquotePeriod} entities. This class handles logic for
+ * adjusting history quote periods based on security activity and for managing user-driven changes to these periods,
+ * including proposal mechanisms for users without direct edit rights.
+ */
 public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJpaRepositoryCustom {
 
   @Autowired
@@ -95,6 +100,13 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
     return null;
   }
 
+  /**
+   * Creates a system-generated {@link HistoryquotePeriod} for a security, covering its entire active date range
+   * and using its denomination as the price.
+   *
+   * @param security The {@link Security} for which to create the period.
+   * @return A new {@link HistoryquotePeriod} instance.
+   */
   private HistoryquotePeriod getSystemCreatedPeriod(Security security) {
     if (security.getActiveFromDate() instanceof java.sql.Date) {
       return new HistoryquotePeriod(security.getIdSecuritycurrency(),
@@ -107,6 +119,27 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
     }
   }
 
+  /**
+   * Handles the logic for changing history quote periods. If the user has rights, it modifies them directly. Otherwise,
+   * it creates a change proposal.
+   * <p>
+   * When modifying directly:
+   * <ul>
+   * <li>Deletes all existing history quote periods for the security.</li>
+   * <li>If the new list of periods is empty, a single system-generated period is created.</li>
+   * <li>Otherwise, the new periods are processed: `toDate` of each period is adjusted to abut the `fromDate` of the
+   * next, and the overall coverage is aligned with the security's active dates, potentially adding system-generated
+   * periods at the start or adjusting the end date of the final period.</li>
+   * <li>All new/adjusted periods are saved, and the security's last price might be updated based on these periods.</li>
+   * </ul>
+   * </p>
+   *
+   * @param user         The user initiating the change.
+   * @param security     The {@link Security} whose periods are to be changed.
+   * @param hpsNewSorted The new list of user-defined history quote periods, sorted by their from_date.
+   * @param noteRequest  A note from the user explaining the reason for the change, used if a proposal is created.
+   * @return The list of newly saved or proposed {@link HistoryquotePeriod} objects.
+   */
   private List<HistoryquotePeriod> changeHistoryquotePeriods(User user, Security security,
       List<HistoryquotePeriod> hpsNewSorted, String noteRequest) {
     if (UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, security)) {
