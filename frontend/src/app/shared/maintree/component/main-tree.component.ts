@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {TreeNodeType} from '../types/treeNodeType';
+import {TreeNodeType} from '../types/tree.node.type';
 import {AppSettings} from '../../app.settings';
 import {Router} from '@angular/router';
 import {TypeNodeData} from '../types/type.node.data';
@@ -37,6 +37,7 @@ import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {AlgoTop} from '../../../algo/model/algo.top';
 import {GlobalSessionNames} from '../../global.session.names';
 import {FeatureType} from '../../login/component/login.component';
+import {TreeNodeUnSelectEvent} from 'primeng/tree';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
@@ -506,6 +507,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   onNodeSelect(event) {
     this.nodeSelect(event.node);
   }
+
 
   onNodeContextMenuSelect(event) {
     const typeNodeData: TypeNodeData = event.node.data;

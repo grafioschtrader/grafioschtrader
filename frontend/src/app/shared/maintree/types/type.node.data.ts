@@ -1,4 +1,4 @@
-import {TreeNodeType} from './treeNodeType';
+import {TreeNodeType} from './tree.node.type';
 
 export class TypeNodeData {
   constructor(public treeNodeType: TreeNodeType,

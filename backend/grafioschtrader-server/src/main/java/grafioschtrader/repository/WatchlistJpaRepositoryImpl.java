@@ -92,13 +92,11 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   @Override
   public SecuritycurrencyLists searchByCriteria(final Integer idWatchlist,
       final SecuritycurrencySearch securitycurrencySearch) {
-
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Watchlist watchlist = watchlistJpaRepository.findByIdWatchlistAndIdTenant(idWatchlist, user.getIdTenant());
     if (watchlist == null) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
-
     return new SecuritycurrencyLists(
         securityJpaRepository.searchBuilderWithExclusion(idWatchlist, null, securitycurrencySearch, user.getIdTenant()),
         currencypairJpaRepository.searchBuilderWithExclusion(idWatchlist, null, securitycurrencySearch));
@@ -146,6 +144,20 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     return removeInstrumentFromWatchlist(idWatchlist, currencypair);
   }
 
+  /**
+   * Removes a specific instrument (security or currencypair) object directly from the instrument list of the specified
+   * watchlist.
+   * <p>
+   * This method assumes that the provided {@code securitycurrency} object is the actual instance present in the
+   * watchlist's collection, allowing removal by object reference. It also ensures that the watchlist belongs to the
+   * currently authenticated tenant.
+   * </p>
+   *
+   * @param idWatchlist      The ID of the watchlist from which the instrument is to be removed.
+   * @param securitycurrency The {@link Securitycurrency} object instance to remove from the watchlist.
+   * @return The updated {@link Watchlist} entity after saving the changes.
+   * @throws SecurityException if the watchlist with the given ID is not found or does not belong to the current tenant.
+   */
   private Watchlist removeInstrumentFromWatchlist(final Integer idWatchlist,
       final Securitycurrency<?> securitycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -177,6 +189,26 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     return removeSecuritycurrencyFromWatchlistAndDelete(idWatchlist, idSecuritycurrency, currencypairJpaRepository);
   }
 
+  /**
+   * Removes a security or currency pair from the specified watchlist and, if the current user has sufficient
+   * permissions, deletes the instrument and its associated historical quotes from the database.
+   * <p>
+   * The method first removes the instrument from the watchlist. Then, it checks if the user has editing or deletion
+   * rights for the instrument. If so, all its history quotes are deleted, followed by the deletion of the instrument
+   * entity itself.
+   * </p>
+   * <b>Note:</b> The deletion of the instrument and its history quotes is a critical operation and depends on the
+   * user's privileges. 
+   *
+   * @param <T>                               The type of the security or currencypair, extending
+   *                                          {@link Securitycurrency}.
+   * @param idWatchlist                       The ID of the watchlist from which the instrument will be removed.
+   * @param idSecuritycurrency                The ID of the security or currencypair to remove and potentially delete.
+   * @param securityCurrencypairJpaRepository The JPA repository corresponding to the type {@code T}, used to find and
+   *                                          delete the instrument.
+   * @return The updated {@link Watchlist} after the instrument removal. Returns {@code null} if the underlying call to
+   *         {@code removeInstrumentFromWatchlist} returns {@code null} (e.g. if watchlist not found).
+   */
   private <T extends Securitycurrency<T>> Watchlist removeSecuritycurrencyFromWatchlistAndDelete(
       final Integer idWatchlist, final Integer idSecuritycurrency,
       final JpaRepository<T, Integer> securityCurrencypairJpaRepository) {

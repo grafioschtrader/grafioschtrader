@@ -87,6 +87,10 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     }
   }
 
+  /**
+   * Cleans up zombie and running processes at application startup. Changes zombie processes to cleaned state and
+   * running processes to zombie cleaned state.
+   */
   private void cleanUpZombieProcessAtStartUp() {
     taskDataChangeRepository.changeFromToProgressState(ProgressStateType.PROG_ZOMBIE.getValue(),
         ProgressStateType.PROG_ZOMBIE_CLEANED.getValue());
@@ -94,6 +98,13 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
         ProgressStateType.PROG_ZOMBIE_CLEANED.getValue());
   }
 
+  /**
+   * Executes a task with timeout handling. Creates a worker thread to run the task and monitors for timeout conditions.
+   * If timeout occurs, attempts to interrupt the thread and handles zombie processes.
+   * 
+   * @param taskDataChange the task to execute
+   * @throws InterruptedException if the thread is interrupted
+   */
   private void timeoutProcessRunningThread(final TaskDataChange taskDataChange) throws InterruptedException {
     final LocalDateTime startTime = LocalDateTime.now();
     Optional<ITask> taskOpt = tasks.stream().filter(task -> task.getTaskType() == taskDataChange.getIdTask())
@@ -116,6 +127,14 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     }
   }
 
+  /**
+   * Executes the actual task logic with error handling. Handles task interruption, background exceptions, and general
+   * exceptions. Updates task progress state and manages transaction rollback when needed.
+   * 
+   * @param task           the task implementation to execute
+   * @param taskDataChange the task data
+   * @param startTime      the execution start time
+   */
   private void executeJob(final ITask task, TaskDataChange taskDataChange, LocalDateTime startTime) {
     try {
       runningTask = new RunningTask(task, taskDataChange);
@@ -191,6 +210,10 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     return false;
   }
 
+  /**
+   * Holds information about a currently executing task. Used to track the running task type and associated data during
+   * execution.
+   */
   private static class RunningTask {
     public ITask taskType;
     public TaskDataChange taskDataChange;

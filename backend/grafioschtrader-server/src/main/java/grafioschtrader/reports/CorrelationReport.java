@@ -42,10 +42,10 @@ public class CorrelationReport {
    * @param currencypairJpaRepository Repository for currency pair data.
    * @param historyquoteJpaRepository Repository for historical quote data.
    */
-  public CorrelationReport(JdbcTemplate jdbcTemplate, CurrencypairJpaRepository currencypairRepository,
+  public CorrelationReport(JdbcTemplate jdbcTemplate, CurrencypairJpaRepository currencypairJpaRepository,
       HistoryquoteJpaRepository historyquoteJpaRepository) {
     this.jdbcTemplate = jdbcTemplate;
-    this.currencypairJpaRepository = currencypairRepository;
+    this.currencypairJpaRepository = currencypairJpaRepository;
     this.historyquoteJpaRepository = historyquoteJpaRepository;
   }
 

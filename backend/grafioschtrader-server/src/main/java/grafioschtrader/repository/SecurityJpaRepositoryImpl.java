@@ -215,6 +215,14 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     return securityCurrencyChanged.getActiveFromDate().before(targetSecurity.getActiveFromDate());
   }
 
+  /**
+   * Checks if the derived fields of a security have changed between two instances. Derived fields include formula, the
+   * base linked security/currency ID, and the set of security derived links.
+   *
+   * @param securityCurrencyChanged The security instance with potential changes.
+   * @param targetSecurity          The original security instance to compare against.
+   * @return {@code true} if any of the derived fields have changed, {@code false} otherwise.
+   */
   private boolean hasDerivedFieldsChanged(final Security securityCurrencyChanged, final Security targetSecurity) {
     boolean isEqual = Objects.equals(securityCurrencyChanged.getFormulaPrices(), targetSecurity.getFormulaPrices())
         && Objects.equals(securityCurrencyChanged.getIdLinkSecuritycurrency(),
@@ -259,6 +267,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    * The URL for accessing data providers with an API key cannot be returned to unauthorized users. Therefore, this
    * method returns a link to this backend. The backend can then use this link to execute the request with the provider
    * itself and return the result to the frontend. This is used to handle links for dividend and split data.
+   * 
+   * @param security The security which download link is required
+   * @param isDiv    true for dividend data and false for stock split data * @return A String representing a relative
+   *                 URL that redirects the request through the backend to the appropriate data provider, ensuring API
+   *                 keys are not exposed.
    */
   public String getDownlinkDivSplitWithApiKey(Security security, boolean isDiv) {
     return GlobalConstants.PREFIX_FOR_DOWNLOAD_REDIRECT_TO_BACKEND + RequestGTMappings.WATCHLIST_MAP
@@ -427,52 +440,6 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     final Date untilDate = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).parse(dateString);
     return securityJpaRepository.findByActiveToDateGreaterThanEqualAndIdTenantPrivateIsNullOrIdTenantPrivateOrderByName(
         untilDate, user.getIdTenant());
-  }
-
-  @Override
-  @Deprecated
-  public SplitAdjustedHistoryquotes isYoungestSplitHistoryquotePossibleAdjusted(Security security,
-      List<Securitysplit> securitysplits, boolean useConnector) throws Exception {
-
-    SplitAdjustedHistoryquotes sah = SplitAdjustedHistoryquotes.NOT_DETCTABLE;
-    Optional<Securitysplit> maxSecuritysplitOpt = securitysplits.stream()
-        .max(Comparator.comparing(Securitysplit::getSplitDate));
-    if (!maxSecuritysplitOpt.isEmpty()) {
-      Securitysplit youngestSplit = maxSecuritysplitOpt.get();
-      if (youngestSplit.getFactor() < 1.0
-          && youngestSplit.getFactor() >= 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
-          || youngestSplit.getFactor() > 1.0
-              && youngestSplit.getFactor() >= 1 + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP) {
-
-        Date fromDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
-            GlobalConstants.SPLIT_DAYS_LOCK_BACK_START_DATE * -1);
-        Date toDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
-            GlobalConstants.SPLIT_DAYS_LOCK_BACK_START_DATE);
-
-        List<Historyquote> historyquotes = useConnector ? getDataByConnnector(security, fromDate, toDate)
-            : historyquoteJpaRepository
-                .findByIdSecuritycurrencyAndDateBetweenOrderByDate(security.getIdSecuritycurrency(), fromDate, toDate);
-
-        OptionalDouble averageCloseBeforeOpt = historyquotes.stream()
-            .filter(h -> h.getDate().before(youngestSplit.getSplitDate())).mapToDouble(h -> h.getClose()).average();
-        OptionalDouble averageCloseAfterOpt = historyquotes.stream()
-            .filter(h -> !h.getDate().before(youngestSplit.getSplitDate())).mapToDouble(h -> h.getClose()).average();
-
-        if (averageCloseBeforeOpt.isPresent() && averageCloseAfterOpt.isPresent()) {
-          double changeFactor = averageCloseAfterOpt.getAsDouble() / averageCloseBeforeOpt.getAsDouble();
-          // If the historical prices after and before the split date are similar, it is
-          // assumed that the split is included in the historical prices.
-          return youngestSplit.getFactor() >= 1
-              && changeFactor < 1 / youngestSplit.getFactor() + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
-                  ? SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED
-                  : youngestSplit.getFactor() < 1 && changeFactor < 1 * youngestSplit.getFactor()
-                      + 1 / GlobalConstants.DETECT_SPLIT_ADJUSTED_FACTOR_STEP
-                          ? SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED
-                          : SplitAdjustedHistoryquotes.ADJUSTED_WITH_CONNECTOR;
-        }
-      }
-    }
-    return sah;
   }
 
   @Override
@@ -667,7 +634,6 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         security.getStockexchange().getIdIndexUpdCalendar(), security.getIdSecuritycurrency());
     List<Historyquote> historyquotesFill = new ArrayList<>();
     if (!missingDates.isEmpty()) {
-
       int missingDateCounter = 0;
       int historyIdxFirst = Collections.binarySearch(security.getHistoryquoteList(),
           new Historyquote(missingDates.get(0)), (h1, h2) -> h1.getDate().compareTo(h2.getDate())) * -1 - 1;
@@ -682,7 +648,15 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   /**
-   * Fill in the past because first available EOD after oldest date.
+   * Fills gaps in End-Of-Day (EOD) history quotes for a security before its first recorded history quote. This method
+   * is used when missing trading days are identified before the earliest available history quote for the security. It
+   * assumes the closing price of the first available quote for subsequent missing dates until it reaches a point where
+   * existing data takes over or all missing dates before the first quote are filled.
+   *
+   * @param security           The security for which to fill history quote gaps.
+   * @param historyquotesFill  A list to which the newly created {@link Historyquote} objects will be added.
+   * @param missingDates       A sorted list of dates for which EOD data is missing.
+   * @param missingDateCounter The starting index in {@code missingDates} to process.
    */
   private void fillGapEODBeforeFirstHistoryquote(Security security, List<Historyquote> historyquotesFill,
       List<Date> missingDates, int missingDateCounter) {
@@ -696,6 +670,18 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     fillGapEODAfterFirstHistoryquote(security, historyquotesFill, 0, missingDates, missingDateCounter);
   }
 
+  /**
+   * Fills gaps in End-Of-Day (EOD) history quotes for a security after its first recorded history quote or within
+   * existing recorded history quotes. This method iterates through missing dates and uses the closing price of the last
+   * known history quote to fill the subsequent missing dates until the next available recorded quote is encountered or
+   * all missing dates are filled.
+   *
+   * @param security           The security for which to fill history quote gaps.
+   * @param historyquotesFill  A list to which the newly created {@link Historyquote} objects will be added.
+   * @param historyIdx         The starting index in the security's existing {@code historyquoteList} to consider.
+   * @param missingDates       A sorted list of dates for which EOD data is missing.
+   * @param missingDateCounter The starting index in {@code missingDates} to process.
+   */
   private void fillGapEODAfterFirstHistoryquote(Security security, List<Historyquote> historyquotesFill, int historyIdx,
       List<Date> missingDates, int missingDateCounter) {
     List<Historyquote> hql = security.getHistoryquoteList();

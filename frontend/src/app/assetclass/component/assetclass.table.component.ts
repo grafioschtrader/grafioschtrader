@@ -4,7 +4,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {combineLatest} from 'rxjs';
+import {combineLatest, Subscription} from 'rxjs';
 import {AssetclassService} from '../service/assetclass.service';
 import {Assetclass} from '../../entities/assetclass';
 import {MessageToastService} from '../../shared/message/message.toast.service';
@@ -82,6 +82,9 @@ import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud
 export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> implements OnDestroy {
   callParam: AssetclassCallParam = new AssetclassCallParam();
 
+  private readDataSub?: Subscription;
+
+
   constructor(private assetclassService: AssetclassService,
     private productIconService: ProductIconService,
     confirmationService: ConfirmationService,
@@ -114,6 +117,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
   }
 
   readData(): void {
+    this.readDataSub?.unsubscribe();
     combineLatest([this.assetclassService.getAllAssetclass(),
       this.assetclassService.assetclassesHasSecurity()]).subscribe(data => {
       const assetclassList = plainToClass(Assetclass, data[0]);
@@ -137,6 +141,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
   }
 
   ngOnDestroy(): void {
+    this.readDataSub?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 

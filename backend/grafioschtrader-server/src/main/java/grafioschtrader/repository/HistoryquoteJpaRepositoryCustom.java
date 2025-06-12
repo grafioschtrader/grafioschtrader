@@ -56,7 +56,7 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
       final Date date, final boolean asTraded);
 
   /**
-   * Create history quotes for weekend and public holidays
+   * Create history quotes for weekend and public holidays. 
    *
    * @param dayBeforHoleHistoryquote
    * @param dayAfterHoleHistoryquote

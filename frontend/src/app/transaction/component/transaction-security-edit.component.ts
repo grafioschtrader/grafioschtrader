@@ -589,10 +589,10 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.configObject.idSecurityaccount.formControl.disable();
       this.setValueToControl(this.configObject.idSecurityaccount, securityaccountsHtmlSelect[0].key);
     } else {
-      // For Edge a empty Option is needed, otherwise the first Account would be selected
+      // For Edge an empty Option is needed, otherwise the first Account would be selected
       securityaccountsHtmlSelect.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
-      this.configObject.idSecurityaccount.formControl.enable();
-      this.selectAccumulteSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
+      !(this.closedMarginPosition?.hasPosition === true) &&  this.configObject.idSecurityaccount.formControl.enable();
+      this.selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
     }
     this.transactionCallParam.transaction && this.setCurrencyOnSecurityAndCashaccount(this.transactionCallParam.transaction.security);
   }
@@ -692,7 +692,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     this.changeExistingOpenMarginPos();
   }
 
-  private changeExistingOpenMarginPos() {
+  private changeExistingOpenMarginPos(): void {
     if (this.transactionCallParam.transaction && this.isOpenMarginInstrument) {
       this.transactionService.getConnectedMarginPositionByIdTransaction(this.transactionCallParam.transaction.idTransaction)
         .subscribe(cmp => {
@@ -702,7 +702,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     }
   }
 
-  private setTransactionValue() {
+  private setTransactionValue(): void {
     this.setValueToControl(this.configObject.transactionType, TransactionType[this.transactionCallParam.transactionType]);
     this.configObject.transactionType.formControl.disable();
     AppHelper.invisibleAndHide(this.configObject.taxableInterest, this.transactionCallParam.transactionType !== TransactionType.DIVIDEND);
@@ -752,7 +752,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   /**
    * There are more than one Securityaccount for a portfolio, that one with open position will be selected.
    */
-  private selectAccumulteSecurityaccountWhenAvailable(securityaccountsHtmlSelect: ValueKeyHtmlSelectOptions[]) {
+  private selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect: ValueKeyHtmlSelectOptions[]) {
     if (this.transactionCallParam.portfolio) {
       const securityaccount = this.transactionCallParam.portfolio.securityaccountList.filter(
         sa => this.getUnitsForSecurityAccount(sa))[0];

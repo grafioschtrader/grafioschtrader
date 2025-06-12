@@ -1,4 +1,4 @@
-package grafioschtrader.task.exec;
+package grafiosch.task.exec;
 
 import java.time.LocalDateTime;
 

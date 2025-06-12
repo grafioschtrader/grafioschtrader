@@ -141,6 +141,30 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     return currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays);
   }
 
+  /**
+   * Fills missing daily historical quotes for a given currency pair.
+   * <p>
+   * This method iterates through the existing historical quotes of the currency pair to identify gaps (missing days).
+   * <ul>
+   * <li>If a gap is larger than {@code maxFillDays}, it first attempts to fetch the missing data from an external data
+   * provider. If the provider successfully returns data, the new quotes are integrated, and the process continues,
+   * potentially re-evaluating the newly filled section for smaller remaining gaps (like holidays). If the provider does
+   * not return data for the large gap, the gap is then filled by repeating the closing price of the day immediately
+   * preceding the gap.</li>
+   * <li>If a gap is smaller than or equal to {@code maxFillDays} but greater than one day (indicating missing
+   * weekend/holiday data), it fills these missing days by repeating the closing price of the day immediately preceding
+   * the gap.</li>
+   * </ul>
+   * The history quotes list within the {@code currencypair} object is expected to be sorted by date in ascending order
+   * before calling this method, and it will be re-sorted if new data is fetched from a provider.
+   *
+   * @param currencypair The {@link Currencypair} entity whose historical data needs to be checked and filled. Its
+   *                     {@code historyquoteList} will be modified directly if gaps are filled.
+   * @param maxFillDays  The maximum number of consecutive missing days that should be filled by repeating the previous
+   *                     day's closing price without attempting to fetch from a data provider. For gaps larger than
+   *                     this, a data provider fetch is attempted first.
+   * @return The {@link Currencypair} entity, potentially updated with filled historical quotes.
+   */
   private Currencypair currencyFillEmptyDaysInHistoryquote(Currencypair currencypair, int maxFillDays) {
     if (currencypair.getHistoryquoteList() != null) {
       for (int i = currencypair.getHistoryquoteList().size() - 1; i >= 1; i--) {
@@ -381,17 +405,17 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
                 : Collections.emptyList();
   }
 
-  @Override
-  public double getCurrencyExchangeRate(final String fromCurrency, final String toCurrency,
-      final Map<String, Currencypair> currencypairMap) {
-    double currencyExchangeRate = 1.0;
-    if (!fromCurrency.equals(toCurrency)) {
-      Currencypair currencypair = currencypairMap.computeIfAbsent(fromCurrency,
-          fc -> currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(fc, toCurrency, true));
-      currencyExchangeRate = currencypair.getSLast();
-    }
-    return currencyExchangeRate;
-  }
+//  @Override
+//  public double getCurrencyExchangeRate(final String fromCurrency, final String toCurrency,
+//      final Map<String, Currencypair> currencypairMap) {
+//    double currencyExchangeRate = 1.0;
+//    if (!fromCurrency.equals(toCurrency)) {
+//      Currencypair currencypair = currencypairMap.computeIfAbsent(fromCurrency,
+//          fc -> currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(fc, toCurrency, true));
+//      currencyExchangeRate = currencypair.getSLast();
+//    }
+//    return currencyExchangeRate;
+//  }
 
   @Override
   public CrossRateResponse getCurrencypairForCrossRate(CrossRateRequest crossRateRequest) {
@@ -443,7 +467,6 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
   public List<Historyquote> fillGap(Currencypair securitycurrency) {
     return Collections.emptyList();
-
   }
 
   @Override

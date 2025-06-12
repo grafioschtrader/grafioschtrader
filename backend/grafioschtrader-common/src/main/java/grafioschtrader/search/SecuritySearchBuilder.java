@@ -192,7 +192,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
       final List<Predicate> mainPredicates) {
 
     if (securitycurrencySearch.getIdStockexchange() != null
-        || securitycurrencySearch.getStockexchangeCounrtyCode() != null || securitycurrencySearch.isNoMarketValue()) {
+        || securitycurrencySearch.getStockexchangeCountryCode() != null || securitycurrencySearch.isNoMarketValue()) {
       final Join<Security, Stockexchange> joinStockexchane = securityRoot.join(Security_.stockexchange);
       if (securitycurrencySearch.getIdStockexchange() != null) {
         mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.idStockexchange),
@@ -202,9 +202,9 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
         mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.noMarketValue), false));
       }
 
-      if (securitycurrencySearch.getStockexchangeCounrtyCode() != null) {
+      if (securitycurrencySearch.getStockexchangeCountryCode() != null) {
         mainPredicates.add(builder.equal(joinStockexchane.get(Stockexchange_.countryCode),
-            securitycurrencySearch.getStockexchangeCounrtyCode()));
+            securitycurrencySearch.getStockexchangeCountryCode()));
       }
 
     }
