@@ -15,9 +15,28 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionDynamicGroupS
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 
 /**
- * Creates a Report which can be grouped by single field.
- *
- * @param <T>
+ * Generic security position report generator that enables dynamic grouping by any single field within the Security
+ * entity hierarchy. Provides flexible portfolio analysis by allowing users to organize position data according to
+ * various classification criteria such as asset class, investment instrument type, or custom security attributes.
+ * 
+ * <p>
+ * This class extends the base security position reporting functionality with sophisticated reflection-based field
+ * access, enabling runtime specification of grouping criteria without requiring compile-time knowledge of the specific
+ * field structure. It supports nested property access using Apache Commons BeanUtils for maximum flexibility.
+ * </p>
+ * 
+ * <h3>Common Grouping Scenarios:</h3>
+ * <p>
+ * The class provides predefined field constants for frequently used grouping criteria:
+ * </p>
+ * <ul>
+ * <li><strong>Asset Class Category:</strong> Groups by broad investment categories (stocks, bonds, etc.)</li>
+ * <li><strong>Investment Instrument:</strong> Groups by specific instrument types within asset classes</li>
+ * <li><strong>Asset Class ID:</strong> Groups by unique asset class identifiers for detailed analysis</li>
+ * </ul>
+ * 
+ * @param <T> the type of the grouping field value, enabling type-safe group key management and ensuring consistent
+ *            typing across the grouping hierarchy
  */
 public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport {
   public String fieldName;
@@ -60,6 +79,15 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
     return createAndCalcGrandTotal(groupMap, dateCurrencyMap);
   }
 
+  /**
+   * Creates the final grand summary by aggregating all group summaries and calculating comprehensive totals across the
+   * entire portfolio. This method produces the top-level summary structure that provides both detailed group-by-group
+   * analysis and overall portfolio totals for complete investment analysis.
+   * 
+   * @param groupMap        the map of grouped position summaries organized by field value
+   * @param dateCurrencyMap currency context for precision settings and final calculations
+   * @return comprehensive grand summary with grouped positions and portfolio-wide totals
+   */
   @SuppressWarnings("unchecked")
   protected SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<T>> createAndCalcGrandTotal(
       Map<T, SecurityPositionDynamicGroupSummary<T>> groupMap, DateTransactionCurrencypairMap dateCurrencyMap) {

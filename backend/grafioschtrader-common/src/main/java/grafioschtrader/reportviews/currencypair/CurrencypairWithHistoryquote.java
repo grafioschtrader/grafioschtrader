@@ -12,7 +12,6 @@ public class CurrencypairWithHistoryquote {
   public ISecuritycurrencyIdDateClose historyquote;
 
   public CurrencypairWithHistoryquote(Currencypair currencypair, ISecuritycurrencyIdDateClose historyquote) {
-    super();
     this.currencypair = currencypair;
     this.historyquote = historyquote;
   }

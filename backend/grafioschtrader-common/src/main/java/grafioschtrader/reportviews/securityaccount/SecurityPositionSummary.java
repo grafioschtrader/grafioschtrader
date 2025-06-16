@@ -24,36 +24,29 @@ import io.swagger.v3.oas.annotations.media.Schema;
  */
 public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Security> {
 
+  @Schema(description = "Main portfolio currency for multi-currency normalization")
   public final String mainCurrency;
 
-  /**
-   * Historical rates in the past must be adjusted according to the intervening splits.
-   */
+  @Schema(description = "Price adjustment factor for stock splits and corporate actions")
   public double closePriceFactor = 1.0;
 
-  /**
-   * units after transaction
-   */
+  @Schema(description = "Current number of units held in the position")
   public double units;
 
+  @Schema(description = "Cumulative split factor from base transaction for corporate action adjustments")
   public double splitFactorFromBaseTransaction = 1.0;
 
-  /**
-   * Some portfolios may contain more than only one security account. In this case a cash account can be connected to a
-   * certain security account.
-   */
+  @Schema(description = "Security account identifier for multi-account portfolio tracking")
   public Integer usedIdSecurityaccount;
 
-  /**
-   * Cost for Transaction
-   */
+  @Schema(description = "Total transaction costs in security currency")
   public double transactionCost;
+  @Schema(description = "Total transaction costs in main currency")
   public double transactionCostMC;
 
-  /**
-   * Cost for Tax
-   */
+  @Schema(description = "Tax-related costs in security currency")
   public double taxCost;
+  @Schema(description = "Tax-related costs in main currency")
   public double taxCostMC;
 
   @Schema(description = "Gain or loss in the currency of the security over all transaction.")
@@ -67,33 +60,39 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
   @Schema(description = "Value of this position. It is also set when there is no relevance to the cash account balance.")
   public double valueSecurity;
+  @Schema(description = "Current market value in main currency")
   public double valueSecurityMC;
 
-  /**
-   * The same as valueSecurity when not a margin product. It is relevant for account.
-   */
+  @Schema(description = "Account value equal to market value for standard instruments, differs for margin products")
   public double accountValueSecurity;
+  @Schema(description = "Account value in main currency")
   public double accountValueSecurityMC;
 
+  @Schema(description = "Currency exchange gains/losses in main currency")
   public double currencyGainLossMC;
 
   /////////////////////////////////////////////////////////////
   // The following members are only for internal use
   ////////////////////////////////////////////////////////////
+  /** Internal calculation field for margin instrument valuation */
   @JsonIgnore
   public double openUnitsTimeValuePerPoint;
 
+  /** Adjusted cost basis in security currency for internal calculations */
   @JsonIgnore
   public double adjustedCostBase;
 
+  /** Adjusted cost basis in main currency for internal calculations */
   @JsonIgnore
   public double adjustedCostBaseMC;
 
+  /** Security currency balance for internal tracking */
   @JsonIgnore
   public double balanceSecurityCurrency;
 
   /**
-   * For a Watchlist the open positions must be recalculated.
+   * Flag indicating whether open positions need recalculation, typically used in watchlist scenarios where position
+   * data may become stale and require refresh from current market data and transaction history.
    */
   @JsonIgnore
   public boolean reCalculateOpenPosition;
@@ -104,7 +103,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   ////////////////////////////////////////////////////////////
 
   /**
-   * Gain or loss in the currency of the security
+   * Gain or loss for a specific transaction in the security's native currency. Used during transaction processing and
+   * detailed transaction analysis to track individual trade performance within the overall position.
    */
   @JsonIgnore
   public Double transactionGainLoss;
@@ -118,15 +118,11 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public Double transactionExchangeRate;
 
-  /**
-   * Contains open margin position with transaction id as key TransactionsMarginOpenUnits.
-   */
+  /** Contains open margin position with transaction id as key TransactionsMarginOpenUnits. */
   @JsonIgnore
   private Map<Integer, TransactionsMarginOpenUnits> transactionsMarginOpenUnitsMap;
 
-  /**
-   * How match was gain/loss on main currency on this transaction
-   */
+  /** How match was gain/loss on main currency on this transaction */
   @JsonIgnore
   public Double transactionCurrencyGainLossMC;
 
@@ -213,6 +209,10 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     return DataHelper.round(currencyGainLossMC, precisionMC);
   }
 
+  /**
+   * Resets position metrics for open margin calculation scenarios. Used when recalculating margin positions from
+   * transaction history, ensuring clean starting state for accurate position reconstruction.
+   */
   public void resetForOpenMargin() {
     gainLossSecurity = 0.0;
     adjustedCostBase = 0.0;
@@ -229,6 +229,13 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     transactionGainLossPercentage = DataBusinessHelper.roundStandard(gainLossSecurity * 100 / adjustedCostBase);
   }
 
+  /**
+   * Specialized gain/loss calculation for margin instruments with position tracking. Handles individual open margin
+   * positions that may have different entry prices and leverage factors, providing accurate performance measurement for
+   * sophisticated trading strategies involving partial position closures and variable leverage.
+   *
+   * @param price current market price for margin position valuation
+   */
   private void calcGainLossByPriceForMargin(final Double price) {
     double openWinLose = 0d;
     for (TransactionsMarginOpenUnits tmou : transactionsMarginOpenUnitsMap.values()) {
@@ -237,15 +244,14 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
         openWinLose += tmou.calcGainLossOnPositionClose(price, 0);
       }
     }
-
     gainLossSecurity = DataBusinessHelper.roundStandard(gainLossSecurity + openWinLose);
     accountValueSecurity += DataBusinessHelper.roundStandard(openWinLose);
   }
 
   /**
+   * Converts security currency values to main currency using the specified exchange rate.
    *
-   * @param currencyExchangeRate Normally the latest currency exchange rate to calculate some fields to the main
-   *                             currency
+   * @param currencyExchangeRate exchange rate from security currency to main currency
    */
   public void calcMainCurrency(double currencyExchangeRate) {
     gainLossSecurityMC = gainLossSecurity * currencyExchangeRate;
@@ -267,6 +273,13 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     }
   }
 
+  /**
+   * Calculates percentage gain/loss for the entire position with margin instrument handling. Provides relative
+   * performance measurement that accounts for the different calculation methodologies required for standard instruments
+   * versus margin positions.
+   *
+   * @return percentage gain/loss for the position
+   */
   @JsonIgnore
   public double getPositionGainLossPercentage() {
     return DataBusinessHelper
@@ -315,48 +328,79 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   }
 
   /**
-   * It holds the calculation for a single open margin transaction with its close transactions for a single security.
-   * Since a close position has a relation with open position, this construct is needed.
-   *
+   * Represents an individual open margin transaction with its associated close transactions for sophisticated margin
+   * position tracking. Maintains the relationship between opening and closing trades for accurate gain/loss calculation
+   * in trading scenarios involving partial position closures and variable leverage.
+   * 
+   * This inner class handles the intricate calculations required for margin trading where positions can be opened and
+   * closed in multiple transactions, each with potentially different prices, costs, and leverage factors. It maintains
+   * the necessary state to accurately attribute gains and losses to specific opening transactions when positions are
+   * closed partially or completely.
+   * 
    */
   public static class TransactionsMarginOpenUnits implements Comparable<TransactionsMarginOpenUnits> {
-    /**
-     * Transaction which opens the position
-     */
+
+    /** Original transaction that opened this margin position */
     public Transaction openTransaction;
-    /**
-     * Transaction can be closed partly
-     */
+
+    /** Remaining open units after partial closures */
     public double openUnits;
 
+    /**
+     * Counter for real units adjusted for corporate actions and position changes. Maintains accurate unit tracking
+     * across stock splits events that affect the quantity of securities in the open position.
+     */
     public double realUntisCounter;
 
     /**
-     * Always 0 or positive
+     * Price per unit for the open portion of the position, always zero or positive. Represents the effective entry
+     * price for this specific open position component, used as the reference point for gain/loss calculations when the
+     * position is closed.
      */
     public double openPartPrice;
 
     /**
-     * Adjusted cost base for a open position
+     * Total expenses and income associated with opening this margin position. Includes transaction costs, fees, and any
+     * income received, forming part of the adjusted cost basis for accurate performance measurement.
      */
     public double expenseIncome;
 
+    /**
+     * Flag indicating whether this open position should be removed from tracking. Set to true when the position has
+     * been fully closed and all associated calculations have been completed for final cleanup operations.
+     */
     public boolean markForRemove;
 
     /**
-     * Split factor from open margin transaction to hypothetical close transaction
+     * Split factor adjustment from the original base transaction to this open position. Ensures consistent unit and
+     * price calculations across corporate actions that occurred between the base transaction date and the opening of
+     * this position.
      */
     private final double splitFactorFromBaseTransaction;
 
+    /**
+     * Cumulative split factor since this position was opened, tracking all corporate actions that have affected the
+     * position since its opening date. Used to maintain accurate unit calculations and price adjustments for ongoing
+     * position management.
+     */
     private double splitFactorSinceOpen = 1.0;
 
+    /**
+     * Direction multiplier for the position: +1 for long (accumulate) positions, -1 for short (reduce) positions.
+     * Ensures correct gain/loss calculation direction based on whether the position benefits from price increases or
+     * decreases.
+     */
     private double shortFactor = 1.0;
 
     /**
+     * Creates a new open margin position tracker for sophisticated position management. Initializes all necessary
+     * parameters for accurate gain/loss calculation across the life of the margin position, including corporate action
+     * adjustments and directional position handling.
      *
-     *
-     * @param openTransaction Transaction which opened a position
-     * @param openUnits
+     * @param openTransaction                the transaction that opened this margin position
+     * @param openUnits                      number of units in the opening position
+     * @param expenseIncome                  total expenses and income for the opening transaction
+     * @param splitFactorFromBaseTransaction split factor for corporate action consistency
      */
     public TransactionsMarginOpenUnits(Transaction openTransaction, double openUnits, double expenseIncome,
         double splitFactorFromBaseTransaction) {
@@ -375,13 +419,30 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
           .compareTo(transactionsMarginOpenUnits1.openTransaction.getTransactionTime());
     }
 
+    /**
+     * Calculates gain/loss for closing this entire open position at the specified price. Convenience method that closes
+     * the full remaining open position using the current split factor context and zero transaction costs for
+     * mark-to-market calculations.
+     *
+     * @param price           closing price for gain/loss calculation
+     * @param transactionCost transaction costs for the closing (currently not implemented)
+     * @return gain or loss from closing the position at the specified price
+     */
     private double calcGainLossOnPositionClose(double price, double transactionCost) {
       return this.calcGainLossOnClosePosition(price, transactionCost, Math.abs(this.openUnits),
           splitFactorFromBaseTransaction);
     }
 
     /**
-     * Calculate gain or loss over a single open position
+     * Calculates gain or loss for closing a specified quantity of this open position. Performs sophisticated
+     * calculations that account for corporate actions, leverage factors, and partial position closures to provide
+     * accurate performance attribution for margin trading scenarios.
+     * 
+     * @param price             closing price for the position portion
+     * @param transactionCost   transaction costs associated with the closure
+     * @param unitsSplited      number of units being closed (split-adjusted)
+     * @param splitFactorToOpen split factor from current date back to opening
+     * @return gain or loss from closing the specified position portion
      */
     public double calcGainLossOnClosePosition(double price, double transactionCost, double unitsSplited,
         double splitFactorToOpen) {

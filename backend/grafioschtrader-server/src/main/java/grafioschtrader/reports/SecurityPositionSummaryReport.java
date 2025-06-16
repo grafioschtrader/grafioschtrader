@@ -38,7 +38,24 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 
 /**
- * There may be only one instance of this class, to not use any class members.
+ * Abstract base class for generating comprehensive security position summaries and reports across different
+ * organizational levels (tenant, portfolio, account).
+ * 
+ * <h3>Key Capabilities:</h3>
+ * <ul>
+ * <li>Multi-level position reporting (tenant, portfolio, account)</li>
+ * <li>Historical transaction processing with stock split adjustments</li>
+ * <li>Dividend and tax handling with configurable exclusions</li>
+ * <li>Asynchronous data loading for optimal performance</li>
+ * <li>Support for both open and closed positions</li>
+ * </ul>
+ * 
+ * <h3>Thread Safety:</h3>
+ * <p>
+ * <strong>Important:</strong> This class is designed to be stateless and thread-safe. There may be only one instance of
+ * this class per application context to avoid any class member state conflicts. All operations rely on method
+ * parameters and local variables to maintain thread safety in multi-user environments.
+ * </p>
  */
 public abstract class SecurityPositionSummaryReport {
 
@@ -75,10 +92,36 @@ public abstract class SecurityPositionSummaryReport {
   @Autowired
   protected TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
+  /**
+   * Template method for creating position groups and calculating grand totals. Subclasses must implement this method to
+   * define specific grouping strategies and calculation logic for their particular reporting requirements.
+   * 
+   * <p>
+   * This method enables different reporting formats and grouping strategies while leveraging the common position
+   * calculation infrastructure provided by the base class. Implementation should handle position aggregation, group
+   * creation, and grand total calculations according to the specific reporting needs.
+   * </p>
+   * 
+   * @param tenant                      the tenant context for which calculations are performed
+   * @param securityPositionSummaryList list of individual security positions to group and summarize
+   * @param dateCurrencyMap             currency conversion context for multi-currency calculations
+   * @return comprehensive position summary with groups and grand totals
+   * @throws Exception if calculation or grouping operations fail
+   */
   protected abstract SecurityPositionGrandSummary createGroupsAndCalcGrandTotal(final Tenant tenant,
       final List<SecurityPositionSummary> securityPositionSummaryList,
       final DateTransactionCurrencypairMap dateCurrencyMap) throws Exception;
 
+  /**
+   * Generates a comprehensive security position summary for all portfolios within a tenant as of a specific date.
+   * Aggregates positions across all portfolios owned by the tenant, providing a complete view of the tenant's
+   * investment holdings with real-time valuations and multi-currency normalization.
+   * 
+   * @param includeClosedPosition if true, includes positions that have been fully closed (units = 0)
+   * @param untilDate             the calculation date for position valuation and historical data cutoff
+   * @return comprehensive position summary across all tenant portfolios with groupings and totals
+   * @throws Exception if data access, calculation, or currency conversion operations fail
+   */
   @Transactional
   @Modifying
   public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdTenant(final boolean includeClosedPosition,
@@ -102,6 +145,21 @@ public abstract class SecurityPositionSummaryReport {
         dateCurrencyMap);
   }
 
+  /**
+   * Generates a comprehensive security position summary for a specific portfolio as of a given date. Provides detailed
+   * position analysis for all securities within the specified portfolio, including real-time valuations, performance
+   * metrics, and multi-currency calculations normalized to the portfolio's base currency.
+   * 
+   * <p>
+   * The method includes security validation to ensure the user has appropriate access to the requested portfolio data,
+   * maintaining proper tenant isolation and security boundaries.
+   * </p>
+   * 
+   * @param idPortfolio           the unique identifier of the portfolio to analyze
+   * @param includeClosedPosition if true, includes positions that have been fully closed for historical analysis
+   * @param untilDate             the calculation date for position valuation and transaction cutoff
+   * @return comprehensive position summary for the specified portfolio, or empty summary if portfolio not found
+   */
   @Transactional
   @Modifying
   public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdPortfolio(final Integer idPortfolio,
@@ -129,6 +187,23 @@ public abstract class SecurityPositionSummaryReport {
     }
   }
 
+  /**
+   * Generates a detailed security position summary for a specific security account as of a given date. Provides
+   * account-level granularity for detailed position analysis, including all transactions, adjustments, and valuations
+   * for the securities held within the specified account.
+   * 
+   * <p>
+   * Security validation ensures that users can only access accounts within their tenant scope, maintaining proper data
+   * isolation and access control in multi-tenant environments.
+   * </p>
+   * 
+   * @param idSecurityaccount     the unique identifier of the security account to analyze
+   * @param includeClosedPosition if true, includes positions that have been fully closed for complete historical view
+   * @param untilDate             the calculation date for position valuation and transaction processing cutoff
+   * @return comprehensive position summary for the specified account
+   * @throws SecurityException if the user lacks access to the specified account
+   * @throws Exception         if data access or calculation operations fail
+   */
   @Transactional
   @Modifying
   public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdSecurityaccount(final Integer idSecurityaccount,
@@ -160,6 +235,18 @@ public abstract class SecurityPositionSummaryReport {
     }
   }
 
+  /**
+   * Core position calculation engine that processes security accounts to generate comprehensive position summaries with
+   * real-time valuations. This method orchestrates the workflow of transaction processing, position aggregation,
+   * currency conversion, and market price integration to produce accurate investment position analysis.
+   * 
+   * @param tenant                the tenant context providing calculation preferences and base currency
+   * @param securityaccountList   list of security accounts to process for position calculation
+   * @param includeClosedPosition whether to include fully closed positions in the final summary
+   * @param excludeDivTaxcost     whether to exclude dividend tax costs from calculations
+   * @param dateCurrencyMap       currency conversion context with historical exchange rates
+   * @return comprehensive position summary with calculations, groupings, and totals
+   */
   private SecurityPositionGrandSummary getSecurityPositionGrandSummary(final Tenant tenant,
       final List<Securityaccount> securityaccountList, final boolean includeClosedPosition,
       final boolean excludeDivTaxcost, final DateTransactionCurrencypairMap dateCurrencyMap) throws Exception {
@@ -217,6 +304,18 @@ public abstract class SecurityPositionSummaryReport {
     }
   }
 
+  /**
+   * Sorts the security position summaries within each group alphabetically by security name for consistent and
+   * user-friendly report presentation. This method provides standardized ordering across all position reports,
+   * improving readability and enabling users to quickly locate specific securities within their portfolios.
+   * 
+   * <p>
+   * The sorting is case-insensitive to ensure consistent ordering regardless of how security names are formatted in the
+   * underlying data. This method operates in-place on the provided summary structure for optimal performance.
+   * </p>
+   * 
+   * @param securityPositionGrandSummary the comprehensive position summary containing grouped positions to sort
+   */
   private void sortSecurityPositionSummaryInGroupsByName(SecurityPositionGrandSummary securityPositionGrandSummary) {
     securityPositionGrandSummary.securityPositionGroupSummaryList.forEach(securtiyPositionSummaryList -> {
       securtiyPositionSummaryList.securityPositionSummaryList

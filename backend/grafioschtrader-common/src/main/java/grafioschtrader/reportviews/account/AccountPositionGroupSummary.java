@@ -8,40 +8,80 @@ import grafiosch.common.DataHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Group summary of cash accounts which also incudes the value of securities.
- *
- */
+@Schema(description = """
+    Grouped summary of cash accounts and their associated security positions, aggregated by
+    specified criteria (currency, portfolio, asset class, etc.) with all values converted to main currency""")
 public class AccountPositionGroupSummary {
 
+  @Schema(description = "Total account management fees charged within this group")
   public double groupAccountFeesMC;
+
+  @Schema(description = "Total interest earned on cash accounts within this group")
   public double groupAccountInterestMC;
-  public double groupAccountInterestLastCloseMC;
+
+  @Schema(description = "Total external cash transfers (deposits and withdrawals from outside the system) within this group")
   public double groupExternalCashTransferMC = 0.0;
+
+  @Schema(description = "Total internal cash transfers between accounts within this group")
   public double groupCashTransferMC = 0.0;
+
+  @Schema(description = "Total transaction fees on cash account operations (deposits, withdrawals, transfers) within this group")
   public double groupCashAccountTransactionFeeMC = 0.0;
 
-  @Schema(description = "Total value in the main currency of a groupe including securities")
+  @Schema(description = "Total combined value (cash + securities) of all accounts in this group converted to main currency")
   public double groupValueMC = 0.0;
 
+  @Schema(description = "Total cash balance across all cash accounts in this group converted to main currency")
   public double groupCashBalanceMC = 0.0;
+
+  @Schema(description = "Total current market value of all security positions within this group")
   public double groupValueSecuritiesMC = 0.0;
+
+  @Schema(description = "Total realized and unrealized gains/losses on security positions within this group")
   public double groupGainLossSecuritiesMC = 0.0;
+
+  @Schema(description = "Total foreign exchange gains/losses from currency fluctuations within this group")
   public double groupGainLossCurrencyMC = 0.0;
+
+  @Schema(description = "Descriptive name identifying this group (e.g., portfolio name, currency code, asset class)")
   public String groupName;
 
-  @Schema(description = "Currency of the group, is it grouped by portfolio then currency of portfolio, ISO 4217")
+  @Schema(description = "Primary currency of this group (ISO 4217). When grouped by portfolio, this is the portfolio's base currency")
   public String currency;
+
+  @Schema(description = "Individual cash account position summaries that comprise this group total")
   public List<CashaccountPositionSummary> accountPositionSummaryList = new ArrayList<>();
 
+  /**
+   * Currency precision configuration map that defines the number of decimal places for each currency code. Used to
+   * ensure proper rounding of monetary values according to the standard precision requirements of each currency.
+   * Initialized from the first processed account position summary.
+   */
   private Map<String, Integer> currencyPrecisionMap;
+
+  /**
+   * Number of decimal places for monetary precision in the main currency. Determines how all main currency values are
+   * rounded for display and reporting. Inherited from the currency precision map based on the main currency code.
+   */
   private int precisionMC;
 
+  /**
+   * Creates a new group summary with the specified group name and currency.
+   * 
+   * @param groupName descriptive name for this group
+   * @param currency  the primary currency for this group (ISO 4217)
+   */
   public AccountPositionGroupSummary(String groupName, String currency) {
     this.groupName = groupName;
     this.currency = currency;
   }
 
+  /**
+   * Calculates and aggregates totals from all individual account position summaries within this group. Applies current
+   * exchange rates for foreign currency conversions and updates all group totals.
+   * 
+   * @param dateTransactionCurrencypairMap currency exchange rate context for FX calculations
+   */
   public void calcTotals(final DateTransactionCurrencypairMap dateTransactionCurrencypairMap) {
     for (CashaccountPositionSummary accountPositionSummary : accountPositionSummaryList) {
       if (currencyPrecisionMap == null) {
@@ -59,12 +99,8 @@ public class AccountPositionGroupSummary {
           && accountPositionSummary.closePrice != null) ? accountPositionSummary.closePrice : 1.0;
 
       accountPositionSummary.calcTotals(currencyExchangeRate);
-
       groupAccountFeesMC += accountPositionSummary.accountFeesMC;
       groupAccountInterestMC += accountPositionSummary.accountInterestMC;
-
-      groupAccountInterestLastCloseMC += accountPositionSummary.accountInterestLastCloseMC;
-
       groupExternalCashTransferMC += accountPositionSummary.externalCashTransferMC;
       groupCashTransferMC += accountPositionSummary.cashTransferMC;
       groupCashAccountTransactionFeeMC += accountPositionSummary.cashAccountTransactionFeeMC;
@@ -82,10 +118,6 @@ public class AccountPositionGroupSummary {
 
   public double getGroupAccountInterestMC() {
     return DataHelper.round(groupAccountInterestMC, precisionMC);
-  }
-
-  public double getGroupAccountInterestLastCloseMC() {
-    return DataHelper.round(groupAccountInterestLastCloseMC, precisionMC);
   }
 
   public double getGroupCashAccountTransactionFeeMC() {
@@ -123,14 +155,13 @@ public class AccountPositionGroupSummary {
   @Override
   public String toString() {
     return "AccountPositionGroupSummary [groupAccountFeesMC=" + groupAccountFeesMC + ", groupAccountInterestMC="
-        + groupAccountInterestMC + ", groupAccountInterestLastCloseMC=" + groupAccountInterestLastCloseMC
-        + ", groupExternalCashTransferMC=" + groupExternalCashTransferMC + ", groupCashTransferMC="
-        + groupCashTransferMC + ", groupCashAccountTransactionFeeMC=" + groupCashAccountTransactionFeeMC
-        + ", groupValueMC=" + groupValueMC + ", groupCashBalanceMC=" + groupCashBalanceMC + ", groupValueSecuritiesMC="
-        + groupValueSecuritiesMC + ", groupGainLossSecuritiesMC=" + groupGainLossSecuritiesMC
-        + ", groupGainLossCurrencyMC=" + groupGainLossCurrencyMC + ", groupName=" + groupName + ", currency=" + currency
-        + ", accountPositionSummaryList=" + accountPositionSummaryList + ", currencyPrecisionMap="
-        + currencyPrecisionMap + "]";
+        + groupAccountInterestMC + ", groupExternalCashTransferMC=" + groupExternalCashTransferMC
+        + ", groupCashTransferMC=" + groupCashTransferMC + ", groupCashAccountTransactionFeeMC="
+        + groupCashAccountTransactionFeeMC + ", groupValueMC=" + groupValueMC + ", groupCashBalanceMC="
+        + groupCashBalanceMC + ", groupValueSecuritiesMC=" + groupValueSecuritiesMC + ", groupGainLossSecuritiesMC="
+        + groupGainLossSecuritiesMC + ", groupGainLossCurrencyMC=" + groupGainLossCurrencyMC + ", groupName="
+        + groupName + ", currency=" + currency + ", accountPositionSummaryList=" + accountPositionSummaryList
+        + ", currencyPrecisionMap=" + currencyPrecisionMap + "]";
   }
 
 }

@@ -211,6 +211,26 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
         accruedInterest, transactionTime, currencyExRate, null, null, null);
   }
 
+  /**
+   * Main constructor for creating comprehensive security transactions with all possible parameters. Used for
+   * transactions involving securities, currency exchanges, and various costs.
+   * 
+   * @param idSecurityaccount     the security account ID for the transaction
+   * @param cashAccount           the cash account affected by the transaction
+   * @param security              the security being traded (null for cash-only transactions)
+   * @param cashaccountAmount     the amount credited/debited to the cash account (calculated if null)
+   * @param units                 the number of units traded (shares, contracts, etc.)
+   * @param quotation             the price per unit of the security
+   * @param transactionType       the type of transaction (buy, sell, dividend, etc.)
+   * @param taxCost               any taxes associated with the transaction
+   * @param transactionCost       any transaction fees or costs
+   * @param assetInvestmentValue1 accrued interest for bonds or daily holding costs for CFDs
+   * @param transactionTime       the date and time when the transaction occurred
+   * @param currencyExRate        exchange rate if transaction involves currency conversion
+   * @param idCurrencypair        currency pair ID used with the exchange rate
+   * @param exDate                ex-dividend date for dividend transactions
+   * @param taxableInterest       whether interest/dividend is subject to taxation
+   */
   public Transaction(Integer idSecurityaccount, Cashaccount cashAccount, Security security, Double cashaccountAmount,
       Double units, Double quotation, TransactionType transactionType, Double taxCost, Double transactionCost,
       Double assetInvestmentValue1, Date transactionTime, Double currencyExRate, Integer idCurrencypair, Date exDate,
@@ -516,6 +536,14 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
         || transactionType == TransactionType.DEPOSIT.getValue());
   }
 
+  /**
+   * Determines the exchange rate to apply when converting from the cash account currency to the specified main
+   * currency. Handles various currency scenarios including security and cash account currency differences.
+   * 
+   * @param mc                         the main currency to convert to
+   * @param dateTransactionCurrencyMap currency mapping context for rate lookups
+   * @return exchange rate from cash account currency to main currency
+   */
   public double getExchangeRateOnCurrency(String mc, DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
     double exchangeRateToMC = 1.0;
     if (!getCashaccount().getCurrency().equals(mc)
@@ -539,8 +567,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   }
 
   /**
-   * We do not throw an error if we get data which should not be set because of the transaction. Clear the fields may be
-   * better.
+   * Clears transaction-specific fields based on the transaction type to ensure data consistency. Removes fields that
+   * are not applicable for certain types of cash account transactions like fees, deposits, interest, and withdrawals.
    */
   public void clearAccountTransaction() {
     switch (this.getTransactionType()) {
@@ -569,6 +597,17 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     this.clearCurrencypairExRate();
   }
 
+  /**
+   * Calculates cost and tax amounts in the main currency and optionally computes the base price. Converts transaction
+   * costs and tax costs using appropriate exchange rates and populates the security cost position object with the
+   * calculated values.
+   * 
+   * @param mc                         the main currency for conversions
+   * @param securityCostPosition       the cost position object to populate with calculated values
+   * @param dateTransactionCurrencyMap currency mapping context for exchange rate lookups
+   * @param calcBasePrice              whether to calculate the base price for transaction costs
+   * @return the base price for transaction costs in main currency if calculated, 0.0 otherwise
+   */
   public double calcCostTaxMaybeBasePrice(String mc, SecurityCostPosition securityCostPosition,
       DateTransactionCurrencypairMap dateTransactionCurrencyMap, boolean calcBasePrice) {
 
@@ -589,6 +628,10 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   }
 
   /**
+   * Converts a value from transaction currency to main currency using currency conversion logic. Handles various
+   * scenarios including transactions between different currencies and applies appropriate exchange rates based on
+   * security currency, cash account currency, and main currency relationships.
+   *
    * MC->main currency, T->Transaction</br>
    * When Cashaccount -> CHF (MC), Security -> CHF(MC) then nothing</br>
    * When Cashaccount -> GBP, Security -> CHF (MC) then nothing</br>
@@ -596,10 +639,10 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * When Cashaccount -> GBP, Security -> GBP, MC = CHF then * exchange Rate (GBPCHF(MC)</br>
    * When Cashaccount -> GBP, Security -> USD, MC = CHF then / exchange Rate (T) * exchange Rate (GBPCHF(MC))</br>
    *
-   * @param mainCurency
-   * @param value
-   * @param exchangeRateToMC
-   * @return
+   * @param mainCurency      the target main currency
+   * @param value            the value to convert (may be null)
+   * @param exchangeRateToMC exchange rate from cash account currency to main currency
+   * @return converted value in main currency, or null if input value is null
    */
   private Double calcMCValue(String mainCurency, Double value, double exchangeRateToMC) {
     Double valueMC = null;
@@ -626,6 +669,15 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return this.transactionTime.compareTo(transaction1.getTransactionTime());
   }
 
+  /**
+   * Validates that the cash account amount matches the calculated amount based on transaction details. Performs
+   * different validation logic for margin instruments versus general securities and can optionally auto-correct small
+   * discrepancies by adjusting quotation or exchange rate.
+   * 
+   * @param openPositionMarginTransaction the original margin position transaction (for margin closures)
+   * @param currencyFraction              the number of decimal places for currency rounding
+   * @throws DataViolationException if calculated amount doesn't match the recorded amount
+   */
   public void validateCashaccountAmount(Transaction openPositionMarginTransaction, Integer currencyFraction) {
     double calcCashaccountAmount = 0;
     double buyQuotation = 0;
@@ -670,6 +722,15 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     }
   }
 
+  /**
+   * Validates and calculates the cash account amount for margin instrument transactions. Handles different scenarios:
+   * opening new positions, closing positions, and finance costs. For new positions, calculates security risk and
+   * ensures cash account reflects only costs.
+   * 
+   * @param openPositionMarginTransaction the original margin position transaction (for closures)
+   * @return the calculated cash account amount for the margin transaction
+   * @throws DataViolationException if calculated security risk doesn't match the recorded value
+   */
   private double validateSecurityMarginCashaccountAmount(Transaction openPositionMarginTransaction) {
     double taxCostC = taxCost == null ? 0.0 : taxCost;
     double transactionCostC = transactionCost == null ? 0 : transactionCost;
@@ -700,6 +761,14 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return validateSecurityGeneralCashaccountAmount(buyQuotation);
   }
 
+  /**
+   * Corrects small discrepancies in transaction amounts by adjusting either the currency exchange rate or the quotation
+   * price. Prioritizes adjusting exchange rate if a currency pair is involved, otherwise adjusts the quotation. Logs
+   * the correction for audit purposes.
+   * 
+   * @param diff         the amount difference that needs to be corrected
+   * @param buyQuotation the original buy quotation for margin calculations
+   */
   private void correctSecurityTransactionToAmount(double diff, double buyQuotation) {
     if (idCurrencypair != null) {
       double oldCurrencyExRate = currencyExRate;
@@ -726,6 +795,14 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
         cashaccount.getCurrency());
   }
 
+  /**
+   * Calculates the transaction amount in the security's currency before applying exchange rate conversion. Handles the
+   * sign convention where accumulate transactions are negative (cash outflow) and reduce/dividend transactions are
+   * positive (cash inflow). Includes all associated costs.
+   * 
+   * @param buyQuotation the original buy quotation for margin position calculations
+   * @return transaction amount in security currency including all costs and fees
+   */
   private double calculateSecurityTransactionAmountWithoutExchangeRate(double buyQuotation) {
     double calcCashaccountAmount = getSeucritiesNetPrice(buyQuotation);
     if (getTransactionType() == TransactionType.ACCUMULATE) {

@@ -7,14 +7,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.reportviews.SecurityCostGroup;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Group summary of transaction cost report. It is grouped by security account.
- */
+@Schema(description = "Aggregated transaction cost summary grouped by security account, providing totals and averages for cost analysis and broker comparison")
 public class TransactionCostGroupSummary extends SecurityCostGroup {
 
   @JsonIgnore
   public Integer idSecurityaccount;
+  @Schema(description = "The security account entity containing broker details, account settings, and trading configuration")
   public Securityaccount securityaccount;
 
   public List<TransactionCostPosition> transactionCostPositions = new ArrayList<>();

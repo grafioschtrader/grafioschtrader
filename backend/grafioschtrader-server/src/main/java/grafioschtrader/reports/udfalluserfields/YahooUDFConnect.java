@@ -42,6 +42,25 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Refill;
 
+/**
+ * Utility class for connecting to Yahoo Finance to retrieve financial data for user-defined fields. This class provides
+ * functionality to evaluate Yahoo symbols for securities, extract earnings dates, and manage rate-limited access to
+ * Yahoo Finance services.
+ * 
+ * The class implements rate limiting using the token bucket algorithm to ensure compliance with Yahoo Finance's usage
+ * policies and prevent service overload. It also includes caching mechanisms to optimize performance and reduce
+ * unnecessary API calls.
+ * 
+ * Key features include:</br>
+ * - Yahoo symbol resolution through multiple strategies (existing connectors, UDF data, symbol search)</br>
+ * - Earnings date extraction from Yahoo Finance calendar pages</br>
+ * - Rate limiting with configurable bandwidth constraints</br>
+ * - Symbol caching with expiration to reduce redundant lookups</br>
+ * - Special handling for US stock exchanges (NASDAQ, NYSE)</br>
+ * 
+ * The class is designed to work within the UDF framework, storing and retrieving Yahoo symbols as user-defined field
+ * values for securities, enabling automated financial data collection and analysis across the application.
+ */
 public class YahooUDFConnect {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -76,9 +95,22 @@ public class YahooUDFConnect {
   }
 
   /**
-   * Evaluates the Yahoo symbol for the given security. It attempts to determine the symbol using the different
-   * connectors. If none is a Yahoo connector, the symbol is searched for in the JSON of user 0. If this fails, the
-   * time-consuming Yahoo search is used.
+   * Evaluates and determines the Yahoo Finance symbol for a given security using multiple resolution strategies. This
+   * method attempts to find the Yahoo symbol through the following prioritized approaches:</br>
+   * 1. Existing Yahoo connectors configured for the security (intra, history, split, dividend)</br>
+   * 2. Previously stored UDF data for the security</br>
+   * 3. Symbol cache (if available and not recreating)</br>
+   * 4. Yahoo symbol search service (most resource-intensive option)</br>
+   * 
+   * The method optimizes performance by checking faster sources first and only falling back to the time-consuming Yahoo
+   * search when necessary. Results are cached and persisted to UDF storage for future use.
+   * 
+   * @param uDFDataJpaRepository     repository for accessing UDF data storage
+   * @param udfMDSYahooSymbol        metadata definition for the Yahoo symbol UDF field
+   * @param security                 the security for which to determine the Yahoo symbol
+   * @param micProviderMapRepository repository for market identifier code mappings
+   * @param recreate                 if true, forces fresh lookup even if cached or stored data exists
+   * @return the Yahoo Finance symbol for the security, or null if symbol starts with "^" or cannot be determined
    */
   public String evaluateYahooSymbol(UDFDataJpaRepository uDFDataJpaRepository, UDFMetadataSecurity udfMDSYahooSymbol,
       Security security, MicProviderMapRepository micProviderMapRepository, boolean recreate) {
@@ -107,6 +139,15 @@ public class YahooUDFConnect {
     return yahooSymbol == null || yahooSymbol.startsWith("^") ? null : yahooSymbol;
   }
 
+  /**
+   * Retrieves Yahoo symbol through symbol search service with special handling for US exchanges. For securities on
+   * NASDAQ and NYSE exchanges, the method assumes the ticker symbol corresponds directly to the Yahoo symbol. For other
+   * exchanges, it performs a comprehensive search using ISIN, ticker symbol, and security name.
+   * 
+   * @param security                 the security for which to search the Yahoo symbol
+   * @param micProviderMapRepository repository for market identifier code mappings
+   * @return the Yahoo symbol found through search, or null if not found
+   */
   String getYahooSymbolThruSymbolSearch(Security security, MicProviderMapRepository micProviderMapRepository) {
     String yahooSymbol = null;
     String mic = security.getStockexchange().getMic();
@@ -168,6 +209,11 @@ public class YahooUDFConnect {
         + yahooSymbol;
   }
 
+  /**
+   * Implements rate limiting using token bucket algorithm to control access frequency. This method blocks execution
+   * until a token is available from the bucket, ensuring that API calls to Yahoo Finance comply with usage policies and
+   * prevent service overload. The method will wait and retry until a token becomes available.
+   */
   private void waitForTokenOrGo() {
     do {
       ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
