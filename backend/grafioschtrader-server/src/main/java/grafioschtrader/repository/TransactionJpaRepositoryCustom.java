@@ -12,21 +12,24 @@ import grafioschtrader.reportviews.transaction.CashaccountTransactionPosition;
 /**
  * Custom repository interface for Transaction entity operations that extend beyond standard JPA functionality.
  * 
- * <p>This interface provides specialized transaction operations including portfolio analysis,
- * cash account transfers, margin trading calculations, currency pair transactions, and 
- * transaction import capabilities. It handles complex business logic for financial transaction
- * processing within the GrafioschTrader application.</p>
+ * <p>
+ * This interface provides specialized transaction operations including portfolio analysis, cash account transfers,
+ * margin trading calculations, currency pair transactions, and transaction import capabilities. It handles business
+ * logic for financial transaction processing within the GrafioschTrader application.
+ * </p>
  * 
- * <p>Key functionalities include:</p>
+ * <p>
+ * Key functionalities include:
+ * </p>
  * <ul>
- *   <li>Security account transaction retrieval with fees and interest calculations</li>
- *   <li>Cash account balance calculations with transaction history</li>
- *   <li>Cash account transfer operations with currency conversion</li>
- *   <li>Margin trading position management and calculations</li>
- *   <li>Currency pair transaction analysis for forex operations</li>
- *   <li>Bulk transaction import operations for performance optimization</li>
+ * <li>Security account transaction retrieval with fees and interest calculations</li>
+ * <li>Cash account balance calculations with transaction history</li>
+ * <li>Cash account transfer operations with currency conversion</li>
+ * <li>Margin trading position management and calculations</li>
+ * <li>Currency pair transaction analysis for forex operations</li>
+ * <li>Bulk transaction import operations for performance optimization</li>
  * </ul>
- */ 
+ */
 public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Transaction> {
 
   /**

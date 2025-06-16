@@ -10,25 +10,124 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 /**
- * Contains how much was paid into or out of a particular account. The relevant transactions are represented as time
- * frames with from/to and the corresponding balance of the deposit or withdrawal.<br>
- *
- * This table is not offered via a rest API.
- *
+ * Entity tracking cash deposits and withdrawals in account cash balances over time periods.
+ * 
+ * <p>
+ * <strong>Cash Flow Tracking:</strong>
+ * </p>
+ * <p>
+ * This entity records how much money was deposited into or withdrawn from specific cash accounts. It provides
+ * time-based tracking of cash movements, representing deposit/withdrawal transactions as time frames with corresponding
+ * balance changes.
+ * </p>
+ * 
+ * <p>
+ * <strong>Multi-Currency Support:</strong>
+ * </p>
+ * <p>
+ * Cash deposits are tracked in three currency contexts to support comprehensive portfolio analysis:
+ * </p>
+ * <ul>
+ * <li><strong>Account Currency</strong> - The native currency of the cash account</li>
+ * <li><strong>Portfolio Currency</strong> - Converted to the portfolio's base currency</li>
+ * <li><strong>Tenant Currency</strong> - Converted to the tenant's global base currency</li>
+ * </ul>
+ * 
+ * <p>
+ * <strong>Time-Frame Management:</strong>
+ * </p>
+ * <p>
+ * Each record represents a specific time period during which the deposit/withdrawal balance remained constant. New
+ * records are created when additional cash transactions occur, and previous records receive end dates to maintain
+ * temporal continuity.
+ * </p>
+ * 
+ * <p>
+ * <strong>Balance Interpretation:</strong>
+ * </p>
+ * <ul>
+ * <li><strong>Positive Values</strong> - Net deposits (money added to account)</li>
+ * <li><strong>Negative Values</strong> - Net withdrawals (money removed from account)</li>
+ * <li><strong>Zero Values</strong> - No net cash movement during the period</li>
+ * </ul>
+ * 
+ * <p>
+ * <strong>Portfolio Performance Analysis:</strong>
+ * </p>
+ * <p>
+ * This data is essential for calculating accurate portfolio performance metrics, as it distinguishes between investment
+ * gains/losses and external cash contributions/withdrawals. Performance calculations must account for cash flows to
+ * determine true investment returns.
+ * </p>
+ * 
+ * <p>
+ * <strong>Data Access:</strong>
+ * </p>
+ * <p>
+ * This table is not exposed via REST API as it represents internal calculation state used for portfolio analysis,
+ * performance calculations, and cash flow reporting.
+ * </p>
  */
 @Entity
 @Table(name = "hold_cashaccount_deposit")
 public class HoldCashaccountDeposit extends HoldBase {
 
+  /**
+   * Composite primary key containing cash account identifier and deposit period start date. This key ensures unique
+   * identification of deposit periods for each account.
+   */
   @EmbeddedId
   private HoldCashaccountDepositKey holdCashaccountKey;
 
+  /**
+   * Net deposit amount in the account's native currency during this time period.
+   * 
+   * <p>
+   * This value represents the cumulative net cash flow (deposits minus withdrawals) that occurred during this holding
+   * period, expressed in the cash account's native currency.
+   * </p>
+   * 
+   * <p>
+   * <strong>Value Interpretation:</strong>
+   * </p>
+   * <ul>
+   * <li>Positive: Net money deposited into the account</li>
+   * <li>Negative: Net money withdrawn from the account</li>
+   * <li>Zero: No net cash movement during this period</li>
+   * </ul>
+   */
   @Column(name = "deposit")
   private double deposit;
 
+  /**
+   * Deposit amount converted to the portfolio's base currency.
+   * 
+   * <p>
+   * This field contains the same deposit amount as the {@code deposit} field, but converted to the portfolio's base
+   * currency using the exchange rate applicable during the deposit period. This enables portfolio-level cash flow
+   * analysis when accounts use different currencies.
+   * </p>
+   * 
+   * <p>
+   * If the account currency matches the portfolio currency, this value will be identical to the {@code deposit} field.
+   * </p>
+   */
   @Column(name = "deposit_portfolio_currency")
   private double depositPortfolioCurrency;
 
+  /**
+   * Deposit amount converted to the tenant's global base currency.
+   * 
+   * <p>
+   * This field contains the deposit amount converted to the tenant's global base currency using the exchange rate
+   * applicable during the deposit period. This enables tenant-wide cash flow analysis and consolidated reporting across
+   * all portfolios and currencies.
+   * </p>
+   * 
+   * <p>
+   * If the account currency matches the tenant currency, this value will be identical to the {@code deposit} field.
+   * </p>
+   */
   @Column(name = "deposit_tenant_currency")
   private double depositTenantCurrency;
 
@@ -36,6 +135,22 @@ public class HoldCashaccountDeposit extends HoldBase {
     super();
   }
 
+  /**
+   * Creates a new cash deposit holding record with specified parameters.
+   * 
+   * <p>
+   * This constructor initializes a complete deposit record including multi-currency values and time period boundaries.
+   * The portfolio currency deposit amount should be calculated and provided by the caller.
+   * </p>
+   * 
+   * @param idTenant              the tenant identifier (inherited from HoldBase)
+   * @param idPortfolio           the portfolio identifier (inherited from HoldBase)
+   * @param idSecuritycashAccount the cash account identifier
+   * @param fromHoldDate          the start date of this deposit period
+   * @param toHoldDate            the end date of this deposit period (inherited from HoldBase)
+   * @param balance               the net deposit amount in account currency
+   * @param balanceTenantCurrency the deposit amount in tenant currency
+   */
   public HoldCashaccountDeposit(Integer idTenant, Integer idPortfolio, Integer idSecuritycashAccount,
       LocalDate fromHoldDate, LocalDate toHoldDate, double balance, double balanceTenantCurrency) {
     super(idTenant, idPortfolio, toHoldDate);

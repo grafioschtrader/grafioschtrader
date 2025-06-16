@@ -18,18 +18,36 @@ public class AccountPositionGrandSummary {
   @Schema(description = "Total value in the main currency of all portfolios including securities")
   public double grandValueMC = 0.0;
 
+  @Schema(description = "Total external cash transfers (deposits and withdrawals) to/from outside the portfolio system")
   public double grandCashBalanceMC = 0.0;
+  
+  @Schema(description = "Total external cash transfers (deposits and withdrawals) to/from outside the portfolio system")
   public double grandExternalCashTransferMC = 0.0;
+  
+  @Schema(description = "Total internal cash transfers between accounts")
   public double grandCashTransferMC = 0.0;
+  
+  @Schema(description = "Total transaction fees charged on cash account operations (deposits, withdrawals, transfers)")
   public double grandCashAccountTransactionFeeMC = 0.0;
+  
+  @Schema(description = "Total current market value of all security positions across all portfolios")
   public double grandValueSecuritiesMC = 0.0;
+  
+  @Schema(description = "Total realized and unrealized gains/losses on all security positions")
   public double grandGainLossSecuritiesMC = 0.0;
+  
+  @Schema(description = "Total foreign exchange gains/losses from currency fluctuations on multi-currency positions")
   public double grandGainLossCurrencyMC = 0.0;
+  
+  @Schema(description = "Total account management fees charged across all accounts")
   public double grandAccountFeesMC = 0.0;
+  
+  @Schema(description = "Total interest earned on cash account balances")
   public double grandAccountInterestMC = 0.0;
 
-  public double grandAccountInterestLastCloseMC = 0.0;
+ 
 
+  @Schema(description = "Number of decimal places for monetary precision in the main currency")
   private int precisionMC;
 
   public List<AccountPositionGroupSummary> accountPositionGroupSummaryList = new ArrayList<>();
@@ -52,7 +70,7 @@ public class AccountPositionGrandSummary {
       grandGainLossCurrencyMC += accountPositionGroupSummary.groupGainLossCurrencyMC;
       grandAccountFeesMC += accountPositionGroupSummary.groupAccountFeesMC;
       grandAccountInterestMC += accountPositionGroupSummary.groupAccountInterestMC;
-      grandAccountInterestLastCloseMC += accountPositionGroupSummary.groupAccountInterestLastCloseMC;
+     
     }
   }
 
@@ -95,10 +113,7 @@ public class AccountPositionGrandSummary {
   public double getGrandAccountInterestMC() {
     return DataHelper.round(grandAccountInterestMC, precisionMC);
   }
-
-  public double getGrandAccountInterestLastCloseMC() {
-    return DataHelper.round(grandAccountInterestLastCloseMC, precisionMC);
-  }
+  
 
   public int getPrecisionMC() {
     return precisionMC;
@@ -124,7 +139,7 @@ public class AccountPositionGrandSummary {
         + grandCashAccountTransactionFeeMC + ", grandValueSecuritiesMC=" + grandValueSecuritiesMC
         + ", grandGainLossSecuritiesMC=" + grandGainLossSecuritiesMC + ", grandGainLossCurrencyMC="
         + grandGainLossCurrencyMC + ", grandAccountFeesMC=" + grandAccountFeesMC + ", grandAccountInterestMC="
-        + grandAccountInterestMC + ", grandAccountInterestLastCloseMC=" + grandAccountInterestLastCloseMC + "]";
+        + grandAccountInterestMC + "]";
   }
 
 }

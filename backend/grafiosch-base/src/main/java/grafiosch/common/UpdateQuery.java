@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Meta-Annotation, @Transactional, @Modifying andg @Query combined.
+ * Meta-Annotation, @Transactional, @Modifying and @Query combined.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

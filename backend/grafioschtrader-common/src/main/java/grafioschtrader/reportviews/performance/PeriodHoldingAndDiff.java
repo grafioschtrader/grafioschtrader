@@ -12,39 +12,69 @@ import grafiosch.BaseConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * Data container for period holding values and computed differences used in performance analysis.
+ * 
+ * <p>
+ * This class serves multiple purposes in the performance reporting system:
+ * </p>
+ * <ul>
+ * <li>Stores snapshot values for a specific date (holdings, balances, gains)</li>
+ * <li>Represents calculated differences between two time periods</li>
+ * <li>Provides aggregated totals and computed metrics</li>
+ * </ul>
+ *
+ * <p>
+ * All monetary values are expressed in "MC" (Main Currency), which is either the tenant's base currency or the
+ * portfolio's base currency depending on the analysis scope.
+ * </p>
+ * 
+ * <p>
+ * <strong>Difference Calculations:</strong>
+ * </p>
+ * <p>
+ * The class supports automatic difference calculation between two instances using reflection, enabling easy
+ * period-over-period comparisons.
+ * </p>
+ */
+@Schema(description = "Data container for period holding values and computed differences used in performance analysis.")
 public class PeriodHoldingAndDiff {
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Schema(description = "The date for which these holding values apply.")
   private LocalDate date;
+  
+  @Schema(description = "Cumulative realized dividends in main currency.")
   private double dividendRealMC;
+
   @Schema(description = "Total security account costs and account costs in tenant currency")
   private double feeRealMC;
+
+  @Schema(description = "Cumulative interest earned on cash accounts in main currency.")
   private double interestCashaccountRealMC;
+
+  @Schema(description = "Net accumulation/reduction amount from security transactions in main currency.")
   private double accumulateReduceMC;
+
+  @Schema(description = "Total cash balance across all accounts in main currency.")
   private double cashBalanceMC;
+
+  @Schema(description = "External cash transfers (deposits/withdrawals) in main currency.")
   private double externalCashTransferMC;
+
+  @Schema(description = "Market value of all securities holdings in main currency.")
   private double securitiesMC;
+
+  @Schema(description = "Realized gains from closed margin positions in main currency.")
   private double marginCloseGainMC;
+
+  @Schema(description = "Market risk (unrealized value) of open positions in main currency.")
   private double securityRiskMC;
+
+  @Schema(description = "Total investment gain/loss in main currency.")
   private double gainMC;
 
   public PeriodHoldingAndDiff() {
   }
-
-//  public PeriodHoldingAndDiff(LocalDate date, double dividendRealMC, double feeRealMC, double interestCashaccountRealMC,
-//      double accumulateReduceMC, double cashBalanceMC, double externalCashTransferMC, double securitiesMC,
-//      double securityRiskMC, double gainMC, double marginCloseGainMC) {
-//    this.date = date;
-//    this.dividendRealMC = dividendRealMC;
-//    this.feeRealMC = feeRealMC;
-//    this.interestCashaccountRealMC = interestCashaccountRealMC;
-//    this.accumulateReduceMC = accumulateReduceMC;
-//    this.cashBalanceMC = cashBalanceMC;
-//    this.externalCashTransferMC = externalCashTransferMC;
-//    this.securitiesMC = securitiesMC;
-//    this.marginCloseGainMC = marginCloseGainMC;
-//    this.securityRiskMC = securityRiskMC;
-//    this.gainMC = gainMC;
-//  }
 
   public LocalDate getDate() {
     return date;
@@ -106,6 +136,7 @@ public class PeriodHoldingAndDiff {
     return securitiesMC;
   }
 
+  @Schema(description = "Returns the combined value of securities and margin gains with standard rounding.")
   public double getSecuritiesAndMarginGainMC() {
     return DataBusinessHelper.roundStandard(securitiesMC + marginCloseGainMC);
   }
@@ -138,14 +169,32 @@ public class PeriodHoldingAndDiff {
     this.marginCloseGainMC = marginCloseGainMC;
   }
 
+  @Schema(description = "Returns the total gain including both regular gains and margin gains with standard rounding.")
   public double getTotalGainMC() {
     return DataBusinessHelper.roundStandard(gainMC + marginCloseGainMC);
   }
 
+  @Schema(description = "Returns the total portfolio balance including cash, securities, and margin gains with standard rounding.")
   public double getTotalBalanceMC() {
     return DataBusinessHelper.roundStandard(cashBalanceMC + this.securitiesMC + marginCloseGainMC);
   }
 
+  /**
+   * Calculates the difference between this instance and another instance using reflection.
+   * 
+   * <p>
+   * This method automatically computes differences for all double-type properties that have both getter and setter
+   * methods. The calculation is performed as (this.value - subtrahend.value) for each property.
+   * </p>
+   * 
+   * <p>
+   * The result is a new PeriodHoldingAndDiff instance containing the differences, which can be used for
+   * period-over-period analysis.
+   * </p>
+   * 
+   * @param subtrahendsHolding the instance to subtract from this one
+   * @return a new instance containing the calculated differences
+   */
   public PeriodHoldingAndDiff calculateDiff(PeriodHoldingAndDiff subtrahendsHolding)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(this);

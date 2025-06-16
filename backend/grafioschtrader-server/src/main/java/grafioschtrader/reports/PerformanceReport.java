@@ -37,8 +37,33 @@ import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 
 /**
- * Creates the report for period performance.
- *
+ * Service component responsible for generating period performance reports for portfolios and tenants.
+ * 
+ * <p>
+ * This class provides comprehensive performance analysis by calculating trading day availability, missing quote
+ * detection, and period-based performance metrics. It supports both tenant-level (across all portfolios) and individual
+ * portfolio performance reporting.
+ * </p>
+ * 
+ * <p>
+ * <strong>Key Features:</strong>
+ * </p>
+ * <ul>
+ * <li>Trading day validation and missing quote detection</li>
+ * <li>Period performance calculation with weekly or yearly aggregation</li>
+ * <li>Holiday and non-trading day handling</li>
+ * <li>Multi-currency support with automatic conversion</li>
+ * <li>Caching of trading day metadata for improved performance</li>
+ * </ul>
+ * 
+ * <p>
+ * <strong>Performance Optimization:</strong>
+ * </p>
+ * <p>
+ * The class employs a passive expiring cache with a 2-minute TTL to store FirstAndMissingTradingDays objects, reducing
+ * database queries for frequently accessed trading day information.
+ * </p>
+ * 
  */
 @Component
 public class PerformanceReport {
@@ -203,6 +228,28 @@ public class PerformanceReport {
     return afterTradingDay;
   }
 
+  /**
+   * Generates a period performance report for all portfolios within the current tenant.
+   * 
+   * <p>This method aggregates performance data across all portfolios belonging to the
+   * current user's tenant. It provides a tenant-wide view of investment performance
+   * over the specified period.</p>
+   * 
+   * <p><strong>Performance Metrics Include:</strong></p>
+   * <ul>
+   *   <li>Total portfolio values in tenant currency</li>
+   *   <li>Cash balance changes and external transfers</li>
+   *   <li>Security position changes and market valuations</li>
+   *   <li>Dividend, interest, and fee aggregations</li>
+   *   <li>Net gain/loss calculations</li>
+   * </ul>
+   * 
+   * @param dateFrom the start date of the performance period (inclusive)
+   * @param dateTo the end date of the performance period (inclusive)
+   * @param periodSplit whether to aggregate by week or year
+   * @return comprehensive performance analysis for the tenant
+   * @throws Exception if date validation fails or data retrieval encounters errors
+   */
   public PerformancePeriod getPeriodPerformanceByTenant(LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit)
       throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -214,6 +261,26 @@ public class PerformanceReport {
     return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit);
   }
 
+  /**
+   * Generates a period performance report for a specific portfolio.
+   * 
+   * <p>
+   * This method provides detailed performance analysis for an individual portfolio, including all security positions
+   * and cash accounts within that portfolio.
+   * </p>
+   * 
+   * <p>
+   * The analysis includes currency conversion to the portfolio's base currency and comprehensive breakdown of
+   * performance drivers.
+   * </p>
+   * 
+   * @param idPortfolio the portfolio identifier
+   * @param dateFrom    the start date of the performance period (inclusive)
+   * @param dateTo      the end date of the performance period (inclusive)
+   * @param periodSplit whether to aggregate by week or year
+   * @return detailed performance analysis for the portfolio
+   * @throws Exception if portfolio validation fails, date validation fails, or data retrieval encounters errors
+   */
   public PerformancePeriod getPeriodPerformanceByPortfolio(Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo,
       WeekYear periodSplit) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -224,6 +291,20 @@ public class PerformanceReport {
     return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit);
   }
 
+  /**
+   * Creates a performance period analysis from holding data and trading day metadata.
+   * 
+   * <p>
+   * This method processes the raw holding data and converts it into a structured performance analysis with period
+   * windows, daily changes, and summary statistics.
+   * </p>
+   * 
+   * @param firstAndMissingTradingDays trading day metadata for validation and processing
+   * @param periodHoldings             list of daily holding snapshots for the period
+   * @param periodSplit                aggregation level (weekly or yearly)
+   * @return structured performance analysis
+   * @throws Exception if data processing encounters errors
+   */
   private PerformancePeriod getPeriodPerformance(FirstAndMissingTradingDays firstAndMissingTradingDays,
       List<IPeriodHolding> periodHoldings, WeekYear periodSplit) throws Exception {
     PeriodHoldingAndDiff firstDayTotals = new PeriodHoldingAndDiff();
@@ -240,6 +321,26 @@ public class PerformanceReport {
     return periodPerformance;
   }
 
+  /**
+   * Validates input parameters for performance analysis requests.
+   * 
+   * <p>
+   * This method performs comprehensive validation including:
+   * </p>
+   * <ul>
+   * <li>Date range validity (start before end)</li>
+   * <li>Trading day validation (no weekends, holidays, or missing data)</li>
+   * <li>Date boundary validation (within available data range)</li>
+   * <li>Period split appropriateness (sufficient data for aggregation level)</li>
+   * </ul>
+   * 
+   * @param firstAndMissingTradingDays trading day metadata for validation
+   * @param localeStr                  user's locale for error message formatting
+   * @param dateFrom                   the requested start date
+   * @param dateTo                     the requested end date
+   * @param periodSplit                the requested aggregation level
+   * @throws DataViolationException if any validation rule is violated
+   */
   private void checkInputParam(FirstAndMissingTradingDays firstAndMissingTradingDays, String localeStr,
       LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit) {
 
@@ -262,6 +363,24 @@ public class PerformanceReport {
     }
   }
 
+  /**
+   * Validates that a specific date is a valid trading day.
+   * 
+   * <p>
+   * A valid trading day must be:
+   * </p>
+   * <ul>
+   * <li>Not a weekend (Saturday or Sunday)</li>
+   * <li>Not a holiday</li>
+   * <li>Not a day with missing quote data</li>
+   * </ul>
+   * 
+   * @param localeStr                  user's locale for error message formatting
+   * @param localDate                  the date to validate
+   * @param fieldName                  the field name for error reporting
+   * @param firstAndMissingTradingDays trading day metadata containing holidays and missing data
+   * @throws DataViolationException if the date is not a valid trading day
+   */
   private void checkInputDateNotHolidayOrMissingQuotes(String localeStr, LocalDate localDate, String fieldName,
       FirstAndMissingTradingDays firstAndMissingTradingDays) {
     if (localDate.getDayOfWeek() != DayOfWeek.SATURDAY && localDate.getDayOfWeek() != DayOfWeek.SUNDAY) {
@@ -271,11 +390,20 @@ public class PerformanceReport {
       }
     }
     throw new DataViolationException(fieldName, "gt.not.valid.trading.day", localDate, localeStr);
-
   }
 
+  /**
+   * Internal cache key for distinguishing between portfolio and tenant-level metadata.
+   * 
+   * <p>
+   * This class serves as a compound key for the {@code firstAndMissingTradingDaysMap} cache, allowing separate caching
+   * of trading day metadata for portfolios and tenants.
+   * </p>
+   */
   private static class PortfolioOrTenantKey {
+    /** The identifier (portfolio ID or tenant ID). */
     public Integer id;
+    /** The type of entity (Portfolio or Tenant). */
     public PortfolioTentant portfolioTenant;
 
     public PortfolioOrTenantKey(Integer id, PortfolioTentant portfolioTenant) {
@@ -302,7 +430,18 @@ public class PerformanceReport {
 
   }
 
+  /**
+   * Enumeration for distinguishing between portfolio and tenant-level operations.
+   * 
+   * <p>
+   * Used in cache keys and internal processing to ensure correct data scope and prevent cross-contamination between
+   * portfolio and tenant-level metadata.
+   * </p>
+   */
   enum PortfolioTentant {
-    Portfolio, Tenant;
+    /** Indicates portfolio-level scope. */
+    Portfolio,
+    /** Indicates tenant-level scope. */
+    Tenant;
   }
 }

@@ -2,6 +2,16 @@ package grafioschtrader.reportviews;
 
 import java.util.Objects;
 
+/**
+ * Immutable key class representing a currency pair for exchange rate lookups and conversions.
+ * Used as a composite key in maps and collections to efficiently organize and retrieve 
+ * currency pair data based on source and target currencies.
+ * 
+ * <p>This class serves as a fundamental building block for currency conversion operations
+ * in financial reporting, portfolio management, and transaction processing. It provides
+ * a standardized way to represent currency relationships and enables efficient lookup
+ * of exchange rates and currency pair metadata.</p>
+ **/ 
 public class FromToCurrency {
   final protected String fromCurrency;
   final protected String toCurrency;

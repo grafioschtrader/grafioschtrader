@@ -22,6 +22,20 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.metamodel.EntityType;
 
+/**
+ * Implementation of custom repository operations for managing entity change proposals. This repository handles the
+ * workflow of processing change requests for shared entities, including privilege-based access control, entity
+ * state comparison, and proposal lifecycle management.</br>
+ * 
+ * The implementation provides functionality for:</br>
+ * - Retrieving open proposals based on user access privileges</br>
+ * - Creating comparison views between current and proposed entity states</br>
+ * - Cleaning up orphaned proposals where target entities no longer exist</br>
+ * - Dynamic entity class resolution from proposal metadata</br>
+ * 
+ * Access control ensures that users with higher privileges can review all proposals, while regular users can only
+ * access proposals for entities they own.
+ */
 public class ProposeChangeEntityJpaRepositoryImpl extends ProposeRequestService<ProposeChangeEntity>
     implements ProposeChangeEntityJpaRepositoryCustom {
 
@@ -72,14 +86,23 @@ public class ProposeChangeEntityJpaRepositoryImpl extends ProposeRequestService<
     return proposeChangeEntityWithEntityList;
   }
 
+  /**
+   * Resolves an entity class from its simple name using JPA metamodel introspection. This method dynamically looks up
+   * entity classes registered in the JPA metamodel to convert string-based entity names stored in proposals back to
+   * their corresponding Java class objects for reflection and instantiation operations.
+   * 
+   * The lookup process uses functional programming to filter through all registered entity types in the JPA metamodel
+   * and match the simple class name against the provided entity name. This approach allows the system to work with
+   * entity references stored as strings while maintaining type safety during entity manipulation.
+   *
+   * @param entityName the simple name of the entity class to resolve
+   * @return the Java Class object corresponding to the entity name
+   * @throws IllegalArgumentException if no entity class matches the provided name
+   */
   private Class<?> getEntityClass(String entityName) {
-    Set<EntityType<?>> entities = entityManagerFactory.getMetamodel().getEntities();
-    for (EntityType<?> entityType : entities) {
-      if (entityType.getJavaType().getSimpleName().equals(entityName)) {
-        return entityType.getJavaType();
-      }
-    }
-    throw new IllegalArgumentException("No entity found with name: " + entityName);
+    return entityManagerFactory.getMetamodel().getEntities().stream().map(EntityType::getJavaType)
+        .filter(clazz -> clazz.getSimpleName().equals(entityName)).findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("No entity found with name: " + entityName));
   }
 
   @Schema(description = "Contains a change request for a shared entity")

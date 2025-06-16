@@ -35,6 +35,7 @@ public class Tenant extends TenantBase implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "The base currency for this tenant used for cross-portfolio evaluation and consolidated reporting.")
   @Basic(optional = false)
   @ValidCurrencyCode
   private String currency;
@@ -50,11 +51,13 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "exclude_div_tax")
   private boolean excludeDivTax;
 
+  @Schema(description = "List of portfolios belonging to this tenant, ordered alphabetically by name.")
   @JoinColumn(name = "id_tenant")
   @OneToMany()
   @OrderBy("name ASC")
   private List<Portfolio> portfolioList;
 
+  @Schema(description = "List of watchlists associated with this tenant.")
   @JoinColumn(name = "id_tenant")
   @OneToMany()
   private List<Watchlist> watchlistList;
