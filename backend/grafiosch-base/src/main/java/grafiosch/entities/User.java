@@ -60,6 +60,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "Unique identifier of the user")
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_user")
