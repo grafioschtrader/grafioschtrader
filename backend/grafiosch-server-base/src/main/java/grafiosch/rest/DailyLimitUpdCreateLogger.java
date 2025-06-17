@@ -88,16 +88,7 @@ public abstract class DailyLimitUpdCreateLogger<T extends BaseID<Integer>> {
    *               for limit checking.
    * @param user   The user performing the operation. Their ID is used to track daily limits.
    * @throws LimitEntityTransactionException If the daily CUD limit for this entity type and user is exceeded.
-   * @throws IllegalAccessException          if a property accessor method is not found or is inaccessible during
-   *                                         reflection (though this method does not directly use reflection that would
-   *                                         throw this for the provided parameters).
-   * @throws InvocationTargetException       if a property accessor method throws an exception during reflection (though
-   *                                         this method does not directly use reflection that would throw this for the
-   *                                         provided parameters).
-   * @throws NoSuchMethodException           if a property accessor method is not found during reflection (though this
-   *                                         method does not directly use reflection that would throw this for the
-   *                                         provided parameters).
-   */
+    */
   protected void checkDailyLimitOnCRUDOperations(T entity, User user) {
     if (UserAccessHelper.isLimitedEditingUser(user)) {
       String entityName = entity.getClass().getSimpleName();

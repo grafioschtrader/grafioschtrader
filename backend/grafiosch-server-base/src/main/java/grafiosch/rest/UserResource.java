@@ -70,13 +70,13 @@ public class UserResource {
         .body(userService.createUserForVerification(userDTO, referer.substring(0, referer.lastIndexOf('/'))));
   }
 
-  @Operation(summary = "Allows the user to change some general settings such as language or nickname.", description = "", tags = {
-      User.TABNAME })
-  @PutMapping(produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<User> updateButPassword(@RequestBody final UserDTO userDTO) {
-    log.debug("Update User: {}", userDTO);
-    return ResponseEntity.ok().body(userService.updateButPassword(userDTO));
-  }
+//  @Operation(summary = "Allows the user to change some general settings such as language or nickname.", description = "", tags = {
+//      User.TABNAME })
+//  @PutMapping(produces = APPLICATION_JSON_VALUE)
+//  public ResponseEntity<User> updateButPassword(@RequestBody final UserDTO userDTO) {
+//    log.debug("Update User: {}", userDTO);
+//    return ResponseEntity.ok().body(userService.updateButPassword(userDTO));
+//  }
 
   @Operation(summary = "Change the nickname and other values of the user", description = "This changes can be done by the user", tags = {
       User.TABNAME })

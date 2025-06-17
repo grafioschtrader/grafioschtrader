@@ -38,7 +38,9 @@ import grafiosch.types.ProgressStateType;
 @Component
 public class BackgroundWorker implements DisposableBean, Runnable, ApplicationListener<ApplicationReadyEvent> {
 
+  /** Wait time in milliseconds after a timeout occurs before checking thread status */
   private static long WAIT_MILISECONDS_AFTER_TIMEOUT = 10000;
+  /** Polling interval in seconds for checking new tasks */
   private static long POLLING_TIME_SECONDS = 15;
 
   @Autowired
@@ -52,10 +54,19 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+  /** Main background thread that polls for tasks */
   private Thread backgroundThread;
+
+  /** Worker thread that executes individual tasks */
   private Thread workerThread;
+
+  /** Flag indicating if the main loop should continue running */
   private volatile boolean runningLoop;
+
+  /** Information about the currently running task */
   private RunningTask runningTask;
+
+  /** Flag indicating if the current task has timed out */
   private boolean timeout;
 
   BackgroundWorker() {
@@ -168,6 +179,14 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     }
   }
 
+  /**
+   * Creates a clone of the task data change object.
+   * 
+   * @param taskDataChange the original task data change
+   * @return cloned task data change object
+   * @throws IllegalAccessException if bean property access fails
+   * @throws InvocationTargetException if bean property copying fails
+   */
   private TaskDataChange cloneTaskDataChange(TaskDataChange taskDataChange)
       throws IllegalAccessException, InvocationTargetException {
     TaskDataChange tdcNew = new TaskDataChange();
@@ -175,18 +194,37 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     return tdcNew;
   }
 
+  /**
+   * Marks a task as started and updates its state.
+   * 
+   * @param taskDataChange the task to start
+   * @param startTime      the start time
+   * @return the updated task data change
+   */
   private TaskDataChange startJob(final TaskDataChange taskDataChange, LocalDateTime startTime) {
     taskDataChange.setExecStartTime(startTime);
     taskDataChange.setProgressStateType(ProgressStateType.PROG_RUNNING);
     return taskDataChangeRepository.save(taskDataChange);
   }
 
+  /**
+   * Marks a task as finished with the specified state.
+   * 
+   * @param taskDataChange    the task to finish
+   * @param startTime         the start time
+   * @param progressStateType the final progress state
+   */
   private void finishedJob(final TaskDataChange taskDataChange, LocalDateTime startTime,
       ProgressStateType progressStateType) {
     taskDataChange.finishedJob(startTime, progressStateType);
     taskDataChangeRepository.save(taskDataChange);
   }
 
+  /**
+   * Removes other waiting jobs of the same task type if configured to do so.
+   * 
+   * @param task the task that was executed
+   */
   public void removeOtherSameJobs(final ITask task) {
     if (task.removeAllOtherJobsOfSameTask()) {
       taskDataChangeRepository.removeByIdTaskAndProgressStateType(task.getTaskType().getValue(),
@@ -194,12 +232,21 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
     }
   }
 
+  /**
+   * Shuts down the background worker. Stops the main loop and interrupts any running job.
+   */
   @Override
   public void destroy() {
     runningLoop = false;
     interruptingRunningJob(null);
   }
 
+  /**
+   * Interrupts a running job if it can be interrupted.
+   * 
+   * @param idTaskDataChange the ID of the task to interrupt, or null to interrupt any running task
+   * @return true if the job was interrupted, false otherwise
+   */
   public boolean interruptingRunningJob(Integer idTaskDataChange) {
     if (workerThread != null && workerThread.isAlive()
         && (idTaskDataChange == null || runningTask != null && runningTask.taskType.canBeInterrupted()
@@ -215,7 +262,9 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
    * execution.
    */
   private static class RunningTask {
+    /** The task implementation being executed */
     public ITask taskType;
+    /** The task data being processed */
     public TaskDataChange taskDataChange;
 
     public RunningTask(ITask taskType, TaskDataChange taskDataChange) {

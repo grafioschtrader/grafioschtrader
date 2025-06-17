@@ -12,7 +12,6 @@ public class RequestLimitAndSecurityBreachException extends RuntimeException {
   public RequestLimitAndSecurityBreachException(String explanation, String fieldToBeChangedInUser) {
     super(explanation);
     this.fieldToBeChangedInUser = fieldToBeChangedInUser;
-
   }
 
   public String getFieldToBeChangedInUser() {

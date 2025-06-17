@@ -43,11 +43,19 @@ public class ConnectorApiKey extends BaseID<String> {
   @Column(name = "api_key")
   private String apiKey;
 
-  @Schema(description = "Speicherung der Zugangs- bzw. Leistungsstufen.")
+  @Schema(description = "Storage of the access and power levels.")
   @Basic(optional = false)
   @Column(name = "subscription_type")
   private Short subscriptionType;
 
+  /**
+   * Transient field for caching decrypted API key.
+   * 
+   * <p>
+   * This field temporarily stores the decrypted API key to avoid repeated decryption operations. It is not persisted to
+   * the database and is cleared when the API key is updated.
+   * </p>
+   */
   @Transient
   private String apiKeyDecrypt;
 
@@ -59,6 +67,24 @@ public class ConnectorApiKey extends BaseID<String> {
     this.idProvider = idProvider;
   }
 
+  /**
+   * Gets the decrypted API key for use by connector services.
+   * 
+   * <p>
+   * This method automatically decrypts the stored API key on first access and caches the result for subsequent calls.
+   * The decryption is performed using the configured string encryptor with the application's encryption key.
+   * </p>
+   * 
+   * <p>
+   * <strong>Performance Optimization:</strong>
+   * </p>
+   * <p>
+   * The decrypted key is cached in the apiKeyDecrypt field to avoid repeated decryption operations during the entity's
+   * lifecycle.
+   * </p>
+   * 
+   * @return the decrypted API key ready for use in external service calls
+   */
   public String getApiKey() {
     if (apiKeyDecrypt == null) {
       apiKeyDecrypt = stringEncryptor.decrypt(apiKey);
@@ -66,6 +92,25 @@ public class ConnectorApiKey extends BaseID<String> {
     return apiKeyDecrypt;
   }
 
+  /**
+   * Sets the API key with automatic encryption.
+   * 
+   * <p>
+   * This method automatically encrypts the provided API key before storing it in the database. The encryption ensures
+   * that sensitive credentials are never stored in plain text, protecting against data breaches.
+   * </p>
+   * 
+   * <p>
+   * <strong>Security Behavior:</strong>
+   * </p>
+   * <ul>
+   * <li>Clears any cached decrypted key to force re-decryption</li>
+   * <li>Encrypts the new API key using the configured encryptor</li>
+   * <li>Stores only the encrypted form in the database field</li>
+   * </ul>
+   * 
+   * @param apiKey the plain text API key to encrypt and store
+   */
   public void setApiKey(String apiKey) {
     apiKeyDecrypt = null;
     this.apiKey = stringEncryptor.encrypt(apiKey);
@@ -79,7 +124,25 @@ public class ConnectorApiKey extends BaseID<String> {
     this.subscriptionType = subscriptionType.getValue();
   }
 
-  // Change the setter to accept a String from the JSON payload.
+  /**
+   * Sets the subscription type from a string name for JSON deserialization.
+   * 
+   * <p>
+   * This method enables JSON-based configuration by accepting subscription type names as strings and converting them to
+   * the appropriate enum values. It uses the subscription registry to perform name-to-enum resolution.
+   * </p>
+   * 
+   * <p>
+   * <strong>Validation:</strong>
+   * </p>
+   * <p>
+   * The method validates that the provided subscription type name exists in the registry and throws an
+   * IllegalArgumentException for unknown types.
+   * </p>
+   * 
+   * @param subscriptionTypeName the string name of the subscription type
+   * @throws IllegalArgumentException if the subscription type name is not recognized
+   */
   @JsonSetter("subscriptionType")
   public void setSubscriptionType(String subscriptionTypeName) {
     ISubscriptionType subscriptionType = SUBSCRIPTION_REGISTRY.getTypeByName(subscriptionTypeName);
@@ -95,6 +158,35 @@ public class ConnectorApiKey extends BaseID<String> {
         + subscriptionType + "]";
   }
 
+  /**
+   * Creates and configures the string encryptor for API key encryption.
+   * 
+   * <p>
+   * This method initializes a pooled PBE (Password-Based Encryption) string encryptor with secure configuration
+   * settings. The encryptor is configured with industry-standard algorithms and security parameters.
+   * </p>
+   * 
+   * <p>
+   * <strong>Encryption Configuration:</strong>
+   * </p>
+   * <ul>
+   * <li><strong>Algorithm:</strong> PBEWITHHMACSHA512ANDAES_256 for strong encryption</li>
+   * <li><strong>Key Derivation:</strong> 1000 iterations for enhanced security</li>
+   * <li><strong>Salt Generation:</strong> Random salt generator for unique encryption</li>
+   * <li><strong>IV Generation:</strong> Random initialization vector for each encryption</li>
+   * <li><strong>Output Format:</strong> Base64 encoding for database compatibility</li>
+   * </ul>
+   * 
+   * <p>
+   * <strong>Environment Requirements:</strong>
+   * </p>
+   * <p>
+   * The encryption password must be provided via the JASYPT_ENCRYPTOR_PASSWORD environment variable. This ensures that
+   * the encryption key is not hardcoded in the application and can be managed securely in deployment environments.
+   * </p>
+   * 
+   * @return configured StringEncryptor instance ready for encryption operations
+   */
   public static StringEncryptor stringEncryptor() {
     PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
     SimpleStringPBEConfig config = new SimpleStringPBEConfig();
