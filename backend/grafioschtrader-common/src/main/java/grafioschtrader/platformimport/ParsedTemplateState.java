@@ -2,11 +2,14 @@ package grafioschtrader.platformimport;
 
 import java.util.Date;
 
-/**
- * Contains a part of the ImportTransactionTemplate
- */
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Metadata about a transaction import template, containing its purpose and validity information")
 public class ParsedTemplateState {
+  @Schema(description = "Human-readable description of what this template is used for (e.g., 'Swissquote Buy/Sell Orders')")
   private String templatePurpose;
+  
+  @Schema(description = "Date when this template version became valid for processing documents")
   private Date validSince;
 
   public ParsedTemplateState(String templatePurpose, Date validSince) {

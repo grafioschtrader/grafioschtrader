@@ -13,140 +13,110 @@ import grafioschtrader.types.TransactionType;
 import grafioschtrader.validation.ISINValidator;
 
 /**
- * Is filled with the data of a import form.
- *
+ * Container for financial transaction data extracted from trading platform documents (PDF or CSV).
+ * 
+ * <p>
+ * This class holds all the parsed transaction information including dates, security identification, quantities, prices,
+ * costs, taxes, and currencies. It provides validation for critical fields like ISIN codes and transaction types, and
+ * handles special cases like percentage-based bond pricing.
+ * </p>
  */
 public class ImportProperties {
 
+  /** Field name constant for order linking in CSV imports. */
   public static final String ORDER = "order";
 
-  /**
-   * Date of Transaction
-   */
+  /** Date of Transaction */
   private Date datetime;
 
-  /**
-   * Date part of Transaction when it comes separated as date and time
-   */
+  /** Date component when date and time are provided separately. */
   private LocalDate date;
 
-  /**
-   * Time part of Transaction when it comes separated as date and time
-   */
+  /** Time part of Transaction when it comes separated as date and time */
   private LocalTime time;
 
-  /**
-   * Date of ex dividend
-   */
+  /** Date of ex dividend */
   private Date exdiv;
 
-  /**
-   * Transaction type
-   */
+  /** Transaction type as text from the document (validated against transactionTypesMap). */
   private String transType;
 
-  /**
-   * Name of the security
-   */
+  /** Security name for display purposes. */
   private String sn;
 
-  /**
-   * Is used to for finding the right security paper
-   */
+  /** Is used to for finding the right security paper */
   private String isin;
 
-  /**
-   * Symbol is used when there is no ISIN
-   */
+  /** Symbol is used when there is no ISIN */
   private String symbol;
-  /**
-   * The number of units
-   */
+
+  /** The number of units */
   private Double units;
-  /**
-   * The price per unit
-   */
+
+  /** Price per unit of the security. */
   private Double quotation;
 
-  /**
-   * Accrued interest
-   */
+  /** Accrued interest amount for bond transactions. */
   private Double ac;
 
-  /**
-   * Currency of the investment product
-   */
+  /** Currency of the investment security. */
   private String cin;
 
-  /**
-   * Currency of the cash account
-   */
+  /** Currency of the cash account (mandatory field). */
   private String cac;
 
-  /**
-   * Currency exchange rate
-   */
+  /** Exchange rate when transaction involves currency conversion. */
   private Double cex;
 
-  /**
-   * Transaction cost 1
-   */
+  /** Primary transaction cost (broker fees, commissions). */
   private Double tc1;
 
-  /**
-   * Transaction cost 2
-   */
+  /** Secondary transaction cost if multiple fees apply. */
   private Double tc2;
 
-  /**
-   * This amount is deducted from the transaction costs
-   */
+  /** Discount amount deducted from transaction costs. */
   private Double reduce;
 
-  /**
-   * Transaction Tax 1
-   */
+  /** Primary tax amount. */
   private Double tt1;
 
-  /**
-   * Transaction Tax 1
-   */
+  /** Secondary tax amount if multiple taxes apply. */
   private Double tt2;
 
-  /**
-   * Currency for tax and transaction cost
-   */
+  /** Currency for transaction costs and taxes. */
   private String cct;
 
-  /**
-   * Total amount
-   */
+  /** Total transaction amount including all costs and taxes. */
   private Double ta;
 
-  /**
-   * May be used in csv do connect to rows together
-   */
+  /** Order identifier for linking related CSV transaction rows. */
   private String order;
 
-  /**
-   * User defined field
-   */
+  /** User-defined field for custom data extraction. */
   private String sf1;
 
-  /**
-   * Some prices are given by percentage, for example bonds
-   */
+  /** Indicator for percentage-based pricing (typically for bonds). */
   private String per;
 
-  /**
-   * A template may handle different transaction types.
-   */
+  /** Maps transaction type text to internal TransactionType enums. */
   private final Map<String, TransactionType> transactionTypesMap;
+
+  /** Set of processing flags that modify transaction behavior. */
   private final EnumSet<ImportKnownOtherFlags> knownOtherFlags;
+
+  /** File or line number for tracking source location. */
   private Integer fileOrLineNumber;
 
+  /** Transaction type text that should be marked as tax-exempt. */
   private String ignoreTaxOnDivInt;
 
+  /**
+   * Creates transaction properties with the specified configuration.
+   * 
+   * @param transactionTypesMap Mapping from document text to transaction types
+   * @param knownOtherFlags     Processing flags for special transaction handling
+   * @param ignoreTaxOnDivInt   Transaction type text for tax exemption
+   */
   public ImportProperties(Map<String, TransactionType> transactionTypesMap,
       EnumSet<ImportKnownOtherFlags> knownOtherFlags, String ignoreTaxOnDivInt) {
     this.transactionTypesMap = transactionTypesMap;
@@ -154,12 +124,25 @@ public class ImportProperties {
     this.ignoreTaxOnDivInt = ignoreTaxOnDivInt;
   }
 
+  /**
+   * Creates transaction properties with source tracking information.
+   * 
+   * @param transactionTypesMap Mapping from document text to transaction types
+   * @param knownOtherFlags     Processing flags for special transaction handling
+   * @param fileOrLineNumber    Source file or line number for tracking
+   * @param ignoreTaxOnDivInt   Transaction type text for tax exemption
+   */
   public ImportProperties(Map<String, TransactionType> transactionTypesMap,
       EnumSet<ImportKnownOtherFlags> knownOtherFlags, Integer fileOrLineNumber, String ignoreTaxOnDivInt) {
     this(transactionTypesMap, knownOtherFlags, ignoreTaxOnDivInt);
     this.fileOrLineNumber = fileOrLineNumber;
   }
 
+  /**
+   * Returns the transaction date and time, combining separate date/time components if needed.
+   * 
+   * @return Complete transaction timestamp
+   */
   public Date getDatetime() {
     if (datetime == null && date != null && time != null) {
       datetime = DateHelper.convertToDateViaInstant(LocalDateTime.of(date, time));
@@ -199,6 +182,13 @@ public class ImportProperties {
     return transType;
   }
 
+  /**
+   * Sets and validates the transaction type text against the configured mapping. Automatically applies tax exemption
+   * flags if applicable.
+   * 
+   * @param transType Transaction type text from document
+   * @throws IllegalArgumentException if transaction type is not in the mapping
+   */
   public void setTransType(String transType) {
     this.transType = transType;
     if (transactionTypesMap.get(this.transType) == null) {
@@ -217,6 +207,12 @@ public class ImportProperties {
     return isin;
   }
 
+  /**
+   * Sets and validates the ISIN code.
+   * 
+   * @param isin ISIN code to validate and set
+   * @throws IllegalArgumentException if ISIN format is invalid
+   */
   public void setIsin(String isin) {
     ISINValidator iSINValidator = new ISINValidator();
     if (iSINValidator.isValid(isin, null)) {

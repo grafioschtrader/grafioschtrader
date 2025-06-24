@@ -33,6 +33,7 @@ import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.dto.SuccessFailedImportTransactionTemplate;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionTemplate;
@@ -50,6 +51,39 @@ import grafioschtrader.types.TemplateCategory;
 import grafioschtrader.types.TemplateFormatType;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Implementation of custom repository operations for import transaction template management and processing.
+ * 
+ * <p>This implementation class provides the core business logic for managing import transaction templates,
+ * which serve as parsing rules for converting raw financial data from various sources (CSV files, PDF documents)
+ * into structured transaction records. The class handles template validation, storage, retrieval, and
+ * sophisticated parsing operations against multiple template formats.</p>
+ * 
+ * <h3>Key Capabilities</h3>
+ * 
+ * <h4>Template Validation and Processing</h4>
+ * <p>Provides comprehensive template validation ensuring templates are syntactically correct and
+ * contain all required parsing rules before storage. Supports both CSV and PDF template formats
+ * with format-specific validation logic.</p>
+ * 
+ * <h4>Multi-Format Template Support</h4>
+ * <ul>
+ *   <li><b>CSV Templates:</b> For parsing structured comma-separated value files with configurable
+ *       column mappings and data transformation rules</li>
+ *   <li><b>PDF Templates:</b> For extracting transaction data from PDF statements using text pattern
+ *       matching and regular expressions</li>
+ * </ul>
+ * 
+ * <h4>Template Lifecycle Management</h4>
+ * <p>Supports complete template lifecycle including creation, validation, export for backup/deployment,
+ * and bulk import with detailed success/failure tracking. Templates are versioned by date and support
+ * multiple languages for international trading platforms.</p>
+ * 
+ * <h4>Platform Integration</h4>
+ * <p>Enables seamless integration with various trading platforms by providing template export/import
+ * capabilities with standardized filename formats for easy identification and deployment across
+ * different environments.</p>
+ */
 public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryImpl<ImportTransactionTemplate>
     implements ImportTransactionTemplateJpaRepositoryCustom {
 
@@ -161,6 +195,28 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
     }
   }
 
+  /**
+   * Generates a standardized filename for template export based on template metadata.
+   * This method creates consistent, descriptive filenames that include all essential template
+   * identification information, enabling easy recognition and sorting of template files
+   * during export, backup, or deployment operations.
+   * 
+   * <p>The filename format follows the pattern:</p>
+   * <code>{category}-{format}-{date}-{language}.tmpl</code>
+   * 
+   * <p>Where:</p>
+   * <ul>
+   *   <li><b>category:</b> Template category (accumulate, dividend, etc.) in lowercase</li>
+   *   <li><b>format:</b> Template format type (csv, pdf) in lowercase</li>
+   *   <li><b>date:</b> Valid since date in yyyy-MM-dd format</li>
+   *   <li><b>language:</b> Template language code (en, de, fr, etc.)</li>
+   *   <li><b>.tmpl:</b> Standard template file extension</li>
+   * </ul>
+   * 
+   * @param itt The import transaction template to generate filename for
+   * @param dateFormat Configured date formatter for consistent date representation
+   * @return Standardized filename incorporating all template metadata
+   */
   private String getTemplateFileName(ImportTransactionTemplate itt, DateFormat dateFormat) {
     return itt.getTemplateCategory().name().toLowerCase() + "-" + itt.getTemplateFormatType() + "-"
         + dateFormat.format(itt.getValidSince()) + "-" + itt.getTemplateLanguage() + ".tmpl";
@@ -204,6 +260,27 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
     return sfitt;
   }
 
+  /**
+   * Saves an imported template with comprehensive validation, permission checking, and update handling.
+   * This method manages the process of storing uploaded templates, including duplicate detection,
+   * permission validation, and proper handling of both new template creation and existing template updates.
+   * 
+   * <p>The save process includes:</p>
+   * <ul>
+   *   <li><b>Duplicate Detection:</b> Checks for existing templates with identical metadata</li>
+   *   <li><b>Permission Validation:</b> Ensures user has rights to create or modify templates</li>
+   *   <li><b>Entity Management:</b> Handles both new creation and existing entity updates</li>
+   *   <li><b>Statistics Tracking:</b> Updates result counters for comprehensive upload feedback</li>
+   * </ul>
+   * 
+   * <p>Permission checking ensures users can only modify templates they own or have
+   * administrative privileges for, preventing unauthorized template modifications.</p>
+   * 
+   * @param user The authenticated user performing the template import
+   * @param idTransactionImportPlatform The platform ID to associate the template with
+   * @param itt The template entity to save with all metadata populated
+   * @param sfitt Statistics container to track save results (updated by reference)
+   */
   private void saveImportedTemplate(final User user, final Integer idTransactionImportPlatform,
       ImportTransactionTemplate itt, SuccessFailedImportTransactionTemplate sfitt)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
@@ -231,6 +308,16 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
         Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class));
   }
 
+  /**
+   * Extracts text content from uploaded template files with proper encoding handling.
+   * This method safely reads the content of uploaded MultipartFile objects, ensuring
+   * proper character encoding (UTF-8) and complete content extraction for template
+   * processing and validation.
+   * 
+   * @param uploadFile The multipart file containing template content to extract
+   * @return The complete text content of the uploaded file as UTF-8 encoded string, or null if file is empty
+   * @throws IOException if file reading fails due to I/O errors or stream access issues
+   */
   private String getTemplateAsText(MultipartFile uploadFile) throws IOException {
     String templateAsText = null;
     if (!uploadFile.isEmpty()) {

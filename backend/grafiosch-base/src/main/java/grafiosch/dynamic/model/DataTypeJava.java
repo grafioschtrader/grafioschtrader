@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 
 /**
  * Used for mapping between Java data types and GUI data types.
- *
  */
 public enum DataTypeJava {
   Boolean(boolean.class), BooleanC(Boolean.class), Byte(byte.class), ByteC(Byte.class), Double(double.class),

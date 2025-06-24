@@ -65,16 +65,15 @@ public class ExportDefinition {
   }
 
   public static enum TENANT_USER {
-    // Use special SQL statement
+    /** Use special SQL statement */
     NONE,
-    // Create statement with where clause which uses tenant id for selection
+    /** Create statement with where clause which uses tenant id for selection */
     ID_TENANT,
-    // Create statement with where clause which uses id_user for selection
+    /** Create statement with where clause which uses id_user for selection */
     ID_USER,
-    // Used for shared entities which were created by this user
+    /** Used for shared entities which were created by this user */
     CREATED_BY,
-    // Used for statement where idUser is used but the table field has a different
-    // name
+    /** Used for statement where idUser is used but the table field has a different name */
     ID_USER_DIFFERENT
   }
 
