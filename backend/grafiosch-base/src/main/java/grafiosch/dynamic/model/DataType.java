@@ -7,20 +7,19 @@ package grafiosch.dynamic.model;
 public enum DataType {
 
   None((byte) 0),
-  // Decimal numbers
+  /** Decimal numbers */
   Numeric((byte) 1),
-  // Only Integer
+  /** Only Integer */
   NumericInteger((byte) 4),
-  // Only String
+  /** Only String */
   String((byte) 7),
-  // Date with time
+  /** Date with time */
   DateTimeNumeric((byte) 8),
-  // Only Date
+  /** Only Date */
   DateString((byte) 10),
-  // True or false
+  /** True or false */
   Boolean((byte) 13),
-  // For a web link. Normally this is a string with validation for validity as a
-  // URL.
+  /** For a web link. Normally this is a string with validation for validity as a URL. */
   URLString((byte) 20);
 
   private final Byte value;

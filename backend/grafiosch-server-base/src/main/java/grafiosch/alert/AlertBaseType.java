@@ -3,7 +3,7 @@ package grafiosch.alert;
 import grafiosch.types.TaskTypeBase;
 
 public enum AlertBaseType implements IAlertType {
-  // A background has produced a timeout
+  /** A background has produced a timeout */
   ALERT_GET_ZOMBIE_BACKGROUND_JOB((byte) 1);
 
   private final Byte value;

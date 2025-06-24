@@ -16,20 +16,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sun.istack.NotNull;
-
+import grafioschtrader.dto.ImportTransactionPosDTOs.SetCashAccountImport;
+import grafioschtrader.dto.ImportTransactionPosDTOs.SetIdTransactionMayBe;
+import grafioschtrader.dto.ImportTransactionPosDTOs.SetSecurityImport;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
 import grafioschtrader.repository.ImportTransactionPosJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 
-/**
- * Rest service for one or more import transactions.
- *
- */
+
 @RestController
 @RequestMapping(RequestGTMappings.IMPORTTRANSACTIONPOS_MAP)
 @Tag(name = RequestGTMappings.IMPORTTRANSACTIONPOS, description = "Controller for import transaction position")
@@ -38,8 +34,12 @@ public class ImportTransactionPosResource {
   @Autowired
   private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
 
-  @Operation(summary = "Gets all import transaction position for a specified ID of import transaction head", description = "", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONPOS })
+  @Operation(summary = "Retrieve import transaction positions with template information for a transaction head",
+      description = """
+          Returns all import transaction positions associated with the specified transaction head, combined with their
+          corresponding template information. This provides a complete view of imported transaction data along with the
+          parsing templates used to extract the information from the original source files.""",
+      tags = { RequestGTMappings.IMPORTTRANSACTIONPOS })
   @GetMapping(value = "/importtransactionhead/{idTransactionHead}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<CombineTemplateAndImpTransPos>> getCombineTemplateAndImpTransPosListByTransactionHead(
       @PathVariable final Integer idTransactionHead) {
@@ -48,16 +48,24 @@ public class ImportTransactionPosResource {
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Set a security for some specified import transaction positions", description = "", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONPOS })
+  @Operation(summary = "Assign a security to multiple import transaction positions",
+      description = """
+          Updates the specified import transaction positions to reference the given security. This operation is used
+          when the automatic security detection during import was unsuccessful or incorrect, allowing manual assignment
+          of the correct security to the transaction positions.""",
+      tags = { RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PutMapping(value = "/setsecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> setSecurity(@RequestBody SetSecurityImport setSecurityImport) {
     return new ResponseEntity<>(importTransactionPosJpaRepository.setSecurity(setSecurityImport.idSecuritycurrency,
         setSecurityImport.idTransactionPosList), HttpStatus.OK);
   }
 
-  @Operation(summary = "Set a cash account for some specified import transaction positions", description = "", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONPOS })
+  @Operation(summary = "Assign a cash account to multiple import transaction positions",
+      description = """
+          Updates the specified import transaction positions to reference the given cash account. This operation is
+          used when the automatic cash account detection during import was unsuccessful or incorrect, allowing manual
+          assignment of the correct cash account to the transaction positions.""",
+      tags = { RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PutMapping(value = "/setcashaccount", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> setCashAccount(
       @RequestBody SetCashAccountImport setCashAccountImport) {
@@ -65,8 +73,12 @@ public class ImportTransactionPosResource {
         setCashAccountImport.idSecuritycashAccount, setCashAccountImport.idTransactionPosList), HttpStatus.OK);
   }
 
-  @Operation(summary = "Sometimes the brooker round some value, is corrects the the qouatation to match the total value", description = "", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONPOS })
+  @Operation(summary = "Adjust currency exchange rates or quotations to match broker calculations",
+      description = """
+          Corrects currency exchange rates or security quotations when broker rounding causes discrepancies between
+          calculated and actual transaction totals. This operation automatically adjusts the rates/quotations to
+          match the broker's total values, resolving minor calculation differences due to rounding.""",
+      tags = { RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PostMapping(value = "/adjustcurrencyexrateorquotation", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> adjustCurrencyExRateOrQuotation(
       @RequestBody final List<Integer> idTransactionPosList) {
@@ -74,24 +86,36 @@ public class ImportTransactionPosResource {
         HttpStatus.OK);
   }
 
-  @Operation(summary = "The calculated total of the import transactions is taken for the possible transaction.", description = "This should be used only in case of small difference between calculated and imported total.", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONPOS })
+  @Operation(summary = "Accept calculated total differences for import transactions",
+      description = """
+          Accepts the calculated total of the import transactions for permanent transaction creation, even when small
+          differences exist between calculated and imported totals. This should only be used for minor discrepancies
+          caused by rounding differences or data precision limitations.""",
+      tags = { RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PostMapping(value = "/accepttotaldiff", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> acceptTotalDiff(
       @RequestBody final List<Integer> idTransactionPosList) {
     return new ResponseEntity<>(importTransactionPosJpaRepository.acceptTotalDiff(idTransactionPosList), HttpStatus.OK);
   }
 
-  @Operation(summary = "Deletes existing import transaction of the passed ID's..", description = "", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONPOS })
+  @Operation(summary = "Delete multiple import transaction positions",
+      description = """
+          Permanently removes the specified import transaction positions from the system. This operation is irreversible
+          and should be used when import positions are incorrect, duplicated, or no longer needed. Only positions that
+          have not been converted to permanent transactions can be deleted.""",
+      tags = { RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PostMapping(value = "/deletes", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteMultiple(@RequestBody final List<Integer> idTransactionPosList) {
     importTransactionPosJpaRepository.deleteMultiple(idTransactionPosList);
     return ResponseEntity.noContent().build();
   }
 
-  @Operation(summary = "Check or ignore for possible existing import transaction", description = "", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONPOS })
+  @Operation(summary = "Set duplicate transaction handling for import positions",
+      description = """
+          Controls duplicate detection behavior for import transaction positions. Set to 0 to mark positions as
+          confirmed non-duplicates, or null to reset duplicate detection. This helps prevent creation of duplicate
+          transactions when similar transactions already exist in the system.""",
+      tags = { RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PatchMapping(value = "/setidtransactionmaybe", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> setIdTransactionMayBe(@RequestBody SetIdTransactionMayBe setIdTransactionMayBe) {
     importTransactionPosJpaRepository.setIdTransactionMayBe(setIdTransactionMayBe.idTransactionMayBe,
@@ -99,8 +123,13 @@ public class ImportTransactionPosResource {
     return ResponseEntity.noContent().build();
   }
 
-  @Operation(summary = "Creates the corresponding transaction from the passed IDs of import transactions, updating existing transactions.", description = "", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONPOS })
+  @Operation(summary = "Create permanent transactions from validated import positions",
+      description = """
+          Converts the specified import transaction positions into permanent transaction records. This operation
+          validates all required data, performs final calculations, and creates the permanent transactions while
+          updating the import positions with transaction references. Only ready and validated positions can be
+          converted.""",
+      tags = { RequestGTMappings.IMPORTTRANSACTIONPOS })
   @PostMapping(value = "/createtransaction", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionPos>> createTransaction(
       @RequestBody final List<Integer> idTransactionPosList) {
@@ -108,23 +137,7 @@ public class ImportTransactionPosResource {
         HttpStatus.OK);
   }
 
-  static class SetSecurityImport {
-    public Integer idSecuritycurrency;
-    public List<Integer> idTransactionPosList;
-  }
-
-  static class SetCashAccountImport {
-    @NotNull
-    public Integer idSecuritycashAccount;
-    @NotNull
-    public List<Integer> idTransactionPosList;
-  }
-
-  static class SetIdTransactionMayBe {
-    @Min(value = 0)
-    @Max(value = 0)
-    public Integer idTransactionMayBe;
-    public List<Integer> idTransactionPosList;
-  }
+  
+  
 
 }
