@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.reports.AccountPositionGroupSummaryReport;
 import grafioschtrader.reports.SecurityDividendsReport;
@@ -126,6 +127,12 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<Portfolio> getUpdateCreateJpaRepository() {
     return portfolioJpaRepository;
+  }
+
+  
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

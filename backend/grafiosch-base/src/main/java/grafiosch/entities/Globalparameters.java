@@ -45,6 +45,23 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Global parameters entity for storing application-wide configuration settings.
+ * 
+ * <p>
+ * This entity provides a flexible key-value store for various types of configuration data including integers, strings,
+ * dates, and binary objects. It supports complex configuration through blob properties that can be transformed to/from
+ * Java objects using reflection-based serialization.
+ * </p>
+ * 
+ * <h3>Supported Data Types:</h3>
+ * <ul>
+ * <li><strong>Integer:</strong> Numeric configuration values</li>
+ * <li><strong>String:</strong> Text-based settings up to 25 characters</li>
+ * <li><strong>Date:</strong> Date-based configuration parameters</li>
+ * <li><strong>Blob:</strong> Complex objects serialized as Properties</li>
+ * </ul>
+ */
 @Schema(description = "Contains a global setting configuration")
 @Entity
 @Table(name = Globalparameters.TABNAME)
@@ -60,6 +77,7 @@ public class Globalparameters implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "Integer value for numeric configuration settings")
   @Id
   @Basic(optional = false)
   @NotNull
@@ -67,17 +85,21 @@ public class Globalparameters implements Serializable {
   @Column(name = "property_name")
   private String propertyName;
 
+  @Schema(description = "Integer value for numeric configuration settings")
   @Column(name = "property_int")
   private Integer propertyInt;
 
+  @Schema(description = "String value for text-based configuration settings")
   @Size(max = 25)
   @Column(name = "property_string")
   private String propertyString;
 
+  @Schema(description = "Date value for date-based configuration settings")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "property_date")
   private LocalDate propertyDate;
 
+  @Schema(description = "Binary data for complex configuration objects")
   @Lob
   @Column(name = "property_blob")
   private byte[] propertyBlob;
@@ -143,6 +165,11 @@ public class Globalparameters implements Serializable {
     return propertyBlob;
   }
 
+  /**
+   * Gets the blob property as UTF-8 text for properties ending with blob suffix.
+   * 
+   * @return text representation of blob data, null if not a text blob
+   */
   public String getPropertyBlobAsText() {
     return propertyBlob != null && propertyName.endsWith(BaseConstants.BLOB_PROPERTIES)
         ? new String(propertyBlob, StandardCharsets.UTF_8)
@@ -166,18 +193,41 @@ public class Globalparameters implements Serializable {
     this.changedBySystem = changedBySystem;
   }
 
+  /**
+   * Converts message key format to property key format.
+   * 
+   * @param msgKey message key with underscores
+   * @return property key with dots in lowercase
+   */
   public static String getKeyFromMsgKey(String msgKey) {
     return msgKey.toLowerCase().replaceAll("_", ".");
   }
 
+  /**
+   * Gets maximum default database value by message key.
+   * 
+   * @param msgKey message key format
+   * @return maximum default value with key wrapper
+   */
   public static MaxDefaultDBValueWithKey getMaxDefaultDBValueByMsgKey(final String msgKey) {
     return getMaxDefaultDBValueByKey(getKeyFromMsgKey(msgKey));
   }
 
+  /**
+   * Gets maximum default database value by property key.
+   * 
+   * @param key property key format
+   * @return maximum default value with key wrapper
+   */
   public static MaxDefaultDBValueWithKey getMaxDefaultDBValueByKey(final String key) {
     return new MaxDefaultDBValueWithKey(key, defaultLimitMap.get(key));
   }
 
+  /**
+   * Resets the database value for a specific configuration key.
+   * 
+   * @param key the configuration key to reset
+   */
   public static void resetDBValueOfKey(final String key) {
     MaxDefaultDBValue mddv = defaultLimitMap.get(key);
     if (mddv != null) {
@@ -185,6 +235,12 @@ public class Globalparameters implements Serializable {
     }
   }
 
+  /**
+   * Replaces the existing property value with a new value of the same type.
+   * 
+   * @param gpNew new global parameter with updated value
+   * @throws IllegalArgumentException if property types don't match
+   */
   public void replaceExistingPropertyValue(Globalparameters gpNew) {
     if (gpNew.getPropertyDate() != null && propertyDate != null) {
       this.propertyDate = gpNew.getPropertyDate();
@@ -199,12 +255,25 @@ public class Globalparameters implements Serializable {
     }
   }
 
+  /**
+   * Validates blob property by converting text to binary and checking object validity.
+   * 
+   * @param targetObj object implementing self-check validation
+   * @return validation error message or null if valid
+   * @throws IOException if blob conversion fails
+   */
   public String checkBlobPropertyBeforeSave(IPropertiesSelfCheck targetObj) throws IOException {
     propertyBlob = propertyBlobAsText.getBytes(StandardCharsets.UTF_8);
     transformBlobPropertiesIntoClass(targetObj);
     return targetObj.checkForValid();
   }
 
+  /**
+   * Transforms blob properties into a Java object using reflection.
+   * 
+   * @param targetObj target object to populate with property values
+   * @return populated target object
+   */
   public Object transformBlobPropertiesIntoClass(Object targetObj) {
     Properties properties = new Properties();
     try (ByteArrayInputStream bais = new ByteArrayInputStream(propertyBlob)) {
@@ -216,6 +285,12 @@ public class Globalparameters implements Serializable {
     return targetObj;
   }
 
+  /**
+   * Transforms blob properties into a Java object using reflection.
+   * 
+   * @param targetObj target object to populate with property values
+   * @return populated target object
+   */
   private Object transformBlobPropertiesIntoClass(Properties properties, Object targetObj) {
     List<Field> allFields = Arrays.asList(targetObj.getClass().getDeclaredFields());
     List<Field> mapFields = allFields.stream().filter(f -> Map.class.isAssignableFrom(f.getType()))
@@ -231,6 +306,15 @@ public class Globalparameters implements Serializable {
     return targetObj;
   }
 
+  /**
+   * Sets a property value on target object using reflection with type conversion.
+   * 
+   * @param targetObj target object
+   * @param allFields all fields of target class
+   * @param mapFields map fields of target class
+   * @param propertyName property name to set
+   * @param propertyValue property value as string
+   */
   private void setPropertyToClass(Object targetObj, List<Field> allFields, List<Field> mapFields, String propertyName,
       String propertyValue) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 
@@ -256,6 +340,12 @@ public class Globalparameters implements Serializable {
     }
   }
 
+  /**
+   * Transforms Java object into blob properties using reflection.
+   * 
+   * @param soruceObj source object to serialize
+   * @throws Exception if transformation fails
+   */
   public void transformClassIntoBlobPropertis(Object soruceObj) throws Exception {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
       Properties properties = transformClassIntoPropertis(soruceObj);
@@ -264,6 +354,12 @@ public class Globalparameters implements Serializable {
     }
   }
 
+  /**
+   * Transforms Java object into Properties using reflection.
+   * 
+   * @param soruceObj source object to convert
+   * @return Properties object with field values
+   */
   private Properties transformClassIntoPropertis(Object soruceObj)
       throws IllegalArgumentException, IllegalAccessException {
     Field[] fields = soruceObj.getClass().getDeclaredFields();

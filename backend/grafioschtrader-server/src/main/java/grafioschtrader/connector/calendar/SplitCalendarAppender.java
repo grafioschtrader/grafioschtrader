@@ -37,11 +37,9 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- *
- * Checks the split calendar daily and creates a TaskDataChange for the corresponding securities. A direct insertion
- * into the split table is not performed, because the security may have been identified incorrectly. For the
- * identification the security symbol is used and also the name is checked for similarity.
- *
+ * Service component that monitors split calendars daily and creates TaskDataChange entries for securities that have
+ * announced stock splits. Uses name similarity matching to identify securities and avoids direct database insertion to
+ * prevent incorrect matches.
  */
 @Component
 public class SplitCalendarAppender {
@@ -69,8 +67,13 @@ public class SplitCalendarAppender {
   @Autowired(required = false)
   private List<ISplitCalendarFeedConnector> splitCalendarFeedConnectors = new ArrayList<>();
 
+  /** Regex pattern to remove common corporate suffixes from company names for matching */
   private static String removeFromNameRegex = " (corp|corp\\.|corporation|inc\\.|inc|llc|ltd adr)$";
 
+  /**
+   * Processes split calendar data from the last append date until today. Updates the global parameter with the latest
+   * processing date upon completion.
+   */
   public void appendSecuritySplitsUntilToday() {
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
         .findById(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
@@ -78,6 +81,12 @@ public class SplitCalendarAppender {
         () -> loadSplitData(LocalDate.now()));
   }
 
+  /**
+   * Loads and processes split data for each trading day from the specified start date to today. Initializes similarity
+   * algorithm and sorts connectors by priority before processing.
+   * 
+   * @param fromDate the starting date for split data loading
+   */
   private void loadSplitData(LocalDate fromDate) {
     LocalDate now = LocalDate.now();
     List<TradingDaysPlus> tradingDaysPlusList = tradingDaysPlusJpaRepository
@@ -92,13 +101,12 @@ public class SplitCalendarAppender {
   }
 
   /**
-   * The individual days are processed according to the trading calendar. The connectors for split calendars are
-   * contacted for each day.
-   *
-   * @param tradingDaysPlusList
-   * @param countryCodes
-   * @param similarityAlgo      As the company name in the split calendar can be different from the name entered here,
-   *                            an algorithm is used which allows certain deviations.
+   * Processes split calendar data for each trading day using available connectors. Retrieves split data for each day
+   * and attempts to match securities by ticker and name similarity.
+   * 
+   * @param tradingDaysPlusList list of trading days to process
+   * @param countryCodes        array of country codes for filtering split data
+   * @param similarityAlgo      algorithm for comparing company names when exact matches fail
    */
   private void stepThruEveryCalendarDay(List<TradingDaysPlus> tradingDaysPlusList, String[] countryCodes,
       SimilarityScore<Double> similarityAlgo) {
@@ -118,6 +126,15 @@ public class SplitCalendarAppender {
     }
   }
 
+  /**
+   * Validates security matches by comparing company names using similarity algorithm. Removes securities from the list
+   * if name similarity falls below threshold. Uses different similarity thresholds for stocks (0.88) vs other
+   * securities (0.95).
+   * 
+   * @param splitTickerMap map of ticker symbols to split information
+   * @param securities     list of securities to validate (modified in place)
+   * @param similarityAlgo algorithm for calculating name similarity scores
+   */
   private void matchSecurityNameWithSplitNameOthweiseRemoveIt(Map<String, TickerSecuritysplit> splitTickerMap,
       List<Security> securities, SimilarityScore<Double> similarityAlgo) {
     securities.removeIf(s -> {
@@ -140,6 +157,13 @@ public class SplitCalendarAppender {
     });
   }
 
+  /**
+   * Creates TaskDataChange entries for new security splits that don't already exist. Checks existing splits and pending
+   * tasks to avoid duplicates before creating new tasks.
+   * 
+   * @param splitTickerMap map of ticker symbols to split information from calendar feeds
+   * @param securities     list of matched securities to process for split tasks
+   */
   private void proposeSecuritsplitOverTaskDataChange(Map<String, TickerSecuritysplit> splitTickerMap,
       List<Security> securities) {
     int ssi = 0;

@@ -14,13 +14,13 @@ public abstract class TenantConfig {
     /**
      * Put only entities in here which can be checked when added with "SELECT count() FROM ..."
      */
-    TenantLimitsHelper.globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CASH_ACCOUNT,
+    TenantLimitsHelper.GLOBAL_LIMIT_KEY_TO_ENTITY_MAP.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CASH_ACCOUNT,
         Cashaccount.class);
-    TenantLimitsHelper.globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET,
+    TenantLimitsHelper.GLOBAL_LIMIT_KEY_TO_ENTITY_MAP.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET,
         CorrelationSet.class);
-    TenantLimitsHelper.globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_PORTFOLIO, Portfolio.class);
-    TenantLimitsHelper.globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITY_ACCOUNT,
+    TenantLimitsHelper.GLOBAL_LIMIT_KEY_TO_ENTITY_MAP.put(GlobalParamKeyDefault.GLOB_KEY_MAX_PORTFOLIO, Portfolio.class);
+    TenantLimitsHelper.GLOBAL_LIMIT_KEY_TO_ENTITY_MAP.put(GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITY_ACCOUNT,
         Securityaccount.class);
-    TenantLimitsHelper.globalLimitKeyToEntityMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHTLIST, Watchlist.class);
+    TenantLimitsHelper.GLOBAL_LIMIT_KEY_TO_ENTITY_MAP.put(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHTLIST, Watchlist.class);
   }
 }

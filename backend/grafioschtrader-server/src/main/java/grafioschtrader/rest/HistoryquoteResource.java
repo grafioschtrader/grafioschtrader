@@ -30,6 +30,7 @@ import grafiosch.entities.Auditable;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteAudit;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
@@ -191,6 +192,12 @@ public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> 
   @Override
   protected UpdateCreateJpaRepository<Historyquote> getUpdateCreateJpaRepository() {
     return historyquoteJpaRepository;
+  }
+
+  
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

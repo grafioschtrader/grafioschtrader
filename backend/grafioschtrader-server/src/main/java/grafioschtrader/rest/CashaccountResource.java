@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.reports.AccountPositionGroupSummaryReport;
 import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
@@ -66,6 +67,11 @@ public class CashaccountResource extends UpdateCreateDeleteWithTenantResource<Ca
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<Cashaccount> getUpdateCreateJpaRepository() {
     return cashaccountJpaRepository;
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

@@ -17,8 +17,8 @@ import grafiosch.entities.User;
  * Handles the export of a user's data into SQL INSERT statements. The user whose data is being exported will also be
  * granted roles with extensive permissions (ROLE_ADMIN, ROLE_ALLEDIT, ROLE_USER) in the exported statements.
  *
- * This procedure allows you to say goodbye to a shared GT instance and start a new personal instance of GT. Please note
- * that the exported data may only be used on an initial GT database.
+ * This procedure allows you to say goodbye to a shared instance and start a new personal instance of an application.
+ * Please note that the exported data may only be used on an initial database.
  */
 public class MySqlExportMyData {
 

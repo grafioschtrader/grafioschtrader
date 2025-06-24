@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.AlgoTopCreate;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.repository.AlgoTopJpaRepository;
@@ -65,6 +66,11 @@ public class AlgoTopResource extends UpdateCreateDeleteWithTenantResource<AlgoTo
   @PostMapping(value = "/create", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AlgoTop> create(@RequestBody AlgoTopCreate algoTopCreate) throws Exception {
     return createEntity(algoTopCreate);
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

@@ -25,6 +25,7 @@ import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreate;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
 import grafioschtrader.dto.ProposedMarginFinanceCost;
@@ -172,6 +173,11 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     log.debug("Delete by id Transaction : {}", idTransaction);
     transactionJpaRepository.deleteSingleDoubleTransaction(idTransaction);
     return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

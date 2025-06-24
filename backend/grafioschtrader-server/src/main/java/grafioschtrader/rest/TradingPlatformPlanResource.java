@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.repository.TradingPlatformPlanJpaRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +34,12 @@ public class TradingPlatformPlanResource extends UpdateCreateDeleteAuditResource
   @Override
   protected UpdateCreateJpaRepository<TradingPlatformPlan> getUpdateCreateJpaRepository() {
     return tradingPlatformPlanJpaRepository;
+  }
+
+  
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

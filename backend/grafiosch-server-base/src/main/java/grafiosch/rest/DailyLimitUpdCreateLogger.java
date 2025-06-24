@@ -1,6 +1,5 @@
 package grafiosch.rest;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.Optional;
 
@@ -95,7 +94,7 @@ public abstract class DailyLimitUpdCreateLogger<T extends BaseID<Integer>> {
       Optional<UserCountLimit> userCountLimitOpt = userEntityChangeCountJpaRepository
           .getCudTransactionAndUserLimit(user.getIdUser(), entityName);
       if (userCountLimitOpt.isPresent()) {
-        String key = GlobalParamKeyBaseDefault.GT_LIMIT_DAY + entityName;
+        String key = getPrefixEntityLimit() + entityName;
         Integer limit = userCountLimitOpt.get().getDayLimit() != null ? userCountLimitOpt.get().getDayLimit()
             : globalparametersJpaRepository.getMaxValueByKey(key);
         int cudTransaction = userCountLimitOpt.get().getCudTrans();
@@ -104,5 +103,9 @@ public abstract class DailyLimitUpdCreateLogger<T extends BaseID<Integer>> {
         }
       }
     }
+  }
+  
+  protected String getPrefixEntityLimit() {
+    return GlobalParamKeyBaseDefault.G_LIMIT_DAY;
   }
 }

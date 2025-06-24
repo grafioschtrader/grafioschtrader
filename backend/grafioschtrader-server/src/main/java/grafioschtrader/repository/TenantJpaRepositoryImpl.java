@@ -21,9 +21,9 @@ import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.repository.TenantBaseImpl;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
-import grafiosch.types.TenantKindType;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.types.TaskTypeExtended;
+import grafioschtrader.types.TenantKindType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 

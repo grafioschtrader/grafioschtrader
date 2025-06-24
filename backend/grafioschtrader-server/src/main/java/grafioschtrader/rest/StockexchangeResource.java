@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.StockexchangeBaseData;
 import grafioschtrader.dto.StockexchangeHasSecurity;
 import grafioschtrader.entities.Stockexchange;
@@ -64,6 +65,11 @@ public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stock
   @Override
   protected UpdateCreateJpaRepository<Stockexchange> getUpdateCreateJpaRepository() {
     return stockexchangeJpaRepository;
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

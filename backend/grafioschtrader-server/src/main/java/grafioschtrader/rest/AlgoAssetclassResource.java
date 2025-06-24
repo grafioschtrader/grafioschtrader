@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.repository.AlgoAssetclassJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,6 +48,11 @@ public class AlgoAssetclassResource extends UpdateCreateDeleteWithTenantResource
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<AlgoAssetclass> getUpdateCreateJpaRepository() {
     return algoAssetclassJpaRepository;
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

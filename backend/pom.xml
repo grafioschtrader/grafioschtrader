@@ -1,88 +1,81 @@
-<?xml version="1.0" encoding="UTF-8"?>
-   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-<!--
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <!--
     The main parent project definition for the entire application (server and client). This defines the modules that
     make up the project so that they can be built as one (and opened as a single project in an IDE). This top level
     POM does not provide any build steps itself but is just an aggregator of the modules.
 -->
-		
-    <groupId>grafioschtrader</groupId>
-    <artifactId>grafioschtrader</artifactId>
-	<packaging>pom</packaging>
-	<version>0.33.6</version>
-	
-	
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.0</version>
-		<relativePath/>
-	</parent>
-	
-	
-	<dependencyManagement>
-	  	<dependencies>
-    		<dependency>
-      			<groupId>org.json</groupId>
-      			<artifactId>json</artifactId>
-      			<version>20250107</version>
-    		</dependency>
-			<dependency>
-			     <groupId>io.jsonwebtoken</groupId>
-			     <artifactId>jjwt-api</artifactId>
-			     <version>0.12.6</version>
-		    </dependency>
-			<dependency>
-			     <groupId>org.apache.commons</groupId>
-			     <artifactId>commons-collections4</artifactId>
-			     <version>4.5.0</version>
-		    </dependency>
-			<dependency>
-			     <groupId>commons-validator</groupId>
-			     <artifactId>commons-validator</artifactId>
-			     <version>1.9.0</version>
-		    </dependency>
-			<dependency>
-			   <groupId>com.github.vladimir-bukhtoyarov</groupId>
-			   <artifactId>bucket4j-core</artifactId>
-			   <version>8.0.1</version>
-		    </dependency>
-			<dependency>
-				<groupId>org.apache.pdfbox</groupId>
-				<artifactId>pdfbox</artifactId>
-				<version>3.0.5</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-				<version>2.8.6</version>
-			</dependency>
-			<dependency>
-				<groupId>io.hypersistence</groupId>
-				<artifactId>hypersistence-utils-hibernate-63</artifactId>
-				<version>3.9.10</version>
-			</dependency>
-    	</dependencies>
-	</dependencyManagement>
-	
-
-    <!-- organisation is needed by the JavaFX plugin but we define it here for general use -->
-    <organization>
-        <name>grafioschtrader</name>
-    </organization>
-
-    <!-- define the common properties used throughout the modules - allows us to keep things consistent -->
-    
-
-	<properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>21</java.version>
-    </properties>
-
-<reporting>
+  <groupId>grafioschtrader</groupId>
+  <artifactId>grafioschtrader</artifactId>
+  <packaging>pom</packaging>
+  <version>0.33.7</version>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.1</version>
+    <relativePath/>
+  </parent>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>20250107</version>
+      </dependency>
+      <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-api</artifactId>
+        <version>0.12.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-collections4</artifactId>
+        <version>4.5.0</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-validator</groupId>
+        <artifactId>commons-validator</artifactId>
+        <version>1.9.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.vladimir-bukhtoyarov</groupId>
+        <artifactId>bucket4j-core</artifactId>
+        <version>8.0.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox</artifactId>
+        <version>3.0.5</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>2.8.9</version>
+      </dependency>
+      <dependency>
+        <groupId>io.hypersistence</groupId>
+        <artifactId>hypersistence-utils-hibernate-63</artifactId>
+        <version>3.9.10</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.ulisesbocchio</groupId>
+        <artifactId>jasypt-spring-boot-starter</artifactId>
+        <!--  adjust maven plugin as well -->
+        <version>3.0.5</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <!-- organisation is needed by the JavaFX plugin but we define it here for general use -->
+  <organization>
+    <name>grafioschtrader</name>
+  </organization>
+  <!-- define the common properties used throughout the modules - allows us to keep things consistent -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <java.version>21</java.version>
+  </properties>
+  <reporting>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -100,13 +93,12 @@
       </plugin>
     </plugins>
   </reporting>
-
-    <!-- define the sub-modules - Maven will work out the build order based on their inter-dependencies -->
-	<modules>
-	    <module>grafiosch-base</module>
-		<module>grafiosch-server-base</module>
-		<module>grafioschtrader-common</module>
-		<module>grafioschtrader-server</module>
-	</modules>
-	
+  <!-- define the sub-modules - Maven will work out the build order based on their inter-dependencies -->
+  <modules>
+    <module>grafiosch-base</module>
+    <module>grafiosch-server-base</module>
+    <module>grafioschtrader-common</module>
+    <module>grafioschtrader-server</module>
+    <module>grafiosch-test-integration</module>
+  </modules>
 </project>

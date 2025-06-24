@@ -11,7 +11,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.entities.TenantBase;
-import grafiosch.types.TenantKindType;
+import grafioschtrader.types.TenantKindType;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -66,12 +66,18 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "id_watchlist_performance")
   private Integer idWatchlistPerformance;
 
+  @Schema(description = "Type of tenant, can not be set from outside")
+  @Column(name = "tenant_kind_type")
+  private byte tenantKindType;
+
+  
   public Tenant() {
   }
 
   public Tenant(String tenantName, String currency, Integer createIdUser, TenantKindType tenantKindType,
       boolean excludeDivTax) {
-    super(tenantName, createIdUser, tenantKindType);
+    super(tenantName, createIdUser);
+    this.tenantKindType = tenantKindType.getValue();
     this.currency = currency;
     this.excludeDivTax = excludeDivTax;
   }
@@ -93,6 +99,15 @@ public class Tenant extends TenantBase implements Serializable {
     this.portfolioList = portfolioList;
   }
 
+  public TenantKindType getTenantKindType() {
+    return TenantKindType.getTenantKindTypeByValue(tenantKindType);
+  }
+
+  public void setTenantKindType(TenantKindType tenantKindType) {
+    this.tenantKindType = tenantKindType.getValue();
+  }
+  
+  
   @JsonIgnore
   public List<Watchlist> getWatchlistList() {
     return watchlistList;

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package grafioschtrader.repository;
 
 import java.lang.reflect.InvocationTargetException;
@@ -19,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -211,9 +205,18 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     }
   }
 
+  /**
+   * Checks if the active from date was set to an earlier date than the existing security.
+   * Used to determine if history data needs to be reloaded when the active period is extended backwards.
+   * 
+   * @param securityCurrencyChanged the security with potential changes
+   * @param targetSecurity the original security to compare against
+   * @return true if active from date was moved to an earlier date, false otherwise
+   */
   private boolean activeFromDateWasSetToOlder(final Security securityCurrencyChanged, final Security targetSecurity) {
     return securityCurrencyChanged.getActiveFromDate().before(targetSecurity.getActiveFromDate());
   }
+
 
   /**
    * Checks if the derived fields of a security have changed between two instances. Derived fields include formula, the
@@ -597,7 +600,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       setSecurityDerivedLinks(security, existingSecurity);
       if (!UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, existingSecurity)
           && hasDerivedFieldsChanged(security, existingSecurity)) {
-        throw new SecurityException(GlobalConstants.FILED_EDIT_SECURITY_BREACH);
+        throw new SecurityException(BaseConstants.FILED_EDIT_SECURITY_BREACH);
       }
     }
     return hasRights;

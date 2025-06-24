@@ -96,7 +96,7 @@ public class UserResource {
 
   @Operation(summary = """
       The user receives an email with a token to his email address.
-      This token is included as a link in this email and must be confirmed for the further in the GT registration process.""", description = "", tags = {
+      This token is included as a link in this email and must be confirmed for the further in the application registration process.""", description = "", tags = {
       User.TABNAME })
   @GetMapping(value = "/tokenverify/{token}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<String> tokenverify(@PathVariable final String token) {

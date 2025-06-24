@@ -167,7 +167,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     }
 
     if (existingEntity != null && !historyquote.getDate().equals(existingEntity.getDate())) {
-      throw new SecurityException(GlobalConstants.FILED_EDIT_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.FILED_EDIT_SECURITY_BREACH);
     }
     historyquote.setCreateModifyTime(new Date());
     historyquote.setCreateType(HistoryquoteCreateType.ADD_MODIFIED_USER);
