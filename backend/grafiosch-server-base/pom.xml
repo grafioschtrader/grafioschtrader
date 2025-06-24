@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.6</version>
+		<version>0.33.7</version>
 	</parent>
 
 	<artifactId>grafiosch-server-base</artifactId>
@@ -32,12 +32,11 @@
 	<dependencies>
 		<!-- When building a war file, disable when building jar with included 
 			tomcat -->
-
 				
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.33.6</version>	
+	        <version>0.33.7</version>	
 		</dependency>
 
         <dependency>

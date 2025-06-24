@@ -33,6 +33,11 @@ import grafiosch.entities.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+/**
+ * Implementation of custom global parameters repository operations. Provides access to system-wide configuration
+ * parameters with database storage, caching mechanisms, and blob-based property validation. Handles
+ * internationalization support and admin-only modifications.
+ */
 public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRepositoryCustom {
 
   final static public Map<String, Class<?>> propertiesClassMap = new HashMap<>();
@@ -116,8 +121,9 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     JSONObject jsonObject = new JSONObject();
     for (Entry<Object, Object> entry : properties.entrySet()) {
       String key = entry.getKey().toString();
-      jsonObject.put(key.startsWith(BaseConstants.GT_PREFIX) || key.startsWith("UDF_") ? key
-          : key.toUpperCase().replaceAll("\\.", "_"), entry.getValue());
+      boolean hasPrefix = BaseConstants.PREFIXES_PARAM.stream().anyMatch(key::startsWith);
+      jsonObject.put(hasPrefix || key.startsWith("UDF_") ? key : key.toUpperCase().replaceAll("\\.", "_"),
+          entry.getValue());
     }
     return jsonObject.toString();
   }
@@ -142,7 +148,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   public List<ValueKeyHtmlSelectOptions> getSupportedLocales() {
     final List<ValueKeyHtmlSelectOptions> dropdownValues = new ArrayList<>();
     for (final Locale loc : Locale.getAvailableLocales()) {
-      if (BaseConstants.GT_LANGUAGE_CODES.contains(loc.getLanguage())) {
+      if (BaseConstants.G_LANGUAGE_CODES.contains(loc.getLanguage())) {
         final String localeString = loc.toString().replace("_", "-");
         if (localeString.length() <= 5) {
           dropdownValues.add(new ValueKeyHtmlSelectOptions(localeString, localeString));
@@ -169,6 +175,15 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
   }
 
+  /**
+   * Validates blob properties before saving by deserializing and checking configuration objects. Uses
+   * propertiesClassMap to determine the appropriate validation class for blob properties. Performs syntax validation
+   * and completeness checks using the IPropertiesSelfCheck interface.
+   * 
+   * @param updGp the global parameters entity containing blob property data to validate
+   * @throws Exception if blob property validation fails, object instantiation fails, or localized error message
+   *                   retrieval fails
+   */
   private void checkBlobPropertyBeforeSave(Globalparameters updGp) throws Exception {
     if (updGp.getPropertyName().endsWith(BaseConstants.BLOB_PROPERTIES)) {
       Class<?> clazz = propertiesClassMap.get(updGp.getPropertyName());
@@ -188,7 +203,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     PasswordRegexProperties prp = new PasswordRegexProperties();
     if (globalparametersOpt.isEmpty()) {
       prp = new PasswordRegexProperties(BaseConstants.STANDARD_PASSWORD_REGEX,
-          BaseConstants.GT_LANGUAGE_CODES.stream().collect(
+          BaseConstants.G_LANGUAGE_CODES.stream().collect(
               Collectors.toMap(lang -> lang, lang -> messages.getMessage("gt.password.regex", null, Locale.of(lang)))),
           false);
       Globalparameters gp = new Globalparameters(GlobalParamKeyBaseDefault.GLOB_KEY_PASSWORT_REGEX);

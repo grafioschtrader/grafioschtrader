@@ -18,6 +18,10 @@ import grafiosch.entities.UserEntityChangeLimit;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.EntityType;
 
+/**
+ * Implementation of custom repository operations for user entity change limits.
+ * Provides methods for selective attribute saving and for generating HTML select options for public entities.
+ */
 public class UserEntityChangeLimitJpaRepositoryImpl extends BaseRepositoryImpl<UserEntityChangeLimit>
     implements UserEntityChangeLimitJpaRepositoryCustom {
 
@@ -48,7 +52,6 @@ public class UserEntityChangeLimitJpaRepositoryImpl extends BaseRepositoryImpl<U
 
     final Set<EntityType<?>> entityTypeList = entityManager.getMetamodel().getEntities();
     for (EntityType<?> entity : entityTypeList) {
-
       Class<?> clazz = entity.getBindableJavaType();
       if (Auditable.class.isAssignableFrom(clazz) && !Modifier.isAbstract(clazz.getModifiers())
           && !AdminEntity.class.isAssignableFrom(clazz)) {

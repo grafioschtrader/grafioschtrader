@@ -41,7 +41,7 @@ public class ProposeUserTaskResource extends UpdateCreateDeleteAuditResource<Pro
         ProposeUserTask.getModelByUserTaskType(UserTaskType.getUserTaskTypeByValue(userTaskType))), HttpStatus.OK);
   }
 
-  @Operation(summary = "The request was denied by the admin.", description = "It send a Email to the user, since he may not have anymore any access to GT", tags = {
+  @Operation(summary = "The request was denied by the admin.", description = "It send a Email to the user, since he may not have anymore any access to the application", tags = {
       RequestMappings.PROPOSEUSER_TASK })
   @PostMapping(value = "/reject/{idProposeRequest}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<StringResponse> rejectUserTask(@PathVariable final Integer idProposeRequest,

@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;
 
-import grafiosch.BaseConstants;
 import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.dto.MaxDefaultDBValue;
 import grafiosch.entities.Globalparameters;
@@ -19,13 +18,32 @@ import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.UDFMetadataSecurity;
 
+/**
+ * GrafioschTrader-specific global parameter keys and default values extending base configuration.
+ * 
+ * <p>This class defines trading platform-specific configuration parameters including connector settings,
+ * data feed configurations, market data processing parameters, tenant limits, and trading-related constraints.
+ * It extends the base global parameters with domain-specific settings for financial data management,
+ * price updates, and trading platform operations.</p>
+ */
 public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
 
+  /** Default currency precision configuration. */
   public static final String DEFAULT_CURRENCY_PRECISION = "BTC=8,ETH=7,JPY=0,ZAR=0";
+  
+  /** Default number of retry attempts for intraday price updates. */
   public static final short DEFAULT_INTRA_RETRY = 4;
+  
+  /** Default number of retry attempts for historical price updates. */
   public static final short DEFAULT_HISTORY_RETRY = 4;
+  
+  /** Default number of retry attempts for dividend data updates. */
   public static final short DEFAULT_DIVIDEND_RETRY = 2;
+  
+  /** Default number of retry attempts for stock split data updates. */
   public static final short DEFAULT_SPLIT_RETRY = 2;
+  
+  /** Default timeout in seconds for security intraday update operations. */
   public static final int DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS = 300;
   public static final int DEFAULT_W_INTRA_UPDATE_TIMEOUT_SECONDS = 1200;
   public static final int DEFUALT_MAX_WATCHLIST = 30;
@@ -39,91 +57,90 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final int DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY = 5;
   public static final int DEFAULT_UPDATE_PRICE_BY_EXCHANGE = 0;
 
-  public static final String GLOB_KEY_CURRENCY_PRECISION = BaseConstants.GT_PREFIX + "currency.precision";
-  // Connector settings
-  public static final String GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_CURRENCY_PRECISION = GlobalConstants.GT_PREFIX + "currency.precision";
+  /** Connector settings */
+  public static final String GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR = GlobalConstants.GT_PREFIX
       + "cryptocurrency.history.connector";
-  public static final String GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_CRYPTOCURRENCY_INTRA_CONNECTOR = GlobalConstants.GT_PREFIX
       + "cryptocurrency.intra.connector";
-  public static final String GLOB_KEY_CURRENCY_HISTORY_CONNECTOR = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_CURRENCY_HISTORY_CONNECTOR = GlobalConstants.GT_PREFIX
       + "currency.history.connector";
-  public static final String GLOB_KEY_CURRENCY_INTRA_CONNECTOR = BaseConstants.GT_PREFIX + "currency.intra.connector";
-  public static final String GLOB_KEY_INTRA_RETRY = BaseConstants.GT_PREFIX + "intra.retry";
-  public static final String GLOB_KEY_HISTORY_RETRY = BaseConstants.GT_PREFIX + "history.retry";
-  public static final String GLOB_KEY_DIVIDEND_RETRY = BaseConstants.GT_PREFIX + "dividend.retry";
-  public static final String GLOB_KEY_SPLIT_RETRY = BaseConstants.GT_PREFIX + "split.retry";
-  public static final String GLOB_KEY_START_FEED_DATE = BaseConstants.GT_PREFIX + "core.data.feed.start.date";
-  public static final String GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_CURRENCY_INTRA_CONNECTOR = GlobalConstants.GT_PREFIX + "currency.intra.connector";
+  public static final String GLOB_KEY_INTRA_RETRY = GlobalConstants.GT_PREFIX + "intra.retry";
+  public static final String GLOB_KEY_HISTORY_RETRY = GlobalConstants.GT_PREFIX + "history.retry";
+  public static final String GLOB_KEY_DIVIDEND_RETRY = GlobalConstants.GT_PREFIX + "dividend.retry";
+  public static final String GLOB_KEY_SPLIT_RETRY = GlobalConstants.GT_PREFIX + "split.retry";
+  public static final String GLOB_KEY_START_FEED_DATE = GlobalConstants.GT_PREFIX + "core.data.feed.start.date";
+  public static final String GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS = GlobalConstants.GT_PREFIX
       + "sc.intra.update.timeout.seconds";
-  public static final String GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS = GlobalConstants.GT_PREFIX
       + "w.intra.update.timeout.seconds";
-  public static final String GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY = GlobalConstants.GT_PREFIX
       + "history.max.filldays.currency";
-  public static final String GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK = GlobalConstants.GT_PREFIX
       + "intraday.observation.or.days.back";
-  public static final String GLOB_KEY_INTRADAY_OBSERVATION_RETRY_MINUS = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_INTRADAY_OBSERVATION_RETRY_MINUS = GlobalConstants.GT_PREFIX
       + "intraday.observation.retry.minus";
-  public static final String GLOB_KEY_INTRADAY_OBSERVATION_FALLING_PERCENTAGE = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_INTRADAY_OBSERVATION_FALLING_PERCENTAGE = GlobalConstants.GT_PREFIX
       + "intraday.observation.falling.percentage";
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK = GlobalConstants.GT_PREFIX
       + "history.observation.days.back";
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_RETRY_MINUS = GlobalConstants.GT_PREFIX
       + "history.observation.retry.minus";
-  public static final String GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE = GlobalConstants.GT_PREFIX
       + "history.observation.falling.percentage";
 
-  // History quote quality. Date which last time when a history quality update was
-  // happened
-  public static final String GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE = BaseConstants.GT_PREFIX
+  /** History quote quality. Date which last time when a history quality update was happened */
+  public static final String GLOB_KEY_HISTORYQUOTE_QUALITY_UPDATE_DATE = GlobalConstants.GT_PREFIX
       + "historyquote.quality.update.date";
-  public static final String GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE = GlobalConstants.GT_PREFIX
       + "securitysplit.append.date";
-  public static final String GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE = BaseConstants.GT_PREFIX
+  public static final String GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE = GlobalConstants.GT_PREFIX
       + "securitydividend.append.date";
-  public static final String GLOB_KEY_UDF_GENERAL_RECREATE = BaseConstants.GT_PREFIX + "udf.general.recreate";
-  // The idGTNet for this Server in GTNet
-  public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = BaseConstants.GT_PREFIX + "gtnet.my.entry.id";
-  // Tenant data entity limits
+  public static final String GLOB_KEY_UDF_GENERAL_RECREATE = GlobalConstants.GT_PREFIX + "udf.general.recreate";
+  /** The idGTNet for this Server in GTNet */
+  public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GlobalConstants.GT_PREFIX + "gtnet.my.entry.id";
+  /** Tenant data entity limits */
   private static final String MAX = "max.";
-  public static final String GLOB_KEY_MAX_CASH_ACCOUNT = BaseConstants.GT_PREFIX + MAX + "cash.account";
-  public static final String GLOB_KEY_MAX_PORTFOLIO = BaseConstants.GT_PREFIX + MAX + "portfolio";
-  public static final String GLOB_KEY_MAX_SECURITY_ACCOUNT = BaseConstants.GT_PREFIX + MAX + "security.account";
-  public static final String GLOB_KEY_MAX_SECURITIES_CURRENCIES = BaseConstants.GT_PREFIX + MAX
+  public static final String GLOB_KEY_MAX_CASH_ACCOUNT = GlobalConstants.GT_PREFIX + MAX + "cash.account";
+  public static final String GLOB_KEY_MAX_PORTFOLIO = GlobalConstants.GT_PREFIX + MAX + "portfolio";
+  public static final String GLOB_KEY_MAX_SECURITY_ACCOUNT = GlobalConstants.GT_PREFIX + MAX + "security.account";
+  public static final String GLOB_KEY_MAX_SECURITIES_CURRENCIES = GlobalConstants.GT_PREFIX + MAX
       + "securities.currencies";
-  public static final String GLOB_KEY_MAX_WATCHTLIST = BaseConstants.GT_PREFIX + MAX + "watchlist";
-  public static final String GLOB_KEY_MAX_WATCHLIST_LENGTH = BaseConstants.GT_PREFIX + MAX + "watchlist.length";
-  public static final String GLOB_KEY_MAX_CORRELATION_SET = BaseConstants.GT_PREFIX + MAX + "correlation.set";
-  public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = BaseConstants.GT_PREFIX + MAX
+  public static final String GLOB_KEY_MAX_WATCHTLIST = GlobalConstants.GT_PREFIX + MAX + "watchlist";
+  public static final String GLOB_KEY_MAX_WATCHLIST_LENGTH = GlobalConstants.GT_PREFIX + MAX + "watchlist.length";
+  public static final String GLOB_KEY_MAX_CORRELATION_SET = GlobalConstants.GT_PREFIX + MAX + "correlation.set";
+  public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GlobalConstants.GT_PREFIX + MAX
       + "correlation.instruments";
-  public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = BaseConstants.GT_PREFIX + "update.price.by.exchange";
+  public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GlobalConstants.GT_PREFIX + "update.price.by.exchange";
 
-  public static final String GLOB_KEY_LIMIT_DAY_ASSETCLASS = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_ASSETCLASS = GlobalConstants.GT_LIMIT_DAY
       + Assetclass.class.getSimpleName();
-  public static final String GLOB_KEY_LIMIT_DAY_STOCKEXCHANGE = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_STOCKEXCHANGE = GlobalConstants.GT_LIMIT_DAY
       + Stockexchange.class.getSimpleName();
-  public static final String GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK = GlobalConstants.GT_LIMIT_DAY
       + ProposeUserTask.class.getSimpleName();
-  public static final String GLOB_KEY_LIMIT_DAY_SECURITY = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_SECURITY = GlobalConstants.GT_LIMIT_DAY
       + Security.class.getSimpleName();
-  public static final String GLOB_KEY_LIMIT_DAY_CURRENCYPAIR = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_CURRENCYPAIR = GlobalConstants.GT_LIMIT_DAY
       + Currencypair.class.getSimpleName();
 
-  public static final String GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONTEMPLATE = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONTEMPLATE = GlobalConstants.GT_LIMIT_DAY
       + ImportTransactionTemplate.class.getSimpleName();
-  public static final String GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONPLATFORM = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONPLATFORM = GlobalConstants.GT_LIMIT_DAY
       + ImportTransactionPlatform.class.getSimpleName();
-  public static final String GLOB_KEY_LIMIT_DAY_TRADINGPLATFORMPLAN = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_TRADINGPLATFORMPLAN = GlobalConstants.GT_LIMIT_DAY
       + TradingPlatformPlan.class.getSimpleName();
 
-  public static final String GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY = GlobalParamKeyBaseDefault.GT_LIMIT_DAY
+  public static final String GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY = GlobalConstants.GT_LIMIT_DAY
       + UDFMetadataSecurity.class.getSimpleName();
-  public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE = BaseConstants.GT_PREFIX + "source.demo.idtenant.de";
-  public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN = BaseConstants.GT_PREFIX + "source.demo.idtenant.en";
+  public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE = GlobalConstants.GT_PREFIX + "source.demo.idtenant.de";
+  public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN = GlobalConstants.GT_PREFIX + "source.demo.idtenant.en";
 
   public GlobalParamKeyDefault() {
     super();
     Map<String, MaxDefaultDBValue> defaultLimitMap = Globalparameters.defaultLimitMap;
-    // Set tenant data entity limits in total on not shared entries.
+    /** Set tenant data entity limits in total on not shared entries. */
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CASH_ACCOUNT, new MaxDefaultDBValue(30));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_PORTFOLIO, new MaxDefaultDBValue(20));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITY_ACCOUNT, new MaxDefaultDBValue(20));

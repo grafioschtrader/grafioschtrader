@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.6</version>
+		<version>0.33.7</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -37,20 +37,20 @@
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.33.6</version>	
+	        <version>0.33.7</version>	
 		</dependency>
 
  		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-server-base</artifactId>
-	        <version>0.33.6</version>	
+	        <version>0.33.7</version>	
 		</dependency>
 
 		<!-- Grafioschtrader common module -->
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.33.6</version>
+			<version>0.33.7</version>
 		</dependency>
 
 
@@ -94,7 +94,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -228,13 +227,13 @@
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.19.1</version>
+			<version>1.20.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.13.0</version>
+			<version>1.13.1</version>
 		</dependency>
 
 		<dependency>
@@ -257,7 +256,7 @@
 		<dependency>
      		 <groupId>com.ezylang</groupId>
      		 <artifactId>EvalEx</artifactId>
-     		 <version>3.4.0</version>
+     		 <version>3.5.0</version>
    		 </dependency>
 
 		<!-- Not really used -->

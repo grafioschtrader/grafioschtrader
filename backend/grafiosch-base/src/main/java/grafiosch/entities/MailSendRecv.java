@@ -25,7 +25,7 @@ import jakarta.validation.constraints.Size;
  */
 @Schema(description = """
     Base class for mailing system. Mail also supports M2M on GT. Attention the
-    ID's of the role must be the same on all GT instances.
+    ID's of the role must be the same on all Application instances.
     """)
 @Entity
 @Table(name = MailSendRecv.TABNAME)
@@ -55,6 +55,7 @@ public class MailSendRecv extends BaseID<Integer> {
   @Column(name = "id_role_to")
   private Integer idRoleTo;
 
+  // TODO It belongs to grafioschtrader
   @Schema(description = "Exchange of a message beyond this instance")
   @Column(name = "id_gt_net")
   private Integer idGtNet;

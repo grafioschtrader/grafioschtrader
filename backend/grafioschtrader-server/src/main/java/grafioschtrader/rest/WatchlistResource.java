@@ -24,6 +24,7 @@ import grafiosch.dto.TenantLimit;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reports.WatchlistReport;
@@ -270,6 +271,11 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   public String getDataProviderDivSplitResponseForUser(@PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "True when for dividen otherwise false", required = true) @RequestParam() final boolean isDiv) {
     return watchlistJpaRepository.getDataProviderDivSplitResponseForUser(idSecuritycurrency, isDiv);
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

@@ -10,7 +10,7 @@ public class ValidMultilanguageValidator implements ConstraintValidator<ValidMul
   @Override
   public boolean isValid(MultilanguageString value, ConstraintValidatorContext context) {
     return value.getMap().size() == 2
-        && value.getMap().entrySet().stream().filter(x -> (BaseConstants.GT_LANGUAGE_CODES.contains(x.getKey()))
+        && value.getMap().entrySet().stream().filter(x -> (BaseConstants.G_LANGUAGE_CODES.contains(x.getKey()))
             && x.getValue() != null && x.getValue().trim().length() > 0).count() == 2;
   }
 

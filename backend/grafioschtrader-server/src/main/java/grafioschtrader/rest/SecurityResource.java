@@ -29,6 +29,7 @@ import grafiosch.entities.Auditable;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.rest.UpdateCreateResource;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.InstrumentStatisticsResult;
@@ -254,6 +255,11 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @GetMapping(value = "/tooltip", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Map<Integer, String>> getSecurityCurrencyPairInfo() {
     return new ResponseEntity<>(securityJpaRepository.getSecurityCurrencyPairInfo(), HttpStatus.OK);
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

@@ -21,6 +21,7 @@ import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.platformimport.FormTemplateCheck;
@@ -127,6 +128,12 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
     return new ResponseEntity<>(
         importTransactionTemplateJpaRepository.uploadImportTemplateFiles(idTransactionImportPlatform, uploadFiles),
         HttpStatus.OK);
+  }
+
+  
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

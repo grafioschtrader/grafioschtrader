@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.dynamic.model.ClassDescriptorInputAndShow;
 import grafiosch.rest.UpdateCreateDeleteAudit;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
@@ -39,6 +40,11 @@ public class GTNetMessageResource extends UpdateCreateDeleteAudit<GTNetMessage> 
   @Override
   protected UpdateCreateJpaRepository<GTNetMessage> getUpdateCreateJpaRepository() {
     return gtNetMessageJpaRepository;
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

@@ -1,7 +1,6 @@
 package grafiosch.security.filter;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,7 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
-import grafiosch.BaseConstants;
+import grafiosch.BaseConstants.BandwidthConfig;
 import grafiosch.entities.User;
 import grafiosch.error.ErrorWithLogout;
 import grafiosch.error.SingleNativeMsgError;
@@ -152,12 +151,12 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
    * @return a new Bucket configured with minute and hour rate limits
    */
   private Bucket createNewBucket() {
-    Bandwidth limitMinute = Bandwidth.classic(BaseConstants.BANDWITH_MINUTE_BUCKET_SIZE,
-        Refill.greedy(BaseConstants.BANDWITH_MINUTE_REFILL, Duration.ofMinutes(1)));
-    Bandwidth limitHour = Bandwidth.classic(BaseConstants.BANDWITH_HOOUR_BUCKET_SIZE,
-        Refill.greedy(BaseConstants.BANDWITH_HOUR_REFILL, Duration.ofHours((1))));
+    Bandwidth limitMinute = Bandwidth.classic(BandwidthConfig.MINUTE_BUCKET_SIZE,
+        Refill.greedy(BandwidthConfig.MINUTE_REFILL, BandwidthConfig.MINUTE_DURATION));
+    Bandwidth limitHour = Bandwidth.classic(BandwidthConfig.HOUR_BUCKET_SIZE,
+        Refill.greedy(BandwidthConfig.HOUR_REFILL, BandwidthConfig.HOUR_DURATION));
     return Bucket.builder().addLimit(limitMinute).addLimit(limitHour).build();
-  }
+}
 
   @Override
   public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse,
@@ -181,7 +180,7 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
 
 //      SecurityContextHolder.getContext().setAuthentication(null);
     } catch (RequestLimitAndSecurityBreachException lee) {
-      // User has to many times misused the limits of GT
+      // User has to many times misused the limits of this application
       createErrorMessage(servletResponse, lee, HttpStatus.TOO_MANY_REQUESTS);
     } catch (AuthenticationException | JwtException e) {
       createErrorMessage(servletResponse, e, HttpStatus.UNAUTHORIZED);

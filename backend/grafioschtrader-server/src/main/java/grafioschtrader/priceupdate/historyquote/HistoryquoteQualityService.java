@@ -13,10 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DateHelper;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.User;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.entities.Historyquote;
@@ -71,7 +71,7 @@ public class HistoryquoteQualityService {
       });
 
     } else {
-      throw new SecurityException(GlobalConstants.STEAL_DATA_SECURITY_BREACH);
+      throw new SecurityException(BaseConstants.STEAL_DATA_SECURITY_BREACH);
     }
 
     this.hisotryqouteLinearFill(user, idSecuritycurrency, firstLastPrice, missingDays, hisotryqouteLinearFilledSummary,

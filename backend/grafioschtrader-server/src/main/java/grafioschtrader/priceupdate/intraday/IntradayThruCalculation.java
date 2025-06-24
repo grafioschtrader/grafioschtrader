@@ -19,11 +19,20 @@ import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 
 /**
- * Intraday update for calculated prices.</br>
- * Prices depend on other prices of securities or currency pairs, those are not updated with this class. Because of that
- * this calculation of prices should be called after intraday update of securities and currencies.
- *
- * @param <S>
+ * Intraday price calculator for derived securities with formula-based or linked pricing.
+ * 
+ * <p>This class handles intraday price updates for securities whose prices are calculated based on other securities
+ * or currency pairs rather than retrieved from external data feeds. It supports two calculation modes:
+ * <ul>
+ * <li><strong>Formula-based calculation</strong>: Uses mathematical expressions to calculate prices from linked instruments</li>
+ * <li><strong>Direct linking</strong>: Copies the price directly from a single linked security or currency pair</li>
+ * </ul></p>
+ * 
+ * <p><strong>Important:</strong> This calculation depends on other securities and currency pairs having up-to-date prices.
+ * Therefore, this class should be executed <em>after</em> the intraday update of base securities and currencies to ensure
+ * accurate calculated results. The calculation uses the EvalEx expression engine for mathematical formula evaluation.</p>
+ * 
+ * @param <S> the type of security currency extending Securitycurrency (note: implementation works specifically with Security entities)
  */
 public class IntradayThruCalculation<S extends Securitycurrency<S>> extends BaseIntradayThru<Security> {
 
@@ -31,6 +40,13 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
   private final SecurityJpaRepository securityJpaRepository;
   private final SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
 
+  /**
+   * Constructs an intraday calculation processor for derived securities.
+   * 
+   * @param globalparametersService service for accessing global configuration parameters
+   * @param securityJpaRepository repository for security entity persistence operations
+   * @param securityDerivedLinkJpaRepository repository for managing security derivation relationships
+   */
   public IntradayThruCalculation(GlobalparametersService globalparametersService,
       SecurityJpaRepository securityJpaRepository, SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository) {
     super(globalparametersService);
@@ -39,6 +55,29 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
 
   }
 
+  /**
+   * Updates the calculated intraday price for a derived security based on linked instruments.
+   * 
+   * <p>This method performs a comprehensive calculation process:
+   * <ul>
+   * <li><strong>Validation</strong>: Checks retry limits, active status, and update timing constraints</li>
+   * <li><strong>Link Resolution</strong>: Retrieves derived instrument links and current prices for linked securities</li>
+   * <li><strong>Price Calculation</strong>:
+   *   <ul>
+   *   <li>For calculated securities: evaluates the formula expression using EvalEx with linked instrument prices as variables</li>
+   *   <li>For non-calculated securities: directly copies the price from the first linked instrument</li>
+   *   </ul>
+   * </li>
+   * <li><strong>Timestamp Management</strong>: Sets the timestamp to the newest intraday timestamp from linked instruments</li>
+   * <li><strong>Error Handling</strong>: Manages retry counters and logs calculation failures</li>
+   * <li><strong>Persistence</strong>: Saves the updated security with new price and metadata</li>
+   * </ul></p>
+   * 
+   * @param security the derived security whose price should be calculated
+   * @param maxIntraRetry maximum number of retry attempts for failed calculations, -1 for unlimited retries
+   * @param scIntradayUpdateTimeout timeout in seconds for determining if delayed updates are allowed
+   * @return the security with updated calculated price and retry counter, or original security if calculation was skipped
+   */
   @Override
   public Security updateLastPriceSecurityCurrency(Security security, short maxIntraRetry, int scIntradayUpdateTimeout) {
 
@@ -71,16 +110,46 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
     return security;
   }
 
+  /**
+   * Determines if a delayed intraday update should be allowed based on timing constraints.
+   * 
+   * <p>Unlike connector-based updates, calculated price updates don't use feed connector delay settings.
+   * Instead, this method uses a simple timeout-based approach to prevent excessive calculation frequency.</p>
+   * 
+   * @param security the security to check for update eligibility
+   * @param scIntradayUpdateTimeout timeout in seconds defining the minimum interval between updates
+   * @param now current timestamp for timing calculations
+   * @return true if the security should be updated (no previous timestamp or timeout period has elapsed), false otherwise
+   */
   private boolean allowDelayedIntradayUpdate(final Security security, final int scIntradayUpdateTimeout, Date now) {
     final long lessThenPossible = now.getTime() - 1000 * scIntradayUpdateTimeout;
     return security.getSTimestamp() == null || security.getSTimestamp().getTime() < lessThenPossible;
   }
 
+  /**
+   * Returns null as calculated securities do not support download links.
+   * 
+   * <p>Calculated securities derive their prices from other instruments rather than external data sources,
+   * so download links are not applicable for this calculation-based approach.</p>
+   * 
+   * @param securitycurrency the security (parameter ignored for calculated securities)
+   * @return always null as download links are not supported for calculated prices
+   */
   @Override
   public String getSecuritycurrencyIntraDownloadLinkAsUrlStr(Security securitycurrency) {
     return null;
   }
 
+  /**
+   * Returns null as calculated securities do not use feed connectors for download links.
+   * 
+   * <p>This method is not applicable for calculated securities since they compute their prices based on
+   * linked instruments rather than retrieving data from external feed connectors.</p>
+   * 
+   * @param securitycurrency the security (parameter ignored for calculated securities)
+   * @param feedConnector the feed connector (parameter ignored for calculated securities)
+   * @return always null as feed connector-based download links are not supported for calculated prices
+   */
   @Override
   public String createDownloadLink(Security securitycurrency, IFeedConnector feedConnector) {
     return null;

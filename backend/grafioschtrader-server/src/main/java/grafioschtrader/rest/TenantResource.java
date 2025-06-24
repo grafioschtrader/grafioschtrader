@@ -17,6 +17,7 @@ import grafiosch.entities.User;
 import grafiosch.repository.TenantBaseCustom;
 import grafiosch.rest.TenantBaseResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.TenantJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,6 +62,11 @@ public class TenantResource extends TenantBaseResource<Tenant> {
   @Override
   protected TenantBaseCustom getTenantRepository() {
     return tenantJpaRepository;
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

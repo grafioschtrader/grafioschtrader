@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.rest.UpdateCreateResource;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
@@ -167,6 +168,11 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
     return new ResponseEntity<>(
         currencypairJpaRepository.getCurrencypairInTransactionByPortfolioId(idPortfolio, idTenant), HttpStatus.OK);
+  }
+
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

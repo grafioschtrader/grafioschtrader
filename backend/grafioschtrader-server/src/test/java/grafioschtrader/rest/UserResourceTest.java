@@ -32,10 +32,10 @@ import grafiosch.repository.VerificationTokenJpaRepository;
 import grafiosch.rest.RequestMappings;
 import grafiosch.rest.UserResource;
 import grafiosch.security.JwtTokenHandler;
-import grafiosch.types.TenantKindType;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.rest.RestTestHelper.UserRegister;
 import grafioschtrader.test.start.GTforTest;
+import grafioschtrader.types.TenantKindType;
 
 @TestMethodOrder(OrderAnnotation.class)
 @SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)

@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafiosch.types.TenantKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -47,10 +46,7 @@ public abstract class TenantBase extends TenantBaseID implements Serializable {
   @Column(name = "create_id_user")
   private Integer createIdUser;
 
-  @Schema(description = "Type of tenant, can not be set from outside")
-  @Column(name = "tenant_kind_type")
-  private byte tenantKindType;
-
+ 
   @JoinColumn(name = "id_tenant")
   @OneToMany()
   private List<User> userList;
@@ -60,10 +56,10 @@ public abstract class TenantBase extends TenantBaseID implements Serializable {
   public TenantBase() {
   }
 
-  public TenantBase(String tenantName, Integer createIdUser, TenantKindType tenantKindType) {
+  public TenantBase(String tenantName, Integer createIdUser) {
+    super();
     this.tenantName = tenantName;
     this.createIdUser = createIdUser;
-    this.tenantKindType = tenantKindType.getValue();
   }
 
   @JsonIgnore
@@ -98,13 +94,7 @@ public abstract class TenantBase extends TenantBaseID implements Serializable {
     this.createIdUser = createIdUser;
   }
 
-  public TenantKindType getTenantKindType() {
-    return TenantKindType.getTenantKindTypeByValue(tenantKindType);
-  }
-
-  public void setTenantKindType(TenantKindType tenantKindType) {
-    this.tenantKindType = tenantKindType.getValue();
-  }
+ 
 
   @JsonIgnore
   public List<User> getUsergroupList() {

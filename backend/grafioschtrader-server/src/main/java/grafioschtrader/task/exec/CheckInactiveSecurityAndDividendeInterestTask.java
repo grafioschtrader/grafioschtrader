@@ -74,7 +74,6 @@ public class CheckInactiveSecurityAndDividendeInterestTask implements ITask {
         securityJpaRepository.getPossibleMissingDividentsByDividendTable(GlobalConstants.DIVIDEND_CHECK_DAYS_LOOK_BACK,
             GlobalConstants.DIVIDEND_CHECK_PAY_DATE_TOLERANCE_IN_DAYS),
         MessageGTComType.USER_SECURITY_MISSING_DIV_INTEREST, "gt.possible.missing.div.divtable.interest");
-
   }
 
   private void processCheckSecurityTransIntegrityList(List<CheckSecurityTransIntegrity> cstiList,

@@ -177,8 +177,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
       SecurityContextHolder.getContext().setAuthentication(userAuthentication);
 
     } catch (RequestLimitAndSecurityBreachException lee) {
-      // User has to many times misused the limits (requests/period or security
-      // breach) of GT
+      // User has to many times misused the limits (requests/period or security breach) of this application
       if (holdUserValue.note != null) {
         processUserUnlockNoteRequest(authenticatedUser, response, lee, holdUserValue);
       } else {

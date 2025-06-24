@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.InputAndShowDefinitionStrategy;
@@ -68,4 +69,10 @@ public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<A
   protected UpdateCreateDeleteWithTenantJpaRepository<AlgoStrategy> getUpdateCreateJpaRepository() {
     return algoStrategyJpaRepository;
   }
+  
+  @Override
+  protected String getPrefixEntityLimit() {
+    return GlobalConstants.GT_LIMIT_DAY;
+  }
+
 }

@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.6</version>
+		<version>0.33.7</version>
 	</parent>
 
 
@@ -121,8 +121,6 @@
 		<dependency>
 			<groupId>com.github.ulisesbocchio</groupId>
 			<artifactId>jasypt-spring-boot-starter</artifactId>
-			<!--  adjust maven plugin as well -->
-			<version>3.0.5</version>
 		</dependency>
 
 
