@@ -117,3 +117,6 @@ grafioschtrader.config
 grafioschtrader.security.filter
 grafioschtrader.security
 grafioschtrader.websocket
+grafiosch.integration.repository
+grafiosch.integration.entities
+grafiosch.integration.rest
