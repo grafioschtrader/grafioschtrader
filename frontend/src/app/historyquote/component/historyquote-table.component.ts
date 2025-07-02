@@ -364,7 +364,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
 
   private readAndShowData(timeSeriesParam: TimeSeriesParam): void {
     const stsObservable = timeSeriesParam.currencySecurity
-      ? BusinessHelper.setSecurityTransactionSummary(this.securityService,
+      ? BusinessHelper.getSecurityTransactionSummary(this.securityService,
         timeSeriesParam.idSecuritycurrency, null, null, false)
       : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency, false);
     const historyquoteObservable = this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(

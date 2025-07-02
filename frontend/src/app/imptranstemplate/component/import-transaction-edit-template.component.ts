@@ -13,7 +13,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {TemplateFormatType} from '../../shared/types/template.format.type';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
-import {Auditable} from '../../entities/auditable';
+import {Auditable} from '../../lib/entities/auditable';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';

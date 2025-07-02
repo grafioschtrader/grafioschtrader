@@ -1,5 +1,5 @@
 import {Cashaccount} from './cashaccount';
-import {BaseID} from './base.id';
+import {BaseID} from '../lib/entities/base.id';
 import {Security} from './security';
 import {ImportTransactionPosFailed} from './import.transaction.pos.failed';
 

@@ -10,7 +10,7 @@ import {ImportTransactionPlatformService} from '../service/import.transaction.pl
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {AuditHelper} from '../../shared/helper/audit.helper';
-import {Auditable} from '../../entities/auditable';
+import {Auditable} from '../../lib/entities/auditable';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';

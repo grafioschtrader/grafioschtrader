@@ -1,4 +1,4 @@
-import {Auditable} from '../../entities/auditable';
+import {Auditable} from '../../lib/entities/auditable';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {AppSettings} from '../app.settings';
@@ -11,12 +11,12 @@ import {EventEmitter} from '@angular/core';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 import {FormBase} from '../edit/form.base';
 import {Security} from '../../entities/security';
-import {ProposeTransientTransfer} from '../../entities/propose.transient.transfer';
+import {ProposeTransientTransfer} from '../../lib/entities/propose.transient.transfer';
 import {DynamicFieldHelper} from './dynamic.field.helper';
-import {User} from '../../entities/user';
+import {User} from '../../lib/entities/user';
 import {Helper} from '../../helper/helper';
 import {InputType} from '../../dynamic-form/models/input.type';
-import {ProposeUserTask} from '../../entities/propose.user.task';
+import {ProposeUserTask} from '../../lib/entities/propose.user.task';
 
 export class AuditHelper {
 

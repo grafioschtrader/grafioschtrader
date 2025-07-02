@@ -2,8 +2,8 @@ package grafiosch.repository;
 
 import java.util.Map;
 
+import grafiosch.dto.SubscriptionTypeReadableName;
 import grafiosch.entities.ConnectorApiKey;
-import grafiosch.repository.ConnectorApiKeyJpaRepositoryImpl.SubscriptionTypeReadableName;
 
 /**
  * Custom repository interface for connector API key operations.
@@ -19,14 +19,11 @@ public interface ConnectorApiKeyJpaRepositoryCustom {
   ConnectorApiKey saveOnlyAttributes(ConnectorApiKey connectorApiKey);
 
   /**
-   * Retrieves subscription type information organized by provider.
+   * Retrieves subscription type mappings for all API key-based feed connectors.
+   * Maps connector short IDs to their readable names and associated subscription types.
+   * Subscription types are matched by name prefix matching the connector's short ID.
    * 
-   * <p>This method returns a comprehensive mapping of provider identifiers to their
-   * available subscription types and readable display names. The information is used
-   * to populate user interface elements and provide context about available
-   * subscription tiers for each external service provider.</p>
-   * 
-   * @return map of provider IDs to subscription type information, never null
+   * @return map of connector short IDs to subscription type information
    */
   Map<String, SubscriptionTypeReadableName> getFeedSubscriptionType();
 

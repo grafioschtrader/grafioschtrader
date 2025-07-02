@@ -23,7 +23,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  *
  */
 public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Security> {
-
+  
   @Schema(description = "Main portfolio currency for multi-currency normalization")
   public final String mainCurrency;
 

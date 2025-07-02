@@ -23,6 +23,7 @@ import {ErrorMessageRules} from '../../dynamic-form/error/error.message.rules';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
+import {BusinessSelectOptionsHelper} from './business.select.options.helper';
 
 /**
  * Some definition of fields are shared between the different edit components of instruments. Those aee
@@ -163,18 +164,18 @@ export class SecurityEditSupport {
     configObject.dividendCurrency && (configObject.dividendCurrency.valueKeyHtmlOptions =
       [new ValueKeyHtmlSelectOptions('', '')].concat(vksoCurrency));
     configObject.assetClass.referencedDataObject = assetclasses;
-    configObject.assetClass.valueKeyHtmlOptions = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+    configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
       this.gps, this.translateService, configObject.assetClass.referencedDataObject);
 
   }
 
   removeFilterAssetclass(configObject: { [name: string]: FieldConfig }): void {
-    configObject.assetClass.valueKeyHtmlOptions = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+    configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
       this.gps, this.translateService, configObject.assetClass.referencedDataObject);
   }
 
   filterAssetclasses(configObject: { [name: string]: FieldConfig }, assetclassType: AssetclassType): void {
-    configObject.assetClass.valueKeyHtmlOptions = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+    configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
       this.gps, this.translateService,
       (<Assetclass[]>configObject.assetClass.referencedDataObject).filter(assetclass =>
         assetclass.categoryType === AssetclassType[assetclassType]));

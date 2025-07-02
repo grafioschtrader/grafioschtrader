@@ -5,7 +5,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../message/message.toast.service';
 import {GlobalparameterService, PasswordRegexProperties} from '../../service/globalparameter.service';
 import {AppSettings} from '../../app.settings';
-import {User} from '../../../entities/user';
+import {User} from '../../../lib/entities/user';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {PasswordBaseComponent} from './password.base.component';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';

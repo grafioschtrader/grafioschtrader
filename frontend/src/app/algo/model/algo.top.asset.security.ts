@@ -1,4 +1,4 @@
-import {TenantBaseId} from '../../entities/tenant.base.id';
+import {TenantBaseId} from '../../lib/entities/tenant.base.id';
 import {AlgoStrategy} from './algo.strategy';
 import {Exclude, Type} from 'class-transformer';
 

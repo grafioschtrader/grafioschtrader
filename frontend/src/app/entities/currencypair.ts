@@ -1,5 +1,5 @@
 import {Securitycurrency} from './securitycurrency';
-import {BaseID} from './base.id';
+import {BaseID} from '../lib/entities/base.id';
 
 
 export class Currencypair extends Securitycurrency implements BaseID {

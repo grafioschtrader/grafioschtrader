@@ -13,7 +13,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {DeleteService} from '../../datashowbase/delete.service';
-import {BaseID} from '../../../entities/base.id';
+import {BaseID} from '../../../lib/entities/base.id';
 import {CallParam} from '../../maintree/types/dialog.visible';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';

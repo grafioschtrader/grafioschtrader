@@ -31,7 +31,7 @@ import {ProcessedAction} from '../../shared/types/processed.action';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {DeleteService} from '../../shared/datashowbase/delete.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
-import {BaseID} from '../../entities/base.id';
+import {BaseID} from '../../lib/entities/base.id';
 import {AlgoSecurityService} from '../service/algo.security.service';
 import {AlgoStrategyService} from '../service/algo.strategy.service';
 import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';

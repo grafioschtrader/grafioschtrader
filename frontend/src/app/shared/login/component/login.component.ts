@@ -8,7 +8,6 @@ import {GlobalparameterService} from '../../service/globalparameter.service';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {FormBase} from '../../edit/form.base';
-import {DynamicDialogHelper} from '../../dynamicdialog/component/dynamic.dialog.helper';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
 import {BusinessHelper} from '../../helper/business.helper';
@@ -18,12 +17,13 @@ import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.i
 import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {AppHelper} from '../../helper/app.helper';
+import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
 
 /**
  * Shows the login form
  */
 @Component({
-    template: `
+  template: `
     <div class="container">
       <div class="login jumbotron center-block">
         <div class="alert alert-success" role="alert" *ngIf="successLastRegistration">
@@ -51,8 +51,8 @@ import {AppHelper} from '../../helper/app.helper';
                    [visibleDialog]="visiblePasswordDialog">
     </password-edit>
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
@@ -99,7 +99,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
           this.configObject.submit.disabled = false;
 
           if (errorBackend.bringUpDialog) {
-            DynamicDialogHelper.getOpenedLogoutReleaseRequestDynamicComponent(
+            DynamicDialogs.getOpenedLogoutReleaseRequestDynamicComponent(
               this.translateService, this.dialogService, value.email, value.password);
           }
         }

@@ -35,7 +35,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {ColumnConfig} from '../../shared/datashowbase/column.config';
 import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
-import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamic.dialog.helper';
+import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamicDialogHelper';
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
@@ -45,6 +45,7 @@ import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.he
 import {WatchlistHelper} from './watchlist.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
@@ -576,7 +577,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   private mailToCreator(securitycurrency: Securitycurrency): void {
     const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
       : (<Security>securitycurrency).name;
-    DynamicDialogHelper.getOpenedMailSendComponent(this.translateService, this.dialogService,
+    DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService,
       new MailSendParam(securitycurrency.createdBy, null, subject));
   }
 

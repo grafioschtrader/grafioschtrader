@@ -8,12 +8,17 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import grafiosch.dto.SubscriptionTypeReadableName;
 import grafiosch.repository.ConnectorApiKeyJpaRepositoryImpl.IConnectorApiKeyReset;
-import grafiosch.repository.ConnectorApiKeyJpaRepositoryImpl.SubscriptionTypeReadableName;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.types.SubscriptionType;
 
+/**
+ * Service for managing API key operations and subscription types for feed connectors.
+ * Provides functionality to reset connector API keys and retrieve subscription type
+ * mappings for API key-based connectors.
+ */
 @Service
 public class FeedConnectorApiKeyService implements IConnectorApiKeyReset {
 

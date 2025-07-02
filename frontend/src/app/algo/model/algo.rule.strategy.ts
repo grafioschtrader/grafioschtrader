@@ -1,4 +1,4 @@
-import {TenantBaseId} from '../../entities/tenant.base.id';
+import {TenantBaseId} from '../../lib/entities/tenant.base.id';
 import {BaseParam} from '../../entities/view/base.param';
 import {Exclude} from 'class-transformer';
 

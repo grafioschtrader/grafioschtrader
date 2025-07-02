@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {TableConfigBase} from '../datashowbase/table.config.base';
-import {Globalparameters} from '../../entities/globalparameters';
+import {Globalparameters} from '../../lib/entities/globalparameters';
 import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
@@ -13,7 +13,7 @@ import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
 import {AppHelper} from '../helper/app.helper';
 import {AppSettings} from '../app.settings';
 import {AuditHelper} from '../helper/audit.helper';
-import {User} from '../../entities/user';
+import {User} from '../../lib/entities/user';
 import {ProcessedActionData} from '../types/processed.action.data';
 import {ProcessedAction} from '../types/processed.action';
 import {TranslateHelper} from '../helper/translate.helper';

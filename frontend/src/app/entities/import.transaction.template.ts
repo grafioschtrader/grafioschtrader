@@ -1,6 +1,6 @@
-import {BaseID} from './base.id';
+import {BaseID} from '../lib/entities/base.id';
 import {TemplateFormatType} from '../shared/types/template.format.type';
-import {Auditable} from './auditable';
+import {Auditable} from '../lib/entities/auditable';
 
 export class ImportTransactionTemplate extends Auditable implements BaseID {
   public static readonly KEY_NAME = 'idAssetClass';

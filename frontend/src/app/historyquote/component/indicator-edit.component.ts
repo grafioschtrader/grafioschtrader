@@ -4,7 +4,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {TaEditParam, TaEditReturn} from './indicator.definitions';
-import {DynamicSimpleEditBase} from '../../shared/edit/dynamic.simple.edit.base';
+import {DynamicFieldSimpleEditBase} from '../../shared/edit/dynamic.field.simple.edit.base.directive';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
@@ -24,7 +24,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
     </p-dialog>`,
     standalone: false
 })
-export class IndicatorEditComponent extends DynamicSimpleEditBase implements OnInit {
+export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implements OnInit {
   @Input() taEditParam: TaEditParam;
 
   constructor(public translateService: TranslateService,

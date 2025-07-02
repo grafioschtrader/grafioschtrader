@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
 import {AppSettings} from '../app.settings';
 import {MessageToastService} from '../message/message.toast.service';
-import {Globalparameters} from '../../entities/globalparameters';
+import {Globalparameters} from '../../lib/entities/globalparameters';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {Observable, of} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {GlobalSessionNames} from '../global.session.names';
 import {catchError, tap} from 'rxjs/operators';
-import {Auditable} from '../../entities/auditable';
+import {Auditable} from '../../lib/entities/auditable';
 import {BaseAuthService} from '../login/service/base.auth.service';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
 import moment from 'moment';

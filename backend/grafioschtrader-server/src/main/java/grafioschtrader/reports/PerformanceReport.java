@@ -56,6 +56,12 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * <li>Caching of trading day metadata for improved performance</li>
  * </ul>
  * 
+ * * <p>
+ * Missing quote days are particularly important for performance calculations as they represent gaps in the
+ * price history of held securities. These days are identified by analyzing the quote availability for all
+ * securities held across portfolios within a tenant or specific portfolio.
+ * </p>
+ * 
  * <p>
  * <strong>Performance Optimization:</strong>
  * </p>
@@ -80,15 +86,42 @@ public class PerformanceReport {
   @Autowired
   private PortfolioJpaRepository portfolioJpaRepository;
 
+  /**
+   * Cache for trading day metadata with 2-minute expiration to improve performance. Maps portfolio/tenant keys to their
+   * corresponding trading day information.
+   */
   PassiveExpiringMap<PortfolioOrTenantKey, FirstAndMissingTradingDays> firstAndMissingTradingDaysMap = new PassiveExpiringMap<>(
       120_000);
 
+  /**
+   * Retrieves trading day metadata for the current user's tenant.
+   * 
+   * <p>
+   * This convenience method extracts the tenant ID from the current security context
+   * and delegates to the parameterized version. It's commonly used in web controllers
+   * where the tenant context is implicit.
+   * </p>
+   * 
+   * @return trading day metadata for the current tenant
+   */
   public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByTenant()
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return getFirstAndMissingTradingDaysByTenant(user.getIdTenant());
   }
 
+  /**
+   * Retrieves trading day metadata for a specific tenant with caching and concurrent data loading.
+   * 
+   * <p>
+   * Aggregates trading day information across all portfolios within the tenant, including the
+   * earliest trading day, missing quote days, and holiday information. Uses CompletableFuture
+   * for concurrent data loading from multiple sources.
+   * </p>
+   * 
+   * @param idTenant the tenant identifier
+   * @return comprehensive trading day metadata for the tenant
+   */
   private FirstAndMissingTradingDays getFirstAndMissingTradingDaysByTenant(Integer idTenant)
       throws InterruptedException, ExecutionException {
 
@@ -97,13 +130,10 @@ public class PerformanceReport {
     if (firstAndMissingTradingDays == null) {
       final CompletableFuture<LocalDate> firstEverTradingDayCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.findByIdTenantMinFromHoldDate(idTenant));
-
       final CompletableFuture<Set<Date>> missingQuoteDaysCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.getMissingsQuoteDaysByTenant(idTenant));
-
       final CompletableFuture<Set<Date>> combinedHolidayOfHoldingsCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.getCombinedHolidayOfHoldingsByTenant(idTenant));
-
       return getFirstAndMissingTradingDays(portfolioOrTenantKey, firstEverTradingDayCF, missingQuoteDaysCF,
           combinedHolidayOfHoldingsCF);
     } else {
@@ -111,6 +141,19 @@ public class PerformanceReport {
     }
   }
 
+  
+  /**
+   * Retrieves trading day metadata for a specific portfolio with security validation.
+   * 
+   * <p>
+   * Provides detailed trading day analysis for an individual portfolio. Enforces tenant-based
+   * access control to ensure users can only access portfolios within their tenant scope.
+   * </p>
+   * 
+   * @param idPortfolio the portfolio identifier
+   * @return trading day metadata specific to the portfolio
+   * @throws SecurityException if the portfolio doesn't belong to the current user's tenant
+   */
   public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByPortfolio(Integer idPortfolio)
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -121,13 +164,10 @@ public class PerformanceReport {
       if (firstAndMissingTradingDays == null) {
         final CompletableFuture<LocalDate> firstEverTradingDayCF = CompletableFuture
             .supplyAsync(() -> holdSecurityaccountSecurityRepository.findByIdPortfolioMinFromHoldDate(idPortfolio));
-
         final CompletableFuture<Set<Date>> missingQuoteDaysCF = CompletableFuture
             .supplyAsync(() -> holdSecurityaccountSecurityRepository.getMissingsQuoteDaysByPortfolio(idPortfolio));
-
         final CompletableFuture<Set<Date>> combinedHolidayOfHoldingsCF = CompletableFuture.supplyAsync(
             () -> holdSecurityaccountSecurityRepository.getCombinedHolidayOfHoldingsByPortfolio(idPortfolio));
-
         return getFirstAndMissingTradingDays(portfolioOrTenantKey, firstEverTradingDayCF, missingQuoteDaysCF,
             combinedHolidayOfHoldingsCF);
       } else {
@@ -138,28 +178,56 @@ public class PerformanceReport {
     }
   }
 
+  /**
+   * Orchestrates concurrent loading and combination of trading day metadata from multiple sources.
+   * 
+   * <p>
+   * Combines data from holdings history, global holidays, security-specific holidays, missing quote data,
+   * and trading calendar information. Results are automatically cached for future use.
+   * </p>
+   * 
+   * @param portfolioOrTenantKey cache key for portfolio or tenant-level data
+   * @param firstEverTradingDayCF CompletableFuture providing earliest trading day
+   * @param missingQuoteDaysCF CompletableFuture providing days with missing quotes
+   * @param combinedHolidayOfHoldingsCF CompletableFuture providing holidays affecting holdings
+   * @return comprehensive trading day metadata
+   * @throws InterruptedException if concurrent operations are interrupted
+   * @throws ExecutionException if data retrieval operations fail
+   */
   private FirstAndMissingTradingDays getFirstAndMissingTradingDays(PortfolioOrTenantKey portfolioOrTenantKey,
       final CompletableFuture<LocalDate> firstEverTradingDayCF, final CompletableFuture<Set<Date>> missingQuoteDaysCF,
       final CompletableFuture<Set<Date>> combinedHolidayOfHoldingsCF) throws InterruptedException, ExecutionException {
-
     int actYear = LocalDate.now().getYear();
     LocalDate fromDate = LocalDate.of(actYear - 1, 1, 1);
     LocalDate toDate = LocalDate.of(actYear - 1, 12, 31);
-
     final CompletableFuture<Set<Date>> globalHolidaysCF = CompletableFuture
         .supplyAsync(() -> tradingDaysPlusJpaRepository.getGlobalHolidays());
-
     final CompletableFuture<List<TradingDaysPlus>> tradingDaysOfLastYearCF = CompletableFuture.supplyAsync(
         () -> tradingDaysPlusJpaRepository.findByTradingDateBetweenOrderByTradingDateDesc(fromDate, toDate));
     FirstAndMissingTradingDays firstAndMissingTradingDays = combineFirstAndMissingTradingDays(
         firstEverTradingDayCF.get(), globalHolidaysCF.get(), missingQuoteDaysCF.get(),
         combinedHolidayOfHoldingsCF.get(), tradingDaysOfLastYearCF.get(), actYear - 1);
     firstAndMissingTradingDaysMap.put(portfolioOrTenantKey, firstAndMissingTradingDays);
-
     return firstAndMissingTradingDays;
-
   }
 
+  /**
+   * Combines raw trading day data from multiple sources into unified metadata.
+   * 
+   * <p>
+   * Merges global holidays, security-specific holidays, and missing quote data. Calculates
+   * latest valid trading days using sophisticated algorithms that account for missing data
+   * and holiday schedules.
+   * </p>
+   * 
+   * @param firstEverTradingDay earliest trading day in holdings history
+   * @param globalHolidays universal holidays affecting all markets
+   * @param missingQuoteDays days where historical price quotes are unavailable
+   * @param combinedHolidayOfHoldings holidays specific to currently held securities
+   * @param tradingDaysOfLastYearReverse trading days from previous year in descending order
+   * @param lastYear reference year for calculations
+   * @return comprehensive trading day metadata
+   */
   private FirstAndMissingTradingDays combineFirstAndMissingTradingDays(LocalDate firstEverTradingDay,
       Set<Date> globalHolidays, Set<Date> missingQuoteDays, Set<Date> combinedHolidayOfHoldings,
       List<TradingDaysPlus> tradingDaysOfLastYearReverse, int lastYear) {
@@ -167,22 +235,18 @@ public class PerformanceReport {
     Date toDate = new GregorianCalendar(lastYear + 1, 0, 1).getTime();
     combinedHolidayOfHoldings.addAll(globalHolidays);
     Set<Date> combinedMissingQuoteDaysAndHolidays = new HashSet<>(missingQuoteDays);
-
     combinedMissingQuoteDaysAndHolidays.addAll(combinedHolidayOfHoldings);
-
     List<LocalDate> lastYearMissingDays = combinedMissingQuoteDaysAndHolidays.stream()
         .filter(missingDate -> missingDate.after(fromDate) && missingDate.before(toDate))
         .map(date -> ((java.sql.Date) date).toLocalDate()).sorted(Comparator.reverseOrder())
         .collect(Collectors.toList());
-
     Optional<TradingDaysPlus> lastTradingDayOfLastYearOpt = tradingDaysOfLastYearReverse.stream()
         .filter(tradingDaysPlus -> !lastYearMissingDays.contains(tradingDaysPlus.getTradingDate())).findFirst();
-
     LocalDate latestTradingDay = getLatestTradingDayBeforeDate(combinedMissingQuoteDaysAndHolidays, LocalDate.now(),
         firstEverTradingDay);
     LocalDate secondLatestTradingDay = getLatestTradingDayBeforeDate(combinedMissingQuoteDaysAndHolidays,
         latestTradingDay, firstEverTradingDay);
-    LocalDate secondEverTradingDay = getLatestTradingDayAfterDate(combinedMissingQuoteDaysAndHolidays,
+    LocalDate secondEverTradingDay = getFirstTradingDayAfterDate(combinedMissingQuoteDaysAndHolidays,
         firstEverTradingDay, latestTradingDay);
 
     LocalDate leatestPossibleTradingDay = getLatestTradingDayBeforeDate(combinedHolidayOfHoldings, LocalDate.now(),
@@ -194,6 +258,19 @@ public class PerformanceReport {
         missingQuoteDays);
   }
 
+  /**
+   * Finds the latest valid trading day before a specified date.
+   * 
+   * <p>
+   * Implements backward-scanning algorithm to identify the most recent trading day that
+   * excludes weekends, holidays, and days with missing price quotes.
+   * </p>
+   * 
+   * @param missingQuoteDays set of dates to exclude (holidays and missing quotes)
+   * @param beforeDate the date before which to search (exclusive)
+   * @param firstEverTradingDay lower boundary to prevent infinite scanning
+   * @return latest valid trading day before the specified date, or null if none found
+   */
   private LocalDate getLatestTradingDayBeforeDate(Set<Date> missingQuoteDays, LocalDate beforeDate,
       LocalDate firstEverTradingDay) {
     LocalDate latestTradingDay = null;
@@ -211,7 +288,20 @@ public class PerformanceReport {
     return latestTradingDay;
   }
 
-  private LocalDate getLatestTradingDayAfterDate(Set<Date> missingQuoteDays, LocalDate afterDate,
+  /**
+   * Finds the earliest valid trading day after a specified date.
+   * 
+   * <p>
+   * Implements forward-scanning algorithm to identify the first trading day after a given
+   * date that excludes weekends, holidays, and days with missing quotes.
+   * </p>
+   * 
+   * @param missingQuoteDays set of dates to exclude (holidays and missing quotes)
+   * @param afterDate the date after which to search (exclusive)
+   * @param latestTradingDay upper boundary to prevent scanning beyond available data
+   * @return earliest valid trading day after the specified date, or null if none found
+   */
+  private LocalDate getFirstTradingDayAfterDate(Set<Date> missingQuoteDays, LocalDate afterDate,
       LocalDate latestTradingDay) {
     LocalDate afterTradingDay = null;
     if (latestTradingDay != null) {
@@ -231,21 +321,24 @@ public class PerformanceReport {
   /**
    * Generates a period performance report for all portfolios within the current tenant.
    * 
-   * <p>This method aggregates performance data across all portfolios belonging to the
-   * current user's tenant. It provides a tenant-wide view of investment performance
-   * over the specified period.</p>
+   * <p>
+   * This method aggregates performance data across all portfolios belonging to the current user's tenant. It provides a
+   * tenant-wide view of investment performance over the specified period.
+   * </p>
    * 
-   * <p><strong>Performance Metrics Include:</strong></p>
+   * <p>
+   * <strong>Performance Metrics Include:</strong>
+   * </p>
    * <ul>
-   *   <li>Total portfolio values in tenant currency</li>
-   *   <li>Cash balance changes and external transfers</li>
-   *   <li>Security position changes and market valuations</li>
-   *   <li>Dividend, interest, and fee aggregations</li>
-   *   <li>Net gain/loss calculations</li>
+   * <li>Total portfolio values in tenant currency</li>
+   * <li>Cash balance changes and external transfers</li>
+   * <li>Security position changes and market valuations</li>
+   * <li>Dividend, interest, and fee aggregations</li>
+   * <li>Net gain/loss calculations</li>
    * </ul>
    * 
-   * @param dateFrom the start date of the performance period (inclusive)
-   * @param dateTo the end date of the performance period (inclusive)
+   * @param dateFrom    the start date of the performance period (inclusive)
+   * @param dateTo      the end date of the performance period (inclusive)
    * @param periodSplit whether to aggregate by week or year
    * @return comprehensive performance analysis for the tenant
    * @throws Exception if date validation fails or data retrieval encounters errors
@@ -325,20 +418,21 @@ public class PerformanceReport {
    * Validates input parameters for performance analysis requests.
    * 
    * <p>
-   * This method performs comprehensive validation including:
+   * Performs comprehensive validation including date range validity, trading day validation,
+   * data boundary validation, and period split appropriateness. Ensures that:
    * </p>
    * <ul>
-   * <li>Date range validity (start before end)</li>
-   * <li>Trading day validation (no weekends, holidays, or missing data)</li>
-   * <li>Date boundary validation (within available data range)</li>
-   * <li>Period split appropriateness (sufficient data for aggregation level)</li>
+   * <li>Start and end dates are valid trading days</li>
+   * <li>Date range is within available data bounds</li>
+   * <li>End date is after start date</li>
+   * <li>Period split is appropriate for the date range</li>
    * </ul>
    * 
    * @param firstAndMissingTradingDays trading day metadata for validation
-   * @param localeStr                  user's locale for error message formatting
-   * @param dateFrom                   the requested start date
-   * @param dateTo                     the requested end date
-   * @param periodSplit                the requested aggregation level
+   * @param localeStr user's locale for error message formatting
+   * @param dateFrom requested start date
+   * @param dateTo requested end date
+   * @param periodSplit requested aggregation level
    * @throws DataViolationException if any validation rule is violated
    */
   private void checkInputParam(FirstAndMissingTradingDays firstAndMissingTradingDays, String localeStr,
@@ -367,17 +461,13 @@ public class PerformanceReport {
    * Validates that a specific date is a valid trading day.
    * 
    * <p>
-   * A valid trading day must be:
+   * A valid trading day must be a weekday (not Saturday or Sunday), not a holiday,
+   * and not a day with missing quote data.
    * </p>
-   * <ul>
-   * <li>Not a weekend (Saturday or Sunday)</li>
-   * <li>Not a holiday</li>
-   * <li>Not a day with missing quote data</li>
-   * </ul>
    * 
-   * @param localeStr                  user's locale for error message formatting
-   * @param localDate                  the date to validate
-   * @param fieldName                  the field name for error reporting
+   * @param localeStr user's locale for error message formatting
+   * @param localDate the date to validate
+   * @param fieldName the field name for error reporting
    * @param firstAndMissingTradingDays trading day metadata containing holidays and missing data
    * @throws DataViolationException if the date is not a valid trading day
    */

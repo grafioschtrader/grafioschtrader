@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
 import {DeleteService} from '../../datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../edit/service.entity.update';
-import {ProposeUserTask} from '../../../entities/propose.user.task';
+import {ProposeUserTask} from '../../../lib/entities/propose.user.task';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../app.settings';
 import {catchError} from 'rxjs/operators';

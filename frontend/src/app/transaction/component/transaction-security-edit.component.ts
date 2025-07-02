@@ -51,6 +51,7 @@ import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {ClosedMarginPosition} from '../model/closed.margin.position';
 import {AbstractControl} from '@angular/forms';
 import {AppSettings} from '../../shared/app.settings';
+import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 
 /**
  * Edit transaction for an investment product, also margin product. The transaction type (buy, dividend, sell,
@@ -608,7 +609,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         this.loadSecuritiesOnce(timeValue);
       } else {
         // Only disable or enable securities
-        SelectOptionsHelper.securitiesEnableDisableOptionsByActiveDate(this.securities,
+        BusinessSelectOptionsHelper.securitiesEnableDisableOptionsByActiveDate(this.securities,
           this.configObject.idSecuritycurrency, timeValue);
       }
     }
@@ -628,8 +629,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         const securitiesF = this.securities.filter(security =>
           security.idSecuritycurrency === this.transactionCallParam.idSecuritycurrency ||
           !this.transactionEditType.securityOnlyParentSelected());
-        SelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(securitiesF, this.configObject.idSecuritycurrency);
-        SelectOptionsHelper.securitiesEnableDisableOptionsByActiveDate(this.securities,
+        BusinessSelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(securitiesF, this.configObject.idSecuritycurrency);
+        BusinessSelectOptionsHelper.securitiesEnableDisableOptionsByActiveDate(this.securities,
           this.configObject.idSecuritycurrency, timeValue);
         this.selectSecurity();
       });

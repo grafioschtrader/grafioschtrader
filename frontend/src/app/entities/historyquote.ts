@@ -1,5 +1,5 @@
-import {BaseID} from './base.id';
-import {ProposeTransientTransfer} from './propose.transient.transfer';
+import {BaseID} from '../lib/entities/base.id';
+import {ProposeTransientTransfer} from '../lib/entities/propose.transient.transfer';
 import {Exclude} from 'class-transformer';
 
 export class Historyquote extends ProposeTransientTransfer implements BaseID {

@@ -95,14 +95,14 @@ import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit
 import {HistoryquoteEditComponent} from './historyquote/component/historyquote-edit.component';
 import {TransactionCashaccountTableComponent} from './transaction/component/transaction-cashaccount-table.component';
 import {TransactionSecurityTableComponent} from './transaction/component/transaction-security-table.component';
-import {TenantEditDialogComponent} from './lib/tenant/component/tenant-edit-dialog.component';
+import {TenantEditDynamicComponent} from './lib/tenant/component/tenant.edit.dynamic.component';
 import {
   TenantDividendsSecurityExtendedComponent
 } from './lib/tenant/component/tenant-dividends-security-extended.component';
 import {SecuritycurrencyExtendedInfoComponent} from './watchlist/component/securitycurrency-extended-info.component';
 import {TenantTransactionCostExtendedComponent} from './lib/tenant/component/tenant-transaction-cost-extended.component';
 import {SecuritysplitEditTableComponent} from './securitycurrency/component/securitysplit-edit-table.component';
-import {PortfolioEditComponent} from './portfolio/component/portfolio-edit.component';
+import {PortfolioEditDynamicComponent} from './portfolio/component/portfolio.edit.dynamic.component';
 import {AssetclassEditComponent} from './assetclass/component/assetclass-edit.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
 import {ImportTransactionHeadService} from './securityaccount/service/import.transaction.head.service';
@@ -368,7 +368,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     LogoutReleaseRequestDynamicComponent, MailForwardSettingEditComponent, MailForwardSettingTableComponent,
     MailForwardSettingTableEditComponent, MailSendDynamicComponent, MainDialogComponent, MainTreeComponent, MenubarComponent,
     MessageToastComponent, NicknameLangEditComponent, PasswordEditComponent, PerformancePeriodComponent,
-    PortfolioCashaccountSummaryComponent, PortfolioEditComponent, PortfolioTabMenuComponent, PortfolioTransactionTableComponent,
+    PortfolioCashaccountSummaryComponent, PortfolioEditDynamicComponent, PortfolioTabMenuComponent, PortfolioTransactionTableComponent,
     ProposeChangeTabMenuComponent, RegisterComponent, RegistrationTokenVerifyComponent, ReplacePipe, RequestForYouTableComponent,
     SecurityaccountEditComponent, SecurityaccountEmptyComponent, SecurityaccountImportExtendedInfoComponent,
     SecurityaccountImportExtendedInfoFilenameComponent, SecurityaccountImportSetCashaccountComponent,
@@ -383,7 +383,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TaskDataChangeTableComponent, TemplateFormCheckDialogComponent, TemplateFormCheckDialogResultFailedComponent,
     TemplateFormCheckDialogResultSuccessComponent, TenantAlertComponent, TenantDividendAccountSelectionComponent,
     TenantDividendSecurityAccountSelectionDialogComponent, TenantDividendsCashaccountExtendedComponent,
-    TenantDividendsComponent, TenantDividendsSecurityExtendedComponent, TenantEditDialogComponent, TenantEditFullPageComponent,
+    TenantDividendsComponent, TenantDividendsSecurityExtendedComponent, TenantEditDynamicComponent, TenantEditFullPageComponent,
     TenantPerformanceEodMissingComponent, TenantPerformanceEodMissingTableComponent, TenantPerformanceFromToDiffComponent,
     TenantPerformanceTabMenuComponent, TenantPerformanceTreetableComponent, TenantSummariesAssetclassComponent,
     TenantSummariesCashaccountComponent, TenantSummariesSecurityaccountComponent, TenantTabMenuComponent, TenantTransactionCostComponent,

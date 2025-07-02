@@ -5,14 +5,14 @@ import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} fr
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {UserEntityChangeLimit} from '../../entities/user.entity.change.limit';
+import {UserEntityChangeLimit} from '../../lib/entities/user.entity.change.limit';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {User} from '../../entities/user';
+import {User} from '../../lib/entities/user';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {UserEntityChangeLimitService} from '../service/user.entity.change.limit.service';

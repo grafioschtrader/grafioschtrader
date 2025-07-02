@@ -9,8 +9,8 @@ import {AlgoTop} from '../../../algo/model/algo.top';
 import {AlgoAssetclass} from '../../../algo/model/algo.assetclass';
 import {AlgoSecurity} from '../../../algo/model/algo.security';
 import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
-import {User} from '../../../entities/user';
-import {Globalparameters} from '../../../entities/globalparameters';
+import {User} from '../../../lib/entities/user';
+import {Globalparameters} from '../../../lib/entities/globalparameters';
 import {CorrelationSet} from '../../../entities/correlation.set';
 import {ConnectorApiKey} from '../../../entities/connector.api.key';
 

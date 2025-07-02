@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../../shared/datashowbase/table.crud.support.menu';
-import {ProposeChangeEntity} from '../../../entities/propose.change.entity';
+import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {DataType} from '../../../dynamic-form/models/data.type';
