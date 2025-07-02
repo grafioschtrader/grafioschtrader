@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.dto.SubscriptionTypeReadableName;
 import grafiosch.entities.ConnectorApiKey;
 import grafiosch.repository.ConnectorApiKeyJpaRepository;
-import grafiosch.repository.ConnectorApiKeyJpaRepositoryImpl.SubscriptionTypeReadableName;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

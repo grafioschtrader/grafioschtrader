@@ -23,6 +23,7 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {AppSettings} from '../../shared/app.settings';
+import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 
 /**
  * Dialog for define a strategy. Asset class can be added dynamically.
@@ -145,7 +146,7 @@ export class AlgoRuleStrategyCreateComponent extends SimpleEditBase implements O
       if (idWatchlist) {
         this.assetclassService.getInvestableAssetclassesByWatchlist(idWatchlist).subscribe((assetsclasses: Assetclass[]) => {
           this.assetsclasses = assetsclasses;
-          this.valueKeyHtmlOptionsAssetclasses = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+          this.valueKeyHtmlOptionsAssetclasses = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
             this.gps, this.translateService, this.assetsclasses);
           this.fillAndfilterAssetclasses();
         });

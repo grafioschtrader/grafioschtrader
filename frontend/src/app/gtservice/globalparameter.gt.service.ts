@@ -8,7 +8,7 @@ import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.s
 import {AppSettings} from '../shared/app.settings';
 import {catchError, tap} from 'rxjs/operators';
 import {BaseAuthService} from '../shared/login/service/base.auth.service';
-import {Globalparameters} from '../entities/globalparameters';
+import {Globalparameters} from '../lib/entities/globalparameters';
 import {AssetclassType} from '../shared/types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../shared/types/special.investment.instruments';
 

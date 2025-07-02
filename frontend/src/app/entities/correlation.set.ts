@@ -1,4 +1,4 @@
-import {BaseID} from './base.id';
+import {BaseID} from '../lib/entities/base.id';
 import {Currencypair} from './currencypair';
 import {Security} from './security';
 import {Securitycurrency} from './securitycurrency';

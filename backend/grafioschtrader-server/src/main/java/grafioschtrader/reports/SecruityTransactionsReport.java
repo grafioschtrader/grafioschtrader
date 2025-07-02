@@ -83,6 +83,9 @@ public class SecruityTransactionsReport {
   @Autowired
   private GlobalparametersService globalparametersService;
 
+  /**
+   * Configuration options for transaction report generation.
+   */
   public enum SecruityTransactionsReportOptions {
     /**
      * Set security of Transaction to null. It is for the reduction the json footprint
@@ -96,7 +99,13 @@ public class SecruityTransactionsReport {
   }
 
   /**
-   * Get transactions for a security over all portfolios until a certain date.
+   * Gets transaction summary for a security across all portfolios in a tenant.
+   * 
+   * @param idTenant the tenant identifier
+   * @param idSecuritycurrency the security identifier  
+   * @param untilDate the cutoff date for transactions (inclusive)
+   * @param secruityTransactionsReportOptions processing options for the report
+   * @return transaction summary with security objects cleared from transactions
    */
   public SecurityTransactionSummary getTransactionsByIdTenantAndIdSecurityAndClearSecurity(final Integer idTenant,
       final Integer idSecuritycurrency, final Date untilDate,
@@ -107,7 +116,13 @@ public class SecruityTransactionsReport {
   }
 
   /**
-   * Get transactions for a security over a single portfolio until a certain date.
+   * Gets transaction summary for a security within a specific portfolio.
+   * 
+   * @param idPortfolio the portfolio identifier
+   * @param idSecuritycurrency the security identifier
+   * @param untilDate the cutoff date for transactions (inclusive)
+   * @param secruityTransactionsReportOptions processing options for the report
+   * @return transaction summary with security objects cleared from transactions
    */
   public SecurityTransactionSummary getTransactionsByIdPortfolioAndIdSecurityAndClearSecurity(final Integer idPortfolio,
       final Integer idSecuritycurrency, final Date untilDate,
@@ -118,7 +133,13 @@ public class SecruityTransactionsReport {
   }
 
   /**
-   * Get transactions for a security over single security account until a certain date.
+   * Gets transaction summary for a security across specified security accounts.
+   * 
+   * @param idsSecurityaccount list of security account identifiers
+   * @param idSecuritycurrency the security identifier
+   * @param untilDate the cutoff date for transactions (inclusive)
+   * @param secruityTransactionsReportOptions processing options for the report
+   * @return transaction summary with security objects cleared from transactions
    */
   public SecurityTransactionSummary getTransactionsByIdSecurityaccountsAndIdSecurityAndClearSecurity(
       final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final Date untilDate,
@@ -135,31 +156,36 @@ public class SecruityTransactionsReport {
   }
 
   /**
-   * Returns security accounts with open positions for the required security. Not usable for margin products!
-   */
+   * Returns security accounts with open positions for a specific security at a given point in time.
+   * 
+   * <p>Calculates which security accounts hold open positions for the specified security,
+   * excluding weekends and considering timezone offsets. Not suitable for margin products.</p>
+   * 
+   * @param idTenant the tenant identifier
+   * @param idSecuritycurrency the security identifier
+   * @param dateString date in yyyyMMddHHmm format
+   * @param before if true, calculates positions just before the specified time
+   * @param excludeIdTransaction transaction ID to exclude from calculations
+   * @param idOpenMarginTransaction margin transaction ID for position tracking
+   * @return open positions grouped by security account
+   */ 
   public SecurityOpenPositionPerSecurityaccount getOpenPositionByIdTenantAndIdSecuritycurrency(final Integer idTenant,
       final Integer idSecuritycurrency, final String dateString, final boolean before,
       final Integer excludeIdTransaction, Integer idOpenMarginTransaction) throws ParseException {
 
     // We need to convert the date to UTC time zone;
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-
     Date untilDate = new SimpleDateFormat("yyyyMMddHHmm").parse(dateString);
     if (before) {
       untilDate = new Date(untilDate.getTime() - 1 + user.getTimezoneOffset() * 60 * 1000);
     }
-
     final SecurityOpenPositionPerSecurityaccount securityaccountOpenPositionSecurity = new SecurityOpenPositionPerSecurityaccount();
-
     SecurityTransactionSummary securityTransactionSummary = getTransactionsByIdTenantAndIdSecurity(idTenant, null,
         idSecuritycurrency, untilDate, Collections.<SecruityTransactionsReportOptions>emptySet(),
         idOpenMarginTransaction);
-
     securityaccountOpenPositionSecurity.securityPositionSummary = securityTransactionSummary.securityPositionSummary;
-
     final Map<Integer, List<Transaction>> securityTransactionMap = this
         .separateTransactionForSecurityBySecurityaccount(securityTransactionSummary, excludeIdTransaction);
-
     for (final Map.Entry<Integer, List<Transaction>> entry : securityTransactionMap.entrySet()) {
       securityTransactionSummary = calcSummaryForTransactions(entry.getValue(),
           securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate,
@@ -173,12 +199,25 @@ public class SecruityTransactionsReport {
     return securityaccountOpenPositionSecurity;
   }
 
+  /**
+   * Loads and processes transactions for a security at tenant level with optional filtering.
+   * 
+   * <p>Uses concurrent loading of transactions, currency data, and exchange rates for performance.
+   * Supports filtering by security accounts or margin transaction relationships.</p>
+   * 
+   * @param idTenant the tenant identifier
+   * @param idsSecurityaccount optional list of security accounts to filter by
+   * @param idSecuritycurrency the security identifier
+   * @param untilDate the cutoff date for transactions
+   * @param secruityTransactionsReportOptions processing options
+   * @param idOpenMarginTransaction optional margin transaction for related position tracking
+   * @return comprehensive transaction summary with position and performance data
+   */
   private SecurityTransactionSummary getTransactionsByIdTenantAndIdSecurity(final Integer idTenant,
       final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final Date untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions, Integer idOpenMarginTransaction) {
 
     final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
-
     final CompletableFuture<List<Transaction>> transactionsFuture = CompletableFuture
         .supplyAsync(() -> idOpenMarginTransaction != null
             ? transactionJpaRepository.findByIdTenantAndIdTransactionOrConnectedIdTransaction(idTenant,
@@ -187,23 +226,29 @@ public class SecruityTransactionsReport {
                 ? transactionJpaRepository.findByIdTenantAndIdSecurity(idTenant, idSecuritycurrency)
                 : transactionJpaRepository.findByIdTenantAndSecurityAccountsIdSecurity(idTenant, idsSecurityaccount,
                     idSecuritycurrency));
-
     final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture.supplyAsync(
         () -> historyquoteJpaRepository.findByIdTenantAndIdSecurityFoCuHistoryquotes(idTenant, idSecuritycurrency));
-
     final CompletableFuture<List<Currencypair>> currencypairsFuture = CompletableFuture
         .supplyAsync(() -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(idTenant));
-
     final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
         .supplyAsync(() -> new DateTransactionCurrencypairMap(tenant.getCurrency(), untilDate,
             dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
             this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
-
     return calcSummaryForTransactions(transactionsFuture.join(),
         securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
         dateCurrencyMapFuture.join());
   }
 
+  /**
+   * Loads and processes transactions for a security within a specific portfolio.
+   * 
+   * @param idPortfolio the portfolio identifier
+   * @param idSecuritycurrency the security identifier
+   * @param untilDate the cutoff date for transactions
+   * @param secruityTransactionsReportOptions processing options
+   * @return transaction summary for the portfolio scope
+   * @throws SecurityException if user lacks access to the portfolio
+   */
   private SecurityTransactionSummary getTransactionsByIdPortfolioAndIdSecurity(final Integer idPortfolio,
       final Integer idSecuritycurrency, final Date untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
@@ -214,18 +259,15 @@ public class SecruityTransactionsReport {
       final CompletableFuture<List<Transaction>> transactionsFuture = CompletableFuture.supplyAsync(
           () -> transactionJpaRepository.findByIdPortfolioAndIdSecurity(portfolio.getSecurityaccountList().stream()
               .map(Securityaccount::getIdSecuritycashAccount).collect(Collectors.toList()), idSecuritycurrency));
-
       final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture
           .supplyAsync(() -> historyquoteJpaRepository.findByIdPortfolioAndIdSecurityFoCuHistoryquotes(idPortfolio,
               idSecuritycurrency));
       final CompletableFuture<List<Currencypair>> currencypairsFuture = CompletableFuture.supplyAsync(
           () -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(portfolio.getIdTenant()));
-
       final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
           .supplyAsync(() -> new DateTransactionCurrencypairMap(portfolio.getCurrency(), untilDate,
               dateTransactionCurrencyFuture.join(), currencypairsFuture.join(), this.tradingDaysPlusJpaRepository
                   .hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
-
       return calcSummaryForTransactions(transactionsFuture.join(),
           securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
           dateCurrencyMapFuture.join());
@@ -234,41 +276,51 @@ public class SecruityTransactionsReport {
     }
   }
 
+  /**
+   * Loads and processes transactions for a security within a specific security account.
+   * 
+   * @param idTenant the tenant identifier
+   * @param idSecuritycashAccount the security account identifier
+   * @param idSecuritycurrency the security identifier
+   * @param untilDate the cutoff date for transactions
+   * @param secruityTransactionsReportOptions processing options
+   * @return transaction summary for the security account scope
+   */
   private SecurityTransactionSummary getTransactionsByIdSecurityaccountAndIdSecurity(final Integer idTenant,
       final Integer idSecuritycashAccount, final Integer idSecuritycurrency, final Date untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
-
     final Portfolio portfolio = portfolioJpaRepository
         .findBySecuritycashaccountList_idSecuritycashAccountAndIdTenant(idSecuritycashAccount, idTenant);
-
     final CompletableFuture<List<Transaction>> transactionsFuture = CompletableFuture.supplyAsync(
         () -> transactionJpaRepository.findByIdSecurityaccountAndIdSecurity(idSecuritycashAccount, idSecuritycurrency));
-
     final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture
         .supplyAsync(() -> historyquoteJpaRepository
             .findByIdSecurityaccountAndIdSecurityFoCuHistoryquotes(idSecuritycashAccount, idSecuritycurrency));
     final CompletableFuture<List<Currencypair>> currencypairsFuture = CompletableFuture.supplyAsync(
         () -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(portfolio.getIdTenant()));
-
     final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
         .supplyAsync(() -> new DateTransactionCurrencypairMap(portfolio.getCurrency(), untilDate,
             dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
             this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
-
     return calcSummaryForTransactions(transactionsFuture.join(),
         securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
         dateCurrencyMapFuture.join());
   }
 
+  /**
+   * Groups transactions by security account for separate position analysis.
+   * 
+   * @param securityTransactionSummary the transaction summary to process
+   * @param excludeIdTransaction transaction ID to exclude from grouping
+   * @return map of security account ID to transaction list
+   */
   private Map<Integer, List<Transaction>> separateTransactionForSecurityBySecurityaccount(
       final SecurityTransactionSummary securityTransactionSummary, final Integer excludeIdTransaction) {
     final Map<Integer, List<Transaction>> securityTransactionMap = new HashMap<>();
     securityTransactionSummary.transactionPositionList.forEach(securityTransactionPosition -> {
-
       if (securityTransactionPosition.transaction.getIdTransaction() != null
           && !securityTransactionPosition.transaction.getIdTransaction().equals(excludeIdTransaction)) {
         final Integer idSecurityaccount = securityTransactionPosition.transaction.getIdSecurityaccount();
-
         List<Transaction> transactions = securityTransactionMap.computeIfAbsent(idSecurityaccount,
             key -> new ArrayList<>());
         transactions.add(securityTransactionPosition.transaction);
@@ -277,6 +329,20 @@ public class SecruityTransactionsReport {
     return securityTransactionMap;
   }
 
+  /**
+   * Calculates comprehensive transaction summary with position analysis and performance metrics.
+   * 
+   * <p>Processes all transactions for a security, applying stock splits, currency conversions,
+   * and calculating current positions. Optionally generates hypothetical sell scenarios and
+   * applies split corrections for charting purposes.</p>
+   * 
+   * @param transactions the list of transactions to process
+   * @param security the security master data
+   * @param untilDate the cutoff date for calculations
+   * @param secruityTransactionsReportOptions processing options
+   * @param dateCurrencyMap currency conversion rates and trading day information
+   * @return comprehensive transaction summary with positions and performance data
+   */
   private SecurityTransactionSummary calcSummaryForTransactions(final List<Transaction> transactions,
       final Security security, final Date untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions,
@@ -297,14 +363,11 @@ public class SecruityTransactionsReport {
       securitysplits.toArray(securitysplitsArray);
       securityTransactionSummary.securityPositionSummary.securitycurrency.setSplitPropose(securitysplitsArray);
     }
-
     securityCalcService.calcTransactions(security, excludeDivTaxcost, securityTransactionSummary, securitySplitMap,
         transactions, untilDate, dateCurrencyMap);
-
     if ((securityTransactionSummary.securityPositionSummary.units != 0.0
         || !securityTransactionSummary.transactionPositionList.isEmpty())
         && secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
-
       securityJpaRepository.calcGainLossBasedOnDateOrNewestPrice(securityTransactionSummary.securityPositionSummary,
           new IPositionCloseOnLatestPrice<Security, SecurityPositionSummary>() {
 
@@ -315,33 +378,38 @@ public class SecruityTransactionsReport {
                   securitySplitMap, dateCurrencyMap, securityTransactionSummary);
             }
           }, untilDate);
-
     }
     if (secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
       securityTransactionSummary.setSecurityInTransactionToNull();
     }
-
     if (secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)) {
       quotationSplitCorrection(security.getIdSecuritycurrency(), securityTransactionSummary, securitySplitMap);
       if (security.isMarginInstrument()) {
         Collections.sort(securityTransactionSummary.transactionPositionList,
             Comparator.comparing(tp -> tp.transaction.getTransactionTime()));
-
       }
     }
-
     return securityTransactionSummary;
   }
 
+  /**
+   * Adjusts transaction quotations to account for historical stock splits.
+   * 
+   * <p>When historical price data is split-adjusted, transaction quotations must be corrected
+   * to maintain consistency for charting and analysis. This method applies the cumulative split
+   * factor to each transaction's quotation based on splits that occurred after the transaction date.</p>
+   * 
+   * @param idSecuritycurrency the security identifier
+   * @param securityTransactionSummary the transaction summary to modify
+   * @param securitySplitMap map of security splits by security ID
+   */
   private void quotationSplitCorrection(final Integer idSecuritycurrency,
       final SecurityTransactionSummary securityTransactionSummary,
       final Map<Integer, List<Securitysplit>> securitySplitMap) {
-
     final List<Securitysplit> securitySplits = securitySplitMap.get(idSecuritycurrency);
     if (securitySplits != null) {
       final ListIterator<SecurityTransactionPosition> li = securityTransactionSummary.transactionPositionList
           .listIterator(securityTransactionSummary.transactionPositionList.size());
-
       while (li.hasPrevious()) {
         final SecurityTransactionPosition securityTransactionPosition = li.previous();
         final Transaction transaction = securityTransactionPosition.transaction;

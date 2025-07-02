@@ -46,7 +46,7 @@ import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
 import grafioschtrader.reportviews.account.CashaccountPositionSummary;
-import grafioschtrader.search.CurrencySearchBuilder;
+import grafioschtrader.search.CurrencyPairSearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.TaskTypeExtended;
@@ -401,7 +401,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
         || (securitycurrencySearch.getAssetclassType() == null && securitycurrencySearch.getName() != null)
             && securitycurrencySearch.getIsin() == null)
                 ? currencypairJpaRepository
-                    .findAll(new CurrencySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch))
+                    .findAll(new CurrencyPairSearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch))
                 : Collections.emptyList();
   }
 

@@ -22,11 +22,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Entity representing background task execution data and status.
+ * 
+ * <p>Tracks the lifecycle of background tasks from creation through completion,
+ * including execution timing, progress state, and error information.</p>
+ */
 @Schema(description = "Entity that contains the information for background processing")
 @Entity
 @Table(name = TaskDataChange.TABNAME)
 public class TaskDataChange extends BaseID<Integer> {
   public static final String TABNAME = "task_data_change";
+  
+  /** Maximum size for failed stack trace field */
   public static final int MAX_SIZE_FAILED_STRACK_TRACE = 4096;
 
   /**
@@ -34,12 +42,14 @@ public class TaskDataChange extends BaseID<Integer> {
    */
   public static final EnumRegistry<Byte, ITaskType> TASK_TYPES_REGISTRY = new EnumRegistry<>(TaskTypeBase.values());
 
+  @Schema(description = "Unique identifier for the task")
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
   @Column(name = "id_task_data_change")
   protected Integer idTaskDataChange;
 
+  @Schema(description = "Task type identifier")
   @Column(name = "id_task")
   protected byte idTask;
 
@@ -55,36 +65,47 @@ public class TaskDataChange extends BaseID<Integer> {
   @Column(name = "id_entity")
   private Integer idEntity;
 
+  @Schema(description = "Task creation timestamp")
   @Column(name = "creation_time")
   @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   private LocalDateTime creationTime;
 
+  @Schema(description = "Earliest allowed execution time")
   @Column(name = "earliest_start_time")
   @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   private LocalDateTime earliestStartTime;
 
-  @Schema(description = "Start time of the execution")
+  @Schema(description = "Actual execution start time")
   @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   @Column(name = "exec_start_time")
   private LocalDateTime execStartTime;
 
-  @Schema(description = "End time of the execution")
+  @Schema(description = "Execution completion time")
   @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   @Column(name = "exec_end_time")
   private LocalDateTime execEndTime;
 
+  @Schema(description = """
+      Additional information may be required when creating certain background jobs. 
+      This information is then requested when the job is executed. Both strings and date values can be stored here.""")
   @Column(name = "old_value_varchar")
   private String oldValueString;
 
+  @Schema(description = """
+      Additional information may be required when creating certain background jobs. 
+      This information is then requested when the job is executed. Numerical values can be stored here.""")
   @Column(name = "old_value_number")
   private Double oldValueNumber;
 
+  @Schema(description = "Current task execution status")
   @Column(name = "progress_state")
   private byte progressStateType;
 
+  @Schema(description = "Error message key if task failed")
   @Column(name = "failed_message_code")
   private String failedMessageCode;
 
+  @Schema(description = "Stack trace of failure if task failed")
   @Size(max = MAX_SIZE_FAILED_STRACK_TRACE)
   @Column(name = "failed_stack_trace")
   private String failedStackTrace;
@@ -92,10 +113,26 @@ public class TaskDataChange extends BaseID<Integer> {
   public TaskDataChange() {
   }
 
+  /**
+   * Creates a new task with specified parameters and immediate start time.
+   * 
+   * @param taskType the type of task to execute
+   * @param executionPriority the execution priority
+   * @param earliestStartTime when the task can start execution
+   */
   public TaskDataChange(ITaskType taskType, TaskDataExecPriority executionPriority, LocalDateTime earliestStartTime) {
     this(taskType, executionPriority, earliestStartTime, null, null);
   }
 
+  /**
+   * Creates a new task with full parameters.
+   * 
+   * @param taskType the type of task to execute
+   * @param executionPriority the execution priority
+   * @param earliestStartTime when the task can start execution
+   * @param idEntity the ID of the entity that triggered this task
+   * @param entity the name of the entity that triggered this task
+   */
   public TaskDataChange(ITaskType taskType, TaskDataExecPriority executionPriority, LocalDateTime earliestStartTime,
       Integer idEntity, String entity) {
     this.idTask = taskType.getValue();
@@ -247,6 +284,13 @@ public class TaskDataChange extends BaseID<Integer> {
         : null;
   }
 
+  /**
+   * Marks the task as finished with the specified state.
+   * Sets the execution times and progress state.
+   * 
+   * @param startTime the actual start time
+   * @param progressStateType the final progress state
+   */
   public void finishedJob(LocalDateTime startTime, ProgressStateType progressStateType) {
     this.progressStateType = progressStateType.getValue();
     this.execStartTime = startTime;

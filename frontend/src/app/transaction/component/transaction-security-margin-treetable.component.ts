@@ -141,7 +141,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   }
 
   protected initialize(): void {
-    BusinessHelper.setSecurityTransactionSummary(this.securityService, this.idSecuritycurrency, this.idsSecurityaccount,
+    BusinessHelper.getSecurityTransactionSummary(this.securityService, this.idSecuritycurrency, this.idsSecurityaccount,
       this.idPortfolio, false).subscribe(result => {
       this.securityTransactionSummary = result;
       this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);

@@ -1,5 +1,5 @@
-import {BaseID} from './base.id';
-import {Auditable} from './auditable';
+import {BaseID} from '../lib/entities/base.id';
+import {Auditable} from '../lib/entities/auditable';
 import {Exclude} from 'class-transformer';
 
 export class Stockexchange extends Auditable implements BaseID {

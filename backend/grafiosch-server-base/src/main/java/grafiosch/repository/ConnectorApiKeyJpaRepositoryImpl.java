@@ -1,7 +1,5 @@
 package grafiosch.repository;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +7,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.UserAccessHelper;
+import grafiosch.dto.SubscriptionTypeReadableName;
 import grafiosch.entities.ConnectorApiKey;
 import grafiosch.entities.User;
-import grafiosch.types.ISubscriptionType;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 public class ConnectorApiKeyJpaRepositoryImpl implements ConnectorApiKeyJpaRepositoryCustom {
 
@@ -45,21 +42,7 @@ public class ConnectorApiKeyJpaRepositoryImpl implements ConnectorApiKeyJpaRepos
     connectorApiKeyReset.resetConnectorApiKey(idProvider);
   }
 
-  @Schema(description = """
-      Encapsulates subscription type information in a format suitable for user interface display and selection.
-      It combines human-readable names with the available subscription type options for a specific provider.""")
-  public static class SubscriptionTypeReadableName {
-    @Schema(description = "Human-readable display name for the provider or subscription category.")
-    public String readableName;
-
-    @Schema(description = "List of available subscription types for this provider.")
-    public List<ISubscriptionType> subscriptionTypes = new ArrayList<>();
-
-    public SubscriptionTypeReadableName(String readableName) {
-      this.readableName = readableName;
-    }
-  }
-
+  
   public static interface IConnectorApiKeyReset {
     /**
      * If the API key has been deleted or changed, this must be communicated to the corresponding implementation of the

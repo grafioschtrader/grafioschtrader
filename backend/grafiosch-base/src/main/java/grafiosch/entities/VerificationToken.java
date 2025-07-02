@@ -4,7 +4,6 @@ import java.util.Calendar;
 import java.util.Date;
 
 import grafiosch.BaseConstants;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

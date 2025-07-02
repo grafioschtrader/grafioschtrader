@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
 import {TenantEditComponent} from './tenant.edit.component';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {MessageToastService} from '../../../shared/message/message.toast.service';
@@ -7,6 +7,9 @@ import {TranslateService} from '@ngx-translate/core';
 import {Tenant} from '../../../entities/tenant';
 import {LoginService} from '../../../shared/login/service/log-in.service';
 import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
+import {BusinessHelper} from '../../../shared/helper/business.helper';
+import {HelpIds} from '../../../shared/help/help.ids';
+import {CallParam} from '../../../shared/maintree/types/dialog.visible';
 
 /**
  * Edit tenant fields on a full page layout used for a new tenant.
@@ -33,8 +36,8 @@ export class TenantEditFullPageComponent extends TenantEditComponent implements 
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               tenantService: TenantService,
-              translateSercice: TranslateService) {
-    super(gpsGT, gps, messageToastService, tenantService, translateSercice, true, 4);
+              translateService: TranslateService) {
+    super(gpsGT, gps, messageToastService, tenantService, translateService, true, 4);
   }
 
   ngOnInit(): void {
@@ -45,7 +48,7 @@ export class TenantEditFullPageComponent extends TenantEditComponent implements 
     this.loadData();
   }
 
-  protected afterSaved(tenant: Tenant): void {
+  protected override closeInputDialog(tenant: Tenant): void {
     this.loginService.logoutWithLoginView();
   }
 

@@ -2,7 +2,7 @@ import {Observable} from 'rxjs';
 import {Injectable} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import {User} from '../../../entities/user';
+import {User} from '../../../lib/entities/user';
 import {AppSettings} from '../../app.settings';
 import {MessageToastService} from '../../message/message.toast.service';
 import {Router} from '@angular/router';

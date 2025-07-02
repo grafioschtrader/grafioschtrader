@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, Type, ViewChild} from '@angular/core';
 import {TreeNodeType} from '../types/tree.node.type';
 import {AppSettings} from '../../app.settings';
 import {Router} from '@angular/router';
@@ -38,6 +38,9 @@ import {AlgoTop} from '../../../algo/model/algo.top';
 import {GlobalSessionNames} from '../../global.session.names';
 import {FeatureType} from '../../login/component/login.component';
 import {TreeNodeUnSelectEvent} from 'primeng/tree';
+import {MainTreeDynamicDialogs} from '../../../dynamic-dialog/component/main.tree.dynamic.dialogs';
+import {DialogService} from 'primeng/dynamicdialog';
+import {PortfolioEditDynamicComponent} from '../../../portfolio/component/portfolio.edit.dynamic.component';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
@@ -45,6 +48,7 @@ import {TreeNodeUnSelectEvent} from 'primeng/tree';
 @Component({
     selector: 'main-tree',
     templateUrl: '../view/maintree.html',
+    providers: [DialogService],
     standalone: false
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
@@ -90,7 +94,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
               public translateService: TranslateService,
               private globalParamService: GlobalparameterService,
               private tenantService: TenantService,
-              private watchlistService: WatchlistService) {
+              private watchlistService: WatchlistService,
+              private dialogService: DialogService) {
     let i = 0;
     this.PORTFOLIO_INDEX = i++;
     if (this.useAlgo()) {
@@ -324,6 +329,31 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.addFirstLevelNode();
   }
 
+
+
+  handleDynamicNew(componentType: Type<any>, parentObject: any, data: Tenant | Portfolio | Cashaccount | Securityaccount
+    | AlgoTopCreate, tenantLimitType: TenantLimitTypes, titleKey: string): void {
+    if (tenantLimitType) {
+      if (BusinessHelper.isLimitCheckOk(this.tenantLimits[tenantLimitType], this.messageToastService)) {
+        this.handleDynamicEdit(componentType, parentObject, data, titleKey);
+      }
+    } else {
+      this.handleDynamicEdit(componentType, parentObject, data, titleKey);
+    }
+  }
+
+  handleDynamicEdit(componentType: Type<any>, parentObject: any, data: Tenant | Portfolio | Cashaccount | Securityaccount
+    | AlgoTopCreate = null, titleKey: string): void {
+    this.callParam = new CallParam(parentObject, data);
+    MainTreeDynamicDialogs.getEditDialogComponent(componentType, this.translateService, this.dialogService,
+      this.callParam, titleKey).onClose.subscribe(hopd => this.handleOnProcessedDialog(hopd))
+  }
+
+  handleTenantEditDynamicDialog(data: Tenant, onlyCurrency: boolean): void {
+     MainTreeDynamicDialogs.getTenantEditDialogComponent(this.translateService, this.dialogService,
+       data, onlyCurrency).onClose.subscribe(hopd => this.handleOnProcessedDialog(hopd));
+  }
+
   handleNew(dialogVisible: DialogVisible, parentObject: any, data: Tenant | Portfolio | Cashaccount | Securityaccount
     | AlgoTopCreate, tenantLimitType: TenantLimitTypes): void {
     if (tenantLimitType) {
@@ -411,29 +441,27 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
             label: 'EDIT_RECORD|CLIENT' + AppSettings.DIALOG_MENU_SUFFIX,
             command: (event) => {
               this.onlyCurrency = false;
-              this.handleEdit(DialogVisible.DvTenant,
-                null, selectedNodeData);
+              this.handleTenantEditDynamicDialog(selectedNodeData, false);
             }
           },
           {
             label: 'CLIENT_CHANGE_CURRENCY' + AppSettings.DIALOG_MENU_SUFFIX,
             command: (event) => {
               this.onlyCurrency = true;
-              this.handleEdit(DialogVisible.DvTenant,
-                null, selectedNodeData);
+              this.handleTenantEditDynamicDialog(selectedNodeData, true);
             }
           });
         menuItems.push({separator: true});
         menuItems.push({
           label: 'CREATE|PORTFOLIO' + AppSettings.DIALOG_MENU_SUFFIX,
-          command: (event) => this.handleNew(DialogVisible.DvPortfolio,
-            selectedNodeData, null, TenantLimitTypes.MAX_PORTFOLIO)
+          command: (event) => this.handleDynamicNew(PortfolioEditDynamicComponent,
+            selectedNodeData, null, TenantLimitTypes.MAX_PORTFOLIO, AppSettings.PORTFOLIO.toUpperCase())
         });
         break;
       case TreeNodeType.Portfolio:
         menuItems.push({
           label: 'EDIT_RECORD|PORTFOLIO' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleEdit(DialogVisible.DvPortfolio, parentNodeData, selectedNodeData)
+            this.handleDynamicEdit(PortfolioEditDynamicComponent, parentNodeData, selectedNodeData, AppSettings.PORTFOLIO.toUpperCase())
         });
         menuItems.push({
           label: 'DELETE|PORTFOLIO', command: (event) =>

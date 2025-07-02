@@ -17,6 +17,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 
 /**
  * Project: Grafioschtrader
@@ -66,7 +67,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     combineLatest([this.getAssetclassObserver(), allSecurityaccountsObservable]).subscribe(
       (data: [Assetclass | Assetclass[], Portfolio[]]) => {
         this.configObject.assetclass.referencedDataObject = Array.isArray(data[0]) ? data[0] : [data[0]];
-        this.configObject.assetclass.valueKeyHtmlOptions = SelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+        this.configObject.assetclass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
           this.gps, this.translateService, this.configObject.assetclass.referencedDataObject);
         this.portfolios = data[1];
         this.setSecurityaccounts();

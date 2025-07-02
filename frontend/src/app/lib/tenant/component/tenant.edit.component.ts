@@ -24,11 +24,10 @@ import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.se
  */
 @Directive()
 export abstract class TenantEditComponent {
+  existingTenant: Tenant;
 
-  // InputMask from parent view
-  @Input() visibleTenantDialog: boolean;
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
-  @Input() callParam: CallParam;
+
 
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
@@ -48,7 +47,6 @@ export abstract class TenantEditComponent {
   init(onlyCurrency: boolean): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       this.labelColumns, this.helpLink.bind(this), this.nonModal);
-
     this.config = this.getFields(onlyCurrency);
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -59,30 +57,31 @@ export abstract class TenantEditComponent {
 
   submit(value: { [name: string]: any }) {
     const tenant: Tenant = new Tenant();
-    if (this.callParam && this.callParam.thisObject) {
-      Object.assign(tenant, this.callParam.thisObject);
+    if (this.existingTenant) {
+      Object.assign(tenant, this.existingTenant);
     }
     this.form.cleanMaskAndTransferValuesToBusinessObject(tenant);
     this.tenantService.update(tenant).subscribe({ next: newTenant => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CLIENT'});
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CLIENT'});
+        const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
+        this.closeInputDialog(tenantNew);
+      }, error: () => this.configObject.submit.disabled = false});
+  }
 
-      const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
-      this.afterSaved(tenantNew);
-    }, error: () => this.configObject.submit.disabled = false});
+  protected closeInputDialog(tenant: Tenant): void {
   }
 
   helpLink(): void {
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_CLIENT);
   }
 
-  protected abstract afterSaved(tenant: Tenant): void;
 
   protected loadData() {
     this.gpsGT.getCurrencies().subscribe(data => {
         this.form.setDefaultValuesAndEnableSubmit();
         this.configObject.currency.valueKeyHtmlOptions = data;
-        if (this.callParam && this.callParam.thisObject != null) {
-          this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+        if (this.existingTenant) {
+          this.form.transferBusinessObjectToForm(this.existingTenant);
         }
         if (this.configObject.tenantName) {
           this.configObject.tenantName.elementRef.nativeElement.focus();

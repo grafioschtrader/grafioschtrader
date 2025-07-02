@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
-import {ConnectorApiKey, SubscriptionType, SubscriptionTypeReadableName} from '../../entities/connector.api.key';
+import {ConnectorApiKey, SubscriptionTypeReadableName} from '../../entities/connector.api.key';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -15,6 +15,7 @@ import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {Subscription} from 'rxjs';
 import {Cashaccount} from '../../entities/cashaccount';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
+import {SubscriptionType} from '../../shared/types/subscription.type';
 
 /**
  * Create or edit a key for the connectors API. It is intended for the admin only.
@@ -73,7 +74,7 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
 
   valueChangedOnIdProvider(): void {
     this.idProviderChangedSub = this.configObject.idProvider.formControl.valueChanges.subscribe(selection => {
-      const subscriptionTypes = this.strn[selection].subscriptionTypes.map(st => SubscriptionType[st]);
+      const subscriptionTypes = this.strn[selection].subscriptionTypes.map((st: string) => SubscriptionType[st]);
       this.configObject.subscriptionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService, SubscriptionType, subscriptionTypes, false);
     });

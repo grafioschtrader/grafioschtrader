@@ -3,7 +3,7 @@
  */
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../edit/simple.entity.edit.base';
-import {Globalparameters} from '../../entities/globalparameters';
+import {Globalparameters} from '../../lib/entities/globalparameters';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';

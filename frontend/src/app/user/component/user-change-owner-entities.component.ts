@@ -9,7 +9,7 @@ import {UserSettingsDialogs} from '../../shared/mainmenubar/component/main.dialo
 import {AppHelper} from '../../shared/helper/app.helper';
 import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {User} from '../../entities/user';
+import {User} from '../../lib/entities/user';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {UserAdminService} from '../service/user.admin.service';
 import {InfoLevelType} from '../../shared/message/info.leve.type';

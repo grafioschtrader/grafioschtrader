@@ -54,8 +54,7 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
    * Retrieves all feed connectors that support a specific type of data feed (e.g., historical, intraday) as a list of
    * key-value pairs suitable for HTML select options.
    *
-   * @param feedSupport The type of feed support (e.g., {@link FeedSupport#HISTORY_PRICE_INTRA_URL_WITH_KEY}) required
-   *                    from the connectors.
+   * @param feedSupport The type of feed support required from the connectors.
    * @return A list of {@link ValueKeyHtmlSelectOptions} representing the feed connectors.
    */
   List<ValueKeyHtmlSelectOptions> getAllFeedConnectorsAsKeyValue(FeedSupport feedSupport);

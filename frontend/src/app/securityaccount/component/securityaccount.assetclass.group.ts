@@ -5,6 +5,7 @@ import {Security} from '../../entities/security';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 
 /**
  * Group by asset class by all properties of asset class. It produces more groups than other groupings.
@@ -24,7 +25,7 @@ export class SecurityaccountAssetclassGroup extends SecurityaccountGroupBaseDyna
   public override translateGroupValues(securityPositionGroupSummaries: SecurityPositionDynamicGroupSummary<number>[]) {
     securityPositionGroupSummaries.forEach(spgs => {
       const groupFieldValue: string = this.getGroupFieldAsString(spgs.groupField);
-      const valueKeyHtmlSelectOptions = SelectOptionsHelper.translateAssetclass(this.translateService, this.language,
+      const valueKeyHtmlSelectOptions = BusinessSelectOptionsHelper.translateAssetclass(this.translateService, this.language,
         spgs.securityPositionSummaryList[0].security.assetClass, null);
       this.translatedGroupValues[groupFieldValue] = valueKeyHtmlSelectOptions.value;
     });

@@ -212,7 +212,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
     for (let i = this.loadedData.length; i < timeSeriesParams.length; i++) {
       const stsObservable = timeSeriesParams[i].currencySecurity
-        ? BusinessHelper.setSecurityTransactionSummary(this.securityService,
+        ? BusinessHelper.getSecurityTransactionSummary(this.securityService,
           timeSeriesParams[i].idSecuritycurrency, timeSeriesParams[i].idSecurityaccount
             ? [timeSeriesParams[i].idSecurityaccount] : null,
           timeSeriesParams[i].idPortfolio, true)

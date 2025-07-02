@@ -22,6 +22,16 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
 
+/**
+ * Service for managing and retrieving global configuration parameters used throughout the GrafioschTrader application.
+ * 
+ * All configuration values are retrieved from the global parameters repository with fallback to predefined default
+ * values when specific parameters are not configured. This ensures the application can operate with sensible defaults
+ * while allowing administrators to customize behavior through database configuration.
+ * 
+ * The service integrates with Spring Security to access user context for localization and user-specific settings where
+ * applicable.
+ */
 @Service
 public class GlobalparametersService {
 
@@ -31,12 +41,22 @@ public class GlobalparametersService {
   @Autowired
   private MessageSource messages;
 
+  /**
+   * Retrieves currency precision configuration as a map of currency codes to decimal places.
+   * 
+   * Parses the currency precision global parameter which is stored as a comma-separated string of "CURRENCY=PRECISION"
+   * pairs (e.g., "USD=2,JPY=0,BTC=8"). If the global parameter is not configured, uses the default precision settings.
+   * 
+   * @return a map where keys are ISO currency codes and values are the number of decimal places to use for that
+   *         currency
+   * @see GlobalParamKeyDefault#DEFAULT_CURRENCY_PRECISION
+   * @see GlobalParamKeyDefault#GLOB_KEY_CURRENCY_PRECISION
+   */
   public Map<String, Integer> getCurrencyPrecision() {
     Map<String, Integer> currencyPrecisionMap = new HashMap<>();
     String curPrecision = globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_CURRENCY_PRECISION)
         .map(Globalparameters::getPropertyString).orElse(GlobalParamKeyDefault.DEFAULT_CURRENCY_PRECISION);
     String[] curSinglePre = curPrecision.split(",");
-
     for (String element : curSinglePre) {
       String[] pair = element.split("=");
       currencyPrecisionMap.put(pair[0], Integer.parseInt(pair[1]));
@@ -44,23 +64,63 @@ public class GlobalparametersService {
     return currencyPrecisionMap;
   }
 
+  /**
+   * Gets the decimal precision for a specific currency.
+   * 
+   * Looks up the precision for the given currency in the currency precision map. If no specific precision is configured
+   * for the currency, returns the standard fraction digits default.
+   * 
+   * @param currency the ISO currency code (e.g., "USD", "EUR", "BTC")
+   * @return the number of decimal places to use for the specified currency
+   * @see #getCurrencyPrecision()
+   * @see GlobalConstants#FID_STANDARD_FRACTION_DIGITS
+   */
   public int getPrecisionForCurrency(String currency) {
     return getCurrencyPrecision().getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
   /**
-   * Return the maximum attempts. This value is determined by the global parameters.
+   * Gets the maximum number of retry attempts for intraday price data updates. This value relates to each individual
+   * security.
+   * 
+   * This configuration controls how many times the system will retry fetching intraday price data from external sources
+   * before marking the operation as failed.
+   * 
+   * @return the maximum number of intraday retry attempts, defaults to
+   *         {@link GlobalParamKeyDefault#DEFAULT_INTRA_RETRY} if not configured
+   * @see GlobalParamKeyDefault#GLOB_KEY_INTRA_RETRY
    */
   public short getMaxIntraRetry() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_INTRA_RETRY)
         .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_INTRA_RETRY);
   }
 
+  /**
+   * Gets the retry threshold offset for intraday data observation monitoring.
+   * 
+   * This value is subtracted from the maximum retry count to determine when an instrument should be flagged as
+   * potentially non-functioning in monitoring reports. For example, if max retries is 4 and this value is 1,
+   * instruments with 3 or 4 retries would be considered problematic.
+   * 
+   * @return the number to subtract from max retry count for monitoring thresholds
+   * @see GlobalParamKeyDefault#GLOB_KEY_INTRADAY_OBSERVATION_RETRY_MINUS
+   * @see GlobalParamKeyDefault#DEFAULT_INTRADAY_OBSERVATION_RETRY_MINUS
+   */
   public int getIntradayObservationRetryMinus() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_INTRADAY_OBSERVATION_RETRY_MINUS)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_INTRADAY_OBSERVATION_RETRY_MINUS);
   }
 
+  /**
+   * Gets the percentage threshold for intraday data connector failure alerts.
+   * 
+   * When at least this percentage of instruments using a particular data connector fail to update, the system will
+   * generate monitoring alerts. A value of 100% indicates the connector has completely stopped working.
+   * 
+   * @return the percentage threshold (0-100) for connector failure detection
+   * @see GlobalParamKeyDefault#GLOB_KEY_INTRADAY_OBSERVATION_FALLING_PERCENTAGE
+   * @see GlobalParamKeyDefault#DEFAULT_INTRADAY_OBSERVATION_FALLING_PERCENTAGE
+   */
   public int getIntradayObservationFallingPercentage() {
     return globalparametersJpaRepository
         .findById(GlobalParamKeyDefault.GLOB_KEY_INTRADAY_OBSERVATION_FALLING_PERCENTAGE)
@@ -68,6 +128,16 @@ public class GlobalparametersService {
         .orElse(GlobalParamKeyDefault.DEFAULT_INTRADAY_OBSERVATION_FALLING_PERCENTAGE);
   }
 
+  /**
+   * Gets the timeout duration for security and currency intraday update operations.
+   * 
+   * This controls how long the system will wait for intraday price updates to complete before timing out the operation.
+   * Longer timeouts allow for more reliable data collection but may delay other system operations.
+   * 
+   * @return the timeout duration in seconds
+   * @see GlobalParamKeyDefault#GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS
+   * @see GlobalParamKeyDefault#DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS
+   */
   public int getSecurityCurrencyIntradayUpdateTimeout() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_SC_INTRA_UPDATE_TIMEOUT_SECONDS)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS);
@@ -103,22 +173,67 @@ public class GlobalparametersService {
     return globalparametersJpaRepository.save(gp);
   }
 
+  /**
+   * Retrieves a global parameter entity by its property name.
+   * 
+   * This is a generic method for accessing any global parameter directly. Most callers should use the specific typed
+   * methods provided by this service rather than this generic accessor.
+   * 
+   * @param property the property name/key to look up
+   * @return an Optional containing the global parameter if found, empty otherwise
+   */
   public Optional<Globalparameters> getGlobalparametersByProperty(String property) {
     return globalparametersJpaRepository.findById(property);
   }
 
+  /**
+   * Gets the maximum number of retry attempts for dividend data updates. This value relates to each individual
+   * security.
+   * 
+   * Controls how many times the system will attempt to fetch dividend information from external sources before giving
+   * up.
+   * 
+   * @return the maximum number of dividend retry attempts
+   * @see GlobalParamKeyDefault#GLOB_KEY_DIVIDEND_RETRY
+   * @see GlobalParamKeyDefault#DEFAULT_DIVIDEND_RETRY
+   */
   public short getMaxDividendRetry() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_DIVIDEND_RETRY)
         .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_DIVIDEND_RETRY);
   }
 
+  /**
+   * Gets the maximum number of retry attempts for stock split data updates. This value relates to each individual
+   * security.
+   * 
+   * 
+   * Controls retry behavior when fetching stock split information from external data sources.
+   * 
+   * @return the maximum number of stock split retry attempts
+   * @see GlobalParamKeyDefault#GLOB_KEY_SPLIT_RETRY
+   * @see GlobalParamKeyDefault#DEFAULT_SPLIT_RETRY
+   */
   public short getMaxSplitRetry() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_SPLIT_RETRY)
         .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_SPLIT_RETRY);
   }
 
   /**
-   * At 0 the update of the historical prices is done once otherwise according to stock market close
+   * Gets the historical price update strategy configuration.
+   * 
+   * 
+   * Determines whether historical price updates are performed:
+   * <ul>
+   * <li>0: Once per day regardless of stock exchange</li>
+   * <li>1: According to individual stock exchange closing times</li>
+   * </ul>
+   * 
+   * 
+   * Using stock exchange-specific timing can provide more timely updates but requires more complex scheduling logic.
+   * 
+   * @return 0 for daily updates, 1 for exchange-specific timing
+   * @see GlobalParamKeyDefault#GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE
+   * @see GlobalParamKeyDefault#DEFAULT_UPDATE_PRICE_BY_EXCHANGE
    */
   public int getUpdatePriceByStockexchange() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE)
@@ -126,35 +241,84 @@ public class GlobalparametersService {
   }
 
   /**
-   * Monitoring of historical price data. The instrument is only taken into account if a successful transfer has taken
-   * place within the current date minus this number of days. In this way, any instruments that are no longer active but
-   * are listed as active do not distort the calculation.
-   *
-   * @return Number of days
+   * Gets the lookback period for historical price data monitoring.
+   * 
+   * 
+   * Instruments are only included in monitoring calculations if they have had a successful data transfer within this
+   * many days from the current date. This prevents inactive or delisted instruments from skewing monitoring statistics
+   * and alerts.
+   * 
+   * @return the number of days to look back for successful transfers
+   * @see GlobalParamKeyDefault#GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK
+   * @see GlobalParamKeyDefault#DEFAULT_HISTORY_OBSERVATION_DAYS_BACK
    */
   public int getHistoryObservationDaysBack() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_OBSERVATION_DAYS_BACK)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_OBSERVATION_DAYS_BACK);
   }
 
+  /**
+   * Gets the configured start date for data feed operations.
+   * 
+   * 
+   * This represents the earliest date from which the system will attempt to collect historical data. Data before this
+   * date is not processed to avoid unnecessary historical data collection and to maintain reasonable system
+   * performance.
+   * 
+   * @return the start date for data feed operations
+   * @throws ParseException if the configured date string cannot be parsed
+   * @see GlobalParamKeyDefault#GLOB_KEY_START_FEED_DATE
+   * @see GlobalParamKeyDefault#DEFAULT_START_FEED_DATE
+   */
   public Date getStartFeedDate() throws ParseException {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_START_FEED_DATE)
         .map(g -> DateHelper.getDateFromLocalDate(g.getPropertyDate()))
         .orElse(GlobalParamKeyDefault.DEFAULT_START_FEED_DATE);
   }
 
+  /**
+   * Gets the alternative lookback period for intraday observation monitoring.
+   * 
+   * 
+   * This provides an alternative time window for intraday monitoring when the primary observation criteria are not met.
+   * It allows for more flexible monitoring strategies depending on market conditions and data availability.
+   * 
+   * @return the alternative lookback period in days for intraday monitoring
+   * @see GlobalParamKeyDefault#GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK
+   * @see GlobalParamKeyDefault#DEFAULT_INTRADAY_OBSERVATION_OR_DAYS_BACK
+   */
   public int getIntradayObservationOrDaysBack() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_INTRADAY_OBSERVATION_OR_DAYS_BACK);
   }
 
+  /**
+   * Gets the maximum number of days for currency exchange rate gap filling.
+   * 
+   * 
+   * When historical currency exchange rate data has gaps, the system will attempt to fill missing values by
+   * interpolation or using the last known rate. This parameter limits how large a gap can be filled to ensure data
+   * quality and prevent propagation of stale rates.
+   * 
+   * @return the maximum number of days for currency rate gap filling
+   * @see GlobalParamKeyDefault#GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY
+   * @see GlobalParamKeyDefault#DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY
+   */
   public int getMaxFillDaysCurrency() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY);
   }
 
   /**
-   * Return the maximum attempts. This value is determined by the global parameters.
+   * Gets the maximum number of retry attempts for historical price data updates.
+   * 
+   * 
+   * This configuration controls how many times the system will retry fetching historical price data from external
+   * sources before marking the operation as failed.
+   * 
+   * @return the maximum number of historical data retry attempts
+   * @see GlobalParamKeyDefault#GLOB_KEY_HISTORY_RETRY
+   * @see GlobalParamKeyDefault#DEFAULT_HISTORY_RETRY
    */
   public short getMaxHistoryRetry() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_RETRY)
@@ -162,10 +326,16 @@ public class GlobalparametersService {
   }
 
   /**
-   * Monitoring of historical price data. Message when at least this percentage of a connector has failed. At 100%, the
-   * connector probably no longer works at all.
-   *
-   * @return Percentage threshold
+   * Gets the percentage threshold for historical data connector failure alerts.
+   * 
+   * 
+   * When at least this percentage of instruments using a particular historical data connector fail to update, the
+   * system will generate monitoring alerts. A value of 100% indicates the connector has completely stopped working for
+   * historical data retrieval.
+   * 
+   * @return the percentage threshold (0-100) for historical connector failure detection
+   * @see GlobalParamKeyDefault#GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE
+   * @see GlobalParamKeyDefault#DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE
    */
   public int getHistoryObservationFallingPercentage() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_HISTORY_OBSERVATION_FALLING_PERCENTAGE)
@@ -173,6 +343,25 @@ public class GlobalparametersService {
         .orElse(GlobalParamKeyDefault.DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE);
   }
 
+  /**
+   * Gets a list of all available currencies formatted for HTML select elements.
+   * 
+   * 
+   * This method combines standard ISO currencies with supported cryptocurrencies to provide a comprehensive list for
+   * user interface elements. The list includes:
+   * <ul>
+   * <li>All available ISO 4217 currency codes, sorted alphabetically</li>
+   * <li>Supported cryptocurrencies with localized labels indicating their crypto status</li>
+   * </ul>
+   * 
+   * 
+   * The cryptocurrency labels are localized using the current user's locale and message source configuration.
+   * 
+   * @return a list of currency options suitable for HTML select elements, where each option contains the currency code
+   *         as both key and initial value, with cryptocurrencies having descriptive labels
+   * @see GlobalConstants#CRYPTO_CURRENCY_SUPPORTED
+   * @see ValueKeyHtmlSelectOptions
+   */
   public List<ValueKeyHtmlSelectOptions> getCurrencies() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final List<ValueKeyHtmlSelectOptions> currencies = Currency.getAvailableCurrencies().stream()

@@ -1,5 +1,5 @@
 import {Securityaccount} from './securityaccount';
-import {BaseID} from './base.id';
+import {BaseID} from '../lib/entities/base.id';
 
 export class ImportTransactionHead implements BaseID {
   idTransactionHead?: number;

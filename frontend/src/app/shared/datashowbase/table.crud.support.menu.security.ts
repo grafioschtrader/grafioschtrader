@@ -8,7 +8,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {UserSettingsService} from '../service/user.settings.service';
-import {BaseID} from '../../entities/base.id';
+import {BaseID} from '../../lib/entities/base.id';
 
 /**
  * For example, a security has an asset class, this can only be deleted if no security refers to it.

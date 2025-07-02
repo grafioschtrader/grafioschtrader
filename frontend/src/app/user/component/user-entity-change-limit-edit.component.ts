@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
-import {UserEntityChangeLimit} from '../../entities/user.entity.change.limit';
+import {UserEntityChangeLimit} from '../../lib/entities/user.entity.change.limit';
 import {AppHelper} from '../../shared/helper/app.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -12,7 +12,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {User} from '../../entities/user';
+import {User} from '../../lib/entities/user';
 import {AuditHelper} from '../../shared/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 

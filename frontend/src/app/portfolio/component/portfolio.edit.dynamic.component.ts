@@ -14,38 +14,38 @@ import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {SimpleDynamicEditBase} from '../../shared/edit/simple.dynamic.edit.base';
 
 /**
  * Component for editing the portfolio.
  */
 @Component({
-    selector: 'portfolio-edit',
     template: `
-    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '400px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    </p-dialog>`,
+    `,
     standalone: false
 })
-export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> implements OnInit {
-
-  @Input() callParam: CallParam;
+export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> implements OnInit {
+  callParam: CallParam;
 
   constructor(private gpsGT: GlobalparameterGTService,
+              dynamicDialogConfig: DynamicDialogConfig,
+              dynamicDialogRef: DynamicDialogRef,
               translateService: TranslateService,
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               portfolioService: PortfolioService) {
-    super(HelpIds.HELP_PORTFOLIO, AppSettings.PORTFOLIO.toUpperCase(), translateService, gps, messageToastService, portfolioService);
+    super(dynamicDialogConfig, dynamicDialogRef, HelpIds.HELP_PORTFOLIO, translateService, gps, messageToastService,
+      portfolioService);
   }
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
+    this.callParam = this.dynamicDialogConfig.data.callParam;
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'PORTFOLIO_NAME', 25, true),
@@ -53,9 +53,10 @@ export class PortfolioEditComponent extends SimpleEntityEditBase<Portfolio> impl
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    this.initialize();
   }
 
-  protected override initialize(): void {
+ private initialize(): void {
     this.gpsGT.getCurrencies().subscribe(data => {
         this.configObject.currency.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('key',
           'value', data, false);

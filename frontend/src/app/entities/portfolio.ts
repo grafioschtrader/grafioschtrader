@@ -1,7 +1,7 @@
 import {Cashaccount} from './cashaccount';
 import {Securityaccount} from './securityaccount';
 import {Securitycashaccount} from './securitycashaccount';
-import {TenantBaseId} from './tenant.base.id';
+import {TenantBaseId} from '../lib/entities/tenant.base.id';
 
 export class Portfolio extends TenantBaseId {
 

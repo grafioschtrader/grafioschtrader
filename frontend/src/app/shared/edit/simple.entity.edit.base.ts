@@ -9,11 +9,13 @@ import {ServiceEntityUpdate} from './service.entity.update';
 import {SimpleEditBase} from './simple.edit.base';
 import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
 import {AuditHelper} from '../helper/audit.helper';
-import {ProposeTransientTransfer} from '../../entities/propose.transient.transfer';
+import {ProposeTransientTransfer} from '../../lib/entities/propose.transient.transfer';
 import {TransformedError} from '../login/service/transformed.error';
 import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
 import {plainToClassFromExist} from 'class-transformer';
 import {Directive} from '@angular/core';
+import {EditHelper} from './edit.helper';
+import {BaseID} from '../../lib/entities/base.id';
 
 /**
  * Base class for simple editing fields of an entity in a dialog. It will call a service for updating the
@@ -51,20 +53,12 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
   }
 
   public copyFormToPrivateBusinessObject(targetEntity: T, existingEntity: T): T {
-    if (existingEntity) {
-      Object.assign(targetEntity, existingEntity);
-    }
-    this.form.cleanMaskAndTransferValuesToBusinessObject(targetEntity);
-    return targetEntity;
+    return EditHelper.copyFormToPrivateBusinessObject(targetEntity, existingEntity, this.form);
   }
 
   public copyFormToPublicBusinessObject(targetEntity: ProposeTransientTransfer, existingEntity: T,
                                         proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
-    if (existingEntity) {
-      Object.assign(targetEntity, existingEntity);
-    }
-    AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, targetEntity, proposeChangeEntityWithEntity);
-    this.form.cleanMaskAndTransferValuesToBusinessObject(targetEntity);
+    EditHelper.copyFormToPublicBusinessObject(targetEntity, existingEntity, proposeChangeEntityWithEntity, this.form, this);
   }
 
   protected activateWaitStateInButton(): void {

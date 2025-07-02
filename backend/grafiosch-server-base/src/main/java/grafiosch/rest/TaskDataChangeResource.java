@@ -33,23 +33,32 @@ public class TaskDataChangeResource extends UpdateCreateDeleteAuditResource<Task
   @Autowired
   private BackgroundWorker backgroundWorker;
 
-  @Operation(summary = "Return all existing background tasks", description = "", tags = {
-      RequestMappings.TASK_DATA_CHANGE })
+  @Operation(
+      summary = "Get all background tasks", 
+      description = "Retrieves a list of all background tasks with their current status and execution details",
+      tags = { RequestMappings.TASK_DATA_CHANGE }
+  )
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TaskDataChange>> getAllTaskDataChange() {
     return new ResponseEntity<>(taskDataChangeJpaRepository.findAll(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Return the constraints for the user interface, these relate to specific editing options..", description = "", tags = {
-      RequestMappings.TASK_DATA_CHANGE })
+  @Operation(
+      summary = "Get task form constraints", 
+      description = "Returns validation constraints and configuration options for task creation and editing forms",
+      tags = { RequestMappings.TASK_DATA_CHANGE }
+  )
   @GetMapping(value = "/taskdatachangeconstraints", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TaskDataChangeFormConstraints> getFormConstraints() {
     return new ResponseEntity<>(taskDataChangeJpaRepository.getFormConstraints(), HttpStatus.OK);
   }
 
   @Override
-  @Operation(summary = "Delete background task. A running background job cannot be deleted.", description = "Requires administrator rights", tags = {
-      RequestMappings.TASK_DATA_CHANGE })
+  @Operation(
+      summary = "Delete background task", 
+      description = "Removes a background task from the queue. Running tasks cannot be deleted and must be interrupted first. Requires administrator rights.",
+      tags = { RequestMappings.TASK_DATA_CHANGE }
+  )
   @DeleteMapping(value = "/{idTaskDataChange}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> deleteResource(@PathVariable final Integer idTaskDataChange) {
     taskDataChangeJpaRepository.removeByIdTaskDataChangeAndProgressStateTypeNot(idTaskDataChange,
@@ -58,8 +67,11 @@ public class TaskDataChangeResource extends UpdateCreateDeleteAuditResource<Task
     return ResponseEntity.noContent().build();
   }
 
-  @Operation(summary = "Cancel a running background task if it can be canceled by definition", description = "Requires administrator rights", tags = {
-      RequestMappings.TASK_DATA_CHANGE })
+  @Operation(
+      summary = "Interrupt running task", 
+      description = "Attempts to cancel a currently executing background task if the task type supports interruption. Requires administrator rights.",
+      tags = { RequestMappings.TASK_DATA_CHANGE }
+  )
   @PatchMapping(path = "/interruptingrunningjob/{idTaskDataChange}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> interruptingRunningJob(@PathVariable final Integer idTaskDataChange) {
     return new ResponseEntity<>(backgroundWorker.interruptingRunningJob(idTaskDataChange), HttpStatus.OK);

@@ -132,7 +132,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * @param idWatchlist            ID of the watchlist whose existing instruments are no longer offered
    * @param idCorrelationSet       ID of the correlation set whose existing instruments are no longer offered
    * @param securitycurrencySearch The search criteria.
-   * @param idTenant               The ID of the tenant, for safety reasons.
+   * @param idTenant               Securities with an active open position may be selected; this ID is required for this purpose
    * @return A list of securities matching the criteria.
    */
   List<Security> searchBuilderWithExclusion(Integer idWatchlist, Integer idCorrelationSet,

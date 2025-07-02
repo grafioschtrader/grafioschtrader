@@ -5,7 +5,7 @@ import {UserSettingsService} from '../service/user.settings.service';
 import {AppHelper} from '../helper/app.helper';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
-import {BaseID} from '../../entities/base.id';
+import {BaseID} from '../../lib/entities/base.id';
 import {ProcessedAction} from '../types/processed.action';
 import {ProcessedActionData} from '../types/processed.action.data';
 import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
@@ -16,11 +16,12 @@ import {HelpIds} from '../help/help.ids';
 import {AuditHelper} from '../helper/audit.helper';
 import {TranslateHelper} from '../helper/translate.helper';
 import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
-import {DynamicDialogHelper} from '../dynamicdialog/component/dynamic.dialog.helper';
+import {DynamicDialogHelper} from '../dynamicdialog/component/dynamicDialogHelper';
 import filesaver from '../../shared/filesaver/filesaver';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {AppSettings} from '../app.settings';
+import {DynamicDialogs} from '../dynamicdialog/component/dynamic.dialogs';
 
 export enum CrudMenuOptions {
   Allow_Create,
@@ -99,7 +100,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
       this.readData();
     } else if (processedActionData.transformedError && processedActionData.transformedError.errorClass
       && processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError) {
-      DynamicDialogHelper.getOpenedLimitTransactionRequestDynamicComponent(
+      DynamicDialogs.getOpenedLimitTransactionRequestDynamicComponent(
         this.translateService, this.dialogService, this.entityName);
     }
   }

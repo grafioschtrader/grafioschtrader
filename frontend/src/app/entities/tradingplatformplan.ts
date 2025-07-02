@@ -1,7 +1,7 @@
-import {BaseID} from './base.id';
-import {MultilanguageString} from './multilanguage.string';
+import {BaseID} from '../lib/entities/base.id';
+import {MultilanguageString} from '../lib/entities/multilanguage.string';
 import {ImportTransactionPlatform} from './import.transaction.platform';
-import {Auditable} from './auditable';
+import {Auditable} from '../lib/entities/auditable';
 
 export class TradingPlatformPlan extends Auditable implements BaseID {
   idTradingPlatformPlan?: number = null;

@@ -16,6 +16,7 @@ import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
 import {TranslateHelper} from '../../shared/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 
 /**
  * Project: Grafioschtrader
@@ -67,7 +68,7 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
         this.configObject.security.referencedDataObject = data[0];
         this.algoCallParam.thisObject &&
         this.configObject.security.referencedDataObject.push((<AlgoSecurity>this.algoCallParam.thisObject).security);
-        SelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(this.configObject.security.referencedDataObject,
+        BusinessSelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(this.configObject.security.referencedDataObject,
           this.configObject.security);
         this.portfolios = data[1];
         this.setSecurityaccounts();

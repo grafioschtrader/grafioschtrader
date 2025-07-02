@@ -1,5 +1,5 @@
 import {Historyquote} from './historyquote';
-import {Auditable} from './auditable';
+import {Auditable} from '../lib/entities/auditable';
 
 
 export class Securitycurrency extends Auditable {

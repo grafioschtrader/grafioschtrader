@@ -411,7 +411,6 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public List<Security> searchBuilderWithExclusion(final Integer idWatchlist, Integer idCorrelationSet,
       final SecuritycurrencySearch securitycurrencySearch, final Integer idTenant) {
-
     if (securitycurrencySearch.getAssetclassType() == AssetclassType.CURRENCY_PAIR) {
       return Collections.emptyList();
     } else {

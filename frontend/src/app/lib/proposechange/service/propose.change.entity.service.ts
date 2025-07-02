@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/internal/Observable';
-import {ProposeChangeEntity} from '../../../entities/propose.change.entity';
+import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {AppSettings} from '../../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {AuthServiceWithLogout} from '../../../shared/login/service/base.auth.service.with.logout';

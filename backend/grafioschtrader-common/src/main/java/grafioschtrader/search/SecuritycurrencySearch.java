@@ -17,38 +17,52 @@ public class SecuritycurrencySearch implements Serializable {
 
   @Schema(description = "International Securities Identification Number (ISIN) of the security.")
   private String isin;
+  
   @Schema(description = "Type of the asset class (e.g., EQUITIES, FIXED_INCOME, ...).")
   private AssetclassType assetclassType;
+  
   @Schema(description = "Name of the security or currency pair.")
   private String name;
+  
   @Schema(description = "ID of the stock exchange where the security is traded.")
   private Integer idStockexchange;
+  
   @Schema(description = "Country code of the stock exchange.")
   private String stockexchangeCountryCode;
+  
   @Schema(description = "Ticker symbol of the security.")
   private String tickerSymbol;
+  
   @Schema(description = "Currency code (e.g., USD, EUR, CHF) of the security or the 'to' currency in a currency pair.")
   private String currency;
 
   @Schema(description = "Specific type of investment instrument (e.g., DIRECT_INVESTMENT, CFD, ...).")
   private SpecialInvestmentInstruments specialInvestmentInstruments;
+  
   @Schema(description = "Localized name of the sub-category for the asset class.")
   private String subCategoryNLS;
+  
   @Schema(description = """
       Indicator to search only for securities that are private for the tenant.
       True for private only, false for public or private, null for public only.""")
   private Boolean onlyTenantPrivate;
+  
   @Schema(description = "Leverage factor of the security, normally only used for leveraged ETFs.")
   private Float leverageFactor;
+  
   @Schema(description = "Flag to exclude derived securities (like CFDs based on an underlying stock) from the search results.")
   private boolean excludeDerivedSecurity;
+  
   @Schema(description = "ID of the data connector used for historical price data. Fullname (e.g.k 'gt.datafeed.yahoo'")
   private String idConnectorHistory;
+  
   @Schema(description = "ID of the data connector used for intraday price data. Fullname (e.g.k 'gt.datafeed.yahoo'")
   private String idConnectorIntra;
+  
   @Schema(description = "Date to check if the security/currency is active. Format: yyyyMMdd")
   @DateTimeFormat(pattern = "yyyyMMdd")
   private Date activeDate;
+ 
   @Schema(description = "Flag to indicate if the search should consider instruments that the tenant has holdings in.")
   private boolean withHoldings;
 

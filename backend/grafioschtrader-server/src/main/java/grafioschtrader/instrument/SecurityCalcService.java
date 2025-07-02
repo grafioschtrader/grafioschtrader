@@ -68,7 +68,6 @@ public class SecurityCalcService {
       dateCurrencyMap = new DateTransactionCurrencypairMap(untilDate,
           tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate)));
     }
-
     for (final Transaction transaction : transactions) {
       if (transaction.getTransactionTime().getTime() > untilDate.getTime()) {
         return;

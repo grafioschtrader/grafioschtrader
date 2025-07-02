@@ -8,9 +8,9 @@ import {GlobalparameterService} from '../../service/globalparameter.service';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
 import {ProposeUserTaskService} from '../service/propose.user.task.service';
-import {ProposeUserTask} from '../../../entities/propose.user.task';
+import {ProposeUserTask} from '../../../lib/entities/propose.user.task';
 import {UserTaskType} from '../../types/user.task.type';
-import {ProposeChangeField} from '../../../entities/propose.change.field';
+import {ProposeChangeField} from '../../../lib/entities/propose.change.field';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
@@ -25,13 +25,15 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
  */
 @Component({
     template: `
-      {{'APPLY_LIMIT_TEXT' | translate}}
+      {{dialogTitle}}
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>`,
     standalone: false
 })
 export class LimitTransactionRequestDynamicComponent extends FormBase implements OnInit {
+  dialogTitle: string;
+
   private readonly ENTITY_NAME = 'entity';
   private readonly NOTE_REQUEST = 'noteRequest';
 
@@ -48,7 +50,7 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
-
+    this.dialogTitle = this.dynamicDialogConfig.header;
     this.proposeUserTaskService.getFormDefinitionsByUserTaskType(UserTaskType.LIMIT_CUD_CHANGE).subscribe(
       (fDIaSs: FieldDescriptorInputAndShow[]) => {
         this.config = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(fDIaSs, '', true, 'SEND');

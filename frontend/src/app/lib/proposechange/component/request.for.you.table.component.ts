@@ -26,7 +26,7 @@ import {Security} from '../../../entities/security';
 import {TradingPlatformPlan} from '../../../entities/tradingplatformplan';
 import {Currencypair} from '../../../entities/currencypair';
 import {Historyquote} from '../../../entities/historyquote';
-import {ProposeTransientTransfer} from '../../../entities/propose.transient.transfer';
+import {ProposeTransientTransfer} from '../../entities/propose.transient.transfer';
 import {HistoryquotePrepareEdit} from './historyquote.prepare.edit';
 import {SecurityService} from '../../../securitycurrency/service/security.service';
 import {CurrencypairService} from '../../../securitycurrency/service/currencypair.service';
@@ -36,7 +36,7 @@ import {StockexchangePrepareEdit} from './stockexchange.prepare.edit';
 import {FilterService, MenuItem} from 'primeng/api';
 import {SecurityPrepareEdit} from './security.prepare.edit';
 import {ImportTransactionTemplate} from '../../../entities/import.transaction.template';
-import {ProposeChangeEntity} from '../../../entities/propose.change.entity';
+import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {TranslateValue} from '../../../shared/datashowbase/column.config';
 import {AppSettings} from '../../../shared/app.settings';
 

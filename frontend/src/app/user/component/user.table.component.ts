@@ -10,7 +10,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {HelpIds} from '../../shared/help/help.ids';
-import {User} from '../../entities/user';
+import {User} from '../../lib/entities/user';
 import {UserEntityChangeLimitTableComponent} from './user-entity-change-limit-table.component';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
@@ -21,9 +21,10 @@ import {UserTaskType} from '../../shared/types/user.task.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {AppSettings} from '../../shared/app.settings';
 import {LimitEntityTransactionError} from '../../shared/login/service/limit.entity.transaction.error';
-import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamic.dialog.helper';
+import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamicDialogHelper';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
 
 /**
  * Main component for the user table. It contains nested table to change the limits on information classes.
@@ -234,7 +235,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
 
     } else if (processedActionData.transformedError && processedActionData.transformedError.errorClass
       && processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError) {
-      DynamicDialogHelper.getOpenedLimitTransactionRequestDynamicComponent(
+      DynamicDialogs.getOpenedLimitTransactionRequestDynamicComponent(
         this.translateService, this.dialogService, this.entityName);
     }
   }

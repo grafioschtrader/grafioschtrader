@@ -13,38 +13,37 @@ import grafiosch.types.StableEnum;
  */
 public enum AssetclassType implements StableEnum {
 
-  // Equities, can have dividends
+  /** Equities, can have dividends */
   EQUITIES((byte) 0),
 
-  // Fixed income, can have dividends when ETF
+  /** Fixed income, can have dividends when ETF */
   FIXED_INCOME((byte) 1),
 
-  // Money market, can have dividends when ETF
+  /** Money market, can have dividends when ETF */
   MONEY_MARKET((byte) 2),
 
-  // Commodities, may never have dividends
+  /** Commodities, may never have dividends */
   COMMODITIES((byte) 3),
 
-  // Real estate, can have dividends
+  /** Real estate, can have dividends */
   REAL_ESTATE((byte) 4),
 
-  // equities, bonds, cash, may have dividends
+  /** equities, bonds, cash, may have dividends */
   MULTI_ASSET((byte) 5),
 
-  // Convertible bond, may have dividends when ETF or Fonds
+  /** Convertible bond, may have dividends when ETF or Fonds */
   CONVERTIBLE_BOND((byte) 6),
 
-  // Credit derivative, may never have dividends
+  /** Credit derivative, may never have dividends */
   CREDIT_DERIVATIVE((byte) 7),
 
-  // Forex, may never have dividends
+  /** Forex, may never have dividends */
   CURRENCY_PAIR((byte) 8),
 
-  // Exist only for Client and is not saved to repository. It may be used for
-  // grouping
+  /** Exist only for Client and is not saved to repository. It may be used for grouping */
   CURRENCY_CASH((byte) 11),
-  // Exist only for Client and is not saved to repository. It may be used for
-  // grouping
+
+  /** Exist only for Client and is not saved to repository. It may be used for grouping */
   CURRENCY_FOREIGN((byte) 12);
 
   private final Byte value;
