@@ -20,7 +20,7 @@ import {PlotlyLocales} from '../../shared/plotlylocale/plotly.locales';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
-import {AppHelper, Comparison} from '../../shared/helper/app.helper';
+import {AppHelper, Comparison} from '../../lib/helper/app.helper';
 import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
@@ -40,12 +40,12 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
-import {TwoKeyMap} from '../../shared/helper/two.key.map';
+import {TwoKeyMap} from '../../lib/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {Moment} from 'moment/moment';
-import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
+import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 
 declare let Plotly: any;
 

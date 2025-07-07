@@ -27,11 +27,11 @@ public abstract class ProposeRequestService<T> extends BaseRepositoryImpl<T> {
    * Applies proposed field changes to a target business entity. This method processes a list of proposed changes by
    * deserializing each field value and setting it on the target entity using reflection. The operation creates a
    * modified version of the entity that represents what the entity would look like if the proposed changes were
-   * applied.</br>
+   * applied.<br>
    * 
-   * Each proposed change field contains:</br>
-   * - The field name to be modified</br>
-   * - A serialized value representing the proposed new value</br>
+   * Each proposed change field contains:<br>
+   * - The field name to be modified<br>
+   * - A serialized value representing the proposed new value<br>
    * 
    * The method deserializes each value and uses Apache Commons PropertyUtils to dynamically set the property on the
    * target entity, enabling type-safe property assignment without compile-time knowledge of the entity structure.

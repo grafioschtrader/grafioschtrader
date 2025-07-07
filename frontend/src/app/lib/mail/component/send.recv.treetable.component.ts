@@ -13,9 +13,9 @@ import {MailInboxWithSend, MailSendRecv, SendRecvType} from '../model/mail.send.
 import {AppSettings} from '../../../shared/app.settings';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {DialogService} from 'primeng/dynamicdialog';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {MailSendParam} from '../../../shared/dynamicdialog/component/mail.send.dynamic.component';
-import {AppHelper} from '../../../shared/helper/app.helper';
+import {AppHelper} from '../../helper/app.helper';
 import {InfoLevelType} from '../../../shared/message/info.leve.type';
 import {MessageToastService} from '../../../shared/message/message.toast.service';
 import {DynamicDialogs} from '../../../shared/dynamicdialog/component/dynamic.dialogs';

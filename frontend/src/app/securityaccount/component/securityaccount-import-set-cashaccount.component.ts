@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TranslateService} from '@ngx-translate/core';
@@ -8,9 +8,9 @@ import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {ImportTransactionPosService} from '../service/import.transaction.pos.service';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {AppSettings} from '../../shared/app.settings';
 

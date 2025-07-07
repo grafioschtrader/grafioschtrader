@@ -8,6 +8,11 @@ import {NavigationStart, Router} from '@angular/router';
 import Aura from '@primeng/themes/aura';
 import {definePreset} from '@primeng/themes';
 import {ITaskExtendService} from './shared/taskdatamonitor/component/itask.extend.service';
+import {Security} from './entities/security';
+import {AuditHelper} from './lib/helper/audit.helper';
+import {DynamicFieldHelper} from './lib/helper/dynamic.field.helper';
+import {validISIN} from './shared/validator/gt.validator';
+import {RuleEvent} from './dynamic-form/error/error.message.rules';
 
 export const TASK_EXTENDED_SERVICE = new InjectionToken<ITaskExtendService>('SecurityService');
 
@@ -106,6 +111,18 @@ export class AppComponent implements OnDestroy {
     translateService.setDefaultLang(AppSettings.DEFAULT_LANGUAGE);
     LoginService.setGlobalLang(translateService, primeNGConfig);
     this.initializePrimeNGStyles(primeNGConfig);
+    AuditHelper.setCustomOwnershipCheck((entity: any, userId: number) => {
+      return entity instanceof Security &&
+        entity.idTenantPrivate &&
+        entity.idTenantPrivate === userId;
+    });
+
+    DynamicFieldHelper.registerCustomValidation({
+         key: 'ISIN',
+         validatorFn: validISIN,
+         errorConfig: {name: 'validISIN', keyi18n: 'validISIN', rules: [RuleEvent.TOUCHED, RuleEvent.DIRTY]}
+       });
+
     this.subscription = router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         if (!router.navigated) {

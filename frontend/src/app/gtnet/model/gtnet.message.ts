@@ -1,5 +1,5 @@
 import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
-import {BaseParam} from '../../entities/view/base.param';
+import {BaseParam} from '../../lib/entities/base.param';
 
 export class GTNetMessage {
   idGtNetMessage: number;

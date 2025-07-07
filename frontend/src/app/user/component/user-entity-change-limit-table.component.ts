@@ -11,15 +11,15 @@ import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu
 import {HelpIds} from '../../shared/help/help.ids';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {User} from '../../lib/entities/user';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {UserEntityChangeLimitService} from '../service/user.entity.change.limit.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
-import {AuditHelper} from '../../shared/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
+import {AuditHelper} from '../../lib/helper/audit.helper';
+import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {AppSettings} from '../../shared/app.settings';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
 

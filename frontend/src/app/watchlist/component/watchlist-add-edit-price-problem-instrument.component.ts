@@ -4,13 +4,13 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {HelpIds} from '../../shared/help/help.ids';
 import {WatchlistService} from '../service/watchlist.service';
 import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
-import {AppHelper} from '../../shared/helper/app.helper';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {IntraHistoricalWatchlistProblem} from '../model/intra.historical.watchlist.problem';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {atLeastOneFieldValidator} from '../../shared/validator/validator';
+import {atLeastOneFieldValidator} from '../../lib/validator/validator';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
 

@@ -18,14 +18,14 @@ import grafioschtrader.types.UDFSpecialGTType;
  * earnings per share (EPS), revenue figures, and surprise percentages. This provides valuable
  * insights for fundamental analysis and investment timing decisions.
  * 
- * Key features include:</br>
- * - Automatic Yahoo symbol resolution for accurate link generation</br>
- * - Direct integration with Yahoo Finance earnings calendar pages</br>
- * - Background processing capability for improved user experience</br>
- * - Asset class filtering to ensure links are only created for equity securities</br>
- * - Persistent storage of generated links in the UDF system</br>
- * - Rate-limited access to Yahoo Finance services for reliable operation</br>
- * - Current date-based URL generation to display relevant earnings information</br>
+ * Key features include:<br>
+ * - Automatic Yahoo symbol resolution for accurate link generation<br>
+ * - Direct integration with Yahoo Finance earnings calendar pages<br>
+ * - Background processing capability for improved user experience<br>
+ * - Asset class filtering to ensure links are only created for equity securities<br>
+ * - Persistent storage of generated links in the UDF system<br>
+ * - Rate-limited access to Yahoo Finance services for reliable operation<br>
+ * - Current date-based URL generation to display relevant earnings information<br>
  * 
  * The generated links follow the format: 
  * https://finance.yahoo.com/calendar/earnings?day={current_date}&symbol={symbol}

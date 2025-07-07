@@ -14,7 +14,7 @@ import {Transaction} from '../../../entities/transaction';
 import {Security} from '../../../entities/security';
 import {TransactionCallParam} from '../../../transaction/component/transaction.call.parm';
 import {ParentChildRegisterService} from '../../../shared/service/parent.child.register.service';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {Table} from 'primeng/table';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateValue} from '../../../shared/datashowbase/column.config';

@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../../shared/app.settings';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {GlobalSessionNames} from '../../../shared/global.session.names';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 
@@ -44,7 +44,6 @@ export class TenantTabMenuComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
     const activeItem = sessionStorage.getItem(GlobalSessionNames.TAB_MENU_TENANT);
     this.idActiveItem = activeItem ? +activeItem : 0;
     this.navigateTo(this.idActiveItem);

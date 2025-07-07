@@ -1,5 +1,5 @@
 import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {Assetclass} from '../../entities/assetclass';
 import {Helper} from '../../helper/helper';
@@ -7,21 +7,21 @@ import {Subscription} from 'rxjs';
 import {AssetclassType} from '../../shared/types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {Stockexchange} from '../../entities/stockexchange';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {Security} from '../../entities/security';
-import {AuditHelper} from '../../shared/helper/audit.helper';
+import {AuditHelper} from '../../lib/helper/audit.helper';
 import {FormBase} from '../../shared/edit/form.base';
-import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
+import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ValidatorFn} from '@angular/forms';
 import {ErrorMessageRules} from '../../dynamic-form/error/error.message.rules';
 import {AppSettings} from '../../shared/app.settings';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
 import {BusinessSelectOptionsHelper} from './business.select.options.helper';
 
@@ -71,7 +71,7 @@ export class SecurityEditSupport {
 
     if (securityDerived === SecurityDerived.Security) {
       fc.push(DynamicFieldHelper.createFieldInputStringVSHeqF('isin', 12, false,
-        [VALIDATION_SPECIAL.ISIN], {fieldsetName: 'BASE_DATA'}));
+        ['ISIN'], {fieldsetName: 'BASE_DATA'}));
       fc.push(DynamicFieldHelper.createFieldInputStringHeqF('tickerSymbol', 6, false,
         {fieldsetName: 'BASE_DATA', upperCase: true}));
     }

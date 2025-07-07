@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Historyquote} from '../../entities/historyquote';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -9,11 +9,11 @@ import {HistoryquoteSecurityCurrency} from './historyquote-table.component';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
-import {AuditHelper} from '../../shared/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
+import {AuditHelper} from '../../lib/helper/audit.helper';
+import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 

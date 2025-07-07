@@ -19,7 +19,7 @@ import {ChartDataService} from '../../../shared/chart/service/chart.data.service
 import {ChartTrace, PlotlyHelper} from '../../../shared/chart/plotly.helper';
 import {TransactionCostPosition} from '../../../entities/view/transactioncost/transaction.cost.position';
 import {HelpIds} from '../../../shared/help/help.ids';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {FilterService, MenuItem} from 'primeng/api';
 
 

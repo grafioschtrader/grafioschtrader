@@ -8,7 +8,7 @@ import {Portfolio} from '../../entities/portfolio';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';

@@ -2,18 +2,18 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
 import {TranslateService} from '@ngx-translate/core';
 import {LoginService} from '../service/log-in.service';
-import {ChangePasswordDTO} from '../../../entities/backend/change.password.dto';
+import {ChangePasswordDTO} from '../model/change.password.dto';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {PasswordBaseComponent} from './password.base.component';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
 import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.component';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
 import {ProcessedAction} from '../../types/processed.action';
 
 /**

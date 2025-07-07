@@ -51,12 +51,12 @@ import io.github.bucket4j.Refill;
  * policies and prevent service overload. It also includes caching mechanisms to optimize performance and reduce
  * unnecessary API calls.
  * 
- * Key features include:</br>
- * - Yahoo symbol resolution through multiple strategies (existing connectors, UDF data, symbol search)</br>
- * - Earnings date extraction from Yahoo Finance calendar pages</br>
- * - Rate limiting with configurable bandwidth constraints</br>
- * - Symbol caching with expiration to reduce redundant lookups</br>
- * - Special handling for US stock exchanges (NASDAQ, NYSE)</br>
+ * Key features include:<br>
+ * - Yahoo symbol resolution through multiple strategies (existing connectors, UDF data, symbol search)<br>
+ * - Earnings date extraction from Yahoo Finance calendar pages<br>
+ * - Rate limiting with configurable bandwidth constraints<br>
+ * - Symbol caching with expiration to reduce redundant lookups<br>
+ * - Special handling for US stock exchanges (NASDAQ, NYSE)<br>
  * 
  * The class is designed to work within the UDF framework, storing and retrieving Yahoo symbols as user-defined field
  * values for securities, enabling automated financial data collection and analysis across the application.
@@ -96,11 +96,11 @@ public class YahooUDFConnect {
 
   /**
    * Evaluates and determines the Yahoo Finance symbol for a given security using multiple resolution strategies. This
-   * method attempts to find the Yahoo symbol through the following prioritized approaches:</br>
-   * 1. Existing Yahoo connectors configured for the security (intra, history, split, dividend)</br>
-   * 2. Previously stored UDF data for the security</br>
-   * 3. Symbol cache (if available and not recreating)</br>
-   * 4. Yahoo symbol search service (most resource-intensive option)</br>
+   * method attempts to find the Yahoo symbol through the following prioritized approaches:<br>
+   * 1. Existing Yahoo connectors configured for the security (intra, history, split, dividend)<br>
+   * 2. Previously stored UDF data for the security<br>
+   * 3. Symbol cache (if available and not recreating)<br>
+   * 4. Yahoo symbol search service (most resource-intensive option)<br>
    * 
    * The method optimizes performance by checking faster sources first and only falling back to the time-consuming Yahoo
    * search when necessary. Results are cached and persisted to UDF storage for future use.

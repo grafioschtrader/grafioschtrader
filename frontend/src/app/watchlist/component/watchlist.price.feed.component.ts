@@ -23,7 +23,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {AuditHelper} from '../../shared/helper/audit.helper';
+import {AuditHelper} from '../../lib/helper/audit.helper';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';

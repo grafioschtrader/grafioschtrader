@@ -15,7 +15,7 @@ import {ColumnConfig, ColumnGroupConfig} from '../../datashowbase/column.config'
 import {WeekYear} from '../service/holding.service';
 import {Helper} from '../../../helper/helper';
 import moment from 'moment';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {AppSettings} from '../../app.settings';
 
 /**

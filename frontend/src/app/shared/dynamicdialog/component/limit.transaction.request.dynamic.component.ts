@@ -1,9 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBase} from '../../edit/form.base';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
@@ -17,7 +17,7 @@ import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.i
 import {Helper} from '../../../helper/helper';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {AppSettings} from '../../app.settings';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
 
 
 /**

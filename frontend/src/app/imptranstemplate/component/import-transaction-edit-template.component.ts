@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MessageToastService} from '../../shared/message/message.toast.service';
@@ -11,12 +11,12 @@ import {ImportTransactionPlatform} from '../../entities/import.transaction.platf
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TemplateFormatType} from '../../shared/types/template.format.type';
-import {AuditHelper} from '../../shared/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
+import {AuditHelper} from '../../lib/helper/audit.helper';
+import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {Auditable} from '../../lib/entities/auditable';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 
 /**
  * Edit import transaction template in a dialog

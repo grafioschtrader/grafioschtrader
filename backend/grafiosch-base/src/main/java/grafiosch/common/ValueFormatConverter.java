@@ -21,14 +21,14 @@ import grafiosch.BaseConstants;
 /**
  * Utility class for converting string values to appropriate data types and setting them on bean properties. This
  * converter handles locale-specific formatting for numbers, dates, and times, making it suitable for processing user
- * input from different locales and formats.</br>
+ * input from different locales and formats.<br>
  * 
- * The converter supports:</br>
- * - Numeric types (Short, Integer, Long, Double) with custom thousand separators and decimal separators</br>
- * - Date types (Date, LocalDate) with configurable date formats</br>
- * - Time types (LocalTime) with configurable time formats</br>
- * - String types with optional empty/zero clearing</br>
- * - Automatic type detection and conversion based on target property types</br>
+ * The converter supports:<br>
+ * - Numeric types (Short, Integer, Long, Double) with custom thousand separators and decimal separators<br>
+ * - Date types (Date, LocalDate) with configurable date formats<br>
+ * - Time types (LocalTime) with configurable time formats<br>
+ * - String types with optional empty/zero clearing<br>
+ * - Automatic type detection and conversion based on target property types<br>
  * 
  * The class provides multiple constructors to accommodate different formatting requirements, from simple default locale
  * formatting to fully customized separators and date formats. It integrates with Apache Commons BeanUtils for dynamic
@@ -105,14 +105,14 @@ public class ValueFormatConverter {
   /**
    * Converts a string value to the appropriate data type and sets it on the bean property. This method handles
    * automatic type conversion based on the target data type, supporting numeric types, date/time types, and strings
-   * with proper locale-aware formatting.</br>
+   * with proper locale-aware formatting.<br>
    * 
-   * Supported conversions:</br>
-   * - Numeric types: removes thousand separators and parses using configured number format</br>
-   * - Date: parses using SimpleDateFormat or converts from timestamp</br>
-   * - LocalDate: parses using configured DateTimeFormatter</br>
-   * - LocalTime: parses using configured time formatter</br>
-   * - String: used as-is</br>
+   * Supported conversions:<br>
+   * - Numeric types: removes thousand separators and parses using configured number format<br>
+   * - Date: parses using SimpleDateFormat or converts from timestamp<br>
+   * - LocalDate: parses using configured DateTimeFormatter<br>
+   * - LocalTime: parses using configured time formatter<br>
+   * - String: used as-is<br>
    * 
    * The clearZeroEmpty option allows automatic clearing of zero numeric values and blank strings by setting them to
    * null instead.

@@ -5,7 +5,7 @@ import {Securityaccount} from '../../entities/securityaccount';
 import {MenuItem} from 'primeng/api';
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Subscription} from 'rxjs';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 
 /**
  * Tab menu for security account.

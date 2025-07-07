@@ -12,7 +12,7 @@ import {ImportTransactionTemplate} from '../../entities/import.transaction.templ
 import {FailedParsedTemplateState} from '../../imptranstemplate/component/failed.parsed.template.state';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {toClipboard} from 'copee';

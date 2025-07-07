@@ -17,62 +17,39 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
    */
   disabled?: boolean;
 
-  /**
-   * Label on field are not shown
-   */
+  /** Label on field are not shown   */
   invisible?: boolean;
 
-  /**
-   * Attention: Change state of readonly is not working [readonly]
-   */
+  /** Attention: Change state of readonly is not working [readonly]  */
   readonly?: boolean;
 
-  /**
-   * Normally buttons are placed at the end of form
-   */
+  /** Normally buttons are placed at the end of form  */
   buttonInForm?: boolean;
 
-  /**
-   * Contains the key for the i18n Translation
-   * No translation and output if the string begins with a "_".
-   */
+  /** Contains the key for the i18n Translation No translation and output if the string begins with a "_".   */
   labelKey?: string;
 
-  /**
-   * Follows after the label and before the input/output field
-   */
+  /** Follows after the label and before the input/output field */
   labelSuffix?: string;
 
   icon?: string;
 
-  /**
-   * Output that follows after the input field
-   */
+  /** Output that follows after the input field */
   fieldSuffix?: string;
 
-  /**
-   * Help text to be shown
-   */
+  /** Help text to be shown */
   labelHelpText?: string;
-  /**
-   * This help text is shown. It is copied from labelHelpText when help button is clicked
-   */
+
+  /** This help text is shown. It is copied from labelHelpText when help button is clicked  */
   labelShowText?: string;
 
-  /**
-   * To Uppercase
-   */
+  /** To Uppercase */
   upperCase?: boolean;
 
-  /**
-   * PrimeNG Dropdown may have children.
-   * For buttons can be used for loading state.
-   */
+  /** PrimeNG Dropdown may have children. For buttons can be used for loading state. */
   groupItemUseOrLoading?: boolean;
 
-  /**
-   * Contains the items for a PrimeNG Dropdown
-   */
+  /** Contains the items for a PrimeNG Dropdown */
   groupItem?: GroupItem[];
 
   /**
@@ -81,9 +58,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
    */
   placeholder?: string;
 
-  /**
-   * Input type is the indicator for the html element.
-   */
+  /** Input type is the indicator for the html element. */
   inputType: InputType;
 
   /**
@@ -92,29 +67,19 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
    */
   dataproperty?: string;
 
-  /**
-   * Sometimes the full object is used not only the id of the object. When only the id is expected to not use this.
-   */
+  /** Sometimes the full object is used not only the id of the object. When only the id is expected to not use this.  */
   referencedDataObject?: any;
 
-  /**
-   * It is set by the application.
-   */
+  /** It is set by the application. */
   baseInputComponent?: BaseInputComponent;
 
-  /**
-   * Defines the width of input field.
-   */
+  /** Defines the width of input field. */
   inputWidth?: number;
 
-  /**
-   * Number of rows in a text area
-   */
+  /** Number of rows in a text area */
   textareaRows?: number;
 
-  /**
-   * Used for limit the maximal numbers of input character
-   */
+  /** Used for limit the maximal numbers of input character */
   maxLength?: number;
 
   /**
@@ -123,68 +88,50 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
    */
   usedLayoutColumns?: number;
 
-  /**
-   * Default value
-   */
+  /** Default value */
   defaultValue?: any;
 
-  /**
-   * Used for PrimeNG p-inputNumber
-   */
+  /** Used for PrimeNG p-inputNumber */
   inputNumberSettings?: InputNumberSetting;
 
   calendarConfig?: CalendarConfig;
 
-  /**
-   * Can only be used for input InputType.Input
-   */
+  /** Can only be used for input InputType.Input  */
   min?: number;
   max?: number;
-  /**
-   * Value connected to this definition
-   */
+
+  /** Value connected to this definition */
   userDefinedValue?: number | string;
 
-  /**
-   * Function which is called when this function is defined
-   */
+  /** Function which is called when this function is defined */
   buttonFN?: (event?: any) => void;
+
   /**
-   *  Name of the fieldset, it is also used as translation key. In the view
+   * Name of the fieldset, it is also used as translation key. In the view
    *  a box is drawn around a fieldset.
    */
   fieldsetName?: string;
 
-  /**
-   * Only for the input suggestion
-   */
+  /** Only for the input suggestion */
   suggestions?: string[];
   suggestionsFN?: (any) => void;
 
-  /**
-   * Accepted file upload type
-   */
+  /** Accepted file upload type */
   acceptFileUploadType?: string;
 
-  /**
-   * Sometimes it is required to get die file list directly after choosing the file/s
+  /** Sometimes it is required to get die file list directly after choosing the file/s
    *
    * @param fileList List of files
    */
   handleChangeFileInputFN?: (fileList: FileList) => void;
 
-  /**
-   * Used for proposed data changes
-   */
+  /** Used for proposed data changes */
   labelTitle?: string;
 
-  /**
-   * See https://github.com/nbfontana/ngx-currency/blob/master/src/currency-mask.config.ts
-   */
+  /** See https://github.com/nbfontana/ngx-currency/blob/master/src/currency-mask.config.ts  */
   currencyMaskConfig?: NgxCurrencyConfig;
-  /**
-   * TODO: May be used for entering functions and variables as MenuItem in the Texterea.
-   */
+
+  /** TODO: May be used for entering functions and variables as MenuItem in the Texterea.  */
   contextMenuItems?: MenuItem[];
 }
 

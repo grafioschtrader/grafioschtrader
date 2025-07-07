@@ -14,7 +14,7 @@ import {ProcessedActionData} from '../../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../../shared/types/processed.action';
 import {AssetclassPrepareEdit} from './assetclass.prepare.edit';
 import {GeneralEntityPrepareEdit} from './general.entity.prepare.edit';
-import {ProposeChangeEntityWithEntity} from '../../../entities/proposechange/propose.change.entity.whit.entity';
+import {ProposeChangeEntityWithEntity} from '../model/propose.change.entity.whit.entity';
 import {ProposeChangeEntityService} from '../service/propose.change.entity.service';
 import {ProposeDataChangeState} from '../../../shared/types/propose.data.change.state';
 import {InfoLevelType} from '../../../shared/message/info.leve.type';
@@ -30,7 +30,7 @@ import {ProposeTransientTransfer} from '../../entities/propose.transient.transfe
 import {HistoryquotePrepareEdit} from './historyquote.prepare.edit';
 import {SecurityService} from '../../../securitycurrency/service/security.service';
 import {CurrencypairService} from '../../../securitycurrency/service/currencypair.service';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {StockexchangeService} from '../../../stockexchange/service/stockexchange.service';
 import {StockexchangePrepareEdit} from './stockexchange.prepare.edit';
 import {FilterService, MenuItem} from 'primeng/api';

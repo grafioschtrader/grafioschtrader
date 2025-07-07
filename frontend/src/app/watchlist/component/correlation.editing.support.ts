@@ -1,5 +1,5 @@
 import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {Subscription} from 'rxjs';

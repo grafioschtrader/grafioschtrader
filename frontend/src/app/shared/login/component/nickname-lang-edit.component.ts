@@ -3,8 +3,8 @@ import {SimpleEditBase} from '../../edit/simple.edit.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {HelpIds} from '../../help/help.ids';
-import {AppHelper} from '../../helper/app.helper';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
 import {LoginService} from '../service/log-in.service';
 import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.component';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
@@ -13,7 +13,7 @@ import {UserOwnProjection} from '../../../lib/entities/projection/user.own.proje
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 
 /**
  * Change nickname and locale of a user

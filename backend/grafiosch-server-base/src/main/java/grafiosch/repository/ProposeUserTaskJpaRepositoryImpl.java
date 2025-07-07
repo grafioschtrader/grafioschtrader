@@ -103,10 +103,10 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
 
   /**
    * Validates proposal change fields against the corresponding model class properties. This method ensures that only
-   * valid properties with correct data types are included in the proposal by:</br>
-   * - Dynamically instantiating the model class for the task type</br>
-   * - Extracting property data types from the model</br>
-   * - Validating each proposed change field against the model structure</br>
+   * valid properties with correct data types are included in the proposal by:<br>
+   * - Dynamically instantiating the model class for the task type<br>
+   * - Extracting property data types from the model<br>
+   * - Validating each proposed change field against the model structure<br>
    * - Converting and setting values to verify compatibility
    * 
    * @param proposeUserTask the user task proposal containing fields to validate

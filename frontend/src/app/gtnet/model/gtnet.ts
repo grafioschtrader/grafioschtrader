@@ -1,7 +1,7 @@
 import {BaseID} from '../../lib/entities/base.id';
 import {GTNetMessage} from './gtnet.message';
 import {MessageComType} from '../../lib/mail/model/mail.send.recv';
-import {BaseParam} from '../../entities/view/base.param';
+import {BaseParam} from '../../lib/entities/base.param';
 
 export class GTNet implements BaseID {
   idGtNet: number;

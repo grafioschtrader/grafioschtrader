@@ -1,14 +1,14 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {HistoryquoteCreateType} from '../../entities/historyquote';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {DeleteHistoryquotesSuccess} from '../../securitycurrency/model/historyquote.quality.group';
 import {InfoLevelType} from '../../shared/message/info.leve.type';

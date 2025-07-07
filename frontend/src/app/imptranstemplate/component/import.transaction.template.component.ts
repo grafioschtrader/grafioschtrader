@@ -16,9 +16,9 @@ import {ConfirmationService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {plainToClass, plainToInstance} from 'class-transformer';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {
@@ -27,7 +27,7 @@ import {
 } from '../service/import.transaction.template.service';
 import filesaver from '../../shared/filesaver/filesaver';
 import {NgxFileDropEntry} from 'ngx-file-drop';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 
 /**
  * Main component of import transaction template. It combines other components like a table.

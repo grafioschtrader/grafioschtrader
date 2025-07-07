@@ -400,7 +400,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
 
     /**
      * When transaction: Units or with margin instrument units multiply by value per
-     * point.</br>
+     * point.<br>
      * When split: Spit factor
        */
     private Double factorUnits;

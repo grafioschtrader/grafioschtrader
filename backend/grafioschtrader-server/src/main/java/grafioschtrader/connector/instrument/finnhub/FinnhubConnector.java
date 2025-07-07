@@ -32,7 +32,7 @@ import grafioschtrader.types.SubscriptionType;
 /**
  * Finnhub connector
  *
- * Stock, Bond, ETF:</br>
+ * Stock, Bond, ETF:<br>
  * Splits were once free but anymore. The implementation was not removed.
  *
  *

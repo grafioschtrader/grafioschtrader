@@ -15,7 +15,7 @@ import {Subscription} from 'rxjs';
 import {Cashaccount} from '../../entities/cashaccount';
 import {Transaction} from '../../entities/transaction';
 import {TransactionType} from '../../shared/types/transaction.type';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {Helper} from '../../helper/helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
@@ -24,9 +24,9 @@ import {FormConfig} from '../../dynamic-form/models/form.config';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 
 /**

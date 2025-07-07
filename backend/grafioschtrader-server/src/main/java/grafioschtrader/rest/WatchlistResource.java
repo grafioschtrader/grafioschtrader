@@ -26,6 +26,7 @@ import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
+import grafioschtrader.dto.WatchlistSecurityStatus;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reports.WatchlistReport;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;
@@ -69,9 +70,9 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   @Operation(summary = "Returns if watchlists has security or not", description = "Empty watchlist check", tags = {
       Watchlist.TABNAME })
   @GetMapping(value = "/hassecurity", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Object[]>> getWatchlistsOfTenantHasSecurity() {
-    final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
-    return new ResponseEntity<>(watchlistJpaRepository.watchlistsOfTenantHasSecurity(idTenant), HttpStatus.OK);
+  public ResponseEntity<List<WatchlistSecurityStatus>> getWatchlistsOfTenantHasSecurity() {
+      final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
+      return new ResponseEntity<>(watchlistJpaRepository.watchlistsOfTenantHasSecurity(idTenant), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns Id's of watchlist which contains the specified security", description = "May be used for moving a security to another wachlist, a security can only once exist in a watchlist", tags = {

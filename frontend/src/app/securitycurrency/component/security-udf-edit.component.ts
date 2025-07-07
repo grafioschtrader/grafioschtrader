@@ -4,7 +4,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {UDFDataService} from '../../shared/udfmeta/service/udf.data.service';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {Assetclass} from '../../entities/assetclass';
 import {SecurityUDFHelper} from './security.udf.helper';
 import {BaseUDFDataEdit} from '../../shared/udfmeta/components/base.udf.data.edit';

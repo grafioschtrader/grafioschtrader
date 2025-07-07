@@ -1,9 +1,6 @@
 import {TranslateService} from '@ngx-translate/core';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamicDialogHelper';
-import {
-  LimitTransactionRequestDynamicComponent
-} from '../../shared/dynamicdialog/component/limit.transaction.request.dynamic.component';
 import {TenantEditDynamicComponent} from '../../lib/tenant/component/tenant.edit.dynamic.component';
 import {Tenant} from '../../entities/tenant';
 import {Type} from '@angular/core';
@@ -15,14 +12,15 @@ export class MainTreeDynamicDialogs {
     dialogService: DialogService,
     tenant: Tenant, onlyCurrency: boolean): DynamicDialogRef {
     const dynamicDialogHelper = new DynamicDialogHelper(translateService, dialogService,
-      TenantEditDynamicComponent, onlyCurrency? 'CLIENT_CHANGE_CURRENCY': 'CLIENT');
+      TenantEditDynamicComponent, onlyCurrency ? 'CLIENT_CHANGE_CURRENCY' : 'CLIENT');
     return dynamicDialogHelper.openDynamicDialog(400, {tenant: tenant, onlyCurrency: onlyCurrency});
   }
 
   public static getEditDialogComponent(componentType: Type<any>, translateService: TranslateService,
     dialogService: DialogService, callParam: CallParam, titleKey: string): DynamicDialogRef {
+    const width = (componentType as any).DIALOG_WIDTH || 400;
     const dynamicDialogHelper = new DynamicDialogHelper(translateService, dialogService,
       componentType, titleKey);
-    return dynamicDialogHelper.openDynamicDialog(400, {callParam: callParam});
+    return dynamicDialogHelper.openDynamicDialog(width, {callParam: callParam});
   }
 }

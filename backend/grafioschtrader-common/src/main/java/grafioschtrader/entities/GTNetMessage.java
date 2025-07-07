@@ -8,6 +8,7 @@ import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.entities.BaseID;
+import grafiosch.entities.BaseParam;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.SendReceivedType;
 import io.swagger.v3.oas.annotations.media.Schema;

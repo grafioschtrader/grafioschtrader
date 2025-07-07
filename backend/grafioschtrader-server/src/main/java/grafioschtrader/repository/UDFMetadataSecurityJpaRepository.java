@@ -24,11 +24,11 @@ public interface UDFMetadataSecurityJpaRepository extends JpaRepository<UDFMetad
   /**
    * Counts existing UDF security metadata entries with matching UI order and description values for validation. This
    * method executes a native SQL query to efficiently check uniqueness constraints by counting how many UDF security
-   * metadata entries already exist with the specified UI order or description within the given user scope.</br>
+   * metadata entries already exist with the specified UI order or description within the given user scope.<br>
    * 
-   * The query performs two separate count operations:</br>
-   * 1. Counts entries with the same UI order value for the specified users</br>
-   * 2. Counts entries with the same description for the specified users</br>
+   * The query performs two separate count operations:<br>
+   * 1. Counts entries with the same UI order value for the specified users<br>
+   * 2. Counts entries with the same description for the specified users<br>
    * 
    * This information is used to enforce uniqueness constraints before creating or updating UDF security metadata
    * entries, ensuring that UI order values remain unique for proper field arrangement and descriptions remain unique
@@ -46,13 +46,13 @@ public interface UDFMetadataSecurityJpaRepository extends JpaRepository<UDFMetad
   /**
    * Retrieves all UDF security metadata entries accessible to a user, excluding disabled fields and ordered by UI
    * sequence. This method executes a native SQL query that combines security-specific UDF metadata with base UDF
-   * metadata, applying multiple filtering criteria to return only relevant and enabled fields.</br>
+   * metadata, applying multiple filtering criteria to return only relevant and enabled fields.<br>
    * 
-   * The query applies the following filters:</br>
-   * 1. Includes entries for the specified user and system-wide entries (user ID 0)</br>
-   * 2. Excludes fields that have been explicitly disabled by the user via UDFSpecialTypeDisableUser</br>
-   * 3. Filters to user-defined fields only (UI order < 100, excluding system fields)</br>
-   * 4. Orders results by UI order for consistent form field arrangement</br>
+   * The query applies the following filters:<br>
+   * 1. Includes entries for the specified user and system-wide entries (user ID 0)<br>
+   * 2. Excludes fields that have been explicitly disabled by the user via UDFSpecialTypeDisableUser<br>
+   * 3. Filters to user-defined fields only (UI order < 100, excluding system fields)<br>
+   * 4. Orders results by UI order for consistent form field arrangement<br>
    * 
    * The returned metadata includes both security-specific properties (category types, investment instruments) and
    * general UDF properties (description, data type, field size, etc.) needed for dynamic form generation.

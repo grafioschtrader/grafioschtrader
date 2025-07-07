@@ -89,9 +89,9 @@ public abstract class BaseFeedConnectorCheck {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      System.out.println(String.format("%s URL: %s last:%f change percentage: %f high: %f low: %f timestamp: %tc",
+      System.out.println(String.format("%s URL: %s last:%f change percentage: %f open: %f high: %f low: %f timestamp: %tc",
           security.getName(), security.getUrlIntraExtend(), security.getSLast(), security.getSChangePercentage(),
-          security.getSHigh(), security.getSLow(), security.getSTimestamp()));
+          security.getSOpen(), security.getSHigh(), security.getSLow(), security.getSTimestamp()));
       Assertions.assertThat(security.getSLast()).as("Last price for " + security.getName()).isNotNull()
           .isGreaterThan(0.0);
     });

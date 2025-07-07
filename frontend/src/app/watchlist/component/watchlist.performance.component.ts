@@ -22,7 +22,7 @@ import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.qu
 import {ViewSizeChangedService} from '../../shared/layout/service/view.size.changed.service';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {BusinessHelper} from '../../shared/helper/business.helper';

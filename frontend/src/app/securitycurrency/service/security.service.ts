@@ -8,7 +8,7 @@ import {IFeedConnector} from '../component/ifeed.connector';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {

@@ -8,13 +8,13 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {HelpIds} from '../../shared/help/help.ids';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {CorrelationSetService} from '../service/correlation.set.service';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {ChildToParent, CorrelationTableComponent} from './correlation-table.component';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {CorrelationEditingSupport} from './correlation.editing.support';
 
 /**

@@ -8,7 +8,7 @@ import {ImportSettings} from './import.settings';
 import {TranslateValue} from '../../shared/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityaccountImportTransactionTableComponent} from './securityaccount-import-transaction-table.component';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 
 /**
  * Shows the extended information to a single import import transaction record in case when a

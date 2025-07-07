@@ -4,14 +4,14 @@ import {AppSettings} from '../../app.settings';
 import {Router} from '@angular/router';
 import {TypeNodeData} from '../types/type.node.data';
 import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
 import {Portfolio} from '../../../entities/portfolio';
 import {Cashaccount} from '../../../entities/cashaccount';
-import {CallParam, DialogVisible} from '../types/dialog.visible';
+import {CallParam} from '../types/dialog.visible';
 import {PortfolioService} from '../../../portfolio/service/portfolio.service';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
@@ -29,27 +29,31 @@ import {AlgoTopService} from '../../../algo/service/algo.top.service';
 import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
 import {RuleStrategyType} from '../../types/rule.strategy.type';
 import {TenantLimit, TenantLimitTypes} from '../../../entities/backend/tenant.limit';
-import {AuditHelper} from '../../helper/audit.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {AuditHelper} from '../../../lib/helper/audit.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {BusinessHelper} from '../../helper/business.helper';
 import {WatchlistSecurityExists} from '../../../entities/dnd/watchlist.security.exists';
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {AlgoTop} from '../../../algo/model/algo.top';
 import {GlobalSessionNames} from '../../global.session.names';
 import {FeatureType} from '../../login/component/login.component';
-import {TreeNodeUnSelectEvent} from 'primeng/tree';
 import {MainTreeDynamicDialogs} from '../../../dynamic-dialog/component/main.tree.dynamic.dialogs';
 import {DialogService} from 'primeng/dynamicdialog';
 import {PortfolioEditDynamicComponent} from '../../../portfolio/component/portfolio.edit.dynamic.component';
+import {WatchlistEditDynamicComponent} from '../../../watchlist/component/watchlist.edit.dynamic.component';
+import {
+  SecurityaccountEditDynamicComponent
+} from '../../../securityaccount/component/securityaccount.edit.dynamic.component';
+import {AlgoRuleStrategyCreateDynamicComponent} from '../../../algo/component/algo.rule.strategy.create.component';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
  */
 @Component({
-    selector: 'main-tree',
-    templateUrl: '../view/maintree.html',
-    providers: [DialogService],
-    standalone: false
+  selector: 'main-tree',
+  templateUrl: '../view/maintree.html',
+  providers: [DialogService],
+  standalone: false
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('cm', {static: true}) contextMenu: any;
@@ -68,8 +72,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   visibleDialogs: boolean[] = [false, false];
   callParam: CallParam;
   onlyCurrency = false;
-  // Otherwise enum DialogVisible can't be used in a html template
-  DialogVisible: typeof DialogVisible = DialogVisible;
+
   tenantLimits: { [key: string]: TenantLimit };
   tenant: Tenant;
   private readonly PORTFOLIO_INDEX: number;
@@ -84,18 +87,18 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   private reRoutePrevSelection = -1;
 
   constructor(private dataChangedService: DataChangedService,
-              private confirmationService: ConfirmationService,
-              private activePanelService: ActivePanelService,
-              private router: Router,
-              private algoTopService: AlgoTopService,
-              private portfolioService: PortfolioService,
-              private securityaccountService: SecurityaccountService,
-              private messageToastService: MessageToastService,
-              public translateService: TranslateService,
-              private globalParamService: GlobalparameterService,
-              private tenantService: TenantService,
-              private watchlistService: WatchlistService,
-              private dialogService: DialogService) {
+    private confirmationService: ConfirmationService,
+    private activePanelService: ActivePanelService,
+    private router: Router,
+    private algoTopService: AlgoTopService,
+    private portfolioService: PortfolioService,
+    private securityaccountService: SecurityaccountService,
+    private messageToastService: MessageToastService,
+    public translateService: TranslateService,
+    private globalParamService: GlobalparameterService,
+    private tenantService: TenantService,
+    private watchlistService: WatchlistService,
+    private dialogService: DialogService) {
     let i = 0;
     this.PORTFOLIO_INDEX = i++;
     if (this.useAlgo()) {
@@ -159,9 +162,10 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   addAndRefreshWatchlistToTree(): void {
     combineLatest([this.watchlistService.getWatchlistsByIdTenant(),
       this.watchlistService.getWatchlistsOfTenantHasSecurity()])
-      .subscribe(data => {
+      .subscribe((data: [Watchlist[], {idWatchlist: number, hasSecurity: number}[]]) => {
         const watchlists: Watchlist[] = data[0];
-        data[1].forEach(keyvalue => this.hasSecurityObject[keyvalue[0]] = keyvalue[1]);
+        const hasSecurityData: {idWatchlist: number, hasSecurity: number}[] = data[1];
+        hasSecurityData.forEach(item => this.hasSecurityObject[item.idWatchlist] = item.hasSecurity)
         this.portfolioTrees[this.WATCHLIST_INDEX].children.splice(0);
         for (const watchlist of watchlists) {
           const treeNode = {
@@ -216,8 +220,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   private getUDFChildren(): MenuItem {
     return {
       label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
-        data: new TypeNodeData(TreeNodeType.UDFMetadataSecurity, this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),
-      null, null, null)
+      data: new TypeNodeData(TreeNodeType.UDFMetadataSecurity, this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),
+        null, null, null)
     }
   }
 
@@ -243,7 +247,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         null, null, null)
     });
 
-   // this.addGTNetToTree();
+    // this.addGTNetToTree();
 
     this.portfolioTrees[this.ADMINDATA_INDEX].children.push({
       label: 'TASK_DATA_MONITOR',
@@ -330,7 +334,6 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
 
-
   handleDynamicNew(componentType: Type<any>, parentObject: any, data: Tenant | Portfolio | Cashaccount | Securityaccount
     | AlgoTopCreate, tenantLimitType: TenantLimitTypes, titleKey: string): void {
     if (tenantLimitType) {
@@ -350,34 +353,11 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   handleTenantEditDynamicDialog(data: Tenant, onlyCurrency: boolean): void {
-     MainTreeDynamicDialogs.getTenantEditDialogComponent(this.translateService, this.dialogService,
-       data, onlyCurrency).onClose.subscribe(hopd => this.handleOnProcessedDialog(hopd));
+    MainTreeDynamicDialogs.getTenantEditDialogComponent(this.translateService, this.dialogService,
+      data, onlyCurrency).onClose.subscribe(hopd => this.handleOnProcessedDialog(hopd));
   }
 
-  handleNew(dialogVisible: DialogVisible, parentObject: any, data: Tenant | Portfolio | Cashaccount | Securityaccount
-    | AlgoTopCreate, tenantLimitType: TenantLimitTypes): void {
-    if (tenantLimitType) {
-      if (BusinessHelper.isLimitCheckOk(this.tenantLimits[tenantLimitType], this.messageToastService)) {
-        this.handleEdit(dialogVisible, parentObject, data);
-      }
-    } else {
-      this.handleEdit(dialogVisible, parentObject, data);
-    }
-  }
 
-  handleEdit(dialogVisible: DialogVisible, parentObject: any, data: Tenant | Portfolio | Cashaccount | Securityaccount
-    | AlgoTopCreate = null): void {
-    this.callParam = new CallParam(parentObject, data);
-    this.visibleDialogs[dialogVisible] = true;
-  }
-
-  /*
-  checkLimits(data: Tenant | Portfolio | Cashaccount | Securityaccount
-    | AlgoTopCreate = null) {
-    if(data in)
-  }
-
-  */
   handleDeletePortfolio(treeNode: TreeNode, idPortfolio: number) {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|PORTFOLIO', () => {
@@ -472,14 +452,14 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       case TreeNodeType.SecurityaccountRoot:
         menuItems.push({
           label: 'CREATE|SECURITYACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
-          command: (event) => this.handleNew(DialogVisible.DvSecurityaccount, selectedNodeData, null,
-            TenantLimitTypes.MAX_SECURITY_ACCOUNT)
+          command: (event) => this.handleDynamicNew(SecurityaccountEditDynamicComponent, selectedNodeData, null,
+            TenantLimitTypes.MAX_SECURITY_ACCOUNT, AppSettings.SECURITYACCOUNT.toUpperCase())
         });
         break;
       case TreeNodeType.SecurityAccount:
         menuItems.push({
           label: 'EDIT_RECORD|SECURITYACCOUNT', command: (event) =>
-            this.handleEdit(DialogVisible.DvSecurityaccount, parentNodeData, selectedNodeData)
+            this.handleDynamicEdit(SecurityaccountEditDynamicComponent, parentNodeData, selectedNodeData, AppSettings.SECURITYACCOUNT.toUpperCase())
         });
         menuItems.push({
           label: 'DELETE|SECURITYACCOUNT', command: (event) =>
@@ -490,11 +470,13 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       case TreeNodeType.AlgoRoot:
         menuItems.push({
           label: 'CREATE|ALGO_PORTFOLIO_STRATEGY' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleNew(DialogVisible.DvAlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategyType.RS_STRATEGY), null)
+            this.handleDynamicNew(AlgoRuleStrategyCreateDynamicComponent, parentNodeData, new AlgoTopCreate(RuleStrategyType.RS_STRATEGY),
+              null, 'ALGO_PORTFOLIO_STRATEGY')
         });
         menuItems.push({
           label: 'CREATE|ALGO_RULE_BASED' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleNew(DialogVisible.DvAlgoRuleStrategy, parentNodeData, new AlgoTopCreate(RuleStrategyType.RS_RULE), null)
+            this.handleDynamicNew(AlgoRuleStrategyCreateDynamicComponent, parentNodeData, new AlgoTopCreate(RuleStrategyType.RS_RULE),
+              null, 'ALGO_RULE_BASED')
         });
         break;
       case TreeNodeType.Strategy:
@@ -506,19 +488,19 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       case TreeNodeType.WatchlistRoot:
         menuItems.push({
           label: 'CREATE|WATCHLIST' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleNew(DialogVisible.DvWatchlist, parentNodeData, selectedNodeData, TenantLimitTypes.MAX_WATCHLIST)
+            this.handleDynamicNew(WatchlistEditDynamicComponent, parentNodeData, selectedNodeData,
+              TenantLimitTypes.MAX_WATCHLIST, AppSettings.WATCHLIST.toUpperCase())
         });
-
         break;
       case TreeNodeType.Watchlist:
         menuItems.push({
           label: 'EDIT_RECORD|WATCHLIST' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
-            this.handleEdit(DialogVisible.DvWatchlist, parentNodeData, selectedNodeData)
+            this.handleDynamicEdit(WatchlistEditDynamicComponent, parentNodeData, selectedNodeData, AppSettings.WATCHLIST.toUpperCase())
         });
         menuItems.push({
           label: 'DELETE|WATCHLIST', command: (event) =>
             this.handleDeleteWatchlist(treeNode, selectedNodeData.idWatchlist),
-          disabled: this.hasSecurityObject[selectedNodeData.idWatchlist] !== 0
+          disabled: this.hasSecurityObject[selectedNodeData.idWatchlist]  !== 0
         });
         menuItems.push({separator: true});
         menuItems.push({
@@ -567,7 +549,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   handleOnProcessedDialog(processedActionData: ProcessedActionData) {
     this.visibleDialogs = new Array(this.visibleDialogs.length).fill(false);
-    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+    if (processedActionData?.action !== ProcessedAction.NO_CHANGE) {
       this.clearSelection();
       this.reRoutePrevSelection = this.UPDATE_TREE_PARTS;
     }
@@ -625,22 +607,17 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   private addAndRefreshPortfolioToTree() {
-
     const portfolioObservable = this.portfolioService.getPortfoliosForTenantOrderByName();
     const tenantLimitsObservable =
       this.globalParamService.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_SECURITY_ACCOUNT,
         TenantLimitTypes.MAX_PORTFOLIO, TenantLimitTypes.MAX_WATCHLIST]);
-
     combineLatest([portfolioObservable, tenantLimitsObservable]).subscribe(results => {
-
       const tenantStringify = JSON.stringify(this.tenant);
-
       this.setLangTrans('PORTFOLIOS', this.portfolioTrees[this.PORTFOLIO_INDEX], '-' + this.tenant.tenantName
         + ' / ' + this.tenant.currency);
       const portfolios = results[0];
       this.portfolioTrees[this.PORTFOLIO_INDEX].data.entityObject = tenantStringify;
       this.tenantLimits = results[1].reduce((ac, tl) => ({...ac, [tl.msgKey]: tl}), {});
-
       this.portfolioTrees[this.PORTFOLIO_INDEX].children.splice(0);
       for (const portfolio of portfolios) {
         const treeNode = {

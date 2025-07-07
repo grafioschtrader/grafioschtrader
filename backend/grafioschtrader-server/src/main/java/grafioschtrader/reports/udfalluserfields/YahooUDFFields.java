@@ -25,18 +25,18 @@ import grafioschtrader.types.UDFSpecialGTType;
  * such as earnings information, statistics links, and earnings dates for securities.
  * 
  * The class implements parallel processing to efficiently handle multiple securities while respecting Yahoo Finance's
- * rate limiting requirements. It manages various types of Yahoo-related UDF fields including:</br>
- * - Yahoo statistics links for fundamental analysis</br>
- * - Yahoo earnings calendar links for upcoming earnings events</br>
- * - Next earnings dates extracted from Yahoo Finance calendar</br>
- * - Internal Yahoo symbol management for data retrieval</br>
+ * rate limiting requirements. It manages various types of Yahoo-related UDF fields including:<br>
+ * - Yahoo statistics links for fundamental analysis<br>
+ * - Yahoo earnings calendar links for upcoming earnings events<br>
+ * - Next earnings dates extracted from Yahoo Finance calendar<br>
+ * - Internal Yahoo symbol management for data retrieval<br>
  * 
- * Key features include:</br>
- * - Parallel processing with controlled concurrency to prevent API overload</br>
- * - Intelligent caching and persistence of Yahoo symbols and field values</br>
- * - Asset class and investment instrument filtering for targeted field application</br>
- * - Automatic recreation of expired or missing field values</br>
- * - Error handling and logging for failed data extraction operations</br>
+ * Key features include:<br>
+ * - Parallel processing with controlled concurrency to prevent API overload<br>
+ * - Intelligent caching and persistence of Yahoo symbols and field values<br>
+ * - Asset class and investment instrument filtering for targeted field application<br>
+ * - Automatic recreation of expired or missing field values<br>
+ * - Error handling and logging for failed data extraction operations<br>
  * 
  * The class uses a ForkJoinPool with limited parallelism to balance performance with Yahoo Finance's usage policies,
  * ensuring reliable data retrieval without service disruption.
@@ -61,11 +61,11 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
    * filters securities based on asset class matching and active status, then processes them in parallel to efficiently
    * retrieve and store Yahoo Finance data while respecting rate limits.
    * 
-   * The processing includes:</br>
-   * 1. Filtering securities by asset class compatibility and active status</br>
-   * 2. Parallel processing with controlled concurrency (max 5 threads)</br>
-   * 3. Creating or updating field values based on the specified UDF special type</br>
-   * 4. Automatic Yahoo symbol resolution and caching</br>
+   * The processing includes:<br>
+   * 1. Filtering securities by asset class compatibility and active status<br>
+   * 2. Parallel processing with controlled concurrency (max 5 threads)<br>
+   * 3. Creating or updating field values based on the specified UDF special type<br>
+   * 4. Automatic Yahoo symbol resolution and caching<br>
    * 
    * Only securities that match the UDF metadata's category types and special investment instruments and have active
    * dates in the future are processed to ensure relevance and data quality.
@@ -99,11 +99,11 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
    * from existing data. Special handling is provided for earnings date fields that may expire and require periodic
    * updates.
    * 
-   * The method implements the following logic:</br>
-   * - Creates new values if none exist</br>
-   * - Recreates values if forced recreation is requested</br>
-   * - Updates earnings dates that have passed (for next earnings date fields)</br>
-   * - Loads existing valid values into the UDF group for display</br>
+   * The method implements the following logic:<br>
+   * - Creates new values if none exist<br>
+   * - Recreates values if forced recreation is requested<br>
+   * - Updates earnings dates that have passed (for next earnings date fields)<br>
+   * - Loads existing valid values into the UDF group for display<br>
    * 
    * This approach optimizes performance by avoiding unnecessary Yahoo Finance API calls while ensuring data freshness
    * for time-sensitive information like earnings dates.
@@ -135,9 +135,9 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
    * actual data retrieval and field value creation by first resolving the Yahoo symbol for the security, then creating
    * the appropriate field content based on whether the field is for statistics links or earnings-related information.
    * 
-   * The method supports different Yahoo UDF field types:</br>
-   * - Statistics links: Direct URL construction to Yahoo Finance key statistics page</br>
-   * - Earnings-related fields: Delegation to earnings-specific processing</br>
+   * The method supports different Yahoo UDF field types:<br>
+   * - Statistics links: Direct URL construction to Yahoo Finance key statistics page<br>
+   * - Earnings-related fields: Delegation to earnings-specific processing<br>
    * 
    * Yahoo symbol resolution uses multiple strategies including existing connectors, cached symbols, and symbol search
    * when necessary.
@@ -168,9 +168,9 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
    * generates the appropriate Yahoo Finance earnings calendar URL and either stores the URL directly (for link fields)
    * or extracts the next earnings date from the calendar page (for date fields).
    * 
-   * The method supports two types of earnings fields:</br>
-   * - Earnings calendar links: Direct URL to Yahoo Finance earnings calendar</br>
-   * - Next earnings dates: Extracted date/time of the next scheduled earnings announcement</br>
+   * The method supports two types of earnings fields:<br>
+   * - Earnings calendar links: Direct URL to Yahoo Finance earnings calendar<br>
+   * - Next earnings dates: Extracted date/time of the next scheduled earnings announcement<br>
    * 
    * Error handling is implemented for earnings date extraction failures, with appropriate logging to track data
    * retrieval issues for specific securities.

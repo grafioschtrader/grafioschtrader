@@ -3,14 +3,14 @@ import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ImportTransactionTemplateService} from '../service/import.transaction.template.service';
 import {FormTemplateCheck} from './form.template.check';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 
 @Component({
     selector: 'template-form-check-dialog',

@@ -7,12 +7,12 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AppSettings} from '../../shared/app.settings';
 import {GTNetService} from '../service/gtnet.service';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
 
 /**

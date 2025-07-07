@@ -6,9 +6,9 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {CorrelationLimit, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
-import {AppHelper} from '../../shared/helper/app.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {CorrelationEditingSupport} from './correlation.editing.support';
 

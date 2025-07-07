@@ -23,6 +23,7 @@ import {SpecialInvestmentInstruments} from '../types/special.investment.instrume
 import {Assetclass} from '../../entities/assetclass';
 import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
 import {ColumnConfig} from '../datashowbase/column.config';
+import {GlobalSessionNames} from '../global.session.names';
 
 /**
  * Utility class providing static helper methods for financial business operations.
@@ -366,6 +367,51 @@ export class BusinessHelper {
    */
   public static getDisplayLeverageFactor(dataobject: any, field: ColumnConfig, valueField: any): string {
     return Number(+valueField) === 1 ? '' : valueField;
+  }
+
+  /**
+   * Retrieves the "until date" from session storage for reporting purposes.
+   * This can be set by the user and should work across the board for certain reports.
+   * Falls back to current date if no stored date is found.
+   *
+   * @returns Date object representing the until date for reports
+   */
+  static getUntilDateBySessionStorage(): Date {
+    return BusinessHelper.getDateFromSessionStorage(GlobalSessionNames.REPORT_UNTIL_DATE, new Date());
+  }
+
+  /**
+   * Retrieves a date from session storage with fallback to default date.
+   * Parses stored date string using moment.js for reliable date handling.
+   *
+   * @param property Session storage key for the date
+   * @param defaultDate Default date to return if no stored date exists
+   * @returns Date object from storage or default date
+   */
+  static getDateFromSessionStorage(property: string, defaultDate = new Date()): Date {
+    const date = sessionStorage.getItem(property);
+    return date ? moment(date).toDate() : defaultDate;
+  }
+
+  /**
+   * Saves the "until date" to session storage for reporting persistence.
+   * Maintains user's date selection across browser sessions.
+   *
+   * @param untilDate Date to store in session storage
+   */
+  static saveUntilDateInSessionStorage(untilDate: Date): void {
+    BusinessHelper.saveDateToSessionStore(GlobalSessionNames.REPORT_UNTIL_DATE, untilDate);
+  }
+
+  /**
+   * Saves a date to session storage in standardized format.
+   * Uses application's standard date format for consistent storage.
+   *
+   * @param property Session storage key for the date
+   * @param date Date object to store
+   */
+  private static saveDateToSessionStore(property: string, date: Date) {
+    sessionStorage.setItem(property, moment(date).format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
   }
 
 }

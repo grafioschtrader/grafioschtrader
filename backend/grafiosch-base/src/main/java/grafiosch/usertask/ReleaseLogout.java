@@ -4,11 +4,11 @@ import java.io.Serializable;
 
 /**
  * Model class representing user violation counters for release logout requests. This class is used when users request
- * administrative intervention to reset their violation counts and restore normal system access privileges.</br>
+ * administrative intervention to reset their violation counts and restore normal system access privileges.<br>
  * 
- * The class tracks two types of user violations:</br>
- * - Security breaches (unauthorized access attempts or data violations)</br>
- * - Request limit exceedances (too many requests within time constraints)</br>
+ * The class tracks two types of user violations:<br>
+ * - Security breaches (unauthorized access attempts or data violations)<br>
+ * - Request limit exceedances (too many requests within time constraints)<br>
  * 
  * When users accumulate violations, they may be restricted from system access. This model supports the proposal system
  * where users can request administrators to reset these counters and reinstate their access privileges.

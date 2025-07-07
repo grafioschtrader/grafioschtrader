@@ -11,7 +11,7 @@ import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.servic
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 import {SecurityCurrencyService} from './security.currency.service';
 

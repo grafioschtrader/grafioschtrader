@@ -21,7 +21,7 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {Security} from '../../entities/security';
 import {ProcessedAction} from '../../shared/types/processed.action';
@@ -30,7 +30,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {AssetclassType} from '../../shared/types/assetclass.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
@@ -80,7 +80,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
                         gps: GlobalparameterService,
                         usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
-    this.untilDate = AppHelper.getUntilDateBySessionStorage();
+    this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
   }
 
   getGroupValueByRowIndex(columnConfig: ColumnConfig, securityPositionSummary: SecurityPositionSummary): string {
@@ -224,7 +224,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   destroy(): void {
-    AppHelper.saveUntilDateInSessionStorage(this.untilDate);
+    BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
     this.activePanelService.destroyPanel(this);
     this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
   }

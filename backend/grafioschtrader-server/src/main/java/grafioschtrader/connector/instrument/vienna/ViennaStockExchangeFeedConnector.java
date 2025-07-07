@@ -193,9 +193,9 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Index: Date;Open;High;Low;Last Close;Chg.%;</br>
-   * Bond: Date;Open;High;Low;LastClose;Chg.%;Total Value<sup>1</sup>;Total Volume<sup>1</sup>;</br>
-   * Stock: Date;Open;High;Low;Last Close;Chg.%;Total Value<sup>1</sup>;Total Volume<sup>1</sup>;</br>
+   * Index: Date;Open;High;Low;Last Close;Chg.%;<br>
+   * Bond: Date;Open;High;Low;LastClose;Chg.%;Total Value<sup>1</sup>;Total Volume<sup>1</sup>;<br>
+   * Stock: Date;Open;High;Low;Last Close;Chg.%;Total Value<sup>1</sup>;Total Volume<sup>1</sup>;<br>
    */
   private Historyquote parseResponseLineItems(final String[] items, SimpleDateFormat sdf) throws ParseException {
     Historyquote historyquote = new Historyquote();

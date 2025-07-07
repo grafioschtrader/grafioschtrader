@@ -3,9 +3,9 @@ import {ColumnConfig, OptionalParams} from './column.config';
 import {BaseLocale} from '../../dynamic-form/models/base.locale';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {Helper} from '../../helper/helper';
-import {TranslateHelper} from '../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 
 /**
  * It is the base class which supports the definition of no editable fields.

@@ -35,11 +35,11 @@ public interface UDFMetadataGeneralJpaRepository extends JpaRepository<UDFMetada
   /**
    * Counts existing UDF metadata entries with matching UI order and description values for validation purposes. This
    * method executes a native SQL query to efficiently check uniqueness constraints by counting how many UDF metadata
-   * entries already exist with the specified UI order or description within the given user scope and entity type.</br>
+   * entries already exist with the specified UI order or description within the given user scope and entity type.<br>
    * 
-   * The query performs two separate count operations:</br>
-   * 1. Counts entries with the same UI order value for the specified users and entity</br>
-   * 2. Counts entries with the same description for the specified users and entity</br>
+   * The query performs two separate count operations:<br>
+   * 1. Counts entries with the same UI order value for the specified users and entity<br>
+   * 2. Counts entries with the same description for the specified users and entity<br>
    * 
    * This information is used to enforce uniqueness constraints before creating or updating UDF metadata entries,
    * ensuring that UI order values remain unique for proper field arrangement and descriptions remain unique within the

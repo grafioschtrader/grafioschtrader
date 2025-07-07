@@ -4,7 +4,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {Watchlist} from '../../entities/watchlist';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {MenuItem} from 'primeng/api';
 import {UDFMetadataSecurityService} from '../../shared/udfmeta/service/udf.metadata.security.service';
 import {GlobalSessionNames} from '../../shared/global.session.names';

@@ -8,15 +8,15 @@ import {TranslateService} from '@ngx-translate/core';
 import {Subscription} from 'rxjs';
 import {Validators} from '@angular/forms';
 import {FormBase} from '../../shared/edit/form.base';
-import {AuditHelper} from '../../shared/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
+import {AuditHelper} from '../../lib/helper/audit.helper';
+import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {Security} from '../../entities/security';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 
 
 @Directive()

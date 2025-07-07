@@ -16,7 +16,7 @@ import {SecurityTransactionSummary} from '../../entities/view/security.transacti
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {CloseMarginPosition, TransactionCallParam} from './transaction.call.parm';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {ProposedMarginFinanceCost} from '../model/proposed.margin.finance.cost';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';

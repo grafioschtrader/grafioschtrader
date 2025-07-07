@@ -24,7 +24,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {NgxFileDropEntry} from 'ngx-file-drop';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 /**

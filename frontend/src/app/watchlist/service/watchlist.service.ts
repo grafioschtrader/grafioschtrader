@@ -9,11 +9,11 @@ import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist'
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {Observable} from 'rxjs';
-import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
@@ -40,8 +40,9 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
       `${AppSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getWatchlistsOfTenantHasSecurity(): Observable<number[]> {
-    return <Observable<number[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/hassecurity`,
+  getWatchlistsOfTenantHasSecurity(): Observable<{ idWatchlist: number, hasSecurity: number }[]> {
+    return <Observable<{ idWatchlist: number, hasSecurity: number }[]>>this.httpClient.get(
+      `${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/hassecurity`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -113,8 +114,10 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
     httpParams = httpParams.append('isIntraday', isIntraday.toString());
     httpParams = httpParams.append('isSecurity', isSecurity.toString());
     return <Observable<string>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
-      + `/dataproviderlink/${idSecuritycurrency}`, {headers: this.prepareHeaders(), params: httpParams,
-      responseType: 'text'}
+      + `/dataproviderlink/${idSecuritycurrency}`, {
+        headers: this.prepareHeaders(), params: httpParams,
+        responseType: 'text'
+      }
     ).pipe(catchError(this.handleError.bind(this)));
   }
 

@@ -56,9 +56,9 @@ public class UDFDataJpaRepositoryImpl implements UDFDataJpaRepositoryCustom {
 
   /**
    * Validates that the specified entity supports user-defined fields and verifies tenant access rights. This method
-   * performs two critical security checks:</br>
-   * 1. Ensures the entity class is registered as supporting UDF functionality</br>
-   * 2. Verifies the current user's tenant has access to the specific entity instance</br>
+   * performs two critical security checks:<br>
+   * 1. Ensures the entity class is registered as supporting UDF functionality<br>
+   * 2. Verifies the current user's tenant has access to the specific entity instance<br>
    * 
    * The method prevents unauthorized access to entities belonging to other tenants and ensures UDF operations are only
    * performed on entities that have been configured to support them.

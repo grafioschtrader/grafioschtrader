@@ -4,7 +4,7 @@ import {Assetclass} from '../../entities/assetclass';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {combineLatest} from 'rxjs';
 import {Helper} from '../../helper/helper';
-import {AppHelper, Comparison} from '../../shared/helper/app.helper';
+import {AppHelper, Comparison} from '../../lib/helper/app.helper';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {Security} from '../../entities/security';
 import moment from 'moment';

@@ -10,13 +10,13 @@ import {HelpIds} from '../help/help.ids';
 import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
-import {AppHelper} from '../helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../app.settings';
-import {AuditHelper} from '../helper/audit.helper';
+import {AuditHelper} from '../../lib/helper/audit.helper';
 import {User} from '../../lib/entities/user';
 import {ProcessedActionData} from '../types/processed.action.data';
 import {ProcessedAction} from '../types/processed.action';
-import {TranslateHelper} from '../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 
 /**
  * Shows global settings in table. Here TableCrudSupportMenu is not derived because no entities can be deleted or added.

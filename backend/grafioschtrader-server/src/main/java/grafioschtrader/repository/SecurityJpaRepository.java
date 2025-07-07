@@ -263,8 +263,8 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   /**
    * A new payment of interest or dividend is expected: - Last payment with this client plus the addition of days
    * determined based on the frequency of payments. Instruments with entries in the Dividend entity that have a payment
-   * date are ignored.</br>
-   * TODO First interest of a bond determined on the basis of the trading date plus addition of the frequency.</br>
+   * date are ignored.<br>
+   * TODO First interest of a bond determined on the basis of the trading date plus addition of the frequency.<br>
    */
   @Query(nativeQuery = true)
   List<CheckSecurityTransIntegrity> getPossibleMissingDivInterestByFrequency();

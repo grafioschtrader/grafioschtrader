@@ -23,19 +23,19 @@ import grafioschtrader.types.UDFSpecialGTType;
  * numerical methods to solve for yield when given price, coupon rate, maturity date, and other bond characteristics.
  * The implementation follows standard financial formulas and day count conventions used in bond markets.
  * 
- * Key features include:</br>
- * - Automatic coupon rate extraction from security names using regex patterns</br>
- * - Support for various payment frequencies (annual, semi-annual, quarterly, monthly)</br>
- * - Multiple day count basis conventions (30/360, Actual/Actual, Actual/360, etc.)</br>
- * - Iterative yield calculation using numerical methods with convergence tolerance</br>
- * - Asset class filtering to apply calculations only to appropriate fixed-income securities</br>
- * - Integration with the UDF system for persistent storage and display</br>
+ * Key features include:<br>
+ * - Automatic coupon rate extraction from security names using regex patterns<br>
+ * - Support for various payment frequencies (annual, semi-annual, quarterly, monthly)<br>
+ * - Multiple day count basis conventions (30/360, Actual/Actual, Actual/360, etc.)<br>
+ * - Iterative yield calculation using numerical methods with convergence tolerance<br>
+ * - Asset class filtering to apply calculations only to appropriate fixed-income securities<br>
+ * - Integration with the UDF system for persistent storage and display<br>
  * 
- * The calculator only processes securities that:</br>
- * - Match the configured asset class and investment instrument criteria</br>
- * - Have active maturity dates in the future</br>
- * - Have valid distribution frequencies (1-12 payments per year)</br>
- * - Have extractable coupon rates from their names</br>
+ * The calculator only processes securities that:<br>
+ * - Match the configured asset class and investment instrument criteria<br>
+ * - Have active maturity dates in the future<br>
+ * - Have valid distribution frequencies (1-12 payments per year)<br>
+ * - Have extractable coupon rates from their names<br>
  * 
  * The implementation is based on standard bond pricing formulas and follows algorithms similar to those used in Apache
  * OpenOffice Calc for financial calculations.
@@ -48,12 +48,12 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    * securities based on asset class compatibility, active status, and valid distribution frequencies, then attempts to
    * extract coupon rates from security names and calculate YTM using current market prices.
    * 
-   * The processing workflow includes:</br>
-   * 1. Filtering securities by asset class matching and active maturity dates</br>
-   * 2. Validating distribution frequency is within acceptable range (1-12 per year)</br>
-   * 3. Extracting annual coupon rate from security name using regex pattern matching</br>
-   * 4. Calculating YTM using settlement date (current date), maturity date, coupon rate, and current price</br>
-   * 5. Storing the calculated YTM value in the UDF system with appropriate precision</br>
+   * The processing workflow includes:<br>
+   * 1. Filtering securities by asset class matching and active maturity dates<br>
+   * 2. Validating distribution frequency is within acceptable range (1-12 per year)<br>
+   * 3. Extracting annual coupon rate from security name using regex pattern matching<br>
+   * 4. Calculating YTM using settlement date (current date), maturity date, coupon rate, and current price<br>
+   * 5. Storing the calculated YTM value in the UDF system with appropriate precision<br>
    * 
    * Only securities with extractable numeric coupon rates from their names are processed, ensuring data quality and
    * calculation accuracy.

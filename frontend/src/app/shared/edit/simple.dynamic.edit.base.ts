@@ -4,11 +4,11 @@ import {HelpIds} from '../help/help.ids';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {EditHelper} from './edit.helper';
 import {ProposeTransientTransfer} from '../../lib/entities/propose.transient.transfer';
-import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
+import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {TranslateService} from '@ngx-translate/core';
 import {Directive, ViewChild} from '@angular/core';
-import {AuditHelper} from '../helper/audit.helper';
+import {AuditHelper} from '../../lib/helper/audit.helper';
 import {InfoLevelType} from '../message/info.leve.type';
 import {ProcessedActionData} from '../types/processed.action.data';
 import {ProcessedAction} from '../types/processed.action';
@@ -28,9 +28,9 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
   // Access child components
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
-  constructor(
+  protected constructor(
     protected dynamicDialogConfig: DynamicDialogConfig,
-    private dynamicDialogRef: DynamicDialogRef,
+    protected dynamicDialogRef: DynamicDialogRef,
     protected helpId: HelpIds,
     protected translateService: TranslateService,
     public gps: GlobalparameterService,
@@ -42,7 +42,6 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
   submit(value: { [name: string]: any }): void {
     const entityNew: T = this.getNewOrExistingInstanceBeforeSave(value);
     AuditHelper.disableRejectFieldButton(this.configObject, true);
-
     this.serviceEntityUpdate.update(entityNew).subscribe({
       next: returnEntity => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',

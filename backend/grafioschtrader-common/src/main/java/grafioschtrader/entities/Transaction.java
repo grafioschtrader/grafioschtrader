@@ -632,12 +632,12 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * scenarios including transactions between different currencies and applies appropriate exchange rates based on
    * security currency, cash account currency, and main currency relationships.
    *
-   * MC->main currency, T->Transaction</br>
-   * When Cashaccount -> CHF (MC), Security -> CHF(MC) then nothing</br>
-   * When Cashaccount -> GBP, Security -> CHF (MC) then nothing</br>
-   * When Cashaccount -> CHF (MC), Security -> GBP then * exchange Rate (T)</br>
-   * When Cashaccount -> GBP, Security -> GBP, MC = CHF then * exchange Rate (GBPCHF(MC)</br>
-   * When Cashaccount -> GBP, Security -> USD, MC = CHF then / exchange Rate (T) * exchange Rate (GBPCHF(MC))</br>
+   * MC->main currency, T->Transaction<br>
+   * When Cashaccount -> CHF (MC), Security -> CHF(MC) then nothing<br>
+   * When Cashaccount -> GBP, Security -> CHF (MC) then nothing<br>
+   * When Cashaccount -> CHF (MC), Security -> GBP then * exchange Rate (T)<br>
+   * When Cashaccount -> GBP, Security -> GBP, MC = CHF then * exchange Rate (GBPCHF(MC)<br>
+   * When Cashaccount -> GBP, Security -> USD, MC = CHF then / exchange Rate (T) * exchange Rate (GBPCHF(MC))<br>
    *
    * @param mainCurency      the target main currency
    * @param value            the value to convert (may be null)

@@ -30,7 +30,7 @@ import {Router} from '@angular/router';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import moment from 'moment';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 
 /**
  * Component to add and remove instruments to the correlation matrix. It supports also creation of line graph

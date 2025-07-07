@@ -17,13 +17,13 @@ import grafioschtrader.types.UDFSpecialGTType;
  * data on Yahoo Finance, including metrics such as market capitalization, price-to-earnings ratios, dividend yields,
  * financial ratios, and other key performance indicators.
  * 
- * Key features include:</br>
- * - Automatic Yahoo symbol resolution for accurate link generation</br>
- * - Direct integration with Yahoo Finance key statistics pages</br>
- * - Background processing capability for improved user experience</br>
- * - Asset class filtering to ensure links are only created for appropriate securities</br>
- * - Persistent storage of generated links in the UDF system</br>
- * - Rate-limited access to Yahoo Finance services for reliable operation</br>
+ * Key features include:<br>
+ * - Automatic Yahoo symbol resolution for accurate link generation<br>
+ * - Direct integration with Yahoo Finance key statistics pages<br>
+ * - Background processing capability for improved user experience<br>
+ * - Asset class filtering to ensure links are only created for appropriate securities<br>
+ * - Persistent storage of generated links in the UDF system<br>
+ * - Rate-limited access to Yahoo Finance services for reliable operation<br>
  * 
  * The generated links follow the format: https://finance.yahoo.com/quote/{symbol}/key-statistics/ where {symbol} is the
  * resolved Yahoo Finance symbol for the security.

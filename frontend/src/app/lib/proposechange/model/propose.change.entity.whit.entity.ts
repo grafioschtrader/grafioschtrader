@@ -1,5 +1,5 @@
-import {ProposeChangeEntity} from '../../lib/entities/propose.change.entity';
-import {ProposeUserTask} from '../../lib/entities/propose.user.task';
+import {ProposeChangeEntity} from '../../entities/propose.change.entity';
+import {ProposeUserTask} from '../../entities/propose.user.task';
 
 export class ProposeChangeEntityWithEntity {
   public proposeChangeEntity: ProposeChangeEntity | ProposeUserTask;

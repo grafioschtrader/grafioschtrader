@@ -8,7 +8,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 
 export abstract class TransactionBaseOperations {

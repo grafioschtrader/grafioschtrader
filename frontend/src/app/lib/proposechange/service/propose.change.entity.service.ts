@@ -6,7 +6,7 @@ import {catchError} from 'rxjs/operators';
 import {AuthServiceWithLogout} from '../../../shared/login/service/base.auth.service.with.logout';
 import {MessageToastService} from '../../../shared/message/message.toast.service';
 import {HttpClient} from '@angular/common/http';
-import {ProposeChangeEntityWithEntity} from '../../../entities/proposechange/propose.change.entity.whit.entity';
+import {ProposeChangeEntityWithEntity} from '../model/propose.change.entity.whit.entity';
 import {DeleteService} from '../../../shared/datashowbase/delete.service';
 import {LoginService} from '../../../shared/login/service/log-in.service';
 

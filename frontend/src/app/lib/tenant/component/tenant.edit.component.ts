@@ -5,7 +5,7 @@ import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 
 import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../../../shared/helper/app.helper';
+import {AppHelper} from '../../helper/app.helper';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {CallParam} from '../../../shared/maintree/types/dialog.visible';
 import {InfoLevelType} from '../../../shared/message/info.leve.type';
@@ -14,8 +14,8 @@ import {TenantService} from '../service/tenant.service';
 import {Tenant} from '../../../entities/tenant';
 import {FormConfig} from '../../../dynamic-form/models/form.config';
 import {HelpIds} from '../../../shared/help/help.ids';
-import {DynamicFieldHelper} from '../../../shared/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {BusinessHelper} from '../../../shared/helper/business.helper';
 import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 

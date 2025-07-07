@@ -6,19 +6,19 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AlgoStrategyService} from '../service/algo.strategy.service';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {AlgoCallParam} from '../model/algo.dialog.visible';
 import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
 import {Subscription} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {BaseParam} from '../../entities/view/base.param';
+import {BaseParam} from '../../lib/entities/base.param';
 import {AppSettings} from '../../shared/app.settings';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
-import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
+import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 import {AlgoSecurity} from '../model/algo.security';
 import {AlgoLevelType} from '../model/algo.top';
 

@@ -5,7 +5,7 @@ import {MenuGroup, MenuItemGroup} from '../component/menu.item.group';
 import {AppSettings} from '../../app.settings';
 import {Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {MenuItem} from 'primeng/api';
 
 /**

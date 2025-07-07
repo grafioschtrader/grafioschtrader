@@ -16,7 +16,7 @@ import {FilterService, MenuItem} from 'primeng/api';
 import {ProcessedActionData} from '../../../shared/types/processed.action.data';
 import {AppSettings} from '../../../shared/app.settings';
 import {ProcessedAction} from '../../../shared/types/processed.action';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {IdsAccounts} from '../model/ids.accounts';
 
 /**

@@ -3,19 +3,19 @@ import {Directive, Input, OnInit, ViewChild} from '@angular/core';
 import {FormConfig} from '../../dynamic-form/models/form.config';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {AssetclassType} from '../../shared/types/assetclass.type';
-import {atLeastOneFieldValidator} from '../../shared/validator/validator';
+import {atLeastOneFieldValidator} from '../../lib/validator/validator';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {Security} from '../../entities/security';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../shared/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../lib/helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SupplementCriteria} from '../model/supplement.criteria';
 import {AppSettings} from '../../shared/app.settings';
@@ -39,7 +39,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   readonly secondGroup = 'G2';
 
   config: FieldConfig[] = [];
-  configObject: { [name: string]: FieldConfig };
+  configObject: { [nameKey: string]: FieldConfig };
   formConfig: FormConfig;
   private monitor: boolean;
 
@@ -59,7 +59,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
 
     this.config = [
       DynamicFieldHelper.createFieldInputStringVSHeqF('isin', 12, false,
-        [VALIDATION_SPECIAL.ISIN], {userDefinedValue: this.firstGroup}),
+        ['ISIN'], {userDefinedValue: this.firstGroup}),
       DynamicFieldHelper.createFieldCheckboxHeqF('withHoldings',
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldInputStringHeqF('name', 80, false,
