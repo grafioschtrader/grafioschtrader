@@ -15,11 +15,11 @@ import {ColumnGroupConfig} from '../../shared/datashowbase/column.config';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {plainToInstance} from 'class-transformer';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {SecurityIdWithCurrency} from './security-historyquote-quality-table.component';
 
 /**

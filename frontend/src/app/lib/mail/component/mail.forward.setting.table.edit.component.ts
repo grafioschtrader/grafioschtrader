@@ -18,9 +18,9 @@ import {
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../../shared/datashowbase/column.config';
 import {TableEditConfigBase} from '../../../shared/datashowbase/table.edit.config.base';
-import {SelectOptionsHelper} from '../../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
-import {AppHelper} from '../../../shared/helper/app.helper';
+import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
+import {AppHelper} from '../../helper/app.helper';
 import {InfoLevelType} from '../../../shared/message/info.leve.type';
 import {MessageToastService} from '../../../shared/message/message.toast.service';
 

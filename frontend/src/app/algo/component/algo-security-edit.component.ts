@@ -5,16 +5,16 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {AlgoSecurityService} from '../service/algo.security.service';
 import {AlgoAssetclass} from '../model/algo.assetclass';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.edit';
 import {combineLatest, Observable} from 'rxjs';
 import {Portfolio} from '../../entities/portfolio';
 import {Security} from '../../entities/security';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 

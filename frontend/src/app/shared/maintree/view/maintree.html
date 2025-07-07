@@ -23,28 +23,3 @@
     </button>
   </p-footer>
 </p-confirmDialog>
-
-<!--
-<tenant-edit-dialog (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvTenant]"
-                    [callParam]="callParam"
-                    [onlyCurrency]="onlyCurrency"
-                    [visibleTenantDialog]="visibleDialogs[DialogVisible.DvTenant]">
-</tenant-edit-dialog>
--->
-<!--
-<portfolio-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvPortfolio]"
-                [visibleDialog]="visibleDialogs[DialogVisible.DvPortfolio]">
-</portfolio-edit>
--->
-<securityaccount-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvSecurityaccount]"
-                      [callParam]="callParam"
-                      [visibleDialog]="visibleDialogs[DialogVisible.DvSecurityaccount]">
-</securityaccount-edit>
-<watchlist-edit (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvWatchlist]"
-                [callParam]="callParam"
-                [visibleDialog]="visibleDialogs[DialogVisible.DvWatchlist]">
-</watchlist-edit>
-<algo-rule-strategy-create (closeDialog)="handleOnProcessedDialog($event)" *ngIf="visibleDialogs[DialogVisible.DvAlgoRuleStrategy]"
-                           [callParam]="callParam"
-                           [visibleDialog]="visibleDialogs[DialogVisible.DvAlgoRuleStrategy]">
-</algo-rule-strategy-create>

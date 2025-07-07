@@ -13,10 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.UserAccessHelper;
+import grafiosch.dto.ProposeChangeEntityWithEntity;
 import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.User;
 import grafiosch.types.ProposeDataChangeState;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceContext;
@@ -25,13 +25,13 @@ import jakarta.persistence.metamodel.EntityType;
 /**
  * Implementation of custom repository operations for managing entity change proposals. This repository handles the
  * workflow of processing change requests for shared entities, including privilege-based access control, entity
- * state comparison, and proposal lifecycle management.</br>
+ * state comparison, and proposal lifecycle management.<br>
  * 
- * The implementation provides functionality for:</br>
- * - Retrieving open proposals based on user access privileges</br>
- * - Creating comparison views between current and proposed entity states</br>
- * - Cleaning up orphaned proposals where target entities no longer exist</br>
- * - Dynamic entity class resolution from proposal metadata</br>
+ * The implementation provides functionality for:<br>
+ * - Retrieving open proposals based on user access privileges<br>
+ * - Creating comparison views between current and proposed entity states<br>
+ * - Cleaning up orphaned proposals where target entities no longer exist<br>
+ * - Dynamic entity class resolution from proposal metadata<br>
  * 
  * Access control ensures that users with higher privileges can review all proposals, while regular users can only
  * access proposals for entities they own.
@@ -105,24 +105,6 @@ public class ProposeChangeEntityJpaRepositoryImpl extends ProposeRequestService<
         .orElseThrow(() -> new IllegalArgumentException("No entity found with name: " + entityName));
   }
 
-  @Schema(description = "Contains a change request for a shared entity")
-  public static class ProposeChangeEntityWithEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
-
-    @Schema(description = "Contains the proposal for changing the entity.")
-    public ProposeChangeEntity proposeChangeEntity;
-    @Schema(description = "The entity as it currently is")
-    public Object entity;
-    @Schema(description = "The entity as proposed, so this contains the changes")
-    public Object proposedEntity;
-
-    public ProposeChangeEntityWithEntity(ProposeChangeEntity proposeChangeEntity, Object entity,
-        Object proposedEntity) {
-      super();
-      this.proposeChangeEntity = proposeChangeEntity;
-      this.entity = entity;
-      this.proposedEntity = proposedEntity;
-    }
-  }
+  
 
 }

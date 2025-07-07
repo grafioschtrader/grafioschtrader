@@ -87,9 +87,9 @@ import {
 import {SecurityEditComponent} from './securitycurrency/component/security-edit.component';
 import {CurrencypairEditComponent} from './securitycurrency/component/currencypair-edit.component';
 import {WatchlistAddInstrumentComponent} from './watchlist/component/watchlist-add-instrument.component';
-import {WatchlistEditComponent} from './watchlist/component/watchlist-edit.component';
+import {WatchlistEditDynamicComponent} from './watchlist/component/watchlist.edit.dynamic.component';
 import {TradingPlatformPlanEditComponent} from './tradingplatform/component/trading-platform-plan-edit.component';
-import {SecurityaccountEditComponent} from './securityaccount/component/securityaccount-edit.component';
+import {SecurityaccountEditDynamicComponent} from './securityaccount/component/securityaccount.edit.dynamic.component';
 import {StockexchangeEditComponent} from './stockexchange/component/stockexchange-edit.component';
 import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit.component';
 import {HistoryquoteEditComponent} from './historyquote/component/historyquote-edit.component';
@@ -175,7 +175,7 @@ import {AlgoSecurityEditComponent} from './algo/component/algo-security-edit.com
 import {AlgoSecurityService} from './algo/service/algo.security.service';
 import {AlgoStrategyEditComponent} from './algo/component/algo-strategy-edit.component';
 import {IndicatorEditComponent} from './historyquote/component/indicator-edit.component';
-import {AlgoRuleStrategyCreateComponent} from './algo/component/algo-rule-strategy-create.component';
+import {AlgoRuleStrategyCreateDynamicComponent} from './algo/component/algo.rule.strategy.create.component';
 import {
   TenantDividendSecurityAccountSelectionDialogComponent
 } from './lib/tenant/component/tenant-dividend-security-account-selection-dialog.component';
@@ -353,7 +353,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
 
 @NgModule({
   declarations: [
-    AlgoAssetclassEditComponent, AlgoRuleStrategyCreateComponent, AlgoRuleStrategyCreateWizardComponent, AlgoSecurityEditComponent,
+    AlgoAssetclassEditComponent, AlgoRuleStrategyCreateDynamicComponent, AlgoRuleStrategyCreateWizardComponent, AlgoSecurityEditComponent,
     AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent, ApplicationInfoComponent, AssetclassEditComponent,
     AssetclassTableComponent, CashaccountEditComponent, ChartGeneralPurposeComponent, ConnectorApiKeyEditComponent,
     ConnectorApiKeyTableComponent, CorrelationAddInstrumentComponent, CorrelationComponent, CorrelationSetAddInstrumentTableComponent,
@@ -370,7 +370,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     MessageToastComponent, NicknameLangEditComponent, PasswordEditComponent, PerformancePeriodComponent,
     PortfolioCashaccountSummaryComponent, PortfolioEditDynamicComponent, PortfolioTabMenuComponent, PortfolioTransactionTableComponent,
     ProposeChangeTabMenuComponent, RegisterComponent, RegistrationTokenVerifyComponent, ReplacePipe, RequestForYouTableComponent,
-    SecurityaccountEditComponent, SecurityaccountEmptyComponent, SecurityaccountImportExtendedInfoComponent,
+    SecurityaccountEditDynamicComponent, SecurityaccountEmptyComponent, SecurityaccountImportExtendedInfoComponent,
     SecurityaccountImportExtendedInfoFilenameComponent, SecurityaccountImportSetCashaccountComponent,
     SecurityaccountImportTransactionComponent, SecurityaccountImportTransactionEditHeadComponent,
     SecurityaccountImportTransactionTableComponent, SecurityaccountSummariesComponent, SecurityaccountSummaryComponent,
@@ -396,7 +396,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     UDFMetadataSecurityEditComponent, UDFMetadataSecurityTableComponent, UploadFileDialogComponent, UserChangeOwnerEntitiesComponent,
     UserEditComponent, UserEntityChangeLimitEditComponent, UserEntityChangeLimitTableComponent, UserTableComponent,
     WatchlistAddEditPriceProblemInstrumentComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
-    WatchlistDividendSplitFeedComponent, WatchlistDividendTableComponent, WatchlistEditComponent, WatchlistPerformanceComponent,
+    WatchlistDividendSplitFeedComponent, WatchlistDividendTableComponent, WatchlistEditDynamicComponent, WatchlistPerformanceComponent,
     WatchlistPriceFeedComponent, WatchlistSecuritysplitTableComponent, WatchlistTabMenuComponent, WatchlistUdfComponent,
     YourProposalTableComponent
   ],

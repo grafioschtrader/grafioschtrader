@@ -11,7 +11,7 @@ import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/t
 import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {TenantPortfolioSummary} from '../../lib/tenant/model/tenant.portfolio.summary';
 
 

@@ -5,11 +5,11 @@ import {MenuItem} from 'primeng/api';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {TradingCalendarBase} from './trading.calendar.base';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
-import {AuditHelper} from '../../shared/helper/audit.helper';
+import {AuditHelper} from '../../lib/helper/audit.helper';
 
 /**
  * Component for the  global trading calendar

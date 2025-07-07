@@ -5,13 +5,13 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {StockexchangeService} from '../service/stockexchange.service';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {HelpIds} from '../../shared/help/help.ids';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
-import {AuditHelper} from '../../shared/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../entities/proposechange/propose.change.entity.whit.entity';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../shared/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AuditHelper} from '../../lib/helper/audit.helper';
+import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {SecurityService} from '../../securitycurrency/service/security.service';
@@ -21,7 +21,7 @@ import {SpecialInvestmentInstruments} from '../../shared/types/special.investmen
 import {combineLatest, Subscription} from 'rxjs';
 import {Observable} from 'rxjs/internal/Observable';
 import {Security} from '../../entities/security';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {GroupItem} from '../../dynamic-form/models/value.key.html.select.options';

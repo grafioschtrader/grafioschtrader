@@ -3,6 +3,7 @@ package grafioschtrader.entities;
 import java.util.HashMap;
 import java.util.Map;
 
+import grafiosch.entities.BaseParam;
 import grafioschtrader.algo.rule.BuySellType;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CollectionTable;

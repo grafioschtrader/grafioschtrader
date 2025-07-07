@@ -17,7 +17,7 @@ import {catchError} from 'rxjs/operators';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencyLists} from '../../entities/view/securitycurrency.lists';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {AddSearchToListService} from '../component/add-instrument-table.component';
 
 @Injectable()

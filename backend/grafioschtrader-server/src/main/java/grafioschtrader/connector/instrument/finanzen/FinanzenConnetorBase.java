@@ -22,6 +22,7 @@ import grafioschtrader.connector.instrument.BaseFeedConnector;
 
 public abstract class FinanzenConnetorBase extends BaseFeedConnector {
 
+  protected static final String currencyIntraPrefix = "devisen/";
   private CookieManager cookieManager;
   private HttpClient client;
 

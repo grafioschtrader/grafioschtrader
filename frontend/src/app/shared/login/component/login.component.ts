@@ -5,8 +5,8 @@ import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../app.settings';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {FormBase} from '../../edit/form.base';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
@@ -15,8 +15,8 @@ import {HelpIds} from '../../help/help.ids';
 import {combineLatest} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
-import {AppHelper} from '../../helper/app.helper';
+import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
 
 /**

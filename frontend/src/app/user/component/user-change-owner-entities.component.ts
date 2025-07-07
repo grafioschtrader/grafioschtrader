@@ -6,11 +6,11 @@ import {MainDialogService} from '../../shared/mainmenubar/service/main.dialog.se
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {UserSettingsDialogs} from '../../shared/mainmenubar/component/main.dialog.component';
-import {AppHelper} from '../../shared/helper/app.helper';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {User} from '../../lib/entities/user';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {UserAdminService} from '../service/user.admin.service';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';

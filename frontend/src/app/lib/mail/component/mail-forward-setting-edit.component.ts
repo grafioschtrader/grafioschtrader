@@ -14,11 +14,11 @@ import {MessageToastService} from '../../../shared/message/message.toast.service
 import {HelpIds} from '../../../shared/help/help.ids';
 import {AppSettings} from '../../../shared/app.settings';
 import {MailSettingForwardService} from '../service/mail.setting.forward.service';
-import {AppHelper} from '../../../shared/helper/app.helper';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
-import {DynamicFieldHelper} from '../../../shared/helper/dynamic.field.helper';
+import {AppHelper} from '../../helper/app.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
-import {SelectOptionsHelper} from '../../../shared/helper/select.options.helper';
+import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {FormHelper} from '../../../dynamic-form/components/FormHelper';
 import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
 

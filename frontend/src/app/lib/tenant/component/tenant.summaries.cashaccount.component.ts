@@ -14,14 +14,15 @@ import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.m
 import {ColumnConfig, ColumnGroupConfig} from '../../../shared/datashowbase/column.config';
 import {TableConfigBase} from '../../../shared/datashowbase/table.config.base';
 import {AppSettings} from '../../../shared/app.settings';
-import {AppHelper} from '../../../shared/helper/app.helper';
+import {AppHelper} from '../../helper/app.helper';
 import {ChartDataService} from '../../../shared/chart/service/chart.data.service';
 import {PlotlyHelper} from '../../../shared/chart/plotly.helper';
 import {HelpIds} from '../../../shared/help/help.ids';
 import {TenantPortfolioSummary} from '../model/tenant.portfolio.summary';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
-import {SelectOptionsHelper} from '../../../shared/helper/select.options.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
+import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {FilterService, MenuItem, SelectItem} from 'primeng/api';
+import {BusinessHelper} from '../../../shared/helper/business.helper';
 
 
 /**
@@ -137,7 +138,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
         columnGroupConfigs: [new ColumnGroupConfig('groupValueMC'), new ColumnGroupConfig('grandValueMC')]
       }));
 
-    this.untilDate = AppHelper.getUntilDateBySessionStorage();
+    this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
 
     SelectOptionsHelper.createSelectItemForEnum(translateService, TenantPortfolioSummary, this.groupOptions);
   }
@@ -196,7 +197,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
   }
 
   ngOnDestroy(): void {
-    AppHelper.saveUntilDateInSessionStorage(this.untilDate);
+    BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
     this.activePanelService.destroyPanel(this);
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
     this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();

@@ -14,7 +14,7 @@ import {ConnectorApiKeyService} from '../service/connector.api.key.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {AuditHelper} from '../../shared/helper/audit.helper';
+import {AuditHelper} from '../../lib/helper/audit.helper';
 
 @Component({
     template: `

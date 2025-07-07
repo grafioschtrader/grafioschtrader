@@ -2,12 +2,12 @@ import {Component, Input, OnInit} from '@angular/core';
 import {HelpIds} from '../../shared/help/help.ids';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {TaEditParam, TaEditReturn} from './indicator.definitions';
 import {DynamicFieldSimpleEditBase} from '../../shared/edit/dynamic.field.simple.edit.base.directive';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 
 @Component({
     selector: 'indicator-edit',

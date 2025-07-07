@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import grafiosch.entities.BaseParam;
 import grafiosch.entities.TenantBaseID;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CollectionTable;

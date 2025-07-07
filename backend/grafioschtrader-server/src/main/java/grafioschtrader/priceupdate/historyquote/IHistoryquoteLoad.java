@@ -30,7 +30,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   List<S> catchAllUpSecuritycurrencyHistoryquote(List<Integer> idsStockexchange);
 
   /**
-   * It gets history quotes of a security or currency pair for certain time period and persist it.</br>
+   * It gets history quotes of a security or currency pair for certain time period and persist it.<br>
    * This operation may take a some time, because of that, the security or currency pair should not be changed from
    * another thread. The data is persisted.
    *

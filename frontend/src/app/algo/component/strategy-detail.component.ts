@@ -8,12 +8,12 @@ import {
   FieldDescriptorInputAndShow
 } from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {OptionalParams, TranslateValue} from '../../shared/datashowbase/column.config';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {DynamicFieldModelHelper} from '../../shared/helper/dynamic.field.model.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 
 /**
  * Displays the parameters of a selected strategy.

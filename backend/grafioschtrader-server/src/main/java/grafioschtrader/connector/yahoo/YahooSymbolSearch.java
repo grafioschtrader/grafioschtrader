@@ -76,7 +76,7 @@ public class YahooSymbolSearch {
    * It is possible that the entries for the return do not match the exchange location transferred. Therefore, passing
    * the check with the symbol and its suffix is also accepted. For example, the symbol NOVN returns “EBS” as the
    * exchange, but “SWX” would be expected. However, we also accept the symbol NOVN.SW when selecting the correct
-   * entry.</br>
+   * entry.<br>
    * https://de.hilfe.yahoo.com/kb/B%C3%B6rsen-und-Datenanbieter-auf-Yahoo-Finanzen-sln2310.html
    *
    * @param query             the search query string to send to Yahoo Finance (typically the company name or partial

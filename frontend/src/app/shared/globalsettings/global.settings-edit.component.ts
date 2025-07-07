@@ -9,10 +9,10 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {MessageToastService} from '../message/message.toast.service';
 import {HelpIds} from '../help/help.ids';
-import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {TranslateHelper} from '../helper/translate.helper';
-import {AppHelper} from '../helper/app.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../app.settings';
 
 @Component({

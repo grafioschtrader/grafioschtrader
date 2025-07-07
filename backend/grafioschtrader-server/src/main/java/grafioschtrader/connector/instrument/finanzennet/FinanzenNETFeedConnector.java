@@ -1,25 +1,26 @@
 package grafioschtrader.connector.instrument.finanzennet;
 
-import java.io.IOException;
+import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.connector.instrument.finanzen.FinanzenConnetorBase;
 import grafioschtrader.connector.instrument.finanzen.FinanzenHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
@@ -45,12 +46,16 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
 
   public static String domain = "https://www.finanzen.net/";
-//	private static String dateTimeFormatStr = "dd.MM.yyyy HH:mm:ss";
+  private static final List<Locale> CANDIDATE_LOCALES = Arrays.asList(Locale.GERMANY, Locale.US);
+
+  private static final Pattern THREE_NUMBER_PATTERN = Pattern
+      .compile("([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)");
+
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
+    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 
   public FinanzenNETFeedConnector() {
@@ -93,107 +98,62 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final Document doc = getDoc(getSecurityIntradayDownloadLink(security));
-
-    var sii = security.getAssetClass().getSpecialInvestmentInstrument();
-    String select = "div.pricebox table tr";
-    var assetClassType = security.getAssetClass().getCategoryType();
-    switch (sii) {
-    case CFD:
-    case DIRECT_INVESTMENT:
-      if (assetClassType == AssetclassType.FIXED_INCOME) {
-        select = "table.table--headline-first-col.table--content-right:contains(Kurszeit) tr";
-      } else if (assetClassType == AssetclassType.EQUITIES) {
-
-        select = "[data-sg-tab-region-content=0] table tr";
-      } else if (assetClassType == AssetclassType.COMMODITIES) {
-        select = "div.table-quotes table tr";
-      }
-      break;
-    case ETF:
-      select = "div#SnapshotQuoteData table tr";
-      break;
-    case MUTUAL_FUND:
-      select = "table.table--headline-first-col.table--content-right:contains(Kurszeit) tr";
-      break;
-    default:
-      // Do nothing
-    }
-    updateSecuritycurrency(doc.select(select), security);
+    updateSecuritycurrency(security, getSecurityIntradayDownloadLink(security));
   }
 
   @Override
   public int getIntradayDelayedSeconds() {
     return 900;
   }
+  
+  @Override
+  public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
+    return domain + currencyIntraPrefix + currencypair.getUrlIntraExtend();
+  }
+  
+  @Override
+  public void  updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
+    updateSecuritycurrency(currencypair, getCurrencypairIntradayDownloadLink(currencypair));
+  }
 
-  private void updateSecuritycurrency(Elements rows, Security security) throws IOException, ParseException {
 
-    for (final Element row : rows) {
-      final Elements cols = row.select("td,th");
-      String value = cols.get(1).text().strip();
-      switch (cols.get(0).text().strip()) {
-      case "Kurs":
-        String quote = value.replace('%', ' ');
-        quote = quote.substring(0, quote.indexOf(' '));
-        security.setSLast(FeedConnectorHelper.parseDoubleGE(quote));
-        security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
-        break;
+  public <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String url) throws Exception {
+    final Document doc = getDoc(url);
+    String rawTextContent = doc.select("div.snapshot__values").text();
+    String cleanedTextForRegex = rawTextContent.replaceAll("[A-Z]{3}", "").replace("%", "").replace(":", "")
+        .replace("±", "") .replace("+", "").replaceAll("\\s+", " ").trim();
+    Matcher matcher = THREE_NUMBER_PATTERN.matcher(cleanedTextForRegex);
+    if (matcher.find()) {
+      String lastPriceStr = matcher.group(1).trim();
+      String changeStr = matcher.group(2).trim();
+      String changePercentageStr = matcher.group(3).trim();
 
-      case "Eröffnung":
-      case "Eröffnungskurs":
-        if (!value.equals("-")) {
-          security.setSOpen(FeedConnectorHelper.parseDoubleGE(value));
+      ParseException lastParseException = null;
+      for (Locale locale : CANDIDATE_LOCALES) {
+        try {
+          NumberFormat format = NumberFormat.getInstance(locale);
+          format.setParseIntegerOnly(false);
+          securitycurrency.setSLast(format.parse(lastPriceStr).doubleValue());
+          securitycurrency.setSOpen(securitycurrency.getSLast() - format.parse(changeStr).doubleValue());
+          securitycurrency.setSChangePercentage(format.parse(changePercentageStr).doubleValue());
+          securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds()));
+          return;
+        } catch (ParseException e) {
+          lastParseException = e;
         }
-        break;
-      case "Volumen (Stück)":
-      case "Tagesvolumen (Stück)":
-      case "Tagesvolumen in Stück":
-        if (!value.equals("-") && !value.equals("n/a")) {
-          security.setSVolume(FeedConnectorHelper.parseLongGE(value));
-        }
-        break;
-
-      case "Eröffnung/Vortag":
-      case "Eröffnung / Vortag":
-        String[] openDayBefore = value.split(" / ");
-        if (openDayBefore.length == 1) {
-          openDayBefore = value.split(" ");
-        }
-        security.setSOpen(FeedConnectorHelper.parseDoubleGE(openDayBefore[0]));
-        security.setSPrevClose(FeedConnectorHelper.parseDoubleGE(openDayBefore[1]));
-        break;
-
-      case "Tageshoch/Tagestief":
-      case "Tageshoch / Tagestief":
-        String highLow[] = value.split(" / ");
-        if (!highLow[0].equals("-")) {
-          security.setSHigh(FeedConnectorHelper.parseDoubleGE(highLow[0]));
-          security.setSLow(FeedConnectorHelper.parseDoubleGE(highLow[1]));
-        }
-        break;
-      case "Tageshoch":
-        security.setSHigh(FeedConnectorHelper.parseDoubleGE(value));
-        break;
-
-      case "Tagestief":
-        security.setSLow(FeedConnectorHelper.parseDoubleGE(value));
-        break;
-
-      case "Vortag":
-      case "Schlusskurs Vortag":
-        security.setSPrevClose(FeedConnectorHelper.parseDoubleGE(value));
-        break;
-      /*
-       * case "Kurszeit": dateTimeValue = value.replace("[a-zA-Z]", "").strip(); break; case "Kursdatum": dateTimeValue
-       * = value + " " + dateTimeValue; break;
-       */
-
       }
-
+      // If we reach here, parsing failed for all locales
+      if (lastParseException != null) {
+        throw lastParseException;
+      } else {
+        // This case should ideally not be reached if matcher.find() was true,
+        // but added for completeness if no locale handles a valid pattern match.
+        throw new ParseException("Could not parse numbers with any of the candidate locales.", 0);
+      }
+    } else {
+      throw new ParseException("Could not find the three consecutive number pattern in the text: '" + cleanedTextForRegex + "'",
+          0);
     }
-    // security.setSTimestamp(dateTimeFormat.parse(dateTimeValue.strip()));
-
   }
 
 }

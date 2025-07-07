@@ -12,7 +12,7 @@ import {HoldingService} from '../../../shared/performanceperiod/service/holding.
 import {MissingQuotesWithSecurities} from '../model/missing.quotes.with.securities';
 import {Security} from '../../../entities/security';
 import moment from 'moment';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {Subscription} from 'rxjs';
 import {Router} from '@angular/router';
 import {TimeSeriesQuotesService} from '../../../historyquote/service/time.series.quotes.service';

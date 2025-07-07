@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {HelpIds} from '../../shared/help/help.ids';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -8,8 +8,8 @@ import {TranslateService} from '@ngx-translate/core';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
 import {ProcessedAction} from '../../shared/types/processed.action';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 
 
 @Component({

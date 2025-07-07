@@ -1,12 +1,12 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {FormBase} from '../../edit/form.base';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {FirstAndMissingTradingDays, HoldingService, PerformanceWindowDef, WeekYear} from '../service/holding.service';
 import {GlobalSessionNames} from '../../global.session.names';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
@@ -16,7 +16,7 @@ import {MenuItem} from 'primeng/api';
 import {Subscription} from 'rxjs';
 import moment from 'moment';
 import {Weekday} from '../../helper/weekday';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {PerformancePeriod, PeriodHoldingAndDiff} from '../model/performance.period';
 import {AppSettings} from '../../app.settings';
@@ -98,7 +98,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
         const fromDate = famtd.firstEverTradingDay > famtd.lastTradingDayOfLastYear
           ? famtd.firstEverTradingDay : famtd.lastTradingDayOfLastYear;
-        this.configObject.dateFrom.formControl.setValue(AppHelper.getDateFromSessionStorage(GlobalSessionNames.PERFORMANCE_DATE_FROM,
+        this.configObject.dateFrom.formControl.setValue(BusinessHelper.getDateFromSessionStorage(GlobalSessionNames.PERFORMANCE_DATE_FROM,
           new Date(fromDate)));
         this.configObject.dateTo.formControl.setValue(new Date(famtd.latestTradingDay));
         this.configObject.dateFrom.calendarConfig = {

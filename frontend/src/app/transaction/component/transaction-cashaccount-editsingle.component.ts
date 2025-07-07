@@ -8,23 +8,23 @@ import {ValidatorFn, Validators} from '@angular/forms';
 import {TransactionService} from '../service/transaction.service';
 import {TranslateService} from '@ngx-translate/core';
 import {Cashaccount} from '../../entities/cashaccount';
-import {gteWithMask, gteWithMaskIncludeNegative} from '../../shared/validator/validator';
+import {gteWithMask, gteWithMaskIncludeNegative} from '../../lib/validator/validator';
 import {Subscription} from 'rxjs';
 import {Transaction} from '../../entities/transaction';
 import {RuleEvent} from '../../dynamic-form/error/error.message.rules';
 import {TransactionCashaccountBaseOperations} from './transaction.cashaccount.base.operations';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {FormConfig} from '../../dynamic-form/models/form.config';
 import {InfoLevelType} from '../../shared/message/info.leve.type';
 import {MessageToastService} from '../../shared/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 
 /**

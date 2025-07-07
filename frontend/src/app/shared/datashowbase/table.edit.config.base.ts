@@ -5,9 +5,9 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {ColumnConfig, OptionalParams} from './column.config';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {AppHelper} from '../helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {Validators} from '@angular/forms';
-import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 
 export abstract class TableEditConfigBase extends TableConfigBase {
   protected constructor(filterService: FilterService,

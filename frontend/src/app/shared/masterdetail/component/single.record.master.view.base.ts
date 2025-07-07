@@ -8,7 +8,7 @@ import {Directive, ViewChild} from '@angular/core';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {Subscription} from 'rxjs';
 import {InfoLevelType} from '../../message/info.leve.type';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
@@ -17,7 +17,7 @@ import {BaseID} from '../../../lib/entities/base.id';
 import {CallParam} from '../../maintree/types/dialog.visible';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
-import {AuditHelper} from '../../helper/audit.helper';
+import {AuditHelper} from '../../../lib/helper/audit.helper';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {AppSettings} from '../../app.settings';
 

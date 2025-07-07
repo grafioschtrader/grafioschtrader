@@ -39,7 +39,7 @@ import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
 
 /**
- * Delete the user's data from this database and export his data for later import into his personal database.</br>
+ * Delete the user's data from this database and export his data for later import into his personal database.<br>
  *
  * <ul>
  * <li>hold_* tables are not exported they should rebuild with import</li>

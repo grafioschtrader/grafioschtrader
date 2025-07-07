@@ -6,7 +6,7 @@ import {User} from '../../../lib/entities/user';
 import {AppSettings} from '../../app.settings';
 import {MessageToastService} from '../../message/message.toast.service';
 import {Router} from '@angular/router';
-import {ChangePasswordDTO} from '../../../entities/backend/change.password.dto';
+import {ChangePasswordDTO} from '../model/change.password.dto';
 import {GlobalSessionNames} from '../../global.session.names';
 import {catchError} from 'rxjs/operators';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
@@ -15,7 +15,7 @@ import moment from 'moment';
 import {UserOwnProjection} from '../../../lib/entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
 import {ConfigurationWithLoginGT} from '../component/login.component';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {PrimeNG} from 'primeng/config';
 
 

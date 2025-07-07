@@ -5,7 +5,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
 import {Portfolio} from '../../entities/portfolio';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {GlobalSessionNames} from '../../shared/global.session.names';
 
 /**

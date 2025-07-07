@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {AppSettings} from '../../../shared/app.settings';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {TranslateHelper} from '../../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {MenuItem} from 'primeng/api';
 
 @Component({

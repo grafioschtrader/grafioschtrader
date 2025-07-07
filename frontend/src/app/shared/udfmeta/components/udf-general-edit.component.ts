@@ -5,7 +5,7 @@ import {UDFDataService} from '../service/udf.data.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {HelpIds} from '../../help/help.ids';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {UDFMetadataHelper} from './udf.metadata.helper';
 
 /**

@@ -4,7 +4,7 @@ import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {Security} from '../../entities/security';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 
 /**

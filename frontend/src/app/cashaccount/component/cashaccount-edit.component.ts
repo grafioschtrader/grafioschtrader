@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {CashaccountService} from '../service/cashaccount.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {Cashaccount} from '../../entities/cashaccount';
@@ -10,9 +10,9 @@ import {MessageToastService} from '../../shared/message/message.toast.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
-import {DynamicFieldHelper} from '../../shared/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../shared/helper/select.options.helper';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 

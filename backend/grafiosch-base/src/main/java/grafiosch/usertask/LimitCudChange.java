@@ -14,12 +14,12 @@ import jakarta.validation.constraints.Size;
  * 
  * Users with restricted roles may have daily limits on how many CUD operations they can perform on different entity
  * types. When they need to exceed these limits, they can submit a proposal using this model class, which administrators
- * can review and approve.</br>
+ * can review and approve.<br>
  * 
- * The class enforces validation constraints to ensure reasonable limit requests:</br>
- * - Entity names must be between 1-40 characters</br>
- * - Day limits must be between 1-99 operations</br>
- * - All fields are required (not null)</br>
+ * The class enforces validation constraints to ensure reasonable limit requests:<br>
+ * - Entity names must be between 1-40 characters<br>
+ * - Day limits must be between 1-99 operations<br>
+ * - All fields are required (not null)<br>
  */
 public class LimitCudChange {
 

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.UpdateQuery;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
+import grafioschtrader.dto.WatchlistSecurityStatus;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup.IUDFEntityValues;
 
@@ -41,20 +42,18 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Modifying
   int deleteByIdWatchlistAndIdTenant(Integer idWatchlist, Integer idTenant);
 
-  //@formatter:off
   /**
    * Retrieves each watchlist of the given tenant along with a flag indicating whether it contains any securities.
    *
    * @param idTenant the tenant ID whose watchlists are checked
-   * @return a list of Object[] where each array contains:
-   *         <ul>
-   *           <li>index 0: watchlist ID ({@code Integer})</li>
-   *           <li>index 1: has_security flag ({@code Integer}, 1 if non-empty, 0 otherwise)</li>
-   *         </ul>
+   * @return a list of WatchlistSecurityStatus where each contains:
+   * <ul>
+   * <li>idWatchlist: watchlist ID</li>
+   * <li>hasSecurity: true if watchlist contains securities, false otherwise</li>
+   * </ul>
    */
-  //@formatter:on
   @Query(nativeQuery = true)
-  List<Object[]> watchlistsOfTenantHasSecurity(Integer idTenant);
+  List<WatchlistSecurityStatus> watchlistsOfTenantHasSecurity(Integer idTenant);
 
   /**
    * Adds to the watchlist all securities and currency pairs whose intraday data has not been refreshed within the

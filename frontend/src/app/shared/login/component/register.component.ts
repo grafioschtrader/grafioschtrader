@@ -8,15 +8,15 @@ import {AppSettings} from '../../app.settings';
 import {User} from '../../../lib/entities/user';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {PasswordBaseComponent} from './password.base.component';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
 import {combineLatest} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
 
 /**
  * Shows the user register form.

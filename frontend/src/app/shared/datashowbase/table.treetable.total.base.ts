@@ -2,7 +2,7 @@ import {ShowRecordConfigBase} from './show.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {ColumnConfig, ColumnGroupConfig} from './column.config';
-import {AppHelper} from '../helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {Auditable} from '../../lib/entities/auditable';
 
 export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {

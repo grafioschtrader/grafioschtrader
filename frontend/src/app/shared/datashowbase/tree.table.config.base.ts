@@ -2,7 +2,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 import {TreeNode} from 'primeng/api';
-import {TranslateHelper} from '../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {AppSettings} from '../app.settings';
 
 export abstract class TreeTableConfigBase extends TableTreetableTotalBase {

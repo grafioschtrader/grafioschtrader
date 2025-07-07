@@ -8,7 +8,7 @@ import {AssetclassType} from '../../types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../../types/special.investment.instruments';
 import {Subscription} from 'rxjs';
 import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
 import {InputType} from '../../../dynamic-form/models/input.type';
 import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 

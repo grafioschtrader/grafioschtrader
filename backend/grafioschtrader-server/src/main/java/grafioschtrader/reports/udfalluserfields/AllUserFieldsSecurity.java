@@ -24,13 +24,13 @@ import grafioschtrader.repository.UDFMetadataSecurityJpaRepository;
  * 
  * The class serves as a foundation for concrete implementations that handle specific types of security UDF operations,
  * such as calculating derived values, updating field data, or generating reports based on security characteristics and
- * user-defined field configurations.</br>
+ * user-defined field configurations.<br>
  * 
- * Key responsibilities include:</br>
- * - Managing UDF data persistence for security entities at the system level (user ID 0)</br>
- * - Handling JSON-based field value storage and retrieval for watchlist contexts</br>
- * - Providing asset class and investment instrument matching for UDF applicability</br>
- * - Centralizing security UDF metadata access and validation</br>
+ * Key responsibilities include:<br>
+ * - Managing UDF data persistence for security entities at the system level (user ID 0)<br>
+ * - Handling JSON-based field value storage and retrieval for watchlist contexts<br>
+ * - Providing asset class and investment instrument matching for UDF applicability<br>
+ * - Centralizing security UDF metadata access and validation<br>
  * 
  * Subclasses typically implement specific business logic for different types of security UDF operations while
  * leveraging the common infrastructure provided by this base class.

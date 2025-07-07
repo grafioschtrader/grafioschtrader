@@ -1,8 +1,8 @@
 import {FormBase} from '../../edit/form.base';
 import {Component, OnInit} from '@angular/core';
-import {AppHelper} from '../../helper/app.helper';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
 import {TranslateService} from '@ngx-translate/core';

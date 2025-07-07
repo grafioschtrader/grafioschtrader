@@ -10,7 +10,7 @@ import {TransactionCallParam} from '../../transaction/component/transaction.call
 import {Portfolio} from '../../entities/portfolio';
 import {ProcessedAction} from '../../shared/types/processed.action';
 import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {AppHelper} from '../../shared/helper/app.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
@@ -26,7 +26,7 @@ import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
 import {ColumnConfig, ColumnGroupConfig} from '../../shared/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
-import {TranslateHelper} from '../../shared/helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {AppSettings} from '../../shared/app.settings';
@@ -118,7 +118,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'valueMC', 'TOTAL', true, false,
       {templateName: 'greenRed', width: 80, columnGroupConfigs: [new ColumnGroupConfig('groupValueMC')]}));
     this.multiSortMeta.push({field: 'cashaccount.name', order: 1});
-    this.untilDate = AppHelper.getUntilDateBySessionStorage();
+    this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
   }
 
   ngOnInit(): void {
@@ -130,7 +130,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   }
 
   ngOnDestroy(): void {
-    AppHelper.saveUntilDateInSessionStorage(this.untilDate);
+    BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
     this.activePanelService.destroyPanel(this);
     this.routeSubscribe.unsubscribe();
   }

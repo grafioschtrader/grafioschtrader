@@ -8,13 +8,13 @@ import {HelpIds} from '../../help/help.ids';
 import {AppSettings} from '../../app.settings';
 import {UDFMetadataGeneralService} from '../service/udf.metadata.general.service';
 import {GlobalSessionNames} from '../../global.session.names';
-import {AppHelper} from '../../helper/app.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
 import {UDFMetadataHelper} from './udf.metadata.helper';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../../helper/translate.helper';
 import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {Subscription} from 'rxjs';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
 import {UDFConfig} from '../../login/component/login.component';
 
 /**
